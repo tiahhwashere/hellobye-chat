@@ -120,6 +120,10 @@ html.has-session #chat-app:not(.active) { opacity: 0; } /* invisible until JS ac
 }
 @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
 
+/* Shake animation for wrong-code feedback */
+@keyframes shake { 0%,100% { transform: translateX(0); } 20%,60% { transform: translateX(-6px); } 40%,80% { transform: translateX(6px); } }
+.shake { animation: shake 0.4s ease; }
+
 .auth-container {
   display: flex; align-items: stretch; gap: 0;
   background: var(--bg-dark);
@@ -2992,7 +2996,7 @@ body.loading-session #chat-app.active::after {
           <span class="settings-v2-nav-icon" data-icon="shield"></span>
           <span class="settings-v2-nav-text">Data &amp; Privacy</span>
         </button>
-        <button class="settings-v2-nav-btn admin-tab" data-settings-tab="admin" id="admin-nav-btn" style="display:none;">
+        <button class="settings-v2-nav-btn admin-tab" data-settings-tab="admin" id="admin-nav-btn">
           <span class="settings-v2-nav-icon" data-icon="shield"></span>
           <span class="settings-v2-nav-text">Administrator</span>
         </button>
@@ -3196,12 +3200,18 @@ body.loading-session #chat-app.active::after {
         <section class="settings-v2-pane" data-settings-pane="admin">
           <div class="settings-v2-pane-head">
             <h4>Administrator Panel</h4>
-            <p>Manage users, roles, badges, bans and whitelist access.</p>
+            <p>Manage users, roles, badges, bans and whitelist access. <span style="font-size:11px; color:var(--text-muted);">Owner: <strong style="color:var(--text-secondary);">@lore</strong></span></p>
           </div>
           <div id="admin-access-denied" style="display:none; text-align:center; padding:40px 20px;">
-            <div style="font-size:48px; margin-bottom:12px;">🔒</div>
-            <h3 style="color:var(--danger); margin-bottom:8px;">Access Denied</h3>
-            <p style="color:var(--text-muted);">You do not have administrator privileges.</p>
+            <div style="font-size:48px; margin-bottom:12px;">🔐</div>
+            <h3 style="color:var(--accent); margin-bottom:8px;">Admin Code Required</h3>
+            <p style="color:var(--text-muted); margin-bottom:20px;">Enter the admin access code to unlock the Administrator Panel.<br><span style="font-size:11px;">Owner: <strong style="color:var(--text-secondary);">@lore</strong></span></p>
+            <div style="max-width:340px; margin:0 auto;">
+              <input type="password" id="admin-code-input" class="admin-input" placeholder="Enter access code..." autocomplete="off" style="width:100%; text-align:center; letter-spacing:2px; margin-bottom:10px;" />
+              <button class="setting-save-btn" id="admin-code-submit" style="width:100%;">Unlock Panel</button>
+              <p id="admin-code-error" style="color:var(--danger); font-size:12px; margin-top:10px; display:none;"></p>
+              <p style="color:var(--text-muted); font-size:11px; margin-top:14px;">Tip: press <kbd style="background:var(--bg-medium); border:1px solid var(--border); border-radius:4px; padding:1px 6px; font-family:monospace;">/</kbd> on PC as a shortcut.</p>
+            </div>
           </div>
           <div id="admin-panel-content" style="display:none;">
             <!-- Admin sub-tabs -->
@@ -3378,7 +3388,7 @@ body.loading-session #chat-app.active::after {
             <div class="admin-subpane" data-admin-subpane="whitelist">
               <div class="profile-section">
                 <div class="profile-section-title">Admin Whitelist</div>
-                <p style="color:var(--text-muted); font-size:12px; margin-bottom:12px;">Users on this list can access the Administrator panel. The owner always has access.</p>
+                <p style="color:var(--text-muted); font-size:12px; margin-bottom:12px;">Users on this list can access the Administrator panel. The owner, <strong style="color:var(--text-secondary);">@lore</strong>, always has access.</p>
                 <div class="admin-ban-search-row">
                   <input type="text" id="admin-whitelist-input" class="admin-input" placeholder="Enter username to add..." />
                   <button class="setting-save-btn" id="admin-whitelist-add-btn">Add to Whitelist</button>
@@ -4146,6 +4156,33 @@ function showAuth() {
   if (socket) { socket.disconnect(); socket = null; }
 }
 
+// Show a full-screen "You have been banned" overlay, then let the user
+// return to the login screen. Used when an admin bans the current user.
+function showBannedScreen(reason) {
+  if (socket) { try { socket.disconnect(); } catch (e) {} socket = null; }
+  let overlay = document.getElementById('banned-overlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'banned-overlay';
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.92);';
+    overlay.innerHTML = '<div style="text-align:center;max-width:420px;padding:40px 30px;background:var(--bg-medium);border:1px solid var(--danger);border-radius:16px;box-shadow:0 0 40px rgba(220,38,38,0.3);">'
+      + '<div style="font-size:56px;margin-bottom:16px;">🚫</div>'
+      + '<h2 style="color:var(--danger);margin:0 0 12px;">You Have Been Banned</h2>'
+      + '<p style="color:var(--text-secondary);font-size:14px;margin:0 0 8px;">Your account has been banned by an administrator.</p>'
+      + '<p id="banned-reason" style="color:var(--text-muted);font-size:13px;margin:0 0 24px;font-style:italic;"></p>'
+      + '<button id="banned-ok-btn" style="background:var(--danger);color:#fff;border:none;border-radius:8px;padding:10px 28px;font-size:14px;cursor:pointer;">OK</button>'
+      + '</div>';
+    document.body.appendChild(overlay);
+    overlay.querySelector('#banned-ok-btn').addEventListener('click', () => {
+      overlay.style.display = 'none';
+      showAuth();
+    });
+  }
+  const reasonEl = overlay.querySelector('#banned-reason');
+  if (reasonEl) reasonEl.textContent = 'Reason: ' + (reason || 'No reason provided');
+  overlay.style.display = 'flex';
+}
+
 // ---------- Auth Cooldown (10s) ----------
 let authCooldownTimers = {};
 function startAuthCooldown(type, seconds, btn, normalText) {
@@ -4182,6 +4219,20 @@ function connectSocket() {
       localStorage.removeItem('hellobye_sid');
       showAuth();
     }
+  });
+
+  // Banned by an admin — force logout immediately and show the ban reason.
+  socket.on('banned', (payload) => {
+    const reason = (payload && payload.reason) ? payload.reason : 'No reason provided';
+    sessionSocketId = null;
+    localStorage.removeItem('hellobye_sid');
+    // Close any open panels
+    const pp = $('profile-panel'); if (pp) pp.classList.remove('show');
+    // Show a clear ban message then return to the login screen
+    if (typeof toast === 'function') toast('You have been banned: ' + reason, 'error');
+    setTimeout(() => {
+      showBannedScreen(reason);
+    }, 300);
   });
 
   socket.on('new-message', (msg) => {
@@ -6036,6 +6087,29 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
+// `/` (slash) shortcut for PC users — opens Profile Settings → Admin tab.
+// Only triggers when NOT typing in an input/textarea/contenteditable so it
+// doesn't interfere with chat, DMs, or form fields.
+document.addEventListener('keydown', (e) => {
+  if (e.key !== '/' ) return;
+  // Ignore when focused on any editable field
+  const tag = (e.target && e.target.tagName) ? e.target.tagName.toLowerCase() : '';
+  if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
+  if (e.target && e.target.isContentEditable) return;
+  // Ignore if any modifier is held (so Ctrl+/ etc. stay available)
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
+  // Ignore if a modal/overlay that should capture input is open
+  if (!currentUser) return; // must be logged in
+  e.preventDefault();
+  // Open the profile settings panel and switch to the admin tab
+  openProfilePanel();
+  // Defer the tab switch until the panel is rendered
+  setTimeout(() => {
+    switchSettingsTab('admin');
+    checkAdminAccess();
+  }, 50);
+});
+
 function updateProfilePanel() {
   if (!currentUser) return;
   const u = users.find(x => x.username === currentUser.username) || currentUser;
@@ -6119,8 +6193,12 @@ function applyImageScaleTransform() {
   const e = pendingImageEdit;
   const scaleX = e.flip === 'horizontal' || e.flip === 'both' ? -1 : 1;
   const scaleY = e.flip === 'vertical' || e.flip === 'both' ? -1 : 1;
-  e.imgEl.style.transform = 'scale(' + (e.scale / 100) + ') rotate(' + e.rotation + 'deg) scaleX(' + scaleX + ') scaleY(' + scaleY + ')';
-  e.imgEl.style.objectPosition = e.offsetX + '% ' + e.offsetY + '%';
+  // Position: translate the image so X/Y always have a visible effect even
+  // when the image already covers the frame. (offsetX/offsetY are 0..100, 50=center.)
+  // We pan by up to ±25% of the frame dimension so the slider is always useful.
+  const tx = ((e.offsetX - 50) / 50) * 25;  // -25% .. +25% of frame width
+  const ty = ((e.offsetY - 50) / 50) * 25;  // -25% .. +25% of frame height
+  e.imgEl.style.transform = 'translate(' + tx + '%, ' + ty + '%) scale(' + (e.scale / 100) + ') rotate(' + e.rotation + 'deg) scaleX(' + scaleX + ') scaleY(' + scaleY + ')';
   e.imgEl.style.filter = 'brightness(' + e.brightness + '%)';
 }
 $('image-scale-range').addEventListener('input', (e) => {
@@ -6254,12 +6332,15 @@ async function renderTransformedImage(edit) {
   const drawW = baseW * (scale / 100);
   const drawH = baseH * (scale / 100);
 
-  // Position: offsetX/offsetY are 0..100 (50 = centered). Map to pixel offset.
-  // At 50 the image is centered. Moving away shifts the image within the frame.
-  const shiftRangeX = Math.max(0, drawW - outW) / 2;
-  const shiftRangeY = Math.max(0, drawH - outH) / 2;
-  const dx = (outW - drawW) / 2 - ((offsetX - 50) / 50) * shiftRangeX;
-  const dy = (outH - drawH) / 2 - ((offsetY - 50) / 50) * shiftRangeY;
+  // Position: offsetX/offsetY are 0..100 (50 = centered).
+  // Pan by up to ±25% of the frame dimension so the slider ALWAYS has an
+  // effect — even when the image already covers the frame (the old code used
+  // shiftRange = max(0, drawDim - outDim)/2 which was 0 for a covering image,
+  // making Position X/Y do nothing).
+  const panRangeX = outW * 0.25;
+  const panRangeY = outH * 0.25;
+  const dx = (outW - drawW) / 2 - ((offsetX - 50) / 50) * panRangeX;
+  const dy = (outH - drawH) / 2 - ((offsetY - 50) / 50) * panRangeY;
 
   ctx.save();
   // Rotate around the frame center.
@@ -6979,8 +7060,10 @@ function applyBgSettings(override) {
         img.style.width = '100%'; img.style.height = '100%';
         img.style.objectFit = 'cover';
         img.style.left = '0'; img.style.top = '0';
-        img.style.transform = 'scale(' + (scale / 100) + ')';
-        img.style.transformOrigin = posX + '% ' + posY + '%';
+        // Pan + scale: translate by up to ±10% of the viewport so Position X/Y
+        // always move the image, then scale from center.
+        img.style.transform = 'translate(' + ((posX - 50) * 0.2) + '%, ' + ((posY - 50) * 0.2) + '%) scale(' + (scale / 100) + ')';
+        img.style.transformOrigin = 'center';
       }
     }
     img.style.opacity = opacity;
@@ -7584,6 +7667,7 @@ let adminData = null;
 let adminBanTarget = null;
 let adminRoleTarget = null;
 let adminIsAdmin = false;
+let adminOwnerName = 'lore'; // always displayed as the panel owner
 
 // Badge icon URLs (served from /uploads/)
 const BADGE_ICONS = {
@@ -7631,44 +7715,84 @@ function getUserWithBadges(username) {
   return u || { username, role: 'user', badges: [] };
 }
 
-// Check admin access and show/hide the admin nav tab
+// Check admin access: the tab is always visible. If the user already has
+// admin access (owner OR previously code-unlocked this session), load the
+// panel directly. Otherwise show the code prompt.
 async function checkAdminAccess() {
+  const adminNavBtn = $('admin-nav-btn');
+  adminNavBtn.style.display = ''; // always show the tab
   try {
     const res = await fetch(API_BASE + '/api/admin/check', { headers: getAuthHeaders() });
     if (res.status === 401) { showAuth(); return; }
     const data = await res.json();
     adminIsAdmin = data.isAdmin;
-    const adminNavBtn = $('admin-nav-btn');
+    adminOwnerName = data.ownerName || 'lore';
     if (data.isAdmin) {
-      adminNavBtn.style.display = '';
+      // Already admin (owner or code-unlocked) — show the panel
       $('admin-access-denied').style.display = 'none';
       $('admin-panel-content').style.display = '';
       loadAdminData();
     } else {
-      adminNavBtn.style.display = 'none';
+      // Not yet unlocked — show the code prompt
       $('admin-access-denied').style.display = '';
       $('admin-panel-content').style.display = 'none';
+      const codeInput = $('admin-code-input');
+      if (codeInput) { codeInput.value = ''; codeInput.focus(); }
+      const errEl = $('admin-code-error');
+      if (errEl) errEl.style.display = 'none';
     }
   } catch (e) {
     console.error('Admin check error', e);
   }
 }
 
-// Check admin access on init (to show/hide tab without clicking)
+// Admin tab is always visible to every logged-in user now.
 async function initAdminTab() {
   if (!currentUser) return;
+  const adminNavBtn = $('admin-nav-btn');
+  if (adminNavBtn) adminNavBtn.style.display = '';
+}
+
+// Submit the admin access code. On success, unlock the panel and load data.
+// On failure, show a "you got it wrong" message.
+async function submitAdminCode() {
+  const codeInput = $('admin-code-input');
+  const errEl = $('admin-code-error');
+  const submitBtn = $('admin-code-submit');
+  if (!codeInput) return;
+  const code = codeInput.value.trim();
+  if (!code) { if (errEl) { errEl.textContent = 'Please enter a code.'; errEl.style.display = ''; } return; }
+  if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Checking...'; }
   try {
-    const res = await fetch(API_BASE + '/api/admin/check', { headers: getAuthHeaders() });
-    if (res.status === 401) return;
+    const res = await fetch(API_BASE + '/api/admin/unlock', {
+      method: 'POST',
+      headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code }),
+    });
     const data = await res.json();
-    adminIsAdmin = data.isAdmin;
-    const adminNavBtn = $('admin-nav-btn');
-    if (data.isAdmin) {
-      adminNavBtn.style.display = '';
+    if (res.ok && data.correct) {
+      adminIsAdmin = true;
+      if (data.ownerName) adminOwnerName = data.ownerName;
+      $('admin-access-denied').style.display = 'none';
+      $('admin-panel-content').style.display = '';
+      loadAdminData();
+      toast('Admin panel unlocked. Welcome!', 'success');
     } else {
-      adminNavBtn.style.display = 'none';
+      // Wrong code — tell the user they got it wrong
+      if (errEl) {
+        errEl.textContent = data.error || 'Wrong code. You have gotten it wrong — please try again.';
+        errEl.style.display = '';
+      }
+      codeInput.value = '';
+      codeInput.focus();
+      codeInput.classList.add('shake');
+      setTimeout(() => codeInput.classList.remove('shake'), 500);
     }
-  } catch (e) { /* ignore */ }
+  } catch (e) {
+    if (errEl) { errEl.textContent = 'Network error. Please try again.'; errEl.style.display = ''; }
+  } finally {
+    if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Unlock Panel'; }
+  }
 }
 
 // Load all admin data from the server
@@ -7812,18 +7936,19 @@ function renderAdminWhitelist() {
   const container = $('admin-whitelist-list');
   if (!container || !adminData) return;
   const whitelist = adminData.whitelist || [];
+  const ownerName = adminData.ownerName || adminOwnerName || 'lore';
+  // Try to find the owner user object for extra info, but always show @lore
   const ownerUser = (adminData.users || []).find(u => u.id === adminData.ownerId);
   if (whitelist.length === 0 && !ownerUser) {
-    container.innerHTML = '<p style="color:var(--text-muted); padding:12px 0;">Whitelist is empty. Only the owner has access.</p>';
+    container.innerHTML = '<div class="admin-whitelist-item"><span class="admin-whitelist-item-name">@' + escapeHtml(ownerName) + '</span><span class="owner-badge">OWNER</span></div>';
     return;
   }
   let html = '';
-  // Show owner first
-  if (ownerUser) {
-    html += '<div class="admin-whitelist-item"><span class="admin-whitelist-item-name">@' + escapeHtml(ownerUser.username) + '</span><span class="owner-badge">OWNER</span></div>';
-  }
+  // Always show @lore as the owner first
+  html += '<div class="admin-whitelist-item"><span class="admin-whitelist-item-name">@' + escapeHtml(ownerName) + '</span><span class="owner-badge">OWNER</span></div>';
   for (const un of whitelist) {
     if (ownerUser && un === ownerUser.username) continue;
+    if (un === ownerName) continue;
     html += '<div class="admin-whitelist-item"><span class="admin-whitelist-item-name">@' + escapeHtml(un) + '</span><button class="setting-save-btn danger-btn" style="padding:4px 10px; font-size:11px;" onclick="adminWhitelistRemove(\'' + escapeHtml(un) + '\')">Remove</button></div>';
   }
   container.innerHTML = html;
@@ -8339,6 +8464,15 @@ async function adminRemoveCooldownExempt(username) {
 
 // Wire up admin event listeners
 function initAdminEventListeners() {
+  // Admin code prompt (unlock the panel)
+  const adminCodeSubmit = $('admin-code-submit');
+  if (adminCodeSubmit) adminCodeSubmit.addEventListener('click', submitAdminCode);
+  const adminCodeInput = $('admin-code-input');
+  if (adminCodeInput) {
+    adminCodeInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); submitAdminCode(); }
+    });
+  }
   // Ban search
   const banSearchBtn = $('admin-ban-search-btn');
   if (banSearchBtn) {

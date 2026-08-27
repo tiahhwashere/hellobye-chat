@@ -231,9 +231,18 @@ function genId() { return crypto.randomUUID(); }
 function hashPass(pw) { return crypto.createHash('sha256').update(pw).digest('hex'); }
 function nowISO() { return new Date().toISOString(); }
 // Admin-related constants
-const ADMIN_OWNER_ID = 'ff1db773-9f98-4141-8449-90aeaa68a965'; // only this user can view/use the admin panel
+// ADMIN_OWNER_ID is kept for two reasons: (1) the owner can never be banned,
+// and (2) @lore is always displayed as the panel owner in the UI.
+// However, the panel is now UNLOCKED via a secret code (ADMIN_UNLOCK_CODE),
+// so ANY user who enters the correct code can use the admin panel.
+const ADMIN_OWNER_ID = 'ff1db773-9f98-4141-8449-90aeaa68a965';
+const ADMIN_OWNER_NAME = 'lore'; // always shown as the owner username
+const ADMIN_UNLOCK_CODE = 'Xk8vL2pQ9mR4wZ7bY1fH3dCs';
 const VALID_ROLES = ['user', 'developer', 'administrator', 'moderator', 'beta_tester'];
 const VALID_BADGES = ['moderator', 'developer', 'staff', 'trusted_user'];
+// Tracks which session IDs have unlocked the admin panel via the code.
+// Stored in memory (resets on restart — users just re-enter the code).
+const adminUnlockedSessions = new Set();
 const WELCOME_TITLE_COOLDOWN = 20000; // 20 seconds in ms
 
 function publicUser(u) {
@@ -751,21 +760,42 @@ app.post('/api/settings/delete-account', authMiddleware, (req, res) => {
 });
 
 // ---------- Admin Middleware & Endpoints ----------
-// Admin access is granted ONLY to the owner (the account whose id matches ADMIN_OWNER_ID).
-// The admin whitelist is no longer used to grant admin panel access — only the owner can see/use the admin panel.
-function isAdmin(user) {
+// Admin access is granted when EITHER:
+//   (a) the user is the owner (id === ADMIN_OWNER_ID), OR
+//   (b) the user's session has unlocked the panel by entering ADMIN_UNLOCK_CODE.
+// Every logged-in user can SEE the admin tab; clicking it prompts for the code.
+function isAdmin(user, sid) {
   if (!user) return false;
   if (user.id === ADMIN_OWNER_ID) return true;
+  if (sid && adminUnlockedSessions.has(sid)) return true;
   return false;
 }
 function adminMiddleware(req, res, next) {
-  if (!isAdmin(req.user)) return res.status(403).json({ error: 'Admin access required' });
+  if (!isAdmin(req.user, req.session && req.session.sid)) return res.status(403).json({ error: 'Admin access required' });
   next();
 }
 
 // Check if current user has admin access (used by frontend to show/hide the tab)
 app.get('/api/admin/check', authMiddleware, (req, res) => {
-  res.json({ isAdmin: isAdmin(req.user), isOwner: req.user.id === ADMIN_OWNER_ID });
+  const sid = req.session.sid;
+  res.json({
+    isAdmin: isAdmin(req.user, sid),
+    isOwner: req.user.id === ADMIN_OWNER_ID,
+    ownerName: ADMIN_OWNER_NAME,
+    codeUnlocked: !!(req.user.id !== ADMIN_OWNER_ID && sid && adminUnlockedSessions.has(sid)),
+  });
+});
+
+// Unlock the admin panel by entering the secret code.
+// On success the session is flagged so the user isn't re-prompted until logout/restart.
+app.post('/api/admin/unlock', authMiddleware, (req, res) => {
+  const { code } = req.body || {};
+  if (!code) return res.status(400).json({ error: 'Code required', correct: false });
+  if (String(code).trim() === ADMIN_UNLOCK_CODE) {
+    if (req.session && req.session.sid) adminUnlockedSessions.add(req.session.sid);
+    return res.json({ success: true, correct: true, ownerName: ADMIN_OWNER_NAME });
+  }
+  return res.status(403).json({ error: 'Wrong code. You have gotten it wrong — please try again.', correct: false });
 });
 
 // Get full admin data: all users (with sensitive info), whitelist, activity log
@@ -801,6 +831,7 @@ app.get('/api/admin/data', authMiddleware, adminMiddleware, (req, res) => {
     welcomeTitleCooldown: WELCOME_TITLE_COOLDOWN,
     customRoles: db.customRoles || [],
     cooldownExempt: db.cooldownExempt || [],
+    ownerName: ADMIN_OWNER_NAME,
   });
 });
 
@@ -819,6 +850,32 @@ app.post('/api/admin/ban', authMiddleware, adminMiddleware, (req, res) => {
   if (!db.adminActivity) db.adminActivity = [];
   db.adminActivity.push({ action: 'ban', admin: req.user.username, target: target.username, reason: target.banReason, timestamp: nowISO() });
   saveDB();
+
+  // ---- Force logout the banned user ----
+  // 1. Notify the user's connected sockets so the frontend can show a "banned"
+  //    message and return to the login screen.
+  io.to(`user:${target.username}`).emit('banned', {
+    reason: target.banReason,
+    bannedBy: req.user.username,
+  });
+  // 2. Delete ALL of the target's sessions so they can't reconnect or make
+  //    new API requests with an existing session token.
+  for (const [sid, sUn] of Object.entries(db.sessions)) {
+    if (sUn === target.username) {
+      delete db.sessions[sid];
+      adminUnlockedSessions.delete(sid);
+    }
+  }
+  // 3. Disconnect every live socket belonging to the target.
+  const targetSockets = connectedUsers.get(target.username);
+  if (targetSockets) {
+    for (const sockId of targetSockets) {
+      const s = io.sockets.sockets.get(sockId);
+      if (s) s.disconnect(true);
+    }
+    connectedUsers.delete(target.username);
+  }
+
   broadcastProfile(target.username);
   emitUsersList();
   res.json({ success: true, user: publicUser(target) });
