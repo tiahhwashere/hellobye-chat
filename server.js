@@ -342,6 +342,7 @@ function publicUser(u) {
     pronouns: u.pronouns || '',
     location: u.location || '',
     website: u.website || '',
+    panelColor: u.panelColor || null,
     hideLastSeen: !!u.hideLastSeen,
     lastSeen: u.lastSeen || nowISO(),
     showOnlineStatus: u.showOnlineStatus !== false,
@@ -462,6 +463,7 @@ app.post('/api/register', (req, res) => {
     bio: '',
     pronouns: '',
     status: 'online',
+    panelColor: null,
     hideLastSeen: false,
     showOnlineStatus: true,
     lastSeen: nowISO(),
@@ -593,11 +595,17 @@ app.post('/api/profile', authMiddleware, avatarUpload.single('image'), async (re
     return res.json({ success: true, avatar: u.avatar, banner: u.banner });
   }
   // JSON profile update
-  const { bio, hideLastSeen, pronouns, showOnlineStatus } = req.body || {};
+  const { bio, hideLastSeen, pronouns, showOnlineStatus, panelColor } = req.body || {};
   if (bio !== undefined) u.bio = String(bio).slice(0, 500);
   if (hideLastSeen !== undefined) u.hideLastSeen = !!hideLastSeen;
   if (pronouns !== undefined) u.pronouns = String(pronouns).slice(0, 50);
   if (showOnlineStatus !== undefined) u.showOnlineStatus = showOnlineStatus !== false;
+  // Panel Theme Color — store a validated hex color (or null to clear).
+  // This is what makes the color visible to OTHER users viewing the profile.
+  if (panelColor !== undefined) {
+    if (panelColor === null || panelColor === '') u.panelColor = null;
+    else if (/^#[0-9a-fA-F]{3,8}$/.test(String(panelColor))) u.panelColor = String(panelColor);
+  }
   saveDB();
   broadcastProfile(u.username);
   emitUsersList();
@@ -1519,6 +1527,7 @@ function broadcastProfile(username) {
     hideLastSeen: !!u.hideLastSeen,
     lastSeen: u.lastSeen,
     pronouns: u.pronouns,
+    panelColor: u.panelColor || null,
     showOnlineStatus: u.showOnlineStatus !== false,
     role: u.role || 'user',
     badges: u.badges || [],

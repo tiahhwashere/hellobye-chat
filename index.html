@@ -4067,6 +4067,21 @@ function escapeHtml(text) {
   div.textContent = text;
   return div.innerHTML;
 }
+// Render bio text with clickable links. URLs (http/https/www) become <a> tags
+// that open in a new tab (NOT embedded previews). Everything else is escaped.
+function linkifyBio(text) {
+  if (!text) return '';
+  const safe = escapeHtml(text);
+  // Match http(s)://... or www.... — stop at whitespace. Use a regex on the
+  // already-escaped string. Since escapeHtml turns & into &amp; etc., URLs
+  // remain intact (they don't contain those chars except & in query strings,
+  // which becomes &amp; — still a valid-looking token to linkify).
+  const urlRe = /(https?:\/\/[^\s<]+|www\.[^\s<]+)/gi;
+  return safe.replace(urlRe, (m) => {
+    const href = /^www\./i.test(m) ? 'https://' + m : m;
+    return '<a href="' + href + '" target="_blank" rel="noopener noreferrer" style="color:var(--accent);text-decoration:underline;word-break:break-all;">' + m + '</a>';
+  });
+}
 function formatTime(ts) {
   const d = new Date(ts);
   return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -4576,6 +4591,7 @@ function connectSocket() {
       if (data.displayName !== undefined) u.displayName = data.displayName;
       if (data.hideLastSeen !== undefined) u.hideLastSeen = data.hideLastSeen;
       if (data.pronouns !== undefined) u.pronouns = data.pronouns;
+      if (data.panelColor !== undefined) u.panelColor = data.panelColor;
       if (data.showOnlineStatus !== undefined) u.showOnlineStatus = data.showOnlineStatus;
       if (data.lastSeen !== undefined) u.lastSeen = data.lastSeen;
     }
@@ -4590,6 +4606,7 @@ function connectSocket() {
       if (data.displayName !== undefined) merge.displayName = data.displayName;
       if (data.hideLastSeen !== undefined) merge.hideLastSeen = data.hideLastSeen;
       if (data.pronouns !== undefined) merge.pronouns = data.pronouns;
+      if (data.panelColor !== undefined) merge.panelColor = data.panelColor;
       if (data.showOnlineStatus !== undefined) merge.showOnlineStatus = data.showOnlineStatus;
       if (data.lastSeen !== undefined) merge.lastSeen = data.lastSeen;
       currentUser = { ...currentUser, ...merge };
@@ -5246,6 +5263,8 @@ if ($('sidebar-toggle-btn')) $('sidebar-toggle-btn').addEventListener('click', (
   if (app) {
     app.classList.toggle('sidebar-collapsed');
     const isCollapsed = app.classList.contains('sidebar-collapsed');
+    // Persist the sidebar state so it survives refresh / exit / re-entry.
+    try { localStorage.setItem('hellobye_sidebar_collapsed', isCollapsed ? '1' : '0'); } catch(e) {}
     const btn = document.getElementById('sidebar-toggle-btn');
     if (btn) {
       btn.classList.toggle('collapsed', isCollapsed);
@@ -5258,6 +5277,26 @@ if ($('sidebar-toggle-btn')) $('sidebar-toggle-btn').addEventListener('click', (
 });
 
 // ---------- Enhanced Mobile / Touch Support ----------
+// Restore the persisted sidebar state on load so the open/closed preference
+// survives refresh and re-entry. This runs after the toggle handler is
+// registered above.
+(function restoreSidebarState() {
+  let saved;
+  try { saved = localStorage.getItem('hellobye_sidebar_collapsed'); } catch(e) { saved = null; }
+  if (saved === null) return; // never toggled before — leave default (open)
+  const app = document.getElementById('chat-app');
+  const btn = document.getElementById('sidebar-toggle-btn');
+  if (!app) return;
+  const wantCollapsed = saved === '1';
+  app.classList.toggle('sidebar-collapsed', wantCollapsed);
+  if (btn) {
+    btn.classList.toggle('collapsed', wantCollapsed);
+    btn.innerHTML = wantCollapsed
+      ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>'
+      : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>';
+    btn.title = wantCollapsed ? 'Show members list' : 'Hide members list';
+  }
+})();
 (function() {
   'use strict';
 
@@ -6778,7 +6817,6 @@ async function uploadProfileImage(file, type) {
   formData.append('image', file);
   formData.append('type', type);
   const applyBtn = $('image-scale-apply');
-  const prevText = applyBtn ? applyBtn.textContent : '';
   if (applyBtn) { applyBtn.disabled = true; applyBtn.textContent = 'Saving…'; }
   try {
     const res = await fetch(API_BASE + '/api/profile', { method: 'POST', body: formData });
@@ -6790,7 +6828,10 @@ async function uploadProfileImage(file, type) {
     updateProfilePanel(); updateSidebarSelf();
   } catch (err) { toast('Upload failed', 'error'); }
   finally {
-    if (applyBtn) { applyBtn.disabled = false; applyBtn.textContent = prevText || 'Apply'; }
+    // Always restore to 'Apply' (not prevText) — the click handler sets the
+    // button to 'Saving…' BEFORE calling this function, so prevText would be
+    // 'Saving…' and the button would stay stuck on 'Saving…' until a refresh.
+    if (applyBtn) { applyBtn.disabled = false; applyBtn.textContent = 'Apply'; }
   }
 }
 
@@ -6859,10 +6900,11 @@ async function saveProfileNow() {
   const hideLastSeen = $('hide-lastseen-toggle').checked;
   const pronouns = $('pronouns-input') ? $('pronouns-input').value.trim() : '';
   const showOnlineStatus = $('show-online-toggle') ? $('show-online-toggle').checked : true;
+  const panelColor = getProfileColor() || null;
   const btn = $('bio-save-btn');
   btn.disabled = true; btn.textContent = 'Saving...';
   try {
-    const res = await fetch(API_BASE + '/api/profile', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ bio, hideLastSeen, pronouns, showOnlineStatus }) });
+    const res = await fetch(API_BASE + '/api/profile', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ bio, hideLastSeen, pronouns, showOnlineStatus, panelColor }) });
     const data = await res.json();
     if (res.ok) {
       toast('Profile saved.', 'success');
@@ -6870,9 +6912,10 @@ async function saveProfileNow() {
       currentUser.hideLastSeen = hideLastSeen;
       currentUser.pronouns = pronouns;
       currentUser.showOnlineStatus = showOnlineStatus;
+      currentUser.panelColor = panelColor;
       // Update in users array
       const uIdx = users.findIndex(x => x.username === currentUser.username);
-      if (uIdx >= 0) { users[uIdx].bio = bio; users[uIdx].pronouns = pronouns; users[uIdx].showOnlineStatus = showOnlineStatus; }
+      if (uIdx >= 0) { users[uIdx].bio = bio; users[uIdx].pronouns = pronouns; users[uIdx].showOnlineStatus = showOnlineStatus; users[uIdx].panelColor = panelColor; }
       profileDirty = false;
       btn.disabled = false; btn.textContent = 'Save Changes';
       return true;
@@ -7163,8 +7206,57 @@ async function openProfileView(username) {
     $('profile-view-modal').classList.add('show');
   } catch(e) { toast('Failed to load profile', 'error'); }
 }
+// Apply the OTHER user's Panel Theme Color to the whole profile-view modal
+// so the chosen color is visible when viewing their profile. Text colors and
+// the X (close) button are explicitly preserved so only the panel background
+// changes.
+function applyProfileViewPanelColor(u) {
+  const modal = document.querySelector('.profile-view-modal');
+  if (!modal) return;
+  const color = (u && u.panelColor) ? u.panelColor : null;
+  // Reset any previously-applied inline styles first.
+  modal.style.removeProperty('background');
+  modal.style.removeProperty('border-color');
+  // Preserve text + X button: we tag elements so we can restore them if the
+  // color changes the inherited text color. The X close button keeps its own
+  // rgba(0,0,0,0.4) background + #fff color regardless.
+  const textEls = modal.querySelectorAll('h3, .profile-view-handle, .profile-view-id, .profile-view-status, .profile-view-bio, .profile-view-extra, .pv-extra-label, .pv-extra-value, .pv-status');
+  textEls.forEach(el => { el.style.removeProperty('color'); });
+  if (color) {
+    // Use the panel color as the modal background. To keep text readable on
+    // any color, we force the info-area text to a high-contrast color based
+    // on the luminance of the chosen color.
+    modal.style.setProperty('background', color, 'important');
+    modal.style.setProperty('border-color', color, 'important');
+    const { r, g, b } = hexToRgb(color);
+    // Relative luminance — decide black or white text for readability.
+    const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+    const textColor = lum > 0.6 ? '#1a1a1a' : '#ffffff';
+    const mutedColor = lum > 0.6 ? 'rgba(0,0,0,0.6)' : 'rgba(255,255,255,0.7)';
+    textEls.forEach(el => {
+      // Keep the @handle accent-colored (it's a brand color) but make the
+      // rest readable. We skip .profile-view-handle so it keeps var(--accent).
+      if (el.classList.contains('profile-view-handle')) return;
+      el.style.setProperty('color', textColor, 'important');
+    });
+    // Muted text (id, extra labels) uses the muted variant.
+    modal.querySelectorAll('.profile-view-id, .pv-extra-label, .profile-view-status').forEach(el => {
+      el.style.setProperty('color', mutedColor, 'important');
+    });
+    // The X close button keeps its own styling — explicitly preserve it.
+    const closeBtn = $('pv-close');
+    if (closeBtn) {
+      closeBtn.style.setProperty('background', 'rgba(0,0,0,0.4)', 'important');
+      closeBtn.style.setProperty('color', '#fff', 'important');
+    }
+  }
+}
+
 function renderProfileView(data) {
   const u = data.user;
+  // Apply the other user's Panel Theme Color to the whole modal (preserves
+  // text colors + X button).
+  applyProfileViewPanelColor(u);
   // Banner
   const bannerEl = $('pv-banner');
   if (u.banner) {
@@ -7209,7 +7301,7 @@ function renderProfileView(data) {
   // Status
   const st = u.status === 'offline' ? (u.hideLastSeen ? 'Offline' : 'Last seen ' + getRelativeLastSeen(u.lastSeen)) : getStatusText(u.status);
   $('pv-status').innerHTML = '<span class="status-dot ' + u.status + '"></span> ' + escapeHtml(st);
-  $('pv-bio').textContent = u.bio || 'No bio set.';
+  $('pv-bio').innerHTML = u.bio ? linkifyBio(u.bio) : 'No bio set.';
   // Extra info: pronouns, location, website, member since
   const extra = $('pv-extra');
   extra.innerHTML = '';
@@ -7420,6 +7512,29 @@ function getProfileColor() {
 function saveProfileColor(color) {
   if (color) localStorage.setItem(profileColorKey(), color);
   else localStorage.removeItem(profileColorKey());
+}
+// Sync the Panel Theme Color to the server so OTHER users see it when they
+// view this profile. This is debounced so dragging the color picker doesn't
+// spam the server. The server validates + broadcasts via broadcastProfile.
+let _profileColorSyncTimer = null;
+function syncProfileColorToServer(color) {
+  if (!currentUser || !currentUser.username) return;
+  if (_profileColorSyncTimer) clearTimeout(_profileColorSyncTimer);
+  _profileColorSyncTimer = setTimeout(async () => {
+    try {
+      const res = await fetch(API_BASE + '/api/profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ panelColor: color || null })
+      });
+      const data = await res.json();
+      if (res.ok && data.user) {
+        currentUser.panelColor = color || null;
+        const uIdx = users.findIndex(x => x.username === currentUser.username);
+        if (uIdx >= 0) users[uIdx].panelColor = color || null;
+      }
+    } catch (e) { /* non-fatal — color still applies locally */ }
+  }, 400);
 }
 
 // ---------- Background Application (uses an <img> element so GIFs animate) ----------
@@ -8108,6 +8223,7 @@ function initProfileAccentPresets() {
     el.addEventListener('click', () => {
       saveProfileColor(color);
       applyProfileColor();
+      syncProfileColorToServer(color);
       toast('Profile panel color changed.', 'success');
     });
     container.appendChild(el);
@@ -8117,12 +8233,14 @@ if ($('profile-accent-picker')) {
   $('profile-accent-picker').addEventListener('input', (e) => {
     saveProfileColor(e.target.value);
     applyProfileColor();
+    syncProfileColorToServer(e.target.value);
   });
 }
 if ($('profile-accent-revert')) {
   $('profile-accent-revert').addEventListener('click', () => {
     saveProfileColor(null);
     applyProfileColor();
+    syncProfileColorToServer(null);
     toast('Profile panel color reverted.', 'success');
   });
 }
