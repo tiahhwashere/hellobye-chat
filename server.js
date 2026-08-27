@@ -55,7 +55,7 @@ function genId() { return crypto.randomUUID(); }
 function hashPass(pw) { return crypto.createHash('sha256').update(pw).digest('hex'); }
 function nowISO() { return new Date().toISOString(); }
 // Admin-related constants
-const ADMIN_OWNER_ID = 'ed882d21-576f-4922-a60b-f437ea80d407';
+const ADMIN_OWNER_ID = '639d3359-6d5d-4e98-932b-35cb93131679'; // @lore — only this user can view/use the admin panel
 const VALID_ROLES = ['user', 'developer', 'administrator', 'moderator', 'beta_tester'];
 const VALID_BADGES = ['moderator', 'developer', 'staff', 'trusted_user'];
 const WELCOME_TITLE_COOLDOWN = 20000; // 20 seconds in ms
