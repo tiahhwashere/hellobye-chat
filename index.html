@@ -308,15 +308,34 @@ body.loading-session #chat-app.active::after {
    CHAT APP LAYOUT
    ============================================ */
 #chat-app { display: none; height: 100%; height: 100dvh; overflow: hidden; }
-#chat-app.active { display: grid; grid-template-columns: 300px 1fr; }
+#chat-app.active { display: grid; grid-template-columns: 300px 1fr; transition: grid-template-columns 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
 #chat-app.active.sidebar-collapsed { grid-template-columns: 0px 1fr; }
 #chat-app.active.sidebar-collapsed .sidebar { width: 0; border-right: none; }
-/* Sidebar open/close animation — animate the sidebar panel itself */
+/* Sidebar open/close animation — smooth slide + fade on the sidebar panel and its inner content */
 #chat-app.active .sidebar {
   overflow: hidden;
-  transition: width 0.28s cubic-bezier(0.4, 0, 0.2, 1),
-              opacity 0.2s ease,
-              border-right-width 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 0.22s ease,
+              border-right-width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+/* Inner content of the sidebar fades + slides slightly during collapse for a polished feel */
+#chat-app.active .sidebar > * {
+  transition: opacity 0.2s ease, transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+#chat-app.active.sidebar-collapsed .sidebar {
+  opacity: 0;
+  transform: translateX(-12px);
+  pointer-events: none;
+}
+#chat-app.active.sidebar-collapsed .sidebar > * {
+  opacity: 0;
+  transform: translateX(-20px);
+}
+/* When expanding, bring content back in with a slight stagger feel */
+#chat-app.active .sidebar {
+  opacity: 1;
+  transform: translateX(0);
 }
 
 /* Sidebar toggle button */
@@ -326,11 +345,14 @@ body.loading-session #chat-app.active::after {
   background: var(--bg-darker); border: 1px solid var(--border); border-right: none;
   color: var(--text-muted); cursor: pointer; z-index: 50;
   display: flex; align-items: center; justify-content: center;
-  transition: var(--transition); opacity: 0.6;
+  transition: opacity 0.2s ease, color 0.2s ease, background 0.2s ease, transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  opacity: 0.6;
 }
 .sidebar-toggle-btn:hover { opacity: 1; color: var(--accent); background: var(--bg-medium); }
-.sidebar-toggle-btn svg { width: 14px; height: 14px; }
-.chat-main { position: relative; }
+.sidebar-toggle-btn svg { width: 14px; height: 14px; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+/* Rotate the chevron icon as the sidebar collapses/expands for a polished toggle effect */
+.sidebar-toggle-btn.collapsed svg { transform: rotate(180deg); }
+.chat-main { position: relative; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
 
 /* ============================================
    SIDEBAR
@@ -2629,7 +2651,8 @@ body.loading-session #chat-app.active::after {
 
 
 </style>
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%23141618'/%3E%3Crect x='24' y='30' width='52' height='40' rx='10' fill='none' stroke='%234a9eff' stroke-width='5'/%3E%3Ccircle cx='42' cy='50' r='4' fill='%234a9eff'/%3E%3Ccircle cx='58' cy='50' r='4' fill='%234a9eff'/%3E%3C/svg%3E">
+  <link rel="icon" type="image/jpeg" href="/uploads/favicon.jpg">
+  <link rel="apple-touch-icon" href="/uploads/favicon.jpg">
 <script>
 // Early session check — runs before body renders to prevent auth screen flash on refresh.
 // If we have a session ID in localStorage, immediately flag the document so CSS hides
@@ -5153,6 +5176,7 @@ if ($('sidebar-toggle-btn')) $('sidebar-toggle-btn').addEventListener('click', (
     const isCollapsed = app.classList.contains('sidebar-collapsed');
     const btn = document.getElementById('sidebar-toggle-btn');
     if (btn) {
+      btn.classList.toggle('collapsed', isCollapsed);
       btn.innerHTML = isCollapsed
         ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>'
         : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>';
