@@ -41,11 +41,17 @@ async function readMeta(filePath) {
 }
 
 /**
- * Enhance an image/GIF file in place to 4K/HD quality.
+ * Enhance an image/GIF file in place to HD/4K quality.
  * @param {string} filePath absolute path to the uploaded file
+ * @param {object} [opts] optional settings
+ * @param {number} [opts.maxStatic] override the static-image longest-edge target (default 3840)
+ * @param {number} [opts.maxAnimated] override the animated-image longest-edge target (default 1080)
  * @returns {Promise<{enhanced:boolean, width:number, height:number, format:string, reason?:string}>}
  */
-async function enhanceUpload(filePath) {
+async function enhanceUpload(filePath, opts) {
+  opts = opts || {};
+  const staticTarget = opts.maxStatic || STATIC_TARGET;
+  const animatedTarget = opts.maxAnimated || ANIMATED_TARGET;
   if (!filePath || !fs.existsSync(filePath)) {
     return { enhanced: false, width: 0, height: 0, format: '', reason: 'file not found' };
   }
@@ -67,7 +73,7 @@ async function enhanceUpload(filePath) {
 
   const isAnimated = (meta.format === 'gif' || meta.format === 'webp') && (meta.pages || 1) > 1;
   const longestEdge = Math.max(meta.width || 0, (meta.pageHeight || meta.height) || 0);
-  const target = isAnimated ? ANIMATED_TARGET : STATIC_TARGET;
+  const target = isAnimated ? animatedTarget : staticTarget;
 
   // If the source is already at or above the target resolution, we still
   // run a light sharpen + maximum-quality re-encode to "HD-enhance" it,

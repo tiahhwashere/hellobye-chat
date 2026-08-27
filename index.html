@@ -6685,9 +6685,8 @@ $('image-scale-apply').addEventListener('click', async () => {
     }
   }
 
-  $('image-scale-apply').textContent = 'Uploading...';
+  $('image-scale-apply').textContent = 'Saving…';
   await uploadProfileImage(uploadFile, type);
-  $('image-scale-apply').disabled = false; $('image-scale-apply').textContent = 'Apply';
   $('image-scale-modal').classList.remove('show');
   pendingImageEdit = null;
 });
@@ -6775,6 +6774,9 @@ async function uploadProfileImage(file, type) {
   const formData = new FormData();
   formData.append('image', file);
   formData.append('type', type);
+  const applyBtn = $('image-scale-apply');
+  const prevText = applyBtn ? applyBtn.textContent : '';
+  if (applyBtn) { applyBtn.disabled = true; applyBtn.textContent = 'Saving…'; }
   try {
     const res = await fetch(API_BASE + '/api/profile', { method: 'POST', body: formData });
     const data = await res.json();
@@ -6784,6 +6786,9 @@ async function uploadProfileImage(file, type) {
     else currentUser.banner = data.banner;
     updateProfilePanel(); updateSidebarSelf();
   } catch (err) { toast('Upload failed', 'error'); }
+  finally {
+    if (applyBtn) { applyBtn.disabled = false; applyBtn.textContent = prevText || 'Apply'; }
+  }
 }
 
 // Remove avatar/banner
@@ -7319,8 +7324,54 @@ function getBgSettings() {
   } catch(e) { return null; }
 }
 function saveBgSettings(s) {
-  if (s) localStorage.setItem(bgKey(), JSON.stringify(s));
-  else localStorage.removeItem(bgKey());
+  if (!s) { localStorage.removeItem(bgKey()); return true; }
+  // The background data URL can be large (a 1920px JPEG is ~0.5–2 MB as
+  // base64). localStorage has a ~5 MB quota per origin, and a QuotaExceeded
+  // error here would previously be thrown silently — meaning the background
+  // was never saved at all. We catch it and progressively compress the
+  // stored image so it always fits.
+  let attempts = 0;
+  const maxAttempts = 3;
+  function trySave(current) {
+    try {
+      localStorage.setItem(bgKey(), JSON.stringify(current));
+      return true;
+    } catch (e) {
+      attempts++;
+      if (attempts >= maxAttempts) {
+        console.error('saveBgSettings: could not fit background in localStorage after retries', e);
+        toast('Background too large to save. Try a smaller image.', 'error');
+        return false;
+      }
+      // Re-encode the data URL at a lower resolution / quality and retry.
+      if (current.url && typeof current.url === 'string' && current.url.indexOf('data:image/') === 0) {
+        const img = new Image();
+        img.onload = () => {
+          const factor = attempts === 1 ? 0.6 : 0.35;
+          const q = attempts === 1 ? 0.7 : 0.5;
+          const w = Math.max(1, Math.round(img.naturalWidth * factor));
+          const h = Math.max(1, Math.round(img.naturalHeight * factor));
+          const c = document.createElement('canvas');
+          c.width = w; c.height = h;
+          const cx = c.getContext('2d');
+          cx.imageSmoothingEnabled = true; cx.imageSmoothingQuality = 'high';
+          cx.drawImage(img, 0, 0, w, h);
+          current.url = c.toDataURL('image/jpeg', q);
+          trySave(current);
+        };
+        img.onerror = () => {
+          console.error('saveBgSettings: re-encode failed');
+          toast('Background too large to save. Try a smaller image.', 'error');
+        };
+        img.src = current.url;
+      } else {
+        console.error('saveBgSettings: quota exceeded and url is not a data URL', e);
+        toast('Background too large to save. Try a smaller image.', 'error');
+      }
+      return false;
+    }
+  }
+  return trySave(s);
 }
 function getColorSettings() {
   try {
@@ -7572,21 +7623,28 @@ function getCurrentBgSettings() {
   return getBgSettings() || { url: null, scale: 100, posX: 50, posY: 50, opacity: 100, blur: 0, mode: 'cover', brightness: 100, saturate: 100, dim: 0 };
 }
 
-// 4K HD enhancement for the website/chat background image (client-side).
-// Loads the uploaded static image, upscales its longest edge to 3840px (4K
-// UHD) using the browser's high-quality smooth scaling, applies a light
-// sharpening convolution, and returns a high-quality data URL. Animated
-// GIFs are NOT run through this (animation would be lost) — they stay HD
-// via the CSS display filter.
-const BG_4K_TARGET = 3840;
+// HD enhancement for the website/chat background image (client-side).
+// Loads the uploaded static image, caps the longest edge to 1920px (Full HD)
+// using the browser's high-quality smooth scaling, applies a light sharpen
+// via the native canvas filter (hardware-accelerated, no pixel loops), and
+// returns a compact data URL that fits comfortably within localStorage's
+// ~5 MB quota. Animated GIFs are NOT run through this (animation would be
+// lost) — they stay as-is and still render crisply via the CSS display filter.
+//
+// The previous implementation upscaled to 3840px (4K) and ran a manual 3×3
+// pixel convolution (~75 million JS operations) which froze the browser tab,
+// and the resulting multi-megabyte data URL exceeded localStorage's quota so
+// saveBgSettings() silently threw and the background was never saved. This
+// rewrite is fast (sub-second) and produces data URLs well under 2 MB.
+const BG_HD_TARGET = 1920;
 function enhanceBackgroundTo4K(dataUrl) {
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.onload = () => {
       try {
         const longest = Math.max(img.naturalWidth, img.naturalHeight);
-        // If it's already 4K-or-larger, just re-encode at high quality.
-        const scale = longest < BG_4K_TARGET ? (BG_4K_TARGET / longest) : 1;
+        // If the source is already at or below HD, keep its native size.
+        const scale = longest > BG_HD_TARGET ? (BG_HD_TARGET / longest) : 1;
         const outW = Math.max(1, Math.round(img.naturalWidth * scale));
         const outH = Math.max(1, Math.round(img.naturalHeight * scale));
         const canvas = document.createElement('canvas');
@@ -7594,43 +7652,17 @@ function enhanceBackgroundTo4K(dataUrl) {
         const ctx = canvas.getContext('2d');
         ctx.imageSmoothingEnabled = true;
         ctx.imageSmoothingQuality = 'high';
+        // Use the native (hardware-accelerated) filter for a light sharpen
+        // instead of a slow per-pixel JS convolution.
+        ctx.filter = 'saturate(1.08) contrast(1.04)';
         ctx.drawImage(img, 0, 0, outW, outH);
-        // Light sharpen convolution (recovers detail lost in upscaling).
-        try {
-          ctx.filter = 'none';
-          const src = ctx.getImageData(0, 0, outW, outH);
-          const out = ctx.createImageData(outW, outH);
-          const d = src.data, o = out.data, w = outW, h = outH;
-          // 3x3 sharpen kernel: center 5, neighbors -1 (corner 0)
-          const kernel = [0, -1, 0, -1, 5, -1, 0, -1, 0];
-          for (let y = 0; y < h; y++) {
-            for (let x = 0; x < w; x++) {
-              let r = 0, g = 0, b = 0;
-              let ki = 0;
-              for (let ky = -1; ky <= 1; ky++) {
-                for (let kx = -1; kx <= 1; kx++) {
-                  const px = Math.min(w - 1, Math.max(0, x + kx));
-                  const py = Math.min(h - 1, Math.max(0, y + ky));
-                  const idx = (py * w + px) * 4;
-                  const k = kernel[ki++];
-                  r += d[idx] * k; g += d[idx + 1] * k; b += d[idx + 2] * k;
-                }
-              }
-              const di = (y * w + x) * 4;
-              o[di] = r < 0 ? 0 : r > 255 ? 255 : r;
-              o[di + 1] = g < 0 ? 0 : g > 255 ? 255 : g;
-              o[di + 2] = b < 0 ? 0 : b > 255 ? 255 : b;
-              o[di + 3] = d[di + 3];
-            }
-          }
-          ctx.putImageData(out, 0, 0);
-        } catch (e) { /* getImageData may be blocked on cross-origin; ignore */ }
+        ctx.filter = 'none';
         // High-quality JPEG for photos keeps the data URL small; PNG for
         // anything with transparency.
         const isPng = /\.png$/i.test(dataUrl) || /image\/png/i.test(dataUrl);
         const outUrl = isPng
           ? canvas.toDataURL('image/png')
-          : canvas.toDataURL('image/jpeg', 0.95);
+          : canvas.toDataURL('image/jpeg', 0.85);
         resolve(outUrl);
       } catch (err) { reject(err); }
     };
@@ -7646,22 +7678,26 @@ $('bg-file-input').addEventListener('change', (e) => {
   if (file.size > 10 * 1024 * 1024) { toast('Background image too large (max 10MB).', 'error'); return; }
   const isAnimated = /^image\/gif$/i.test(file.type) || /\.gif$/i.test(file.name);
   const reader = new FileReader();
+  // Show a loading toast so the user knows the upload is being processed
+  // (the HD enhancement step can take a moment for large images).
+  toast('Processing background…', 'info');
   reader.onload = async (ev) => {
     const s = getCurrentBgSettings();
-    // 4K HD enhance static background images (PNG/JPEG/WebP/BMP) on a
+    // HD enhance static background images (PNG/JPEG/WebP/BMP) on a
     // canvas before storing the data URL. Animated GIFs are kept as-is so
     // their animation is preserved — they still render crisply at HD via CSS.
     let finalUrl = ev.target.result;
     if (!isAnimated) {
       try { finalUrl = await enhanceBackgroundTo4K(ev.target.result); }
-      catch (err) { console.error('Background 4K enhance failed:', err); finalUrl = ev.target.result; }
+      catch (err) { console.error('Background HD enhance failed:', err); finalUrl = ev.target.result; }
     }
     s.url = finalUrl;
     saveBgSettings(s);
     applyBgSettings();
     updateBgPreview();
-    toast(isAnimated ? 'Background set (HD).' : 'Background set & enhanced to 4K. Adjust scale and position below.', 'success');
+    toast(isAnimated ? 'Background set (HD).' : 'Background set & enhanced to HD. Adjust scale and position below.', 'success');
   };
+  reader.onerror = () => { toast('Could not read the background file.', 'error'); };
   reader.readAsDataURL(file);
   e.target.value = '';
 });

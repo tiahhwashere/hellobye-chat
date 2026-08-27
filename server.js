@@ -527,9 +527,17 @@ app.post('/api/profile', authMiddleware, avatarUpload.single('image'), async (re
   if (req.file) {
     // Image upload (avatar or banner)
     const type = req.body.type || 'avatar';
-    // 4K/HD enhance the uploaded image in place (best-effort; failures
+    // HD enhance the uploaded image in place (best-effort; failures
     // fall back to the original file so uploads never break).
-    try { await enhanceUpload(path.join(UPLOAD_DIR, req.file.filename)); }
+    // Profile avatars and banners are displayed at modest sizes, so we
+    // cap the enhancement target well below 4K — this makes sharp's
+    // Lanczos3 + sharpen pass finish in a fraction of a second instead
+    // of blocking the response for several seconds (which caused the
+    // noticeable lag/delay on upload). Avatars: 512px, Banners: 1536px.
+    const enhanceOpts = type === 'banner'
+      ? { maxStatic: 1536, maxAnimated: 720 }
+      : { maxStatic: 512, maxAnimated: 480 };
+    try { await enhanceUpload(path.join(UPLOAD_DIR, req.file.filename), enhanceOpts); }
     catch (e) { console.error('[profile] enhance error:', e.message); }
     const url = '/uploads/' + req.file.filename;
     if (type === 'banner') {
