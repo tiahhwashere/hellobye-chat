@@ -82,8 +82,10 @@ a { color: var(--accent); }
    ============================================ */
 .modal-overlay, .slide-panel, .messages-container, .chat-main,
 .custom-bg-img, #custom-bg-layer, .toast, .modal, .settings-modal {
-  will-change: transform, opacity;
+  will-change: opacity;
 }
+#custom-bg-layer { contain: strict; }
+.custom-bg-img { will-change: opacity; image-rendering: auto; -webkit-user-select: none; user-select: none; }
 .messages-container { will-change: transform; contain: layout style; }
 .message { contain: layout style; }
 /* Backdrop-filter is expensive — only enable when panel is shown */
@@ -811,16 +813,17 @@ body.loading-session #chat-app.active::after {
 .attach-btn svg { width: 20px; height: 20px; }
 .attach-btn.active { background: var(--accent-dim); color: var(--accent); }
 
-/* Attach dropdown menu */
+/* Attach dropdown menu — positioned directly above the attach button */
 .attach-dropdown {
-  position: absolute; bottom: 52px; left: 0; z-index: 1000;
+  position: absolute; bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%) translateY(8px) scale(0.96); z-index: 1000;
   background: var(--bg-secondary); border: 1px solid var(--border-color);
   border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.4);
-  min-width: 200px; padding: 6px; overflow: hidden;
-  opacity: 0; transform: translateY(8px) scale(0.96); pointer-events: none;
+  min-width: 220px; padding: 6px; overflow: hidden;
+  opacity: 0; pointer-events: none;
   transition: opacity 0.15s, transform 0.15s;
+  white-space: nowrap;
 }
-.attach-dropdown.show { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
+.attach-dropdown.show { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); pointer-events: auto; }
 .attach-dropdown-item {
   display: flex; align-items: center; gap: 12px;
   padding: 10px 12px; border-radius: 8px; cursor: pointer;
@@ -1666,23 +1669,24 @@ body.loading-session #chat-app.active::after {
   overflow: hidden; position: relative;
 }
 .custom-bg-preview img { max-width: 100%; max-height: 100%; object-fit: contain; }
-.custom-bg-scale-controls { display: grid; gap: 8px; }
+.custom-bg-scale-controls { display: grid; gap: 10px; }
 .custom-slider-label { font-size: 12px; color: var(--text-secondary); display: flex; justify-content: space-between; align-items: center; }
-/* Fit Mode select — styled to match the rest of the panel */
-.custom-bg-scale-controls select.form-input {
-  background: var(--bg-light); color: var(--text-primary);
-  border: 1px solid var(--border); border-radius: var(--radius-sm);
-  padding: 6px 28px 6px 10px; font-size: 12px; font-weight: 600;
-  cursor: pointer; outline: none; transition: var(--transition);
-  -webkit-appearance: none; appearance: none;
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path fill='%23888' d='M0 0l5 6 5-6z'/></svg>");
-  background-repeat: no-repeat; background-position: right 8px center;
+.custom-slider-label .slider-val { background: var(--accent-dim); color: var(--accent); padding: 1px 8px; border-radius: 8px; font-size: 11px; font-weight: 700; min-width: 36px; text-align: center; }
+.bg-control-group { background: var(--bg-darkest); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; display: grid; gap: 8px; }
+.bg-control-group-title { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-muted); margin-bottom: 2px; }
+/* Fit Mode segmented control — modern button group */
+.bg-fit-segmented { display: flex; gap: 4px; background: var(--bg-darkest); border: 1px solid var(--border); border-radius: 10px; padding: 4px; }
+.bg-fit-segmented button {
+  flex: 1; padding: 8px 6px; border: none; border-radius: 7px; background: transparent;
+  color: var(--text-secondary); font-size: 11px; font-weight: 600; cursor: pointer;
+  transition: var(--transition); display: flex; flex-direction: column; align-items: center; gap: 4px;
 }
-.custom-bg-scale-controls select.form-input:hover { border-color: var(--accent); }
-.custom-bg-scale-controls select.form-input:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(74,158,255,0.15); }
-/* Fit Mode wrapper — label + select on one tidy row */
-.bg-fit-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 4px; }
-.bg-fit-row .custom-slider-label { margin: 0; }
+.bg-fit-segmented button svg { width: 18px; height: 18px; opacity: 0.7; }
+.bg-fit-segmented button:hover { background: var(--bg-medium); color: var(--text-primary); }
+.bg-fit-segmented button.active { background: var(--accent); color: #fff; box-shadow: 0 2px 8px rgba(74,158,255,0.3); }
+.bg-fit-segmented button.active svg { opacity: 1; }
+.custom-bg-quick-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.mini-btn { padding: 6px 12px; font-size: 11px; font-weight: 600; }
 .custom-range {
   width: 100%; height: 6px; -webkit-appearance: none; appearance: none;
   background: var(--bg-darkest); border-radius: 3px; outline: none; cursor: pointer;
@@ -2002,16 +2006,43 @@ body.loading-session #chat-app.active::after {
    ============================================ */
 .toast-container {
   position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
-  z-index: 400; display: flex; flex-direction: column; gap: 8px; align-items: center;
+  z-index: 400; display: flex; flex-direction: column-reverse; gap: 10px; align-items: center;
+  width: min(420px, 92vw); pointer-events: none;
 }
 .toast {
-  padding: 12px 22px; background: var(--bg-light); border: 1px solid var(--border-light);
-  border-radius: var(--radius-sm); color: var(--text-primary); font-size: 13px;
-  box-shadow: var(--shadow); animation: toastIn 0.25s ease;
+  pointer-events: auto;
+  padding: 12px 16px 12px 14px; background: var(--bg-light); border: 1px solid var(--border-light);
+  border-radius: 12px; color: var(--text-primary); font-size: 13px; font-weight: 500;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3); animation: toastIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex; align-items: center; gap: 10px; width: 100%; box-sizing: border-box;
+  position: relative; overflow: hidden; cursor: pointer; backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+.toast-icon { flex-shrink: 0; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; }
+.toast-icon svg { width: 18px; height: 18px; }
+.toast-msg { flex: 1; min-width: 0; line-height: 1.4; }
+.toast-close { flex-shrink: 0; opacity: 0.5; font-size: 16px; line-height: 1; padding: 2px 4px; border-radius: 4px; transition: opacity 0.15s; }
+.toast-close:hover { opacity: 1; }
+.toast-progress {
+  position: absolute; bottom: 0; left: 0; height: 3px; border-radius: 0 0 0 12px;
+  animation: toastProgress 4s linear forwards;
 }
 .toast.success { border-left: 3px solid var(--success); }
+.toast.success .toast-icon { color: var(--success); }
+.toast.success .toast-progress { background: var(--success); }
 .toast.error { border-left: 3px solid var(--danger); }
-@keyframes toastIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+.toast.error .toast-icon { color: var(--danger); }
+.toast.error .toast-progress { background: var(--danger); }
+.toast.info { border-left: 3px solid var(--accent); }
+.toast.info .toast-icon { color: var(--accent); }
+.toast.info .toast-progress { background: var(--accent); }
+.toast.warning { border-left: 3px solid #f0ad4e; }
+.toast.warning .toast-icon { color: #f0ad4e; }
+.toast.warning .toast-progress { background: #f0ad4e; }
+.toast.fade-out { animation: toastOut 0.3s ease forwards; }
+@keyframes toastIn { from { opacity: 0; transform: translateY(20px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@keyframes toastOut { from { opacity: 1; transform: translateY(0) scale(1); } to { opacity: 0; transform: translateY(20px) scale(0.95); } }
+@keyframes toastProgress { from { width: 100%; } to { width: 0%; } }
 
 /* ===== System Broadcast Alert (top-center, 5s then fade) ===== */
 .system-alert-container {
@@ -2847,6 +2878,9 @@ body.loading-session #chat-app.active::after {
             </div>
           </div>
           <button type="submit" class="btn-primary" id="signin-btn">Sign In</button>
+          <div style="text-align:center; margin-top:10px; font-size:11px; color:var(--text-muted);">
+            <a href="#" id="reset-password-link" style="color:var(--text-muted); text-decoration:none; transition:color 0.2s;">Reset Password</a>
+          </div>
         </form>
 
         <!-- Sign Up -->
@@ -3046,11 +3080,12 @@ body.loading-session #chat-app.active::after {
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
           </button>
           <input type="file" id="file-input" hidden multiple>
+          <input type="file" id="gif-file-input" accept="image/gif,video/*" hidden multiple>
           <div class="attach-dropdown" id="attach-dropdown">
             <div class="attach-dropdown-item" id="attach-gif-btn">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><text x="7" y="15" font-size="7" font-weight="bold" fill="currentColor" stroke="none">GIF</text></svg>
-              <span class="attach-dropdown-label">Send a GIF</span>
-              <span class="attach-dropdown-hint">Search or paste URL</span>
+              <span class="attach-dropdown-label">Send a GIF / Video</span>
+              <span class="attach-dropdown-hint">From your device (max 90MB)</span>
             </div>
             <div class="attach-dropdown-item" id="attach-file-btn">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
@@ -3453,32 +3488,43 @@ body.loading-session #chat-app.active::after {
                 <button class="setting-save-btn mini-btn" id="bg-fit-btn" type="button">Fit to Screen</button>
                 <button class="setting-save-btn mini-btn" id="bg-reset-adjust-btn" type="button">Reset Adjustments</button>
               </div>
-              <div class="bg-fit-row">
-                <label class="custom-slider-label" style="flex-shrink:0;">
-                  Fit Mode:
-                </label>
-                <select id="bg-mode-select" class="form-input">
-                  <option value="cover">Cover (fill screen)</option>
-                  <option value="contain">Contain (fit inside)</option>
-                  <option value="tile">Tile (repeat pattern)</option>
-                </select>
+              <div class="bg-fit-segmented" id="bg-fit-segmented">
+                <button type="button" data-mode="cover" class="active">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 14l5-5 4 4 3-3 6 6"/></svg>
+                  Cover
+                </button>
+                <button type="button" data-mode="contain">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><rect x="7" y="7" width="10" height="10" rx="1" stroke-dasharray="2 2"/></svg>
+                  Contain
+                </button>
+                <button type="button" data-mode="tile">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/></svg>
+                  Tile
+                </button>
               </div>
-              <label class="custom-slider-label">Scale: <span id="bg-scale-val">100</span>%</label>
-              <input type="range" id="bg-scale-slider" min="20" max="300" value="100" class="custom-range">
-              <label class="custom-slider-label">Position X: <span id="bg-posx-val">50</span>%</label>
-              <input type="range" id="bg-posx-slider" min="0" max="100" value="50" class="custom-range">
-              <label class="custom-slider-label">Position Y: <span id="bg-posy-val">50</span>%</label>
-              <input type="range" id="bg-posy-slider" min="0" max="100" value="50" class="custom-range">
-              <label class="custom-slider-label">Opacity: <span id="bg-opacity-val">100</span>%</label>
-              <input type="range" id="bg-opacity-slider" min="10" max="100" value="100" class="custom-range">
-              <label class="custom-slider-label">Brightness: <span id="bg-brightness-val">100</span>%</label>
-              <input type="range" id="bg-brightness-slider" min="20" max="200" value="100" class="custom-range">
-              <label class="custom-slider-label">Saturation: <span id="bg-saturate-val">100</span>%</label>
-              <input type="range" id="bg-saturate-slider" min="0" max="200" value="100" class="custom-range">
-              <label class="custom-slider-label">Dim overlay: <span id="bg-dim-val">0</span>%</label>
-              <input type="range" id="bg-dim-slider" min="0" max="90" value="0" class="custom-range">
-              <label class="custom-slider-label">Blur: <span id="bg-blur-val">0</span>px</label>
-              <input type="range" id="bg-blur-slider" min="0" max="20" value="0" class="custom-range">
+              <input type="hidden" id="bg-mode-select" value="cover">
+              <div class="bg-control-group">
+                <div class="bg-control-group-title">Layout</div>
+                <label class="custom-slider-label">Scale <span class="slider-val" id="bg-scale-val">100%</span></label>
+                <input type="range" id="bg-scale-slider" min="20" max="300" value="100" class="custom-range">
+                <label class="custom-slider-label">Position X <span class="slider-val" id="bg-posx-val">50%</span></label>
+                <input type="range" id="bg-posx-slider" min="0" max="100" value="50" class="custom-range">
+                <label class="custom-slider-label">Position Y <span class="slider-val" id="bg-posy-val">50%</span></label>
+                <input type="range" id="bg-posy-slider" min="0" max="100" value="50" class="custom-range">
+              </div>
+              <div class="bg-control-group">
+                <div class="bg-control-group-title">Appearance</div>
+                <label class="custom-slider-label">Opacity <span class="slider-val" id="bg-opacity-val">100%</span></label>
+                <input type="range" id="bg-opacity-slider" min="10" max="100" value="100" class="custom-range">
+                <label class="custom-slider-label">Brightness <span class="slider-val" id="bg-brightness-val">100%</span></label>
+                <input type="range" id="bg-brightness-slider" min="20" max="200" value="100" class="custom-range">
+                <label class="custom-slider-label">Saturation <span class="slider-val" id="bg-saturate-val">100%</span></label>
+                <input type="range" id="bg-saturate-slider" min="0" max="200" value="100" class="custom-range">
+                <label class="custom-slider-label">Dim Overlay <span class="slider-val" id="bg-dim-val">0%</span></label>
+                <input type="range" id="bg-dim-slider" min="0" max="90" value="0" class="custom-range">
+                <label class="custom-slider-label">Blur <span class="slider-val" id="bg-blur-val">0px</span></label>
+                <input type="range" id="bg-blur-slider" min="0" max="20" value="0" class="custom-range">
+              </div>
             </div>
             <div class="custom-bg-presets">
               <div class="custom-bg-label" style="font-size:12px;margin-bottom:6px;">Quick Presets</div>
@@ -3507,7 +3553,17 @@ body.loading-session #chat-app.active::after {
         <section class="settings-v2-pane" data-settings-pane="privacy">
           <div class="settings-v2-pane-head">
             <h4>Data &amp; Privacy</h4>
-            <p>Manage your account data and permanently remove your account.</p>
+            <p>Manage your privacy settings and account data.</p>
+          </div>
+          <div class="profile-section">
+            <div class="profile-section-title">Privacy</div>
+            <label class="toggle-row">
+              <span>Allow friend requests<br><small style="color:var(--text-muted);font-size:11px;font-weight:400;">When off, others can't send you friend requests</small></span>
+              <span class="toggle-switch">
+                <input type="checkbox" id="friend-requests-toggle" checked>
+                <span class="toggle-slider"></span>
+              </span>
+            </label>
           </div>
           <div class="profile-section danger-zone">
             <div class="profile-section-title">Danger Zone</div>
@@ -4142,14 +4198,30 @@ function toast(msg, type = '') {
   const container = $('toast-container');
   const el = document.createElement('div');
   el.className = 'toast ' + type;
-  el.textContent = msg;
-  container.appendChild(el);
-  setTimeout(() => {
-    el.style.opacity = '0';
-    el.style.transform = 'translateY(-20px)';
-    el.style.transition = '0.3s';
+  // Icons for each toast type
+  const icons = {
+    success: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>',
+    error: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>',
+    info: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>',
+    warning: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
+    '': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>',
+  };
+  el.innerHTML =
+    '<span class="toast-icon">' + (icons[type] || icons['']) + '</span>' +
+    '<span class="toast-msg">' + escapeHtml(String(msg)) + '</span>' +
+    '<span class="toast-close">&times;</span>' +
+    '<span class="toast-progress"></span>';
+  // Click anywhere on the toast to dismiss it
+  let dismissTimer = null, progressTimer = null;
+  function dismiss() {
+    if (el.classList.contains('fade-out')) return;
+    clearTimeout(dismissTimer); clearTimeout(progressTimer);
+    el.classList.add('fade-out');
     setTimeout(() => el.remove(), 300);
-  }, 3000);
+  }
+  el.addEventListener('click', dismiss);
+  // Auto-dismiss after 4 seconds
+  dismissTimer = setTimeout(dismiss, 4000);
 }
 
 // ---------- System Broadcast Alert (top-center, 5s then fades) ----------
@@ -4462,6 +4534,27 @@ $('signup-username').addEventListener('input', (e) => {
 });
 
 // ---------- Sign In ----------
+// Reset Password link on login page — shows a small modal with instructions
+if ($('reset-password-link')) {
+  $('reset-password-link').addEventListener('click', (e) => {
+    e.preventDefault();
+    const modal = document.createElement('div');
+    modal.className = 'modal-overlay';
+    modal.style.cssText = 'display:flex;align-items:center;justify-content:center;z-index:9999;';
+    modal.innerHTML =
+      '<div class="modal" style="max-width:380px;padding:28px 24px;text-align:center;">' +
+        '<div style="font-size:32px;margin-bottom:12px;">🔑</div>' +
+        '<h3 style="margin:0 0 12px;font-size:18px;">Reset Password</h3>' +
+        '<p style="color:var(--text-secondary);font-size:13px;line-height:1.6;margin:0 0 20px;">' +
+          'To reset your password, please contact the site administrator or the account owner (@lore) with your username. ' +
+          'If you know your current password, you can change it from <strong>Settings → Account</strong> after signing in.' +
+        '</p>' +
+        '<button class="btn-primary" style="width:100%;" onclick="this.closest(\'.modal-overlay\').remove()">Got it</button>' +
+      '</div>';
+    document.body.appendChild(modal);
+    modal.addEventListener('click', (ev) => { if (ev.target === modal) modal.remove(); });
+  });
+}
 $('signin-form').addEventListener('submit', async (e) => {
   e.preventDefault();
   const username = $('signin-username').value.trim().toLowerCase();
@@ -5584,6 +5677,40 @@ $('attach-file-btn').addEventListener('click', () => {
   $('attach-btn').classList.remove('active');
   fileInput.click();
 });
+// ---------- GIF / Video device picker (chat) ----------
+const gifFileInput = $('gif-file-input');
+gifFileInput.addEventListener('change', (e) => {
+  const files = Array.from(e.target.files || []);
+  if (files.length === 0) return;
+  if (files.length > MAX_FILES) {
+    toast('You can only upload up to ' + MAX_FILES + ' files at a time. Only the first ' + MAX_FILES + ' will be sent.', 'error');
+  }
+  const selected = files.slice(0, MAX_FILES);
+  for (const f of selected) {
+    if (f.size > 90 * 1024 * 1024) { toast('File "' + f.name + '" exceeds 90MB limit', 'error'); gifFileInput.value = ''; return; }
+  }
+  if (selected.length === 1) {
+    pendingFile = selected[0];
+    pendingFiles = [];
+    showFilePreview(selected[0]);
+  } else {
+    pendingFile = selected[0];
+    pendingFiles = selected.slice(1);
+    showFilePreview(selected[0]);
+    const preview = $('file-preview');
+    let badge = preview.querySelector('.multi-file-badge');
+    if (!badge) {
+      badge = document.createElement('div');
+      badge.className = 'multi-file-badge';
+      badge.style.cssText = 'margin-left:8px; font-size:11px; color:var(--accent); font-weight:600; background:var(--accent-dim); padding:2px 8px; border-radius:6px;';
+      const nameWrap = $('file-preview-name').parentElement;
+      nameWrap.appendChild(badge);
+    }
+    badge.textContent = '+' + pendingFiles.length + ' more file' + (pendingFiles.length !== 1 ? 's' : '');
+  }
+  updateSendButton();
+  gifFileInput.value = '';
+});
 // Close dropdown when clicking elsewhere
 document.addEventListener('click', (e) => {
   if (!e.target.closest('#attach-btn') && !e.target.closest('#attach-dropdown')) {
@@ -6115,7 +6242,12 @@ async function sendFriendRequest(username) {
       // Revert optimistic update on failure
       friendRequests.sent = friendRequests.sent.filter(f => f.username !== username);
       renderFriendsList();
-      toast(data.error || 'Request failed', 'error');
+      // Special handling for "friend requests turned off" error
+      if (res.status === 403 && data.error && data.error.includes('friend requests turned off')) {
+        toast('@' + username + ' has friend requests turned off', 'error');
+      } else {
+        toast(data.error || 'Request failed', 'error');
+      }
       return;
     }
     loadFriends(); // refresh from server to sync state (non-blocking)
@@ -6583,8 +6715,7 @@ $('dm-attach-btn').addEventListener('click', (e) => {
 $('dm-attach-gif-btn').addEventListener('click', () => {
   $('dm-attach-dropdown').classList.remove('show');
   $('dm-attach-btn').classList.remove('active');
-  gifPickerContext = 'dm';
-  openGifPicker();
+  $('dm-gif-file-input').click();
 });
 $('dm-attach-file-btn').addEventListener('click', () => {
   $('dm-attach-dropdown').classList.remove('show');
@@ -6621,6 +6752,41 @@ dmFileInput.addEventListener('change', (e) => {
     badge.textContent = '+' + pendingDMFiles.length + ' more file' + (pendingDMFiles.length !== 1 ? 's' : '');
   }
   updateDMSend();
+  dmFileInput.value = '';
+});
+// ---------- GIF / Video device picker (DM) ----------
+const dmGifFileInput = $('dm-gif-file-input');
+dmGifFileInput.addEventListener('change', (e) => {
+  const files = Array.from(e.target.files || []);
+  if (files.length === 0) return;
+  if (files.length > MAX_FILES) {
+    toast('You can only upload up to ' + MAX_FILES + ' files at a time. Only the first ' + MAX_FILES + ' will be sent.', 'error');
+  }
+  const selected = files.slice(0, MAX_FILES);
+  for (const f of selected) {
+    if (f.size > 90 * 1024 * 1024) { toast('File "' + f.name + '" exceeds 90MB limit', 'error'); dmGifFileInput.value = ''; return; }
+  }
+  if (selected.length === 1) {
+    pendingDMFile = selected[0];
+    pendingDMFiles = [];
+    showDMFilePreview(selected[0]);
+  } else {
+    pendingDMFile = selected[0];
+    pendingDMFiles = selected.slice(1);
+    showDMFilePreview(selected[0]);
+    const preview = $('dm-file-preview');
+    let badge = preview.querySelector('.multi-file-badge');
+    if (!badge) {
+      badge = document.createElement('div');
+      badge.className = 'multi-file-badge';
+      badge.style.cssText = 'margin-left:8px; font-size:11px; color:var(--accent); font-weight:600; background:var(--accent-dim); padding:2px 8px; border-radius:6px;';
+      const nameWrap = $('dm-file-preview-name').parentElement;
+      nameWrap.appendChild(badge);
+    }
+    badge.textContent = '+' + pendingDMFiles.length + ' more file' + (pendingDMFiles.length !== 1 ? 's' : '');
+  }
+  updateDMSend();
+  dmGifFileInput.value = '';
 });
 function showDMFilePreview(file) {
   const preview = $('dm-file-preview');
@@ -7052,6 +7218,7 @@ function updateProfilePanel() {
   // New profile settings fields
   if ($('pronouns-input')) $('pronouns-input').value = u.pronouns || '';
   if ($('show-online-toggle')) $('show-online-toggle').checked = u.showOnlineStatus !== false;
+  if ($('friend-requests-toggle')) $('friend-requests-toggle').checked = u.friendRequestsEnabled !== false;
   currentStatus = u.status || 'online';
   document.querySelectorAll('.status-option').forEach(opt => opt.classList.toggle('active', opt.dataset.status === currentStatus));
   profileDirty = false;
@@ -7371,11 +7538,12 @@ async function saveProfileNow() {
   const hideLastSeen = $('hide-lastseen-toggle').checked;
   const pronouns = $('pronouns-input') ? $('pronouns-input').value.trim() : '';
   const showOnlineStatus = $('show-online-toggle') ? $('show-online-toggle').checked : true;
+  const friendRequestsEnabled = $('friend-requests-toggle') ? $('friend-requests-toggle').checked : true;
   const panelColor = getProfileColor() || null;
   const btn = $('bio-save-btn');
   btn.disabled = true; btn.textContent = 'Saving...';
   try {
-    const res = await fetch(API_BASE + '/api/profile', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ bio, hideLastSeen, pronouns, showOnlineStatus, panelColor }) });
+    const res = await fetch(API_BASE + '/api/profile', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ bio, hideLastSeen, pronouns, showOnlineStatus, panelColor, friendRequestsEnabled }) });
     const data = await res.json();
     if (res.ok) {
       toast('Profile saved.', 'success');
@@ -7383,10 +7551,11 @@ async function saveProfileNow() {
       currentUser.hideLastSeen = hideLastSeen;
       currentUser.pronouns = pronouns;
       currentUser.showOnlineStatus = showOnlineStatus;
+      currentUser.friendRequestsEnabled = friendRequestsEnabled;
       currentUser.panelColor = panelColor;
       // Update in users array
       const uIdx = users.findIndex(x => x.username === currentUser.username);
-      if (uIdx >= 0) { users[uIdx].bio = bio; users[uIdx].pronouns = pronouns; users[uIdx].showOnlineStatus = showOnlineStatus; users[uIdx].panelColor = panelColor; }
+      if (uIdx >= 0) { users[uIdx].bio = bio; users[uIdx].pronouns = pronouns; users[uIdx].showOnlineStatus = showOnlineStatus; users[uIdx].panelColor = panelColor; users[uIdx].friendRequestsEnabled = friendRequestsEnabled; }
       profileDirty = false;
       btn.disabled = false; btn.textContent = 'Save Changes';
       return true;
@@ -7507,6 +7676,24 @@ function updateSettingsPanel() {
     $('username-cooldown-text').textContent = 'Available now.';
     $('username-save').disabled = false;
   }
+  // Disable Delete Account for the owner (@lore) — the owner account is
+  // protected and cannot be removed.
+  const delBtn = $('delete-account-btn');
+  if (delBtn) {
+    if (currentUser.isOwner || currentUser.username === 'lore') {
+      delBtn.disabled = true;
+      delBtn.style.opacity = '0.4';
+      delBtn.style.cursor = 'not-allowed';
+      delBtn.title = 'The owner account cannot be deleted';
+      delBtn.textContent = 'Delete Account (Locked)';
+    } else {
+      delBtn.disabled = false;
+      delBtn.style.opacity = '';
+      delBtn.style.cursor = '';
+      delBtn.title = '';
+      delBtn.textContent = 'Delete Account';
+    }
+  }
 }
 $('display-name-input').addEventListener('input', (e) => $('displayname-count').textContent = e.target.value.length);
 $('displayname-save').addEventListener('click', async () => {
@@ -7598,6 +7785,11 @@ if ($('compact-toggle')) $('compact-toggle').addEventListener('change', savePref
 
 // ---------- Delete Account ----------
 $('delete-account-btn').addEventListener('click', () => {
+  // The owner account (@lore) cannot be deleted
+  if (currentUser && (currentUser.isOwner || currentUser.username === 'lore')) {
+    toast('The owner account cannot be deleted.', 'error');
+    return;
+  }
   $('delete-account-modal').classList.add('show');
 });
 $('delete-account-cancel').addEventListener('click', () => {
@@ -8032,11 +8224,13 @@ function applyBgSettings(override) {
   const chatMain = document.querySelector('.chat-main');
   if (!chatMain) return;
   const layer = ensureBgLayer();
-  // Remove old overlays (blur/dim) if present; they are recreated below as needed
+    // Remove old overlays (blur/dim/filter) if present; they are recreated below as needed
   const oldBlur = document.getElementById('bg-blur-overlay');
   if (oldBlur) oldBlur.remove();
   const oldDim = document.getElementById('bg-dim-overlay');
   if (oldDim) oldDim.remove();
+  const oldFilter = document.getElementById('bg-filter-overlay');
+  if (oldFilter) oldFilter.remove();
 
   if (s && s.url) {
     // Gradient backgrounds (special marker __gradient__) — render as CSS background, no <img>
@@ -8067,12 +8261,11 @@ function applyBgSettings(override) {
         }
         dimOverlay.style.background = 'rgba(0,0,0,' + (dimAmount / 100) + ')';
       } else if (dimOverlay) dimOverlay.remove();
-      // Blur overlay
+      // Blur via layer filter (static, no re-paint issues)
       if (s.blur && s.blur > 0) {
-        const overlay = document.createElement('div');
-        overlay.id = 'bg-blur-overlay';
-        overlay.style.cssText = 'position:absolute;inset:0;backdrop-filter:blur(' + s.blur + 'px);-webkit-backdrop-filter:blur(' + s.blur + 'px);pointer-events:none;z-index:1;';
-        layer.appendChild(overlay);
+        layer.style.filter = 'blur(' + s.blur + 'px)';
+      } else {
+        layer.style.filter = '';
       }
       // Make UI panels semi-transparent so background shows through
       const header = chatMain.querySelector('.chat-header');
@@ -8139,12 +8332,19 @@ function applyBgSettings(override) {
       }
     }
     img.style.opacity = opacity;
-    // Brightness filter (extra tool — keep background visible but readable)
+    // Brightness / saturation filters are applied on the LAYER container
+    // (not the <img> itself) so the animated GIF keeps compositing on its
+    // own layer without re-painting every frame. A static filter on the
+    // parent is cached once by the browser and does not interfere with
+    // the GIF's internal frame animation.
     const brightness = s.brightness != null ? s.brightness : 100;
-    img.style.filter = 'brightness(' + brightness + '%)';
-    // Grayscale/saturation filter (extra tool)
     const saturate = s.saturate != null ? s.saturate : 100;
-    if (saturate !== 100) img.style.filter = 'brightness(' + brightness + '%) saturate(' + saturate + '%)';
+    const blurPx = (s.blur && s.blur > 0) ? s.blur : 0;
+    let fStr = '';
+    if (brightness !== 100) fStr += 'brightness(' + brightness + '%) ';
+    if (saturate !== 100) fStr += 'saturate(' + saturate + '%) ';
+    if (blurPx > 0) fStr += 'blur(' + blurPx + 'px) ';
+    layer.style.filter = fStr.trim() || '';
 
     // Dim overlay (dark scrim for readability) — sits above the image, below content
     let dimOverlay = layer.querySelector('#bg-dim-overlay');
@@ -8161,13 +8361,8 @@ function applyBgSettings(override) {
       dimOverlay.remove();
     }
 
-    // Blur overlay (sits above the image, below content)
-    if (s.blur && s.blur > 0) {
-      const overlay = document.createElement('div');
-      overlay.id = 'bg-blur-overlay';
-      overlay.style.cssText = 'position:absolute;inset:0;backdrop-filter:blur(' + s.blur + 'px);-webkit-backdrop-filter:blur(' + s.blur + 'px);pointer-events:none;z-index:1;';
-      layer.appendChild(overlay);
-    }
+    // Blur is now handled via layer.style.filter (see above) for smooth GIF
+    // animation. No backdrop-filter overlay needed.
 
     // Make UI panels semi-transparent so background shows through
     const header = chatMain.querySelector('.chat-header');
@@ -8212,23 +8407,26 @@ function updateBgPreview() {
   const posxEl = $('bg-posx-slider'), posxVal = $('bg-posx-val');
   const posyEl = $('bg-posy-slider'), posyVal = $('bg-posy-val');
   const opEl = $('bg-opacity-slider'), opVal = $('bg-opacity-val');
-  if (scaleEl) { scaleEl.value = s ? (s.scale || 100) : 100; scaleVal.textContent = s ? (s.scale || 100) : 100; }
-  if (posxEl) { posxEl.value = s ? (s.posX || 50) : 50; posxVal.textContent = s ? (s.posX || 50) : 50; }
-  if (posyEl) { posyEl.value = s ? (s.posY || 50) : 50; posyVal.textContent = s ? (s.posY || 50) : 50; }
-  if (opEl) { opEl.value = s ? (s.opacity || 100) : 100; opVal.textContent = s ? (s.opacity || 100) : 100; }
+  if (scaleEl) { scaleEl.value = s ? (s.scale || 100) : 100; scaleVal.textContent = (s ? (s.scale || 100) : 100) + '%'; }
+  if (posxEl) { posxEl.value = s ? (s.posX || 50) : 50; posxVal.textContent = (s ? (s.posX || 50) : 50) + '%'; }
+  if (posyEl) { posyEl.value = s ? (s.posY || 50) : 50; posyVal.textContent = (s ? (s.posY || 50) : 50) + '%'; }
+  if (opEl) { opEl.value = s ? (s.opacity || 100) : 100; opVal.textContent = (s ? (s.opacity || 100) : 100) + '%'; }
   const brEl = $('bg-brightness-slider'), brVal = $('bg-brightness-val');
-  if (brEl) { brEl.value = s ? (s.brightness != null ? s.brightness : 100) : 100; brVal.textContent = s ? (s.brightness != null ? s.brightness : 100) : 100; }
+  if (brEl) { brEl.value = s ? (s.brightness != null ? s.brightness : 100) : 100; brVal.textContent = (s ? (s.brightness != null ? s.brightness : 100) : 100) + '%'; }
   const satEl = $('bg-saturate-slider'), satVal = $('bg-saturate-val');
-  if (satEl) { satEl.value = s ? (s.saturate != null ? s.saturate : 100) : 100; satVal.textContent = s ? (s.saturate != null ? s.saturate : 100) : 100; }
+  if (satEl) { satEl.value = s ? (s.saturate != null ? s.saturate : 100) : 100; satVal.textContent = (s ? (s.saturate != null ? s.saturate : 100) : 100) + '%'; }
   const dimEl = $('bg-dim-slider'), dimVal = $('bg-dim-val');
-  if (dimEl) { dimEl.value = s ? (s.dim != null ? s.dim : 0) : 0; dimVal.textContent = s ? (s.dim != null ? s.dim : 0) : 0; }
+  if (dimEl) { dimEl.value = s ? (s.dim != null ? s.dim : 0) : 0; dimVal.textContent = (s ? (s.dim != null ? s.dim : 0) : 0) + '%'; }
   const blurVal = $('bg-blur-val');
   const blurEl = $('bg-blur-slider');
-  if (blurVal) blurVal.textContent = s && s.blur ? s.blur : 0;
+  if (blurVal) blurVal.textContent = (s && s.blur ? s.blur : 0) + 'px';
   if (blurEl) blurEl.value = s && s.blur ? s.blur : 0;
-  // Mode selector
+  // Mode selector (hidden input) + segmented button group
   const modeSel = $('bg-mode-select');
-  if (modeSel) modeSel.value = s ? (s.mode || 'cover') : 'cover';
+  const currentMode = s ? (s.mode || 'cover') : 'cover';
+  if (modeSel) modeSel.value = currentMode;
+  const segButtons = document.querySelectorAll('#bg-fit-segmented button');
+  segButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.mode === currentMode));
 }
 function getCurrentBgSettings() {
   return getBgSettings() || { url: null, scale: 100, posX: 50, posY: 50, opacity: 100, blur: 0, mode: 'cover', brightness: 100, saturate: 100, dim: 0 };
@@ -8408,15 +8606,21 @@ $('bg-revert-btn').addEventListener('click', () => {
   toast('Background reverted to default.', 'success');
 });
 
-// Background mode selector (cover / contain / tile)
-if ($('bg-mode-select')) {
-  $('bg-mode-select').addEventListener('change', (e) => {
-    const s = getCurrentBgSettings();
-    if (!s.url) { toast('Set a background first.', 'error'); e.target.value = s.mode || 'cover'; return; }
-    s.mode = e.target.value;
-    saveBgSettings(s);
-    applyBgSettings();
-    updateBgPreview();
+// Background mode selector (cover / contain / tile) — segmented button group
+const bgModeSeg = $('bg-fit-segmented');
+if (bgModeSeg) {
+  bgModeSeg.querySelectorAll('button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const s = getCurrentBgSettings();
+      if (!s.url) { toast('Set a background first.', 'error'); return; }
+      const mode = btn.dataset.mode;
+      s.mode = mode;
+      $('bg-mode-select').value = mode;
+      bgModeSeg.querySelectorAll('button').forEach(b => b.classList.toggle('active', b === btn));
+      saveBgSettings(s);
+      applyBgSettings();
+      updateBgPreview();
+    });
   });
 }
 
@@ -8475,7 +8679,7 @@ if (bgBlurSlider) {
     const s = _liveBg || getCurrentBgSettings();
     if (!s.url) return;
     s.blur = parseInt(bgBlurSlider.value);
-    $('bg-blur-val').textContent = s.blur;
+    $('bg-blur-val').textContent = s.blur + 'px';
     scheduleBgApply(s);
     scheduleBgSave(s);
   });
@@ -8505,7 +8709,7 @@ if (bgBlurSlider) {
     if (prop !== 'dim' && !s.url) return;
     const val = parseInt(slider.value);
     s[prop] = val;
-    valSpan.textContent = val;
+    valSpan.textContent = val + '%';
     scheduleBgApply(s);
     scheduleBgSave(s);
   });

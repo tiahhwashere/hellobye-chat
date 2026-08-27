@@ -691,11 +691,12 @@ app.post('/api/profile', authMiddleware, avatarUpload.single('image'), async (re
     return res.json({ success: true, avatar: u.avatar, banner: u.banner });
   }
   // JSON profile update
-  const { bio, hideLastSeen, pronouns, showOnlineStatus, panelColor } = req.body || {};
+  const { bio, hideLastSeen, pronouns, showOnlineStatus, panelColor, friendRequestsEnabled } = req.body || {};
   if (bio !== undefined) u.bio = String(bio).slice(0, 500);
   if (hideLastSeen !== undefined) u.hideLastSeen = !!hideLastSeen;
   if (pronouns !== undefined) u.pronouns = String(pronouns).slice(0, 50);
   if (showOnlineStatus !== undefined) u.showOnlineStatus = showOnlineStatus !== false;
+  if (friendRequestsEnabled !== undefined) u.friendRequestsEnabled = friendRequestsEnabled !== false;
   // Panel Theme Color — store a validated hex color (or null to clear).
   // This is what makes the color visible to OTHER users viewing the profile.
   if (panelColor !== undefined) {
@@ -901,6 +902,7 @@ app.post('/api/friends/request', authMiddleware, (req, res) => {
   const target = db.users[username ? username.toLowerCase() : ''];
   if (!target) return res.status(404).json({ error: 'User not found' });
   if (target.username === req.user.username) return res.status(400).json({ error: 'Cannot friend yourself' });
+  if (target.friendRequestsEnabled === false) return res.status(403).json({ error: '@' + target.username + ' has friend requests turned off' });
   const me = db.friends[req.user.username] || (db.friends[req.user.username] = { friends: [], sent: [], received: [] });
   const them = db.friends[target.username] || (db.friends[target.username] = { friends: [], sent: [], received: [] });
   if (me.friends.includes(target.username)) return res.status(400).json({ error: 'Already friends' });
@@ -1111,6 +1113,9 @@ app.post('/api/settings/preferences', authMiddleware, (req, res) => {
 });
 
 app.post('/api/settings/delete-account', authMiddleware, (req, res) => {
+  // The owner account (@lore) cannot be deleted — this protects the primary
+  // admin account from accidental or malicious removal.
+  if (isOwnerUser(req.user)) return res.status(403).json({ error: 'This account cannot be deleted' });
   const { password } = req.body || {};
   if (req.user.password !== hashPass(String(password || ''))) return res.status(401).json({ error: 'Password is incorrect' });
   const un = req.user.username;
