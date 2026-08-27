@@ -18,6 +18,28 @@ try {
   console.error('[server] WARNING: enhancement module failed to load \u2014 uploads will be served unenhanced. Error:', err.message);
 }
 
+// Run enhanceUpload but never let it hang the request. If enhancement takes
+// longer than `ms`, we give up and serve the original file instead. This is
+// the safety net that prevents the "GIF just loading in a loop" bug: even if
+// a future change re-introduces slow per-frame processing, the upload will
+// still complete and the profile picture will be applied using the original.
+function enhanceWithTimeout(filePath, opts, ms) {
+  if (!enhanceUpload) return Promise.resolve({ enhanced: false, reason: 'module unavailable' });
+  ms = ms || 8000;
+  return new Promise((resolve) => {
+    let done = false;
+    const timer = setTimeout(() => {
+      if (done) return;
+      done = true;
+      console.error('[enhance] Timed out after', ms, 'ms \u2014 serving original file:', filePath);
+      resolve({ enhanced: false, reason: 'timeout, original served' });
+    }, ms);
+    enhanceUpload(filePath, opts)
+      .then((r) => { if (done) return; done = true; clearTimeout(timer); resolve(r); })
+      .catch((e) => { if (done) return; done = true; clearTimeout(timer); console.error('[enhance] error:', e.message); resolve({ enhanced: false, reason: e.message }); });
+  });
+}
+
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
@@ -543,12 +565,23 @@ app.post('/api/profile', authMiddleware, avatarUpload.single('image'), async (re
     // Lanczos3 + sharpen pass finish in a fraction of a second instead
     // of blocking the response for several seconds (which caused the
     // noticeable lag/delay on upload). Avatars: 512px, Banners: 1536px.
+    //
+    // CRITICAL: animated GIFs are served AS-IS (skipAnimated: true). Sharp's
+    // per-frame resize on a GIF is extremely slow and would hang the request
+    // for 30s+ — the cause of "GIF just loading in a loop and never adding
+    // to the profile". Serving the original GIF preserves the animation and
+    // lets the upload complete instantly. enhanceWithTimeout is an extra
+    // safety net so no image can ever block the response indefinitely.
     const enhanceOpts = type === 'banner'
-      ? { maxStatic: 1536, maxAnimated: 720 }
-      : { maxStatic: 512, maxAnimated: 480 };
-    try { if (enhanceUpload) await enhanceUpload(path.join(UPLOAD_DIR, req.file.filename), enhanceOpts); }
+      ? { maxStatic: 1536, maxAnimated: 720, skipAnimated: true }
+      : { maxStatic: 512, maxAnimated: 480, skipAnimated: true };
+    try { await enhanceWithTimeout(path.join(UPLOAD_DIR, req.file.filename), enhanceOpts, 8000); }
     catch (e) { console.error('[profile] enhance error:', e.message); }
-    const url = '/uploads/' + req.file.filename;
+    // Append a cache-busting query string so the browser always fetches the
+    // new file instead of showing a stale cached avatar/banner (this is what
+    // makes re-uploads and removals reflect instantly without a refresh).
+    const cacheBust = '?t=' + Date.now();
+    const url = '/uploads/' + req.file.filename + cacheBust;
     if (type === 'banner') {
       u.banner = url;
     } else {
@@ -577,6 +610,7 @@ app.post('/api/profile/remove-image', authMiddleware, (req, res) => {
   else req.user.avatar = null;
   saveDB();
   broadcastProfile(req.user.username);
+  emitUsersList();
   res.json({ success: true });
 });
 
@@ -589,7 +623,10 @@ app.post('/api/upload', authMiddleware, upload.single('file'), async (req, res) 
   const absPath = path.join(UPLOAD_DIR, req.file.filename);
   let isImage = /^image\//.test(req.file.mimetype || '');
   if (isImage) {
-    try { if (enhanceUpload) await enhanceUpload(absPath); }
+    // Animated GIF/WebP attachments are served as-is (skipAnimated: true)
+    // to avoid sharp's slow per-frame resize lagging the chat. Static
+    // images still get the HD enhance. Timeout guards against any hang.
+    try { await enhanceWithTimeout(absPath, { skipAnimated: true }, 8000); }
     catch (e) { console.error('[upload] enhance error:', e.message); }
   }
   // Re-stat so the reported size matches the enhanced file on disk.

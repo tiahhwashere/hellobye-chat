@@ -60,6 +60,7 @@ async function readMeta(filePath) {
  * @param {object} [opts] optional settings
  * @param {number} [opts.maxStatic] override the static-image longest-edge target (default 3840)
  * @param {number} [opts.maxAnimated] override the animated-image longest-edge target (default 1080)
+ * @param {boolean} [opts.skipAnimated] if true (default), animated GIF/WebP files are served as-is without per-frame resize (avoids lag/hangs). Set false to force heavy per-frame enhancement.
  * @returns {Promise<{enhanced:boolean, width:number, height:number, format:string, reason?:string}>}
  */
 async function enhanceUpload(filePath, opts) {
@@ -93,6 +94,34 @@ async function enhanceUpload(filePath, opts) {
 
   const isAnimated = (meta.format === 'gif' || meta.format === 'webp') && (meta.pages || 1) > 1;
   const longestEdge = Math.max(meta.width || 0, (meta.pageHeight || meta.height) || 0);
+
+  // ── Animated GIF/WebP fast path ──────────────────────────────────────
+  // Per-frame Lanczos3 resize + sharpen on an animation is *extremely*
+  // slow in sharp (it decodes, resizes, and re-encodes every frame). For a
+  // large GIF with dozens of frames this can take 30+ seconds or hang the
+  // request entirely — which is exactly the "GIF just loading in a loop
+  // and never adding to the profile" bug. Animations are displayed at
+  // modest sizes and the browser already scales them crisply via CSS, so we
+  // SKIP the expensive per-frame processing and serve the original file
+  // untouched (animation + transparency fully preserved). This makes GIF
+  // profile pictures / banners apply instantly with zero lag.
+  //
+  // `opts.skipAnimated` lets callers (e.g. the profile endpoint) opt into
+  // this fast path explicitly; it defaults to true so animated media is
+  // always served as-is unless a caller deliberately requests heavy
+  // per-frame enhancement.
+  const skipAnimated = opts.skipAnimated !== false; // default: true
+  if (isAnimated && skipAnimated) {
+    return {
+      enhanced: false,
+      width: meta.width || 0,
+      height: (meta.pageHeight || meta.height) || 0,
+      format: meta.format || '',
+      animated: true,
+      reason: 'animated file served as-is (per-frame resize skipped to avoid lag)',
+    };
+  }
+
   const target = isAnimated ? animatedTarget : staticTarget;
 
   // If the source is already at or above the target resolution, we still

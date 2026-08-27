@@ -4562,13 +4562,16 @@ function connectSocket() {
   socket.on('profile-updated', (data) => {
     const u = users.find(x => x.username === data.username);
     if (u) {
-      // Only overwrite fields the backend actually included (and that aren't
-      // null when we already have a value). The status-change broadcast sends
-      // avatar:null / banner:null / bio:"" alongside status, which previously
-      // wiped out the user's real avatar/banner/bio. Guard against that.
-      if (data.avatar !== undefined && data.avatar !== null) u.avatar = data.avatar;
-      if (data.banner !== undefined && data.banner !== null) u.banner = data.banner;
-      if (data.bio !== undefined && data.bio !== '') u.bio = data.bio;
+      // broadcastProfile always sends the user's TRUE current avatar/banner
+      // (null when removed). Previously we guarded with `!== null`, which
+      // meant a removal broadcast (avatar: null) was IGNORED here — so the
+      // old avatar stayed visible until a page refresh. Now we accept null
+      // as a valid removal so the UI updates instantly. We only skip fields
+      // that were not included at all (=== undefined), which protects
+      // against any future partial broadcast.
+      if (data.avatar !== undefined) u.avatar = data.avatar;
+      if (data.banner !== undefined) u.banner = data.banner;
+      if (data.bio !== undefined) u.bio = data.bio;
       if (data.status !== undefined) u.status = data.status;
       if (data.displayName !== undefined) u.displayName = data.displayName;
       if (data.hideLastSeen !== undefined) u.hideLastSeen = data.hideLastSeen;
@@ -4577,13 +4580,13 @@ function connectSocket() {
       if (data.lastSeen !== undefined) u.lastSeen = data.lastSeen;
     }
     if (currentUser && currentUser.username === data.username) {
-      // Merge selectively so a status-only broadcast doesn't null-out our
-      // avatar/banner/bio/displayName on the current user object.
+      // Merge every included field (including null removals) so removals of
+      // the avatar/banner reflect instantly without a refresh/revisit.
       const merge = {};
       if (data.status !== undefined) merge.status = data.status;
-      if (data.avatar !== undefined && data.avatar !== null) merge.avatar = data.avatar;
-      if (data.banner !== undefined && data.banner !== null) merge.banner = data.banner;
-      if (data.bio !== undefined && data.bio !== '') merge.bio = data.bio;
+      if (data.avatar !== undefined) merge.avatar = data.avatar;
+      if (data.banner !== undefined) merge.banner = data.banner;
+      if (data.bio !== undefined) merge.bio = data.bio;
       if (data.displayName !== undefined) merge.displayName = data.displayName;
       if (data.hideLastSeen !== undefined) merge.hideLastSeen = data.hideLastSeen;
       if (data.pronouns !== undefined) merge.pronouns = data.pronouns;
@@ -6791,17 +6794,34 @@ async function uploadProfileImage(file, type) {
   }
 }
 
-// Remove avatar/banner
+// Remove avatar/banner — instant local update so the picture/banner
+// disappears immediately without needing a refresh or re-visiting the
+// profile. The server broadcast will keep other clients in sync.
 $('avatar-remove-btn').addEventListener('click', async () => {
-  await fetch(API_BASE + '/api/profile/remove-image', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'avatar' }) });
+  try {
+    await fetch(API_BASE + '/api/profile/remove-image', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'avatar' }) });
+  } catch (e) {}
   currentUser.avatar = null;
-  updateProfilePanel(); updateSidebarSelf();
+  // Keep the shared users[] entry in sync so the member sidebar & open
+  // profile views also drop the avatar instantly.
+  const me = users.find(x => x.username === currentUser.username);
+  if (me) me.avatar = null;
+  updateProfilePanel();
+  updateSidebarSelf();
+  if (typeof renderUserList === 'function') renderUserList();
+  if (typeof updateMessageAvatars === 'function') updateMessageAvatars(currentUser.username, null);
   toast('Profile picture removed.', 'success');
 });
 $('banner-remove-btn').addEventListener('click', async () => {
-  await fetch(API_BASE + '/api/profile/remove-image', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'banner' }) });
+  try {
+    await fetch(API_BASE + '/api/profile/remove-image', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'banner' }) });
+  } catch (e) {}
   currentUser.banner = null;
+  const me = users.find(x => x.username === currentUser.username);
+  if (me) me.banner = null;
   updateProfilePanel();
+  updateSidebarSelf();
+  if (typeof renderUserList === 'function') renderUserList();
   toast('Banner removed.', 'success');
 });
 
@@ -7410,7 +7430,11 @@ function ensureBgLayer() {
     if (!chatMain) return null;
     layer = document.createElement('div');
     layer.id = 'custom-bg-layer';
-    layer.style.cssText = 'position:absolute;inset:0;overflow:hidden;z-index:0;pointer-events:none;';
+    // contain:strict + paint containment keeps the animated background on its
+    // own compositing layer so GIF frame redraws don't trigger layout/paint of
+    // the chat content above it \u2014 this is what keeps a GIF background smooth
+    // instead of laggy/stuttery.
+    layer.style.cssText = 'position:absolute;inset:0;overflow:hidden;z-index:0;pointer-events:none;contain:strict;';
     chatMain.style.position = 'relative';
     chatMain.insertBefore(layer, chatMain.firstChild);
   }
@@ -7677,6 +7701,13 @@ $('bg-file-input').addEventListener('change', (e) => {
   if (!file) return;
   if (file.size > 10 * 1024 * 1024) { toast('Background image too large (max 10MB).', 'error'); return; }
   const isAnimated = /^image\/gif$/i.test(file.type) || /\.gif$/i.test(file.name);
+  // Large animated GIF backgrounds can be several MB and, when stored as a
+  // base64 data URL (~33% larger) and decoded frame-by-frame every paint,
+  // cause noticeable lag/stutter on the website. We still allow them but warn
+  // the user above a threshold so they can pick a lighter GIF for smoothness.
+  if (isAnimated && file.size > 4 * 1024 * 1024) {
+    toast('Large GIF \u2014 may cause some lag. A smaller GIF will animate more smoothly.', 'info');
+  }
   const reader = new FileReader();
   // Show a loading toast so the user knows the upload is being processed
   // (the HD enhancement step can take a moment for large images).
