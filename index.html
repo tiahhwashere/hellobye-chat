@@ -7232,6 +7232,12 @@ $('bio-input').addEventListener('input', (e) => { $('bio-count').textContent = e
 $('hide-lastseen-toggle').addEventListener('change', markProfileDirty);
 if ($('pronouns-input')) $('pronouns-input').addEventListener('input', markProfileDirty);
 if ($('show-online-toggle')) $('show-online-toggle').addEventListener('change', markProfileDirty);
+if ($('friend-requests-toggle')) $('friend-requests-toggle').addEventListener('change', function() {
+  markProfileDirty();
+  var enabled = $('friend-requests-toggle').checked;
+  toast(enabled ? 'Friend requests are now ON — others can send you friend requests.' : 'Friend requests are now OFF — others cannot send you friend requests.', enabled ? 'success' : 'info');
+  saveProfileNow(true);
+});
 
 // ---------- Image Scale Modal (avatar & banner) ----------
 $('avatar-edit-btn').addEventListener('click', () => $('avatar-input').click());
@@ -7535,7 +7541,7 @@ document.querySelectorAll('.status-option').forEach(opt => {
 // ---------- Bio / Privacy Save ----------
 // Save the profile (bio/privacy/pronouns/location/website). Returns a Promise
 // that resolves to true on success (and clears profileDirty) or false on failure.
-async function saveProfileNow() {
+async function saveProfileNow(silent) {
   const bio = $('bio-input').value.trim();
   const hideLastSeen = $('hide-lastseen-toggle').checked;
   const pronouns = $('pronouns-input') ? $('pronouns-input').value.trim() : '';
@@ -7548,7 +7554,7 @@ async function saveProfileNow() {
     const res = await fetch(API_BASE + '/api/profile', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ bio, hideLastSeen, pronouns, showOnlineStatus, panelColor, friendRequestsEnabled }) });
     const data = await res.json();
     if (res.ok) {
-      toast('Profile saved.', 'success');
+      if (!silent) toast('Profile saved.', 'success');
       currentUser.bio = bio;
       currentUser.hideLastSeen = hideLastSeen;
       currentUser.pronouns = pronouns;
