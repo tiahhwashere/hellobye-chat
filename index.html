@@ -4882,6 +4882,7 @@ function connectSocket() {
       if (data.pronouns !== undefined) u.pronouns = data.pronouns;
       if (data.panelColor !== undefined) u.panelColor = data.panelColor;
       if (data.showOnlineStatus !== undefined) u.showOnlineStatus = data.showOnlineStatus;
+      if (data.friendRequestsEnabled !== undefined) u.friendRequestsEnabled = data.friendRequestsEnabled;
       if (data.lastSeen !== undefined) u.lastSeen = data.lastSeen;
     }
     if (currentUser && currentUser.username === data.username) {
@@ -4897,6 +4898,7 @@ function connectSocket() {
       if (data.pronouns !== undefined) merge.pronouns = data.pronouns;
       if (data.panelColor !== undefined) merge.panelColor = data.panelColor;
       if (data.showOnlineStatus !== undefined) merge.showOnlineStatus = data.showOnlineStatus;
+      if (data.friendRequestsEnabled !== undefined) merge.friendRequestsEnabled = data.friendRequestsEnabled;
       if (data.lastSeen !== undefined) merge.lastSeen = data.lastSeen;
       currentUser = { ...currentUser, ...merge };
       updateProfilePanel();
