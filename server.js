@@ -192,6 +192,18 @@ if (!db.cooldownExempt) db.cooldownExempt = []; // [username, ...] — users exe
       if (!db.cooldownExempt) db.cooldownExempt = [];
       try { fs.writeFileSync(DB_FILE, JSON.stringify(db)); } catch (e) {}
       console.log(`[backup] Adopted remote DB as live db (${remoteUsers} users, sha ${remoteSha ? remoteSha.slice(0,7) : '?'}).`);
+      // After adopting remote DB, ensure the owner (@lore) is not banned/muted.
+      let ownerCleaned = false;
+      for (const u of Object.values(db.users || {})) {
+        if (isOwnerUser(u)) {
+          if (u.banned) { u.banned = false; u.banReason = null; u.bannedAt = null; u.bannedBy = null; ownerCleaned = true; }
+          if (u.mutedUntil && u.mutedUntil > 0) { u.mutedUntil = 0; u.muteReason = ''; u.mutedBy = ''; ownerCleaned = true; }
+        }
+      }
+      if (ownerCleaned) {
+        try { fs.writeFileSync(DB_FILE, JSON.stringify(db)); } catch (e) {}
+        console.log('[backup] Cleared ban/mute on owner after adopting remote DB.');
+      }
       // Trigger an immediate backup so the sha is current.
       scheduleRemoteBackup();
     } else {
@@ -239,12 +251,53 @@ function nowISO() { return new Date().toISOString(); }
 const ADMIN_OWNER_ID = 'ff1db773-9f98-4141-8449-90aeaa68a965';
 const ADMIN_OWNER_NAME = 'lore'; // always shown as the owner username
 const ADMIN_UNLOCK_CODE = 'Xk8vL2pQ9mR4wZ7bY1fH3dCs';
+// Robust owner check: matches by UUID OR by username. This protects @lore even
+// if the live account was registered with a different UUID than the hardcoded
+// ADMIN_OWNER_ID (the owner is identified by the @lore handle above all).
+function isOwnerUser(u) {
+  if (!u) return false;
+  if (u.id && u.id === ADMIN_OWNER_ID) return true;
+  if (u.username && String(u.username).toLowerCase().trim() === ADMIN_OWNER_NAME) return true;
+  return false;
+}
 const VALID_ROLES = ['user', 'developer', 'administrator', 'moderator', 'beta_tester'];
 const VALID_BADGES = ['moderator', 'developer', 'staff', 'trusted_user'];
 // Tracks which session IDs have unlocked the admin panel via the code.
 // Stored in memory (resets on restart — users just re-enter the code).
 const adminUnlockedSessions = new Set();
 const WELCOME_TITLE_COOLDOWN = 20000; // 20 seconds in ms
+
+// ---------- Startup: ensure the owner (@lore) is never banned or muted ----------
+// If a previous deploy (before owner protection existed) left @lore banned or
+// muted, clear it now on every startup. This also protects against any edge
+// case where a ban/mute slipped through. The owner is matched by UUID OR by
+// the username 'lore' so it works regardless of the account's actual UUID.
+(function ensureOwnerClean() {
+  let changed = false;
+  for (const u of Object.values(db.users || {})) {
+    if (isOwnerUser(u)) {
+      if (u.banned) {
+        u.banned = false;
+        u.banReason = null;
+        u.bannedAt = null;
+        u.bannedBy = null;
+        changed = true;
+        console.log('[startup] Cleared existing ban on owner @' + u.username);
+      }
+      if (u.mutedUntil && u.mutedUntil > 0) {
+        u.mutedUntil = 0;
+        u.muteReason = '';
+        u.mutedBy = '';
+        changed = true;
+        console.log('[startup] Cleared existing mute on owner @' + u.username);
+      }
+    }
+  }
+  if (changed) {
+    try { fs.writeFileSync(DB_FILE, JSON.stringify(db)); } catch (e) {}
+    scheduleRemoteBackup();
+  }
+})();
 
 function publicUser(u) {
   if (!u) return null;
@@ -268,7 +321,7 @@ function publicUser(u) {
     banned: !!u.banned,
     banReason: u.banReason || null,
     mutedUntil: (u.mutedUntil && Date.now() < u.mutedUntil) ? u.mutedUntil : 0,
-    isOwner: (u.id === ADMIN_OWNER_ID),
+    isOwner: isOwnerUser(u),
   };
 }
 function fullUser(u) {
@@ -279,7 +332,7 @@ function fullUser(u) {
   pub.messageSounds = u.messageSounds !== false;
   pub.theme = u.theme || 'dark';
   pub.preferences = u.preferences || {};
-  pub.isAdmin = (u.id === ADMIN_OWNER_ID);
+  pub.isAdmin = isOwnerUser(u);
   pub.cooldownExempt = (db.cooldownExempt || []).includes(u.username);
   // Mute status — only report if currently muted (not yet expired)
   if (u.mutedUntil && Date.now() < u.mutedUntil) {
@@ -792,12 +845,12 @@ app.post('/api/settings/delete-account', authMiddleware, (req, res) => {
 
 // ---------- Admin Middleware & Endpoints ----------
 // Admin access is granted when EITHER:
-//   (a) the user is the owner (id === ADMIN_OWNER_ID), OR
+//   (a) the user is the owner (UUID or username === 'lore'), OR
 //   (b) the user's session has unlocked the panel by entering ADMIN_UNLOCK_CODE.
 // Every logged-in user can SEE the admin tab; clicking it prompts for the code.
 function isAdmin(user, sid) {
   if (!user) return false;
-  if (user.id === ADMIN_OWNER_ID) return true;
+  if (isOwnerUser(user)) return true;
   if (sid && adminUnlockedSessions.has(sid)) return true;
   return false;
 }
@@ -811,9 +864,9 @@ app.get('/api/admin/check', authMiddleware, (req, res) => {
   const sid = req.session.sid;
   res.json({
     isAdmin: isAdmin(req.user, sid),
-    isOwner: req.user.id === ADMIN_OWNER_ID,
+    isOwner: isOwnerUser(req.user),
     ownerName: ADMIN_OWNER_NAME,
-    codeUnlocked: !!(req.user.id !== ADMIN_OWNER_ID && sid && adminUnlockedSessions.has(sid)),
+    codeUnlocked: !(!isOwnerUser(req.user) && sid && adminUnlockedSessions.has(sid)),
   });
 });
 
@@ -875,8 +928,8 @@ app.post('/api/admin/ban', authMiddleware, adminMiddleware, (req, res) => {
   if (!username) return res.status(400).json({ error: 'Username required' });
   const target = db.users[String(username).toLowerCase().trim()];
   if (!target) return res.status(404).json({ error: 'User not found' });
-  if (target.id === ADMIN_OWNER_ID) return res.status(403).json({ error: 'The owner cannot be banned' });
-  if (isAdmin(target) && req.user.id !== ADMIN_OWNER_ID) return res.status(403).json({ error: 'Cannot ban another administrator' });
+  if (isOwnerUser(target)) return res.status(403).json({ error: 'The owner cannot be banned' });
+  if (isAdmin(target) && !isOwnerUser(req.user)) return res.status(403).json({ error: 'Cannot ban another administrator' });
   target.banned = true;
   target.banReason = String(reason || 'No reason provided').trim();
   target.bannedAt = nowISO();
@@ -942,7 +995,7 @@ app.post('/api/admin/set-role', authMiddleware, adminMiddleware, (req, res) => {
   if (!target) return res.status(404).json({ error: 'User not found' });
   // Owner is allowed to change their own role (and anyone else's).
   // Only non-owner admins are blocked from demoting the owner.
-  if (target.id === ADMIN_OWNER_ID && req.user.id !== ADMIN_OWNER_ID) {
+  if (isOwnerUser(target) && !isOwnerUser(req.user)) {
     return res.status(403).json({ error: 'Only the owner can change the owner role' });
   }
   const oldRole = target.role || 'user';
@@ -1008,7 +1061,9 @@ app.post('/api/admin/whitelist-remove', authMiddleware, adminMiddleware, (req, r
   const { username } = req.body || {};
   if (!username) return res.status(400).json({ error: 'Username required' });
   const targetUn = String(username).toLowerCase().trim();
-  if (targetUn === req.user.username && req.user.id !== ADMIN_OWNER_ID) return res.status(403).json({ error: 'Cannot remove yourself from whitelist' });
+  if (targetUn === req.user.username && !isOwnerUser(req.user)) return res.status(403).json({ error: 'Cannot remove yourself from whitelist' });
+  // The owner (@lore) can never be removed from the whitelist by a non-owner admin.
+  if (targetUn === ADMIN_OWNER_NAME && !isOwnerUser(req.user)) return res.status(403).json({ error: 'The owner cannot be removed from the whitelist' });
   if (!db.adminWhitelist) db.adminWhitelist = [];
   db.adminWhitelist = db.adminWhitelist.filter(u => u !== targetUn);
   if (!db.adminActivity) db.adminActivity = [];
@@ -1174,13 +1229,13 @@ app.post('/api/admin/mute', authMiddleware, adminMiddleware, (req, res) => {
   if (!username) return res.status(400).json({ error: 'Username required' });
   const targetUn = String(username).toLowerCase().trim();
   if (!db.users[targetUn]) return res.status(404).json({ error: 'User not found' });
-  // The owner (@lore) can never be muted.
-  if (db.users[targetUn].id === ADMIN_OWNER_ID) {
+  // The owner (@lore) can never be muted — matched by UUID OR username.
+  if (isOwnerUser(db.users[targetUn])) {
     return res.status(403).json({ error: 'The owner cannot be muted' });
   }
   // Another admin (who unlocked the panel via code) cannot be muted unless
   // the acting user is the owner.
-  if (isAdmin(db.users[targetUn]) && req.user.id !== ADMIN_OWNER_ID) {
+  if (isAdmin(db.users[targetUn]) && !isOwnerUser(req.user)) {
     return res.status(403).json({ error: 'Cannot mute another administrator' });
   }
   // Duration validation: 1 minute (60000) to 14 days (1209600000)

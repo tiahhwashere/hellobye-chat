@@ -8154,6 +8154,15 @@ let adminBanTarget = null;
 let adminRoleTarget = null;
 let adminIsAdmin = false;
 let adminOwnerName = 'lore'; // always displayed as the panel owner
+// Frontend owner check: matches the server's isOwner flag OR the username 'lore'.
+// This is a defence-in-depth so the UI disables ban/mute even if the server's
+// isOwner flag hasn't propagated yet (e.g. cached search results).
+function isOwnerUserFE(u) {
+  if (!u) return false;
+  if (u.isOwner) return true;
+  if (u.username && String(u.username).toLowerCase().trim() === adminOwnerName) return true;
+  return false;
+}
 
 // Badge icon URLs (served from /uploads/)
 const BADGE_ICONS = {
@@ -8466,10 +8475,11 @@ async function adminSearchUsers(query, resultsContainer, onSelectCb) {
       const bannedTag = u.banned ? ' <span style="color:var(--danger); font-size:10px;">[BANNED]</span>' : '';
       const roleTag = u.role && u.role !== 'user' ? ' <span style="color:#818cf8; font-size:10px;">[' + escapeHtml(ROLE_LABELS[u.role] || u.role) + ']</span>' : '';
       const mutedTag = (u.mutedUntil && u.mutedUntil > Date.now()) ? ' <span style="color:var(--danger); font-size:10px;">[MUTED]</span>' : '';
+      const ownerTag = isOwnerUserFE(u) ? ' <span style="color:var(--accent); font-size:10px;">[OWNER]</span>' : '';
       return '<div class="admin-search-result" onclick="' + cbName + '(\'' + cacheKey + '\')">' +
         '<div class="admin-search-result-avatar">' + avatarHtml + '</div>' +
         '<div class="admin-search-result-info">' +
-          '<div class="admin-search-result-name">' + escapeHtml(u.displayName || u.username) + bannedTag + mutedTag + roleTag + ' @' + escapeHtml(u.username) + '</div>' +
+          '<div class="admin-search-result-name">' + escapeHtml(u.displayName || u.username) + ownerTag + bannedTag + mutedTag + roleTag + ' @' + escapeHtml(u.username) + '</div>' +
           '<div class="admin-search-result-meta">ID: ' + escapeHtml(u.id || 'N/A') + '</div>' +
         '</div>' +
       '</div>';
@@ -8491,13 +8501,13 @@ function adminSelectUser(cacheKey) {
     banForm.style.display = '';
     const avatarHtml = user.avatar ? '<img src="' + user.avatar + '" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">' : '<div style="width:32px;height:32px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:13px;">' + escapeHtml(getInitials(user.username)) + '</div>';
     const bannedTag = user.banned ? ' <span style="color:var(--danger);font-size:11px;">(Already banned)</span>' : '';
-    const ownerTag = user.isOwner ? ' <span style="color:var(--accent);font-size:11px;">(Owner)</span>' : '';
+    const ownerTag = isOwnerUserFE(user) ? ' <span style="color:var(--accent);font-size:11px;">(Owner)</span>' : '';
     banTargetInfo.innerHTML = avatarHtml + '<div><div class="at-name">' + escapeHtml(user.displayName || user.username) + bannedTag + ownerTag + ' @' + escapeHtml(user.username) + '</div><div class="at-meta">ID: ' + escapeHtml(user.id || 'N/A') + '</div></div>';
     $('admin-ban-reason').value = '';
     // The owner (@lore) can never be banned — disable the action and explain why.
     const banBtn = $('admin-ban-confirm-btn');
     if (banBtn) {
-      if (user.isOwner) {
+      if (isOwnerUserFE(user)) {
         banBtn.disabled = true;
         banBtn.textContent = 'Owner Cannot Be Banned';
         banBtn.style.opacity = '0.55';
@@ -8545,7 +8555,7 @@ function renderAdminBadgeCurrent(user) {
 // Admin actions
 async function adminBanUser() {
   if (!adminBanTarget) return;
-  if (adminBanTarget.isOwner) { toast('The owner (@lore) cannot be banned.', 'error'); return; }
+  if (isOwnerUserFE(adminBanTarget)) { toast('The owner (@lore) cannot be banned.', 'error'); return; }
   const reason = $('admin-ban-reason').value.trim();
   if (!reason) { toast('Please provide a ban reason', 'error'); return; }
   try {
@@ -8583,13 +8593,13 @@ function adminSelectMuteUser(cacheKey) {
     muteForm.style.display = '';
     const avatarHtml = user.avatar ? '<img src="' + user.avatar + '" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">' : '<div style="width:32px;height:32px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:13px;">' + escapeHtml(getInitials(user.username)) + '</div>';
     const mutedTag = user.mutedUntil ? ' <span style="color:var(--danger);font-size:11px;">(Already muted)</span>' : '';
-    const ownerTag = user.isOwner ? ' <span style="color:var(--accent);font-size:11px;">(Owner)</span>' : '';
+    const ownerTag = isOwnerUserFE(user) ? ' <span style="color:var(--accent);font-size:11px;">(Owner)</span>' : '';
     muteTargetInfo.innerHTML = avatarHtml + '<div><div class="at-name">' + escapeHtml(user.displayName || user.username) + mutedTag + ownerTag + ' @' + escapeHtml(user.username) + '</div><div class="at-meta">ID: ' + escapeHtml(user.id || 'N/A') + '</div></div>';
     $('admin-mute-reason').value = '';
     // The owner (@lore) can never be muted — disable the action and explain why.
     const muteBtn = $('admin-mute-confirm-btn');
     if (muteBtn) {
-      if (user.isOwner) {
+      if (isOwnerUserFE(user)) {
         muteBtn.disabled = true;
         muteBtn.textContent = 'Owner Cannot Be Muted';
         muteBtn.style.opacity = '0.55';
@@ -8635,7 +8645,7 @@ function formatMuteDurationLocal(ms) {
 }
 async function adminMuteUser() {
   if (!adminMuteTarget) return;
-  if (adminMuteTarget.isOwner) { toast('The owner (@lore) cannot be muted.', 'error'); return; }
+  if (isOwnerUserFE(adminMuteTarget)) { toast('The owner (@lore) cannot be muted.', 'error'); return; }
   const durationMs = parseInt($('admin-mute-duration').value, 10);
   const reason = $('admin-mute-reason').value.trim();
   if (!durationMs || isNaN(durationMs)) { toast('Select a mute duration', 'error'); return; }
