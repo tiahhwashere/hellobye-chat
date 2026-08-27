@@ -311,6 +311,13 @@ body.loading-session #chat-app.active::after {
 #chat-app.active { display: grid; grid-template-columns: 300px 1fr; }
 #chat-app.active.sidebar-collapsed { grid-template-columns: 0px 1fr; }
 #chat-app.active.sidebar-collapsed .sidebar { width: 0; border-right: none; }
+/* Sidebar open/close animation — animate the sidebar panel itself */
+#chat-app.active .sidebar {
+  overflow: hidden;
+  transition: width 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 0.2s ease,
+              border-right-width 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+}
 
 /* Sidebar toggle button */
 .sidebar-toggle-btn {
@@ -569,80 +576,88 @@ body.loading-session #chat-app.active::after {
 /* Link Embeds */
 .link-embed {
   margin-top: 8px; border: 1px solid var(--border);
-  border-radius: var(--radius-sm); overflow: hidden;
-  max-width: 420px; background: var(--bg-dark);
-  transition: border-color 0.15s ease;
+  border-radius: 10px; overflow: hidden;
+  max-width: 440px; background: var(--bg-darker);
+  transition: border-color 0.15s ease, background 0.15s ease;
 }
-.link-embed:hover { border-color: var(--accent); }
-.message-group.own .link-embed { background: rgba(0,0,0,0.15); border-color: rgba(255,255,255,0.15); }
-.link-embed-loading { padding: 8px 12px; font-size: 12px; color: var(--text-muted); }
-.link-embed-fallback { padding: 8px 12px; font-size: 12px; }
+.link-embed:hover { border-color: var(--border-light); background: var(--bg-dark); }
+.message-group.own .link-embed { background: rgba(0,0,0,0.18); border-color: rgba(255,255,255,0.12); }
+.message-group.own .link-embed:hover { background: rgba(0,0,0,0.25); border-color: rgba(255,255,255,0.22); }
+.link-embed-loading { padding: 10px 14px; font-size: 12px; color: var(--text-muted); }
+.link-embed-fallback { padding: 10px 14px; font-size: 12px; }
 .link-embed-fallback a { color: var(--accent); word-break: break-all; }
 .link-embed-card {
   display: flex; text-decoration: none; color: inherit;
 }
 .link-embed-image {
-  width: 110px; min-height: 80px; flex-shrink: 0;
+  width: 120px; min-height: 88px; flex-shrink: 0;
   background-size: cover; background-position: center;
-  background-color: var(--bg-darker);
+  background-color: var(--bg-dark);
   image-rendering: -webkit-optimize-contrast;
 }
 .link-embed-image.large {
-  width: 100%; min-height: 160px; max-height: 220px; order: -1;
+  width: 100%; min-height: 160px; max-height: 240px; order: -1;
 }
 .link-embed-content {
-  padding: 9px 12px; min-width: 0; flex: 1;
+  padding: 11px 14px; min-width: 0; flex: 1;
 }
 .link-embed-site {
   font-size: 10px; color: var(--text-muted);
-  text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 3px;
+  text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;
   display: flex; align-items: center; gap: 5px;
 }
 .link-embed-site img { width: 14px; height: 14px; border-radius: 3px; flex-shrink: 0; }
 .link-embed-title {
   font-size: 13px; font-weight: 600; color: var(--text-primary);
-  margin-bottom: 3px; line-height: 1.3;
+  margin-bottom: 4px; line-height: 1.35;
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
 }
+.link-embed-card:hover .link-embed-title { color: var(--accent); }
 .link-embed-desc {
-  font-size: 11px; color: var(--text-secondary); line-height: 1.4;
+  font-size: 11px; color: var(--text-secondary); line-height: 1.45;
   display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
 }
 .link-embed-meta {
-  margin-top: 5px; font-size: 10px; color: var(--text-muted);
+  margin-top: 6px; font-size: 10px; color: var(--text-muted);
   display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
 }
 .link-embed-author { color: var(--text-secondary); }
-.link-embed-url { color: var(--accent); word-break: break-all; opacity: 0.85; }
+.link-embed-url { color: var(--accent); word-break: break-all; opacity: 0.8; }
 .link-embed-type-badge {
-  font-size: 9px; font-weight: 600; padding: 1px 6px; border-radius: 4px;
+  font-size: 9px; font-weight: 600; padding: 2px 7px; border-radius: 4px;
   background: var(--accent-dim); color: #fff; text-transform: uppercase; letter-spacing: 0.3px;
 }
 
 /* Message file attachments */
 .message-file { margin-top: 8px; }
-.message-file img { max-width: 280px; max-height: 280px; border-radius: var(--radius-sm); display: block; image-rendering: -webkit-optimize-contrast; image-rendering: crisp-edges; }
-.message-file video { max-width: 320px; max-height: 280px; border-radius: var(--radius-sm); }
-.message-file audio { width: 280px; }
+.message-file img { max-width: 300px; max-height: 300px; border-radius: 8px; display: block; cursor: pointer; object-fit: cover; image-rendering: -webkit-optimize-contrast; image-rendering: crisp-edges; border: 1px solid var(--border); transition: border-color 0.15s ease, transform 0.15s ease; }
+.message-file img:hover { border-color: var(--border-light); transform: scale(1.005); }
+.message-file video { max-width: 340px; max-height: 300px; border-radius: 8px; border: 1px solid var(--border); }
+.message-file audio { width: 300px; border-radius: 8px; }
 .message-file-attachment {
-  display: flex; align-items: center; gap: 10px;
-  padding: 10px; background: var(--bg-darker);
-  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 14px; background: var(--bg-darker);
+  border: 1px solid var(--border); border-radius: 10px;
   text-decoration: none; color: var(--text-primary);
-  transition: var(--transition);
+  transition: border-color 0.15s ease, background 0.15s ease;
+  max-width: 340px;
 }
 .message-group.own .message-file-attachment { background: rgba(0,0,0,0.15); border-color: rgba(255,255,255,0.15); }
-.message-file-attachment:hover { border-color: var(--border-light); }
+.message-file-attachment:hover { border-color: var(--accent); background: var(--bg-dark); }
+.message-group.own .message-file-attachment:hover { background: rgba(0,0,0,0.22); }
 .file-icon {
-  width: 38px; height: 38px; border-radius: 6px;
+  width: 40px; height: 40px; border-radius: 8px;
   background: var(--accent-dim); color: #fff;
   display: flex; align-items: center; justify-content: center;
   font-size: 10px; font-weight: 700; flex-shrink: 0;
+  letter-spacing: 0.3px;
 }
 .message-group.own .file-icon { background: rgba(255,255,255,0.2); }
 .file-info { flex: 1; min-width: 0; }
-.file-name { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.file-size { font-size: 11px; color: var(--text-muted); }
+.file-name { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text-primary); }
+.file-size { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+.message-file-attachment .file-dl-icon { color: var(--text-muted); flex-shrink: 0; transition: color 0.15s ease; }
+.message-file-attachment:hover .file-dl-icon { color: var(--accent); }
 
 .message-actions {
   display: flex; gap: 4px; margin-top: 6px;
@@ -1574,7 +1589,7 @@ body.loading-session #chat-app.active::after {
   text-align: left; position: relative;
 }
 .profile-view-banner {
-  height: 200px; background: var(--bg-medium);
+  height: 280px; background: var(--bg-medium);
   background-size: cover; background-position: center;
 }
 .profile-view-banner img { width: 100%; height: 100%; object-fit: cover; image-rendering: -webkit-optimize-contrast; }
@@ -1842,34 +1857,44 @@ body.loading-session #chat-app.active::after {
 .system-alert {
   pointer-events: auto;
   width: 100%; box-sizing: border-box;
-  padding: 16px 22px; background: linear-gradient(135deg, rgba(99,102,241,0.96) 0%, rgba(79,70,229,0.96) 100%);
-  border: 1px solid rgba(165,180,252,0.5); border-radius: 14px;
-  color: #fff; box-shadow: 0 12px 40px rgba(49,46,129,0.45);
-  display: flex; gap: 14px; align-items: flex-start;
-  animation: alertIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  padding: 14px 18px 14px 16px;
+  background: var(--bg-medium);
+  border: 1px solid var(--border-light);
+  border-left: 3px solid var(--accent);
+  border-radius: 10px;
+  color: var(--text-primary);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+  display: flex; gap: 12px; align-items: flex-start;
+  animation: alertIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .system-alert.fade-out { animation: alertFadeOut 1.5s ease forwards; }
 @keyframes alertIn {
-  from { opacity: 0; transform: translateY(-24px) scale(0.96); }
-  to   { opacity: 1; transform: translateY(0) scale(1); }
+  from { opacity: 0; transform: translateY(-16px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 @keyframes alertFadeOut {
-  from { opacity: 1; transform: translateY(0) scale(1); }
-  to   { opacity: 0; transform: translateY(-18px) scale(0.97); }
+  from { opacity: 1; transform: translateY(0); }
+  to   { opacity: 0; transform: translateY(-12px); }
 }
 .system-alert-body { flex: 1; min-width: 0; }
 .system-alert-label {
   font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px;
-  opacity: 0.85; margin-bottom: 3px;
+  color: var(--accent); margin-bottom: 4px;
+  display: flex; align-items: center; gap: 5px;
 }
-.system-alert-text { font-size: 14px; font-weight: 600; line-height: 1.4; word-break: break-word; }
-.system-alert-from { font-size: 11px; opacity: 0.8; margin-top: 4px; font-weight: 400; }
+.system-alert-label::before {
+  content: ''; display: inline-block; width: 14px; height: 14px; flex-shrink: 0;
+  background: var(--accent); -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.5'><path d='M3 11l18-5v12L3 14v-3z'/><path d='M11.6 16.8a3 3 0 11-5.8-1.6'/></svg>") center/contain no-repeat;
+  mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.5'><path d='M3 11l18-5v12L3 14v-3z'/><path d='M11.6 16.8a3 3 0 11-5.8-1.6'/></svg>") center/contain no-repeat;
+}
+.system-alert-text { font-size: 14px; font-weight: 500; line-height: 1.45; word-break: break-word; color: var(--text-primary); }
+.system-alert-from { font-size: 11px; color: var(--text-muted); margin-top: 5px; font-weight: 400; }
 .system-alert-close {
-  flex-shrink: 0; width: 24px; height: 24px; border-radius: 50%; border: none; cursor: pointer;
-  background: rgba(255,255,255,0.15); color: #fff; font-size: 16px; line-height: 1;
+  flex-shrink: 0; width: 24px; height: 24px; border-radius: 6px; border: none; cursor: pointer;
+  background: transparent; color: var(--text-muted); font-size: 16px; line-height: 1;
   display: flex; align-items: center; justify-content: center;
 }
-.system-alert-close:hover { background: rgba(255,255,255,0.3); }
+.system-alert-close:hover { background: var(--bg-darker); color: var(--text-primary); }
 
 /* ============================================
    RESPONSIVE / MOBILE SUPPORT
@@ -2498,6 +2523,110 @@ body.loading-session #chat-app.active::after {
   .media-send-preview img, .media-send-preview video { max-height: 200px; }
 }
 
+/* ============================================
+   MOBILE IMPROVEMENTS — embeds, admin panel, profile, DMs
+   ============================================ */
+
+/* Mobile: file & link embeds fit within the narrower message bubbles */
+@media (max-width: 768px) {
+  .message-file img { max-width: 240px; max-height: 240px; }
+  .message-file video { max-width: 280px; max-height: 240px; }
+  .message-file audio { width: 240px; }
+  .message-file-attachment { max-width: 280px; padding: 10px 12px; gap: 10px; }
+  .file-icon { width: 36px; height: 36px; }
+  .file-name { font-size: 12px; }
+  .file-size { font-size: 10px; }
+
+  .link-embed { max-width: 100%; }
+  .link-embed-image { width: 90px; min-height: 72px; }
+  .link-embed-image.large { min-height: 140px; max-height: 180px; }
+  .link-embed-content { padding: 9px 11px; }
+  .link-embed-title { font-size: 12px; }
+  .link-embed-desc { font-size: 10px; -webkit-line-clamp: 2; }
+  .link-embed-meta { font-size: 9px; gap: 6px; }
+
+  /* Profile view modal banner — scale down on mobile but keep taller ratio */
+  .profile-view-banner { height: 200px; }
+  .profile-view-avatar { width: 72px; height: 72px; margin: -36px auto 0; font-size: 28px; }
+
+  /* System alert — full width on mobile */
+  .system-alert { padding: 12px 14px; gap: 10px; }
+  .system-alert-text { font-size: 13px; }
+}
+
+/* Small mobile: further compact embeds */
+@media (max-width: 480px) {
+  .message-file img { max-width: 200px; max-height: 200px; }
+  .message-file video { max-width: 220px; max-height: 200px; }
+  .message-file-attachment { max-width: 240px; padding: 8px 10px; }
+  .link-embed-image { width: 80px; min-height: 64px; }
+  .link-embed-image.large { min-height: 120px; max-height: 160px; }
+  .link-embed-title { font-size: 11px; }
+  .link-embed-desc { display: none; } /* hide description on very small screens */
+  .profile-view-banner { height: 160px; }
+  .profile-view-avatar { width: 64px; height: 64px; margin: -32px auto 0; font-size: 24px; border-width: 3px; }
+}
+
+/* Mobile: admin panel sub-tabs scroll horizontally and wrap nicely */
+@media (max-width: 768px) {
+  .admin-subtabs {
+    flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin; gap: 4px; padding-bottom: 4px;
+  }
+  .admin-subtab { white-space: nowrap; flex-shrink: 0; padding: 8px 12px; font-size: 12px; }
+  .admin-subtab::-webkit-scrollbar { height: 3px; }
+  .settings-v2-pane { padding: 16px 12px; }
+  .profile-section { padding: 14px 12px; }
+  .admin-ban-search-row { flex-direction: column; gap: 8px; }
+  .admin-ban-search-row input { width: 100%; }
+  .admin-ban-search-row button { width: 100%; }
+  .admin-input, .admin-textarea { font-size: 16px; } /* prevent iOS zoom */
+}
+
+/* Mobile: DM panel improvements */
+@media (max-width: 768px) {
+  .dm-overlay { padding: 0; }
+  .dm-header { padding: 10px 12px; }
+  .dm-messages { padding: 12px 12px; }
+  .dm-input-area { padding: 10px 12px 14px; padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px)); }
+  .dm-input-wrapper { padding: 6px 10px; }
+  .dm-textarea { font-size: 16px; max-height: 100px; } /* prevent iOS zoom */
+}
+
+/* Mobile: ensure the sidebar toggle button is easily tappable */
+@media (hover: none) and (pointer: coarse) {
+  .sidebar-toggle-btn { width: 28px; height: 56px; opacity: 0.8; }
+  .sidebar-toggle-btn svg { width: 16px; height: 16px; }
+}
+
+/* Mobile: prevent the sidebar transition animation from causing layout issues */
+@media (max-width: 768px) {
+  /* On mobile the sidebar is an overlay, so disable the grid-column transition */
+  #chat-app.active .sidebar { transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1); }
+}
+
+/* Mobile: multi-file badge responsive */
+@media (max-width: 480px) {
+  .multi-file-badge { font-size: 10px; padding: 1px 6px; }
+}
+
+/* Mobile: muted user toast / notification styling */
+@media (max-width: 480px) {
+  .toast { font-size: 12px; padding: 10px 14px; }
+}
+
+/* Prevent iOS Safari bounce/scroll issues on the chat app container */
+@supports (height: 100dvh) {
+  #chat-app { height: 100dvh; }
+  .dm-panel { height: 100dvh; }
+}
+
+/* Mobile: viewport meta handling for safe areas on notch devices */
+@media (max-width: 768px) {
+  .chat-header { padding-top: calc(12px + env(safe-area-inset-top, 0px)); }
+  .sidebar-header { padding-top: calc(14px + env(safe-area-inset-top, 0px)); }
+}
+
 
 </style>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%23141618'/%3E%3Crect x='24' y='30' width='52' height='40' rx='10' fill='none' stroke='%234a9eff' stroke-width='5'/%3E%3Ccircle cx='42' cy='50' r='4' fill='%234a9eff'/%3E%3Ccircle cx='58' cy='50' r='4' fill='%234a9eff'/%3E%3C/svg%3E">
@@ -2732,7 +2861,7 @@ body.loading-session #chat-app.active::after {
           <button class="attach-btn" id="attach-btn" title="Attach file (max 120MB)">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
           </button>
-          <input type="file" id="file-input" hidden>
+          <input type="file" id="file-input" hidden multiple>
           <textarea class="chat-textarea" id="chat-input" placeholder="Type a message..." rows="1"></textarea>
           <button class="send-btn" id="send-btn" disabled>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
@@ -3203,14 +3332,13 @@ body.loading-session #chat-app.active::after {
             <p>Manage users, roles, badges, bans and whitelist access. <span style="font-size:11px; color:var(--text-muted);">Owner: <strong style="color:var(--text-secondary);">@lore</strong></span></p>
           </div>
           <div id="admin-access-denied" style="display:none; text-align:center; padding:40px 20px;">
-            <div style="font-size:48px; margin-bottom:12px;">🔐</div>
-            <h3 style="color:var(--accent); margin-bottom:8px;">Admin Code Required</h3>
+                        <h3 style="color:var(--accent); margin-bottom:8px;">Admin Code Required</h3>
             <p style="color:var(--text-muted); margin-bottom:20px;">Enter the admin access code to unlock the Administrator Panel.<br><span style="font-size:11px;">Owner: <strong style="color:var(--text-secondary);">@lore</strong></span></p>
             <div style="max-width:340px; margin:0 auto;">
               <input type="password" id="admin-code-input" class="admin-input" placeholder="Enter access code..." autocomplete="off" style="width:100%; text-align:center; letter-spacing:2px; margin-bottom:10px;" />
               <button class="setting-save-btn" id="admin-code-submit" style="width:100%;">Unlock Panel</button>
               <p id="admin-code-error" style="color:var(--danger); font-size:12px; margin-top:10px; display:none;"></p>
-              <p style="color:var(--text-muted); font-size:11px; margin-top:14px;">Tip: press <kbd style="background:var(--bg-medium); border:1px solid var(--border); border-radius:4px; padding:1px 6px; font-family:monospace;">/</kbd> on PC as a shortcut.</p>
+              <p style="color:var(--text-muted); font-size:11px; margin-top:14px;">Enter the access code to manage users, roles, bans and more.</p>
             </div>
           </div>
           <div id="admin-panel-content" style="display:none;">
@@ -3219,6 +3347,7 @@ body.loading-session #chat-app.active::after {
               <button class="admin-subtab active" data-admin-subtab="activity">User Activity</button>
               <button class="admin-subtab" data-admin-subtab="accounts">Account Info</button>
               <button class="admin-subtab" data-admin-subtab="ban">Ban Users</button>
+              <button class="admin-subtab" data-admin-subtab="mute">Mute Users</button>
               <button class="admin-subtab" data-admin-subtab="roles">Roles &amp; Badges</button>
               <button class="admin-subtab" data-admin-subtab="messages">Messages</button>
               <button class="admin-subtab" data-admin-subtab="broadcast">Broadcast</button>
@@ -3302,6 +3431,47 @@ body.loading-session #chat-app.active::after {
                 <div class="profile-section-title">Currently Banned Users</div>
                 <div id="admin-banned-list" class="admin-banned-list">
                   <p style="color:var(--text-muted); padding:12px 0;">Loading banned users...</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Sub-tab: Mute Users -->
+            <div class="admin-subpane" data-admin-subpane="mute">
+              <div class="profile-section">
+                <div class="profile-section-title">Mute a User</div>
+                <p style="color:var(--text-muted); font-size:12px; margin-bottom:12px;">Mute a user to prevent them from sending messages in public chat. Muted users can still use DMs. Duration can be anywhere from 1 minute to 14 days.</p>
+                <div class="admin-ban-search-row">
+                  <input type="text" id="admin-mute-search" class="admin-input" placeholder="Search username or ID..." />
+                  <button class="setting-save-btn" id="admin-mute-search-btn">Search</button>
+                </div>
+                <div id="admin-mute-results" class="admin-ban-results"></div>
+                <div id="admin-mute-form" style="display:none; margin-top:16px;">
+                  <div class="admin-ban-target-info" id="admin-mute-target-info"></div>
+                  <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:8px;">
+                    <select id="admin-mute-duration" class="admin-input" style="flex:1; min-width:180px; padding:8px 10px;">
+                      <option value="60000">1 minute</option>
+                      <option value="300000">5 minutes</option>
+                      <option value="900000">15 minutes</option>
+                      <option value="1800000">30 minutes</option>
+                      <option value="3600000">1 hour</option>
+                      <option value="7200000">2 hours</option>
+                      <option value="21600000">6 hours</option>
+                      <option value="43200000">12 hours</option>
+                      <option value="86400000">1 day</option>
+                      <option value="172800000">2 days</option>
+                      <option value="432000000">5 days</option>
+                      <option value="604800000">7 days</option>
+                      <option value="1209600000">14 days</option>
+                    </select>
+                  </div>
+                  <textarea id="admin-mute-reason" class="admin-textarea" placeholder="Mute reason (optional)..." rows="2"></textarea>
+                  <button class="setting-save-btn" id="admin-mute-confirm-btn" style="margin-top:8px;">Mute User</button>
+                </div>
+              </div>
+              <div class="profile-section">
+                <div class="profile-section-title">Currently Muted Users</div>
+                <div id="admin-muted-list" class="admin-banned-list">
+                  <p style="color:var(--text-muted); padding:12px 0;">Loading muted users...</p>
                 </div>
               </div>
             </div>
@@ -3500,7 +3670,7 @@ body.loading-session #chat-app.active::after {
           <button class="attach-btn" id="dm-attach-btn" title="Attach file (max 120MB)">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
           </button>
-          <input type="file" id="dm-file-input" hidden>
+          <input type="file" id="dm-file-input" hidden multiple>
           <textarea class="chat-textarea" id="dm-input" placeholder="Type a private message..." rows="1"></textarea>
           <button class="send-btn" id="dm-send-btn" disabled>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
@@ -3690,6 +3860,7 @@ let closedDMs = [];
 let typingTimeout = null;
 let isTyping = false;
 let pendingFile = null;
+let pendingFiles = []; // array of additional files for multi-file upload (max 5 total)
 let currentStatus = 'online';
 let currentView = 'public';
 let activeDMUser = null;
@@ -3713,6 +3884,7 @@ let chatCooldownEnds = 0;
 let cooldownTimer = null;
 // DM file upload
 let pendingDMFile = null;
+let pendingDMFiles = []; // array of additional DM files for multi-file upload (max 5 total)
 
 // Profile/settings dirty tracking
 let profileDirty = false;
@@ -4166,8 +4338,8 @@ function showBannedScreen(reason) {
     overlay.id = 'banned-overlay';
     overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.92);';
     overlay.innerHTML = '<div style="text-align:center;max-width:420px;padding:40px 30px;background:var(--bg-medium);border:1px solid var(--danger);border-radius:16px;box-shadow:0 0 40px rgba(220,38,38,0.3);">'
-      + '<div style="font-size:56px;margin-bottom:16px;">🚫</div>'
-      + '<h2 style="color:var(--danger);margin:0 0 12px;">You Have Been Banned</h2>'
+            + '<div style="width:48px;height:48px;margin:0 auto 16px;border-radius:50%;border:2px solid var(--danger);display:flex;align-items:center;justify-content:center;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="color:var(--danger);"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg></div>'
+            + '<h2 style="color:var(--danger);margin:0 0 12px;">You Have Been Banned</h2>'
       + '<p style="color:var(--text-secondary);font-size:14px;margin:0 0 8px;">Your account has been banned by an administrator.</p>'
       + '<p id="banned-reason" style="color:var(--text-muted);font-size:13px;margin:0 0 24px;font-style:italic;"></p>'
       + '<button id="banned-ok-btn" style="background:var(--danger);color:#fff;border:none;border-radius:8px;padding:10px 28px;font-size:14px;cursor:pointer;">OK</button>'
@@ -4233,6 +4405,26 @@ function connectSocket() {
     setTimeout(() => {
       showBannedScreen(reason);
     }, 300);
+  });
+
+  // Muted by an admin — update local user state and notify
+  socket.on('muted', (payload) => {
+    if (currentUser) {
+      currentUser.mutedUntil = (payload && payload.mutedUntil) || 0;
+      currentUser.muteReason = (payload && payload.reason) || '';
+    }
+    const durText = (payload && payload.durationText) ? payload.durationText : 'a period of time';
+    const reasonPart = (payload && payload.reason) ? ' Reason: ' + payload.reason : '';
+    toast('You have been muted for ' + durText + '. You cannot send messages in chat.' + reasonPart, 'error');
+  });
+
+  // Unmuted by an admin — clear local mute state and notify
+  socket.on('unmuted', () => {
+    if (currentUser) {
+      currentUser.mutedUntil = 0;
+      currentUser.muteReason = '';
+    }
+    toast('You are no longer muted. You can send messages in chat again.', 'success');
   });
 
   socket.on('new-message', (msg) => {
@@ -4493,6 +4685,10 @@ function appendMessage(msg, silent) {
       textSpan.querySelectorAll('.link-embed').forEach(el => fetchEmbed(el.dataset.url, el));
     }
     if (msg.file) { bubble.appendChild(createFileElement(msg.file)); }
+    // Multi-file attachments
+    if (msg.files && Array.isArray(msg.files) && msg.files.length > 0) {
+      msg.files.forEach(f => { if (f) bubble.appendChild(createFileElement(f)); });
+    }
   }
 
   // Right-click context for own messages
@@ -4618,6 +4814,7 @@ function createFileElement(file) {
     size.className = 'file-size'; size.textContent = formatFileSize(file.size);
     info.appendChild(name); info.appendChild(size);
     const dl = document.createElement('div');
+    dl.className = 'file-dl-icon';
     dl.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>';
     link.appendChild(icon); link.appendChild(info); link.appendChild(dl);
     wrapper.appendChild(link);
@@ -4719,8 +4916,9 @@ sendBtn.addEventListener('click', sendMessage);
 async function sendMessage() {
   const text = chatInput.value.trim();
   if (!text && !pendingFile) return;
-  // Cooldown check
-  if (Date.now() < chatCooldownEnds) {
+  // Cooldown check (skip for exempt users)
+  const isExempt = !!(currentUser && currentUser.cooldownExempt);
+  if (!isExempt && Date.now() < chatCooldownEnds) {
     const remaining = Math.ceil((chatCooldownEnds - Date.now()) / 1000);
     toast('Please wait ' + remaining + ' second(s) before sending another message.', 'error');
     return;
@@ -4740,7 +4938,8 @@ async function sendMessage() {
 
 async function doSendMessage(text) {
   if (!text && !pendingFile) return;
-  if (Date.now() < chatCooldownEnds) {
+  const isExempt = !!(currentUser && currentUser.cooldownExempt);
+  if (!isExempt && Date.now() < chatCooldownEnds) {
     const remaining = Math.ceil((chatCooldownEnds - Date.now()) / 1000);
     toast('Please wait ' + remaining + ' second(s) before sending another message.', 'error');
     return;
@@ -4759,17 +4958,43 @@ async function doSendMessage(text) {
       fileData = data.file; bar.style.width = '100%';
     } catch (err) { toast('File upload failed', 'error'); clearPendingFile(); return; }
   }
-  socket.emit('send-message', { text, file: fileData, reply: replyingTo }, (res) => {
+  // Upload any additional multi-file attachments before sending.
+  let extraFileData = [];
+  if (pendingFiles.length > 0) {
+    for (const f of pendingFiles) {
+      try {
+        const formData = new FormData();
+        formData.append('file', f);
+        const res = await fetch(API_BASE + '/api/upload', { method: 'POST', body: formData });
+        const data = await res.json();
+        if (!res.ok) { toast('Upload failed for "' + f.name + '"', 'error'); break; }
+        extraFileData.push(data.file);
+      } catch (err) { toast('Upload failed for "' + f.name + '"', 'error'); break; }
+    }
+  }
+  // Build the files array (all files in a single message) — max 5 total
+  let allFiles = null;
+  if (fileData && extraFileData.length > 0) {
+    allFiles = [fileData, ...extraFileData].slice(0, 5);
+  } else if (extraFileData.length > 0) {
+    allFiles = extraFileData.slice(0, 5);
+  }
+  // Send the message (text + all files in one message)
+  socket.emit('send-message', { text, file: fileData, files: allFiles, reply: replyingTo }, (res) => {
     if (res && res.error) {
       toast(res.error, 'error');
-      if (res.cooldown) startCooldown(res.cooldown);
+      if (res.muted) {
+        // Muted user — do NOT start cooldown, just notify (already toasted above).
+      } else if (res.cooldown) {
+        startCooldown(res.cooldown);
+      }
       // Restore the text if send failed
       chatInput.value = text;
       if (fileData) { pendingFile = null; /* can't restore file easily */ }
       updateSendButton();
     } else {
-      // Start 5-second cooldown after successful send
-      startCooldown(5);
+      // Start 5-second cooldown after successful send (skip for exempt users)
+      if (!isExempt) startCooldown(5);
       cancelReply();
     }
   });
@@ -4809,12 +5034,41 @@ function startCooldown(seconds) {
 // ---------- File Attachment ----------
 const fileInput = $('file-input');
 $('attach-btn').addEventListener('click', () => fileInput.click());
+const MAX_FILES = 5;
 fileInput.addEventListener('change', (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
-  if (file.size > 120 * 1024 * 1024) { toast('File exceeds 120MB limit', 'error'); fileInput.value = ''; return; }
-  pendingFile = file;
-  showFilePreview(file);
+  const files = Array.from(e.target.files || []);
+  if (files.length === 0) return;
+  // Enforce max 5 files at a time
+  if (files.length > MAX_FILES) {
+    toast('You can only upload up to ' + MAX_FILES + ' files at a time. Only the first ' + MAX_FILES + ' will be sent.', 'error');
+  }
+  const selected = files.slice(0, MAX_FILES);
+  // Validate size for all selected files
+  for (const f of selected) {
+    if (f.size > 120 * 1024 * 1024) { toast('File "' + f.name + '" exceeds 120MB limit', 'error'); fileInput.value = ''; return; }
+  }
+  if (selected.length === 1) {
+    // Single file — use the existing pendingFile flow
+    pendingFile = selected[0];
+    pendingFiles = [];
+    showFilePreview(selected[0]);
+  } else {
+    // Multiple files — set first as pendingFile (for preview), rest in pendingFiles
+    pendingFile = selected[0];
+    pendingFiles = selected.slice(1);
+    showFilePreview(selected[0]);
+    // Append a count badge to the preview
+    const preview = $('file-preview');
+    let badge = preview.querySelector('.multi-file-badge');
+    if (!badge) {
+      badge = document.createElement('div');
+      badge.className = 'multi-file-badge';
+      badge.style.cssText = 'margin-left:8px; font-size:11px; color:var(--accent); font-weight:600; background:var(--accent-dim); padding:2px 8px; border-radius:6px;';
+      const nameWrap = $('file-preview-name').parentElement;
+      nameWrap.appendChild(badge);
+    }
+    badge.textContent = '+' + pendingFiles.length + ' more file' + (pendingFiles.length !== 1 ? 's' : '');
+  }
   updateSendButton();
 });
 function showFilePreview(file) {
@@ -4838,10 +5092,14 @@ function showFilePreview(file) {
 }
 function clearPendingFile() {
   pendingFile = null;
+  pendingFiles = [];
   $('file-preview').classList.remove('show');
   const bar = $('file-preview-bar');
   bar.classList.remove('uploading');
   bar.style.width = '0%';
+  // Remove multi-file badge if present
+  const badge = $('file-preview').querySelector('.multi-file-badge');
+  if (badge) badge.remove();
   fileInput.value = '';
 }
 $('remove-attachment').addEventListener('click', () => { clearPendingFile(); updateSendButton(); });
@@ -5609,6 +5867,10 @@ function appendDMMessage(msg, silent) {
       textSpan.querySelectorAll('.link-embed').forEach(el => fetchEmbed(el.dataset.url, el));
     }
     if (msg.file) bubble.appendChild(createFileElement(msg.file));
+    // Multi-file attachments
+    if (msg.files && Array.isArray(msg.files) && msg.files.length > 0) {
+      msg.files.forEach(f => { if (f) bubble.appendChild(createFileElement(f)); });
+    }
   }
   if (isOwn && !msg.deleted) {
     const dmCtxItems = [
@@ -5725,11 +5987,34 @@ dmSendBtn.addEventListener('click', sendDM);
 const dmFileInput = $('dm-file-input');
 $('dm-attach-btn').addEventListener('click', () => dmFileInput.click());
 dmFileInput.addEventListener('change', (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
-  if (file.size > 120 * 1024 * 1024) { toast('File exceeds 120MB limit', 'error'); dmFileInput.value = ''; return; }
-  pendingDMFile = file;
-  showDMFilePreview(file);
+  const files = Array.from(e.target.files || []);
+  if (files.length === 0) return;
+  if (files.length > MAX_FILES) {
+    toast('You can only upload up to ' + MAX_FILES + ' files at a time. Only the first ' + MAX_FILES + ' will be sent.', 'error');
+  }
+  const selected = files.slice(0, MAX_FILES);
+  for (const f of selected) {
+    if (f.size > 120 * 1024 * 1024) { toast('File "' + f.name + '" exceeds 120MB limit', 'error'); dmFileInput.value = ''; return; }
+  }
+  if (selected.length === 1) {
+    pendingDMFile = selected[0];
+    pendingDMFiles = [];
+    showDMFilePreview(selected[0]);
+  } else {
+    pendingDMFile = selected[0];
+    pendingDMFiles = selected.slice(1);
+    showDMFilePreview(selected[0]);
+    const preview = $('dm-file-preview');
+    let badge = preview.querySelector('.multi-file-badge');
+    if (!badge) {
+      badge = document.createElement('div');
+      badge.className = 'multi-file-badge';
+      badge.style.cssText = 'margin-left:8px; font-size:11px; color:var(--accent); font-weight:600; background:var(--accent-dim); padding:2px 8px; border-radius:6px;';
+      const nameWrap = $('dm-file-preview-name').parentElement;
+      nameWrap.appendChild(badge);
+    }
+    badge.textContent = '+' + pendingDMFiles.length + ' more file' + (pendingDMFiles.length !== 1 ? 's' : '');
+  }
   updateDMSend();
 });
 function showDMFilePreview(file) {
@@ -5752,10 +6037,13 @@ function showDMFilePreview(file) {
 }
 function clearDMPendingFile() {
   pendingDMFile = null;
+  pendingDMFiles = [];
   $('dm-file-preview').classList.remove('show');
   const bar = $('dm-file-preview-bar');
   bar.classList.remove('uploading');
   bar.style.width = '0%';
+  const badge = $('dm-file-preview').querySelector('.multi-file-badge');
+  if (badge) badge.remove();
   if (dmFileInput) dmFileInput.value = '';
 }
 $('dm-remove-attachment').addEventListener('click', () => { clearDMPendingFile(); updateDMSend(); });
@@ -5811,7 +6099,28 @@ async function sendDMWithFile(text) {
     if (!res.ok) { toast(data.error || 'File upload failed', 'error'); clearDMPendingFile(); sendBtn.disabled = false; updateDMSend(); return; }
     if (bar) bar.style.width = '100%';
     const fileData = data.file;
-    socket.emit('dm-send', { to: activeDMUser, text, file: fileData, reply: replyingToDM }, (res) => {
+    // Upload any additional DM multi-file attachments
+    let extraFileData = [];
+    if (pendingDMFiles.length > 0) {
+      for (const f of pendingDMFiles) {
+        try {
+          const fd2 = new FormData();
+          fd2.append('file', f);
+          const r2 = await fetch(API_BASE + '/api/upload', { method: 'POST', body: fd2 });
+          const d2 = await r2.json();
+          if (!r2.ok) { toast('Upload failed for "' + f.name + '"', 'error'); break; }
+          extraFileData.push(d2.file);
+        } catch (err) { toast('Upload failed for "' + f.name + '"', 'error'); break; }
+      }
+    }
+    // Build files array (all files in one DM message) — max 5 total
+    let allFiles = null;
+    if (fileData && extraFileData.length > 0) {
+      allFiles = [fileData, ...extraFileData].slice(0, 5);
+    } else if (extraFileData.length > 0) {
+      allFiles = extraFileData.slice(0, 5);
+    }
+    socket.emit('dm-send', { to: activeDMUser, text, file: fileData, files: allFiles, reply: replyingToDM }, (res) => {
       if (res && res.error) { toast(res.error, 'error'); return; }
       if (res && res.message) {
         dmMessages.push(res.message);
@@ -6087,9 +6396,10 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
-// `/` (slash) shortcut for PC users — opens Profile Settings → Admin tab.
-// Only triggers when NOT typing in an input/textarea/contenteditable so it
-// doesn't interfere with chat, DMs, or form fields.
+// `/` (slash) shortcut for PC users — focuses the chat input (public view)
+// or the DM input (DM view) so you can jump straight to typing.
+// Only triggers when NOT already typing in an input/textarea/contenteditable
+// so it doesn't interfere with chat, DMs, or form fields.
 document.addEventListener('keydown', (e) => {
   if (e.key !== '/' ) return;
   // Ignore when focused on any editable field
@@ -6100,14 +6410,21 @@ document.addEventListener('keydown', (e) => {
   if (e.ctrlKey || e.metaKey || e.altKey) return;
   // Ignore if a modal/overlay that should capture input is open
   if (!currentUser) return; // must be logged in
+  // If any settings/modal panel is open, don't hijack the key
+  const profilePanel = document.getElementById('profile-panel');
+  if (profilePanel && profilePanel.classList.contains('show')) return;
+  const dmOverlay = document.getElementById('dm-overlay');
+  const dmVisible = dmOverlay && dmOverlay.classList.contains('show');
   e.preventDefault();
-  // Open the profile settings panel and switch to the admin tab
-  openProfilePanel();
-  // Defer the tab switch until the panel is rendered
-  setTimeout(() => {
-    switchSettingsTab('admin');
-    checkAdminAccess();
-  }, 50);
+  if (dmVisible) {
+    // Focus the DM input
+    const dmInput = document.getElementById('dm-input');
+    if (dmInput) { dmInput.focus(); dmInput.scrollIntoView({ block: 'nearest' }); }
+  } else {
+    // Focus the public chat input
+    const chatEl = document.getElementById('chat-input');
+    if (chatEl) { chatEl.focus(); chatEl.scrollIntoView({ block: 'nearest' }); }
+  }
 });
 
 function updateProfilePanel() {
@@ -7808,6 +8125,7 @@ async function loadAdminData() {
     renderAdminWhitelist();
     renderAdminCustomRoles();
     renderAdminCooldownExempt();
+    renderAdminMutedList();
     // Update welcome title display in admin panel
     if (adminData.welcomeTitle && $('admin-welcome-title-current')) {
       $('admin-welcome-title-current').textContent = adminData.welcomeTitle;
@@ -7971,16 +8289,18 @@ async function adminSearchUsers(query, resultsContainer, onSelectCb) {
     }
     // Cache results so we can reference by index without embedding JSON in onclick
     if (!window._adminSearchCache) window._adminSearchCache = {};
+    const cbName = onSelectCb ? onSelectCb.name : 'adminSelectUser';
     resultsContainer.innerHTML = results.map((u, i) => {
       const cacheKey = 'asr_' + Math.random().toString(36).slice(2, 10);
       window._adminSearchCache[cacheKey] = u;
       const avatarHtml = u.avatar ? '<img src="' + u.avatar + '">' : escapeHtml(getInitials(u.username));
       const bannedTag = u.banned ? ' <span style="color:var(--danger); font-size:10px;">[BANNED]</span>' : '';
       const roleTag = u.role && u.role !== 'user' ? ' <span style="color:#818cf8; font-size:10px;">[' + escapeHtml(ROLE_LABELS[u.role] || u.role) + ']</span>' : '';
-      return '<div class="admin-search-result" onclick="adminSelectUser(\'' + cacheKey + '\')">' +
+      const mutedTag = (u.mutedUntil && u.mutedUntil > Date.now()) ? ' <span style="color:var(--danger); font-size:10px;">[MUTED]</span>' : '';
+      return '<div class="admin-search-result" onclick="' + cbName + '(\'' + cacheKey + '\')">' +
         '<div class="admin-search-result-avatar">' + avatarHtml + '</div>' +
         '<div class="admin-search-result-info">' +
-          '<div class="admin-search-result-name">' + escapeHtml(u.displayName || u.username) + bannedTag + roleTag + ' @' + escapeHtml(u.username) + '</div>' +
+          '<div class="admin-search-result-name">' + escapeHtml(u.displayName || u.username) + bannedTag + mutedTag + roleTag + ' @' + escapeHtml(u.username) + '</div>' +
           '<div class="admin-search-result-meta">ID: ' + escapeHtml(u.id || 'N/A') + '</div>' +
         '</div>' +
       '</div>';
@@ -8062,6 +8382,85 @@ async function adminUnbanUser(username) {
     const data = await res.json();
     if (data.success) { toast('User unbanned', 'success'); loadAdminData(); }
     else { toast(data.error || 'Failed to unban user', 'error'); }
+  } catch (e) { toast('Network error', 'error'); }
+}
+
+// ---------- Mute management ----------
+let adminMuteTarget = null;
+function adminSelectMuteUser(cacheKey) {
+  const user = (window._adminSearchCache && window._adminSearchCache[cacheKey]) || null;
+  if (!user) { console.error('Admin select mute user: cache miss for', cacheKey); return; }
+  adminMuteTarget = user;
+  const muteForm = $('admin-mute-form');
+  const muteTargetInfo = $('admin-mute-target-info');
+  if (muteForm && muteTargetInfo) {
+    muteForm.style.display = '';
+    const avatarHtml = user.avatar ? '<img src="' + user.avatar + '" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">' : '<div style="width:32px;height:32px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:13px;">' + escapeHtml(getInitials(user.username)) + '</div>';
+    const mutedTag = user.mutedUntil ? ' <span style="color:var(--danger);font-size:11px;">(Already muted)</span>' : '';
+    muteTargetInfo.innerHTML = avatarHtml + '<div><div class="at-name">' + escapeHtml(user.displayName || user.username) + mutedTag + ' @' + escapeHtml(user.username) + '</div><div class="at-meta">ID: ' + escapeHtml(user.id || 'N/A') + '</div></div>';
+    $('admin-mute-reason').value = '';
+  }
+}
+function renderAdminMutedList() {
+  const container = $('admin-muted-list');
+  if (!container || !adminData) return;
+  const muted = (adminData.users || []).filter(u => u.mutedUntil && u.mutedUntil > Date.now());
+  if (muted.length === 0) {
+    container.innerHTML = '<p style="color:var(--text-muted); padding:12px 0;">No users are currently muted.</p>';
+    return;
+  }
+  container.innerHTML = muted.map(u => {
+    const remaining = Math.max(0, u.mutedUntil - Date.now());
+    const remText = formatMuteDurationLocal(remaining);
+    return '<div class="admin-banned-item">' +
+      '<div class="admin-banned-item-info">' +
+        '<div class="admin-banned-item-name">@' + escapeHtml(u.username) + ' (' + escapeHtml(u.displayName || u.username) + ')</div>' +
+        '<div class="admin-banned-item-reason">Reason: ' + escapeHtml(u.muteReason || 'N/A') + ' — Time remaining: ' + remText + (u.mutedBy ? ' — Muted by @' + escapeHtml(u.mutedBy) : '') + '</div>' +
+      '</div>' +
+      '<button class="setting-save-btn" onclick="adminUnmuteUser(\'' + escapeHtml(u.username) + '\')">Unmute</button>' +
+    '</div>';
+  }).join('');
+}
+function formatMuteDurationLocal(ms) {
+  if (ms <= 0) return 'expired';
+  const sec = Math.floor(ms / 1000);
+  const minute = 60, hour = 3600, day = 86400;
+  if (sec < minute) return sec + 's';
+  if (sec < hour) { const m = Math.floor(sec / minute); const s = sec % minute; return m + 'm' + (s > 0 ? ' ' + s + 's' : ''); }
+  if (sec < day) { const h = Math.floor(sec / hour); const m = Math.floor((sec % hour) / minute); return h + 'h' + (m > 0 ? ' ' + m + 'm' : ''); }
+  const d = Math.floor(sec / day); const h = Math.floor((sec % day) / hour);
+  return d + 'd' + (h > 0 ? ' ' + h + 'h' : '');
+}
+async function adminMuteUser() {
+  if (!adminMuteTarget) return;
+  const durationMs = parseInt($('admin-mute-duration').value, 10);
+  const reason = $('admin-mute-reason').value.trim();
+  if (!durationMs || isNaN(durationMs)) { toast('Select a mute duration', 'error'); return; }
+  try {
+    const res = await fetch(API_BASE + '/api/admin/mute', {
+      method: 'POST', headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: adminMuteTarget.username, durationMs, reason }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      toast('User muted for ' + (data.durationText || 'the selected duration'), 'success');
+      $('admin-mute-form').style.display = 'none';
+      adminMuteTarget = null;
+      $('admin-mute-search').value = '';
+      $('admin-mute-results').innerHTML = '';
+      loadAdminData();
+    } else { toast(data.error || 'Failed to mute user', 'error'); }
+  } catch (e) { toast('Network error', 'error'); }
+}
+async function adminUnmuteUser(username) {
+  try {
+    const res = await fetch(API_BASE + '/api/admin/unmute', {
+      method: 'POST', headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username }),
+    });
+    const data = await res.json();
+    if (data.success) { toast('User unmuted', 'success'); loadAdminData(); }
+    else { toast(data.error || 'Failed to unmute user', 'error'); }
   } catch (e) { toast('Network error', 'error'); }
 }
 
@@ -8489,6 +8888,22 @@ function initAdminEventListeners() {
   // Ban confirm
   const banConfirmBtn = $('admin-ban-confirm-btn');
   if (banConfirmBtn) banConfirmBtn.addEventListener('click', adminBanUser);
+  // Mute search
+  const muteSearchBtn = $('admin-mute-search-btn');
+  if (muteSearchBtn) {
+    muteSearchBtn.addEventListener('click', () => {
+      adminSearchUsers($('admin-mute-search').value, $('admin-mute-results'), adminSelectMuteUser);
+    });
+  }
+  const muteSearchInput = $('admin-mute-search');
+  if (muteSearchInput) {
+    muteSearchInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') adminSearchUsers(muteSearchInput.value, $('admin-mute-results'), adminSelectMuteUser);
+    });
+  }
+  // Mute confirm
+  const muteConfirmBtn = $('admin-mute-confirm-btn');
+  if (muteConfirmBtn) muteConfirmBtn.addEventListener('click', adminMuteUser);
   // Role search
   const roleSearchBtn = $('admin-role-search-btn');
   if (roleSearchBtn) {

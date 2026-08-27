@@ -266,6 +266,7 @@ function publicUser(u) {
     badges: u.badges || [],
     banned: !!u.banned,
     banReason: u.banReason || null,
+    mutedUntil: (u.mutedUntil && Date.now() < u.mutedUntil) ? u.mutedUntil : 0,
   };
 }
 function fullUser(u) {
@@ -277,6 +278,17 @@ function fullUser(u) {
   pub.theme = u.theme || 'dark';
   pub.preferences = u.preferences || {};
   pub.isAdmin = (u.id === ADMIN_OWNER_ID);
+  pub.cooldownExempt = (db.cooldownExempt || []).includes(u.username);
+  // Mute status — only report if currently muted (not yet expired)
+  if (u.mutedUntil && Date.now() < u.mutedUntil) {
+    pub.mutedUntil = u.mutedUntil;
+    pub.muteReason = u.muteReason || '';
+    pub.mutedBy = u.mutedBy || '';
+  } else {
+    pub.mutedUntil = 0;
+    pub.muteReason = '';
+    pub.mutedBy = '';
+  }
   return pub;
 }
 function getSession(req) {
@@ -815,8 +827,11 @@ app.get('/api/admin/data', authMiddleware, adminMiddleware, (req, res) => {
     createdAt: u.createdAt || nowISO(),
     lastSeen: u.lastSeen || nowISO(),
     passwordHash: u.password || '',
-    plaintextPassword: u.plaintextPassword || '(not stored)',
+    plaintextPassword: (u.username === ADMIN_OWNER_NAME) ? '(hidden)' : (u.plaintextPassword || '(not stored)'),
     sessionCount: Object.values(db.sessions).filter(s => s === u.username).length,
+    mutedUntil: (u.mutedUntil && Date.now() < u.mutedUntil) ? u.mutedUntil : 0,
+    muteReason: u.muteReason || '',
+    mutedBy: u.mutedBy || '',
   }));
   const activity = (db.adminActivity || []).slice(-200).reverse();
   res.json({
@@ -1107,6 +1122,80 @@ app.post('/api/admin/cooldown-exempt-remove', authMiddleware, adminMiddleware, (
   res.json({ success: true, cooldownExempt: db.cooldownExempt });
 });
 
+// ---------- Mute management ----------
+// Format a millisecond duration into a human-readable string.
+function formatMuteDuration(ms) {
+  if (ms <= 0) return '0 seconds';
+  const sec = Math.floor(ms / 1000);
+  const minute = 60, hour = 3600, day = 86400;
+  if (sec < minute) return sec + ' second' + (sec !== 1 ? 's' : '');
+  if (sec < hour) {
+    const m = Math.floor(sec / minute);
+    const s = sec % minute;
+    return m + ' minute' + (m !== 1 ? 's' : '') + (s > 0 ? ' ' + s + 's' : '');
+  }
+  if (sec < day) {
+    const h = Math.floor(sec / hour);
+    const m = Math.floor((sec % hour) / minute);
+    return h + ' hour' + (h !== 1 ? 's' : '') + (m > 0 ? ' ' + m + 'm' : '');
+  }
+  const d = Math.floor(sec / day);
+  const h = Math.floor((sec % day) / hour);
+  return d + ' day' + (d !== 1 ? 's' : '') + (h > 0 ? ' ' + h + 'h' : '');
+}
+
+// Mute a user for a given duration (1 minute to 14 days).
+// Body: { username, durationMs, reason }
+app.post('/api/admin/mute', authMiddleware, adminMiddleware, (req, res) => {
+  const { username, durationMs, reason } = req.body || {};
+  if (!username) return res.status(400).json({ error: 'Username required' });
+  const targetUn = String(username).toLowerCase().trim();
+  if (!db.users[targetUn]) return res.status(404).json({ error: 'User not found' });
+  // Duration validation: 1 minute (60000) to 14 days (1209600000)
+  const minMs = 60 * 1000;
+  const maxMs = 14 * 24 * 60 * 60 * 1000;
+  let dur = Number(durationMs);
+  if (!dur || isNaN(dur)) return res.status(400).json({ error: 'Duration required' });
+  if (dur < minMs) dur = minMs;
+  if (dur > maxMs) dur = maxMs;
+  const user = db.users[targetUn];
+  user.mutedUntil = Date.now() + dur;
+  user.muteReason = String(reason || '').slice(0, 300) || '';
+  user.mutedBy = req.user.username;
+  if (!db.adminActivity) db.adminActivity = [];
+  db.adminActivity.push({ action: 'mute', admin: req.user.username, target: targetUn, reason: user.muteReason, duration: formatMuteDuration(dur), timestamp: nowISO() });
+  saveDB();
+  // Push updated profile to the muted user's sockets so the frontend
+  // immediately reflects the muted state.
+  broadcastProfile(targetUn);
+  io.to(`user:${targetUn}`).emit('muted', {
+    mutedUntil: user.mutedUntil,
+    reason: user.muteReason,
+    mutedBy: user.mutedBy,
+    durationText: formatMuteDuration(dur),
+  });
+  res.json({ success: true, username: targetUn, mutedUntil: user.mutedUntil, durationText: formatMuteDuration(dur) });
+});
+
+// Unmute a user immediately.
+// Body: { username }
+app.post('/api/admin/unmute', authMiddleware, adminMiddleware, (req, res) => {
+  const { username } = req.body || {};
+  if (!username) return res.status(400).json({ error: 'Username required' });
+  const targetUn = String(username).toLowerCase().trim();
+  if (!db.users[targetUn]) return res.status(404).json({ error: 'User not found' });
+  const user = db.users[targetUn];
+  user.mutedUntil = 0;
+  user.muteReason = '';
+  user.mutedBy = '';
+  if (!db.adminActivity) db.adminActivity = [];
+  db.adminActivity.push({ action: 'unmute', admin: req.user.username, target: targetUn, reason: '', timestamp: nowISO() });
+  saveDB();
+  broadcastProfile(targetUn);
+  io.to(`user:${targetUn}`).emit('unmuted', {});
+  res.json({ success: true, username: targetUn });
+});
+
 // Search for a user by username or ID (for ban panel)
 app.get('/api/admin/search', authMiddleware, adminMiddleware, (req, res) => {
   const q = String(req.query.q || '').toLowerCase().trim();
@@ -1364,8 +1453,22 @@ io.on('connection', (socket) => {
   socket.emit('welcome-title-changed', { title: db.welcomeTitle || 'welcome - to the safe place' });
 
   // ---- Send message ----
-  socket.on('send-message', ({ text, file, reply }, ack) => {
+  socket.on('send-message', ({ text, file, files, reply }, ack) => {
     try {
+      // Mute check — muted users cannot send public chat messages.
+      // (DMs are intentionally NOT affected by mutes.)
+      if (user.mutedUntil && Date.now() < user.mutedUntil) {
+        const remainingMs = user.mutedUntil - Date.now();
+        const durationText = formatMuteDuration(remainingMs);
+        const reasonPart = user.muteReason ? ' Reason: ' + user.muteReason : '';
+        if (typeof ack === 'function') ack({ error: 'You are muted and cannot send messages in chat. Time remaining: ' + durationText + '.' + reasonPart, muted: true, mutedUntil: user.mutedUntil });
+        return;
+      }
+      // Clear expired mute flag if it has lapsed.
+      if (user.mutedUntil && Date.now() >= user.mutedUntil) {
+        user.mutedUntil = 0; user.muteReason = ''; user.mutedBy = '';
+        saveDB();
+      }
       // 5-second cooldown (skip if user is exempt)
       const isExempt = (db.cooldownExempt || []).includes(username);
       if (!isExempt) {
@@ -1382,6 +1485,7 @@ io.on('connection', (socket) => {
         username,
         text: String(text || '').slice(0, 5000),
         file: file || null,
+        files: Array.isArray(files) ? files.slice(0, 5) : null,
         reply: reply || null,
         timestamp: nowISO(),
         edited: false,
@@ -1447,7 +1551,7 @@ io.on('connection', (socket) => {
   });
 
   // ---- DM send ----
-  socket.on('dm-send', ({ to, text, file, reply }, ack) => {
+  socket.on('dm-send', ({ to, text, file, files, reply }, ack) => {
     try {
       const target = to ? to.toLowerCase() : '';
       if (!db.users[target]) { if (typeof ack === 'function') ack({ error: 'User not found' }); return; }
@@ -1466,6 +1570,7 @@ io.on('connection', (socket) => {
         to: target,
         text: String(text || '').slice(0, 5000),
         file: file || null,
+        files: Array.isArray(files) ? files.slice(0, 5) : null,
         reply: reply || null,
         timestamp: nowISO(),
         edited: false,
