@@ -7,7 +7,16 @@ const fs = require('fs');
 const crypto = require('crypto');
 const multer = require('multer');
 const { Server } = require('socket.io');
-const { enhanceUpload } = require('./enhance'); // 4K/HD enhancement for uploaded images & GIFs
+// 4K/HD enhancement for uploaded images & GIFs. Loaded defensively so a
+// failure in the enhancement module (e.g. sharp's native binary not loading
+// on the host) never prevents the chat server from starting. Enhancement is
+// best-effort \u2014 if it is unavailable, uploads are simply served as-is.
+let enhanceUpload = null;
+try {
+  ({ enhanceUpload } = require('./enhance'));
+} catch (err) {
+  console.error('[server] WARNING: enhancement module failed to load \u2014 uploads will be served unenhanced. Error:', err.message);
+}
 
 const app = express();
 const server = http.createServer(app);
@@ -537,7 +546,7 @@ app.post('/api/profile', authMiddleware, avatarUpload.single('image'), async (re
     const enhanceOpts = type === 'banner'
       ? { maxStatic: 1536, maxAnimated: 720 }
       : { maxStatic: 512, maxAnimated: 480 };
-    try { await enhanceUpload(path.join(UPLOAD_DIR, req.file.filename), enhanceOpts); }
+    try { if (enhanceUpload) await enhanceUpload(path.join(UPLOAD_DIR, req.file.filename), enhanceOpts); }
     catch (e) { console.error('[profile] enhance error:', e.message); }
     const url = '/uploads/' + req.file.filename;
     if (type === 'banner') {
@@ -580,7 +589,7 @@ app.post('/api/upload', authMiddleware, upload.single('file'), async (req, res) 
   const absPath = path.join(UPLOAD_DIR, req.file.filename);
   let isImage = /^image\//.test(req.file.mimetype || '');
   if (isImage) {
-    try { await enhanceUpload(absPath); }
+    try { if (enhanceUpload) await enhanceUpload(absPath); }
     catch (e) { console.error('[upload] enhance error:', e.message); }
   }
   // Re-stat so the reported size matches the enhanced file on disk.

@@ -24,7 +24,21 @@
 
 const fs = require('fs');
 const path = require('path');
-const sharp = require('sharp');
+
+// Load sharp defensively. sharp ships pre-built native binaries for common
+// platforms, but on some hosting environments (e.g. a slim Docker image
+// missing a system library, or a CI cache that produced a broken
+// node_modules) the native addon can fail to load at require-time. Because
+// enhancement is strictly best-effort (every caller wraps it in try/catch
+// and falls back to the original file), we degrade gracefully instead of
+// crashing the entire server with a non-zero exit code.
+let sharp;
+try {
+  sharp = require('sharp');
+} catch (err) {
+  console.error('[enhance] WARNING: sharp native module failed to load \u2014 image enhancement will be disabled. Original uploads will be served unenhanced. Error:', err.message);
+  sharp = null;
+}
 
 // 4K UHD longest-edge target for static images.
 const STATIC_TARGET = 3840;
@@ -54,6 +68,12 @@ async function enhanceUpload(filePath, opts) {
   const animatedTarget = opts.maxAnimated || ANIMATED_TARGET;
   if (!filePath || !fs.existsSync(filePath)) {
     return { enhanced: false, width: 0, height: 0, format: '', reason: 'file not found' };
+  }
+  // If sharp failed to load at startup, skip enhancement entirely \u2014 the
+  // original file is left intact and served as-is. This keeps the server
+  // alive instead of crashing.
+  if (!sharp) {
+    return { enhanced: false, width: 0, height: 0, format: '', reason: 'sharp module unavailable' };
   }
   const ext = path.extname(filePath).toLowerCase();
 
