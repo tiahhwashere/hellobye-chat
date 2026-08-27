@@ -672,29 +672,41 @@ body.loading-session #chat-app.active::after {
 
 /* Message file attachments */
 .message-file { margin-top: 8px; }
-.message-file img { max-width: 300px; max-height: 300px; border-radius: 8px; display: block; cursor: pointer; object-fit: cover; image-rendering: -webkit-optimize-contrast; image-rendering: crisp-edges; border: 1px solid var(--border); transition: border-color 0.15s ease, transform 0.15s ease; }
-.message-file img:hover { border-color: var(--border-light); transform: scale(1.005); }
+.message-file img {
+  max-width: 360px; max-height: 360px; border-radius: 12px; display: block; cursor: pointer;
+  object-fit: cover; image-rendering: -webkit-optimize-contrast; image-rendering: crisp-edges;
+  border: 1px solid var(--border);
+  transition: border-color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+}
+.message-file img:hover { border-color: var(--border-light); transform: scale(1.012); box-shadow: 0 4px 16px rgba(0,0,0,0.35); }
 /* 4K/HD enhancement: images are upscaled + sharpened on the server; this
    subtle display filter adds a final crispness/contrast pop when rendered. */
 .message-file img.hd-enhanced { filter: contrast(1.04) saturate(1.06) sharpen(1); }
-.message-file video { max-width: 340px; max-height: 300px; border-radius: 8px; border: 1px solid var(--border); }
+.message-file video {
+  max-width: 380px; max-height: 360px; border-radius: 12px; border: 1px solid var(--border);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.25); background: #000;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+.message-file video:hover { border-color: var(--border-light); box-shadow: 0 4px 16px rgba(0,0,0,0.35); }
 /* HD enhancement filter for inline videos (server can't transcode video, so
    we apply a light sharpen/contrast/saturate pass at display time). */
 .message-file video.hd-enhanced { filter: contrast(1.05) saturate(1.08) brightness(1.02); }
-.message-file audio { width: 300px; border-radius: 8px; }
+.message-file audio { width: 320px; border-radius: 10px; }
 .message-file-attachment {
   display: flex; align-items: center; gap: 12px;
   padding: 12px 14px; background: var(--bg-darker);
-  border: 1px solid var(--border); border-radius: 10px;
+  border: 1px solid var(--border); border-radius: 12px;
   text-decoration: none; color: var(--text-primary);
-  transition: border-color 0.15s ease, background 0.15s ease;
-  max-width: 340px;
+  transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+  max-width: 360px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
 }
 .message-group.own .message-file-attachment { background: rgba(0,0,0,0.15); border-color: rgba(255,255,255,0.15); }
-.message-file-attachment:hover { border-color: var(--accent); background: var(--bg-dark); }
+.message-file-attachment:hover { border-color: var(--accent); background: var(--bg-dark); box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
 .message-group.own .message-file-attachment:hover { background: rgba(0,0,0,0.22); }
 .file-icon {
-  width: 40px; height: 40px; border-radius: 8px;
+  width: 42px; height: 42px; border-radius: 10px;
   background: var(--accent-dim); color: #fff;
   display: flex; align-items: center; justify-content: center;
   font-size: 10px; font-weight: 700; flex-shrink: 0;
@@ -1439,9 +1451,9 @@ body.loading-session #chat-app.active::after {
 /* Avatar: override centered margin from old layout — bigger so it reads clearly */
 .profile-v2-avatar-wrap .profile-avatar-large {
   margin: 0;
-  width: 92px;
-  height: 92px;
-  font-size: 34px;
+  width: 120px;
+  height: 120px;
+  font-size: 42px;
   border: 4px solid var(--bg-medium);
   box-shadow: 0 4px 14px rgba(0,0,0,0.45);
   background: var(--bg-lighter);
@@ -1515,7 +1527,7 @@ body.loading-session #chat-app.active::after {
   /* Keep the avatar fully visible on mobile: smaller banner + tighter overlap */
   .profile-v2-header-card .profile-banner-section { height: 210px; }
   .profile-v2-avatar-wrap { margin-top: -26px; }
-  .profile-v2-avatar-wrap .profile-avatar-large { width: 80px; height: 80px; font-size: 30px; }
+  .profile-v2-avatar-wrap .profile-avatar-large { width: 96px; height: 96px; font-size: 34px; }
 }
 
 .profile-banner-section {
@@ -1550,10 +1562,10 @@ body.loading-session #chat-app.active::after {
 
 .profile-avatar-section { text-align: center; margin-bottom: 24px; position: relative; }
 .profile-avatar-large {
-  width: 84px; height: 84px; border-radius: 50%;
+  width: 110px; height: 110px; border-radius: 50%;
   background: var(--bg-lighter); color: var(--text-secondary);
   display: flex; align-items: center; justify-content: center;
-  font-size: 32px; font-weight: 600; margin: 0 auto 12px;
+  font-size: 40px; font-weight: 600; margin: 0 auto 12px;
   overflow: hidden; border: 3px solid var(--bg-darker);
 }
 .profile-avatar-large img { width: 100%; height: 100%; object-fit: cover; image-rendering: -webkit-optimize-contrast; }
@@ -1767,11 +1779,11 @@ body.loading-session #chat-app.active::after {
   color: var(--text-muted); font-size: 13px; border-bottom: 1px dashed var(--border-light);
 }
 .profile-view-avatar {
-  width: 110px; height: 110px; border-radius: 50%;
+  width: 140px; height: 140px; border-radius: 50%;
   background: var(--bg-lighter); color: var(--text-secondary);
   display: flex; align-items: center; justify-content: center;
-  font-size: 42px; font-weight: 600; overflow: hidden;
-  margin: -55px auto 0; border: 4px solid var(--bg-dark); position: relative; z-index: 1;
+  font-size: 52px; font-weight: 600; overflow: hidden;
+  margin: -70px auto 0; border: 5px solid var(--bg-dark); position: relative; z-index: 1;
 }
 .profile-view-avatar img { width: 100%; height: 100%; object-fit: cover; image-rendering: -webkit-optimize-contrast; }
 .profile-view-info { padding: 14px 32px 20px; text-align: center; }
@@ -2584,7 +2596,7 @@ body.loading-session #chat-app.active::after {
   
   /* Profile: smaller banner, bigger avatar relative to space */
   .profile-banner-section { height: 160px; margin-bottom: 36px; }
-  .profile-v2-avatar-wrap .profile-avatar-large { width: 72px; height: 72px; font-size: 26px; }
+  .profile-v2-avatar-wrap .profile-avatar-large { width: 88px; height: 88px; font-size: 32px; }
   .profile-username { font-size: 15px; }
   
   /* Status options: 2x2 grid on small screens */
@@ -2743,7 +2755,7 @@ body.loading-session #chat-app.active::after {
 
   /* Profile view modal banner — scale down on mobile but keep taller ratio */
   .profile-view-banner { height: 200px; }
-  .profile-view-avatar { width: 96px; height: 96px; margin: -48px auto 0; font-size: 36px; }
+  .profile-view-avatar { width: 112px; height: 112px; margin: -56px auto 0; font-size: 42px; }
 
   /* System alert — full width on mobile */
   .system-alert { padding: 12px 14px; gap: 10px; }
@@ -2760,7 +2772,7 @@ body.loading-session #chat-app.active::after {
   .link-embed-title { font-size: 11px; }
   .link-embed-desc { display: none; } /* hide description on very small screens */
   .profile-view-banner { height: 160px; }
-  .profile-view-avatar { width: 80px; height: 80px; margin: -40px auto 0; font-size: 30px; border-width: 3px; }
+  .profile-view-avatar { width: 96px; height: 96px; margin: -48px auto 0; font-size: 36px; border-width: 4px; }
 }
 
 /* Mobile: admin panel sub-tabs scroll horizontally and wrap nicely */
@@ -5724,7 +5736,21 @@ function positionAttachDropdown(dropdown, btn) {
   if (top < 8) {
     top = btnRect.bottom + 8;
   }
-  // Clamp horizontally so it stays within the viewport
+  // Determine the container boundary so the dropdown doesn't overlap the
+  // members sidebar.  Walk up from the button to find the nearest positioned
+  // ancestor that represents the chat/DM input area.
+  let containerLeft = 8;
+  let containerRight = window.innerWidth - 8;
+  let parent = btn.parentElement; // .chat-input-wrap
+  if (parent) {
+    const pr = parent.getBoundingClientRect();
+    containerLeft = pr.left + 4;
+    containerRight = pr.right - 4;
+  }
+  // Clamp horizontally so the dropdown stays within the input-area bounds
+  if (left < containerLeft) left = containerLeft;
+  if (left + ddWidth > containerRight) left = containerRight - ddWidth;
+  // Final viewport safety clamp
   if (left < 8) left = 8;
   if (left + ddWidth > window.innerWidth - 8) left = window.innerWidth - ddWidth - 8;
   dropdown.style.left = Math.round(left) + 'px';
