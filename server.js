@@ -109,6 +109,51 @@ function githubRequest(method, urlPath, bodyObj) {
   });
 }
 
+// Download a file from a URL (e.g. GitHub raw download_url) and return a Buffer.
+// Used for restoring large uploads (>1MB) that the GitHub Contents API can't
+// return as base64 content — the API returns encoding:"none" for those, but
+// always provides a download_url pointing to raw.githubusercontent.com.
+function downloadFileBuffer(url) {
+  return new Promise((resolve) => {
+    try {
+      const u = new URL(url);
+      const proto = u.protocol === 'https:' ? require('https') : require('http');
+      const req = proto.get(u, { headers: { 'User-Agent': 'hellobye-chat-backup', 'Accept': '*/*' } }, (res) => {
+        // Follow one redirect
+        if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
+          return downloadFileBuffer(res.headers.location).then(resolve);
+        }
+        if (res.statusCode !== 200) { resolve(null); return; }
+        const chunks = [];
+        res.on('data', (c) => chunks.push(c));
+        res.on('end', () => resolve(Buffer.concat(chunks)));
+      });
+      req.on('error', () => resolve(null));
+      // 60s timeout for large file downloads
+      req.setTimeout(60000, () => { req.destroy(); resolve(null); });
+    } catch (e) { resolve(null); }
+  });
+}
+
+// Fetch an upload file from the GitHub backup repo, handling both small files
+// (base64 content) and large files (>1MB, via download_url).
+// Returns a Buffer or null if the file could not be retrieved.
+async function fetchBackupFile(filename) {
+  const get = await githubRequest('GET', `/repos/${BACKUP_REPO}/contents/${encodeURIComponent(UPLOAD_BACKUP_DIR + '/' + filename)}?ref=${encodeURIComponent(BACKUP_BRANCH)}`);
+  if (get.status !== 200 || !get.data) return null;
+  // Small file: content is base64-encoded inline
+  if (get.data.content) {
+    const b64 = (get.data.content || '').replace(/\s/g, '');
+    return Buffer.from(b64, 'base64');
+  }
+  // Large file (>1MB): GitHub returns encoding:"none" but provides download_url
+  if (get.data.download_url) {
+    const buf = await downloadFileBuffer(get.data.download_url);
+    return buf;
+  }
+  return null;
+}
+
 function defaultDB() {
   return { users: {}, messages: [], sessions: {}, dms: {}, friends: {}, blocked: {}, lastRegTime: {} };
 }
@@ -445,10 +490,8 @@ app.use('/uploads', async (req, res, next) => {
   }
   uploadFallbackLocks.add(filename);
   try {
-    const get = await githubRequest('GET', `/repos/${BACKUP_REPO}/contents/${encodeURIComponent(UPLOAD_BACKUP_DIR + '/' + filename)}?ref=${encodeURIComponent(BACKUP_BRANCH)}`);
-    if (get.status === 200 && get.data && get.data.content) {
-      const b64 = (get.data.content || '').replace(/\s/g, '');
-      const buf = Buffer.from(b64, 'base64');
+    const buf = await fetchBackupFile(filename);
+    if (buf && buf.length > 0) {
       // Cache locally so subsequent requests are instant.
       try { fs.writeFileSync(localPath, buf); } catch (e) { /* ignore write errors */ }
       console.log(`[backup] On-demand restored upload ${filename} (${buf.length} bytes).`);
@@ -2127,10 +2170,8 @@ async function restoreUploads() {
       const localPath = path.join(UPLOAD_DIR, item.name);
       if (fs.existsSync(localPath)) continue; // already present (e.g. badge icons)
       try {
-        const fr = await githubRequest('GET', `/repos/${BACKUP_REPO}/contents/${encodeURIComponent(UPLOAD_BACKUP_DIR + '/' + item.name)}?ref=${encodeURIComponent(BACKUP_BRANCH)}`);
-        if (fr.status === 200 && fr.data && fr.data.content) {
-          const b64 = (fr.data.content || '').replace(/\s/g, '');
-          const buf = Buffer.from(b64, 'base64');
+        const buf = await fetchBackupFile(item.name);
+        if (buf && buf.length > 0) {
           fs.writeFileSync(localPath, buf);
           restored++;
         }
