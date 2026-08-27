@@ -1,0 +1,16 @@
+node_modules/
+*.log
+.screenshots/
+outputs/
+__pycache__/
+*.pyc
+.env
+.browser_data/
+.psiphon_data/
+.agent_hooks/
+
+# NOTE: we DO commit uploads/ (role badge icons) and data/db.json
+# so the app has its badge images and a fresh DB on first deploy.
+# User-uploaded files added at runtime are ephemeral on Render free tier;
+# add a Render Disk mounted at /opt/render/project/src/uploads and .../data
+# for persistent user uploads and a growing DB.

@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: hellobye-chat
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /
+    envVars:
+      - key: NODE_VERSION
+        value: 20.20.2
+    autoDeploy: true
