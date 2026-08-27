@@ -22,21 +22,197 @@ if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
 if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 
 // ---------- Storage ----------
+// NOTE: On Render's free tier the local filesystem is EPHEMERAL — every deploy
+// (and every inactivity spin-down/restart) wipes the container, which previously
+// destroyed all user accounts/messages/sessions stored in data/db.json.
+// To survive deploys, the DB is mirrored to an EXTERNAL private GitHub repo via
+// the Contents API (configurable via env vars). On startup we restore from the
+// external backup if it exists and is newer/has data; otherwise we fall back to
+// the local file. Every save is mirrored to the external repo (debounced).
 const DB_FILE = path.join(DATA_DIR, 'db.json');
-function loadDB() {
-  try {
-    if (fs.existsSync(DB_FILE)) return JSON.parse(fs.readFileSync(DB_FILE, 'utf8'));
-  } catch (e) { console.error('DB load error', e); }
+
+// --- External backup configuration (GitHub Contents API) ---
+const BACKUP_TOKEN = process.env.GITHUB_BACKUP_TOKEN || '';
+const BACKUP_REPO = process.env.GITHUB_BACKUP_REPO || ''; // e.g. "tiahhwashere/hellobye-chat-data"
+const BACKUP_PATH = process.env.GITHUB_BACKUP_PATH || 'data/db.json';
+const BACKUP_BRANCH = process.env.GITHUB_BACKUP_BRANCH || 'main';
+const BACKUP_ENABLED = !!(BACKUP_TOKEN && BACKUP_REPO);
+
+// Minimal GitHub API helper using built-in https (no extra deps).
+function githubRequest(method, urlPath, bodyObj) {
+  return new Promise((resolve) => {
+    const body = bodyObj ? JSON.stringify(bodyObj) : null;
+    const opts = {
+      method,
+      hostname: 'api.github.com',
+      path: urlPath,
+      headers: {
+        'Authorization': `token ${BACKUP_TOKEN}`,
+        'Accept': 'application/vnd.github+json',
+        'User-Agent': 'hellobye-chat-backup',
+      },
+    };
+    if (body) {
+      opts.headers['Content-Type'] = 'application/json';
+      opts.headers['Content-Length'] = Buffer.byteLength(body);
+    }
+    const req = require('https').request(opts, (res) => {
+      let chunks = '';
+      res.on('data', (c) => { chunks += c; });
+      res.on('end', () => {
+        let parsed = null;
+        try { parsed = chunks ? JSON.parse(chunks) : null; } catch (e) { parsed = null; }
+        resolve({ status: res.statusCode, data: parsed, raw: chunks });
+      });
+    });
+    req.on('error', (e) => resolve({ status: 0, data: null, raw: String(e) }));
+    if (body) req.write(body);
+    req.end();
+  });
+}
+
+function defaultDB() {
   return { users: {}, messages: [], sessions: {}, dms: {}, friends: {}, blocked: {}, lastRegTime: {} };
 }
-let db = loadDB();
+
+function loadDBLocal() {
+  try {
+    if (fs.existsSync(DB_FILE)) return JSON.parse(fs.readFileSync(DB_FILE, 'utf8'));
+  } catch (e) { console.error('DB load error (local)', e); }
+  return defaultDB();
+}
+
+// Restore from external GitHub backup. Returns parsed DB or null if unavailable.
+async function loadDBRemote() {
+  if (!BACKUP_ENABLED) return null;
+  try {
+    const r = await githubRequest('GET', `/repos/${BACKUP_REPO}/contents/${encodeURIComponent(BACKUP_PATH)}?ref=${encodeURIComponent(BACKUP_BRANCH)}`);
+    if (r.status !== 200 || !r.data || !r.data.content) {
+      console.log(`[backup] No remote DB found (status ${r.status}).`);
+      return null;
+    }
+    const b64 = (r.data.content || '').replace(/\s/g, '');
+    const jsonStr = Buffer.from(b64, 'base64').toString('utf8');
+    const parsed = JSON.parse(jsonStr);
+    console.log(`[backup] Restored DB from GitHub (sha ${r.data.sha ? r.data.sha.slice(0,7) : '?'}, ${jsonStr.length} bytes, ${Object.keys(parsed.users||{}).length} users).`);
+    parsed.__backupSha = r.data.sha; // remember sha so we can update the existing file
+    return parsed;
+  } catch (e) {
+    console.error('[backup] Remote restore error:', e);
+    return null;
+  }
+}
+
+let remoteSha = null; // sha of the last-known remote db.json (for updates)
+
+// Debounced remote backup. Saves the current db to the GitHub repo.
+let backupTimer = null;
+function scheduleRemoteBackup() {
+  if (!BACKUP_ENABLED) return;
+  if (backupTimer) clearTimeout(backupTimer);
+  // Debounce: wait 5s after the last save before pushing, so rapid writes
+  // (e.g. a burst of messages) only trigger one API call.
+  backupTimer = setTimeout(pushRemoteBackup, 5000);
+}
+
+async function pushRemoteBackup() {
+  if (!BACKUP_ENABLED) return;
+  try {
+    let payload = JSON.stringify(db);
+    // Build content body. If we have a sha (file exists), include it to update;
+    // otherwise create.
+    const body = {
+      message: 'auto db backup ' + new Date().toISOString(),
+      content: Buffer.from(payload, 'utf8').toString('base64'),
+      branch: BACKUP_BRANCH,
+    };
+    if (remoteSha) body.sha = remoteSha;
+    const r = await githubRequest('PUT', `/repos/${BACKUP_REPO}/contents/${encodeURIComponent(BACKUP_PATH)}`, body);
+    if (r.status === 200 || r.status === 201) {
+      const newSha = r.data && r.data.content && r.data.content.sha;
+      if (newSha) remoteSha = newSha;
+      console.log(`[backup] Pushed DB to GitHub (status ${r.status}, sha ${remoteSha ? remoteSha.slice(0,7) : '?'}).`);
+    } else if (r.status === 409) {
+      // sha mismatch — re-fetch latest and retry once with the new sha
+      console.warn('[backup] sha mismatch (409); re-fetching and retrying.');
+      const get = await githubRequest('GET', `/repos/${BACKUP_REPO}/contents/${encodeURIComponent(BACKUP_PATH)}?ref=${encodeURIComponent(BACKUP_BRANCH)}`);
+      if (get.status === 200 && get.data && get.data.sha) {
+        remoteSha = get.data.sha;
+        body.sha = remoteSha;
+        const r2 = await githubRequest('PUT', `/repos/${BACKUP_REPO}/contents/${encodeURIComponent(BACKUP_PATH)}`, body);
+        if (r2.status === 200 || r2.status === 201) {
+          if (r2.data && r2.data.content && r2.data.content.sha) remoteSha = r2.data.content.sha;
+          console.log(`[backup] Retry push succeeded (sha ${remoteSha ? remoteSha.slice(0,7) : '?'}).`);
+        } else {
+          console.error('[backup] Retry push failed:', r2.status, (r2.data && r2.data.message) || r2.raw);
+        }
+      } else {
+        console.error('[backup] Could not re-fetch sha for retry:', get.status);
+      }
+    } else {
+      console.error('[backup] Push failed:', r.status, (r.data && r.data.message) || r.raw);
+    }
+  } catch (e) {
+    console.error('[backup] Push error:', e);
+  }
+}
+
+// Synchronous-ish startup: try remote first, fall back to local file.
+let db = loadDBLocal();
+if (db && db.__backupSha) { remoteSha = db.__backupSha; delete db.__backupSha; }
 // Ensure new fields exist on existing DB
 if (!db.welcomeTitle) db.welcomeTitle = 'welcome - to the safe place';
 if (!db.welcomeTitleLastChanged) db.welcomeTitleLastChanged = 0;
 if (!db.customRoles) db.customRoles = []; // [{ id, name, color, members: [username,...] }]
 if (!db.cooldownExempt) db.cooldownExempt = []; // [username, ...] — users exempt from chat cooldown
+
+// Attempt remote restore asynchronously. If remote has data (especially users),
+// it takes precedence over the (possibly empty/repo-seeded) local file. This is
+// what makes data survive deploys: even though the deploy resets the container's
+// local fs to the repo's seed db.json, we overwrite it with the real remote data.
+(async () => {
+  const remote = await loadDBRemote();
+  if (remote) {
+    const remoteUsers = Object.keys(remote.users || {}).length;
+    const localUsers = Object.keys(db.users || {}).length;
+    // Prefer remote if it has more users, OR if local is the empty seed and
+    // remote has any users. This protects real data from being overwritten by
+    // an empty deploy-time seed, while still letting a fresh start work.
+    if (remoteUsers > 0 && remoteUsers >= localUsers) {
+      // Extract the remote sha BEFORE we strip it, so subsequent updates can
+      // PUT with the correct sha (otherwise GitHub rejects with 422).
+      remoteSha = remote.__backupSha || null;
+      db = remote;
+      delete db.__backupSha;
+      // re-ensure fields
+      if (!db.welcomeTitle) db.welcomeTitle = 'welcome - to the safe place';
+      if (!db.welcomeTitleLastChanged) db.welcomeTitleLastChanged = 0;
+      if (!db.customRoles) db.customRoles = [];
+      if (!db.cooldownExempt) db.cooldownExempt = [];
+      try { fs.writeFileSync(DB_FILE, JSON.stringify(db)); } catch (e) {}
+      console.log(`[backup] Adopted remote DB as live db (${remoteUsers} users, sha ${remoteSha ? remoteSha.slice(0,7) : '?'}).`);
+      // Trigger an immediate backup so the sha is current.
+      scheduleRemoteBackup();
+    } else {
+      console.log(`[backup] Keeping local db (${localUsers} users) — remote has fewer (${remoteUsers}).`);
+      remoteSha = remote.__backupSha || null;
+      if (remoteSha) delete remote.__backupSha;
+      // Make sure local data is backed up remotely too.
+      scheduleRemoteBackup();
+    }
+  } else {
+    // No remote data — if we have local data, push it up so it's protected.
+    if (Object.keys(db.users || {}).length > 0) {
+      console.log('[backup] No remote DB; pushing current local DB to GitHub.');
+      scheduleRemoteBackup();
+    }
+  }
+})();
+
 function saveDB() {
   try { fs.writeFileSync(DB_FILE, JSON.stringify(db)); } catch (e) { console.error('DB save error', e); }
+  // Mirror to external backup so data survives the next deploy/restart.
+  scheduleRemoteBackup();
 }
 setInterval(saveDB, 15000); // periodic save
 
@@ -55,7 +231,7 @@ function genId() { return crypto.randomUUID(); }
 function hashPass(pw) { return crypto.createHash('sha256').update(pw).digest('hex'); }
 function nowISO() { return new Date().toISOString(); }
 // Admin-related constants
-const ADMIN_OWNER_ID = '639d3359-6d5d-4e98-932b-35cb93131679'; // @lore — only this user can view/use the admin panel
+const ADMIN_OWNER_ID = 'ff1db773-9f98-4141-8449-90aeaa68a965'; // only this user can view/use the admin panel
 const VALID_ROLES = ['user', 'developer', 'administrator', 'moderator', 'beta_tester'];
 const VALID_BADGES = ['moderator', 'developer', 'staff', 'trusted_user'];
 const WELCOME_TITLE_COOLDOWN = 20000; // 20 seconds in ms
@@ -282,6 +458,7 @@ app.post('/api/profile', authMiddleware, avatarUpload.single('image'), (req, res
       u.avatar = url;
     }
     saveDB();
+    backupUploadFile(req.file.filename);
     broadcastProfile(u.username);
     return res.json({ success: true, avatar: u.avatar, banner: u.banner });
   }
@@ -310,6 +487,7 @@ app.post('/api/profile/remove-image', authMiddleware, (req, res) => {
 app.post('/api/upload', authMiddleware, upload.single('file'), (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'No file provided' });
   const url = '/uploads/' + req.file.filename;
+  backupUploadFile(req.file.filename);
   res.json({
     file: {
       url,
@@ -1392,6 +1570,68 @@ app.use((err, req, res, next) => {
   }
   next();
 });
+
+// ---------- Uploads Persistence (avatars/banners/attachments) ----------
+// Like the DB, user-uploaded files live on the ephemeral container fs and are
+// wiped on every deploy. We mirror them to the same private GitHub backup repo
+// and restore them on startup so avatars/banners survive deploys.
+const UPLOAD_BACKUP_DIR = 'uploads'; // path inside the backup repo
+
+async function backupUploadFile(filename) {
+  if (!BACKUP_ENABLED) return;
+  try {
+    const fp = path.join(UPLOAD_DIR, filename);
+    if (!fs.existsSync(fp)) return;
+    const buf = fs.readFileSync(fp);
+    // Skip if larger than ~80MB to avoid GitHub content limits / timeouts.
+    if (buf.length > 80 * 1024 * 1024) { console.log(`[backup] Skipping large upload ${filename} (${buf.length} bytes).`); return; }
+    const b64 = buf.toString('base64');
+    // Check if file exists remotely to get sha (needed to update vs create).
+    const get = await githubRequest('GET', `/repos/${BACKUP_REPO}/contents/${encodeURIComponent(UPLOAD_BACKUP_DIR + '/' + filename)}?ref=${encodeURIComponent(BACKUP_BRANCH)}`);
+    const body = { message: 'upload backup ' + filename, content: b64, branch: BACKUP_BRANCH };
+    if (get.status === 200 && get.data && get.data.sha) body.sha = get.data.sha;
+    const r = await githubRequest('PUT', `/repos/${BACKUP_REPO}/contents/${encodeURIComponent(UPLOAD_BACKUP_DIR + '/' + filename)}`, body);
+    if (r.status === 200 || r.status === 201) {
+      console.log(`[backup] Backed up upload ${filename} (${buf.length} bytes).`);
+    } else {
+      console.error(`[backup] Upload backup failed for ${filename}:`, r.status, (r.data && r.data.message) || r.raw);
+    }
+  } catch (e) {
+    console.error('[backup] Upload backup error:', e);
+  }
+}
+
+// Restore uploads from the backup repo on startup (files not already present).
+async function restoreUploads() {
+  if (!BACKUP_ENABLED) return;
+  try {
+    const r = await githubRequest('GET', `/repos/${BACKUP_REPO}/contents/${encodeURIComponent(UPLOAD_BACKUP_DIR)}?ref=${encodeURIComponent(BACKUP_BRANCH)}`);
+    if (r.status !== 200 || !Array.isArray(r.data)) {
+      console.log(`[backup] No remote uploads dir to restore (status ${r.status}).`);
+      return;
+    }
+    let restored = 0;
+    for (const item of r.data) {
+      if (item.type !== 'file') continue;
+      const localPath = path.join(UPLOAD_DIR, item.name);
+      if (fs.existsSync(localPath)) continue; // already present (e.g. badge icons)
+      try {
+        const fr = await githubRequest('GET', `/repos/${BACKUP_REPO}/contents/${encodeURIComponent(UPLOAD_BACKUP_DIR + '/' + item.name)}?ref=${encodeURIComponent(BACKUP_BRANCH)}`);
+        if (fr.status === 200 && fr.data && fr.data.content) {
+          const b64 = (fr.data.content || '').replace(/\s/g, '');
+          const buf = Buffer.from(b64, 'base64');
+          fs.writeFileSync(localPath, buf);
+          restored++;
+        }
+      } catch (e) { console.error(`[backup] Failed to restore upload ${item.name}:`, e); }
+    }
+    if (restored > 0) console.log(`[backup] Restored ${restored} user upload(s) from GitHub.`);
+    else console.log('[backup] No user uploads needed restoring.');
+  } catch (e) {
+    console.error('[backup] restoreUploads error:', e);
+  }
+}
+restoreUploads();
 
 // ---------- Start ----------
 server.listen(PORT, '0.0.0.0', () => {
