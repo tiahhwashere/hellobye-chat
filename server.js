@@ -55,7 +55,7 @@ function genId() { return crypto.randomUUID(); }
 function hashPass(pw) { return crypto.createHash('sha256').update(pw).digest('hex'); }
 function nowISO() { return new Date().toISOString(); }
 // Admin-related constants
-const ADMIN_OWNER_ID = '2073bda9-a81c-4066-96c3-2b5928e50984';
+const ADMIN_OWNER_ID = 'ed882d21-576f-4922-a60b-f437ea80d407';
 const VALID_ROLES = ['user', 'developer', 'administrator', 'moderator', 'beta_tester'];
 const VALID_BADGES = ['moderator', 'developer', 'staff', 'trusted_user'];
 const WELCOME_TITLE_COOLDOWN = 20000; // 20 seconds in ms
@@ -573,13 +573,11 @@ app.post('/api/settings/delete-account', authMiddleware, (req, res) => {
 });
 
 // ---------- Admin Middleware & Endpoints ----------
-// Admin access is granted if:
-//  1. The user's account id matches ADMIN_OWNER_ID (the super-admin / owner), OR
-//  2. The user's username is in the admin whitelist (db.adminWhitelist)
+// Admin access is granted ONLY to the owner (the account whose id matches ADMIN_OWNER_ID).
+// The admin whitelist is no longer used to grant admin panel access — only the owner can see/use the admin panel.
 function isAdmin(user) {
   if (!user) return false;
   if (user.id === ADMIN_OWNER_ID) return true;
-  if (db.adminWhitelist && db.adminWhitelist.includes(user.username)) return true;
   return false;
 }
 function adminMiddleware(req, res, next) {
