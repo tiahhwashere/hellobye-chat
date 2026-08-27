@@ -4212,6 +4212,7 @@ function toast(msg, type = '') {
     '<span class="toast-msg">' + escapeHtml(String(msg)) + '</span>' +
     '<span class="toast-close">&times;</span>' +
     '<span class="toast-progress"></span>';
+  container.appendChild(el);
   // Click anywhere on the toast to dismiss it
   let dismissTimer = null, progressTimer = null;
   function dismiss() {
