@@ -4096,6 +4096,24 @@ function getInitials(username) {
   if (!username) return '?';
   return username.charAt(0).toUpperCase();
 }
+// Global avatar image error handler — when an avatar <img> fails to load
+// (e.g. the file was lost during a server redeploy on Render's ephemeral
+// filesystem), replace it with the user's initial so we never show a broken
+// image icon. Uses event delegation so it covers ALL avatar locations.
+document.addEventListener('error', function(e) {
+  const img = e.target;
+  if (img && img.tagName === 'IMG' && img.src && img.src.indexOf('/uploads/') !== -1) {
+    // Find the closest avatar container that has a data-username attribute.
+    const container = img.closest('[data-avatar-user]');
+    const username = container ? container.getAttribute('data-avatar-user') : '';
+    if (username) {
+      img.outerHTML = '<span>' + escapeHtml(getInitials(username)) + '</span>';
+    } else {
+      // No username available — just hide the broken image.
+      img.style.display = 'none';
+    }
+  }
+}, true); // capture phase to catch img error events
 function getStatusText(status) {
   const map = { online: 'Online', idle: 'Idle', dnd: 'Do Not Disturb', offline: 'Offline' };
   return map[status] || 'Offline';
@@ -4738,6 +4756,7 @@ function appendMessage(msg, silent) {
   const avatarDiv = document.createElement('div');
   avatarDiv.className = 'message-avatar clickable';
   avatarDiv.dataset.username = msg.username;
+  avatarDiv.setAttribute('data-avatar-user', msg.username);
   if (user.avatar) {
     const img = document.createElement('img');
     img.src = user.avatar; img.alt = msg.username;
@@ -4937,6 +4956,7 @@ function createFileElement(file) {
 function updateMessageAvatars(username, avatar) {
   document.querySelectorAll('.message-avatar[data-username="' + username + '"]').forEach(el => {
     el.innerHTML = '';
+    el.setAttribute('data-avatar-user', username);
     if (avatar) { const img = document.createElement('img'); img.src = avatar; el.appendChild(img); }
     else el.textContent = getInitials(username);
   });
@@ -5546,7 +5566,7 @@ function userListItemHTML(u) {
   const nameDisplay = u.displayName ? '<span class="user-displayname">' + escapeHtml(u.displayName) + ' </span>' : '';
   const handleDisplay = '<span class="user-handle">@' + escapeHtml(u.username) + '</span>';
   const statusText = u.status === 'offline' ? (u.hideLastSeen ? 'Offline' : 'Last seen ' + getRelativeLastSeen(u.lastSeen)) : getStatusText(u.status);
-  return '<div class="user-item" data-username="' + u.username + '"><div class="user-avatar-wrap"><div class="user-avatar">' + avatarInner + '</div><div class="status-dot ' + u.status + '"></div></div><div class="user-info"><div class="user-name">' + nameDisplay + handleDisplay + '</div><div class="user-status-text ' + u.status + '">' + escapeHtml(statusText) + '</div></div></div>';
+  return '<div class="user-item" data-username="' + u.username + '"><div class="user-avatar-wrap"><div class="user-avatar" data-avatar-user="' + escapeHtml(u.username) + '">' + avatarInner + '</div><div class="status-dot ' + u.status + '"></div></div><div class="user-info"><div class="user-name">' + nameDisplay + handleDisplay + '</div><div class="user-status-text ' + u.status + '">' + escapeHtml(statusText) + '</div></div></div>';
 }
 function attachUserListListeners() {
   document.querySelectorAll('#user-list .user-item').forEach(item => {
@@ -5572,6 +5592,7 @@ function updateSidebarSelf() {
   const av = $('sidebar-self-avatar');
   if (currentUser.avatar) { av.innerHTML = '<img src="' + currentUser.avatar + '">'; }
   else { av.innerHTML = getInitials(currentUser.username); }
+  av.setAttribute('data-avatar-user', currentUser.username);
   $('sidebar-self-status').className = 'status-dot ' + (currentUser.status || 'online');
   $('sidebar-self-name').innerHTML = (currentUser.displayName ? '<span class="user-displayname">' + escapeHtml(currentUser.displayName) + ' </span>' : '') + '<span class="user-handle">@' + escapeHtml(currentUser.username) + '</span>';
   $('sidebar-self-statustext').textContent = getStatusText(currentUser.status || 'online');
@@ -6570,6 +6591,7 @@ function updateProfilePanel() {
   const avatarDisplay = $('profile-avatar-display');
   if (u.avatar) { avatarDisplay.innerHTML = '<img src="' + u.avatar + '" alt="' + u.username + '">'; }
   else { avatarDisplay.innerHTML = ''; const span = document.createElement('span'); span.textContent = getInitials(u.username); avatarDisplay.appendChild(span); }
+  avatarDisplay.setAttribute('data-avatar-user', u.username);
   const bannerImg = $('banner-img');
   const bannerPlaceholder = $('banner-placeholder');
   if (u.banner) { bannerImg.src = u.banner; bannerImg.style.display = 'block'; bannerPlaceholder.style.display = 'none'; $('banner-remove-btn').style.display = 'inline-flex'; }
@@ -7268,6 +7290,7 @@ function renderProfileView(data) {
   const av = $('pv-avatar');
   if (u.avatar) { av.innerHTML = '<img src="' + u.avatar + '">'; }
   else { av.innerHTML = '<span>' + getInitials(u.username) + '</span>'; }
+  av.setAttribute('data-avatar-user', u.username);
   // Name
   $('pv-displayname').textContent = u.displayName || u.username;
   $('pv-handle').innerHTML = '@' + escapeHtml(u.username) + buildUserBadges(u);
@@ -8180,28 +8203,89 @@ function applyProfileColor() {
   const color = getProfileColor();
   const panel = $('profile-panel');
   if (!panel) return;
+  // The actual modal box inside the overlay.
+  const modal = panel.querySelector('.settings-modal');
   if (color) {
+    // Set accent CSS variables on the panel scope.
     panel.style.setProperty('--accent', color);
     panel.style.setProperty('--accent-hover', lighten(color, 0.12));
     panel.style.setProperty('--accent-dim', darken(color, 0.3));
     panel.style.setProperty('--accent-light', lighten(color, 0.3));
     const { r, g, b } = hexToRgb(color);
     panel.style.setProperty('--accent-glow', 'rgba(' + r + ', ' + g + ', ' + b + ', 0.12)');
+    // ---- Apply the FULL UI color as the panel background (like the profile
+    // view modal does for other users). This makes the chosen theme color
+    // visible in the user's own Profile Settings. ----
+    if (modal) {
+      modal.style.setProperty('background', color, 'important');
+    }
+    // Determine readable text color based on luminance.
+    const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+    const textColor = lum > 0.6 ? '#1a1a1a' : '#ffffff';
+    const mutedColor = lum > 0.6 ? 'rgba(0,0,0,0.6)' : 'rgba(255,255,255,0.7)';
+    // Apply readable text colors to text elements, but preserve inputs,
+    // buttons, the X close button, and the header subtitle.
+    if (modal) {
+      // Header background slightly darker for visual separation.
+      const header = modal.querySelector('.slide-panel-header');
+      if (header) header.style.setProperty('background', darken(color, 0.15), 'important');
+      // Title and subtitle.
+      const title = header ? header.querySelector('h3') : null;
+      const subtitle = header ? header.querySelector('.settings-v2-subtitle') : null;
+      if (title) title.style.setProperty('color', textColor, 'important');
+      if (subtitle) subtitle.style.setProperty('color', mutedColor, 'important');
+      // Section labels and headings.
+      modal.querySelectorAll('.profile-section h4, .profile-section label, .setting-label, .setting-row label, .profile-v2-subtitle').forEach(el => {
+        el.style.setProperty('color', textColor, 'important');
+      });
+      // Muted/helper text.
+      modal.querySelectorAll('.profile-section p, .setting-hint, .helper-text, .bio-count, .pv-extra-label').forEach(el => {
+        el.style.setProperty('color', mutedColor, 'important');
+      });
+      // The X close button keeps its own styling.
+      const closeBtn = $('profile-close');
+      if (closeBtn) {
+        closeBtn.style.setProperty('background', 'rgba(0,0,0,0.4)', 'important');
+        closeBtn.style.setProperty('color', '#fff', 'important');
+      }
+    }
+    // Buttons get the accent color as background.
     panel.querySelectorAll('button, .profile-save-btn, .setting-save-btn').forEach(btn => {
       if (btn.classList.contains('danger-btn')) return;
+      if (btn.id === 'profile-close') return; // preserve X button
       btn.style.setProperty('background', 'var(--accent)', 'important');
+      btn.style.setProperty('color', '#fff', 'important');
     });
     const picker = $('profile-accent-picker');
     if (picker) picker.value = color;
   } else {
+    // Reset everything to defaults.
     panel.style.removeProperty('--accent');
     panel.style.removeProperty('--accent-hover');
     panel.style.removeProperty('--accent-dim');
     panel.style.removeProperty('--accent-light');
     panel.style.removeProperty('--accent-glow');
+    if (modal) {
+      modal.style.removeProperty('background');
+      const header = modal.querySelector('.slide-panel-header');
+      if (header) header.style.removeProperty('background');
+      const title = header ? header.querySelector('h3') : null;
+      const subtitle = header ? header.querySelector('.settings-v2-subtitle') : null;
+      if (title) title.style.removeProperty('color');
+      if (subtitle) subtitle.style.removeProperty('color');
+      modal.querySelectorAll('.profile-section h4, .profile-section label, .setting-label, .setting-row label, .profile-v2-subtitle, .profile-section p, .setting-hint, .helper-text, .bio-count, .pv-extra-label').forEach(el => {
+        el.style.removeProperty('color');
+      });
+    }
+    const closeBtn = $('profile-close');
+    if (closeBtn) {
+      closeBtn.style.removeProperty('background');
+      closeBtn.style.removeProperty('color');
+    }
     panel.querySelectorAll('button, .profile-save-btn, .setting-save-btn').forEach(btn => {
       if (btn.classList.contains('danger-btn')) return;
       btn.style.removeProperty('background');
+      btn.style.removeProperty('color');
     });
     const picker = $('profile-accent-picker');
     if (picker) picker.value = defaultAccent;

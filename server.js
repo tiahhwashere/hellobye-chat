@@ -69,6 +69,7 @@ const BACKUP_REPO = process.env.GITHUB_BACKUP_REPO || ''; // e.g. "tiahhwashere/
 const BACKUP_PATH = process.env.GITHUB_BACKUP_PATH || 'data/db.json';
 const BACKUP_BRANCH = process.env.GITHUB_BACKUP_BRANCH || 'main';
 const BACKUP_ENABLED = !!(BACKUP_TOKEN && BACKUP_REPO);
+const UPLOAD_BACKUP_DIR = 'uploads'; // path inside the backup repo for uploaded files
 
 // Minimal GitHub API helper using built-in https (no extra deps).
 function githubRequest(method, urlPath, bodyObj) {
@@ -409,8 +410,55 @@ app.use((req, res, next) => {
   next();
 });
 
-// Static uploads
-app.use('/uploads', express.static(UPLOAD_DIR, { maxAge: '7d' }));
+// Static uploads — with GitHub backup fallback.
+// On Render's ephemeral filesystem, uploaded files are wiped on every redeploy.
+// restoreUploads() runs on startup to re-fetch them from the GitHub backup repo,
+// but if a file was never successfully backed up (or restore is still in progress),
+// requests would 404. This custom handler transparently fetches missing files
+// from the backup repo on-demand, caches them locally, and serves them — so
+// avatars/banners/GIFs always load for other users even after a redeploy.
+const uploadFallbackLocks = new Set(); // prevent concurrent fetches of same file
+app.use('/uploads', async (req, res, next) => {
+  // Extract the clean filename (strip query string used for cache-busting).
+  const filename = decodeURIComponent(req.path.split('/').pop());
+  if (!filename || filename === '/') return res.status(404).end();
+  const localPath = path.join(UPLOAD_DIR, filename);
+  // Fast path: file exists locally — serve it with static-like headers.
+  if (fs.existsSync(localPath)) {
+    return express.static(UPLOAD_DIR, { maxAge: '7d' })(req, res, next);
+  }
+  // Slow path: file missing — try to fetch from GitHub backup repo.
+  if (!BACKUP_ENABLED) return res.status(404).end();
+  // Avoid concurrent fetches of the same file.
+  if (uploadFallbackLocks.has(filename)) {
+    // Wait briefly and re-check.
+    await new Promise(r => setTimeout(r, 500));
+    if (fs.existsSync(localPath)) {
+      return express.static(UPLOAD_DIR, { maxAge: '7d' })(req, res, next);
+    }
+    return res.status(404).end();
+  }
+  uploadFallbackLocks.add(filename);
+  try {
+    const get = await githubRequest('GET', `/repos/${BACKUP_REPO}/contents/${encodeURIComponent(UPLOAD_BACKUP_DIR + '/' + filename)}?ref=${encodeURIComponent(BACKUP_BRANCH)}`);
+    if (get.status === 200 && get.data && get.data.content) {
+      const b64 = (get.data.content || '').replace(/\s/g, '');
+      const buf = Buffer.from(b64, 'base64');
+      // Cache locally so subsequent requests are instant.
+      try { fs.writeFileSync(localPath, buf); } catch (e) { /* ignore write errors */ }
+      console.log(`[backup] On-demand restored upload ${filename} (${buf.length} bytes).`);
+      // Now serve the freshly-restored file.
+      return express.static(UPLOAD_DIR, { maxAge: '7d' })(req, res, next);
+    }
+    // Not in backup either — genuine 404.
+    return res.status(404).end();
+  } catch (e) {
+    console.error(`[backup] On-demand restore error for ${filename}:`, e);
+    return res.status(404).end();
+  } finally {
+    uploadFallbackLocks.delete(filename);
+  }
+});
 
 // ---------- Multer for uploads ----------
 const storage = multer.diskStorage({
@@ -1887,30 +1935,37 @@ app.use((err, req, res, next) => {
 // Like the DB, user-uploaded files live on the ephemeral container fs and are
 // wiped on every deploy. We mirror them to the same private GitHub backup repo
 // and restore them on startup so avatars/banners survive deploys.
-const UPLOAD_BACKUP_DIR = 'uploads'; // path inside the backup repo
 
 async function backupUploadFile(filename) {
   if (!BACKUP_ENABLED) return;
-  try {
-    const fp = path.join(UPLOAD_DIR, filename);
-    if (!fs.existsSync(fp)) return;
-    const buf = fs.readFileSync(fp);
-    // Skip if larger than ~80MB to avoid GitHub content limits / timeouts.
-    if (buf.length > 80 * 1024 * 1024) { console.log(`[backup] Skipping large upload ${filename} (${buf.length} bytes).`); return; }
-    const b64 = buf.toString('base64');
-    // Check if file exists remotely to get sha (needed to update vs create).
-    const get = await githubRequest('GET', `/repos/${BACKUP_REPO}/contents/${encodeURIComponent(UPLOAD_BACKUP_DIR + '/' + filename)}?ref=${encodeURIComponent(BACKUP_BRANCH)}`);
-    const body = { message: 'upload backup ' + filename, content: b64, branch: BACKUP_BRANCH };
-    if (get.status === 200 && get.data && get.data.sha) body.sha = get.data.sha;
-    const r = await githubRequest('PUT', `/repos/${BACKUP_REPO}/contents/${encodeURIComponent(UPLOAD_BACKUP_DIR + '/' + filename)}`, body);
-    if (r.status === 200 || r.status === 201) {
-      console.log(`[backup] Backed up upload ${filename} (${buf.length} bytes).`);
-    } else {
-      console.error(`[backup] Upload backup failed for ${filename}:`, r.status, (r.data && r.data.message) || r.raw);
+  const fp = path.join(UPLOAD_DIR, filename);
+  if (!fs.existsSync(fp)) { console.warn(`[backup] Cannot back up ${filename}: file not on disk.`); return; }
+  const buf = fs.readFileSync(fp);
+  // Skip if larger than ~80MB to avoid GitHub content limits / timeouts.
+  if (buf.length > 80 * 1024 * 1024) { console.log(`[backup] Skipping large upload ${filename} (${buf.length} bytes).`); return; }
+  const b64 = buf.toString('base64');
+  // Retry up to 3 times — GitHub API can be flaky for large base64 payloads,
+  // and a failed backup means the file is lost on the next deploy (causing
+  // avatar 404s for other users).
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      // Check if file exists remotely to get sha (needed to update vs create).
+      const get = await githubRequest('GET', `/repos/${BACKUP_REPO}/contents/${encodeURIComponent(UPLOAD_BACKUP_DIR + '/' + filename)}?ref=${encodeURIComponent(BACKUP_BRANCH)}`);
+      const body = { message: 'upload backup ' + filename, content: b64, branch: BACKUP_BRANCH };
+      if (get.status === 200 && get.data && get.data.sha) body.sha = get.data.sha;
+      const r = await githubRequest('PUT', `/repos/${BACKUP_REPO}/contents/${encodeURIComponent(UPLOAD_BACKUP_DIR + '/' + filename)}`, body);
+      if (r.status === 200 || r.status === 201) {
+        console.log(`[backup] Backed up upload ${filename} (${buf.length} bytes, attempt ${attempt}).`);
+        return; // success
+      }
+      console.error(`[backup] Upload backup failed for ${filename} (attempt ${attempt}):`, r.status, (r.data && r.data.message) || r.raw);
+    } catch (e) {
+      console.error(`[backup] Upload backup error for ${filename} (attempt ${attempt}):`, e);
     }
-  } catch (e) {
-    console.error('[backup] Upload backup error:', e);
+    // Wait before retry (exponential backoff).
+    if (attempt < 3) await new Promise(r => setTimeout(r, 1000 * attempt));
   }
+  console.error(`[backup] GIVING UP on ${filename} after 3 attempts — file will be lost on next deploy!`);
 }
 
 // Restore uploads from the backup repo on startup (files not already present).
