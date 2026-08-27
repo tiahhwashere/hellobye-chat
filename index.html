@@ -813,9 +813,9 @@ body.loading-session #chat-app.active::after {
 .attach-btn svg { width: 20px; height: 20px; }
 .attach-btn.active { background: var(--accent-dim); color: var(--accent); }
 
-/* Attach dropdown menu — positioned directly above the attach button */
+/* Attach dropdown menu — positioned via JS as fixed so it appears above the attach button within viewport */
 .attach-dropdown {
-  position: absolute; bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%) translateY(8px) scale(0.96); z-index: 1000;
+  position: fixed; left: -9999px; bottom: auto; top: auto; transform: translateY(8px) scale(0.96); z-index: 10000;
   background: var(--bg-secondary); border: 1px solid var(--border-color);
   border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.4);
   min-width: 220px; padding: 6px; overflow: hidden;
@@ -823,7 +823,7 @@ body.loading-session #chat-app.active::after {
   transition: opacity 0.15s, transform 0.15s;
   white-space: nowrap;
 }
-.attach-dropdown.show { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); pointer-events: auto; }
+.attach-dropdown.show { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
 .attach-dropdown-item {
   display: flex; align-items: center; gap: 12px;
   padding: 10px 12px; border-radius: 8px; cursor: pointer;
@@ -3105,9 +3105,6 @@ body.loading-session #chat-app.active::after {
   <!-- ===================== LOGOUT CONFIRM MODAL ===================== -->
   <div class="modal-overlay" id="logout-modal">
     <div class="modal">
-      <div class="modal-icon danger">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-      </div>
       <h3>Log out of hellobye?</h3>
       <p>You will need to sign in again to continue. Your messages, profile, and connections will remain intact.</p>
       <div class="modal-actions">
@@ -3150,9 +3147,6 @@ body.loading-session #chat-app.active::after {
   <!-- ===================== UNSAVED CHANGES MODAL ===================== -->
   <div class="modal-overlay" id="unsaved-modal">
     <div class="modal small">
-      <div class="modal-icon warning">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-      </div>
       <h3>You have unsaved changes</h3>
       <p id="unsaved-modal-text">You must save your settings before changes can be applied. Would you like to save now?</p>
       <div class="modal-actions">
@@ -3785,6 +3779,9 @@ body.loading-session #chat-app.active::after {
                   <input type="text" id="admin-msg-search" class="admin-input" placeholder="Filter by username or message text" style="flex:1;" />
                   <button class="setting-save-btn" id="admin-msg-refresh-btn">Refresh</button>
                 </div>
+                <div style="display:flex; gap:8px; margin-bottom:12px; align-items:center;">
+                  <input type="text" id="admin-msg-user-search" class="admin-input" placeholder="Search a specific user's messages (by username)" style="flex:1;" />
+                </div>
                 <div id="admin-msg-list" class="admin-msg-list">
                   <p style="color:var(--text-muted); padding:12px 0;">Loading messages...</p>
                 </div>
@@ -4180,6 +4177,58 @@ let pendingBlockUser = null;
 // Cooldown
 let chatCooldownEnds = 0;
 let cooldownTimer = null;
+// Spam detection — rapid button pressing triggers a 3-second cooldown
+let spamClickTimes = [];
+let spamCooldownEnds = 0;
+let spamCooldownTimer = null;
+const SPAM_WINDOW_MS = 2000; // track clicks within a 2-second window
+const SPAM_THRESHOLD = 6;    // 6+ clicks in 2 seconds = spam
+const SPAM_COOLDOWN_SEC = 3; // 3-second cooldown
+function isSpamCooldownActive() {
+  return spamCooldownEnds > 0 && Date.now() < spamCooldownEnds;
+}
+function recordSpamClick() {
+  if (isSpamCooldownActive()) return true; // block the action — cooldown active
+  const now = Date.now();
+  spamClickTimes = spamClickTimes.filter(t => now - t < SPAM_WINDOW_MS);
+  spamClickTimes.push(now);
+  if (spamClickTimes.length >= SPAM_THRESHOLD) {
+    startSpamCooldown(SPAM_COOLDOWN_SEC);
+    spamClickTimes = [];
+    return true; // block the action that triggered the spam threshold
+  }
+  return false;
+}
+function startSpamCooldown(seconds) {
+  spamCooldownEnds = Date.now() + (seconds * 1000);
+  toast('Slow down! You\'re pressing buttons too fast. Please wait ' + seconds + ' seconds.', 'error');
+  const indicator = $('cooldown-indicator');
+  const bar = $('cooldown-bar-fill');
+  const text = $('cooldown-text');
+  if (indicator && bar && text) {
+    indicator.style.display = 'flex';
+    bar.style.transition = 'none';
+    bar.style.width = '100%';
+    bar.offsetHeight; // force reflow
+    bar.style.transition = 'width ' + seconds + 's linear';
+    bar.style.width = '0%';
+    let remaining = seconds;
+    text.textContent = 'Cooldown: ' + remaining + 's';
+    if (spamCooldownTimer) clearInterval(spamCooldownTimer);
+    spamCooldownTimer = setInterval(() => {
+      remaining--;
+      if (remaining <= 0) {
+        clearInterval(spamCooldownTimer);
+        spamCooldownTimer = null;
+        if (indicator) indicator.style.display = 'none';
+        spamCooldownEnds = 0;
+        spamClickTimes = [];
+      } else if (text) {
+        text.textContent = 'Cooldown: ' + remaining + 's';
+      }
+    }, 1000);
+  }
+}
 // DM file upload
 let pendingDMFile = null;
 let pendingDMFiles = []; // array of additional DM files for multi-file upload (max 5 total)
@@ -4545,7 +4594,6 @@ if ($('reset-password-link')) {
     modal.style.cssText = 'display:flex;align-items:center;justify-content:center;z-index:9999;';
     modal.innerHTML =
       '<div class="modal" style="max-width:380px;padding:28px 24px;text-align:center;">' +
-        '<div style="font-size:32px;margin-bottom:12px;">🔑</div>' +
         '<h3 style="margin:0 0 12px;font-size:18px;">Reset Password</h3>' +
         '<p style="color:var(--text-secondary);font-size:13px;line-height:1.6;margin:0 0 20px;">' +
           'To reset your password, please contact the site administrator or the account owner (@lore) with your username. ' +
@@ -5314,9 +5362,12 @@ chatInput.addEventListener('input', () => {
   socket.emit('activity');
 });
 chatInput.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); if (recordSpamClick()) return; sendMessage(); }
 });
-sendBtn.addEventListener('click', sendMessage);
+sendBtn.addEventListener('click', () => {
+  if (recordSpamClick()) return;
+  sendMessage();
+});
 
 async function sendMessage() {
   const text = chatInput.value.trim();
@@ -5659,16 +5710,37 @@ $('gif-url-input').addEventListener('keydown', (e) => {
 // ---------- File Attachment ----------
 const fileInput = $('file-input');
 let gifPickerContext = 'chat'; // 'chat' or 'dm' — tracks where GIF picker was opened from
+// Helper: position an attach-dropdown above its button using fixed coordinates
+function positionAttachDropdown(dropdown, btn) {
+  if (!dropdown || !btn) return;
+  const ddRect = dropdown.getBoundingClientRect();
+  const btnRect = btn.getBoundingClientRect();
+  const ddWidth = dropdown.offsetWidth;
+  const ddHeight = dropdown.offsetHeight;
+  // Default: center horizontally on the button, place above it
+  let left = btnRect.left + (btnRect.width / 2) - (ddWidth / 2);
+  let top = btnRect.top - ddHeight - 8;
+  // If there's not enough room above, place it below the button
+  if (top < 8) {
+    top = btnRect.bottom + 8;
+  }
+  // Clamp horizontally so it stays within the viewport
+  if (left < 8) left = 8;
+  if (left + ddWidth > window.innerWidth - 8) left = window.innerWidth - ddWidth - 8;
+  dropdown.style.left = Math.round(left) + 'px';
+  dropdown.style.top = Math.round(top) + 'px';
+}
 // Attach dropdown: clicking the attach button toggles a menu (Send GIF / Send Image-Video)
 $('attach-btn').addEventListener('click', (e) => {
   e.stopPropagation();
+  if (recordSpamClick()) return;
   const dd = $('attach-dropdown');
   const isOpen = dd.classList.contains('show');
   // Close DM dropdown if open
   $('dm-attach-dropdown').classList.remove('show');
   $('dm-attach-btn').classList.remove('active');
   if (isOpen) { dd.classList.remove('show'); $('attach-btn').classList.remove('active'); }
-  else { dd.classList.add('show'); $('attach-btn').classList.add('active'); }
+  else { dd.classList.add('show'); $('attach-btn').classList.add('active'); positionAttachDropdown(dd, $('attach-btn')); }
 });
 $('attach-gif-btn').addEventListener('click', () => {
   $('attach-dropdown').classList.remove('show');
@@ -5726,6 +5798,15 @@ document.addEventListener('click', (e) => {
     $('dm-attach-btn').classList.remove('active');
   }
 });
+// Reposition open attach dropdowns on resize/scroll
+window.addEventListener('resize', () => {
+  if ($('attach-dropdown').classList.contains('show')) positionAttachDropdown($('attach-dropdown'), $('attach-btn'));
+  if ($('dm-attach-dropdown').classList.contains('show')) positionAttachDropdown($('dm-attach-dropdown'), $('dm-attach-btn'));
+});
+window.addEventListener('scroll', () => {
+  if ($('attach-dropdown').classList.contains('show')) positionAttachDropdown($('attach-dropdown'), $('attach-btn'));
+  if ($('dm-attach-dropdown').classList.contains('show')) positionAttachDropdown($('dm-attach-dropdown'), $('dm-attach-btn'));
+}, true);
 const MAX_FILES = 5;
 fileInput.addEventListener('change', (e) => {
   const files = Array.from(e.target.files || []);
@@ -6700,21 +6781,25 @@ dmInputEl.addEventListener('input', () => {
   dmTypingTimeout = setTimeout(() => { isDMTyping = false; socket.emit('dm-typing', { to: activeDMUser, typing: false }); }, 1500);
 });
 dmInputEl.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendDM(); }
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); if (recordSpamClick()) return; sendDM(); }
 });
-dmSendBtn.addEventListener('click', sendDM);
+dmSendBtn.addEventListener('click', () => {
+  if (recordSpamClick()) return;
+  sendDM();
+});
 
 // ---------- DM File Attachment ----------
 const dmFileInput = $('dm-file-input');
 $('dm-attach-btn').addEventListener('click', (e) => {
   e.stopPropagation();
+  if (recordSpamClick()) return;
   const dd = $('dm-attach-dropdown');
   const isOpen = dd.classList.contains('show');
   // Close chat dropdown if open
   $('attach-dropdown').classList.remove('show');
   $('attach-btn').classList.remove('active');
   if (isOpen) { dd.classList.remove('show'); $('dm-attach-btn').classList.remove('active'); }
-  else { dd.classList.add('show'); $('dm-attach-btn').classList.add('active'); }
+  else { dd.classList.add('show'); $('dm-attach-btn').classList.add('active'); positionAttachDropdown(dd, $('dm-attach-btn')); }
 });
 $('dm-attach-gif-btn').addEventListener('click', () => {
   $('dm-attach-dropdown').classList.remove('show');
@@ -9706,7 +9791,11 @@ function renderAdminMessages() {
   const list = $('admin-msg-list');
   if (!list) return;
   const filter = ($('admin-msg-search') && $('admin-msg-search').value || '').toLowerCase().trim();
+  const userFilter = ($('admin-msg-user-search') && $('admin-msg-user-search').value || '').toLowerCase().trim();
   let msgs = adminMessagesCache;
+  if (userFilter) {
+    msgs = msgs.filter(m => (m.username || '').toLowerCase().includes(userFilter) || (m.displayName || '').toLowerCase().includes(userFilter));
+  }
   if (filter) {
     msgs = msgs.filter(m => (m.username || '').toLowerCase().includes(filter) || (m.displayName || '').toLowerCase().includes(filter) || (m.text || '').toLowerCase().includes(filter));
   }
@@ -10086,6 +10175,10 @@ function initAdminEventListeners() {
   const msgSearchInput = $('admin-msg-search');
   if (msgSearchInput) {
     msgSearchInput.addEventListener('input', () => renderAdminMessages());
+  }
+  const msgUserSearchInput = $('admin-msg-user-search');
+  if (msgUserSearchInput) {
+    msgUserSearchInput.addEventListener('input', () => renderAdminMessages());
   }
   // Broadcast
   const bcSendBtn = $('admin-broadcast-send-btn');
