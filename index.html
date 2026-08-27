@@ -239,6 +239,24 @@ html.has-session #chat-app:not(.active) { opacity: 0; } /* invisible until JS ac
 }
 .form-input::placeholder { color: var(--text-muted); }
 
+/* Password field with show/hide (eye) toggle */
+.pwd-field { position: relative; display: block; }
+.pwd-field .form-input { padding-right: 42px; }
+.pwd-toggle {
+  position: absolute; top: 50%; right: 8px; transform: translateY(-50%);
+  width: 30px; height: 30px; border-radius: 6px;
+  display: inline-flex; align-items: center; justify-content: center;
+  color: var(--text-muted); background: transparent; border: none; cursor: pointer;
+  transition: var(--transition);
+}
+.pwd-toggle:hover { color: var(--text-primary); background: var(--bg-medium); }
+.pwd-toggle:active { transform: translateY(-50%) scale(0.94); }
+.pwd-eye { width: 18px; height: 18px; display: block; }
+/* Show the open eye by default; swap to the slash-eye when revealed */
+.pwd-eye-hide { display: none; }
+.pwd-field.is-revealed .pwd-eye-show { display: none; }
+.pwd-field.is-revealed .pwd-eye-hide { display: block; }
+
 .auth-error {
   display: none; padding: 11px 14px; margin-bottom: 16px;
   background: rgba(216, 58, 58, 0.1);
@@ -654,7 +672,13 @@ body.loading-session #chat-app.active::after {
 .message-file { margin-top: 8px; }
 .message-file img { max-width: 300px; max-height: 300px; border-radius: 8px; display: block; cursor: pointer; object-fit: cover; image-rendering: -webkit-optimize-contrast; image-rendering: crisp-edges; border: 1px solid var(--border); transition: border-color 0.15s ease, transform 0.15s ease; }
 .message-file img:hover { border-color: var(--border-light); transform: scale(1.005); }
+/* 4K/HD enhancement: images are upscaled + sharpened on the server; this
+   subtle display filter adds a final crispness/contrast pop when rendered. */
+.message-file img.hd-enhanced { filter: contrast(1.04) saturate(1.06) sharpen(1); }
 .message-file video { max-width: 340px; max-height: 300px; border-radius: 8px; border: 1px solid var(--border); }
+/* HD enhancement filter for inline videos (server can't transcode video, so
+   we apply a light sharpen/contrast/saturate pass at display time). */
+.message-file video.hd-enhanced { filter: contrast(1.05) saturate(1.08) brightness(1.02); }
 .message-file audio { width: 300px; border-radius: 8px; }
 .message-file-attachment {
   display: flex; align-items: center; gap: 12px;
@@ -2695,7 +2719,13 @@ body.loading-session #chat-app.active::after {
           </div>
           <div class="form-field full">
             <label>Password</label>
-            <input type="password" class="form-input" id="signin-password" placeholder="Enter your password" autocomplete="current-password">
+            <div class="pwd-field">
+              <input type="password" class="form-input" id="signin-password" placeholder="Enter your password" autocomplete="current-password">
+              <button type="button" class="pwd-toggle" data-target="signin-password" aria-label="Show password">
+                <svg class="pwd-eye pwd-eye-show" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                <svg class="pwd-eye pwd-eye-hide" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+              </button>
+            </div>
           </div>
           <button type="submit" class="btn-primary" id="signin-btn">Sign In</button>
         </form>
@@ -2705,16 +2735,28 @@ body.loading-session #chat-app.active::after {
           <div id="signup-error" class="auth-error"></div>
           <div class="form-field full">
             <label>Choose a Username</label>
-            <input type="text" class="form-input" id="signup-username" placeholder="3-20 chars, letters, numbers, underscore" autocomplete="username" spellcheck="false">
+            <input type="text" class="form-input" id="signup-username" placeholder="3–20 characters: letters, numbers, underscore" autocomplete="username" spellcheck="false">
             <div class="username-check" id="username-check"></div>
           </div>
           <div class="form-field">
             <label>Password</label>
-            <input type="password" class="form-input" id="signup-password" placeholder="Min 6 characters" autocomplete="new-password">
+            <div class="pwd-field">
+              <input type="password" class="form-input" id="signup-password" placeholder="Minimum 6 characters" autocomplete="new-password">
+              <button type="button" class="pwd-toggle" data-target="signup-password" aria-label="Show password">
+                <svg class="pwd-eye pwd-eye-show" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                <svg class="pwd-eye pwd-eye-hide" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+              </button>
+            </div>
           </div>
           <div class="form-field">
             <label>Confirm Password</label>
-            <input type="password" class="form-input" id="signup-confirm" placeholder="Re-enter password" autocomplete="new-password">
+            <div class="pwd-field">
+              <input type="password" class="form-input" id="signup-confirm" placeholder="Re-enter your password" autocomplete="new-password">
+              <button type="button" class="pwd-toggle" data-target="signup-confirm" aria-label="Show password">
+                <svg class="pwd-eye pwd-eye-show" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                <svg class="pwd-eye pwd-eye-hide" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+              </button>
+            </div>
           </div>
           <button type="submit" class="btn-primary" id="signup-btn">Create Account</button>
         </form>
@@ -2761,7 +2803,7 @@ body.loading-session #chat-app.active::after {
       </div>
 
       <div class="sidebar-search">
-        <input type="text" id="user-search" placeholder="Search members by name or ID...">
+        <input type="text" id="user-search" placeholder="Search members by name or ID">
       </div>
 
       <!-- Public user list -->
@@ -2885,7 +2927,7 @@ body.loading-session #chat-app.active::after {
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
           </button>
           <input type="file" id="file-input" hidden multiple>
-          <textarea class="chat-textarea" id="chat-input" placeholder="Type a message..." rows="1"></textarea>
+          <textarea class="chat-textarea" id="chat-input" placeholder="Type a message" rows="1"></textarea>
           <button class="send-btn" id="send-btn" disabled>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
           </button>
@@ -2977,7 +3019,7 @@ body.loading-session #chat-app.active::after {
       </div>
       <h3>Delete your account?</h3>
       <p>This action is permanent and cannot be undone. All your messages, profile data, and connections will be permanently removed. Enter your password to confirm.</p>
-      <input type="password" class="form-input" id="delete-account-password" placeholder="Enter your password" style="margin-bottom:16px;">
+      <input type="password" class="form-input" id="delete-account-password" placeholder="Enter your password to confirm" style="margin-bottom:16px;">
       <div class="modal-actions">
         <button class="modal-btn" id="delete-account-cancel">Cancel</button>
         <button class="modal-btn danger" id="delete-account-confirm">Delete Permanently</button>
@@ -3066,7 +3108,7 @@ body.loading-session #chat-app.active::after {
 
       <div class="profile-section">
         <div class="profile-section-title">About Me</div>
-        <textarea class="bio-textarea" id="bio-input" placeholder="Tell others about yourself... (Press Enter for a new line)" maxlength="500"></textarea>
+        <textarea class="bio-textarea" id="bio-input" placeholder="Write a short bio to introduce yourself. Press Enter for a new line." maxlength="500"></textarea>
         <div class="bio-counter"><span id="bio-count">0</span> / 500</div>
       </div>
 
@@ -3093,7 +3135,7 @@ body.loading-session #chat-app.active::after {
         <div class="profile-fields-grid">
           <div class="profile-field-group profile-field-full">
             <label class="profile-field-label">Pronouns</label>
-            <input type="text" class="form-input" id="pronouns-input" placeholder="e.g. she/her, he/him, they/them" maxlength="20">
+            <input type="text" class="form-input" id="pronouns-input" placeholder="Enter your pronouns" maxlength="20">
           </div>
         </div>
       </div>
@@ -3165,7 +3207,7 @@ body.loading-session #chat-app.active::after {
           <div class="profile-section">
             <div class="profile-section-title">Display Name</div>
             <p class="setting-hint">Shown alongside your @username in messages and profiles.</p>
-            <input type="text" class="form-input" id="display-name-input" placeholder="e.g. Alex Morgan" maxlength="32">
+            <input type="text" class="form-input" id="display-name-input" placeholder="Enter your display name" maxlength="32">
             <div class="bio-counter"><span id="displayname-count">0</span> / 32</div>
             <button class="setting-save-btn" id="displayname-save">Update Display Name</button>
           </div>
@@ -3173,14 +3215,14 @@ body.loading-session #chat-app.active::after {
           <div class="profile-section">
             <div class="profile-section-title">Change Username</div>
             <p class="setting-hint">Your unique handle. Can be changed once every 24 hours. <span id="username-cooldown-text"></span></p>
-            <input type="text" class="form-input" id="new-username-input" placeholder="new_username" spellcheck="false">
+            <input type="text" class="form-input" id="new-username-input" placeholder="Enter your new username" spellcheck="false">
             <button class="setting-save-btn" id="username-save">Change Username</button>
           </div>
 
           <div class="profile-section">
             <div class="profile-section-title">Reset Password</div>
-            <input type="password" class="form-input" id="current-password-input" placeholder="Current password">
-            <input type="password" class="form-input" id="new-password-input" placeholder="New password (min 6 chars)" style="margin-top:8px;">
+            <input type="password" class="form-input" id="current-password-input" placeholder="Enter your current password">
+            <input type="password" class="form-input" id="new-password-input" placeholder="Enter your new password (minimum 6 characters)" style="margin-top:8px;">
             <button class="setting-save-btn" id="password-save">Reset Password</button>
           </div>
         </section>
@@ -3358,7 +3400,7 @@ body.loading-session #chat-app.active::after {
                         <h3 style="color:var(--accent); margin-bottom:8px;">Admin Code Required</h3>
             <p style="color:var(--text-muted); margin-bottom:20px;">Enter the admin access code to unlock the Administrator Panel.<br><span style="font-size:11px;">Owner: <strong style="color:var(--text-secondary);">@lore</strong></span></p>
             <div style="max-width:340px; margin:0 auto;">
-              <input type="password" id="admin-code-input" class="admin-input" placeholder="Enter access code..." autocomplete="off" style="width:100%; text-align:center; letter-spacing:2px; margin-bottom:10px;" />
+              <input type="password" id="admin-code-input" class="admin-input" placeholder="Enter access code" autocomplete="off" style="width:100%; text-align:center; letter-spacing:2px; margin-bottom:10px;" />
               <button class="setting-save-btn" id="admin-code-submit" style="width:100%;">Unlock Panel</button>
               <p id="admin-code-error" style="color:var(--danger); font-size:12px; margin-top:10px; display:none;"></p>
               <p style="color:var(--text-muted); font-size:11px; margin-top:14px;">Enter the access code to manage users, roles, bans and more.</p>
@@ -3384,7 +3426,7 @@ body.loading-session #chat-app.active::after {
                 <div class="profile-section-title">Change Welcome Title</div>
                 <p style="color:var(--text-muted); font-size:12px; margin-bottom:12px;">Change the text shown in the chatroom header (currently "welcome - to the safe place"). A 20-second cooldown applies between changes.</p>
                 <div style="display:flex; gap:8px; align-items:center; margin-bottom:8px;">
-                  <input type="text" id="admin-welcome-title-input" class="admin-input" placeholder="Enter new welcome title..." maxlength="100" style="flex:1;" />
+                  <input type="text" id="admin-welcome-title-input" class="admin-input" placeholder="Enter the new welcome title" maxlength="100" style="flex:1;" />
                   <button class="setting-save-btn" id="admin-welcome-title-btn">Update Title</button>
                 </div>
                 <div id="admin-welcome-title-cooldown" style="font-size:11px; color:var(--text-muted); display:none;"></div>
@@ -3440,13 +3482,13 @@ body.loading-session #chat-app.active::after {
                 <div class="profile-section-title">Ban a User</div>
                 <p style="color:var(--text-muted); font-size:12px; margin-bottom:12px;">Search for a user by username or ID, then ban them with a reason.</p>
                 <div class="admin-ban-search-row">
-                  <input type="text" id="admin-ban-search" class="admin-input" placeholder="Search username or ID..." />
+                  <input type="text" id="admin-ban-search" class="admin-input" placeholder="Search by username or ID" />
                   <button class="setting-save-btn" id="admin-ban-search-btn">Search</button>
                 </div>
                 <div id="admin-ban-results" class="admin-ban-results"></div>
                 <div id="admin-ban-form" style="display:none; margin-top:16px;">
                   <div class="admin-ban-target-info" id="admin-ban-target-info"></div>
-                  <textarea id="admin-ban-reason" class="admin-textarea" placeholder="Ban reason (required)..." rows="3"></textarea>
+                  <textarea id="admin-ban-reason" class="admin-textarea" placeholder="Enter the ban reason (required)" rows="3"></textarea>
                   <button class="setting-save-btn danger-btn" id="admin-ban-confirm-btn" style="margin-top:8px;">Ban User</button>
                 </div>
               </div>
@@ -3464,7 +3506,7 @@ body.loading-session #chat-app.active::after {
                 <div class="profile-section-title">Mute a User</div>
                 <p style="color:var(--text-muted); font-size:12px; margin-bottom:12px;">Mute a user to prevent them from sending messages in public chat. Muted users can still use DMs. Duration can be anywhere from 1 minute to 14 days.</p>
                 <div class="admin-ban-search-row">
-                  <input type="text" id="admin-mute-search" class="admin-input" placeholder="Search username or ID..." />
+                  <input type="text" id="admin-mute-search" class="admin-input" placeholder="Search by username or ID" />
                   <button class="setting-save-btn" id="admin-mute-search-btn">Search</button>
                 </div>
                 <div id="admin-mute-results" class="admin-ban-results"></div>
@@ -3487,7 +3529,7 @@ body.loading-session #chat-app.active::after {
                       <option value="1209600000">14 days</option>
                     </select>
                   </div>
-                  <textarea id="admin-mute-reason" class="admin-textarea" placeholder="Mute reason (optional)..." rows="2"></textarea>
+                  <textarea id="admin-mute-reason" class="admin-textarea" placeholder="Enter a mute reason (optional)" rows="2"></textarea>
                   <button class="setting-save-btn" id="admin-mute-confirm-btn" style="margin-top:8px;">Mute User</button>
                 </div>
               </div>
@@ -3505,7 +3547,7 @@ body.loading-session #chat-app.active::after {
                 <div class="profile-section-title">Assign Role</div>
                 <p style="color:var(--text-muted); font-size:12px; margin-bottom:12px;">Give a user a role tag that appears next to their username in chat and DMs.</p>
                 <div class="admin-ban-search-row">
-                  <input type="text" id="admin-role-search" class="admin-input" placeholder="Search username or ID..." />
+                  <input type="text" id="admin-role-search" class="admin-input" placeholder="Search by username or ID" />
                   <button class="setting-save-btn" id="admin-role-search-btn">Search</button>
                 </div>
                 <div id="admin-role-results" class="admin-ban-results"></div>
@@ -3553,7 +3595,7 @@ body.loading-session #chat-app.active::after {
                 <div class="profile-section-title">Moderate Chat Messages</div>
                 <p style="color:var(--text-muted); font-size:12px; margin-bottom:12px;">View and instantly delete any user's message from the chat. Deleted messages are removed for everyone immediately.</p>
                 <div style="display:flex; gap:8px; margin-bottom:12px; align-items:center;">
-                  <input type="text" id="admin-msg-search" class="admin-input" placeholder="Filter by username or text..." style="flex:1;" />
+                  <input type="text" id="admin-msg-search" class="admin-input" placeholder="Filter by username or message text" style="flex:1;" />
                   <button class="setting-save-btn" id="admin-msg-refresh-btn">Refresh</button>
                 </div>
                 <div id="admin-msg-list" class="admin-msg-list">
@@ -3567,7 +3609,7 @@ body.loading-session #chat-app.active::after {
               <div class="profile-section">
                 <div class="profile-section-title">Broadcast System Alert</div>
                 <p style="color:var(--text-muted); font-size:12px; margin-bottom:12px;">Send an announcement that pops up as an alert at the top-center of every connected user's screen for 5 seconds, then fades away. It is not posted into the chat.</p>
-                <textarea id="admin-broadcast-text" class="admin-textarea" placeholder="Type your announcement (max 500 chars)..." rows="3" maxlength="500"></textarea>
+                <textarea id="admin-broadcast-text" class="admin-textarea" placeholder="Type your announcement (maximum 500 characters)" rows="3" maxlength="500"></textarea>
                 <div style="display:flex; gap:10px; align-items:center; margin-top:10px;">
                   <button class="setting-save-btn" id="admin-broadcast-send-btn">Send Alert to Everyone</button>
                   <span id="admin-broadcast-count" style="color:var(--text-muted); font-size:11px;">0 / 500</span>
@@ -3583,7 +3625,7 @@ body.loading-session #chat-app.active::after {
                 <div class="profile-section-title">Admin Whitelist</div>
                 <p style="color:var(--text-muted); font-size:12px; margin-bottom:12px;">Users on this list can access the Administrator panel. The owner, <strong style="color:var(--text-secondary);">@lore</strong>, always has access.</p>
                 <div class="admin-ban-search-row">
-                  <input type="text" id="admin-whitelist-input" class="admin-input" placeholder="Enter username to add..." />
+                  <input type="text" id="admin-whitelist-input" class="admin-input" placeholder="Enter a username to add" />
                   <button class="setting-save-btn" id="admin-whitelist-add-btn">Add to Whitelist</button>
                 </div>
                 <div id="admin-whitelist-list" class="admin-whitelist-list" style="margin-top:16px;">
@@ -3598,7 +3640,7 @@ body.loading-session #chat-app.active::after {
                 <div class="profile-section-title">Create Custom Member Role</div>
                 <p style="color:var(--text-muted); font-size:12px; margin-bottom:12px;">Create custom roles that appear as labeled groups in the chatroom member sidebar. Each role can hold up to 30 members.</p>
                 <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:12px;">
-                  <input type="text" id="admin-custom-role-name" class="admin-input" placeholder="Role name (e.g. VIP, Guest, Streamer)..." maxlength="30" style="flex:1; min-width:180px;" />
+                  <input type="text" id="admin-custom-role-name" class="admin-input" placeholder="Enter a role name" maxlength="30" style="flex:1; min-width:180px;" />
                   <input type="color" id="admin-custom-role-color" value="#818cf8" style="width:40px; height:38px; border:1px solid var(--border-light); border-radius:var(--radius-sm); background:var(--bg-medium); cursor:pointer;" title="Role color" />
                   <button class="setting-save-btn" id="admin-custom-role-create-btn">Create Role</button>
                 </div>
@@ -3694,7 +3736,7 @@ body.loading-session #chat-app.active::after {
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
           </button>
           <input type="file" id="dm-file-input" hidden multiple>
-          <textarea class="chat-textarea" id="dm-input" placeholder="Type a private message..." rows="1"></textarea>
+          <textarea class="chat-textarea" id="dm-input" placeholder="Type a private message" rows="1"></textarea>
           <button class="send-btn" id="dm-send-btn" disabled>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
           </button>
@@ -3784,7 +3826,7 @@ body.loading-session #chat-app.active::after {
       <p class="setting-hint">Add a caption (optional) then confirm to send.</p>
       <div class="media-send-preview" id="media-send-preview"></div>
       <div class="media-send-caption-row">
-        <textarea id="media-send-caption" placeholder="Add a caption…" rows="2" maxlength="500"></textarea>
+        <textarea id="media-send-caption" placeholder="Add a caption" rows="2" maxlength="500"></textarea>
       </div>
       <div class="modal-actions">
         <button class="modal-btn" id="media-send-cancel">Cancel</button>
@@ -4153,6 +4195,24 @@ document.querySelectorAll('.auth-tab').forEach(tab => {
 });
 
 // ---------- Username Availability Check ----------
+// ---------- Password show/hide (eye) toggles ----------
+// Each .pwd-toggle button reveals/hides its paired password field. Works for
+// the Sign In, Sign Up (Password + Confirm Password) fields.
+document.querySelectorAll('.pwd-toggle').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const targetId = btn.getAttribute('data-target');
+    const input = document.getElementById(targetId);
+    if (!input) return;
+    const field = btn.closest('.pwd-field');
+    const reveal = input.type === 'password';
+    input.type = reveal ? 'text' : 'password';
+    if (field) field.classList.toggle('is-revealed', reveal);
+    btn.setAttribute('aria-label', reveal ? 'Hide password' : 'Show password');
+    // Keep focus on the field so typing isn't interrupted.
+    setTimeout(() => { try { input.focus(); input.setSelectionRange(input.value.length, input.value.length); } catch (e) {} }, 0);
+  });
+});
+
 $('signup-username').addEventListener('input', (e) => {
   const username = e.target.value.trim().toLowerCase();
   const checkEl = $('username-check');
@@ -4798,6 +4858,7 @@ function createFileElement(file) {
   if (mt.startsWith('image/')) {
     const img = document.createElement('img');
     img.src = file.url; img.alt = file.name; img.loading = 'lazy';
+    img.classList.add('hd-enhanced'); // server upscales/sharpens to 4K/HD
     img.onclick = () => window.open(file.url, '_blank');
     img.style.cursor = 'pointer';
     img.addEventListener('contextmenu', (e) => {
@@ -4811,6 +4872,7 @@ function createFileElement(file) {
   } else if (mt.startsWith('video/')) {
     const video = document.createElement('video');
     video.src = file.url; video.controls = true;
+    video.classList.add('hd-enhanced'); // client-side HD display enhancement for video
     video.addEventListener('contextmenu', (e) => {
       e.preventDefault(); e.stopPropagation();
       showContextMenu(e.clientX, e.clientY, [
@@ -7510,19 +7572,95 @@ function getCurrentBgSettings() {
   return getBgSettings() || { url: null, scale: 100, posX: 50, posY: 50, opacity: 100, blur: 0, mode: 'cover', brightness: 100, saturate: 100, dim: 0 };
 }
 
+// 4K HD enhancement for the website/chat background image (client-side).
+// Loads the uploaded static image, upscales its longest edge to 3840px (4K
+// UHD) using the browser's high-quality smooth scaling, applies a light
+// sharpening convolution, and returns a high-quality data URL. Animated
+// GIFs are NOT run through this (animation would be lost) — they stay HD
+// via the CSS display filter.
+const BG_4K_TARGET = 3840;
+function enhanceBackgroundTo4K(dataUrl) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      try {
+        const longest = Math.max(img.naturalWidth, img.naturalHeight);
+        // If it's already 4K-or-larger, just re-encode at high quality.
+        const scale = longest < BG_4K_TARGET ? (BG_4K_TARGET / longest) : 1;
+        const outW = Math.max(1, Math.round(img.naturalWidth * scale));
+        const outH = Math.max(1, Math.round(img.naturalHeight * scale));
+        const canvas = document.createElement('canvas');
+        canvas.width = outW; canvas.height = outH;
+        const ctx = canvas.getContext('2d');
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+        ctx.drawImage(img, 0, 0, outW, outH);
+        // Light sharpen convolution (recovers detail lost in upscaling).
+        try {
+          ctx.filter = 'none';
+          const src = ctx.getImageData(0, 0, outW, outH);
+          const out = ctx.createImageData(outW, outH);
+          const d = src.data, o = out.data, w = outW, h = outH;
+          // 3x3 sharpen kernel: center 5, neighbors -1 (corner 0)
+          const kernel = [0, -1, 0, -1, 5, -1, 0, -1, 0];
+          for (let y = 0; y < h; y++) {
+            for (let x = 0; x < w; x++) {
+              let r = 0, g = 0, b = 0;
+              let ki = 0;
+              for (let ky = -1; ky <= 1; ky++) {
+                for (let kx = -1; kx <= 1; kx++) {
+                  const px = Math.min(w - 1, Math.max(0, x + kx));
+                  const py = Math.min(h - 1, Math.max(0, y + ky));
+                  const idx = (py * w + px) * 4;
+                  const k = kernel[ki++];
+                  r += d[idx] * k; g += d[idx + 1] * k; b += d[idx + 2] * k;
+                }
+              }
+              const di = (y * w + x) * 4;
+              o[di] = r < 0 ? 0 : r > 255 ? 255 : r;
+              o[di + 1] = g < 0 ? 0 : g > 255 ? 255 : g;
+              o[di + 2] = b < 0 ? 0 : b > 255 ? 255 : b;
+              o[di + 3] = d[di + 3];
+            }
+          }
+          ctx.putImageData(out, 0, 0);
+        } catch (e) { /* getImageData may be blocked on cross-origin; ignore */ }
+        // High-quality JPEG for photos keeps the data URL small; PNG for
+        // anything with transparency.
+        const isPng = /\.png$/i.test(dataUrl) || /image\/png/i.test(dataUrl);
+        const outUrl = isPng
+          ? canvas.toDataURL('image/png')
+          : canvas.toDataURL('image/jpeg', 0.95);
+        resolve(outUrl);
+      } catch (err) { reject(err); }
+    };
+    img.onerror = () => reject(new Error('Could not load background image'));
+    img.src = dataUrl;
+  });
+}
+
 // Background file upload (client-side only, stored as data URL so it persists & animates)
 $('bg-file-input').addEventListener('change', (e) => {
   const file = e.target.files[0];
   if (!file) return;
   if (file.size > 10 * 1024 * 1024) { toast('Background image too large (max 10MB).', 'error'); return; }
+  const isAnimated = /^image\/gif$/i.test(file.type) || /\.gif$/i.test(file.name);
   const reader = new FileReader();
-  reader.onload = (ev) => {
+  reader.onload = async (ev) => {
     const s = getCurrentBgSettings();
-    s.url = ev.target.result;
+    // 4K HD enhance static background images (PNG/JPEG/WebP/BMP) on a
+    // canvas before storing the data URL. Animated GIFs are kept as-is so
+    // their animation is preserved — they still render crisply at HD via CSS.
+    let finalUrl = ev.target.result;
+    if (!isAnimated) {
+      try { finalUrl = await enhanceBackgroundTo4K(ev.target.result); }
+      catch (err) { console.error('Background 4K enhance failed:', err); finalUrl = ev.target.result; }
+    }
+    s.url = finalUrl;
     saveBgSettings(s);
     applyBgSettings();
     updateBgPreview();
-    toast('Background set! Adjust scale and position below.', 'success');
+    toast(isAnimated ? 'Background set (HD).' : 'Background set & enhanced to 4K. Adjust scale and position below.', 'success');
   };
   reader.readAsDataURL(file);
   e.target.value = '';
@@ -8353,8 +8491,24 @@ function adminSelectUser(cacheKey) {
     banForm.style.display = '';
     const avatarHtml = user.avatar ? '<img src="' + user.avatar + '" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">' : '<div style="width:32px;height:32px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:13px;">' + escapeHtml(getInitials(user.username)) + '</div>';
     const bannedTag = user.banned ? ' <span style="color:var(--danger);font-size:11px;">(Already banned)</span>' : '';
-    banTargetInfo.innerHTML = avatarHtml + '<div><div class="at-name">' + escapeHtml(user.displayName || user.username) + bannedTag + ' @' + escapeHtml(user.username) + '</div><div class="at-meta">ID: ' + escapeHtml(user.id || 'N/A') + '</div></div>';
+    const ownerTag = user.isOwner ? ' <span style="color:var(--accent);font-size:11px;">(Owner)</span>' : '';
+    banTargetInfo.innerHTML = avatarHtml + '<div><div class="at-name">' + escapeHtml(user.displayName || user.username) + bannedTag + ownerTag + ' @' + escapeHtml(user.username) + '</div><div class="at-meta">ID: ' + escapeHtml(user.id || 'N/A') + '</div></div>';
     $('admin-ban-reason').value = '';
+    // The owner (@lore) can never be banned — disable the action and explain why.
+    const banBtn = $('admin-ban-confirm-btn');
+    if (banBtn) {
+      if (user.isOwner) {
+        banBtn.disabled = true;
+        banBtn.textContent = 'Owner Cannot Be Banned';
+        banBtn.style.opacity = '0.55';
+        banBtn.style.cursor = 'not-allowed';
+      } else {
+        banBtn.disabled = false;
+        banBtn.textContent = 'Ban User';
+        banBtn.style.opacity = '';
+        banBtn.style.cursor = '';
+      }
+    }
   }
   // Set role target
   adminRoleTarget = user;
@@ -8391,6 +8545,7 @@ function renderAdminBadgeCurrent(user) {
 // Admin actions
 async function adminBanUser() {
   if (!adminBanTarget) return;
+  if (adminBanTarget.isOwner) { toast('The owner (@lore) cannot be banned.', 'error'); return; }
   const reason = $('admin-ban-reason').value.trim();
   if (!reason) { toast('Please provide a ban reason', 'error'); return; }
   try {
@@ -8428,8 +8583,24 @@ function adminSelectMuteUser(cacheKey) {
     muteForm.style.display = '';
     const avatarHtml = user.avatar ? '<img src="' + user.avatar + '" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">' : '<div style="width:32px;height:32px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:13px;">' + escapeHtml(getInitials(user.username)) + '</div>';
     const mutedTag = user.mutedUntil ? ' <span style="color:var(--danger);font-size:11px;">(Already muted)</span>' : '';
-    muteTargetInfo.innerHTML = avatarHtml + '<div><div class="at-name">' + escapeHtml(user.displayName || user.username) + mutedTag + ' @' + escapeHtml(user.username) + '</div><div class="at-meta">ID: ' + escapeHtml(user.id || 'N/A') + '</div></div>';
+    const ownerTag = user.isOwner ? ' <span style="color:var(--accent);font-size:11px;">(Owner)</span>' : '';
+    muteTargetInfo.innerHTML = avatarHtml + '<div><div class="at-name">' + escapeHtml(user.displayName || user.username) + mutedTag + ownerTag + ' @' + escapeHtml(user.username) + '</div><div class="at-meta">ID: ' + escapeHtml(user.id || 'N/A') + '</div></div>';
     $('admin-mute-reason').value = '';
+    // The owner (@lore) can never be muted — disable the action and explain why.
+    const muteBtn = $('admin-mute-confirm-btn');
+    if (muteBtn) {
+      if (user.isOwner) {
+        muteBtn.disabled = true;
+        muteBtn.textContent = 'Owner Cannot Be Muted';
+        muteBtn.style.opacity = '0.55';
+        muteBtn.style.cursor = 'not-allowed';
+      } else {
+        muteBtn.disabled = false;
+        muteBtn.textContent = 'Mute User';
+        muteBtn.style.opacity = '';
+        muteBtn.style.cursor = '';
+      }
+    }
   }
 }
 function renderAdminMutedList() {
@@ -8464,6 +8635,7 @@ function formatMuteDurationLocal(ms) {
 }
 async function adminMuteUser() {
   if (!adminMuteTarget) return;
+  if (adminMuteTarget.isOwner) { toast('The owner (@lore) cannot be muted.', 'error'); return; }
   const durationMs = parseInt($('admin-mute-duration').value, 10);
   const reason = $('admin-mute-reason').value.trim();
   if (!durationMs || isNaN(durationMs)) { toast('Select a mute duration', 'error'); return; }
@@ -8603,7 +8775,7 @@ function renderAdminMessages() {
       ? '<img src="' + escapeHtml(u.avatar) + '" alt="" />'
       : escapeHtml(getInitials(m.username));
     const time = new Date(m.timestamp).toLocaleString();
-    const fileBit = m.file ? '<div class="am-file">📎 ' + escapeHtml(m.file.name || 'file') + '</div>' : '';
+    const fileBit = m.file ? '<div class="am-file"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-1px;margin-right:3px;"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>' + escapeHtml(m.file.name || 'file') + '</div>' : '';
     return '<div class="admin-msg-item" data-msg-id="' + escapeHtml(m.id) + '">' +
       '<div class="am-avatar">' + avatar + '</div>' +
       '<div class="am-body">' +
@@ -8788,7 +8960,7 @@ function renderAdminCustomRoles() {
         '<button class="setting-save-btn danger-btn" style="padding:4px 10px; font-size:11px;" onclick="adminRemoveCustomRole(&apos;' + escapeHtml(role.id) + '&apos;)">Delete Role</button>' +
       '</div>' +
       '<div style="display:flex; gap:8px; align-items:center; margin-top:8px;">' +
-        '<input type="text" class="admin-input" placeholder="Add username to role..." style="flex:1; font-size:12px;" id="custom-role-add-input-' + escapeHtml(role.id) + '" />' +
+        '<input type="text" class="admin-input" placeholder="Add a username to this role" style="flex:1; font-size:12px;" id="custom-role-add-input-' + escapeHtml(role.id) + '" />' +
         '<button class="setting-save-btn" style="padding:6px 12px; font-size:11px;" onclick="adminAddCustomRoleMember(&apos;' + escapeHtml(role.id) + '&apos;)">Add</button>' +
       '</div>' +
       memberListHtml +

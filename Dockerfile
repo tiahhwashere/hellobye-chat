@@ -7,7 +7,7 @@ COPY package.json package-lock.json* ./
 RUN npm install --production
 
 # Copy application files
-COPY index.html server.js ./
+COPY index.html server.js enhance.js ./
 
 # Create directories for data and uploads
 RUN mkdir -p data uploads

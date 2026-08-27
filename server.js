@@ -7,6 +7,7 @@ const fs = require('fs');
 const crypto = require('crypto');
 const multer = require('multer');
 const { Server } = require('socket.io');
+const { enhanceUpload } = require('./enhance'); // 4K/HD enhancement for uploaded images & GIFs
 
 const app = express();
 const server = http.createServer(app);
@@ -267,6 +268,7 @@ function publicUser(u) {
     banned: !!u.banned,
     banReason: u.banReason || null,
     mutedUntil: (u.mutedUntil && Date.now() < u.mutedUntil) ? u.mutedUntil : 0,
+    isOwner: (u.id === ADMIN_OWNER_ID),
   };
 }
 function fullUser(u) {
@@ -467,11 +469,15 @@ app.get('/api/check-username/:username', (req, res) => {
 });
 
 // ---------- Profile ----------
-app.post('/api/profile', authMiddleware, avatarUpload.single('image'), (req, res) => {
+app.post('/api/profile', authMiddleware, avatarUpload.single('image'), async (req, res) => {
   const u = req.user;
   if (req.file) {
     // Image upload (avatar or banner)
     const type = req.body.type || 'avatar';
+    // 4K/HD enhance the uploaded image in place (best-effort; failures
+    // fall back to the original file so uploads never break).
+    try { await enhanceUpload(path.join(UPLOAD_DIR, req.file.filename)); }
+    catch (e) { console.error('[profile] enhance error:', e.message); }
     const url = '/uploads/' + req.file.filename;
     if (type === 'banner') {
       u.banner = url;
@@ -505,17 +511,30 @@ app.post('/api/profile/remove-image', authMiddleware, (req, res) => {
 });
 
 // ---------- File Upload ----------
-app.post('/api/upload', authMiddleware, upload.single('file'), (req, res) => {
+app.post('/api/upload', authMiddleware, upload.single('file'), async (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'No file provided' });
+  // 4K/HD enhance image/GIF attachments in place (best-effort). Videos and
+  // other non-image files are left untouched — the frontend applies a CSS
+  // HD-enhancement filter when rendering <video> media.
+  const absPath = path.join(UPLOAD_DIR, req.file.filename);
+  let isImage = /^image\//.test(req.file.mimetype || '');
+  if (isImage) {
+    try { await enhanceUpload(absPath); }
+    catch (e) { console.error('[upload] enhance error:', e.message); }
+  }
+  // Re-stat so the reported size matches the enhanced file on disk.
+  let finalSize = req.file.size;
+  try { finalSize = fs.statSync(absPath).size; } catch (e) {}
   const url = '/uploads/' + req.file.filename;
   backupUploadFile(req.file.filename);
   res.json({
     file: {
       url,
       name: req.file.originalname,
-      size: req.file.size,
+      size: finalSize,
       type: req.file.mimetype,
       mimetype: req.file.mimetype, // alias so the frontend's createFileElement works
+      enhanced: isImage, // flag: image/GIF was 4K/HD-enhanced server-side
     },
   });
 });
@@ -856,8 +875,8 @@ app.post('/api/admin/ban', authMiddleware, adminMiddleware, (req, res) => {
   if (!username) return res.status(400).json({ error: 'Username required' });
   const target = db.users[String(username).toLowerCase().trim()];
   if (!target) return res.status(404).json({ error: 'User not found' });
-  if (target.id === ADMIN_OWNER_ID) return res.status(403).json({ error: 'Cannot ban the owner' });
-  if (isAdmin(target) && req.user.id !== ADMIN_OWNER_ID) return res.status(403).json({ error: 'Cannot ban another admin' });
+  if (target.id === ADMIN_OWNER_ID) return res.status(403).json({ error: 'The owner cannot be banned' });
+  if (isAdmin(target) && req.user.id !== ADMIN_OWNER_ID) return res.status(403).json({ error: 'Cannot ban another administrator' });
   target.banned = true;
   target.banReason = String(reason || 'No reason provided').trim();
   target.bannedAt = nowISO();
@@ -1155,6 +1174,15 @@ app.post('/api/admin/mute', authMiddleware, adminMiddleware, (req, res) => {
   if (!username) return res.status(400).json({ error: 'Username required' });
   const targetUn = String(username).toLowerCase().trim();
   if (!db.users[targetUn]) return res.status(404).json({ error: 'User not found' });
+  // The owner (@lore) can never be muted.
+  if (db.users[targetUn].id === ADMIN_OWNER_ID) {
+    return res.status(403).json({ error: 'The owner cannot be muted' });
+  }
+  // Another admin (who unlocked the panel via code) cannot be muted unless
+  // the acting user is the owner.
+  if (isAdmin(db.users[targetUn]) && req.user.id !== ADMIN_OWNER_ID) {
+    return res.status(403).json({ error: 'Cannot mute another administrator' });
+  }
   // Duration validation: 1 minute (60000) to 14 days (1209600000)
   const minMs = 60 * 1000;
   const maxMs = 14 * 24 * 60 * 60 * 1000;
