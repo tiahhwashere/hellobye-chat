@@ -1620,11 +1620,11 @@ body.loading-session #chat-app.active::after {
   color: var(--text-muted); font-size: 13px; border-bottom: 1px dashed var(--border-light);
 }
 .profile-view-avatar {
-  width: 84px; height: 84px; border-radius: 50%;
+  width: 110px; height: 110px; border-radius: 50%;
   background: var(--bg-lighter); color: var(--text-secondary);
   display: flex; align-items: center; justify-content: center;
-  font-size: 32px; font-weight: 600; overflow: hidden;
-  margin: -42px auto 0; border: 4px solid var(--bg-dark); position: relative; z-index: 1;
+  font-size: 42px; font-weight: 600; overflow: hidden;
+  margin: -55px auto 0; border: 4px solid var(--bg-dark); position: relative; z-index: 1;
 }
 .profile-view-avatar img { width: 100%; height: 100%; object-fit: cover; image-rendering: -webkit-optimize-contrast; }
 .profile-view-info { padding: 14px 32px 20px; text-align: center; }
@@ -2569,7 +2569,7 @@ body.loading-session #chat-app.active::after {
 
   /* Profile view modal banner — scale down on mobile but keep taller ratio */
   .profile-view-banner { height: 200px; }
-  .profile-view-avatar { width: 72px; height: 72px; margin: -36px auto 0; font-size: 28px; }
+  .profile-view-avatar { width: 96px; height: 96px; margin: -48px auto 0; font-size: 36px; }
 
   /* System alert — full width on mobile */
   .system-alert { padding: 12px 14px; gap: 10px; }
@@ -2586,7 +2586,7 @@ body.loading-session #chat-app.active::after {
   .link-embed-title { font-size: 11px; }
   .link-embed-desc { display: none; } /* hide description on very small screens */
   .profile-view-banner { height: 160px; }
-  .profile-view-avatar { width: 64px; height: 64px; margin: -32px auto 0; font-size: 24px; border-width: 3px; }
+  .profile-view-avatar { width: 80px; height: 80px; margin: -40px auto 0; font-size: 30px; border-width: 3px; }
 }
 
 /* Mobile: admin panel sub-tabs scroll horizontally and wrap nicely */
@@ -4448,6 +4448,13 @@ function connectSocket() {
       currentUser.muteReason = '';
     }
     toast('You are no longer muted. You can send messages in chat again.', 'success');
+  });
+
+  // Cooldown exempt status changed by an admin — update currentUser in real-time
+  socket.on('cooldown-exempt-updated', (payload) => {
+    if (currentUser && payload) {
+      currentUser.cooldownExempt = !!payload.exempt;
+    }
   });
 
   socket.on('new-message', (msg) => {

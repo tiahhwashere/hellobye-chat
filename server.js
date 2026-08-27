@@ -1107,6 +1107,8 @@ app.post('/api/admin/cooldown-exempt-add', authMiddleware, adminMiddleware, (req
   if (!db.adminActivity) db.adminActivity = [];
   db.adminActivity.push({ action: 'cooldown-exempt-add', admin: req.user.username, target: targetUn, reason: '', timestamp: nowISO() });
   saveDB();
+  // Notify the affected user in real-time so their frontend updates currentUser.cooldownExempt
+  io.to(`user:${targetUn}`).emit('cooldown-exempt-updated', { exempt: true, username: targetUn });
   res.json({ success: true, cooldownExempt: db.cooldownExempt });
 });
 
@@ -1119,6 +1121,8 @@ app.post('/api/admin/cooldown-exempt-remove', authMiddleware, adminMiddleware, (
   if (!db.adminActivity) db.adminActivity = [];
   db.adminActivity.push({ action: 'cooldown-exempt-remove', admin: req.user.username, target: targetUn, reason: '', timestamp: nowISO() });
   saveDB();
+  // Notify the affected user in real-time so their frontend updates currentUser.cooldownExempt
+  io.to(`user:${targetUn}`).emit('cooldown-exempt-updated', { exempt: false, username: targetUn });
   res.json({ success: true, cooldownExempt: db.cooldownExempt });
 });
 
