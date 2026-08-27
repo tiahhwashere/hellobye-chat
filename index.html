@@ -806,9 +806,128 @@ body.loading-session #chat-app.active::after {
 
 .chat-input-wrap { display: flex; align-items: flex-end; gap: 8px; background: var(--bg-medium); border: 1px solid var(--border-light); border-radius: var(--radius); padding: 6px 8px; }
 .chat-input-wrap:focus-within { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-glow); }
-.attach-btn { width: 34px; height: 34px; border-radius: 50%; color: var(--text-muted); display: flex; align-items: center; justify-content: center; transition: var(--transition); flex-shrink: 0; }
+.attach-btn { width: 34px; height: 34px; border-radius: 50%; color: var(--text-muted); display: flex; align-items: center; justify-content: center; transition: var(--transition); flex-shrink: 0; position: relative; }
 .attach-btn:hover { background: var(--bg-lighter); color: var(--text-secondary); }
 .attach-btn svg { width: 20px; height: 20px; }
+.attach-btn.active { background: var(--accent-dim); color: var(--accent); }
+
+/* Attach dropdown menu */
+.attach-dropdown {
+  position: absolute; bottom: 52px; left: 0; z-index: 1000;
+  background: var(--bg-secondary); border: 1px solid var(--border-color);
+  border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  min-width: 200px; padding: 6px; overflow: hidden;
+  opacity: 0; transform: translateY(8px) scale(0.96); pointer-events: none;
+  transition: opacity 0.15s, transform 0.15s;
+}
+.attach-dropdown.show { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
+.attach-dropdown-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 12px; border-radius: 8px; cursor: pointer;
+  color: var(--text-primary); font-size: 14px; font-weight: 500;
+  transition: background 0.12s;
+}
+.attach-dropdown-item:hover { background: var(--bg-lighter); }
+.attach-dropdown-item svg { width: 20px; height: 20px; color: var(--accent); flex-shrink: 0; }
+.attach-dropdown-item .attach-dropdown-label { flex: 1; }
+.attach-dropdown-item .attach-dropdown-hint { font-size: 11px; color: var(--text-muted); font-weight: 400; }
+
+/* GIF Picker Modal */
+.gif-picker-overlay {
+  position: fixed; inset: 0; z-index: 3000;
+  background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);
+  display: none; align-items: center; justify-content: center;
+}
+.gif-picker-overlay.show { display: flex; }
+.gif-picker-modal {
+  background: var(--bg-secondary); border: 1px solid var(--border-color);
+  border-radius: 16px; width: 90%; max-width: 720px; max-height: 80vh;
+  display: flex; flex-direction: column; overflow: hidden;
+  box-shadow: 0 16px 48px rgba(0,0,0,0.5);
+}
+.gif-picker-header {
+  display: flex; align-items: center; gap: 12px; padding: 16px 20px;
+  border-bottom: 1px solid var(--border-color); flex-shrink: 0;
+}
+.gif-picker-header h3 { font-size: 18px; font-weight: 700; color: var(--text-primary); margin: 0; }
+.gif-picker-search-wrap { flex: 1; position: relative; }
+.gif-picker-search {
+  width: 100%; padding: 8px 12px 8px 36px; border-radius: 8px;
+  border: 1px solid var(--border-color); background: var(--bg-primary);
+  color: var(--text-primary); font-size: 14px; outline: none;
+}
+.gif-picker-search:focus { border-color: var(--accent); }
+.gif-picker-search-icon {
+  position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
+  width: 16px; height: 16px; color: var(--text-muted); pointer-events: none;
+}
+.gif-picker-close {
+  width: 32px; height: 32px; border-radius: 8px; border: none;
+  background: transparent; color: var(--text-muted); cursor: pointer;
+  display: flex; align-items: center; justify-content: center; font-size: 20px;
+  transition: background 0.12s;
+}
+.gif-picker-close:hover { background: var(--bg-lighter); color: var(--text-primary); }
+.gif-picker-body {
+  flex: 1; overflow-y: auto; padding: 12px;
+}
+.gif-picker-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 8px;
+}
+.gif-picker-item {
+  position: relative; border-radius: 8px; overflow: hidden; cursor: pointer;
+  background: var(--bg-lighter); aspect-ratio: 16/9;
+  transition: transform 0.12s, box-shadow 0.12s;
+}
+.gif-picker-item:hover { transform: scale(1.03); box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+.gif-picker-item img { width: 100%; height: 100%; object-fit: cover; }
+.gif-picker-item .gif-picker-item-label {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  background: linear-gradient(transparent, rgba(0,0,0,0.7));
+  padding: 16px 8px 6px; font-size: 11px; color: #fff;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  opacity: 0; transition: opacity 0.12s;
+}
+.gif-picker-item:hover .gif-picker-item-label { opacity: 1; }
+.gif-picker-loading {
+  text-align: center; padding: 40px; color: var(--text-muted); font-size: 14px;
+}
+.gif-picker-empty {
+  text-align: center; padding: 40px 20px; color: var(--text-muted); font-size: 14px;
+}
+.gif-picker-empty svg { width: 48px; height: 48px; margin: 0 auto 12px; display: block; opacity: 0.4; }
+.gif-picker-footer {
+  padding: 12px 20px; border-top: 1px solid var(--border-color);
+  font-size: 11px; color: var(--text-muted); text-align: center; flex-shrink: 0;
+}
+.gif-picker-footer a { color: var(--accent); text-decoration: none; }
+.gif-picker-url-mode {
+  padding: 20px; text-align: center;
+}
+.gif-picker-url-input {
+  width: 100%; max-width: 480px; padding: 10px 14px; border-radius: 8px;
+  border: 1px solid var(--border-color); background: var(--bg-primary);
+  color: var(--text-primary); font-size: 14px; outline: none; margin-bottom: 12px;
+}
+.gif-picker-url-input:focus { border-color: var(--accent); }
+.gif-picker-url-btn {
+  padding: 10px 24px; border-radius: 8px; border: none;
+  background: var(--accent); color: #fff; font-size: 14px; font-weight: 600;
+  cursor: pointer; transition: opacity 0.12s;
+}
+.gif-picker-url-btn:hover { opacity: 0.85; }
+.gif-picker-url-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.gif-picker-tabs {
+  display: flex; gap: 4px; padding: 8px 12px 0;
+}
+.gif-picker-tab {
+  padding: 6px 14px; border-radius: 8px 8px 0 0; border: none;
+  background: transparent; color: var(--text-muted); font-size: 13px;
+  cursor: pointer; font-weight: 500; transition: background 0.12s, color 0.12s;
+}
+.gif-picker-tab.active { background: var(--bg-primary); color: var(--accent); }
+.gif-picker-tab:hover:not(.active) { color: var(--text-primary); }
 .chat-textarea {
   flex: 1; resize: none; border: none; background: transparent;
   color: var(--text-primary); font-size: 14px; line-height: 1.5;
@@ -2923,10 +3042,22 @@ body.loading-session #chat-app.active::after {
           <button class="remove-attachment" id="remove-attachment">&times;</button>
         </div>
         <div class="chat-input-wrap">
-          <button class="attach-btn" id="attach-btn" title="Attach file (max 120MB)">
+          <button class="attach-btn" id="attach-btn" title="Attach file (max 90MB)">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
           </button>
           <input type="file" id="file-input" hidden multiple>
+          <div class="attach-dropdown" id="attach-dropdown">
+            <div class="attach-dropdown-item" id="attach-gif-btn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><text x="7" y="15" font-size="7" font-weight="bold" fill="currentColor" stroke="none">GIF</text></svg>
+              <span class="attach-dropdown-label">Send a GIF</span>
+              <span class="attach-dropdown-hint">Search or paste URL</span>
+            </div>
+            <div class="attach-dropdown-item" id="attach-file-btn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+              <span class="attach-dropdown-label">Send Image/Video</span>
+              <span class="attach-dropdown-hint">From your device (max 90MB)</span>
+            </div>
+          </div>
           <textarea class="chat-textarea" id="chat-input" placeholder="Type a message" rows="1"></textarea>
           <button class="send-btn" id="send-btn" disabled>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
@@ -3732,16 +3863,61 @@ body.loading-session #chat-app.active::after {
           <button class="remove-attachment" id="dm-remove-attachment">&times;</button>
         </div>
         <div class="chat-input-wrap">
-          <button class="attach-btn" id="dm-attach-btn" title="Attach file (max 120MB)">
+          <button class="attach-btn" id="dm-attach-btn" title="Attach file (max 90MB)">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
           </button>
           <input type="file" id="dm-file-input" hidden multiple>
+          <div class="attach-dropdown" id="dm-attach-dropdown">
+            <div class="attach-dropdown-item" id="dm-attach-gif-btn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><text x="7" y="15" font-size="7" font-weight="bold" fill="currentColor" stroke="none">GIF</text></svg>
+              <span class="attach-dropdown-label">Send a GIF</span>
+              <span class="attach-dropdown-hint">Search or paste URL</span>
+            </div>
+            <div class="attach-dropdown-item" id="dm-attach-file-btn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+              <span class="attach-dropdown-label">Send Image/Video</span>
+              <span class="attach-dropdown-hint">From your device (max 90MB)</span>
+            </div>
+          </div>
           <textarea class="chat-textarea" id="dm-input" placeholder="Type a private message" rows="1"></textarea>
           <button class="send-btn" id="dm-send-btn" disabled>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
           </button>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- ===================== GIF PICKER MODAL ===================== -->
+  <div class="gif-picker-overlay" id="gif-picker-overlay">
+    <div class="gif-picker-modal">
+      <div class="gif-picker-header">
+        <div class="gif-picker-search-wrap" id="gif-search-wrap">
+          <svg class="gif-picker-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" class="gif-picker-search" id="gif-search-input" placeholder="Search GIFs\u2026">
+        </div>
+        <h3 id="gif-picker-title" style="display:none;">Send a GIF</h3>
+        <button class="gif-picker-close" id="gif-picker-close">&times;</button>
+      </div>
+      <div class="gif-picker-tabs" id="gif-picker-tabs" style="display:none;">
+        <button class="gif-picker-tab active" id="gif-tab-search">Search</button>
+        <button class="gif-picker-tab" id="gif-tab-url">Paste URL</button>
+      </div>
+      <div class="gif-picker-body" id="gif-picker-body">
+        <div class="gif-picker-loading" id="gif-picker-loading">Loading trending GIFs\u2026</div>
+        <div class="gif-picker-grid" id="gif-picker-grid" style="display:none;"></div>
+        <div class="gif-picker-empty" id="gif-picker-empty" style="display:none;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="5" width="18" height="14" rx="2"/><text x="7" y="15" font-size="7" font-weight="bold" fill="currentColor" stroke="none">GIF</text></svg>
+          <p id="gif-empty-text">No GIFs found. Try a different search term.</p>
+        </div>
+        <div class="gif-picker-url-mode" id="gif-picker-url-mode" style="display:none;">
+          <p style="margin-bottom:16px;color:var(--text-muted);font-size:13px;">Paste a GIF URL (from GIPHY, Tenor, etc.) and we'll save it so everyone can see it.</p>
+          <input type="text" class="gif-picker-url-input" id="gif-url-input" placeholder="https://media.giphy.com/...">
+          <br>
+          <button class="gif-picker-url-btn" id="gif-url-send-btn">Send GIF</button>
+        </div>
+      </div>
+      <div class="gif-picker-footer" id="gif-picker-footer">Powered by GIPHY</div>
     </div>
   </div>
 
@@ -5163,9 +5339,262 @@ function startCooldown(seconds) {
   }, 1000);
 }
 
+// ---------- GIF Picker ----------
+let gifSearchEnabled = null; // null = unknown, true/false after first API call
+let gifSearchTimer = null;
+let gifCurrentOffset = 0;
+let gifIsLoading = false;
+
+function openGifPicker() {
+  const overlay = $('gif-picker-overlay');
+  overlay.classList.add('show');
+  // Reset state
+  $('gif-search-input').value = '';
+  gifCurrentOffset = 0;
+  // Check if GIPHY is enabled by doing an initial fetch
+  if (gifSearchEnabled === null) {
+    loadGifResults(''); // empty query = trending
+  } else {
+    showGifSearchMode(gifSearchEnabled);
+    if (gifSearchEnabled) loadGifResults('');
+  }
+}
+
+function closeGifPicker() {
+  $('gif-picker-overlay').classList.remove('show');
+}
+
+function showGifSearchMode(enabled) {
+  const searchWrap = $('gif-search-wrap');
+  const tabs = $('gif-picker-tabs');
+  const footer = $('gif-picker-footer');
+  const urlMode = $('gif-picker-url-mode');
+  const grid = $('gif-picker-grid');
+  if (enabled) {
+    searchWrap.style.display = '';
+    tabs.style.display = 'flex';
+    footer.style.display = '';
+    urlMode.style.display = 'none';
+    grid.style.display = '';
+    $('gif-tab-search').classList.add('active');
+    $('gif-tab-url').classList.remove('active');
+  } else {
+    // No GIPHY key — show URL paste mode only
+    searchWrap.style.display = 'none';
+    tabs.style.display = 'none';
+    footer.style.display = 'none';
+    urlMode.style.display = '';
+    grid.style.display = 'none';
+    $('gif-picker-loading').style.display = 'none';
+    $('gif-picker-empty').style.display = 'none';
+  }
+}
+
+async function loadGifResults(query) {
+  if (gifIsLoading) return;
+  gifIsLoading = true;
+  $('gif-picker-loading').style.display = '';
+  $('gif-picker-loading').textContent = query ? 'Searching for "' + query + '"...' : 'Loading trending GIFs...';
+  $('gif-picker-grid').style.display = 'none';
+  $('gif-picker-empty').style.display = 'none';
+  try {
+    const params = new URLSearchParams();
+    if (query) params.set('q', query);
+    params.set('limit', '24');
+    params.set('offset', String(gifCurrentOffset));
+    const res = await fetch(API_BASE + '/api/gif/search?' + params.toString());
+    const data = await res.json();
+    gifSearchEnabled = !!data.enabled;
+    showGifSearchMode(gifSearchEnabled);
+    if (gifSearchEnabled && data.results && data.results.length > 0) {
+      renderGifGrid(data.results);
+    } else if (gifSearchEnabled) {
+      $('gif-picker-loading').style.display = 'none';
+      $('gif-picker-empty').style.display = '';
+      $('gif-empty-text').textContent = query ? 'No GIFs found. Try a different search term.' : 'No trending GIFs available right now.';
+    }
+  } catch (err) {
+    $('gif-picker-loading').style.display = 'none';
+    $('gif-picker-empty').style.display = '';
+    $('gif-empty-text').textContent = 'Could not load GIFs. Try pasting a URL instead.';
+  }
+  gifIsLoading = false;
+}
+
+function renderGifGrid(results) {
+  const grid = $('gif-picker-grid');
+  grid.innerHTML = '';
+  $('gif-picker-loading').style.display = 'none';
+  $('gif-picker-empty').style.display = 'none';
+  grid.style.display = '';
+  for (const g of results) {
+    const item = document.createElement('div');
+    item.className = 'gif-picker-item';
+    const img = document.createElement('img');
+    img.src = g.preview || g.full;
+    img.alt = g.title || 'GIF';
+    img.loading = 'lazy';
+    // Use the full GIF URL for sending (or mp4 if available)
+    const sendUrl = g.full || g.mp4 || g.preview;
+    item.addEventListener('click', () => {
+      sendGifFromPicker(sendUrl);
+    });
+    const label = document.createElement('div');
+    label.className = 'gif-picker-item-label';
+    label.textContent = g.title || '';
+    item.appendChild(img);
+    item.appendChild(label);
+    grid.appendChild(item);
+  }
+}
+
+async function sendGifFromPicker(gifUrl) {
+  closeGifPicker();
+  toast('Importing GIF...', 'info');
+  try {
+    const res = await fetch(API_BASE + '/api/gif/import', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url: gifUrl })
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      toast(data.error || 'Failed to import GIF', 'error');
+      return;
+    }
+    // Build fileData in the same format as /api/upload returns
+    const fileData = {
+      url: data.url,
+      name: data.name || 'gif.gif',
+      size: data.size || 0,
+      type: data.type || 'image/gif',
+      mimetype: data.mimetype || 'image/gif'
+    };
+    // Send immediately based on context (chat or DM)
+    if (gifPickerContext === 'dm') {
+      sendGifAsDM(fileData);
+    } else {
+      sendGifAsMessage(fileData);
+    }
+  } catch (err) {
+    toast('Failed to import GIF: ' + (err.message || err), 'error');
+  }
+}
+
+// Send a GIF as a chat message (no caption needed, sends immediately)
+function sendGifAsMessage(fileData) {
+  const text = chatInput.value.trim() || '';
+  const isExempt = !!(currentUser && currentUser.cooldownExempt);
+  if (!isExempt && Date.now() < chatCooldownEnds) {
+    const remaining = Math.ceil((chatCooldownEnds - Date.now()) / 1000);
+    toast('Please wait ' + remaining + ' second(s) before sending another message.', 'error');
+    return;
+  }
+  socket.emit('send-message', { text, file: fileData, files: null, reply: replyingTo }, (res) => {
+    if (res && res.error) {
+      toast(res.error, 'error');
+      if (res.cooldown) startCooldown(res.cooldown);
+    } else {
+      if (!isExempt) startCooldown(5);
+      cancelReply();
+    }
+  });
+  chatInput.value = ''; chatInput.style.height = 'auto';
+  clearPendingFile(); updateSendButton();
+}
+
+// Send a GIF as a DM (no caption needed, sends immediately)
+function sendGifAsDM(fileData) {
+  const text = dmInputEl.value.trim() || '';
+  socket.emit('dm-send', { to: activeDMUser, text, file: fileData, files: null, reply: replyingToDM }, (res) => {
+    if (res && res.error) { toast(res.error, 'error'); return; }
+    if (res && res.message) {
+      dmMessages.push(res.message);
+      appendDMMessage(res.message);
+      scrollToBottomDM();
+    }
+  });
+  dmInputEl.value = ''; dmInputEl.style.height = 'auto';
+  clearDMPendingFile(); updateDMSend();
+  isDMTyping = false; socket.emit('dm-typing', { to: activeDMUser, typing: false });
+  cancelDMReply();
+  markDMReadAndBadge();
+}
+
+// GIF picker event listeners
+$('gif-picker-close').addEventListener('click', closeGifPicker);
+$('gif-picker-overlay').addEventListener('click', (e) => {
+  if (e.target === $('gif-picker-overlay')) closeGifPicker();
+});
+$('gif-search-input').addEventListener('input', (e) => {
+  clearTimeout(gifSearchTimer);
+  const q = e.target.value.trim();
+  gifSearchTimer = setTimeout(() => {
+    gifCurrentOffset = 0;
+    loadGifResults(q);
+  }, 400);
+});
+$('gif-tab-search').addEventListener('click', () => {
+  $('gif-tab-search').classList.add('active');
+  $('gif-tab-url').classList.remove('active');
+  $('gif-search-wrap').style.display = '';
+  $('gif-picker-grid').style.display = '';
+  $('gif-picker-url-mode').style.display = 'none';
+});
+$('gif-tab-url').addEventListener('click', () => {
+  $('gif-tab-url').classList.add('active');
+  $('gif-tab-search').classList.remove('active');
+  $('gif-search-wrap').style.display = 'none';
+  $('gif-picker-grid').style.display = 'none';
+  $('gif-picker-url-mode').style.display = '';
+  $('gif-picker-loading').style.display = 'none';
+  $('gif-picker-empty').style.display = 'none';
+});
+$('gif-url-send-btn').addEventListener('click', () => {
+  const url = $('gif-url-input').value.trim();
+  if (!url) { toast('Please paste a GIF URL first.', 'error'); return; }
+  sendGifFromPicker(url);
+});
+$('gif-url-input').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') { e.preventDefault(); $('gif-url-send-btn').click(); }
+});
+
 // ---------- File Attachment ----------
 const fileInput = $('file-input');
-$('attach-btn').addEventListener('click', () => fileInput.click());
+let gifPickerContext = 'chat'; // 'chat' or 'dm' — tracks where GIF picker was opened from
+// Attach dropdown: clicking the attach button toggles a menu (Send GIF / Send Image-Video)
+$('attach-btn').addEventListener('click', (e) => {
+  e.stopPropagation();
+  const dd = $('attach-dropdown');
+  const isOpen = dd.classList.contains('show');
+  // Close DM dropdown if open
+  $('dm-attach-dropdown').classList.remove('show');
+  $('dm-attach-btn').classList.remove('active');
+  if (isOpen) { dd.classList.remove('show'); $('attach-btn').classList.remove('active'); }
+  else { dd.classList.add('show'); $('attach-btn').classList.add('active'); }
+});
+$('attach-gif-btn').addEventListener('click', () => {
+  $('attach-dropdown').classList.remove('show');
+  $('attach-btn').classList.remove('active');
+  gifPickerContext = 'chat';
+  openGifPicker();
+});
+$('attach-file-btn').addEventListener('click', () => {
+  $('attach-dropdown').classList.remove('show');
+  $('attach-btn').classList.remove('active');
+  fileInput.click();
+});
+// Close dropdown when clicking elsewhere
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('#attach-btn') && !e.target.closest('#attach-dropdown')) {
+    $('attach-dropdown').classList.remove('show');
+    $('attach-btn').classList.remove('active');
+  }
+  if (!e.target.closest('#dm-attach-btn') && !e.target.closest('#dm-attach-dropdown')) {
+    $('dm-attach-dropdown').classList.remove('show');
+    $('dm-attach-btn').classList.remove('active');
+  }
+});
 const MAX_FILES = 5;
 fileInput.addEventListener('change', (e) => {
   const files = Array.from(e.target.files || []);
@@ -5177,7 +5606,7 @@ fileInput.addEventListener('change', (e) => {
   const selected = files.slice(0, MAX_FILES);
   // Validate size for all selected files
   for (const f of selected) {
-    if (f.size > 120 * 1024 * 1024) { toast('File "' + f.name + '" exceeds 120MB limit', 'error'); fileInput.value = ''; return; }
+    if (f.size > 90 * 1024 * 1024) { toast('File "' + f.name + '" exceeds 90MB limit', 'error'); fileInput.value = ''; return; }
   }
   if (selected.length === 1) {
     // Single file — use the existing pendingFile flow
@@ -6141,7 +6570,27 @@ dmSendBtn.addEventListener('click', sendDM);
 
 // ---------- DM File Attachment ----------
 const dmFileInput = $('dm-file-input');
-$('dm-attach-btn').addEventListener('click', () => dmFileInput.click());
+$('dm-attach-btn').addEventListener('click', (e) => {
+  e.stopPropagation();
+  const dd = $('dm-attach-dropdown');
+  const isOpen = dd.classList.contains('show');
+  // Close chat dropdown if open
+  $('attach-dropdown').classList.remove('show');
+  $('attach-btn').classList.remove('active');
+  if (isOpen) { dd.classList.remove('show'); $('dm-attach-btn').classList.remove('active'); }
+  else { dd.classList.add('show'); $('dm-attach-btn').classList.add('active'); }
+});
+$('dm-attach-gif-btn').addEventListener('click', () => {
+  $('dm-attach-dropdown').classList.remove('show');
+  $('dm-attach-btn').classList.remove('active');
+  gifPickerContext = 'dm';
+  openGifPicker();
+});
+$('dm-attach-file-btn').addEventListener('click', () => {
+  $('dm-attach-dropdown').classList.remove('show');
+  $('dm-attach-btn').classList.remove('active');
+  dmFileInput.click();
+});
 dmFileInput.addEventListener('change', (e) => {
   const files = Array.from(e.target.files || []);
   if (files.length === 0) return;
@@ -6150,7 +6599,7 @@ dmFileInput.addEventListener('change', (e) => {
   }
   const selected = files.slice(0, MAX_FILES);
   for (const f of selected) {
-    if (f.size > 120 * 1024 * 1024) { toast('File "' + f.name + '" exceeds 120MB limit', 'error'); dmFileInput.value = ''; return; }
+    if (f.size > 90 * 1024 * 1024) { toast('File "' + f.name + '" exceeds 90MB limit', 'error'); dmFileInput.value = ''; return; }
   }
   if (selected.length === 1) {
     pendingDMFile = selected[0];
@@ -6620,7 +7069,7 @@ $('avatar-edit-btn').addEventListener('click', () => $('avatar-input').click());
 $('avatar-input').addEventListener('change', (e) => {
   const file = e.target.files[0];
   if (!file) return;
-  if (file.size > 120 * 1024 * 1024) { toast('Profile picture exceeds 120MB limit', 'error'); e.target.value = ''; return; }
+  if (file.size > 20 * 1024 * 1024) { toast('Profile picture exceeds 20MB limit', 'error'); e.target.value = ''; return; }
   openImageScaleModal(file, 'avatar');
   e.target.value = '';
 });
@@ -6628,7 +7077,7 @@ $('banner-edit-btn').addEventListener('click', () => $('banner-input').click());
 $('banner-input').addEventListener('change', (e) => {
   const file = e.target.files[0];
   if (!file) return;
-  if (file.size > 120 * 1024 * 1024) { toast('Banner exceeds 120MB limit', 'error'); e.target.value = ''; return; }
+  if (file.size > 20 * 1024 * 1024) { toast('Banner exceeds 20MB limit', 'error'); e.target.value = ''; return; }
   openImageScaleModal(file, 'banner');
   e.target.value = '';
 });
@@ -7837,7 +8286,7 @@ function enhanceBackgroundTo4K(dataUrl) {
 $('bg-file-input').addEventListener('change', (e) => {
   const file = e.target.files[0];
   if (!file) return;
-  if (file.size > 10 * 1024 * 1024) { toast('Background image too large (max 10MB).', 'error'); return; }
+  if (file.size > 20 * 1024 * 1024) { toast('Background image too large (max 20MB).', 'error'); return; }
   const isAnimated = /^image\/gif$/i.test(file.type) || /\.gif$/i.test(file.name);
   // Large animated GIF backgrounds can be several MB and, when stored as a
   // base64 data URL (~33% larger) and decoded frame-by-frame every paint,

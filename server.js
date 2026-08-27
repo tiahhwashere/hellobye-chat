@@ -71,6 +71,11 @@ const BACKUP_BRANCH = process.env.GITHUB_BACKUP_BRANCH || 'main';
 const BACKUP_ENABLED = !!(BACKUP_TOKEN && BACKUP_REPO);
 const UPLOAD_BACKUP_DIR = 'uploads'; // path inside the backup repo for uploaded files
 
+// --- GIPHY API key for the GIF picker (server-side proxy) ---
+// Optional: if set, the /api/gif/search endpoint proxies GIPHY search/trending.
+// If unset, the frontend GIF picker falls back to a URL-paste mode.
+const GIPHY_API_KEY = process.env.GIPHY_API_KEY || '';
+
 // Minimal GitHub API helper using built-in https (no extra deps).
 function githubRequest(method, urlPath, bodyObj) {
   return new Promise((resolve) => {
@@ -480,8 +485,8 @@ const storage = multer.diskStorage({
     cb(null, genId() + ext);
   },
 });
-const upload = multer({ storage, limits: { fileSize: 121 * 1024 * 1024 } }); // 120MB + 1MB headroom
-const avatarUpload = multer({ storage, limits: { fileSize: 121 * 1024 * 1024 } });
+const upload = multer({ storage, limits: { fileSize: 91 * 1024 * 1024 } }); // 90MB + 1MB headroom for chat attachments
+const avatarUpload = multer({ storage, limits: { fileSize: 21 * 1024 * 1024 } }); // 20MB + 1MB headroom for profile pic / banner
 
 // ---------- Auth Routes ----------
 app.post('/api/register', (req, res) => {
@@ -700,6 +705,142 @@ app.post('/api/upload', authMiddleware, upload.single('file'), async (req, res) 
       enhanced: isImage, // flag: image/GIF was 4K/HD-enhanced server-side
     },
   });
+});
+
+// ---------- GIF Search Proxy (GIPHY) ----------
+// Proxies GIPHY search & trending endpoints so the API key stays server-side.
+// If GIPHY_API_KEY is not set, returns a flag so the frontend can fall back to
+// URL-paste mode.
+function giphyRequest(urlPath) {
+  return new Promise((resolve) => {
+    const opts = {
+      method: 'GET',
+      hostname: 'api.giphy.com',
+      path: urlPath,
+      headers: { 'Accept': 'application/json', 'User-Agent': 'hellobye-chat' },
+    };
+    const req = require('https').request(opts, (res) => {
+      let chunks = '';
+      res.on('data', (c) => { chunks += c; });
+      res.on('end', () => {
+        let parsed = null;
+        try { parsed = chunks ? JSON.parse(chunks) : null; } catch (e) { parsed = null; }
+        resolve({ status: res.statusCode, data: parsed, raw: chunks });
+      });
+    });
+    req.on('error', (e) => resolve({ status: 0, data: null, raw: String(e) }));
+    req.end();
+  });
+}
+
+app.get('/api/gif/search', authMiddleware, async (req, res) => {
+  if (!GIPHY_API_KEY) return res.json({ enabled: false, results: [] });
+  const q = String(req.query.q || '').trim();
+  const limit = Math.min(parseInt(req.query.limit, 10) || 24, 50);
+  const offset = Math.min(parseInt(req.query.offset, 10) || 0, 4999);
+  try {
+    let urlPath;
+    if (q) {
+      urlPath = `/v1/gifs/search?api_key=${encodeURIComponent(GIPHY_API_KEY)}&q=${encodeURIComponent(q)}&limit=${limit}&offset=${offset}&rating=g&bundle=messaging_non_clips`;
+    } else {
+      urlPath = `/v1/gifs/trending?api_key=${encodeURIComponent(GIPHY_API_KEY)}&limit=${limit}&offset=${offset}&rating=g&bundle=messaging_non_clips`;
+    }
+    const r = await giphyRequest(urlPath);
+    if (r.status === 200 && r.data && Array.isArray(r.data.data)) {
+      // Map to a simplified format for the frontend
+      const results = r.data.data.map(g => {
+        const img = g.images || {};
+        return {
+          id: g.id,
+          title: g.title || '',
+          // Preview (small) for the grid
+          preview: (img.fixed_height_small && img.fixed_height_small.url) ||
+                   (img.fixed_height && img.fixed_height.url) ||
+                   (img.downsized && img.downsized.url) || '',
+          previewWebp: (img.fixed_height_small && img.fixed_height_small.webp) || '',
+          // Full-size GIF for sending
+          full: (img.original && img.original.url) ||
+                (img.downsized_large && img.downsized_large.url) ||
+                (img.fixed_height && img.fixed_height.url) || '',
+          // MP4 version (smaller, better for chat) — preferred if available
+          mp4: (img.fixed_height && img.fixed_height.mp4) ||
+               (img.original && img.original.mp4) || '',
+          width: parseInt((img.original && img.original.width) || 0, 10),
+          height: parseInt((img.original && img.original.height) || 0, 10),
+          size: parseInt((img.original && img.original.size) || 0, 10),
+        };
+      }).filter(g => g.full || g.mp4);
+      return res.json({ enabled: true, results });
+    }
+    return res.json({ enabled: true, results: [], error: 'GIPHY returned status ' + r.status });
+  } catch (e) {
+    return res.json({ enabled: true, results: [], error: String(e.message || e) });
+  }
+});
+
+// ---------- GIF URL Import ----------
+// Downloads a GIF/media from a remote URL, saves it to uploads/, backs it up,
+// and returns the local URL — so sent GIFs persist across redeploys and are
+// visible to all users (not just the sender).
+app.post('/api/gif/import', authMiddleware, async (req, res) => {
+  const { url } = req.body || {};
+  if (!url || typeof url !== 'string') return res.status(400).json({ error: 'URL required' });
+  // Only allow http/https URLs
+  if (!/^https?:\/\//i.test(url)) return res.status(400).json({ error: 'Invalid URL' });
+  // Limit to reasonable size (20MB for GIFs)
+  const MAX_GIF_SIZE = 20 * 1024 * 1024;
+  try {
+    const protocol = url.startsWith('https') ? require('https') : require('http');
+    const fetchUrl = new URL(url);
+    const filename = genId() + '.gif';
+    const localPath = path.join(UPLOAD_DIR, filename);
+    const fileStream = fs.createWriteStream(localPath);
+    let totalSize = 0;
+    let aborted = false;
+    const cleanup = () => { try { fs.unlinkSync(localPath); } catch (e) {} };
+    const request = protocol.get(fetchUrl, { headers: { 'User-Agent': 'hellobye-chat', 'Accept': '*/*' } }, (proxyRes) => {
+      // Follow redirects (up to 5)
+      if (proxyRes.statusCode >= 300 && proxyRes.statusCode < 400 && proxyRes.headers.location) {
+        cleanup();
+        // Re-request with the redirect URL
+        const redirectUrl = proxyRes.headers.location;
+        const proto2 = redirectUrl.startsWith('https') ? require('https') : require('http');
+        const req2 = proto2.get(redirectUrl, { headers: { 'User-Agent': 'hellobye-chat', 'Accept': '*/*' } }, (proxyRes2) => {
+          if (proxyRes2.statusCode !== 200) { cleanup(); return res.status(400).json({ error: 'Failed to fetch GIF (status ' + proxyRes2.statusCode + ')' }); }
+          proxyRes2.pipe(fileStream);
+          proxyRes2.on('data', (c) => { totalSize += c.length; if (totalSize > MAX_GIF_SIZE && !aborted) { aborted = true; request.destroy(); req2.destroy(); fileStream.destroy(); cleanup(); } });
+          fileStream.on('finish', () => {
+            if (aborted) return;
+            const finalSize = fs.statSync(localPath).size;
+            if (finalSize > MAX_GIF_SIZE) { cleanup(); return res.status(413).json({ error: 'GIF exceeds 20MB limit' }); }
+            backupUploadFile(filename);
+            const fileUrl = '/uploads/' + filename + '?t=' + Date.now();
+            res.json({ success: true, url: fileUrl, size: finalSize, type: 'image/gif', mimetype: 'image/gif', name: 'gif.gif' });
+          });
+          fileStream.on('error', (e) => { cleanup(); if (!res.headersSent) res.status(500).json({ error: 'Failed to save GIF' }); });
+        });
+        req2.on('error', (e) => { cleanup(); if (!res.headersSent) res.status(500).json({ error: 'Failed to fetch GIF' }); });
+        return;
+      }
+      if (proxyRes.statusCode !== 200) { cleanup(); return res.status(400).json({ error: 'Failed to fetch GIF (status ' + proxyRes.statusCode + ')' }); }
+      proxyRes.pipe(fileStream);
+      proxyRes.on('data', (c) => { totalSize += c.length; if (totalSize > MAX_GIF_SIZE && !aborted) { aborted = true; request.destroy(); fileStream.destroy(); cleanup(); } });
+      fileStream.on('finish', () => {
+        if (aborted) return;
+        const finalSize = fs.statSync(localPath).size;
+        if (finalSize > MAX_GIF_SIZE) { cleanup(); return res.status(413).json({ error: 'GIF exceeds 20MB limit' }); }
+        backupUploadFile(filename);
+        const fileUrl = '/uploads/' + filename + '?t=' + Date.now();
+        res.json({ success: true, url: fileUrl, size: finalSize, type: 'image/gif', mimetype: 'image/gif', name: 'gif.gif' });
+      });
+      fileStream.on('error', (e) => { cleanup(); if (!res.headersSent) res.status(500).json({ error: 'Failed to save GIF' }); });
+    });
+    request.on('error', (e) => { cleanup(); if (!res.headersSent) res.status(500).json({ error: 'Failed to fetch GIF: ' + e.message }); });
+    // Overall timeout (30s)
+    setTimeout(() => { if (!res.headersSent) { aborted = true; request.destroy(); fileStream.destroy(); cleanup(); res.status(504).json({ error: 'GIF fetch timed out' }); } }, 30000);
+  } catch (e) {
+    return res.status(500).json({ error: 'Failed to import GIF: ' + e.message });
+  }
 });
 
 // ---------- Friends ----------
@@ -1919,7 +2060,10 @@ io.on('connection', (socket) => {
 // clean JSON response instead of a raw 500.
 app.use((err, req, res, next) => {
   if (err && err.code === 'LIMIT_FILE_SIZE') {
-    return res.status(413).json({ error: 'File exceeds the 120MB size limit.' });
+    // Determine which limit applies based on the route
+    const isAvatar = req.originalUrl && req.originalUrl.includes('/api/profile');
+    const limit = isAvatar ? '20MB' : '90MB';
+    return res.status(413).json({ error: 'File exceeds the ' + limit + ' size limit.' });
   }
   if (err && err.message && err.message.includes('Multipart')) {
     return res.status(400).json({ error: 'File upload failed: ' + err.message });
@@ -2006,7 +2150,7 @@ server.listen(PORT, '0.0.0.0', () => {
   console.log(`Local: http://localhost:${PORT}`);
 });
 
-// Allow large file uploads (120MB) without timeout issues
+// Allow large file uploads (90MB) without timeout issues
 server.timeout = 300000;       // 5 minutes for request timeout
 server.keepAliveTimeout = 120000; // 2 minutes keep-alive
 server.requestTimeout = 300000;   // 5 minutes for full request
