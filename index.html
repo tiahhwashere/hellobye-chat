@@ -765,45 +765,45 @@ body.loading-session #chat-app.active::after {
 .message-group.own .inline-link { color: #cce4ff; }
 
 /* ===================== 2-Step Verification UI ===================== */
-/* 2SV verification overlay on login screen */
+/* 2SV verification overlay on login screen — professional, minimal */
 .twosv-overlay {
   position: fixed; inset: 0; z-index: 10000;
   display: none; align-items: center; justify-content: center;
-  background: rgba(0,0,0,0.7); backdrop-filter: blur(8px);
-  animation: twosv-fade-in 0.2s ease;
+  background: rgba(8,9,11,0.78); backdrop-filter: blur(6px);
+  animation: twosv-fade-in 0.18s ease;
 }
 .twosv-overlay.show { display: flex; }
 @keyframes twosv-fade-in { from { opacity: 0; } to { opacity: 1; } }
 .twosv-card {
   background: var(--bg-medium); border: 1px solid var(--border);
-  border-top: 3px solid var(--accent);
-  border-radius: 18px; padding: 36px 32px; max-width: 460px; width: 90%;
-  box-shadow: 0 24px 70px rgba(0,0,0,0.55), 0 0 40px rgba(74,158,255,0.05);
-  animation: twosv-slide-up 0.25s ease;
+  border-radius: 12px; padding: 32px 30px; max-width: 420px; width: 90%;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.45);
+  animation: twosv-slide-up 0.2s ease;
 }
-@keyframes twosv-slide-up { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes twosv-slide-up { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 .twosv-icon {
-  width: 64px; height: 64px; margin: 0 auto 20px;
-  border-radius: 16px; display: flex; align-items: center; justify-content: center;
-  background: var(--accent-dim); color: var(--accent);
-  box-shadow: 0 0 24px rgba(74,158,255,0.15);
+  width: 44px; height: 44px; margin: 0 auto 18px;
+  border-radius: 10px; display: flex; align-items: center; justify-content: center;
+  background: var(--bg-light); color: var(--text-secondary);
+  border: 1px solid var(--border);
 }
+.twosv-icon svg { width: 22px; height: 22px; }
 .twosv-title {
-  text-align: center; font-size: 20px; font-weight: 700;
-  color: var(--text-primary); margin: 0 0 8px;
+  text-align: center; font-size: 17px; font-weight: 600;
+  color: var(--text-primary); margin: 0 0 6px; letter-spacing: -0.2px;
 }
 .twosv-subtitle {
   text-align: center; font-size: 13px; color: var(--text-muted);
-  margin: 0 0 22px; line-height: 1.5;
+  margin: 0 0 24px; line-height: 1.55;
 }
 .twosv-input-wrap {
-  position: relative; margin-bottom: 16px;
+  position: relative; margin-bottom: 14px;
 }
 .twosv-code-input {
-  width: 100%; padding: 16px 18px; font-size: 20px; font-weight: 700;
-  text-align: center; letter-spacing: 3px; text-transform: uppercase;
-  background: var(--bg-darkest); border: 2px solid var(--border);
-  border-radius: 12px; color: var(--text-primary);
+  width: 100%; padding: 13px 16px; font-size: 15px; font-weight: 600;
+  text-align: center; letter-spacing: 1.5px; text-transform: uppercase;
+  background: var(--bg-darker); border: 1px solid var(--border);
+  border-radius: 8px; color: var(--text-primary);
   font-family: 'SF Mono', 'Monaco', 'Cascadia Code', monospace;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
   outline: none;
@@ -812,113 +812,107 @@ body.loading-session #chat-app.active::after {
   border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow);
 }
 .twosv-code-input::placeholder {
-  letter-spacing: 1px; font-weight: 400; font-size: 14px;
+  letter-spacing: 0.5px; font-weight: 400; font-size: 13px;
   color: var(--text-muted); text-transform: none;
 }
 .twosv-trust-row {
-  display: flex; align-items: center; gap: 11px; margin-bottom: 20px;
-  padding: 14px 16px; background: var(--bg-darkest);
-  border: 1px solid var(--border); border-radius: 12px;
-  cursor: pointer; transition: border-color 0.15s ease, background 0.15s ease;
+  display: flex; align-items: center; gap: 10px; margin-bottom: 18px;
+  padding: 11px 14px; background: var(--bg-darker);
+  border: 1px solid var(--border); border-radius: 8px;
+  cursor: pointer; transition: border-color 0.15s ease;
 }
-.twosv-trust-row:hover { border-color: var(--text-muted); background: var(--bg-dark); }
-.twosv-trust-row:hover { border-color: var(--text-muted); }
+.twosv-trust-row:hover { border-color: var(--border-light); }
 .twosv-trust-checkbox {
-  width: 18px; height: 18px; accent-color: var(--accent);
+  width: 16px; height: 16px; accent-color: var(--accent);
   cursor: pointer; flex-shrink: 0;
 }
-.twosv-trust-label { font-size: 13px; color: var(--text-secondary); }
+.twosv-trust-label { font-size: 12.5px; color: var(--text-secondary); }
 .twosv-btn {
-  width: 100%; padding: 15px; font-size: 15px; font-weight: 700;
-  background: var(--accent); color: var(--accent-text); border: none; border-radius: 12px;
-  cursor: pointer; transition: var(--transition); margin-bottom: 10px;
-  display: flex; align-items: center; justify-content: center; gap: 8px;
-  letter-spacing: 0.3px; box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+  width: 100%; padding: 12px; font-size: 14px; font-weight: 600;
+  background: var(--accent); color: var(--accent-text); border: none; border-radius: 8px;
+  cursor: pointer; transition: var(--transition); margin-bottom: 8px;
+  display: flex; align-items: center; justify-content: center; gap: 7px;
+  letter-spacing: 0.2px;
 }
 .twosv-btn::before {
-  content: ''; width: 18px; height: 18px; flex-shrink: 0;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6L9 17l-5-5'/%3E%3C/svg%3E");
-  background-size: contain; background-repeat: no-repeat; opacity: 0.9;
+  content: ''; width: 16px; height: 16px; flex-shrink: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6L9 17l-5-5'/%3E%3C/svg%3E");
+  background-size: contain; background-repeat: no-repeat; opacity: 0.85;
 }
 .twosv-btn:hover:not(:disabled) { background: var(--accent-hover); }
-.twosv-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+.twosv-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 .twosv-back-btn {
-  width: 100%; padding: 12px; font-size: 13px; font-weight: 600;
+  width: 100%; padding: 10px; font-size: 12.5px; font-weight: 500;
   background: transparent; color: var(--text-muted); border: 1px solid var(--border);
-  border-radius: 10px; cursor: pointer; transition: var(--transition);
+  border-radius: 8px; cursor: pointer; transition: var(--transition);
 }
-.twosv-back-btn:hover { color: var(--text-primary); border-color: var(--text-muted); }
+.twosv-back-btn:hover { color: var(--text-primary); border-color: var(--border-light); }
 .twosv-error {
-  background: rgba(255,90,90,0.1); border: 1px solid rgba(255,90,90,0.3);
-  color: #ff7a7a; padding: 10px 14px; border-radius: 8px;
-  font-size: 13px; margin-bottom: 16px; display: none;
+  background: rgba(240,90,90,0.08); border: 1px solid rgba(240,90,90,0.22);
+  color: #f08080; padding: 10px 13px; border-radius: 7px;
+  font-size: 12.5px; margin-bottom: 14px; display: none; line-height: 1.5;
 }
-.twosv-error.show { display: block; animation: twosv-shake 0.3s ease; }
+.twosv-error.show { display: block; }
 @keyframes twosv-shake {
   0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-6px); }
-  75% { transform: translateX(6px); }
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
 }
 
-/* 2SV settings section in Data & Privacy tab */
+/* 2SV settings section in Data & Privacy tab — professional, minimal */
 .twosv-settings-card {
-  background: var(--bg-light); border: 1px solid var(--border);
-  border-radius: var(--radius); padding: 20px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+  background: var(--bg-medium); border: 1px solid var(--border);
+  border-radius: 10px; padding: 18px;
 }
 .twosv-status-row {
-  display: flex; align-items: center; gap: 14px; padding-bottom: 18px;
-  margin-bottom: 18px; border-bottom: 1px solid var(--border-light);
+  display: flex; align-items: center; gap: 12px; padding-bottom: 16px;
+  margin-bottom: 16px; border-bottom: 1px solid var(--border-light);
 }
 .twosv-status-icon {
-  width: 48px; height: 48px; border-radius: 12px; flex-shrink: 0;
+  width: 40px; height: 40px; border-radius: 8px; flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
   transition: var(--transition);
 }
-.twosv-status-icon.enabled { background: rgba(34,197,94,0.14); color: #22c55e; box-shadow: 0 0 12px rgba(34,197,94,0.15); }
-.twosv-status-icon.disabled { background: var(--bg-darkest); color: var(--text-muted); }
+.twosv-status-icon.enabled { background: rgba(34,197,94,0.10); color: #22c55e; }
+.twosv-status-icon.disabled { background: var(--bg-darker); color: var(--text-muted); }
 .twosv-status-text { flex: 1; }
-.twosv-status-label { font-size: 14px; font-weight: 700; color: var(--text-primary); }
-.twosv-status-desc { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+.twosv-status-label { font-size: 13.5px; font-weight: 600; color: var(--text-primary); }
+.twosv-status-desc { font-size: 11.5px; color: var(--text-muted); margin-top: 2px; }
 .twosv-code-display {
-  background: var(--bg-darkest); border: 1px solid var(--border);
-  border-radius: 14px; padding: 20px; margin-bottom: 16px;
-  box-shadow: inset 0 2px 8px rgba(0,0,0,0.3);
+  background: var(--bg-darker); border: 1px solid var(--border);
+  border-radius: 8px; padding: 16px; margin-bottom: 14px;
 }
 .twosv-code-label {
-  font-size: 10px; font-weight: 700; text-transform: uppercase;
-  letter-spacing: 0.8px; color: var(--text-muted); margin-bottom: 10px;
+  font-size: 10px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.6px; color: var(--text-muted); margin-bottom: 8px;
 }
 .twosv-code-value {
-  font-size: 22px; font-weight: 800; letter-spacing: 2.5px;
+  font-size: 17px; font-weight: 700; letter-spacing: 1.5px;
   font-family: 'SF Mono', 'Monaco', 'Cascadia Code', monospace;
-  color: var(--accent); text-align: center; padding: 14px;
-  background: var(--bg-medium); border-radius: 10px;
-  border: 1px solid rgba(74,158,255,0.15);
+  color: var(--text-primary); text-align: center; padding: 12px;
+  background: var(--bg-medium); border-radius: 7px;
+  border: 1px solid var(--border);
   word-break: break-all; line-height: 1.5;
-  box-shadow: 0 0 16px rgba(74,158,255,0.08);
 }
 .twosv-code-warning {
-  font-size: 12px; color: #facc15; margin-top: 12px;
-  display: flex; align-items: flex-start; gap: 8px; line-height: 1.5;
+  font-size: 11.5px; color: #c9a635; margin-top: 10px;
+  display: flex; align-items: flex-start; gap: 7px; line-height: 1.5;
 }
 .twosv-code-meta {
-  display: flex; gap: 16px; margin-bottom: 16px; flex-wrap: wrap;
+  display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap;
 }
 .twosv-meta-item {
-  background: var(--bg-darkest); border: 1px solid var(--border);
-  border-radius: 10px; padding: 12px 16px; flex: 1; min-width: 120px;
-  transition: var(--transition);
+  background: var(--bg-darker); border: 1px solid var(--border);
+  border-radius: 7px; padding: 10px 14px; flex: 1; min-width: 110px;
 }
-.twosv-meta-item:hover { border-color: var(--border-light); }
 .twosv-meta-label {
-  font-size: 10px; font-weight: 700; text-transform: uppercase;
-  letter-spacing: 0.6px; color: var(--text-muted); margin-bottom: 4px;
+  font-size: 9.5px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.5px; color: var(--text-muted); margin-bottom: 3px;
 }
-.twosv-meta-value { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+.twosv-meta-value { font-size: 12.5px; font-weight: 600; color: var(--text-primary); }
 .twosv-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 .twosv-actions .setting-save-btn { width: auto; margin-top: 0; }
-.twosv-actions .setting-save-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.twosv-actions .setting-save-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
 /* Link Embeds */
 .link-embed {
@@ -2153,13 +2147,12 @@ body.loading-session #chat-app.active::after {
 .music-progress-bar {
   flex: 1; height: 4px; background: var(--bg-darker);
   border-radius: 3px; position: relative; cursor: pointer;
-  transition: height 0.15s ease;
+  transition: height 0.15s ease; contain: layout style;
 }
 .music-progress-bar:hover { height: 6px; }
 .music-progress-fill {
   height: 100%; width: 0%; border-radius: 3px;
-  background: var(--accent);
-  transition: width 0.1s linear; position: relative;
+  background: var(--accent); position: relative;
 }
 .music-progress-handle {
   position: absolute; top: 50%; left: 0%; transform: translate(-50%, -50%);
@@ -3697,7 +3690,7 @@ body.loading-session #chat-app.active::after {
   <div class="twosv-overlay" id="twosv-overlay">
     <div class="twosv-card">
       <div class="twosv-icon">
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
       </div>
       <h2 class="twosv-title">2-Step Verification</h2>
       <p class="twosv-subtitle">Enter your 24-character recovery code to continue signing in.</p>
@@ -4457,7 +4450,7 @@ body.loading-session #chat-app.active::after {
             <div class="twosv-settings-card" id="twosv-settings-card">
               <div class="twosv-status-row">
                 <div class="twosv-status-icon disabled" id="twosv-status-icon">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
                 </div>
                 <div class="twosv-status-text">
                   <div class="twosv-status-label" id="twosv-status-label">2-Step Verification is OFF</div>
@@ -5841,7 +5834,7 @@ function render2SVStatus(data) {
     toggle.checked = true;
     details.style.display = 'block';
     iconEl.className = 'twosv-status-icon enabled';
-    iconEl.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>';
+    iconEl.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>';
     labelEl.textContent = '2-Step Verification is ON';
     descEl.textContent = 'Your account requires a recovery code at sign-in.';
     genTimeEl.textContent = formatTimestamp(data.generatedAt);
@@ -5864,7 +5857,7 @@ function render2SVStatus(data) {
     toggle.checked = false;
     details.style.display = 'none';
     iconEl.className = 'twosv-status-icon disabled';
-    iconEl.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>';
+    iconEl.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>';
     labelEl.textContent = '2-Step Verification is OFF';
     descEl.textContent = 'Your account is protected by password only.';
     if (twosvCountdownTimer) { clearInterval(twosvCountdownTimer); twosvCountdownTimer = null; }
@@ -10210,10 +10203,11 @@ const MusicPlayer = {
 
   restart() {
     const s = this.state;
+    s._lastPct = -1; s.currentTime = 0;
     if (s.provider === 'spotify' && this.spotifyController) { this.spotifyController.seek(0); }
     else if (s.provider === 'soundcloud' && this.scWidget) { this.scWidget.seekTo(0); }
     else if (s.provider === 'youtube' && this.ytPlayer) { this.ytPlayer.seekTo(0, true); }
-    else { s.currentTime = 0; $('music-progress-fill').style.width = '0%'; $('music-progress-handle').style.left = '0%'; $('music-time-current').textContent = '0:00'; }
+    this.updateProgressVisual();
   },
 
   skip10() {
@@ -10243,11 +10237,13 @@ const MusicPlayer = {
     else if (s.provider === 'youtube' && this.ytPlayer) { if (s.muted) this.ytPlayer.mute(); else this.ytPlayer.unMute(); }
   },
 
-  // ---------- Progress tracking ----------
+  // ---------- Progress tracking (optimised for low overhead) ----------
   startProgress() {
     this.stopProgress();
+    // Spotify is fully event-driven via playback_update — no interval needed.
+    if (this.state.provider === 'spotify') return;
     const self = this;
-    this.state.progressTimer = setInterval(() => { self.tickProgress(); }, 500);
+    this.state.progressTimer = setInterval(() => { self.tickProgress(); }, 1000);
   },
   stopProgress() {
     if (this.state.progressTimer) { clearInterval(this.state.progressTimer); this.state.progressTimer = null; }
@@ -10255,26 +10251,34 @@ const MusicPlayer = {
   tickProgress() {
     const s = this.state;
     if (s.provider === 'soundcloud' && this.scWidget) {
+      // Single async call — duration is cached after the first fetch so we
+      // avoid a nested double-callback on every tick.
       this.scWidget.getPosition(p => {
-        this.scWidget.getDuration(d => {
-          s.currentTime = p / 1000; s.duration = d / 1000;
+        s.currentTime = p / 1000;
+        if (!s.duration) {
+          this.scWidget.getDuration(d => { s.duration = d / 1000; this.updateProgressVisual(); });
+        } else {
           this.updateProgressVisual();
-        });
+        }
       });
     } else if (s.provider === 'youtube' && this.ytPlayer && this.ytPlayer.getCurrentTime) {
       s.currentTime = this.ytPlayer.getCurrentTime();
-      s.duration = this.ytPlayer.getDuration() || 0;
-      this.updateProgressVisual();
-    } else if (s.provider === 'spotify') {
-      // Spotify progress is updated via the playback_update event handler
+      if (!s.duration) s.duration = this.ytPlayer.getDuration() || 0;
       this.updateProgressVisual();
     }
+    // Spotify: no tick — playback_update event handles everything
   },
   updateProgressVisual() {
     const s = this.state;
     const pct = s.duration ? Math.min(100, (s.currentTime / s.duration) * 100) : 0;
-    $('music-progress-fill').style.width = pct + '%';
-    $('music-progress-handle').style.left = pct + '%';
+    const pctRounded = Math.round(pct);
+    // Skip redundant DOM writes when nothing changed (reduces reflow/repaint)
+    if (s._lastPct === pctRounded) return;
+    s._lastPct = pctRounded;
+    const fill = $('music-progress-fill');
+    const handle = $('music-progress-handle');
+    if (fill) fill.style.width = pct + '%';
+    if (handle) handle.style.left = pct + '%';
     $('music-time-current').textContent = this.formatTime(s.currentTime);
     if (s.duration) $('music-time-total').textContent = this.formatTime(s.duration);
   },
@@ -10283,6 +10287,7 @@ const MusicPlayer = {
     if (!s.duration) return;
     const target = (pct / 100) * s.duration;
     s.currentTime = target;
+    s._lastPct = -1; // force visual update
     if (s.provider === 'spotify' && this.spotifyController) { this.spotifyController.seek(target); }
     else if (s.provider === 'soundcloud' && this.scWidget) { this.scWidget.seekTo(target * 1000); }
     else if (s.provider === 'youtube' && this.ytPlayer) { this.ytPlayer.seekTo(target, true); }
