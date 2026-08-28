@@ -4889,7 +4889,13 @@ function connectSocket() {
   socket.on('system-alert', (payload) => { showSystemAlert(payload); });
 
   socket.on('connect_error', (err) => {
-    if (err.message === 'unauthorized') {
+    // The server emits "Not authenticated" (and older paths may use
+    // "unauthorized") when the session is missing or expired. Handle both
+    // so the user is cleanly returned to the login screen instead of being
+    // left on a dead chat surface with a silently-retrying socket.
+    if (err.message === 'unauthorized' || err.message === 'Not authenticated' || (err.data && err.data.message === 'Not authenticated')) {
+      // Prevent further reconnection attempts with the stale session.
+      if (socket) { socket.io.opts.reconnection = false; }
       sessionSocketId = null;
       localStorage.removeItem('hellobye_sid');
       showAuth();
@@ -10447,13 +10453,18 @@ function smoothScrollToBottom(el) {
 // Here we validate the session via /api/me and either init the chat or show auth.
 function init() {
   const hasSid = localStorage.getItem('hellobye_sid') || getCookie('hellobye_session');
-  if (hasSid) {
-    // The early head script already hid auth via CSS (html.has-session).
-    // Activate the chat app grid so it becomes visible.
-    chatApp.classList.add('active');
-    // Show a loading overlay on the chat area until data loads
-    document.body.classList.add('loading-session');
+  if (!hasSid) {
+    // No session at all — go straight to the login screen. Skipping the
+    // /api/me call avoids a 401 "Not authenticated" console error that
+    // would otherwise fire on every visit for logged-out users.
+    showAuth();
+    return;
   }
+  // We have a session ID — the early head script already hid auth via CSS
+  // (html.has-session). Activate the chat app grid so it becomes visible.
+  chatApp.classList.add('active');
+  // Show a loading overlay on the chat area until data loads
+  document.body.classList.add('loading-session');
   fetch(API_BASE + '/api/me').then(r => r.json()).then(meData => {
     if (meData.user) {
       initChat(meData);
