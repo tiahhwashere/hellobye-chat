@@ -699,10 +699,10 @@ body.loading-session #chat-app.active::after {
 .message-group.own { flex-direction: row-reverse; margin-left: auto; }
 
 .message-avatar {
-  width: 38px; height: 38px; border-radius: 50%;
+  width: 42px; height: 42px; border-radius: 50%;
   background: var(--bg-lighter); color: var(--text-secondary);
   display: flex; align-items: center; justify-content: center;
-  font-size: 15px; font-weight: 600; flex-shrink: 0; overflow: hidden;
+  font-size: 16px; font-weight: 600; flex-shrink: 0; overflow: hidden;
   border: 1px solid var(--border);
 }
 .message-avatar img { width: 100%; height: 100%; object-fit: cover; image-rendering: -webkit-optimize-contrast; }
@@ -714,17 +714,17 @@ body.loading-session #chat-app.active::after {
 .message-group.own .message-bubble-wrap { align-items: flex-end; }
 
 .message-sender {
-  font-size: 12px; font-weight: 500; color: var(--text-secondary);
+  font-size: 13px; font-weight: 500; color: var(--text-secondary);
   margin-bottom: 4px; padding: 0 4px;
   display: flex; align-items: center; gap: 6px;
 }
-.sender-displayname { color: var(--text-primary); font-weight: 600; font-size: 14px; }
-.sender-handle { color: var(--text-primary); font-size: 12.5px; opacity: 0.78; font-weight: 500; }
+.sender-displayname { color: var(--text-primary); font-weight: 600; font-size: 15px; }
+.sender-handle { color: var(--text-primary); font-size: 13.5px; opacity: 0.78; font-weight: 500; }
 
 .message-bubble {
-  background: var(--bg-medium); padding: 12px 17px;
+  background: var(--bg-medium); padding: 13px 18px;
   border-radius: 14px 14px 14px 4px;
-  font-size: 15.5px; line-height: 1.55; word-break: break-word; position: relative;
+  font-size: 16.5px; line-height: 1.55; word-break: break-word; position: relative;
   max-width: 100%;
   border: 1px solid var(--border);
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
@@ -1176,7 +1176,7 @@ body.loading-session #chat-app.active::after {
 .msg-action-btn.danger:hover { background: var(--danger); color: #fff; border-color: var(--danger); }
 
 .message-meta {
-  font-size: 11px; color: var(--text-muted);
+  font-size: 12px; color: var(--text-muted);
   margin-top: 4px; padding: 0 4px;
   display: flex; gap: 6px; align-items: center;
 }
@@ -3225,15 +3225,15 @@ body.loading-session #chat-app.active::after {
 .dm-back { width: 34px; height: 34px; border-radius: 50%; color: var(--text-muted); display: flex; align-items: center; justify-content: center; }
 .dm-back:hover { background: var(--bg-medium); color: var(--text-primary); }
 .dm-header-avatar {
-  width: 38px; height: 38px; border-radius: 50%;
+  width: 42px; height: 42px; border-radius: 50%;
   background: var(--bg-lighter); color: var(--text-secondary);
   display: flex; align-items: center; justify-content: center;
-  font-size: 15px; font-weight: 600; overflow: hidden; flex-shrink: 0;
+  font-size: 16px; font-weight: 600; overflow: hidden; flex-shrink: 0;
 }
 .dm-header-avatar img { width: 100%; height: 100%; object-fit: cover; }
 .dm-header-info { flex: 1; min-width: 0; }
-.dm-header-name { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.dm-header-status { font-size: 11px; color: var(--text-muted); }
+.dm-header-name { font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dm-header-status { font-size: 12px; color: var(--text-muted); }
 .dm-header-status.online { color: var(--online); }
 .dm-header-status.idle { color: var(--idle); }
 .dm-header-status.dnd { color: var(--dnd); }
@@ -7318,6 +7318,36 @@ function connectSocket() {
     const from = msg.from;
     // Filter blocked users
     if (blockedUsers.some(u => u.username === from)) return;
+    // Optimistically update the DM conversation list so the conversation
+    // (and its latest message preview) appears in the Messages tab
+    // immediately - even before the loadDMConversations() fetch round-trip
+    // completes. This guarantees a DM from anyone (friend or non-friend,
+    // as long as they aren't blocked / haven't disabled DMs) shows up in the
+    // Messages tab the instant it arrives.
+    try {
+      const existingIdx = dmConversations.findIndex(c => c.user && c.user.username === from);
+      const u = (users.find(x => x.username === from) || { username: from, avatar: null, status: 'offline', displayName: '' });
+      const viewing = activeDMUser === from;
+      const conv = {
+        user: u,
+        lastMessage: msg,
+        unread: (existingIdx >= 0 ? (dmConversations[existingIdx].unread || 0) : 0) + (viewing ? 0 : 1)
+      };
+      if (existingIdx >= 0) {
+        if (viewing) conv.unread = 0;
+        dmConversations[existingIdx] = conv;
+      } else {
+        dmConversations.unshift(conv);
+      }
+      // Re-sort so the most recently active conversation is on top
+      dmConversations.sort((a, b) => {
+        const ta = a.lastMessage ? new Date(a.lastMessage.timestamp).getTime() : 0;
+        const tb = b.lastMessage ? new Date(b.lastMessage.timestamp).getTime() : 0;
+        return tb - ta;
+      });
+      renderDMList();
+      updateDMNavBadge();
+    } catch(e) {}
     // Check if this DM mentions the current user
     if (currentUser && currentUser.username && msg.text) {
       const mentions = extractMentions(msg.text);
