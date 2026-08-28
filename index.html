@@ -31,6 +31,7 @@
   --accent-hover: #5aabff;
   --accent-dim: #2d6cc0;
   --accent-glow: rgba(74, 158, 255, 0.12);
+  --accent-text: #fff;
   --online: #3ba55d;
   --idle: #d4a017;
   --dnd: #d83a3a;
@@ -289,7 +290,7 @@ html.has-session #chat-app:not(.active) { opacity: 0; } /* invisible until JS ac
 
 .btn-primary {
   width: 100%; padding: 13px; margin-top: 6px;
-  background: var(--accent); color: #fff;
+  background: var(--accent); color: var(--accent-text);
   font-size: 14px; font-weight: 600;
   border-radius: var(--radius-sm);
   transition: var(--transition);
@@ -810,7 +811,7 @@ body.loading-session #chat-app.active::after {
 .twosv-trust-label { font-size: 13px; color: var(--text-secondary); }
 .twosv-btn {
   width: 100%; padding: 14px; font-size: 15px; font-weight: 700;
-  background: var(--accent); color: #fff; border: none; border-radius: 10px;
+  background: var(--accent); color: var(--accent-text); border: none; border-radius: 10px;
   cursor: pointer; transition: var(--transition); margin-bottom: 10px;
 }
 .twosv-btn:hover:not(:disabled) { background: var(--accent-hover); }
@@ -884,6 +885,7 @@ body.loading-session #chat-app.active::after {
 .twosv-meta-value { font-size: 13px; font-weight: 600; color: var(--text-primary); }
 .twosv-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 .twosv-actions .setting-save-btn { width: auto; margin-top: 0; }
+.twosv-actions .setting-save-btn:disabled { opacity: 0.45; cursor: not-allowed; }
 
 /* Link Embeds */
 .link-embed {
@@ -1201,7 +1203,7 @@ body.loading-session #chat-app.active::after {
 .gif-picker-url-input:focus { border-color: var(--accent); }
 .gif-picker-url-btn {
   padding: 10px 24px; border-radius: 8px; border: none;
-  background: var(--accent); color: #fff; font-size: 14px; font-weight: 600;
+  background: var(--accent); color: var(--accent-text); font-size: 14px; font-weight: 600;
   cursor: pointer; transition: opacity 0.12s;
 }
 .gif-picker-url-btn:hover { opacity: 0.85; }
@@ -1225,7 +1227,7 @@ body.loading-session #chat-app.active::after {
 .chat-textarea::placeholder { color: var(--text-muted); }
 .send-btn {
   width: 34px; height: 34px; border-radius: 50%;
-  background: var(--accent); color: #fff;
+  background: var(--accent); color: var(--accent-text);
   display: flex; align-items: center; justify-content: center;
   transition: var(--transition); flex-shrink: 0;
 }
@@ -1279,7 +1281,7 @@ body.loading-session #chat-app.active::after {
 .modal-btn:hover { background: var(--bg-lighter); }
 .modal-btn.danger { background: var(--danger); color: #fff; }
 .modal-btn.danger:hover { background: var(--danger-hover); }
-.modal-btn.primary { background: var(--accent); color: #fff; }
+.modal-btn.primary { background: var(--accent); color: var(--accent-text); }
 .modal-btn.primary:hover { background: var(--accent-hover); }
 .modal-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
@@ -1461,7 +1463,7 @@ body.loading-session #chat-app.active::after {
 }
 .admin-search-result:hover { border-color: #6366f1; background: var(--bg-light); }
 .admin-search-result-avatar {
-  width: 32px; height: 32px; border-radius: 50%; background: var(--accent); color: #fff;
+  width: 32px; height: 32px; border-radius: 50%; background: var(--accent); color: var(--accent-text);
   display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 13px; flex-shrink: 0; overflow: hidden;
 }
 .admin-search-result-avatar img { width: 100%; height: 100%; object-fit: cover; }
@@ -1482,7 +1484,7 @@ body.loading-session #chat-app.active::after {
   border-radius: 8px; border: 1px solid var(--border);
 }
 .admin-user-card-avatar {
-  width: 28px; height: 28px; border-radius: 50%; background: var(--accent); color: #fff;
+  width: 28px; height: 28px; border-radius: 50%; background: var(--accent); color: var(--accent-text);
   display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 11px; flex-shrink: 0; overflow: hidden;
 }
 .admin-user-card-avatar img { width: 100%; height: 100%; object-fit: cover; }
@@ -1912,7 +1914,7 @@ body.loading-session #chat-app.active::after {
 .save-section { margin-top: 8px; }
 .profile-save-btn, .setting-save-btn {
   width: 100%; padding: 11px; font-size: 14px; font-weight: 600;
-  background: var(--accent); color: #fff; border-radius: var(--radius-sm);
+  background: var(--accent); color: var(--accent-text); border-radius: var(--radius-sm);
   transition: var(--transition); margin-top: 6px;
 }
 .profile-save-btn:hover:not(:disabled), .setting-save-btn:hover:not(:disabled) { background: var(--accent-hover); }
@@ -2004,7 +2006,7 @@ body.loading-session #chat-app.active::after {
 }
 .bg-fit-segmented button svg { width: 18px; height: 18px; opacity: 0.7; }
 .bg-fit-segmented button:hover { background: var(--bg-medium); color: var(--text-primary); }
-.bg-fit-segmented button.active { background: var(--accent); color: #fff; box-shadow: 0 2px 8px rgba(74,158,255,0.3); }
+.bg-fit-segmented button.active { background: var(--accent); color: var(--accent-text); box-shadow: 0 2px 8px rgba(74,158,255,0.3); }
 .bg-fit-segmented button.active svg { opacity: 1; }
 .custom-bg-quick-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 .mini-btn { padding: 6px 12px; font-size: 11px; font-weight: 600; }
@@ -2079,7 +2081,7 @@ body.loading-session #chat-app.active::after {
 }
 .accent-preview-btn {
   padding: 4px 10px; font-size: 10px; font-weight: 700;
-  background: var(--accent); color: #fff; border: none; border-radius: 6px;
+  background: var(--accent); color: var(--accent-text); border: none; border-radius: 6px;
 }
 /* Larger, more touch-friendly preset circles with checkmark */
 .accent-preset-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
@@ -2732,7 +2734,7 @@ body.loading-session #chat-app.active::after {
   border-radius: var(--radius-sm); transition: var(--transition);
 }
 .profile-view-actions .modal-btn.primary {
-  background: var(--accent); color: #fff;
+  background: var(--accent); color: var(--accent-text);
 }
 .profile-view-actions .modal-btn.primary:hover { background: var(--accent-hover); }
 .profile-view-actions .modal-btn.secondary {
@@ -3807,7 +3809,7 @@ body.loading-session #chat-app.active::after {
           </div>
           <div class="profile-section">
             <div class="profile-section-title">Display Name</div>
-            <p class="setting-hint">Shown alongside your @username in messages and profiles.</p>
+            <p class="setting-hint">Displayed alongside your @username across messages, profiles, and member lists.</p>
             <input type="text" class="form-input" id="display-name-input" placeholder="Enter your display name" maxlength="32">
             <div class="bio-counter"><span id="displayname-count">0</span> / 32</div>
             <button class="setting-save-btn" id="displayname-save">Update Display Name</button>
@@ -3815,7 +3817,7 @@ body.loading-session #chat-app.active::after {
 
           <div class="profile-section">
             <div class="profile-section-title">Change Username</div>
-            <p class="setting-hint">Your unique handle. Can be changed once every 24 hours. <span id="username-cooldown-text"></span></p>
+            <p class="setting-hint">Your unique identifier on the platform. May be changed once every 24 hours. <span id="username-cooldown-text"></span></p>
             <input type="text" class="form-input" id="new-username-input" placeholder="Enter your new username" spellcheck="false">
             <button class="setting-save-btn" id="username-save">Change Username</button>
           </div>
@@ -4014,7 +4016,7 @@ body.loading-session #chat-app.active::after {
           </div>
           <div class="profile-section">
             <div class="profile-section-title">2-Step Verification</div>
-            <p class="setting-hint" style="margin-bottom:14px;">Add an extra layer of security. When enabled, you'll need a 24-character recovery code each time you sign in (unless you trust the device).</p>
+            <p class="setting-hint" style="margin-bottom:14px;">Enhance your account security with an additional verification step. Once enabled, a 24-character recovery code will be required at each sign-in, unless the device is marked as trusted.</p>
             <div class="twosv-settings-card" id="twosv-settings-card">
               <div class="twosv-status-row">
                 <div class="twosv-status-icon disabled" id="twosv-status-icon">
@@ -4035,7 +4037,7 @@ body.loading-session #chat-app.active::after {
                   <div class="twosv-code-value" id="twosv-code-value">--------</div>
                   <div class="twosv-code-warning">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:1px;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-                    <span>Save this code securely. You'll need it every time you sign in. The code auto-regenerates every 48 hours.</span>
+                    <span>Store this code in a secure location. It will be required each time you sign in and automatically refreshes every 48 hours, at which point the previous code becomes invalid.</span>
                   </div>
                 </div>
                 <div class="twosv-code-meta">
@@ -5396,6 +5398,7 @@ function render2SVStatus(data) {
   const genTimeEl = $('twosv-gen-time');
   const regenTimeEl = $('twosv-regen-time');
   const deviceCountEl = $('twosv-device-count');
+  const regenBtn = $('twosv-regenerate-btn');
 
   if (data.enabled) {
     toggle.checked = true;
@@ -5411,6 +5414,12 @@ function render2SVStatus(data) {
     if (twosvCountdownTimer) clearInterval(twosvCountdownTimer);
     const updateCountdown = () => {
       regenTimeEl.textContent = formatCountdown(twosvNextRegenTs);
+      // Enable/disable regenerate button based on cooldown
+      if (regenBtn) {
+        const onCooldown = twosvNextRegenTs > Date.now();
+        regenBtn.disabled = onCooldown;
+        regenBtn.title = onCooldown ? 'Available in ' + formatCountdown(twosvNextRegenTs) : 'Generate a new recovery code (invalidates the current one)';
+      }
     };
     updateCountdown();
     twosvCountdownTimer = setInterval(updateCountdown, 60000);
@@ -5422,6 +5431,7 @@ function render2SVStatus(data) {
     labelEl.textContent = '2-Step Verification is OFF';
     descEl.textContent = 'Your account is protected by password only.';
     if (twosvCountdownTimer) { clearInterval(twosvCountdownTimer); twosvCountdownTimer = null; }
+    if (regenBtn) { regenBtn.disabled = false; regenBtn.title = ''; }
   }
 }
 
@@ -5535,7 +5545,7 @@ $('twosv-view-code-btn').addEventListener('click', async () => {
 
 // Regenerate Code button
 $('twosv-regenerate-btn').addEventListener('click', async () => {
-  const password = await prompt2SVPassword('Regenerate Recovery Code', 'Enter your password to generate a new recovery code. The old code will be invalidated.');
+  const password = await prompt2SVPassword('Regenerate Recovery Code', "Enter your password to generate a new recovery code. The previous code will be invalidated. Manual regeneration is limited to once every 48 hours.");
   if (!password) {
     if (password === null) return; // cancelled
     toast('Password is required.', 'error');
@@ -5549,6 +5559,7 @@ $('twosv-regenerate-btn').addEventListener('click', async () => {
     const data = await res.json();
     if (!res.ok) {
       toast(data.error || 'Failed to regenerate code', 'error');
+      if (res.status === 429) update2SVStatus();
       return;
     }
     show2SVCode(data.code, data.generatedAt);
@@ -9400,10 +9411,12 @@ async function openProfileView(username) {
     $('profile-view-modal').classList.add('show');
   } catch(e) { toast('Failed to load profile', 'error'); }
 }
-// Apply the OTHER user's Panel Theme Color to the whole profile-view modal
-// so the chosen color is visible when viewing their profile. Text colors and
-// the X (close) button are explicitly preserved so only the panel background
-// changes.
+// Apply the OTHER user's Panel Theme Color to the profile-view modal.
+// Instead of overwriting the entire modal background (which makes text and
+// UI elements hard to read), we apply the color as a thin accent bar at the
+// top of the modal and set accent CSS variables so links, buttons, and the
+// @handle use the chosen color. The modal background stays as the standard
+// dark theme so all text remains readable.
 function applyProfileViewPanelColor(u) {
   const modal = document.querySelector('.profile-view-modal');
   if (!modal) return;
@@ -9411,38 +9424,29 @@ function applyProfileViewPanelColor(u) {
   // Reset any previously-applied inline styles first.
   modal.style.removeProperty('background');
   modal.style.removeProperty('border-color');
-  // Preserve text + X button: we tag elements so we can restore them if the
-  // color changes the inherited text color. The X close button keeps its own
-  // rgba(0,0,0,0.4) background + #fff color regardless.
+  // Restore text colors to defaults.
   const textEls = modal.querySelectorAll('h3, .profile-view-handle, .profile-view-id, .profile-view-status, .profile-view-bio, .profile-view-extra, .pv-extra-label, .pv-extra-value, .pv-status');
   textEls.forEach(el => { el.style.removeProperty('color'); });
+  // Remove any previously-created accent bar.
+  const oldBar = modal.querySelector('.panel-accent-bar');
+  if (oldBar) oldBar.remove();
   if (color) {
-    // Use the panel color as the modal background. To keep text readable on
-    // any color, we force the info-area text to a high-contrast color based
-    // on the luminance of the chosen color.
-    modal.style.setProperty('background', color, 'important');
-    modal.style.setProperty('border-color', color, 'important');
-    const { r, g, b } = hexToRgb(color);
-    // Relative luminance — decide black or white text for readability.
-    const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-    const textColor = lum > 0.6 ? '#1a1a1a' : '#ffffff';
-    const mutedColor = lum > 0.6 ? 'rgba(0,0,0,0.6)' : 'rgba(255,255,255,0.7)';
-    textEls.forEach(el => {
-      // Keep the @handle accent-colored (it's a brand color) but make the
-      // rest readable. We skip .profile-view-handle so it keeps var(--accent).
-      if (el.classList.contains('profile-view-handle')) return;
-      el.style.setProperty('color', textColor, 'important');
-    });
-    // Muted text (id, extra labels) uses the muted variant.
-    modal.querySelectorAll('.profile-view-id, .pv-extra-label, .profile-view-status').forEach(el => {
-      el.style.setProperty('color', mutedColor, 'important');
-    });
-    // The X close button keeps its own styling — explicitly preserve it.
-    const closeBtn = $('pv-close');
-    if (closeBtn) {
-      closeBtn.style.setProperty('background', 'rgba(0,0,0,0.4)', 'important');
-      closeBtn.style.setProperty('color', '#fff', 'important');
-    }
+    // Set accent CSS variables on the modal so links, @handle, buttons
+    // use the chosen color without changing the background.
+    modal.style.setProperty('--accent', color, 'important');
+    modal.style.setProperty('--accent-hover', lighten(color, 0.12), 'important');
+    modal.style.setProperty('--accent-dim', darken(color, 0.3), 'important');
+    // Insert a thin colored accent bar at the top of the modal.
+    const bar = document.createElement('div');
+    bar.className = 'panel-accent-bar';
+    bar.style.cssText = 'position:absolute;top:0;left:0;right:0;height:4px;background:' + color + ';z-index:10;';
+    modal.style.position = modal.style.position || 'relative';
+    modal.insertBefore(bar, modal.firstChild);
+  } else {
+    // Reset accent variables to inherit from root.
+    modal.style.removeProperty('--accent');
+    modal.style.removeProperty('--accent-hover');
+    modal.style.removeProperty('--accent-dim');
   }
 }
 
@@ -10384,6 +10388,12 @@ function applyColorSettings() {
   document.documentElement.style.setProperty('--accent-light', lighten(accent, 0.3));
   document.documentElement.style.setProperty('--accent-glow', 'rgba(' + r + ', ' + g + ', ' + b + ', 0.12)');
   document.documentElement.style.setProperty('--accent-rgb', r + ', ' + g + ', ' + b);
+  // Compute readable text color for buttons that use --accent as background.
+  // If the accent is very light, use dark text instead of white so buttons
+  // remain readable regardless of the chosen color.
+  const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  const accentText = lum > 0.65 ? '#1a1a1a' : '#ffffff';
+  document.documentElement.style.setProperty('--accent-text', accentText);
   const picker = $('accent-color-picker');
   if (picker) picker.value = accent;
   const hexEl = $('accent-current-hex');
@@ -10437,56 +10447,32 @@ function applyProfileColor() {
   // The actual modal box inside the overlay.
   const modal = panel.querySelector('.settings-modal');
   if (color) {
-    // Set accent CSS variables on the panel scope.
+    // Set accent CSS variables on the panel scope only (does not change
+    // backgrounds or text colors — just the accent highlight color used
+    // by buttons, links, focus rings, etc.).
     panel.style.setProperty('--accent', color);
     panel.style.setProperty('--accent-hover', lighten(color, 0.12));
     panel.style.setProperty('--accent-dim', darken(color, 0.3));
     panel.style.setProperty('--accent-light', lighten(color, 0.3));
     const { r, g, b } = hexToRgb(color);
     panel.style.setProperty('--accent-glow', 'rgba(' + r + ', ' + g + ', ' + b + ', 0.12)');
-    // ---- Apply the FULL UI color as the panel background (like the profile
-    // view modal does for other users). This makes the chosen theme color
-    // visible in the user's own Profile Settings. ----
-    if (modal) {
-      modal.style.setProperty('background', color, 'important');
-    }
-    // Determine readable text color based on luminance.
+    // Compute readable text color for buttons within this panel.
     const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-    const textColor = lum > 0.6 ? '#1a1a1a' : '#ffffff';
-    const mutedColor = lum > 0.6 ? 'rgba(0,0,0,0.6)' : 'rgba(255,255,255,0.7)';
-    // Apply readable text colors to text elements, but preserve inputs,
-    // buttons, the X close button, and the header subtitle.
+    panel.style.setProperty('--accent-text', lum > 0.65 ? '#1a1a1a' : '#ffffff');
+    // Apply a subtle accent header bar at the top of the modal so the
+    // chosen color is visible WITHOUT overwriting the panel background,
+    // text, inputs, toggles, or other UI elements.
     if (modal) {
-      // Header background slightly darker for visual separation.
-      const header = modal.querySelector('.slide-panel-header');
-      if (header) header.style.setProperty('background', darken(color, 0.15), 'important');
-      // Title and subtitle.
-      const title = header ? header.querySelector('h3') : null;
-      const subtitle = header ? header.querySelector('.settings-v2-subtitle') : null;
-      if (title) title.style.setProperty('color', textColor, 'important');
-      if (subtitle) subtitle.style.setProperty('color', mutedColor, 'important');
-      // Section labels and headings.
-      modal.querySelectorAll('.profile-section h4, .profile-section label, .setting-label, .setting-row label, .profile-v2-subtitle').forEach(el => {
-        el.style.setProperty('color', textColor, 'important');
-      });
-      // Muted/helper text.
-      modal.querySelectorAll('.profile-section p, .setting-hint, .helper-text, .bio-count, .pv-extra-label').forEach(el => {
-        el.style.setProperty('color', mutedColor, 'important');
-      });
-      // The X close button keeps its own styling.
-      const closeBtn = $('profile-close');
-      if (closeBtn) {
-        closeBtn.style.setProperty('background', 'rgba(0,0,0,0.4)', 'important');
-        closeBtn.style.setProperty('color', '#fff', 'important');
-      }
+      // Remove any previously-created accent bar.
+      const oldBar = modal.querySelector('.panel-accent-bar');
+      if (oldBar) oldBar.remove();
+      // Insert a thin colored bar at the very top of the modal.
+      const bar = document.createElement('div');
+      bar.className = 'panel-accent-bar';
+      bar.style.cssText = 'position:absolute;top:0;left:0;right:0;height:4px;background:' + color + ';z-index:10;border-radius:16px 16px 0 0;';
+      modal.style.position = modal.style.position || 'relative';
+      modal.insertBefore(bar, modal.firstChild);
     }
-    // Buttons get the accent color as background.
-    panel.querySelectorAll('button, .profile-save-btn, .setting-save-btn').forEach(btn => {
-      if (btn.classList.contains('danger-btn')) return;
-      if (btn.id === 'profile-close') return; // preserve X button
-      btn.style.setProperty('background', 'var(--accent)', 'important');
-      btn.style.setProperty('color', '#fff', 'important');
-    });
     const picker = $('profile-accent-picker');
     if (picker) picker.value = color;
   } else {
@@ -10496,28 +10482,11 @@ function applyProfileColor() {
     panel.style.removeProperty('--accent-dim');
     panel.style.removeProperty('--accent-light');
     panel.style.removeProperty('--accent-glow');
+    panel.style.removeProperty('--accent-text');
     if (modal) {
-      modal.style.removeProperty('background');
-      const header = modal.querySelector('.slide-panel-header');
-      if (header) header.style.removeProperty('background');
-      const title = header ? header.querySelector('h3') : null;
-      const subtitle = header ? header.querySelector('.settings-v2-subtitle') : null;
-      if (title) title.style.removeProperty('color');
-      if (subtitle) subtitle.style.removeProperty('color');
-      modal.querySelectorAll('.profile-section h4, .profile-section label, .setting-label, .setting-row label, .profile-v2-subtitle, .profile-section p, .setting-hint, .helper-text, .bio-count, .pv-extra-label').forEach(el => {
-        el.style.removeProperty('color');
-      });
+      const oldBar = modal.querySelector('.panel-accent-bar');
+      if (oldBar) oldBar.remove();
     }
-    const closeBtn = $('profile-close');
-    if (closeBtn) {
-      closeBtn.style.removeProperty('background');
-      closeBtn.style.removeProperty('color');
-    }
-    panel.querySelectorAll('button, .profile-save-btn, .setting-save-btn').forEach(btn => {
-      if (btn.classList.contains('danger-btn')) return;
-      btn.style.removeProperty('background');
-      btn.style.removeProperty('color');
-    });
     const picker = $('profile-accent-picker');
     if (picker) picker.value = defaultAccent;
   }
@@ -11015,7 +10984,7 @@ function adminSelectUser(cacheKey) {
   const banTargetInfo = $('admin-ban-target-info');
   if (banForm && banTargetInfo) {
     banForm.style.display = '';
-    const avatarHtml = user.avatar ? '<img src="' + user.avatar + '" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">' : '<div style="width:32px;height:32px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:13px;">' + escapeHtml(getInitials(user.username)) + '</div>';
+    const avatarHtml = user.avatar ? '<img src="' + user.avatar + '" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">' : '<div style="width:32px;height:32px;border-radius:50%;background:var(--accent);color:var(--accent-text);display:flex;align-items:center;justify-content:center;font-weight:600;font-size:13px;">' + escapeHtml(getInitials(user.username)) + '</div>';
     const bannedTag = user.banned ? ' <span style="color:var(--danger);font-size:11px;">(Already banned)</span>' : '';
     const ownerTag = isOwnerUserFE(user) ? ' <span style="color:var(--accent);font-size:11px;">(Owner)</span>' : '';
     banTargetInfo.innerHTML = avatarHtml + '<div><div class="at-name">' + escapeHtml(user.displayName || user.username) + bannedTag + ownerTag + ' @' + escapeHtml(user.username) + '</div><div class="at-meta">ID: ' + escapeHtml(user.id || 'N/A') + '</div></div>';
@@ -11043,7 +11012,7 @@ function adminSelectUser(cacheKey) {
   const badgeForm = $('admin-badge-form');
   if (roleForm && roleTargetInfo) {
     roleForm.style.display = '';
-    const avatarHtml = user.avatar ? '<img src="' + user.avatar + '" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">' : '<div style="width:32px;height:32px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:13px;">' + escapeHtml(getInitials(user.username)) + '</div>';
+    const avatarHtml = user.avatar ? '<img src="' + user.avatar + '" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">' : '<div style="width:32px;height:32px;border-radius:50%;background:var(--accent);color:var(--accent-text);display:flex;align-items:center;justify-content:center;font-weight:600;font-size:13px;">' + escapeHtml(getInitials(user.username)) + '</div>';
     roleTargetInfo.innerHTML = avatarHtml + '<div><div class="at-name">' + escapeHtml(user.displayName || user.username) + ' @' + escapeHtml(user.username) + '</div><div class="at-meta">ID: ' + escapeHtml(user.id || 'N/A') + '</div></div>';
     $('admin-role-select').value = user.role || 'user';
   }
@@ -11109,7 +11078,7 @@ function adminSelectMuteUser(cacheKey) {
   const muteTargetInfo = $('admin-mute-target-info');
   if (muteForm && muteTargetInfo) {
     muteForm.style.display = '';
-    const avatarHtml = user.avatar ? '<img src="' + user.avatar + '" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">' : '<div style="width:32px;height:32px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:13px;">' + escapeHtml(getInitials(user.username)) + '</div>';
+    const avatarHtml = user.avatar ? '<img src="' + user.avatar + '" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">' : '<div style="width:32px;height:32px;border-radius:50%;background:var(--accent);color:var(--accent-text);display:flex;align-items:center;justify-content:center;font-weight:600;font-size:13px;">' + escapeHtml(getInitials(user.username)) + '</div>';
     const mutedTag = user.mutedUntil ? ' <span style="color:var(--danger);font-size:11px;">(Already muted)</span>' : '';
     const ownerTag = isOwnerUserFE(user) ? ' <span style="color:var(--accent);font-size:11px;">(Owner)</span>' : '';
     muteTargetInfo.innerHTML = avatarHtml + '<div><div class="at-name">' + escapeHtml(user.displayName || user.username) + mutedTag + ownerTag + ' @' + escapeHtml(user.username) + '</div><div class="at-meta">ID: ' + escapeHtml(user.id || 'N/A') + '</div></div>';

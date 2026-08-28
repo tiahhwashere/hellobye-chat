@@ -1362,6 +1362,17 @@ app.post('/api/settings/2sv/regenerate', authMiddleware, (req, res) => {
   if (!req.user.twoFactorEnabled) {
     return res.status(400).json({ error: '2-Step Verification is not enabled' });
   }
+  // Enforce 48-hour cooldown between manual regenerations.
+  const generated = req.user.twoFactorCodeGenerated || 0;
+  const elapsed = Date.now() - generated;
+  const remaining = TWO_SV_REGEN_INTERVAL - elapsed;
+  if (remaining > 0) {
+    const hoursLeft = Math.ceil(remaining / (60 * 60 * 1000));
+    return res.status(429).json({
+      error: 'Recovery code can only be regenerated once every 48 hours. Please try again in ' + hoursLeft + ' hour' + (hoursLeft > 1 ? 's' : '') + '.',
+      cooldownRemaining: remaining,
+    });
+  }
   req.user.twoFactorCode = gen2SVCode();
   req.user.twoFactorCodeGenerated = Date.now();
   // Regenerating also clears trusted devices (forces re-verification on all devices)
