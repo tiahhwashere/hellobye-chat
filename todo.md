@@ -1,14 +1,13 @@
-# Hellobye Chat — Badge clear on click + polish 3 toasts
+# Round 13 — Bigger messages/avatars for desktop, smoother Search Messages + close animation, polished layouts
 
-## Tasks (DONE)
-- [x] openDM: clear unread badge IMMEDIATELY/optimistically on click (before server round-trip)
-- [x] Badge only reappears when the other user sends a new DM (dm-receive) — already works
-- [x] Polished "Conversation closed" toast -> "Conversation closed. Reopen it anytime by right-clicking the Messages tab."
-- [x] Polished "Direct messages disabled" toast -> "Direct messages are off. Others can no longer message you, but you can still message them."
-- [x] Polished "Friend requests disabled" toast -> "Friend requests are off. Others can no longer send you friend requests."
-- [x] Syntax check passed (3 script blocks, 0 errors)
+## Implementation
+- [x] Add desktop `@media (min-width:1100px)` block: bigger chat avatars (42→52px), bigger sidebar/DM-list avatars (38→46px), larger message font + bubble padding, bigger sender names, larger DM header avatar, wider DM panel for desktop
+- [x] Make Search Messages smoother: refined loading state (spinner), staggered result animation, smoother scope toggle, better input focus glow, refined empty states
+- [x] Add slide-out animation when clicking the X on Search Messages (mirror the slideInRight open animation) — delay `remove('open')` until animation completes
+- [x] Polish chatroom + DM message layout: refined bubble spacing, gap, corners, hover shadows, meta alignment, DM messages padding for desktop
 
 ## Deploy
+- [x] Syntax-check index.html (script blocks, 0 errors)
 - [ ] Commit + push to GitHub master
 - [ ] Render auto-deploy goes live
-- [ ] Verify site online (no data wipe)
+- [ ] Verify site online (no data wipe) + edits grep-confirmed live
