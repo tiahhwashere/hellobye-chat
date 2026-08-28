@@ -9288,6 +9288,17 @@ async function openDM(username) {
   // Clear the running DM notification count for this sender now that the
   // conversation is being opened (the unread badge also clears via mark-read).
   if (dmNotifCounts) delete dmNotifCounts[username];
+  // Immediately clear the red unread badge for this conversation the instant
+  // the user opens it (optimistic, before the mark-read round-trip completes).
+  // The badge only comes back when the other person sends a NEW message.
+  try {
+    const idx = dmConversations.findIndex(c => c.user && c.user.username === username);
+    if (idx >= 0 && dmConversations[idx].unread) {
+      dmConversations[idx].unread = 0;
+      renderDMList();
+      updateDMNavBadge();
+    }
+  } catch(e) {}
   const u = getUserByUsername(username);
   $('dm-overlay').classList.add('show');
   updateDMHeader();
@@ -9351,7 +9362,7 @@ $('dm-close-btn').addEventListener('click', closeDMOverlay);
 
 async function closeDM(username) {
   // Optimistic: show toast and update UI immediately
-  toast('Conversation closed. Right-click the Messages tab to reopen it at any time.', 'success');
+  toast('Conversation closed. Reopen it anytime by right-clicking the Messages tab.', 'success');
   // Fire network request in background (non-blocking)
   fetch(API_BASE + '/api/dms/close/' + encodeURIComponent(username), { method: 'POST' }).then(() => {
     loadDMConversations();
@@ -10209,13 +10220,13 @@ if ($('show-online-toggle')) $('show-online-toggle').addEventListener('change', 
 if ($('friend-requests-toggle')) $('friend-requests-toggle').addEventListener('change', function() {
   markProfileDirty();
   var enabled = $('friend-requests-toggle').checked;
-  toast(enabled ? 'Friend requests are now enabled. Others can send you friend requests.' : 'Friend requests are now disabled. Others cannot send you friend requests.', enabled ? 'success' : 'info');
+  toast(enabled ? 'Friend requests are now on. Others can send you friend requests.' : 'Friend requests are off. Others can no longer send you friend requests.', enabled ? 'success' : 'info');
   saveProfileNow(true);
 });
 if ($('direct-messages-toggle')) $('direct-messages-toggle').addEventListener('change', function() {
   markProfileDirty();
   var enabled = $('direct-messages-toggle').checked;
-  toast(enabled ? 'Direct messages have been enabled.' : 'Direct messages have been disabled. Others cannot send you messages, but you can still message them.', enabled ? 'success' : 'info');
+  toast(enabled ? 'Direct messages are now on. Others can message you privately.' : 'Direct messages are off. Others can no longer message you, but you can still message them.', enabled ? 'success' : 'info');
   saveProfileNow(true);
 });
 

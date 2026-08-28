@@ -1,29 +1,14 @@
-# Hellobye Chat — Fix: red badge not showing for @lore (closedDMs suppressing it)
+# Hellobye Chat — Badge clear on click + polish 3 toasts
 
-## Root cause (FOUND)
-- @lore has closedDMs = ['test','snd_1787944754183_b','tst_1787943910896_a']
-- Server /api/dm-conversations SKIPS closed conversations (server.js:1319)
-  → conversation + unread count excluded from red badge
-- Client dm-receive optimistically shows badge, then loadDMConversations()
-  overwrites with server data → badge disappears for closed convos
-- So a new DM to @lore (who closed that convo) never surfaces a red badge
-
-## Fix
-- [ ] Server: auto-reopen a conversation for the RECIPIENT when a new DM
-      arrives (remove sender from recipient's closedDMs) so new messages
-      always surface the conversation + red badge, regardless of prior close
-- [ ] Also clean stale closedDMs entries (non-existent users) for all users
-      on startup (defensive)
-- [ ] Client: ensure loadDMConversations() doesn't wipe optimistic unread
-      badge prematurely (keep unread count for newly-reopened convos)
-
-## Data fix (no wipe)
-- [ ] In live db.json: clear @lore's stale closedDMs (test/snd/tst entries)
-      so the badge works immediately for existing conversations
-- [ ] Push updated db.json to GitHub backup repo (tiahhwashere/hellobye-chat-data)
-- [ ] Do NOT delete any users / messages / dms
+## Tasks (DONE)
+- [x] openDM: clear unread badge IMMEDIATELY/optimistically on click (before server round-trip)
+- [x] Badge only reappears when the other user sends a new DM (dm-receive) — already works
+- [x] Polished "Conversation closed" toast -> "Conversation closed. Reopen it anytime by right-clicking the Messages tab."
+- [x] Polished "Direct messages disabled" toast -> "Direct messages are off. Others can no longer message you, but you can still message them."
+- [x] Polished "Friend requests disabled" toast -> "Friend requests are off. Others can no longer send you friend requests."
+- [x] Syntax check passed (3 script blocks, 0 errors)
 
 ## Deploy
-- [ ] Commit + push code to GitHub master
+- [ ] Commit + push to GitHub master
 - [ ] Render auto-deploy goes live
-- [ ] Verify site online + badge works for @lore & everyone
+- [ ] Verify site online (no data wipe)
