@@ -1591,6 +1591,17 @@ body.loading-session #chat-app.active::after {
 .in-app-notif.persist { border-color: rgba(168,85,247,0.35); }
 .in-app-notif.persist .in-app-notif-badge { animation: notifPulse 1.8s ease-in-out infinite; }
 @keyframes notifPulse { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
+/* DM count pill shown on persistent DM notifications — displays the running
+   number of unread DMs from that user so the recipient sees how many messages
+   were sent (works for friends AND non-friends). */
+.in-app-notif-dm-count {
+  position: absolute; top: 8px; right: 30px; min-width: 18px; height: 18px;
+  padding: 0 5px; border-radius: 9px; font-size: 11px; font-weight: 700;
+  display: none; align-items: center; justify-content: center; line-height: 1;
+  background: #a855f7; color: #fff; box-shadow: 0 1px 4px rgba(168,85,247,0.45);
+}
+.in-app-notif.persist.show-count .in-app-notif-dm-count { display: inline-flex; }
+.in-app-notif.persist.show-count .toast-close { right: 54px; }
 .in-app-notif.reply .in-app-notif-icon { background: rgba(250,204,21,0.15); color: #facc15; }
 .in-app-notif-icon svg { width: 17px; height: 17px; }
 .file-attachment-preview {
@@ -2579,6 +2590,11 @@ body.loading-session #chat-app.active::after {
 .setting-save-btn.danger-btn::before {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.5' stroke-linecap='round'%3E%3Cpath d='M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2'/%3E%3C/svg%3E");
 }
+
+/* Utility: completely hide the ::before checkmark icon on specific buttons.
+   The inline white .save-check SVG and all other styling are untouched. */
+.setting-save-btn.no-checkmark::before,
+.profile-save-btn.no-checkmark::before { display: none !important; }
 
 /* Settings panel specifics */
 .setting-hint { font-size: 12px; color: var(--text-muted); margin-bottom: 10px; line-height: 1.5; }
@@ -4690,10 +4706,10 @@ body.loading-session #chat-app.active::after {
       <div class="members-bg-body">
         <p class="setting-hint">Upload an image or GIF, or paste a URL. Adjust the scale and add a color overlay with opacity to match your style.</p>
         <div class="members-bg-controls">
-          <label class="setting-save-btn" for="members-bg-file" style="cursor:pointer;display:inline-flex;align-items:center;gap:6px;"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Upload</label>
+          <label class="setting-save-btn no-checkmark" for="members-bg-file" style="cursor:pointer;display:inline-flex;align-items:center;gap:6px;"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Upload</label>
           <input type="file" id="members-bg-file" accept="image/*,image/gif" hidden>
-          <button class="setting-save-btn" id="members-bg-url-btn"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>Use URL</button>
-          <button class="setting-save-btn danger-btn" id="members-bg-clear-btn"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>Clear</button>
+          <button class="setting-save-btn no-checkmark" id="members-bg-url-btn"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>Use URL</button>
+          <button class="setting-save-btn no-checkmark danger-btn" id="members-bg-clear-btn"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>Clear</button>
         </div>
         <div class="members-bg-preview" id="members-bg-preview">
           <span class="muted" style="font-size:12px;">No background set</span>
@@ -4715,7 +4731,7 @@ body.loading-session #chat-app.active::after {
             <span class="scale-val" id="members-bg-opacity-val">0%</span>
           </div>
         </div>
-        <button class="setting-save-btn" id="members-bg-save" style="width:100%;margin-top:6px;">Apply Background</button>
+        <button class="setting-save-btn no-checkmark" id="members-bg-save" style="width:100%;margin-top:6px;">Apply Background</button>
       </div>
     </div>
   </div>
@@ -4737,7 +4753,7 @@ body.loading-session #chat-app.active::after {
         </div>
         <div class="members-bg-url-actions">
           <button class="members-bg-url-cancel" id="members-bg-url-cancel">Cancel</button>
-          <button class="setting-save-btn" id="members-bg-url-confirm">Apply URL</button>
+          <button class="setting-save-btn no-checkmark" id="members-bg-url-confirm">Apply URL</button>
         </div>
       </div>
     </div>
@@ -4863,7 +4879,7 @@ body.loading-session #chat-app.active::after {
               <span class="accent-current-label">Current Color</span>
               <span class="accent-current-hex" id="profile-accent-hex">#4a9eff</span>
             </div>
-            <button class="setting-save-btn danger-btn" id="profile-accent-revert">Revert</button>
+            <button class="setting-save-btn no-checkmark danger-btn" id="profile-accent-revert">Revert</button>
           </div>
           <div class="accent-preset-row" id="profile-accent-presets"></div>
         </div>
@@ -4935,7 +4951,7 @@ body.loading-session #chat-app.active::after {
             <div class="identity-meta-row">
               <span class="bio-counter"><span id="displayname-count">0</span> / 32</span>
             </div>
-            <button class="setting-save-btn" id="displayname-save">Update Display Name</button>
+            <button class="setting-save-btn no-checkmark" id="displayname-save">Update Display Name</button>
           </div>
 
           <div class="identity-card">
@@ -4947,7 +4963,7 @@ body.loading-session #chat-app.active::after {
             <div class="identity-field">
               <input type="text" class="form-input" id="new-username-input" placeholder="Enter your new username" spellcheck="false">
             </div>
-            <button class="setting-save-btn" id="username-save">Change Username</button>
+            <button class="setting-save-btn no-checkmark" id="username-save">Change Username</button>
           </div>
 
           <div class="identity-card">
@@ -4962,7 +4978,7 @@ body.loading-session #chat-app.active::after {
             <div class="identity-field">
               <input type="password" class="form-input" id="new-password-input" placeholder="Enter your new password (minimum 6 characters)">
             </div>
-            <button class="setting-save-btn" id="password-save">Reset Password</button>
+            <button class="setting-save-btn no-checkmark" id="password-save">Reset Password</button>
           </div>
         </section>
 
@@ -5043,7 +5059,7 @@ body.loading-session #chat-app.active::after {
             <p class="setting-hint" style="margin-top:0;margin-bottom:14px;">Paste a music link (Spotify, YouTube, SoundCloud, Apple Music, or Deezer) to load a player here.</p>
             <div class="music-link-input-row">
               <input type="text" id="music-link-input" class="music-link-input" placeholder="Paste a Spotify, SoundCloud, YouTube, Apple Music, or Deezer link…" autocomplete="off" spellcheck="false">
-              <button class="setting-save-btn music-load-btn" id="music-load-btn" type="button">Load</button>
+              <button class="setting-save-btn no-checkmark music-load-btn" id="music-load-btn" type="button">Load</button>
               <button class="music-clear-link-btn" id="music-clear-link-btn" type="button" title="Clear the link and remove the saved track">Clear</button>
             </div>
             <div class="music-platform-pills" id="music-platform-pills">
@@ -5137,18 +5153,18 @@ body.loading-session #chat-app.active::after {
             </div>
             <p class="theme-card-hint">Upload an image or GIF, or paste a URL. Adjust scale, position, and appearance to fit your style.</p>
             <div class="custom-bg-controls">
-              <label class="setting-save-btn" for="bg-file-input" style="cursor:pointer;display:inline-block;">Upload Image / GIF</label>
+              <label class="setting-save-btn no-checkmark" for="bg-file-input" style="cursor:pointer;display:inline-block;">Upload Image / GIF</label>
               <input type="file" id="bg-file-input" accept="image/*,image/gif" hidden>
-              <button class="setting-save-btn" id="bg-url-btn">Use URL</button>
-              <button class="setting-save-btn danger-btn" id="bg-revert-btn">Revert Background</button>
+              <button class="setting-save-btn no-checkmark" id="bg-url-btn">Use URL</button>
+              <button class="setting-save-btn no-checkmark danger-btn" id="bg-revert-btn">Revert Background</button>
             </div>
             <div class="custom-bg-preview" id="bg-preview">
               <span class="muted" style="font-size:12px;">No background set</span>
             </div>
             <div class="custom-bg-scale-controls">
               <div class="custom-bg-quick-actions">
-                <button class="setting-save-btn mini-btn" id="bg-fit-btn" type="button">Fit to Screen</button>
-                <button class="setting-save-btn mini-btn" id="bg-reset-adjust-btn" type="button">Reset Adjustments</button>
+                <button class="setting-save-btn no-checkmark mini-btn" id="bg-fit-btn" type="button">Fit to Screen</button>
+                <button class="setting-save-btn no-checkmark mini-btn" id="bg-reset-adjust-btn" type="button">Reset Adjustments</button>
               </div>
               <div class="bg-fit-segmented" id="bg-fit-segmented">
                 <button type="button" data-mode="cover" class="active">
@@ -5212,7 +5228,7 @@ body.loading-session #chat-app.active::after {
                   <span class="accent-preview-bar"></span>
                   <span class="accent-preview-btn">Button</span>
                 </div>
-                <button class="setting-save-btn danger-btn" id="accent-revert-btn">Revert Color</button>
+                <button class="setting-save-btn no-checkmark danger-btn" id="accent-revert-btn">Revert Color</button>
               </div>
               <div class="custom-bg-label">Quick Colors</div>
               <div class="accent-preset-row" id="accent-presets"></div>
@@ -5284,9 +5300,9 @@ body.loading-session #chat-app.active::after {
                   </div>
                 </div>
                 <div class="twosv-actions">
-                  <button class="setting-save-btn" id="twosv-view-code-btn">View Code</button>
-                  <button class="setting-save-btn" id="twosv-regenerate-btn">Regenerate Code</button>
-                  <button class="setting-save-btn danger-btn" id="twosv-revoke-btn">Revoke Trusted Devices</button>
+                  <button class="setting-save-btn no-checkmark" id="twosv-view-code-btn">View Code</button>
+                  <button class="setting-save-btn no-checkmark" id="twosv-regenerate-btn">Regenerate Code</button>
+                  <button class="setting-save-btn no-checkmark danger-btn" id="twosv-revoke-btn">Revoke Trusted Devices</button>
                 </div>
               </div>
             </div>
@@ -5299,7 +5315,7 @@ body.loading-session #chat-app.active::after {
                 <div class="danger-zone-title">Delete Account</div>
                 <p>Permanently delete your account and all associated data. This cannot be undone.</p>
               </div>
-              <button class="setting-save-btn danger-btn" id="delete-account-btn">Delete Account</button>
+              <button class="setting-save-btn no-checkmark danger-btn" id="delete-account-btn">Delete Account</button>
             </div>
           </div>
         </section>
@@ -5315,7 +5331,7 @@ body.loading-session #chat-app.active::after {
             <p style="color:var(--text-muted); margin-bottom:20px;">Enter the admin access code to unlock the Administrator Panel.<br><span style="font-size:11px;">Owner: <strong style="color:var(--text-secondary);">@lore</strong></span></p>
             <div style="max-width:340px; margin:0 auto;">
               <input type="password" id="admin-code-input" class="admin-input" placeholder="Enter access code" autocomplete="off" style="width:100%; text-align:center; letter-spacing:2px; margin-bottom:10px;" />
-              <button class="setting-save-btn" id="admin-code-submit" style="width:100%;">Unlock Panel</button>
+              <button class="setting-save-btn no-checkmark" id="admin-code-submit" style="width:100%;">Unlock Panel</button>
               <p id="admin-code-error" style="color:var(--danger); font-size:12px; margin-top:10px; display:none;"></p>
               <p style="color:var(--text-muted); font-size:11px; margin-top:14px;">Enter the access code to manage users, roles, bans and more.</p>
             </div>
@@ -5341,7 +5357,7 @@ body.loading-session #chat-app.active::after {
                 <p style="color:var(--text-muted); font-size:12px; margin-bottom:12px;">Change the text shown in the chatroom header (currently "welcome - to the safe place"). A 20-second cooldown applies between changes.</p>
                 <div style="display:flex; gap:8px; align-items:center; margin-bottom:8px;">
                   <input type="text" id="admin-welcome-title-input" class="admin-input" placeholder="Enter the new welcome title" maxlength="100" style="flex:1;" />
-                  <button class="setting-save-btn" id="admin-welcome-title-btn">Update Title</button>
+                  <button class="setting-save-btn no-checkmark" id="admin-welcome-title-btn">Update Title</button>
                 </div>
                 <div id="admin-welcome-title-cooldown" style="font-size:11px; color:var(--text-muted); display:none;"></div>
                 <div style="margin-top:8px;">
@@ -5356,7 +5372,7 @@ body.loading-session #chat-app.active::after {
                   <select id="admin-cooldown-exempt-select" class="admin-input" style="flex:1; min-width:200px; padding:8px 10px;">
                     <option value="">— Select a user —</option>
                   </select>
-                  <button class="setting-save-btn" id="admin-cooldown-exempt-add-btn">Exempt User</button>
+                  <button class="setting-save-btn no-checkmark" id="admin-cooldown-exempt-add-btn">Exempt User</button>
                 </div>
                 <div style="margin-top:8px;">
                   <span style="font-size:11px; color:var(--text-muted);">Currently exempt users:</span>
@@ -5397,7 +5413,7 @@ body.loading-session #chat-app.active::after {
                 <p style="color:var(--text-muted); font-size:12px; margin-bottom:12px;">Search for a user by username or ID, then ban them with a reason. Choose a duration from permanent to 14 days.</p>
                 <div class="admin-ban-search-row">
                   <input type="text" id="admin-ban-search" class="admin-input" placeholder="Search by username or ID" />
-                  <button class="setting-save-btn" id="admin-ban-search-btn">Search</button>
+                  <button class="setting-save-btn no-checkmark" id="admin-ban-search-btn">Search</button>
                 </div>
                 <div id="admin-ban-results" class="admin-ban-results"></div>
                 <div id="admin-ban-form" style="display:none; margin-top:16px;">
@@ -5415,7 +5431,7 @@ body.loading-session #chat-app.active::after {
                     </select>
                   </div>
                   <textarea id="admin-ban-reason" class="admin-textarea" placeholder="Enter the ban reason (required)" rows="3"></textarea>
-                  <button class="setting-save-btn danger-btn" id="admin-ban-confirm-btn" style="margin-top:8px;">Ban User</button>
+                  <button class="setting-save-btn no-checkmark danger-btn" id="admin-ban-confirm-btn" style="margin-top:8px;">Ban User</button>
                 </div>
               </div>
               <div class="profile-section">
@@ -5433,7 +5449,7 @@ body.loading-session #chat-app.active::after {
                 <p style="color:var(--text-muted); font-size:12px; margin-bottom:12px;">Mute a user to prevent them from sending messages in public chat. Muted users can still use DMs. Duration can be anywhere from 1 minute to 14 days.</p>
                 <div class="admin-ban-search-row">
                   <input type="text" id="admin-mute-search" class="admin-input" placeholder="Search by username or ID" />
-                  <button class="setting-save-btn" id="admin-mute-search-btn">Search</button>
+                  <button class="setting-save-btn no-checkmark" id="admin-mute-search-btn">Search</button>
                 </div>
                 <div id="admin-mute-results" class="admin-ban-results"></div>
                 <div id="admin-mute-form" style="display:none; margin-top:16px;">
@@ -5456,7 +5472,7 @@ body.loading-session #chat-app.active::after {
                     </select>
                   </div>
                   <textarea id="admin-mute-reason" class="admin-textarea" placeholder="Enter a mute reason (optional)" rows="2"></textarea>
-                  <button class="setting-save-btn" id="admin-mute-confirm-btn" style="margin-top:8px;">Mute User</button>
+                  <button class="setting-save-btn no-checkmark" id="admin-mute-confirm-btn" style="margin-top:8px;">Mute User</button>
                 </div>
               </div>
               <div class="profile-section">
@@ -5474,7 +5490,7 @@ body.loading-session #chat-app.active::after {
                 <p style="color:var(--text-muted); font-size:12px; margin-bottom:12px;">Give a user a role tag that appears next to their username in chat and DMs.</p>
                 <div class="admin-ban-search-row">
                   <input type="text" id="admin-role-search" class="admin-input" placeholder="Search by username or ID" />
-                  <button class="setting-save-btn" id="admin-role-search-btn">Search</button>
+                  <button class="setting-save-btn no-checkmark" id="admin-role-search-btn">Search</button>
                 </div>
                 <div id="admin-role-results" class="admin-ban-results"></div>
                 <div id="admin-role-form" style="display:none; margin-top:16px;">
@@ -5487,7 +5503,7 @@ body.loading-session #chat-app.active::after {
                       <option value="moderator">Moderator</option>
                       <option value="beta_tester">Beta Tester</option>
                     </select>
-                    <button class="setting-save-btn" id="admin-role-confirm-btn">Set Role</button>
+                    <button class="setting-save-btn no-checkmark" id="admin-role-confirm-btn">Set Role</button>
                   </div>
                 </div>
               </div>
@@ -5522,7 +5538,7 @@ body.loading-session #chat-app.active::after {
                 <p style="color:var(--text-muted); font-size:12px; margin-bottom:12px;">View and instantly delete any user's message from the chat. Deleted messages are removed for everyone immediately.</p>
                 <div style="display:flex; gap:8px; margin-bottom:12px; align-items:center;">
                   <input type="text" id="admin-msg-search" class="admin-input" placeholder="Filter by username or message text" style="flex:1;" />
-                  <button class="setting-save-btn" id="admin-msg-refresh-btn">Refresh</button>
+                  <button class="setting-save-btn no-checkmark" id="admin-msg-refresh-btn">Refresh</button>
                 </div>
                 <div style="display:flex; gap:8px; margin-bottom:12px; align-items:center;">
                   <input type="text" id="admin-msg-user-search" class="admin-input" placeholder="Search a specific user's messages (by username)" style="flex:1;" />
@@ -5540,7 +5556,7 @@ body.loading-session #chat-app.active::after {
                 <p style="color:var(--text-muted); font-size:12px; margin-bottom:12px;">Send an announcement that pops up as an alert at the top-center of every connected user's screen for 5 seconds, then fades away. It is not posted into the chat.</p>
                 <textarea id="admin-broadcast-text" class="admin-textarea" placeholder="Type your announcement (maximum 500 characters)" rows="3" maxlength="500"></textarea>
                 <div style="display:flex; gap:10px; align-items:center; margin-top:10px;">
-                  <button class="setting-save-btn" id="admin-broadcast-send-btn">Send Alert to Everyone</button>
+                  <button class="setting-save-btn no-checkmark" id="admin-broadcast-send-btn">Send Alert to Everyone</button>
                   <span id="admin-broadcast-count" style="color:var(--text-muted); font-size:11px;">0 / 500</span>
                 </div>
                 <p style="color:var(--text-muted); font-size:11px; margin-top:10px;">A live preview of how the alert will look:</p>
@@ -5555,7 +5571,7 @@ body.loading-session #chat-app.active::after {
                 <p style="color:var(--text-muted); font-size:12px; margin-bottom:12px;">Users on this list can access the Administrator panel. The owner, <strong style="color:var(--text-secondary);">@lore</strong>, always has access.</p>
                 <div class="admin-ban-search-row">
                   <input type="text" id="admin-whitelist-input" class="admin-input" placeholder="Enter a username to add" />
-                  <button class="setting-save-btn" id="admin-whitelist-add-btn">Add to Whitelist</button>
+                  <button class="setting-save-btn no-checkmark" id="admin-whitelist-add-btn">Add to Whitelist</button>
                 </div>
                 <div id="admin-whitelist-list" class="admin-whitelist-list" style="margin-top:16px;">
                   <p style="color:var(--text-muted); padding:12px 0;">Loading whitelist...</p>
@@ -5571,7 +5587,7 @@ body.loading-session #chat-app.active::after {
                 <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:12px;">
                   <input type="text" id="admin-custom-role-name" class="admin-input" placeholder="Enter a role name" maxlength="30" style="flex:1; min-width:180px;" />
                   <input type="color" id="admin-custom-role-color" value="#818cf8" style="width:40px; height:38px; border:1px solid var(--border-light); border-radius:var(--radius-sm); background:var(--bg-medium); cursor:pointer;" title="Role color" />
-                  <button class="setting-save-btn" id="admin-custom-role-create-btn">Create Role</button>
+                  <button class="setting-save-btn no-checkmark" id="admin-custom-role-create-btn">Create Role</button>
                 </div>
                 <div id="admin-custom-role-preview" style="margin-bottom:16px;"></div>
               </div>
@@ -5910,6 +5926,10 @@ let currentStatus = 'online';
 let currentView = 'public';
 let activeDMUser = null;
 let dmMessages = [];
+// Running count of unread DMs per sender that have triggered a persistent
+// in-app notification. Used to show "N new DMs" on the notification pill and
+// to update an existing notification in place (instead of stacking duplicates).
+let dmNotifCounts = {};
 let dmTypingTimeout = null;
 let isDMTyping = false;
 let editingMessageId = null;
@@ -6087,7 +6107,7 @@ function showInAppNotification(opts) {
   if (!container) return;
   const type = opts.type || 'message';
   const el = document.createElement('div');
-  el.className = 'in-app-notif ' + type + (opts.persist ? ' persist' : '');
+  el.className = 'in-app-notif ' + type + (opts.persist ? ' persist' : '') + (opts.count ? ' show-count' : '');
   const typeIcons = {
     mention: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-4 8"/></svg>',
     message: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>',
@@ -6106,6 +6126,7 @@ function showInAppNotification(opts) {
       (opts.text ? '<div class="in-app-notif-text">' + escapeHtml(String(opts.text).slice(0, 200)) + '</div>' : '') +
       '<div class="in-app-notif-time">' + formatTime(new Date().toISOString()) + '</div>' +
     '</div>' +
+    (opts.count ? '<span class="in-app-notif-dm-count">' + parseInt(opts.count,10) + '</span>' : '') +
     '<span class="toast-close">&times;</span>';
   container.appendChild(el);
   if (opts.username) el.setAttribute('data-notif-username', opts.username);
@@ -6901,7 +6922,7 @@ function prompt2SVPassword(title, message) {
         '<input type="password" class="form-input" id="twosv-prompt-pw" placeholder="Enter your password" autocomplete="current-password" style="width:100%;">' +
       '</div>' +
       '<div style="display:flex;gap:8px;justify-content:flex-end;">' +
-        '<button class="setting-save-btn" id="twosv-prompt-cancel" style="width:auto;margin-top:0;">Cancel</button>' +
+        '<button class="setting-save-btn no-checkmark" id="twosv-prompt-cancel" style="width:auto;margin-top:0;">Cancel</button>' +
         '<button class="btn-primary" id="twosv-prompt-confirm" style="width:auto;padding:10px 20px;">Confirm</button>' +
       '</div>' +
     '</div>';
@@ -6983,7 +7004,8 @@ function showAuth() {
   document.documentElement.classList.remove('has-session');
   authScreen.style.display = 'flex';
   currentUser = null;
-  // Reset auth buttons
+  // Reset DM notification counts on logout so a new session starts fresh.
+  dmNotifCounts = {};
   const sb = $('signin-btn'); if (sb) { sb.disabled = false; sb.textContent = 'Sign In'; }
   const rb = $('signup-btn'); if (rb) { rb.disabled = false; rb.textContent = 'Create Account'; }
   if (socket) { socket.disconnect(); socket = null; }
@@ -7316,15 +7338,49 @@ function connectSocket() {
       playMessageSound();
       const user = users.find(u => u.username === from);
       const name = (user && user.displayName) ? user.displayName : '@' + from;
-      showInAppNotification({
-        title: isPing ? name + ' mentioned you in a DM' : name + ' sent you a DM',
-        text: msg.text || (msg.file ? 'Sent a file' : ''),
-        avatar: user && user.avatar,
-        type: 'dm',
-        username: from,
-        persist: true,
-        onClick: () => openDM(from)
-      });
+      // Track how many unread DMs this sender has produced so we can show a
+      // running count on the persistent notification. This works for friends
+      // AND non-friends — there is no friendship check here, so a DM from
+      // anyone (who isn't blocked / hasn't disabled DMs) still triggers the
+      // notification and still appears in the Messages tab.
+      dmNotifCounts[from] = (dmNotifCounts[from] || 0) + 1;
+      const count = dmNotifCounts[from];
+      // If a persistent notification for this sender already exists, update it
+      // in place (refresh the preview text + bump the count pill) instead of
+      // stacking a duplicate notification.
+      const container = $('toast-container');
+      const existing = container && container.querySelector('.in-app-notif.persist[data-notif-username="' + CSS.escape(from) + '"]:not(.fade-out)');
+      if (existing) {
+        const txtEl = existing.querySelector('.in-app-notif-text');
+        if (txtEl) txtEl.textContent = String(msg.text || (msg.file ? 'Sent a file' : '')).slice(0, 200);
+        const titleEl = existing.querySelector('.in-app-notif-title');
+        if (titleEl) titleEl.textContent = isPing ? (name + ' mentioned you in a DM') : (name + ' sent you a DM');
+        const timeEl = existing.querySelector('.in-app-notif-time');
+        if (timeEl) timeEl.textContent = formatTime(new Date().toISOString());
+        let countEl = existing.querySelector('.in-app-notif-dm-count');
+        if (!countEl) {
+          countEl = document.createElement('span');
+          countEl.className = 'in-app-notif-dm-count';
+          existing.appendChild(countEl);
+        }
+        countEl.textContent = count;
+        existing.classList.add('show-count');
+        // Re-trigger the entrance pulse so the updated notification is noticed
+        existing.style.animation = 'none';
+        void existing.offsetWidth;
+        existing.style.animation = '';
+      } else {
+        showInAppNotification({
+          title: isPing ? name + ' mentioned you in a DM' : name + ' sent you a DM',
+          text: msg.text || (msg.file ? 'Sent a file' : ''),
+          avatar: user && user.avatar,
+          type: 'dm',
+          username: from,
+          persist: true,
+          count: count,
+          onClick: () => openDM(from)
+        });
+      }
     }
     loadDMConversations();
   });
@@ -9224,6 +9280,9 @@ async function openDM(username) {
   // Dismiss any persistent DM notifications from this user now that the
   // conversation is being opened (the unread badge also clears via mark-read).
   dismissNotifsForUser(username);
+  // Clear the running DM notification count for this sender now that the
+  // conversation is being opened (the unread badge also clears via mark-read).
+  if (dmNotifCounts) delete dmNotifCounts[username];
   const u = getUserByUsername(username);
   $('dm-overlay').classList.add('show');
   updateDMHeader();
@@ -13588,7 +13647,7 @@ function renderAdminBannedList() {
         '<div class="admin-banned-item-name">@' + escapeHtml(u.username) + ' (' + escapeHtml(u.displayName || u.username) + ')</div>' +
         '<div class="admin-banned-item-reason">' + durLine + '</div>' +
       '</div>' +
-      '<button class="setting-save-btn" onclick="adminUnbanUser(\'' + escapeHtml(u.username) + '\')">Unban</button>' +
+      '<button class="setting-save-btn no-checkmark" onclick="adminUnbanUser(\'' + escapeHtml(u.username) + '\')">Unban</button>' +
     '</div>';
   }).join('');
 }
@@ -13611,7 +13670,7 @@ function renderAdminWhitelist() {
   for (const un of whitelist) {
     if (ownerUser && un === ownerUser.username) continue;
     if (un === ownerName) continue;
-    html += '<div class="admin-whitelist-item"><span class="admin-whitelist-item-name">@' + escapeHtml(un) + '</span><button class="setting-save-btn danger-btn" style="padding:4px 10px; font-size:11px;" onclick="adminWhitelistRemove(\'' + escapeHtml(un) + '\')">Remove</button></div>';
+    html += '<div class="admin-whitelist-item"><span class="admin-whitelist-item-name">@' + escapeHtml(un) + '</span><button class="setting-save-btn no-checkmark danger-btn" style="padding:4px 10px; font-size:11px;" onclick="adminWhitelistRemove(\'' + escapeHtml(un) + '\')">Remove</button></div>';
   }
   container.innerHTML = html;
 }
@@ -13797,7 +13856,7 @@ function renderAdminMutedList() {
         '<div class="admin-banned-item-name">@' + escapeHtml(u.username) + ' (' + escapeHtml(u.displayName || u.username) + ')</div>' +
         '<div class="admin-banned-item-reason">Reason: ' + escapeHtml(u.muteReason || 'N/A') + ' — Time remaining: ' + remText + (u.mutedBy ? ' — Muted by @' + escapeHtml(u.mutedBy) : '') + '</div>' +
       '</div>' +
-      '<button class="setting-save-btn" onclick="adminUnmuteUser(\'' + escapeHtml(u.username) + '\')">Unmute</button>' +
+      '<button class="setting-save-btn no-checkmark" onclick="adminUnmuteUser(\'' + escapeHtml(u.username) + '\')">Unmute</button>' +
     '</div>';
   }).join('');
 }
@@ -14139,11 +14198,11 @@ function renderAdminCustomRoles() {
           '<span style="font-size:14px; font-weight:600; color:' + escapeHtml(role.color || '#818cf8') + ';">' + escapeHtml(role.name) + '</span>' +
           '<span style="font-size:11px; color:var(--text-muted);">' + members.length + '/30 members</span>' +
         '</div>' +
-        '<button class="setting-save-btn danger-btn" style="padding:4px 10px; font-size:11px;" onclick="adminRemoveCustomRole(&apos;' + escapeHtml(role.id) + '&apos;)">Delete Role</button>' +
+        '<button class="setting-save-btn no-checkmark danger-btn" style="padding:4px 10px; font-size:11px;" onclick="adminRemoveCustomRole(&apos;' + escapeHtml(role.id) + '&apos;)">Delete Role</button>' +
       '</div>' +
       '<div style="display:flex; gap:8px; align-items:center; margin-top:8px;">' +
         '<input type="text" class="admin-input" placeholder="Add a username to this role" style="flex:1; font-size:12px;" id="custom-role-add-input-' + escapeHtml(role.id) + '" />' +
-        '<button class="setting-save-btn" style="padding:6px 12px; font-size:11px;" onclick="adminAddCustomRoleMember(&apos;' + escapeHtml(role.id) + '&apos;)">Add</button>' +
+        '<button class="setting-save-btn no-checkmark" style="padding:6px 12px; font-size:11px;" onclick="adminAddCustomRoleMember(&apos;' + escapeHtml(role.id) + '&apos;)">Add</button>' +
       '</div>' +
       memberListHtml +
     '</div>';
