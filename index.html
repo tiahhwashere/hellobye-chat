@@ -405,11 +405,18 @@ body.loading-session #chat-app.active::after {
   flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px;
   padding: 10px 4px; border-radius: var(--radius-sm);
   color: var(--text-muted); font-size: 10px; font-weight: 500;
-  transition: var(--transition); position: relative;
+  transition: background var(--transition), color var(--transition); position: relative;
 }
-.sidebar-nav-btn svg { width: 20px; height: 20px; }
+.sidebar-nav-btn svg { width: 20px; height: 20px; transition: transform 0.22s cubic-bezier(0.34,1.56,0.64,1); }
 .sidebar-nav-btn:hover { background: var(--bg-medium); color: var(--text-secondary); }
+.sidebar-nav-btn:hover svg { transform: translateY(-1px); }
 .sidebar-nav-btn.active { background: var(--bg-medium); color: var(--accent); }
+.sidebar-nav-btn.active svg { animation: navIconPop 0.32s cubic-bezier(0.34,1.56,0.64,1); }
+@keyframes navIconPop {
+  0% { transform: scale(0.82); }
+  55% { transform: scale(1.12); }
+  100% { transform: scale(1); }
+}
 .nav-badge {
   position: absolute; top: 4px; right: calc(50% - 22px);
   background: var(--danger); color: #fff;
@@ -430,7 +437,11 @@ body.loading-session #chat-app.active::after {
 .sidebar-search input::placeholder { color: var(--text-muted); }
 
 .sidebar-view { flex: 1; overflow-y: auto; display: none; }
-.sidebar-view.active { display: block; }
+.sidebar-view.active { display: block; animation: sidebarViewIn 0.26s cubic-bezier(0.16,1,0.3,1); }
+@keyframes sidebarViewIn {
+  from { opacity: 0; transform: translateX(8px); }
+  to { opacity: 1; transform: translateX(0); }
+}
 
 .user-list { padding: 4px 8px 12px; }
 .user-list-section-label {
@@ -469,7 +480,7 @@ body.loading-session #chat-app.active::after {
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .user-displayname { color: var(--text-primary); font-weight: 600; }
-.user-handle { color: var(--text-muted); font-weight: 400; font-size: 12px; }
+.user-handle { color: var(--text-primary); font-weight: 400; font-size: 12px; opacity: 0.82; }
 .user-status-text {
   font-size: 11px; color: var(--text-muted); margin-top: 1px;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
@@ -598,7 +609,7 @@ body.loading-session #chat-app.active::after {
   display: flex; align-items: center; gap: 6px;
 }
 .sender-displayname { color: var(--text-primary); font-weight: 600; font-size: 13px; }
-.sender-handle { color: var(--text-muted); font-size: 11.5px; }
+.sender-handle { color: var(--text-primary); font-size: 11.5px; opacity: 0.78; font-weight: 500; }
 
 .message-bubble {
   background: var(--bg-medium); padding: 11px 16px;
@@ -875,25 +886,31 @@ body.loading-session #chat-app.active::after {
 
 /* 2SV settings section in Data & Privacy tab — refined, consistent with site */
 .twosv-settings-card {
-  background: var(--bg-medium); border: 1px solid var(--border);
-  border-radius: var(--radius); padding: 20px;
+  background: linear-gradient(180deg, var(--bg-medium) 0%, #1a1d22 100%);
+  border: 1px solid var(--border); border-radius: var(--radius); padding: 20px;
 }
 .twosv-status-row {
   display: flex; align-items: center; gap: 13px; padding-bottom: 18px;
   margin-bottom: 18px; border-bottom: 1px solid var(--border-light);
 }
 .twosv-status-icon {
-  width: 38px; height: 38px; border-radius: var(--radius-sm); flex-shrink: 0;
+  width: 40px; height: 40px; border-radius: var(--radius-sm); flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
   transition: var(--transition);
 }
-.twosv-status-icon.enabled { background: rgba(34,197,94,0.08); color: #22c55e; }
-.twosv-status-icon.disabled { background: var(--bg-darker); color: var(--text-muted); }
+.twosv-status-icon.enabled {
+  background: rgba(74,158,255,0.1); color: var(--accent);
+  border: 1px solid rgba(74,158,255,0.22);
+}
+.twosv-status-icon.disabled {
+  background: var(--bg-darker); color: var(--text-muted);
+  border: 1px solid var(--border);
+}
 .twosv-status-text { flex: 1; }
 .twosv-status-label { font-size: 13px; font-weight: 600; color: var(--text-primary); }
 .twosv-status-desc { font-size: 11.5px; color: var(--text-muted); margin-top: 2px; line-height: 1.5; }
 .twosv-code-display {
-  background: var(--bg-darker); border: 1px solid var(--border);
+  background: var(--bg-darkest); border: 1px solid var(--border);
   border-radius: var(--radius-sm); padding: 16px; margin-bottom: 14px;
 }
 .twosv-code-label {
@@ -909,14 +926,15 @@ body.loading-session #chat-app.active::after {
   word-break: break-all; line-height: 1.5;
 }
 .twosv-code-warning {
-  font-size: 11.5px; color: #c9a635; margin-top: 11px;
+  font-size: 11.5px; color: var(--text-secondary); margin-top: 11px;
   display: flex; align-items: flex-start; gap: 7px; line-height: 1.5;
 }
+.twosv-code-warning svg { color: var(--text-muted); }
 .twosv-code-meta {
   display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap;
 }
 .twosv-meta-item {
-  background: var(--bg-darker); border: 1px solid var(--border);
+  background: var(--bg-darkest); border: 1px solid var(--border);
   border-radius: var(--radius-sm); padding: 10px 14px; flex: 1; min-width: 110px;
 }
 .twosv-meta-label {
@@ -1245,51 +1263,135 @@ body.loading-session #chat-app.active::after {
 #members-bg-modal {
   position: fixed; inset: 0; z-index: 280; display: none;
   align-items: center; justify-content: center; padding: 20px;
-  background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);
+  background: rgba(0,0,0,0.62); backdrop-filter: blur(8px);
 }
 #members-bg-modal.open { display: flex; animation: fadeIn 0.18s ease; }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 .members-bg-card {
-  width: min(480px, 100%); max-height: 90vh; overflow-y: auto;
-  background: var(--bg-dark); border: 1px solid var(--border-light);
-  border-radius: 16px; box-shadow: var(--shadow-lg);
-  animation: cardIn 0.2s cubic-bezier(0.16,1,0.3,1);
+  width: min(500px, 100%); max-height: 90vh; overflow-y: auto;
+  background: linear-gradient(180deg, var(--bg-dark) 0%, #141619 100%);
+  border: 1px solid var(--border-light); border-radius: 14px;
+  box-shadow: 0 24px 70px rgba(0,0,0,0.55), 0 1px 0 rgba(255,255,255,0.04) inset;
+  animation: cardIn 0.22s cubic-bezier(0.16,1,0.3,1);
 }
-@keyframes cardIn { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
+@keyframes cardIn { from { opacity: 0; transform: scale(0.96) translateY(6px); } to { opacity: 1; transform: scale(1) translateY(0); } }
 .members-bg-head {
-  padding: 18px 20px 14px; border-bottom: 1px solid var(--border);
+  padding: 20px 22px 16px; border-bottom: 1px solid var(--border);
   display: flex; align-items: center; gap: 10px;
+  background: linear-gradient(180deg, rgba(74,158,255,0.045) 0%, transparent 100%);
 }
 .members-bg-head h3 {
-  font-size: 16px; font-weight: 700; color: var(--text-primary); margin: 0; flex: 1;
-  display: flex; align-items: center; gap: 8px;
+  font-size: 15.5px; font-weight: 600; color: var(--text-primary); margin: 0; flex: 1;
+  display: flex; align-items: center; gap: 9px; letter-spacing: -0.1px;
 }
-.members-bg-head h3 svg { width: 19px; height: 19px; color: var(--accent); }
-.members-bg-body { padding: 18px 20px; }
-.members-bg-body .setting-hint { font-size: 12.5px; color: var(--text-muted); margin: 0 0 16px; line-height: 1.5; }
-.members-bg-controls { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+.members-bg-head h3 svg { width: 18px; height: 18px; color: var(--text-secondary); stroke-width: 1.8; }
+.members-bg-body { padding: 20px 22px 22px; }
+.members-bg-body .setting-hint { font-size: 12px; color: var(--text-muted); margin: 0 0 18px; line-height: 1.55; }
+.members-bg-controls { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
 .members-bg-preview {
-  width: 100%; height: 160px; border-radius: 10px;
-  background: var(--bg-darkest); border: 1px solid var(--border);
+  width: 100%; height: 170px; border-radius: 12px;
+  background:
+    linear-gradient(135deg, #0c0e11 25%, transparent 25%),
+    linear-gradient(225deg, #0c0e11 25%, transparent 25%),
+    linear-gradient(45deg, #0c0e11 25%, transparent 25%),
+    linear-gradient(315deg, #0c0e11 25%, #0a0b0d 25%);
+  background-position: 12px 0, 12px 0, 0 0, 0 0;
+  background-size: 24px 24px;
+  background-color: #131519;
+  border: 1px solid var(--border);
   display: flex; align-items: center; justify-content: center;
-  overflow: hidden; position: relative; margin-bottom: 16px;
+  overflow: hidden; position: relative; margin-bottom: 18px;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.3);
 }
 .members-bg-preview img { width: 100%; height: 100%; object-fit: contain; }
+.members-bg-preview .muted { color: var(--text-muted); }
+.members-bg-section-label {
+  font-size: 10px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.7px; color: var(--text-muted);
+  margin: 0 0 9px; display: flex; align-items: center; gap: 6px;
+}
+.members-bg-section-label::before {
+  content: ''; width: 3px; height: 11px; border-radius: 2px;
+  background: var(--accent); opacity: 0.7;
+}
+.members-bg-slider-block {
+  background: var(--bg-darker); border: 1px solid var(--border);
+  border-radius: 10px; padding: 14px 15px; margin-bottom: 12px;
+}
 .members-bg-scale-row {
-  display: flex; align-items: center; gap: 10px; margin-bottom: 14px;
+  display: flex; align-items: center; gap: 12px;
 }
-.members-bg-scale-row label { font-size: 12.5px; color: var(--text-secondary); flex-shrink: 0; min-width: 50px; }
-.members-bg-scale-row input[type=range] { flex: 1; accent-color: var(--accent); }
-.members-bg-scale-row .scale-val { font-size: 12px; color: var(--text-muted); min-width: 36px; text-align: right; }
+.members-bg-scale-row label { font-size: 12px; color: var(--text-secondary); flex-shrink: 0; min-width: 48px; font-weight: 500; }
+.members-bg-scale-row input[type=range] { flex: 1; accent-color: var(--accent); height: 4px; }
+.members-bg-scale-row .scale-val {
+  font-size: 11.5px; color: var(--text-secondary); min-width: 40px; text-align: right;
+  font-variant-numeric: tabular-nums; font-weight: 600;
+  background: var(--bg-medium); padding: 3px 7px; border-radius: 5px;
+  border: 1px solid var(--border);
+}
 .members-bg-color-row {
-  display: flex; align-items: center; gap: 10px; margin-bottom: 16px;
+  display: flex; align-items: center; gap: 12px;
 }
-.members-bg-color-row label { font-size: 12.5px; color: var(--text-secondary); flex-shrink: 0; min-width: 50px; }
+.members-bg-color-row label { font-size: 12px; color: var(--text-secondary); flex-shrink: 0; min-width: 48px; font-weight: 500; }
 .members-bg-color-row input[type=color] {
-  width: 38px; height: 38px; border: 1px solid var(--border); border-radius: 8px;
-  background: transparent; cursor: pointer; padding: 2px;
+  width: 34px; height: 34px; border: 1px solid var(--border); border-radius: 7px;
+  background: transparent; cursor: pointer; padding: 2px; flex-shrink: 0;
+  transition: border-color 0.18s ease;
 }
-.members-bg-color-row input[type=range] { flex: 1; accent-color: var(--accent); }
+.members-bg-color-row input[type=color]:hover { border-color: var(--border-light); }
+.members-bg-color-row input[type=range] { flex: 1; accent-color: var(--accent); height: 4px; }
+
+/* ---- URL input sub-modal (polished) ---- */
+.members-bg-url-modal {
+  position: fixed; inset: 0; z-index: 300; display: none;
+  align-items: center; justify-content: center; padding: 20px;
+  background: rgba(0,0,0,0.5); backdrop-filter: blur(3px);
+}
+.members-bg-url-modal.open { display: flex; animation: fadeIn 0.16s ease; }
+.members-bg-url-card {
+  width: min(440px, 100%); background: var(--bg-dark);
+  border: 1px solid var(--border-light); border-radius: 13px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.04) inset;
+  animation: cardIn 0.2s cubic-bezier(0.16,1,0.3,1); overflow: hidden;
+}
+.members-bg-url-head {
+  padding: 17px 20px 13px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 10px;
+}
+.members-bg-url-head h4 {
+  font-size: 14px; font-weight: 600; color: var(--text-primary); margin: 0; flex: 1;
+  display: flex; align-items: center; gap: 8px; letter-spacing: -0.1px;
+}
+.members-bg-url-head h4 svg { width: 16px; height: 16px; color: var(--text-secondary); stroke-width: 1.8; }
+.members-bg-url-body { padding: 18px 20px 20px; }
+.members-bg-url-body .url-hint { font-size: 11.5px; color: var(--text-muted); margin: 0 0 12px; line-height: 1.5; }
+.members-bg-url-input-wrap {
+  position: relative; display: flex; align-items: center;
+  background: var(--bg-darkest); border: 1px solid var(--border);
+  border-radius: 9px; transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+.members-bg-url-input-wrap:focus-within {
+  border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow);
+}
+.members-bg-url-input-wrap .url-input-icon {
+  width: 38px; height: 40px; display: flex; align-items: center; justify-content: center;
+  color: var(--text-muted); flex-shrink: 0;
+}
+.members-bg-url-input-wrap .url-input-icon svg { width: 16px; height: 16px; }
+.members-bg-url-input {
+  flex: 1; background: transparent; border: none; outline: none;
+  padding: 11px 12px 11px 0; font-size: 13px; color: var(--text-primary);
+  font-family: 'SF Mono', 'Monaco', 'Cascadia Code', monospace;
+}
+.members-bg-url-input::placeholder { color: var(--text-muted); font-family: inherit; }
+.members-bg-url-actions { display: flex; gap: 8px; margin-top: 14px; }
+.members-bg-url-actions .setting-save-btn { width: auto; margin-top: 0; flex: 1; }
+.members-bg-url-cancel {
+  flex: 0 0 auto; padding: 10px 16px; font-size: 12.5px; font-weight: 500;
+  background: transparent; color: var(--text-secondary); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); cursor: pointer; transition: var(--transition);
+}
+.members-bg-url-cancel:hover { color: var(--text-primary); border-color: var(--border-light); background: var(--bg-darker); }
 
 /* ---- Better save button UI (task k) ---- */
 .profile-save-btn.saved {
@@ -4446,7 +4548,7 @@ body.loading-session #chat-app.active::after {
       <div class="members-bg-body">
         <p class="setting-hint">Upload an image or GIF, or paste a URL. Adjust the scale and add a color overlay with opacity to match your style.</p>
         <div class="members-bg-controls">
-          <label class="setting-save-btn" for="members-bg-file" style="cursor:pointer;display:inline-block;">Upload Image / GIF</label>
+          <label class="setting-save-btn" for="members-bg-file" style="cursor:pointer;display:inline-flex;align-items:center;gap:6px;">Upload Image / GIF</label>
           <input type="file" id="members-bg-file" accept="image/*,image/gif" hidden>
           <button class="setting-save-btn" id="members-bg-url-btn">Use URL</button>
           <button class="setting-save-btn danger-btn" id="members-bg-clear-btn">Clear</button>
@@ -4454,18 +4556,47 @@ body.loading-session #chat-app.active::after {
         <div class="members-bg-preview" id="members-bg-preview">
           <span class="muted" style="font-size:12px;">No background set</span>
         </div>
-        <div class="members-bg-scale-row">
-          <label>Scale</label>
-          <input type="range" id="members-bg-scale" min="50" max="300" value="100" step="5">
-          <span class="scale-val" id="members-bg-scale-val">100%</span>
+        <div class="members-bg-slider-block">
+          <div class="members-bg-section-label">Image Scale</div>
+          <div class="members-bg-scale-row">
+            <label>Size</label>
+            <input type="range" id="members-bg-scale" min="50" max="300" value="100" step="5">
+            <span class="scale-val" id="members-bg-scale-val">100%</span>
+          </div>
         </div>
-        <div class="members-bg-color-row">
-          <label>Overlay</label>
-          <input type="color" id="members-bg-color" value="#0a0b0d">
-          <input type="range" id="members-bg-opacity" min="0" max="100" value="0" step="5">
-          <span class="scale-val" id="members-bg-opacity-val">0%</span>
+        <div class="members-bg-slider-block">
+          <div class="members-bg-section-label">Color Overlay</div>
+          <div class="members-bg-color-row">
+            <label>Tint</label>
+            <input type="color" id="members-bg-color" value="#0a0b0d">
+            <input type="range" id="members-bg-opacity" min="0" max="100" value="0" step="5">
+            <span class="scale-val" id="members-bg-opacity-val">0%</span>
+          </div>
         </div>
-        <button class="setting-save-btn" id="members-bg-save" style="width:100%;">Apply Background</button>
+        <button class="setting-save-btn" id="members-bg-save" style="width:100%;margin-top:6px;">Apply Background</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== MEMBERS BG URL SUB-MODAL ===================== -->
+  <div class="members-bg-url-modal" id="members-bg-url-modal">
+    <div class="members-bg-url-card">
+      <div class="members-bg-url-head">
+        <h4><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg> Paste an image or GIF URL</h4>
+        <button class="search-msg-close" id="members-bg-url-close" title="Close">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="members-bg-url-body">
+        <p class="url-hint">Paste a direct link to an image or GIF. The preview above will update once applied.</p>
+        <div class="members-bg-url-input-wrap">
+          <span class="url-input-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></span>
+          <input type="text" class="members-bg-url-input" id="members-bg-url-input" placeholder="https://example.com/image.gif" autocomplete="off" spellcheck="false">
+        </div>
+        <div class="members-bg-url-actions">
+          <button class="members-bg-url-cancel" id="members-bg-url-cancel">Cancel</button>
+          <button class="setting-save-btn" id="members-bg-url-confirm">Apply URL</button>
+        </div>
       </div>
     </div>
   </div>
@@ -8183,7 +8314,20 @@ document.querySelectorAll('.sidebar-nav-btn').forEach(btn => {
 });
 function switchSidebarView(view) {
   currentView = view;
-  document.querySelectorAll('.sidebar-nav-btn').forEach(b => b.classList.toggle('active', b.dataset.view === view));
+  document.querySelectorAll('.sidebar-nav-btn').forEach(b => {
+    const wasActive = b.classList.contains('active');
+    b.classList.toggle('active', b.dataset.view === view);
+    // re-trigger the icon pop animation on the newly-activated button
+    if (!wasActive && b.classList.contains('active')) {
+      const svg = b.querySelector('svg');
+      if (svg) {
+        svg.style.animation = 'none';
+        // force reflow so the animation restarts
+        void svg.offsetWidth;
+        svg.style.animation = '';
+      }
+    }
+  });
   document.querySelectorAll('.sidebar-view').forEach(v => v.classList.remove('active'));
   if (view === 'public') $('view-public').classList.add('active');
   else if (view === 'dms') { $('view-dms').classList.add('active'); loadDMConversations(); }
@@ -10341,6 +10485,7 @@ function applyMembersBg() {
   const sidebar = document.querySelector('.sidebar');
   if (!sidebar) return;
   const userList = sidebar.querySelector('.user-list');
+  const footer = sidebar.querySelector('.sidebar-footer');
   const { url, scale, color, opacity } = membersBgState;
   if (url) {
     sidebar.style.setProperty('--members-bg-image', 'url("' + url + '")');
@@ -10367,6 +10512,31 @@ function applyMembersBg() {
       overlay.style.opacity = (opacity / 100);
     });
     document.querySelectorAll('.sidebar-view > *').forEach(el => { el.style.position = 'relative'; el.style.zIndex = '1'; });
+    // ---- Also apply to the profile footer (bottom-left) ----
+    if (footer) {
+      footer.style.backgroundImage = 'var(--members-bg-image)';
+      footer.style.backgroundSize = 'var(--members-bg-size)';
+      footer.style.backgroundPosition = 'center';
+      footer.style.backgroundRepeat = 'no-repeat';
+      footer.style.position = 'relative';
+      footer.style.backdropFilter = 'none';
+      footer.style.webkitBackdropFilter = 'none';
+      let foverlay = footer.querySelector('.members-bg-overlay');
+      if (!foverlay) {
+        foverlay = document.createElement('div');
+        foverlay.className = 'members-bg-overlay';
+        foverlay.style.cssText = 'position:absolute;inset:0;pointer-events:none;z-index:0;';
+        footer.insertBefore(foverlay, footer.firstChild);
+      }
+      foverlay.style.background = color;
+      foverlay.style.opacity = (opacity / 100);
+      // ensure footer content sits above overlay
+      Array.from(footer.children).forEach(el => {
+        if (!el.classList.contains('members-bg-overlay')) {
+          el.style.position = 'relative'; el.style.zIndex = '1';
+        }
+      });
+    }
   } else {
     document.querySelectorAll('.sidebar-view').forEach(v => {
       v.style.backgroundImage = '';
@@ -10374,6 +10544,12 @@ function applyMembersBg() {
       const overlay = v.querySelector('.members-bg-overlay');
       if (overlay) overlay.remove();
     });
+    if (footer) {
+      footer.style.backgroundImage = '';
+      footer.style.backgroundSize = '';
+      const foverlay = footer.querySelector('.members-bg-overlay');
+      if (foverlay) foverlay.remove();
+    }
   }
 }
 // Add the members-bg button next to the Blocked button — inserted via JS to ensure placement
@@ -10442,10 +10618,31 @@ $('members-bg-file').addEventListener('change', (e) => {
   reader.onload = () => { membersBgState.url = reader.result; updateMembersBgPreview(); };
   reader.readAsDataURL(file);
 });
-$('members-bg-url-btn').addEventListener('click', () => {
-  const url = prompt('Paste an image or GIF URL:');
-  if (url && url.trim()) { membersBgState.url = url.trim(); updateMembersBgPreview(); }
-});
+// ---- URL sub-modal (replaces native prompt) ----
+(function setupMembersBgUrlModal() {
+  const modal = $('members-bg-url-modal');
+  const input = $('members-bg-url-input');
+  function open() {
+    input.value = (typeof membersBgState.url === 'string' && !membersBgState.url.startsWith('data:')) ? membersBgState.url : '';
+    modal.classList.add('open');
+    setTimeout(() => { input.focus(); input.select(); }, 60);
+  }
+  function close() { modal.classList.remove('open'); }
+  $('members-bg-url-btn').addEventListener('click', open);
+  $('members-bg-url-close').addEventListener('click', close);
+  $('members-bg-url-cancel').addEventListener('click', close);
+  modal.addEventListener('click', (e) => { if (e.target === modal) close(); });
+  function confirm() {
+    const url = (input.value || '').trim();
+    if (!url) { toast('Please enter a URL', 'error'); input.focus(); return; }
+    membersBgState.url = url; updateMembersBgPreview(); close();
+  }
+  $('members-bg-url-confirm').addEventListener('click', confirm);
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); confirm(); }
+    else if (e.key === 'Escape') { e.preventDefault(); close(); }
+  });
+})();
 $('members-bg-clear-btn').addEventListener('click', () => {
   membersBgState = { url: null, scale: 100, color: '#0a0b0d', opacity: 0 };
   updateMembersBgPreview();
