@@ -718,13 +718,13 @@ body.loading-session #chat-app.active::after {
   margin-bottom: 4px; padding: 0 4px;
   display: flex; align-items: center; gap: 6px;
 }
-.sender-displayname { color: var(--text-primary); font-weight: 600; font-size: 13px; }
-.sender-handle { color: var(--text-primary); font-size: 11.5px; opacity: 0.78; font-weight: 500; }
+.sender-displayname { color: var(--text-primary); font-weight: 600; font-size: 14px; }
+.sender-handle { color: var(--text-primary); font-size: 12.5px; opacity: 0.78; font-weight: 500; }
 
 .message-bubble {
-  background: var(--bg-medium); padding: 11px 16px;
+  background: var(--bg-medium); padding: 12px 17px;
   border-radius: 14px 14px 14px 4px;
-  font-size: 14.5px; line-height: 1.5; word-break: break-word; position: relative;
+  font-size: 15.5px; line-height: 1.55; word-break: break-word; position: relative;
   max-width: 100%;
   border: 1px solid var(--border);
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
@@ -745,7 +745,7 @@ body.loading-session #chat-app.active::after {
   background: transparent; border: 1px dashed var(--border-light);
   color: var(--text-muted); font-style: italic; font-size: 13px;
 }
-.message-bubble.dm-bubble { max-width: 640px; }
+.message-bubble.dm-bubble { max-width: 680px; }
 
 .message-text { display: inline; }
 .inline-link { color: inherit; text-decoration: underline; }
@@ -1176,11 +1176,11 @@ body.loading-session #chat-app.active::after {
 .msg-action-btn.danger:hover { background: var(--danger); color: #fff; border-color: var(--danger); }
 
 .message-meta {
-  font-size: 10px; color: var(--text-muted);
+  font-size: 11px; color: var(--text-muted);
   margin-top: 4px; padding: 0 4px;
   display: flex; gap: 6px; align-items: center;
 }
-.message-edited-tag { font-style: italic; opacity: 0.7; font-size: 9.5px; }
+.message-edited-tag { font-style: italic; opacity: 0.7; font-size: 10.5px; }
 
 .edit-input-wrap { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
 .edit-input {
@@ -1276,95 +1276,115 @@ body.loading-session #chat-app.active::after {
 /* ---- Message search panel ---- */
 #search-msg-panel {
   position: fixed; top: 0; right: 0; bottom: 0;
-  width: min(440px, 100vw); z-index: 250;
-  background: var(--bg-darker);
+  width: min(460px, 100vw); z-index: 250;
+  background: linear-gradient(180deg, var(--bg-dark) 0%, var(--bg-darker) 100%);
   border-left: 1px solid var(--border-light);
-  box-shadow: -12px 0 40px rgba(0,0,0,0.4);
+  box-shadow: -16px 0 48px rgba(0,0,0,0.45);
   display: none; flex-direction: column;
   animation: slideInRight 0.22s cubic-bezier(0.16,1,0.3,1);
 }
 #search-msg-panel.open { display: flex; }
 @keyframes slideInRight { from { transform: translateX(100%); } to { transform: translateX(0); } }
 .search-msg-header {
-  padding: 16px 18px 12px; border-bottom: 1px solid var(--border);
+  padding: 18px 20px 14px; border-bottom: 1px solid var(--border);
   display: flex; align-items: center; gap: 10px; flex-shrink: 0;
+  background: linear-gradient(180deg, rgba(74,158,255,0.05) 0%, transparent 100%);
 }
 .search-msg-header h3 {
-  font-size: 15px; font-weight: 700; color: var(--text-primary);
-  display: flex; align-items: center; gap: 8px; margin: 0; flex: 1;
+  font-size: 15.5px; font-weight: 700; color: var(--text-primary);
+  display: flex; align-items: center; gap: 9px; margin: 0; flex: 1;
+  letter-spacing: -0.1px;
 }
-.search-msg-header h3 svg { width: 18px; height: 18px; color: var(--accent); }
+.search-msg-header h3 svg { width: 19px; height: 19px; color: var(--accent); }
 .search-msg-close {
-  width: 30px; height: 30px; border-radius: 8px; border: none;
+  width: 32px; height: 32px; border-radius: 9px; border: 1px solid var(--border);
   background: var(--bg-medium); color: var(--text-muted);
   cursor: pointer; display: flex; align-items: center; justify-content: center;
   transition: var(--transition); flex-shrink: 0;
 }
-.search-msg-close:hover { background: var(--bg-light); color: var(--text-primary); }
+.search-msg-close:hover { background: var(--bg-light); color: var(--text-primary); border-color: var(--border-light); }
 .search-msg-input-wrap {
-  padding: 12px 18px; border-bottom: 1px solid var(--border); flex-shrink: 0;
-  display: flex; gap: 8px; align-items: center;
+  padding: 14px 20px 12px; flex-shrink: 0;
+  display: flex; gap: 0; align-items: center; position: relative;
+}
+.search-msg-input-wrap::before {
+  content: ''; position: absolute; left: 36px; top: 50%; transform: translateY(-50%);
+  width: 16px; height: 16px;
+  background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23646b76' stroke-width='2'><circle cx='11' cy='11' r='8'/><line x1='21' y1='21' x2='16.65' y2='16.65'/></svg>") center/contain no-repeat;
+  pointer-events: none; opacity: 0.85;
 }
 .search-msg-input {
-  flex: 1; padding: 10px 14px; border-radius: 10px;
+  flex: 1; padding: 12px 14px 12px 40px; border-radius: 11px;
   background: var(--bg-medium); border: 1px solid var(--border);
-  color: var(--text-primary); font-size: 13.5px; outline: none;
+  color: var(--text-primary); font-size: 14px; outline: none;
   transition: var(--transition);
 }
-.search-msg-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(74,158,255,0.12); }
+.search-msg-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(74,158,255,0.14); background: var(--bg-dark); }
 .search-msg-input::placeholder { color: var(--text-muted); }
 .search-msg-scope {
-  display: flex; gap: 4px; padding: 0 18px 10px; flex-shrink: 0;
+  display: flex; gap: 6px; padding: 0 20px 12px; flex-shrink: 0;
 }
 .search-msg-scope button {
-  padding: 5px 12px; border-radius: 7px; border: 1px solid var(--border);
+  padding: 7px 15px; border-radius: 8px; border: 1px solid var(--border);
   background: var(--bg-medium); color: var(--text-secondary);
-  font-size: 11.5px; font-weight: 600; cursor: pointer; transition: var(--transition);
+  font-size: 12px; font-weight: 600; cursor: pointer; transition: var(--transition);
+  display: inline-flex; align-items: center; gap: 6px;
 }
+.search-msg-scope button:hover { border-color: var(--border-light); color: var(--text-primary); }
 .search-msg-scope button.active {
   background: var(--accent); color: #fff; border-color: var(--accent);
+  box-shadow: 0 2px 10px rgba(74,158,255,0.25);
 }
 .search-msg-results {
-  flex: 1; overflow-y: auto; padding: 8px 12px 16px;
+  flex: 1; overflow-y: auto; padding: 10px 14px 18px;
   scrollbar-width: thin; scrollbar-color: var(--border) transparent;
 }
 .search-msg-results::-webkit-scrollbar { width: 6px; }
 .search-msg-results::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-.search-msg-empty {
-  text-align: center; padding: 40px 20px; color: var(--text-muted);
-  font-size: 13px; line-height: 1.6;
+.search-msg-results::-webkit-scrollbar-thumb:hover { background: var(--border-light); }
+.search-msg-count {
+  font-size: 11.5px; font-weight: 600; color: var(--text-muted);
+  padding: 2px 4px 10px; letter-spacing: 0.2px;
 }
-.search-msg-empty svg { width: 36px; height: 36px; margin: 0 auto 12px; opacity: 0.4; display: block; }
+.search-msg-count strong { color: var(--text-secondary); font-weight: 700; }
+.search-msg-empty {
+  text-align: center; padding: 56px 24px; color: var(--text-muted);
+  font-size: 13px; line-height: 1.7;
+}
+.search-msg-empty svg { width: 40px; height: 40px; margin: 0 auto 14px; opacity: 0.35; display: block; }
 .search-result-item {
-  padding: 12px 14px; margin-bottom: 8px; border-radius: 10px;
+  padding: 13px 15px; margin-bottom: 10px; border-radius: 11px;
   background: var(--bg-dark); border: 1px solid var(--border);
   cursor: pointer; transition: var(--transition);
+  animation: searchResultIn 0.22s cubic-bezier(0.16,1,0.3,1) both;
 }
+@keyframes searchResultIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
 .search-result-item:hover {
   background: var(--bg-medium); border-color: var(--accent);
-  transform: translateY(-1px); box-shadow: 0 4px 14px rgba(0,0,0,0.2);
+  transform: translateY(-1px); box-shadow: 0 6px 18px rgba(0,0,0,0.22);
 }
 .search-result-head {
-  display: flex; align-items: center; gap: 8px; margin-bottom: 5px;
+  display: flex; align-items: center; gap: 9px; margin-bottom: 6px;
 }
 .search-result-avatar {
-  width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0;
+  width: 24px; height: 24px; border-radius: 50%; flex-shrink: 0;
   background: var(--bg-lighter); display: flex; align-items: center; justify-content: center;
   font-size: 10px; font-weight: 700; color: var(--text-secondary); overflow: hidden;
+  border: 1px solid var(--border);
 }
 .search-result-avatar img { width: 100%; height: 100%; object-fit: cover; }
-.search-result-name { font-size: 12.5px; font-weight: 600; color: var(--text-primary); }
-.search-result-time { font-size: 11px; color: var(--text-muted); margin-left: auto; }
+.search-result-name { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+.search-result-time { font-size: 11px; color: var(--text-muted); margin-left: auto; font-variant-numeric: tabular-nums; }
 .search-result-text {
-  font-size: 13px; color: var(--text-secondary); line-height: 1.45;
+  font-size: 13.5px; color: var(--text-secondary); line-height: 1.5;
   overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
   word-break: break-word;
 }
 .search-result-text mark {
-  background: rgba(250,204,21,0.25); color: #facc15; padding: 0 2px; border-radius: 3px;
+  background: rgba(250,204,21,0.22); color: #facc15; padding: 0 3px; border-radius: 3px; font-weight: 600;
 }
 .search-result-jump {
-  margin-top: 8px; font-size: 11.5px; font-weight: 600; color: var(--accent);
+  margin-top: 9px; font-size: 11.5px; font-weight: 600; color: var(--accent);
   display: flex; align-items: center; gap: 5px;
 }
 .search-result-jump svg { width: 13px; height: 13px; }
@@ -1398,8 +1418,14 @@ body.loading-session #chat-app.active::after {
 .members-bg-body { padding: 20px 22px 22px; }
 .members-bg-body .setting-hint { font-size: 12px; color: var(--text-muted); margin: 0 0 18px; line-height: 1.55; }
 .members-bg-controls { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.members-bg-controls .setting-save-btn {
+  flex: 1; min-width: 110px; justify-content: center; padding: 10px 12px;
+  font-size: 12.5px; font-weight: 600; border-radius: 9px;
+}
+.members-bg-controls .danger-btn { color: var(--danger); border-color: rgba(216,58,58,0.3); }
+.members-bg-controls .danger-btn:hover { background: rgba(216,58,58,0.12); border-color: var(--danger); }
 .members-bg-preview {
-  width: 100%; height: 170px; border-radius: 12px;
+  width: 100%; height: 180px; border-radius: 13px;
   background:
     linear-gradient(135deg, #0c0e11 25%, transparent 25%),
     linear-gradient(225deg, #0c0e11 25%, transparent 25%),
@@ -1411,7 +1437,7 @@ body.loading-session #chat-app.active::after {
   border: 1px solid var(--border);
   display: flex; align-items: center; justify-content: center;
   overflow: hidden; position: relative; margin-bottom: 18px;
-  box-shadow: inset 0 1px 2px rgba(0,0,0,0.3);
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.35);
 }
 .members-bg-preview img { width: 100%; height: 100%; object-fit: contain; }
 .members-bg-preview .muted { color: var(--text-muted); }
@@ -1426,30 +1452,32 @@ body.loading-session #chat-app.active::after {
 }
 .members-bg-slider-block {
   background: var(--bg-darker); border: 1px solid var(--border);
-  border-radius: 10px; padding: 14px 15px; margin-bottom: 12px;
+  border-radius: 12px; padding: 15px 16px; margin-bottom: 12px;
+  transition: border-color 0.18s ease;
 }
+.members-bg-slider-block:hover { border-color: var(--border-light); }
 .members-bg-scale-row {
   display: flex; align-items: center; gap: 12px;
 }
-.members-bg-scale-row label { font-size: 12px; color: var(--text-secondary); flex-shrink: 0; min-width: 48px; font-weight: 500; }
-.members-bg-scale-row input[type=range] { flex: 1; accent-color: var(--accent); height: 4px; }
+.members-bg-scale-row label { font-size: 12.5px; color: var(--text-secondary); flex-shrink: 0; min-width: 46px; font-weight: 600; }
+.members-bg-scale-row input[type=range] { flex: 1; accent-color: var(--accent); height: 5px; cursor: pointer; }
 .members-bg-scale-row .scale-val {
-  font-size: 11.5px; color: var(--text-secondary); min-width: 40px; text-align: right;
-  font-variant-numeric: tabular-nums; font-weight: 600;
-  background: var(--bg-medium); padding: 3px 7px; border-radius: 5px;
+  font-size: 11.5px; color: var(--text-primary); min-width: 46px; text-align: center;
+  font-variant-numeric: tabular-nums; font-weight: 700;
+  background: var(--bg-medium); padding: 4px 8px; border-radius: 6px;
   border: 1px solid var(--border);
 }
 .members-bg-color-row {
   display: flex; align-items: center; gap: 12px;
 }
-.members-bg-color-row label { font-size: 12px; color: var(--text-secondary); flex-shrink: 0; min-width: 48px; font-weight: 500; }
+.members-bg-color-row label { font-size: 12.5px; color: var(--text-secondary); flex-shrink: 0; min-width: 46px; font-weight: 600; }
 .members-bg-color-row input[type=color] {
-  width: 34px; height: 34px; border: 1px solid var(--border); border-radius: 7px;
-  background: transparent; cursor: pointer; padding: 2px; flex-shrink: 0;
-  transition: border-color 0.18s ease;
+  width: 36px; height: 36px; border: 1px solid var(--border); border-radius: 9px;
+  background: transparent; cursor: pointer; padding: 3px; flex-shrink: 0;
+  transition: border-color 0.18s ease, transform 0.18s ease;
 }
-.members-bg-color-row input[type=color]:hover { border-color: var(--border-light); }
-.members-bg-color-row input[type=range] { flex: 1; accent-color: var(--accent); height: 4px; }
+.members-bg-color-row input[type=color]:hover { border-color: var(--border-light); transform: scale(1.05); }
+.members-bg-color-row input[type=range] { flex: 1; accent-color: var(--accent); height: 5px; cursor: pointer; }
 
 /* ---- URL input sub-modal (polished) ---- */
 .members-bg-url-modal {
@@ -1559,6 +1587,10 @@ body.loading-session #chat-app.active::after {
 .in-app-notif.mention .in-app-notif-icon { background: rgba(34,197,94,0.15); color: var(--success); }
 .in-app-notif.message .in-app-notif-icon { background: rgba(74,158,255,0.15); color: var(--accent); }
 .in-app-notif.dm .in-app-notif-icon { background: rgba(168,85,247,0.15); color: #a855f7; }
+/* Persistent (DM) notifications stay until clicked — add a subtle live dot */
+.in-app-notif.persist { border-color: rgba(168,85,247,0.35); }
+.in-app-notif.persist .in-app-notif-badge { animation: notifPulse 1.8s ease-in-out infinite; }
+@keyframes notifPulse { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
 .in-app-notif.reply .in-app-notif-icon { background: rgba(250,204,21,0.15); color: #facc15; }
 .in-app-notif-icon svg { width: 17px; height: 17px; }
 .file-attachment-preview {
@@ -4658,10 +4690,10 @@ body.loading-session #chat-app.active::after {
       <div class="members-bg-body">
         <p class="setting-hint">Upload an image or GIF, or paste a URL. Adjust the scale and add a color overlay with opacity to match your style.</p>
         <div class="members-bg-controls">
-          <label class="setting-save-btn" for="members-bg-file" style="cursor:pointer;display:inline-flex;align-items:center;gap:6px;">Upload Image / GIF</label>
+          <label class="setting-save-btn" for="members-bg-file" style="cursor:pointer;display:inline-flex;align-items:center;gap:6px;"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Upload</label>
           <input type="file" id="members-bg-file" accept="image/*,image/gif" hidden>
-          <button class="setting-save-btn" id="members-bg-url-btn">Use URL</button>
-          <button class="setting-save-btn danger-btn" id="members-bg-clear-btn">Clear</button>
+          <button class="setting-save-btn" id="members-bg-url-btn"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>Use URL</button>
+          <button class="setting-save-btn danger-btn" id="members-bg-clear-btn"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>Clear</button>
         </div>
         <div class="members-bg-preview" id="members-bg-preview">
           <span class="muted" style="font-size:12px;">No background set</span>
@@ -6055,7 +6087,7 @@ function showInAppNotification(opts) {
   if (!container) return;
   const type = opts.type || 'message';
   const el = document.createElement('div');
-  el.className = 'in-app-notif ' + type;
+  el.className = 'in-app-notif ' + type + (opts.persist ? ' persist' : '');
   const typeIcons = {
     mention: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-4 8"/></svg>',
     message: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>',
@@ -6076,6 +6108,7 @@ function showInAppNotification(opts) {
     '</div>' +
     '<span class="toast-close">&times;</span>';
   container.appendChild(el);
+  if (opts.username) el.setAttribute('data-notif-username', opts.username);
   // Store in history (keep last 50)
   notifHistory.unshift({ title: opts.title, text: opts.text, type, avatar: opts.avatar, time: new Date().toISOString(), username: opts.username });
   if (notifHistory.length > 50) notifHistory = notifHistory.slice(0, 50);
@@ -6089,7 +6122,22 @@ function showInAppNotification(opts) {
   el.querySelector('.toast-close').addEventListener('click', (e) => { e.stopPropagation(); dismiss(); });
   if (opts.onClick) el.addEventListener('click', (e) => { if (e.target.classList.contains('toast-close')) return; dismiss(); opts.onClick(); });
   else el.addEventListener('click', dismiss);
-  dismissTimer = setTimeout(dismiss, 5000);
+  // Persistent notifications (e.g. DM alerts) stay visible until the user
+  // clicks them — they do NOT auto-dismiss, so the alert remains in the
+  // Messages tab while other notifications still show alongside it.
+  if (!opts.persist) dismissTimer = setTimeout(dismiss, 5000);
+}
+// Dismiss persistent in-app notifications tied to a given username (e.g. when
+// the user opens that DM conversation). Non-persistent ones are left alone.
+function dismissNotifsForUser(username) {
+  if (!username) return;
+  const container = $('toast-container');
+  if (!container) return;
+  container.querySelectorAll('.in-app-notif.persist[data-notif-username="' + CSS.escape(username) + '"]').forEach(el => {
+    if (el.classList.contains('fade-out')) return;
+    el.classList.add('fade-out');
+    setTimeout(() => el.remove(), 300);
+  });
 }
 function requestNotificationPermission() {
   if (!('Notification' in window)) { toast('Desktop notifications are not supported in this browser.', 'error'); return Promise.resolve(false); }
@@ -7274,6 +7322,7 @@ function connectSocket() {
         avatar: user && user.avatar,
         type: 'dm',
         username: from,
+        persist: true,
         onClick: () => openDM(from)
       });
     }
@@ -7303,7 +7352,13 @@ function connectSocket() {
     }
   });
   socket.on('dm-deleted', (data) => {
-    if (activeDMUser === data.from) {
+    // Recipient: data.from is the other person (matches activeDMUser).
+    // Sender:    data.from is our own username; the active DM is the recipient.
+    // In both cases, if a DM conversation is open that contains this message,
+    // mark it deleted and re-render instantly (no refresh needed).
+    const isRelevant = (activeDMUser === data.from) ||
+                       (currentUser && data.from === currentUser.username && activeDMUser);
+    if (isRelevant) {
       const m = dmMessages.find(x => x.id === data.id);
       if (m) { m.deleted = true; m.text = ''; m.file = null; }
       renderDMMessages();
@@ -9166,6 +9221,9 @@ function attachDMListListeners() {
 }
 async function openDM(username) {
   activeDMUser = username;
+  // Dismiss any persistent DM notifications from this user now that the
+  // conversation is being opened (the unread badge also clears via mark-read).
+  dismissNotifsForUser(username);
   const u = getUserByUsername(username);
   $('dm-overlay').classList.add('show');
   updateDMHeader();
@@ -10521,7 +10579,8 @@ function renderSearchResults(results, q) {
     container.innerHTML = '<div class="search-msg-empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>No messages found for "' + escapeHtml(q) + '"</div>';
     return;
   }
-  container.innerHTML = results.map(r => {
+  const countLabel = results.length + (results.length === 1 ? ' result' : ' results');
+  container.innerHTML = '<div class="search-msg-count">' + escapeHtml(countLabel) + ' for &ldquo;' + escapeHtml(q) + '&rdquo;</div>' + results.map(r => {
     const user = users.find(u => u.username === r.username);
     const avatarInner = (user && user.avatar) ? '<img src="' + user.avatar + '">' : getInitials(r.username);
     const nameDisplay = r.displayName ? escapeHtml(r.displayName) : '@' + escapeHtml(r.username);

@@ -2661,7 +2661,11 @@ io.on('connection', (socket) => {
       found.text = '';
       found.file = null;
       saveDB();
+      // Notify the recipient (other party) ...
       io.to(`user:${found.to}`).emit('dm-deleted', { id: found.id, from: username, deletedAt: found.deletedAt });
+      // ... AND echo back to the sender so their open DM updates instantly
+      // (no refresh / no leaving & re-entering the conversation required).
+      socket.emit('dm-deleted', { id: found.id, from: username, deletedAt: found.deletedAt });
       if (typeof ack === 'function') ack({ success: true });
     } catch (e) {
       if (typeof ack === 'function') ack({ error: 'Failed' });
