@@ -344,6 +344,17 @@ body.loading-session #chat-app.active::after {
 #chat-app.active .sidebar > * {
   transition: opacity 0.2s ease, transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
+/* The persistent members-list background layer must NOT fade/slide with the
+   inner content — it stays put so the background never flashes on toggle. */
+#chat-app.active .sidebar > .members-bg-layer {
+  transition: none;
+  opacity: 1 !important;
+  transform: none !important;
+}
+#chat-app.active.sidebar-collapsed .sidebar > .members-bg-layer {
+  opacity: 1 !important;
+  transform: none !important;
+}
 #chat-app.active.sidebar-collapsed .sidebar {
   opacity: 0;
   transform: translateX(-12px);
@@ -383,6 +394,34 @@ body.loading-session #chat-app.active::after {
   background: var(--bg-darker);
   border-right: 1px solid var(--border);
   overflow: hidden; min-height: 0;
+  position: relative;
+}
+/* Persistent members-list background layer — sits behind all views + footer
+   so tab switches and sidebar toggles never flash/re-render it. */
+.members-bg-layer {
+  position: absolute;
+  left: 0; right: 0;
+  top: 0; bottom: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-position: center;
+  background-repeat: no-repeat;
+  display: none;
+}
+.members-bg-layer.active { display: block; }
+.members-bg-layer .members-bg-img,
+.members-bg-layer .members-bg-overlay {
+  position: absolute; inset: 0;
+}
+.members-bg-layer .members-bg-overlay { z-index: 1; }
+/* Keep header/nav/search/footer/views above the bg layer */
+.sidebar > .sidebar-header,
+.sidebar > .sidebar-nav,
+.sidebar > .sidebar-search,
+.sidebar > .sidebar-view,
+.sidebar > .sidebar-footer {
+  position: relative;
+  z-index: 1;
 }
 .sidebar-header {
   display: flex; align-items: center; gap: 11px;
@@ -426,6 +465,18 @@ body.loading-session #chat-app.active::after {
   align-items: center; justify-content: center;
 }
 .nav-badge.accent { background: var(--accent); }
+
+/* Members List Background nav button — modern, subtle treatment */
+.sidebar-nav-btn[data-action="members-bg"] {
+  color: var(--text-muted);
+}
+.sidebar-nav-btn[data-action="members-bg"].is-open {
+  background: var(--bg-medium);
+  color: var(--accent);
+}
+.sidebar-nav-btn[data-action="members-bg"].is-open svg {
+  animation: navIconPop 0.32s cubic-bezier(0.34,1.56,0.64,1);
+}
 
 .sidebar-search { padding: 10px 12px; }
 .sidebar-search input {
@@ -4540,7 +4591,7 @@ body.loading-session #chat-app.active::after {
   <div id="members-bg-modal">
     <div class="members-bg-card">
       <div class="members-bg-head">
-        <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg> Members List Background</h3>
+        <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg> Members List Background</h3>
         <button class="search-msg-close" id="members-bg-close" title="Close">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
@@ -10484,71 +10535,60 @@ function saveMembersBgState() {
 function applyMembersBg() {
   const sidebar = document.querySelector('.sidebar');
   if (!sidebar) return;
-  const userList = sidebar.querySelector('.user-list');
-  const footer = sidebar.querySelector('.sidebar-footer');
   const { url, scale, color, opacity } = membersBgState;
+  // Ensure a single persistent background layer exists (behind all views + footer)
+  let layer = sidebar.querySelector('.members-bg-layer');
+  if (!layer) {
+    layer = document.createElement('div');
+    layer.className = 'members-bg-layer';
+    layer.innerHTML = '<div class="members-bg-img"></div><div class="members-bg-overlay"></div>';
+    // Insert as the FIRST child so every other element paints above it
+    sidebar.insertBefore(layer, sidebar.firstChild);
+  }
+  const imgEl = layer.querySelector('.members-bg-img');
+  const overlayEl = layer.querySelector('.members-bg-overlay');
   if (url) {
-    sidebar.style.setProperty('--members-bg-image', 'url("' + url + '")');
-    sidebar.style.setProperty('--members-bg-size', (scale / 100 * 100) + '% auto');
-    sidebar.style.setProperty('--members-bg-overlay', color);
-    sidebar.style.setProperty('--members-bg-opacity', (opacity / 100));
-    document.querySelectorAll('.sidebar-view').forEach(v => {
-      v.style.backgroundImage = 'var(--members-bg-image)';
-      v.style.backgroundSize = 'var(--members-bg-size)';
-      v.style.backgroundPosition = 'center';
-      v.style.backgroundRepeat = 'no-repeat';
-      v.style.position = 'relative';
-    });
-    // Add overlay via a pseudo-element workaround: use a box-shadow inset
-    document.querySelectorAll('.sidebar-view').forEach(v => {
-      let overlay = v.querySelector('.members-bg-overlay');
-      if (!overlay) {
-        overlay = document.createElement('div');
-        overlay.className = 'members-bg-overlay';
-        overlay.style.cssText = 'position:absolute;inset:0;pointer-events:none;z-index:0;';
-        v.insertBefore(overlay, v.firstChild);
-      }
-      overlay.style.background = color;
-      overlay.style.opacity = (opacity / 100);
-    });
-    document.querySelectorAll('.sidebar-view > *').forEach(el => { el.style.position = 'relative'; el.style.zIndex = '1'; });
-    // ---- Also apply to the profile footer (bottom-left) ----
-    if (footer) {
-      footer.style.backgroundImage = 'var(--members-bg-image)';
-      footer.style.backgroundSize = 'var(--members-bg-size)';
-      footer.style.backgroundPosition = 'center';
-      footer.style.backgroundRepeat = 'no-repeat';
-      footer.style.position = 'relative';
-      footer.style.backdropFilter = 'none';
-      footer.style.webkitBackdropFilter = 'none';
-      let foverlay = footer.querySelector('.members-bg-overlay');
-      if (!foverlay) {
-        foverlay = document.createElement('div');
-        foverlay.className = 'members-bg-overlay';
-        foverlay.style.cssText = 'position:absolute;inset:0;pointer-events:none;z-index:0;';
-        footer.insertBefore(foverlay, footer.firstChild);
-      }
-      foverlay.style.background = color;
-      foverlay.style.opacity = (opacity / 100);
-      // ensure footer content sits above overlay
-      Array.from(footer.children).forEach(el => {
-        if (!el.classList.contains('members-bg-overlay')) {
-          el.style.position = 'relative'; el.style.zIndex = '1';
-        }
-      });
-    }
-  } else {
+    layer.classList.add('active');
+    imgEl.style.backgroundImage = 'url("' + url + '")';
+    imgEl.style.backgroundSize = (scale / 100 * 100) + '% auto';
+    imgEl.style.backgroundPosition = 'center';
+    imgEl.style.backgroundRepeat = 'no-repeat';
+    overlayEl.style.background = color;
+    overlayEl.style.opacity = (opacity / 100);
+    // Clear any legacy per-view inline styles from older versions
     document.querySelectorAll('.sidebar-view').forEach(v => {
       v.style.backgroundImage = '';
       v.style.backgroundSize = '';
-      const overlay = v.querySelector('.members-bg-overlay');
-      if (overlay) overlay.remove();
+      v.style.backgroundPosition = '';
+      v.style.backgroundRepeat = '';
+      const ov = v.querySelector('.members-bg-overlay');
+      if (ov && !ov.closest('.members-bg-layer')) ov.remove();
     });
+    const footer = sidebar.querySelector('.sidebar-footer');
     if (footer) {
       footer.style.backgroundImage = '';
       footer.style.backgroundSize = '';
-      const foverlay = footer.querySelector('.members-bg-overlay');
-      if (foverlay) foverlay.remove();
+      const fov = footer.querySelector('.members-bg-overlay');
+      if (fov) fov.remove();
+    }
+  } else {
+    layer.classList.remove('active');
+    imgEl.style.backgroundImage = '';
+    overlayEl.style.background = '';
+    overlayEl.style.opacity = '';
+    // Clean up legacy per-view styles too
+    document.querySelectorAll('.sidebar-view').forEach(v => {
+      v.style.backgroundImage = '';
+      v.style.backgroundSize = '';
+      const ov = v.querySelector('.members-bg-overlay');
+      if (ov && !ov.closest('.members-bg-layer')) ov.remove();
+    });
+    const footer = sidebar.querySelector('.sidebar-footer');
+    if (footer) {
+      footer.style.backgroundImage = '';
+      footer.style.backgroundSize = '';
+      const fov = footer.querySelector('.members-bg-overlay');
+      if (fov) fov.remove();
     }
   }
 }
@@ -10563,16 +10603,22 @@ function applyMembersBg() {
   btn.className = 'sidebar-nav-btn';
   btn.setAttribute('data-action', 'members-bg');
   btn.setAttribute('title', 'Members List Background');
-  btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg><span>Background</span>';
+  btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg><span>Background</span>';
   blockedBtn.insertAdjacentElement('afterend', btn);
   btn.addEventListener('click', () => {
     // Refresh preview from current state
     updateMembersBgPreview();
     $('members-bg-modal').classList.add('open');
+    btn.classList.add('is-open');
   });
 })();
-$('members-bg-close').addEventListener('click', () => $('members-bg-modal').classList.remove('open'));
-$('members-bg-modal').addEventListener('click', (e) => { if (e.target === $('members-bg-modal')) $('members-bg-modal').classList.remove('open'); });
+function closeMembersBgModal() {
+  $('members-bg-modal').classList.remove('open');
+  const b = document.querySelector('.sidebar-nav-btn[data-action="members-bg"]');
+  if (b) b.classList.remove('is-open');
+}
+$('members-bg-close').addEventListener('click', closeMembersBgModal);
+$('members-bg-modal').addEventListener('click', (e) => { if (e.target === $('members-bg-modal')) closeMembersBgModal(); });
 function updateMembersBgPreview() {
   const preview = $('members-bg-preview');
   const { url, scale, color, opacity } = membersBgState;
@@ -10649,7 +10695,7 @@ $('members-bg-clear-btn').addEventListener('click', () => {
 });
 $('members-bg-save').addEventListener('click', () => {
   saveMembersBgState();
-  $('members-bg-modal').classList.remove('open');
+  closeMembersBgModal();
   toast('Members list background updated', 'success');
 });
 // Apply members bg on load
