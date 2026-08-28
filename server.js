@@ -632,7 +632,7 @@ const storage = multer.diskStorage({
     cb(null, genId() + ext);
   },
 });
-const upload = multer({ storage, limits: { fileSize: 91 * 1024 * 1024 } }); // 90MB + 1MB headroom for chat attachments
+const upload = multer({ storage, limits: { fileSize: 116 * 1024 * 1024 } }); // 115MB + 1MB headroom for chat attachments
 const avatarUpload = multer({ storage, limits: { fileSize: 21 * 1024 * 1024 } }); // 20MB + 1MB headroom for profile pic / banner
 
 // ---------- Auth Routes ----------
@@ -2513,7 +2513,7 @@ app.use((err, req, res, next) => {
   if (err && err.code === 'LIMIT_FILE_SIZE') {
     // Determine which limit applies based on the route
     const isAvatar = req.originalUrl && req.originalUrl.includes('/api/profile');
-    const limit = isAvatar ? '20MB' : '90MB';
+    const limit = isAvatar ? '20MB' : '115MB';
     return res.status(413).json({ error: 'File exceeds the ' + limit + ' size limit.' });
   }
   if (err && err.message && err.message.includes('Multipart')) {
@@ -2622,7 +2622,7 @@ server.listen(PORT, '0.0.0.0', () => {
   console.log(`Local: http://localhost:${PORT}`);
 });
 
-// Allow large file uploads (90MB) without timeout issues
+// Allow large file uploads (115MB) without timeout issues
 server.timeout = 300000;       // 5 minutes for request timeout
 server.keepAliveTimeout = 120000; // 2 minutes keep-alive
 server.requestTimeout = 300000;   // 5 minutes for full request

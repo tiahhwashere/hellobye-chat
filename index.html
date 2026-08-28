@@ -3386,7 +3386,7 @@ body.loading-session #chat-app.active::after {
           <span class="nav-badge accent" id="friend-nav-badge" style="display:none;">0</span>
         </button>
         <button class="sidebar-nav-btn" data-view="blocked" title="Blocked Users">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="10" cy="7" r="3"/><path d="M3 21v-1a6 6 0 0 1 6-6h2a6 6 0 0 1 5 2.5"/><circle cx="17" cy="17" r="5"/><line x1="13.5" y1="13.5" x2="20.5" y2="20.5"/></svg>
           <span>Blocked</span>
           <span class="nav-badge" id="blocked-nav-badge" style="display:none;">0</span>
         </button>
@@ -3513,7 +3513,7 @@ body.loading-session #chat-app.active::after {
           <button class="remove-attachment" id="remove-attachment">&times;</button>
         </div>
         <div class="chat-input-wrap">
-          <button class="attach-btn" id="attach-btn" title="Attach file (max 90MB)">
+          <button class="attach-btn" id="attach-btn" title="Attach file (max 115MB)">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
           </button>
           <input type="file" id="file-input" hidden multiple>
@@ -3522,12 +3522,12 @@ body.loading-session #chat-app.active::after {
             <div class="attach-dropdown-item" id="attach-gif-btn">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><text x="7" y="15" font-size="7" font-weight="bold" fill="currentColor" stroke="none">GIF</text></svg>
               <span class="attach-dropdown-label">Send a GIF / Video</span>
-              <span class="attach-dropdown-hint">From your device (max 90MB)</span>
+              <span class="attach-dropdown-hint">From your device (max 115MB)</span>
             </div>
             <div class="attach-dropdown-item" id="attach-file-btn">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
               <span class="attach-dropdown-label">Send Image/Video</span>
-              <span class="attach-dropdown-hint">From your device (max 90MB)</span>
+              <span class="attach-dropdown-hint">From your device (max 115MB)</span>
             </div>
           </div>
           <textarea class="chat-textarea" id="chat-input" placeholder="Type a message" rows="1"></textarea>
@@ -3591,7 +3591,7 @@ body.loading-session #chat-app.active::after {
   <div class="modal-overlay" id="block-modal">
     <div class="modal small">
       <div class="modal-icon danger">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="10" cy="7" r="3"/><path d="M3 21v-1a6 6 0 0 1 6-6h2a6 6 0 0 1 5 2.5"/><circle cx="17" cy="17" r="5"/><line x1="13.5" y1="13.5" x2="20.5" y2="20.5"/></svg>
       </div>
       <h3>Block <span id="block-modal-username"></span>?</h3>
       <p>Are you sure you want to block this user? They will be removed from your friends list, and you will no longer see their messages in chat or direct messages. You can unblock them at any time from the Blocked tab.</p>
@@ -4437,7 +4437,7 @@ body.loading-session #chat-app.active::after {
           <button class="remove-attachment" id="dm-remove-attachment">&times;</button>
         </div>
         <div class="chat-input-wrap">
-          <button class="attach-btn" id="dm-attach-btn" title="Attach file (max 90MB)">
+          <button class="attach-btn" id="dm-attach-btn" title="Attach file (max 115MB)">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
           </button>
           <input type="file" id="dm-file-input" hidden multiple>
@@ -4446,12 +4446,12 @@ body.loading-session #chat-app.active::after {
             <div class="attach-dropdown-item" id="dm-attach-gif-btn">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><text x="7" y="15" font-size="7" font-weight="bold" fill="currentColor" stroke="none">GIF</text></svg>
               <span class="attach-dropdown-label">Send a GIF / Video</span>
-              <span class="attach-dropdown-hint">From your device (max 90MB)</span>
+              <span class="attach-dropdown-hint">From your device (max 115MB)</span>
             </div>
             <div class="attach-dropdown-item" id="dm-attach-file-btn">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
               <span class="attach-dropdown-label">Send Image/Video</span>
-              <span class="attach-dropdown-hint">From your device (max 90MB)</span>
+              <span class="attach-dropdown-hint">From your device (max 115MB)</span>
             </div>
           </div>
           <textarea class="chat-textarea" id="dm-input" placeholder="Type a private message" rows="1"></textarea>
@@ -4722,7 +4722,7 @@ function recordSpamClick() {
 }
 function startSpamCooldown(seconds) {
   spamCooldownEnds = Date.now() + (seconds * 1000);
-  toast('Slow down! You\'re pressing buttons too fast. Please wait ' + seconds + ' seconds.', 'error');
+  toast('Please wait ' + seconds + ' seconds before performing that action again.', 'error');
   const indicator = $('cooldown-indicator');
   const bar = $('cooldown-bar-fill');
   const text = $('cooldown-text');
@@ -4848,15 +4848,15 @@ function showNotification(title, body, icon) {
   }
 }
 function requestNotificationPermission() {
-  if (!('Notification' in window)) { toast('Notifications not supported in this browser.', 'error'); return Promise.resolve(false); }
+  if (!('Notification' in window)) { toast('Desktop notifications are not supported in this browser.', 'error'); return Promise.resolve(false); }
   if (Notification.permission === 'granted') { toast('Notifications are already enabled.', 'success'); return Promise.resolve(true); }
-  if (Notification.permission === 'denied') { toast('Notification permission was denied. Enable it in your browser settings.', 'error'); return Promise.resolve(false); }
+  if (Notification.permission === 'denied') { toast('Notification permission was denied. You can enable it in your browser settings.', 'error'); return Promise.resolve(false); }
   return Notification.requestPermission().then(permission => {
     if (permission === 'granted') {
-      toast('Desktop notifications enabled.', 'success');
+      toast('Desktop notifications have been enabled.', 'success');
       return true;
     } else {
-      toast('Notification permission denied. You can enable it in browser settings.', 'error');
+      toast('Notification permission was denied. You can enable it in your browser settings.', 'error');
       return false;
     }
   });
@@ -5242,7 +5242,7 @@ $('signup-form').addEventListener('submit', async (e) => {
       }
       return;
     }
-    toast('Account created. Welcome.', 'success');
+    toast('Account created successfully. Welcome aboard.', 'success');
     sessionSocketId = data.sessionId;
     localStorage.setItem('hellobye_sid', data.sessionId);
     document.documentElement.classList.add('has-session');
@@ -5458,7 +5458,7 @@ $('twosv-toggle').addEventListener('change', async (e) => {
       });
       const data = await res.json();
       if (!res.ok) {
-        toast(data.error || 'Failed to enable 2-Step Verification', 'error');
+        toast(data.error || 'Unable to enable 2-Step Verification. Please try again.', 'error');
         e.target.checked = false;
         return;
       }
@@ -5466,9 +5466,9 @@ $('twosv-toggle').addEventListener('change', async (e) => {
       show2SVCode(data.code, data.generatedAt);
       currentUser.twoFactorEnabled = true;
       update2SVStatus();
-      toast('2-Step Verification enabled! Save your recovery code.', 'success');
+      toast('2-Step Verification has been enabled. Please save your recovery code in a secure location.', 'success');
     } catch (err) {
-      toast('Network error. Please try again.', 'error');
+      toast('A network error occurred. Please try again.', 'error');
       e.target.checked = false;
     }
   } else {
@@ -5490,7 +5490,7 @@ $('twosv-toggle').addEventListener('change', async (e) => {
       });
       const data = await res.json();
       if (!res.ok) {
-        toast(data.error || 'Failed to disable 2-Step Verification', 'error');
+        toast(data.error || 'Unable to disable 2-Step Verification. Please try again.', 'error');
         e.target.checked = true;
         return;
       }
@@ -5498,9 +5498,9 @@ $('twosv-toggle').addEventListener('change', async (e) => {
       $('twosv-code-display').style.display = 'none';
       currentUser.twoFactorEnabled = false;
       update2SVStatus();
-      toast('2-Step Verification disabled.', 'success');
+      toast('2-Step Verification has been disabled.', 'success');
     } catch (err) {
-      toast('Network error. Please try again.', 'error');
+      toast('A network error occurred. Please try again.', 'error');
       e.target.checked = true;
     }
   }
@@ -5530,16 +5530,16 @@ $('twosv-view-code-btn').addEventListener('click', async () => {
     });
     const data = await res.json();
     if (!res.ok) {
-      toast(data.error || 'Failed to retrieve code', 'error');
+      toast(data.error || 'Unable to retrieve the recovery code. Please try again.', 'error');
       return;
     }
     show2SVCode(data.code, data.generatedAt);
     if (data.regenerated) {
-      toast('Your code was auto-regenerated (48h cycle). Save the new code!', 'success');
+      toast('Your recovery code was automatically regenerated (48-hour cycle). Please save the new code in a secure location.', 'success');
     }
     update2SVStatus();
   } catch (err) {
-    toast('Network error. Please try again.', 'error');
+    toast('A network error occurred. Please try again.', 'error');
   }
 });
 
@@ -5558,15 +5558,15 @@ $('twosv-regenerate-btn').addEventListener('click', async () => {
     });
     const data = await res.json();
     if (!res.ok) {
-      toast(data.error || 'Failed to regenerate code', 'error');
+      toast(data.error || 'Unable to regenerate the recovery code. Please try again.', 'error');
       if (res.status === 429) update2SVStatus();
       return;
     }
     show2SVCode(data.code, data.generatedAt);
     update2SVStatus();
-    toast('New recovery code generated. Previous code is now invalid.', 'success');
+    toast('A new recovery code has been generated. The previous code is no longer valid.', 'success');
   } catch (err) {
-    toast('Network error. Please try again.', 'error');
+    toast('A network error occurred. Please try again.', 'error');
   }
 });
 
@@ -5585,13 +5585,13 @@ $('twosv-revoke-btn').addEventListener('click', async () => {
     });
     const data = await res.json();
     if (!res.ok) {
-      toast(data.error || 'Failed to revoke devices', 'error');
+      toast(data.error || 'Unable to revoke trusted devices. Please try again.', 'error');
       return;
     }
     update2SVStatus();
-    toast('All trusted devices revoked.', 'success');
+    toast('All trusted devices have been revoked successfully.', 'success');
   } catch (err) {
-    toast('Network error. Please try again.', 'error');
+    toast('A network error occurred. Please try again.', 'error');
   }
 });
 
@@ -6369,13 +6369,13 @@ $('delete-msg-confirm').addEventListener('click', () => {
   if (pendingDeleteMsgId) {
     socket.emit('delete-message', { id: pendingDeleteMsgId }, (res) => {
       if (res && res.error) toast(res.error, 'error');
-      else toast('Message deleted.', 'success');
+      else toast('Message deleted successfully.', 'success');
     });
     pendingDeleteMsgId = null;
   } else if (pendingDeleteDM) {
     socket.emit('dm-delete', { id: pendingDeleteDM, to: activeDMUser }, (res) => {
       if (res && res.error) toast(res.error, 'error');
-      else toast('Message deleted.', 'success');
+      else toast('Message deleted successfully.', 'success');
     });
     pendingDeleteDM = null;
   }
@@ -6631,10 +6631,10 @@ function uploadFileWithProgress(file, bar) {
       try {
         const data = JSON.parse(xhr.responseText);
         if (xhr.status >= 200 && xhr.status < 300) { resolve(data); }
-        else { reject(data && data.error ? data : new Error(data && data.error || 'File upload failed')); }
-      } catch (err) { reject(new Error('File upload failed')); }
+        else { reject(data && data.error ? data : new Error(data && data.error || 'File upload failed. Please try again.')); }
+      } catch (err) { reject(new Error('File upload failed. Please try again.')); }
     };
-    xhr.onerror = () => { if (bar) { bar.classList.remove('active'); } reject(new Error('File upload failed')); };
+    xhr.onerror = () => { if (bar) { bar.classList.remove('active'); } reject(new Error('File upload failed. Please try again.')); };
     xhr.send(fd);
   });
 }
@@ -6656,7 +6656,7 @@ async function doSendMessage(text) {
       const data = await uploadFileWithProgress(pendingFile, bar);
       fileData = data.file;
       bar.style.width = '100%';
-    } catch (err) { toast((err && err.error) || 'File upload failed', 'error'); clearPendingFile(); return; }
+    } catch (err) { toast((err && err.error) || 'File upload failed. Please try again.', 'error'); clearPendingFile(); return; }
   }
   // Upload any additional multi-file attachments before sending.
   let extraFileData = [];
@@ -6665,7 +6665,7 @@ async function doSendMessage(text) {
       try {
         const data = await uploadFileWithProgress(f, $('file-preview-bar'));
         extraFileData.push(data.file);
-      } catch (err) { toast('Upload failed for "' + f.name + '"', 'error'); break; }
+      } catch (err) { toast('Upload failed for file "' + f.name + '". Please try again.', 'error'); break; }
     }
   }
   // Build the files array (all files in a single message) — max 5 total
@@ -6838,7 +6838,7 @@ function renderGifGrid(results) {
 
 async function sendGifFromPicker(gifUrl) {
   closeGifPicker();
-  toast('Importing GIF...', 'info');
+  toast('Importing GIF…', 'info');
   try {
     const res = await fetch(API_BASE + '/api/gif/import', {
       method: 'POST',
@@ -6847,7 +6847,7 @@ async function sendGifFromPicker(gifUrl) {
     });
     const data = await res.json();
     if (!res.ok || !data.success) {
-      toast(data.error || 'Failed to import GIF', 'error');
+      toast(data.error || 'Unable to import the selected GIF. Please try again.', 'error');
       return;
     }
     // Build fileData in the same format as /api/upload returns
@@ -6865,7 +6865,7 @@ async function sendGifFromPicker(gifUrl) {
       sendGifAsMessage(fileData);
     }
   } catch (err) {
-    toast('Failed to import GIF: ' + (err.message || err), 'error');
+    toast('Unable to import the GIF: ' + (err.message || err), 'error');
   }
 }
 
@@ -7017,7 +7017,7 @@ gifFileInput.addEventListener('change', (e) => {
   }
   const selected = files.slice(0, MAX_FILES);
   for (const f of selected) {
-    if (f.size > 90 * 1024 * 1024) { toast('File "' + f.name + '" exceeds 90MB limit', 'error'); gifFileInput.value = ''; return; }
+    if (f.size > 115 * 1024 * 1024) { toast('File "' + f.name + '" exceeds 115MB limit', 'error'); gifFileInput.value = ''; return; }
   }
   if (selected.length === 1) {
     pendingFile = selected[0];
@@ -7072,7 +7072,7 @@ fileInput.addEventListener('change', (e) => {
   const selected = files.slice(0, MAX_FILES);
   // Validate size for all selected files
   for (const f of selected) {
-    if (f.size > 90 * 1024 * 1024) { toast('File "' + f.name + '" exceeds 90MB limit', 'error'); fileInput.value = ''; return; }
+    if (f.size > 115 * 1024 * 1024) { toast('File "' + f.name + '" exceeds 115MB limit', 'error'); fileInput.value = ''; return; }
   }
   if (selected.length === 1) {
     // Single file — use the existing pendingFile flow
@@ -7571,14 +7571,14 @@ function attachFriendListeners() {
 }
 
 async function sendFriendRequest(username) {
-  if (username === currentUser.username) { toast('You cannot add yourself.', 'error'); return; }
+  if (username === currentUser.username) { toast('You cannot send a friend request to yourself.', 'error'); return; }
   // Optimistic UI: show "pending" state immediately for instant feel
   const existing = friendRequests.sent.find(f => f.username === username);
   if (!existing) {
     friendRequests.sent.push({ username, displayName: (users.find(u => u.username === username) || {}).displayName || '' });
     renderFriendsList();
   }
-  toast('Friend request sent to @' + username, 'success');
+  toast('Friend request has been sent to @' + username, 'success');
   try {
     const res = await fetch(API_BASE + '/api/friends/request', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username }) });
     const data = await res.json();
@@ -7590,7 +7590,7 @@ async function sendFriendRequest(username) {
       if (res.status === 403 && data.error && data.error.includes('friend requests turned off')) {
         toast('@' + username + ' has friend requests turned off', 'error');
       } else {
-        toast(data.error || 'Request failed', 'error');
+        toast(data.error || 'Unable to complete the request. Please try again.', 'error');
       }
       return;
     }
@@ -7599,7 +7599,7 @@ async function sendFriendRequest(username) {
     // Revert on network error
     friendRequests.sent = friendRequests.sent.filter(f => f.username !== username);
     renderFriendsList();
-    toast('Request failed', 'error');
+    toast('Unable to complete the request. Please try again.', 'error');
   }
 }
 async function acceptFriendRequest(username) {
@@ -7613,7 +7613,7 @@ async function acceptFriendRequest(username) {
     renderFriendsList();
     updateFriendBadge();
   }
-  toast('Friend request accepted.', 'success');
+  toast('Friend request has been accepted.', 'success');
   try {
     const res = await fetch(API_BASE + '/api/friends/accept', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username }) });
     const data = await res.json();
@@ -7622,7 +7622,7 @@ async function acceptFriendRequest(username) {
       if (req) friendRequests.received.unshift(req);
       friends = friends.filter(f => f.username !== username);
       renderFriendsList();
-      toast(data.error || 'Failed', 'error'); return;
+      toast(data.error || 'Unable to complete the request. Please try again.', 'error'); return;
     }
     // Sync from server in background (non-blocking)
     loadFriends();
@@ -7647,7 +7647,7 @@ async function cancelFriendRequest(username) {
   // Optimistic UI
   friendRequests.sent = friendRequests.sent.filter(f => f.username !== username);
   renderFriendsList();
-  toast('Request cancelled.', 'success');
+  toast('Friend request cancelled.', 'success');
   // Fire network request in background (non-blocking)
   fetch(API_BASE + '/api/friends/cancel', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username }) }).then(() => {
     loadFriends();
@@ -7657,7 +7657,7 @@ async function removeFriend(username) {
   // Optimistic UI
   friends = friends.filter(f => f.username !== username);
   renderFriendsList();
-  toast('Removed @' + username + ' from friends.', 'success');
+  toast('@' + username + ' has been removed from your friends list.', 'success');
   // Fire network request in background (non-blocking)
   fetch(API_BASE + '/api/friends/remove', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username }) }).then(() => {
     loadFriends();
@@ -7729,7 +7729,7 @@ $('block-confirm').addEventListener('click', async () => {
 });
 async function blockUser(username) {
   // Optimistic UI FIRST: update instantly before network round-trip
-  toast('Blocked @' + username, 'success');
+  toast('@' + username + ' has been blocked.', 'success');
   if (!blockedUsers.find(u => u.username === username)) {
     blockedUsers.push(users.find(u => u.username === username) || { username });
   }
@@ -7750,15 +7750,15 @@ async function blockUser(username) {
   try {
     const res = await fetch(API_BASE + '/api/block', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username }) });
     const data = await res.json();
-    if (!res.ok) { toast(data.error || 'Block failed', 'error'); return; }
+    if (!res.ok) { toast(data.error || 'Unable to block this user. Please try again.', 'error'); return; }
     // Sync from server in background (non-blocking)
     loadFriends();
     loadDMConversations();
-  } catch(e) { toast('Block failed', 'error'); }
+  } catch(e) { toast('Unable to block this user. Please try again.', 'error'); }
 }
 async function unblockUser(username) {
   // Optimistic UI FIRST
-  toast('Unblocked @' + username, 'success');
+  toast('@' + username + ' has been unblocked.', 'success');
   blockedUsers = blockedUsers.filter(u => u.username !== username);
   renderBlockedList();
   updateBlockedBadge();
@@ -7771,12 +7771,12 @@ async function unblockUser(username) {
   try {
     const res = await fetch(API_BASE + '/api/unblock', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username }) });
     const data = await res.json();
-    if (!res.ok) { toast(data.error || 'Unblock failed', 'error'); return; }
+    if (!res.ok) { toast(data.error || 'Unable to unblock this user. Please try again.', 'error'); return; }
     loadDMConversations();
     if (activeDMUser === username) {
       openDM(username);
     }
-  } catch(e) { toast('Unblock failed', 'error'); }
+  } catch(e) { toast('Unable to unblock this user. Please try again.', 'error'); }
 }
 
 // ---------- DM System ----------
@@ -7894,7 +7894,7 @@ $('dm-close-btn').addEventListener('click', closeDMOverlay);
 
 async function closeDM(username) {
   // Optimistic: show toast and update UI immediately
-  toast('Conversation closed. Right-click the Messages tab to reopen.', 'success');
+  toast('Conversation closed. Right-click the Messages tab to reopen it at any time.', 'success');
   // Fire network request in background (non-blocking)
   fetch(API_BASE + '/api/dms/close/' + encodeURIComponent(username), { method: 'POST' }).then(() => {
     loadDMConversations();
@@ -7903,10 +7903,10 @@ async function closeDM(username) {
 // Right-click on DM nav to reopen closed DMs
 document.querySelector('.sidebar-nav-btn[data-view="dms"]').addEventListener('contextmenu', (e) => {
   e.preventDefault();
-  if (!closedDMs.length) { toast('No closed conversations to reopen.', ''); return; }
+  if (!closedDMs.length) { toast('There are no closed conversations to reopen.', ''); return; }
   const items = closedDMs.map(un => ({
     label: 'Reopen @' + un, icon: 'dm', action: async () => {
-      toast('Conversation reopened.', 'success');
+      toast('Conversation has been reopened.', 'success');
       fetch(API_BASE + '/api/dms/reopen/' + encodeURIComponent(un), { method: 'POST' }).then(() => {
         loadDMConversations();
       }).catch(() => {});
@@ -8254,7 +8254,7 @@ dmFileInput.addEventListener('change', (e) => {
   }
   const selected = files.slice(0, MAX_FILES);
   for (const f of selected) {
-    if (f.size > 90 * 1024 * 1024) { toast('File "' + f.name + '" exceeds 90MB limit', 'error'); dmFileInput.value = ''; return; }
+    if (f.size > 115 * 1024 * 1024) { toast('File "' + f.name + '" exceeds 115MB limit', 'error'); dmFileInput.value = ''; return; }
   }
   if (selected.length === 1) {
     pendingDMFile = selected[0];
@@ -8288,7 +8288,7 @@ if (dmGifFileInput) dmGifFileInput.addEventListener('change', (e) => {
   }
   const selected = files.slice(0, MAX_FILES);
   for (const f of selected) {
-    if (f.size > 90 * 1024 * 1024) { toast('File "' + f.name + '" exceeds 90MB limit', 'error'); dmGifFileInput.value = ''; return; }
+    if (f.size > 115 * 1024 * 1024) { toast('File "' + f.name + '" exceeds 115MB limit', 'error'); dmGifFileInput.value = ''; return; }
   }
   if (selected.length === 1) {
     pendingDMFile = selected[0];
@@ -8399,7 +8399,7 @@ async function sendDMWithFile(text) {
         try {
           const d2 = await uploadFileWithProgress(f, bar);
           extraFileData.push(d2.file);
-        } catch (err) { toast('Upload failed for "' + f.name + '"', 'error'); break; }
+        } catch (err) { toast('Upload failed for file "' + f.name + '". Please try again.', 'error'); break; }
       }
     }
     // Build files array (all files in one DM message) — max 5 total
@@ -8417,7 +8417,7 @@ async function sendDMWithFile(text) {
         scrollToBottomDM();
       }
     });
-  } catch(err) { toast((err && err.error) || 'File upload failed', 'error'); }
+  } catch(err) { toast((err && err.error) || 'File upload failed. Please try again.', 'error'); }
   clearDMPendingFile();
   dmInputEl.value = ''; dmInputEl.style.height = 'auto';
   updateDMSend();
@@ -8752,13 +8752,13 @@ if ($('show-online-toggle')) $('show-online-toggle').addEventListener('change', 
 if ($('friend-requests-toggle')) $('friend-requests-toggle').addEventListener('change', function() {
   markProfileDirty();
   var enabled = $('friend-requests-toggle').checked;
-  toast(enabled ? 'Friend requests are now ON — others can send you friend requests.' : 'Friend requests are now OFF — others cannot send you friend requests.', enabled ? 'success' : 'info');
+  toast(enabled ? 'Friend requests are now enabled. Others can send you friend requests.' : 'Friend requests are now disabled. Others cannot send you friend requests.', enabled ? 'success' : 'info');
   saveProfileNow(true);
 });
 if ($('direct-messages-toggle')) $('direct-messages-toggle').addEventListener('change', function() {
   markProfileDirty();
   var enabled = $('direct-messages-toggle').checked;
-  toast(enabled ? 'Direct messages enabled.' : 'Direct messages disabled. Others cannot message you, but you can still message them.', enabled ? 'success' : 'info');
+  toast(enabled ? 'Direct messages have been enabled.' : 'Direct messages have been disabled. Others cannot send you messages, but you can still message them.', enabled ? 'success' : 'info');
   saveProfileNow(true);
 });
 
@@ -8990,12 +8990,12 @@ async function uploadProfileImage(file, type) {
   try {
     const res = await fetch(API_BASE + '/api/profile', { method: 'POST', body: formData });
     const data = await res.json();
-    if (!res.ok) { toast(data.error || 'Upload failed', 'error'); return; }
-    toast(type === 'avatar' ? 'Profile picture updated.' : 'Banner updated.', 'success');
+    if (!res.ok) { toast(data.error || 'Upload failed. Please try again.', 'error'); return; }
+    toast(type === 'avatar' ? 'Profile picture has been updated.' : 'Banner has been updated.', 'success');
     if (type === 'avatar') currentUser.avatar = data.avatar;
     else currentUser.banner = data.banner;
     updateProfilePanel(); updateSidebarSelf();
-  } catch (err) { toast('Upload failed', 'error'); }
+  } catch (err) { toast('Upload failed. Please try again.', 'error'); }
   finally {
     // Always restore to 'Apply' (not prevText) — the click handler sets the
     // button to 'Saving…' BEFORE calling this function, so prevText would be
@@ -9020,7 +9020,7 @@ $('avatar-remove-btn').addEventListener('click', async () => {
   updateSidebarSelf();
   if (typeof renderUserList === 'function') renderUserList();
   if (typeof updateMessageAvatars === 'function') updateMessageAvatars(currentUser.username, null);
-  toast('Profile picture removed.', 'success');
+  toast('Profile picture has been removed.', 'success');
 });
 $('banner-remove-btn').addEventListener('click', async () => {
   try {
@@ -9032,7 +9032,7 @@ $('banner-remove-btn').addEventListener('click', async () => {
   updateProfilePanel();
   updateSidebarSelf();
   if (typeof renderUserList === 'function') renderUserList();
-  toast('Banner removed.', 'success');
+  toast('Banner has been removed.', 'success');
 });
 
 // ---------- Status Change ----------
@@ -9056,7 +9056,7 @@ document.querySelectorAll('.status-option').forEach(opt => {
       if (activeDMUser === currentUser.username && typeof updateDMHeader === 'function') updateDMHeader();
     }
     socket.emit('set-status', status);
-    toast('Status set to ' + getStatusText(status) + '.', 'success');
+    toast('Your status has been set to ' + getStatusText(status) + '.', 'success');
     // Status is auto-saved via socket, not part of dirty
   });
 });
@@ -9078,7 +9078,7 @@ async function saveProfileNow(silent) {
     const res = await fetch(API_BASE + '/api/profile', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ bio, hideLastSeen, pronouns, showOnlineStatus, panelColor, friendRequestsEnabled, directMessagesEnabled }) });
     const data = await res.json();
     if (res.ok) {
-      if (!silent) toast('Profile saved.', 'success');
+      if (!silent) toast('Profile has been saved successfully.', 'success');
       currentUser.bio = bio;
       currentUser.hideLastSeen = hideLastSeen;
       currentUser.pronouns = pronouns;
@@ -9092,8 +9092,8 @@ async function saveProfileNow(silent) {
       profileDirty = false;
       btn.disabled = false; btn.textContent = 'Save Changes';
       return true;
-    } else { toast(data.error || 'Update failed', 'error'); }
-  } catch (err) { toast('Update failed', 'error'); }
+    } else { toast(data.error || 'Unable to update your profile. Please try again.', 'error'); }
+  } catch (err) { toast('Unable to update your profile. Please try again.', 'error'); }
   btn.disabled = false; btn.textContent = 'Save Changes';
   return false;
 }
@@ -9238,9 +9238,9 @@ $('displayname-save').addEventListener('click', async () => {
   try {
     const res = await fetch(API_BASE + '/api/settings/display-name', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ displayName: dn }) });
     const data = await res.json();
-    if (res.ok) { toast('Display name updated.', 'success'); currentUser.displayName = dn; updateSidebarSelf(); }
-    else toast(data.error || 'Failed', 'error');
-  } catch(e) { toast('Failed', 'error'); }
+    if (res.ok) { toast('Display name has been updated.', 'success'); currentUser.displayName = dn; updateSidebarSelf(); }
+    else toast(data.error || 'Unable to complete the request. Please try again.', 'error');
+  } catch(e) { toast('Unable to complete the request. Please try again.', 'error'); }
   btn.disabled = false; btn.textContent = 'Update Display Name';
 });
 $('username-save').addEventListener('click', async () => {
@@ -9253,7 +9253,7 @@ $('username-save').addEventListener('click', async () => {
     const res = await fetch(API_BASE + '/api/settings/username', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: newUn }) });
     const data = await res.json();
     if (res.ok) {
-      toast('Username changed to @' + data.username, 'success');
+      toast('Your username has been changed to @' + data.username, 'success');
       currentUser.username = data.username;
       sessionSocketId = localStorage.getItem('hellobye_sid');
       $('new-username-input').value = '';
@@ -9261,8 +9261,8 @@ $('username-save').addEventListener('click', async () => {
       // Reconnect socket with new session
       if (socket) socket.disconnect();
       connectSocket();
-    } else { toast(data.error || 'Failed', 'error'); }
-  } catch(e) { toast('Failed', 'error'); }
+    } else { toast(data.error || 'Unable to complete the request. Please try again.', 'error'); }
+  } catch(e) { toast('Unable to complete the request. Please try again.', 'error'); }
   btn.disabled = false; btn.textContent = 'Change Username';
 });
 $('password-save').addEventListener('click', async () => {
@@ -9275,9 +9275,9 @@ $('password-save').addEventListener('click', async () => {
   try {
     const res = await fetch(API_BASE + '/api/settings/password', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ currentPassword: cur, newPassword: np }) });
     const data = await res.json();
-    if (res.ok) { toast('Password reset successfully.', 'success'); $('current-password-input').value = ''; $('new-password-input').value = ''; }
-    else toast(data.error || 'Failed', 'error');
-  } catch(e) { toast('Failed', 'error'); }
+    if (res.ok) { toast('Your password has been reset successfully.', 'success'); $('current-password-input').value = ''; $('new-password-input').value = ''; }
+    else toast(data.error || 'Unable to complete the request. Please try again.', 'error');
+  } catch(e) { toast('Unable to complete the request. Please try again.', 'error'); }
   btn.disabled = false; btn.textContent = 'Reset Password';
 });
 
@@ -9297,9 +9297,9 @@ function savePreferences() {
       // Apply compact mode class (CSS targets #chat-app.compact)
       const app = document.getElementById('chat-app');
       if (app) app.classList.toggle('compact', payload.compactMode);
-      toast('Preferences saved.', 'success');
-    } else { toast(data.error || 'Failed to save', 'error'); }
-  }).catch(() => toast('Failed to save', 'error'));
+      toast('Your preferences have been saved.', 'success');
+    } else { toast(data.error || 'Unable to save your changes. Please try again.', 'error'); }
+  }).catch(() => toast('Unable to save your changes. Please try again.', 'error'));
 }
 if ($('notif-toggle')) $('notif-toggle').addEventListener('change', async (e) => {
   if (e.target.checked) {
@@ -9341,7 +9341,7 @@ $('delete-account-confirm').addEventListener('click', async () => {
     const res = await fetch(API_BASE + '/api/settings/delete-account', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password: pw }) });
     const data = await res.json();
     if (res.ok) {
-      toast('Account deleted.', 'success');
+      toast('Your account has been deleted successfully.', 'success');
       $('delete-account-modal').classList.remove('show');
       localStorage.removeItem('hellobye_sid');
       sessionSocketId = null;
@@ -9351,11 +9351,11 @@ $('delete-account-confirm').addEventListener('click', async () => {
       if ($('delete-account-password')) $('delete-account-password').value = '';
       showAuth();
     } else {
-      toast(data.error || 'Deletion failed', 'error');
+      toast(data.error || 'Unable to delete the account. Please try again.', 'error');
       btn.disabled = false; btn.textContent = 'Delete Permanently';
     }
   } catch(e) {
-    toast('Deletion failed', 'error');
+    toast('Unable to delete the account. Please try again.', 'error');
     btn.disabled = false; btn.textContent = 'Delete Permanently';
   }
 });
@@ -9371,7 +9371,7 @@ function copyUserIdToClipboard(userId, username) {
     document.body.appendChild(ta);
     ta.select();
     try { document.execCommand('copy'); toast(username ? ('Copied @' + username + '\'s ID') : 'User ID copied to clipboard', 'success'); }
-    catch (e) { toast('Failed to copy ID', 'error'); }
+    catch (e) { toast('Unable to copy the user ID to clipboard.', 'error'); }
     document.body.removeChild(ta);
   });
   // Close dropdown if open
@@ -9405,11 +9405,11 @@ async function openProfileView(username) {
   try {
     const res = await fetch(API_BASE + '/api/user/' + encodeURIComponent(username));
     const data = await res.json();
-    if (!res.ok) { toast(data.error || 'User not found', 'error'); return; }
+    if (!res.ok) { toast(data.error || 'User not found. Please check the username and try again.', 'error'); return; }
     renderProfileView(data);
     currentProfileViewUser = username;
     $('profile-view-modal').classList.add('show');
-  } catch(e) { toast('Failed to load profile', 'error'); }
+  } catch(e) { toast('Unable to load this profile. Please try again.', 'error'); }
 }
 // Apply the OTHER user's Panel Theme Color to the profile-view modal.
 // Fills the entire modal background with the chosen color, forces all text
@@ -9825,7 +9825,7 @@ function saveBgSettings(s) {
       attempts++;
       if (attempts >= maxAttempts) {
         console.error('saveBgSettings: could not fit background in localStorage after retries', e);
-        toast('Background too large to save. Try a smaller image.', 'error');
+        toast('Background image is too large to save. Please use a smaller image.', 'error');
         return false;
       }
       // Re-encode the data URL at a lower resolution / quality and retry.
@@ -9846,12 +9846,12 @@ function saveBgSettings(s) {
         };
         img.onerror = () => {
           console.error('saveBgSettings: re-encode failed');
-          toast('Background too large to save. Try a smaller image.', 'error');
+          toast('Background image is too large to save. Please use a smaller image.', 'error');
         };
         img.src = current.url;
       } else {
         console.error('saveBgSettings: quota exceeded and url is not a data URL', e);
-        toast('Background too large to save. Try a smaller image.', 'error');
+        toast('Background image is too large to save. Please use a smaller image.', 'error');
       }
       return false;
     }
@@ -10200,7 +10200,7 @@ $('bg-file-input').addEventListener('change', (e) => {
   // cause noticeable lag/stutter on the website. We still allow them but warn
   // the user above a threshold so they can pick a lighter GIF for smoothness.
   if (isAnimated && file.size > 4 * 1024 * 1024) {
-    toast('Large GIF \u2014 may cause some lag. A smaller GIF will animate more smoothly.', 'info');
+    toast('This is a large GIF and may cause some lag. A smaller GIF will animate more smoothly.', 'info');
   }
   const reader = new FileReader();
   // Show a loading toast so the user knows the upload is being processed
@@ -10220,9 +10220,9 @@ $('bg-file-input').addEventListener('change', (e) => {
     saveBgSettings(s);
     applyBgSettings();
     updateBgPreview();
-    toast(isAnimated ? 'Background set (HD).' : 'Background set & enhanced to HD. Adjust scale and position below.', 'success');
+    toast(isAnimated ? 'Background has been set in HD quality.' : 'Background has been set and enhanced to HD. Adjust the scale and position below.', 'success');
   };
-  reader.onerror = () => { toast('Could not read the background file.', 'error'); };
+  reader.onerror = () => { toast('Unable to read the background file. Please try a different file.', 'error'); };
   reader.readAsDataURL(file);
   e.target.value = '';
 });
@@ -10302,7 +10302,7 @@ $('bg-url-btn').addEventListener('click', () => {
       saveBgSettings(s);
       applyBgSettings();
       updateBgPreview();
-      toast('Background set from URL.', 'success');
+      toast('Background has been set from the provided URL.', 'success');
     }
   });
 });
@@ -10312,7 +10312,7 @@ $('bg-revert-btn').addEventListener('click', () => {
   saveBgSettings(null);
   applyBgSettings();
   updateBgPreview();
-  toast('Background reverted to default.', 'success');
+  toast('Background has been reverted to the default.', 'success');
 });
 
 // Background mode selector (cover / contain / tile) — segmented button group
@@ -10321,7 +10321,7 @@ if (bgModeSeg) {
   bgModeSeg.querySelectorAll('button').forEach(btn => {
     btn.addEventListener('click', () => {
       const s = getCurrentBgSettings();
-      if (!s.url) { toast('Set a background first.', 'error'); return; }
+      if (!s.url) { toast('Please set a background image first.', 'error'); return; }
       const mode = btn.dataset.mode;
       s.mode = mode;
       $('bg-mode-select').value = mode;
@@ -10400,7 +10400,7 @@ if (bgBlurSlider) {
   // Fallback to toggle if slider not present
   $('bg-blur-toggle').addEventListener('click', () => {
     const s = getCurrentBgSettings();
-    if (!s.url) { toast('Set a background first.', 'error'); return; }
+    if (!s.url) { toast('Please set a background image first.', 'error'); return; }
     s.blur = (s.blur && s.blur > 0) ? 0 : 8;
     $('bg-blur-val').textContent = s.blur;
     saveBgSettings(s);
@@ -10432,12 +10432,12 @@ if (bgBlurSlider) {
 if ($('bg-fit-btn')) {
   $('bg-fit-btn').addEventListener('click', () => {
     const s = getCurrentBgSettings();
-    if (!s.url) { toast('Set a background first.', 'error'); return; }
+    if (!s.url) { toast('Please set a background image first.', 'error'); return; }
     s.scale = 100; s.posX = 50; s.posY = 50; s.opacity = 100;
     saveBgSettings(s);
     applyBgSettings();
     updateBgPreview();
-    toast('Background fit to screen.', 'success');
+    toast('Background has been fit to the screen.', 'success');
   });
 }
 
@@ -10445,13 +10445,13 @@ if ($('bg-fit-btn')) {
 if ($('bg-reset-adjust-btn')) {
   $('bg-reset-adjust-btn').addEventListener('click', () => {
     const s = getCurrentBgSettings();
-    if (!s.url) { toast('Set a background first.', 'error'); return; }
+    if (!s.url) { toast('Please set a background image first.', 'error'); return; }
     s.scale = 100; s.posX = 50; s.posY = 50; s.opacity = 100;
     s.blur = 0; s.brightness = 100; s.saturate = 100; s.dim = 0;
     saveBgSettings(s);
     applyBgSettings();
     updateBgPreview();
-    toast('All adjustments reset.', 'success');
+    toast('All adjustments have been reset.', 'success');
   });
 }
 
@@ -10485,7 +10485,7 @@ function initBgPresets() {
       saveBgSettings(s);
       applyBgSettings();
       updateBgPreview();
-      toast('Background set to ' + p.name + '.', 'success');
+      toast('Background has been set to ' + p.name + '.', 'success');
     });
     row.appendChild(el);
   });
@@ -10547,7 +10547,7 @@ function initAccentPresets() {
     el.addEventListener('click', () => {
       saveColorSettings({ accent: color });
       applyColorSettings();
-      toast('Accent color changed to ' + color, 'success');
+      toast('Accent color has been changed to ' + color, 'success');
     });
     container.appendChild(el);
   });
@@ -10564,7 +10564,7 @@ if ($('accent-revert-btn')) {
   $('accent-revert-btn').addEventListener('click', () => {
     saveColorSettings(null);
     applyColorSettings();
-    toast('Accent color reverted to default.', 'success');
+    toast('Accent color has been reverted to the default.', 'success');
   });
 }
 
@@ -10796,7 +10796,7 @@ function initProfileAccentPresets() {
       saveProfileColor(color);
       applyProfileColor();
       syncProfileColorToServer(color);
-      toast('Profile panel color changed.', 'success');
+      toast('Profile panel color has been updated.', 'success');
     });
     container.appendChild(el);
   });
@@ -10813,7 +10813,7 @@ if ($('profile-accent-revert')) {
     saveProfileColor(null);
     applyProfileColor();
     syncProfileColorToServer(null);
-    toast('Profile panel color reverted.', 'success');
+    toast('Profile panel color has been reverted to the default.', 'success');
   });
 }
 
@@ -11028,7 +11028,7 @@ async function submitAdminCode() {
       $('admin-access-denied').style.display = 'none';
       $('admin-panel-content').style.display = '';
       loadAdminData();
-      toast('Admin panel unlocked. Welcome!', 'success');
+      toast('Admin panel access granted.', 'success');
     } else {
       // Wrong code — tell the user they got it wrong
       if (errEl) {
@@ -11330,7 +11330,7 @@ async function adminBanUser() {
   if (!adminBanTarget) return;
   if (isOwnerUserFE(adminBanTarget)) { toast('The owner (@lore) cannot be banned.', 'error'); return; }
   const reason = $('admin-ban-reason').value.trim();
-  if (!reason) { toast('Please provide a ban reason', 'error'); return; }
+  if (!reason) { toast('Please provide a ban reason.', 'error'); return; }
   const durationSelect = $('admin-ban-duration');
   const durationMs = durationSelect ? Number(durationSelect.value) : 0;
   try {
@@ -11339,9 +11339,9 @@ async function adminBanUser() {
       body: JSON.stringify({ username: adminBanTarget.username, reason, durationMs }),
     });
     const data = await res.json();
-    if (data.success) { toast('User banned successfully', 'success'); $('admin-ban-form').style.display = 'none'; adminBanTarget = null; $('admin-ban-search').value = ''; $('admin-ban-results').innerHTML = ''; loadAdminData(); }
-    else { toast(data.error || 'Failed to ban user', 'error'); }
-  } catch (e) { toast('Network error', 'error'); }
+    if (data.success) { toast('User has been banned successfully.', 'success'); $('admin-ban-form').style.display = 'none'; adminBanTarget = null; $('admin-ban-search').value = ''; $('admin-ban-results').innerHTML = ''; loadAdminData(); }
+    else { toast(data.error || 'Unable to ban this user. Please try again.', 'error'); }
+  } catch (e) { toast('A network error occurred. Please try again.', 'error'); }
 }
 
 async function adminUnbanUser(username) {
@@ -11351,9 +11351,9 @@ async function adminUnbanUser(username) {
       body: JSON.stringify({ username }),
     });
     const data = await res.json();
-    if (data.success) { toast('User unbanned', 'success'); loadAdminData(); }
-    else { toast(data.error || 'Failed to unban user', 'error'); }
-  } catch (e) { toast('Network error', 'error'); }
+    if (data.success) { toast('User has been unbanned.', 'success'); loadAdminData(); }
+    else { toast(data.error || 'Unable to unban this user. Please try again.', 'error'); }
+  } catch (e) { toast('A network error occurred. Please try again.', 'error'); }
 }
 
 // ---------- Mute management ----------
@@ -11423,7 +11423,7 @@ async function adminMuteUser() {
   if (isOwnerUserFE(adminMuteTarget)) { toast('The owner (@lore) cannot be muted.', 'error'); return; }
   const durationMs = parseInt($('admin-mute-duration').value, 10);
   const reason = $('admin-mute-reason').value.trim();
-  if (!durationMs || isNaN(durationMs)) { toast('Select a mute duration', 'error'); return; }
+  if (!durationMs || isNaN(durationMs)) { toast('Please select a mute duration.', 'error'); return; }
   try {
     const res = await fetch(API_BASE + '/api/admin/mute', {
       method: 'POST', headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
@@ -11431,14 +11431,14 @@ async function adminMuteUser() {
     });
     const data = await res.json();
     if (data.success) {
-      toast('User muted for ' + (data.durationText || 'the selected duration'), 'success');
+      toast('User has been muted for ' + (data.durationText || 'the selected duration'), 'success');
       $('admin-mute-form').style.display = 'none';
       adminMuteTarget = null;
       $('admin-mute-search').value = '';
       $('admin-mute-results').innerHTML = '';
       loadAdminData();
-    } else { toast(data.error || 'Failed to mute user', 'error'); }
-  } catch (e) { toast('Network error', 'error'); }
+    } else { toast(data.error || 'Unable to mute this user. Please try again.', 'error'); }
+  } catch (e) { toast('A network error occurred. Please try again.', 'error'); }
 }
 async function adminUnmuteUser(username) {
   try {
@@ -11447,9 +11447,9 @@ async function adminUnmuteUser(username) {
       body: JSON.stringify({ username }),
     });
     const data = await res.json();
-    if (data.success) { toast('User unmuted', 'success'); loadAdminData(); }
-    else { toast(data.error || 'Failed to unmute user', 'error'); }
-  } catch (e) { toast('Network error', 'error'); }
+    if (data.success) { toast('User has been unmuted.', 'success'); loadAdminData(); }
+    else { toast(data.error || 'Unable to unmute this user. Please try again.', 'error'); }
+  } catch (e) { toast('A network error occurred. Please try again.', 'error'); }
 }
 
 async function adminSetRole() {
@@ -11461,9 +11461,9 @@ async function adminSetRole() {
       body: JSON.stringify({ username: adminRoleTarget.username, role }),
     });
     const data = await res.json();
-    if (data.success) { toast('Role set to ' + (ROLE_LABELS[role] || role), 'success'); loadAdminData(); }
-    else { toast(data.error || 'Failed to set role', 'error'); }
-  } catch (e) { toast('Network error', 'error'); }
+    if (data.success) { toast('User role has been set to ' + (ROLE_LABELS[role] || role), 'success'); loadAdminData(); }
+    else { toast(data.error || 'Unable to set the user role. Please try again.', 'error'); }
+  } catch (e) { toast('A network error occurred. Please try again.', 'error'); }
 }
 
 async function adminAddBadge(username, badge) {
@@ -11482,8 +11482,8 @@ async function adminAddBadge(username, badge) {
         renderAdminBadgeCurrent(adminRoleTarget);
       }
       loadAdminData();
-    } else { toast(data.error || 'Failed to add badge', 'error'); }
-  } catch (e) { toast('Network error', 'error'); }
+    } else { toast(data.error || 'Unable to add the badge. Please try again.', 'error'); }
+  } catch (e) { toast('A network error occurred. Please try again.', 'error'); }
 }
 
 async function adminRemoveBadge(username, badge) {
@@ -11500,22 +11500,22 @@ async function adminRemoveBadge(username, badge) {
         renderAdminBadgeCurrent(adminRoleTarget);
       }
       loadAdminData();
-    } else { toast(data.error || 'Failed to remove badge', 'error'); }
-  } catch (e) { toast('Network error', 'error'); }
+    } else { toast(data.error || 'Unable to remove the badge. Please try again.', 'error'); }
+  } catch (e) { toast('A network error occurred. Please try again.', 'error'); }
 }
 
 async function adminWhitelistAdd() {
   const username = $('admin-whitelist-input').value.trim().toLowerCase();
-  if (!username) { toast('Enter a username', 'error'); return; }
+  if (!username) { toast('Please enter a username.', 'error'); return; }
   try {
     const res = await fetch(API_BASE + '/api/admin/whitelist-add', {
       method: 'POST', headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
       body: JSON.stringify({ username }),
     });
     const data = await res.json();
-    if (data.success) { toast('User added to whitelist', 'success'); $('admin-whitelist-input').value = ''; loadAdminData(); }
-    else { toast(data.error || 'Failed to add to whitelist', 'error'); }
-  } catch (e) { toast('Network error', 'error'); }
+    if (data.success) { toast('User has been added to the whitelist.', 'success'); $('admin-whitelist-input').value = ''; loadAdminData(); }
+    else { toast(data.error || 'Unable to add this user to the whitelist. Please try again.', 'error'); }
+  } catch (e) { toast('A network error occurred. Please try again.', 'error'); }
 }
 
 async function adminWhitelistRemove(username) {
@@ -11525,9 +11525,9 @@ async function adminWhitelistRemove(username) {
       body: JSON.stringify({ username }),
     });
     const data = await res.json();
-    if (data.success) { toast('User removed from whitelist', 'success'); loadAdminData(); }
-    else { toast(data.error || 'Failed to remove from whitelist', 'error'); }
-  } catch (e) { toast('Network error', 'error'); }
+    if (data.success) { toast('User has been removed from the whitelist.', 'success'); loadAdminData(); }
+    else { toast(data.error || 'Unable to remove this user from the whitelist. Please try again.', 'error'); }
+  } catch (e) { toast('A network error occurred. Please try again.', 'error'); }
 }
 
 // ---------- Admin: Message Moderation ----------
@@ -11597,11 +11597,11 @@ async function doAdminDeleteMessage() {
     });
     const data = await res.json();
     if (data.success) {
-      toast('Message deleted.', 'success');
+      toast('Message deleted successfully.', 'success');
       adminMessagesCache = adminMessagesCache.filter(m => m.id !== id);
       renderAdminMessages();
-    } else { toast(data.error || 'Failed to delete message', 'error'); }
-  } catch (e) { toast('Network error', 'error'); }
+    } else { toast(data.error || 'Unable to delete the message. Please try again.', 'error'); }
+  } catch (e) { toast('A network error occurred. Please try again.', 'error'); }
 }
 
 // ---------- Admin: Broadcast System Alert ----------
@@ -11630,12 +11630,12 @@ async function adminSendBroadcast() {
     });
     const data = await res.json();
     if (data.success) {
-      toast('Alert sent to everyone.', 'success');
+      toast('Alert has been sent to all users.', 'success');
       if ($('admin-broadcast-text')) $('admin-broadcast-text').value = '';
       const cnt = $('admin-broadcast-count'); if (cnt) cnt.textContent = '0 / 500';
       renderBroadcastPreview();
-    } else { toast(data.error || 'Failed to send alert', 'error'); }
-  } catch (e) { toast('Network error', 'error'); }
+    } else { toast(data.error || 'Unable to send the alert. Please try again.', 'error'); }
+  } catch (e) { toast('A network error occurred. Please try again.', 'error'); }
   if (btn) { btn.disabled = false; btn.textContent = 'Send Alert to Everyone'; }
 }
 
@@ -11653,7 +11653,7 @@ async function adminSetWelcomeTitle() {
     });
     const data = await res.json();
     if (data.success) {
-      toast('Welcome title updated.', 'success');
+      toast('Welcome title has been updated.', 'success');
       welcomeTitle = data.title;
       if (currentView === 'public') $('chat-title').textContent = data.title;
       if ($('admin-welcome-title-input')) $('admin-welcome-title-input').value = '';
@@ -11662,12 +11662,12 @@ async function adminSetWelcomeTitle() {
       startWelcomeTitleCooldown(adminData ? (adminData.welcomeTitleCooldown || 20000) : 20000);
       loadAdminData();
     } else if (data.error === 'Cooldown active') {
-      toast('Cooldown active — please wait.', 'error');
+      toast('The cooldown is still active. Please wait before trying again.', 'error');
       startWelcomeTitleCooldown(adminData ? (adminData.welcomeTitleCooldown || 20000) : 20000, data.remainingMs);
     } else {
-      toast(data.error || 'Failed to update title', 'error');
+      toast(data.error || 'Unable to update the welcome title. Please try again.', 'error');
     }
-  } catch (e) { toast('Network error', 'error'); }
+  } catch (e) { toast('A network error occurred. Please try again.', 'error'); }
   if (btn) { btn.disabled = false; btn.textContent = 'Update Title'; }
 }
 function startWelcomeTitleCooldown(cooldownMs, remainingMs) {
@@ -11717,12 +11717,12 @@ async function adminCreateCustomRole() {
     });
     const data = await res.json();
     if (data.success) {
-      toast('Custom role "' + name + '" created.', 'success');
+      toast('Custom role "' + name + '" has been created.', 'success');
       if ($('admin-custom-role-name')) $('admin-custom-role-name').value = '';
       renderCustomRolePreview();
       loadAdminData();
-    } else { toast(data.error || 'Failed to create role', 'error'); }
-  } catch (e) { toast('Network error', 'error'); }
+    } else { toast(data.error || 'Unable to create the role. Please try again.', 'error'); }
+  } catch (e) { toast('A network error occurred. Please try again.', 'error'); }
 }
 function renderAdminCustomRoles() {
   const container = $('admin-custom-roles-list');
@@ -11763,24 +11763,24 @@ async function adminRemoveCustomRole(roleId) {
       body: JSON.stringify({ id: roleId }),
     });
     const data = await res.json();
-    if (data.success) { toast('Custom role deleted.', 'success'); loadAdminData(); }
-    else { toast(data.error || 'Failed to delete role', 'error'); }
-  } catch (e) { toast('Network error', 'error'); }
+    if (data.success) { toast('Custom role has been deleted.', 'success'); loadAdminData(); }
+    else { toast(data.error || 'Unable to delete the role. Please try again.', 'error'); }
+  } catch (e) { toast('A network error occurred. Please try again.', 'error'); }
 }
 async function adminAddCustomRoleMember(roleId) {
   const input = $('custom-role-add-input-' + roleId);
   if (!input) return;
   const username = input.value.trim().toLowerCase();
-  if (!username) { toast('Enter a username', 'error'); return; }
+  if (!username) { toast('Please enter a username.', 'error'); return; }
   try {
     const res = await fetch(API_BASE + '/api/admin/custom-role-add-member', {
       method: 'POST', headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
       body: JSON.stringify({ roleId, username }),
     });
     const data = await res.json();
-    if (data.success) { toast('User added to role.', 'success'); input.value = ''; loadAdminData(); }
-    else { toast(data.error || 'Failed to add member', 'error'); }
-  } catch (e) { toast('Network error', 'error'); }
+    if (data.success) { toast('User has been added to the role.', 'success'); input.value = ''; loadAdminData(); }
+    else { toast(data.error || 'Unable to add the member to the role. Please try again.', 'error'); }
+  } catch (e) { toast('A network error occurred. Please try again.', 'error'); }
 }
 async function adminRemoveCustomRoleMember(roleId, username) {
   try {
@@ -11789,9 +11789,9 @@ async function adminRemoveCustomRoleMember(roleId, username) {
       body: JSON.stringify({ roleId, username }),
     });
     const data = await res.json();
-    if (data.success) { toast('User removed from role.', 'success'); loadAdminData(); }
-    else { toast(data.error || 'Failed to remove member', 'error'); }
-  } catch (e) { toast('Network error', 'error'); }
+    if (data.success) { toast('User has been removed from the role.', 'success'); loadAdminData(); }
+    else { toast(data.error || 'Unable to remove the member from the role. Please try again.', 'error'); }
+  } catch (e) { toast('A network error occurred. Please try again.', 'error'); }
 }
 
 // ---------- Cooldown exemption management ----------
@@ -11829,7 +11829,7 @@ function renderAdminCooldownExempt() {
 }
 async function adminAddCooldownExempt() {
   const select = $('admin-cooldown-exempt-select');
-  if (!select || !select.value) { toast('Select a user first', 'error'); return; }
+  if (!select || !select.value) { toast('Please select a user first.', 'error'); return; }
   const username = select.value;
   try {
     const res = await fetch(API_BASE + '/api/admin/cooldown-exempt-add', {
@@ -11837,9 +11837,9 @@ async function adminAddCooldownExempt() {
       body: JSON.stringify({ username }),
     });
     const data = await res.json();
-    if (data.success) { toast('@' + username + ' is now exempt from chat cooldown.', 'success'); loadAdminData(); }
-    else { toast(data.error || 'Failed to exempt user', 'error'); }
-  } catch (e) { toast('Network error', 'error'); }
+    if (data.success) { toast('@' + username + ' is now exempt from the chat cooldown.', 'success'); loadAdminData(); }
+    else { toast(data.error || 'Unable to set cooldown exemption. Please try again.', 'error'); }
+  } catch (e) { toast('A network error occurred. Please try again.', 'error'); }
 }
 async function adminRemoveCooldownExempt(username) {
   try {
@@ -11848,9 +11848,9 @@ async function adminRemoveCooldownExempt(username) {
       body: JSON.stringify({ username }),
     });
     const data = await res.json();
-    if (data.success) { toast('@' + username + ' cooldown exemption removed.', 'success'); loadAdminData(); }
-    else { toast(data.error || 'Failed to remove exemption', 'error'); }
-  } catch (e) { toast('Network error', 'error'); }
+    if (data.success) { toast('@' + username + ' cooldown exemption has been removed.', 'success'); loadAdminData(); }
+    else { toast(data.error || 'Unable to remove the cooldown exemption. Please try again.', 'error'); }
+  } catch (e) { toast('A network error occurred. Please try again.', 'error'); }
 }
 
 // Wire up admin event listeners
