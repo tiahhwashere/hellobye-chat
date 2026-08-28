@@ -4927,7 +4927,7 @@ function linkifyBio(text) {
   const urlRe = /(https?:\/\/[^\s<]+|www\.[^\s<]+)/gi;
   return safe.replace(urlRe, (m) => {
     const href = /^www\./i.test(m) ? 'https://' + m : m;
-    return '<a href="' + href + '" target="_blank" rel="noopener noreferrer" style="color:var(--accent);text-decoration:underline;word-break:break-all;">' + m + '</a>';
+    return '<a href="' + href + '" target="_blank" rel="noopener noreferrer" style="color:#6fb5ff;text-decoration:underline;word-break:break-all;">' + m + '</a>';
   });
 }
 function formatTime(ts) {
@@ -10446,33 +10446,134 @@ function applyProfileColor() {
   if (profileHexEl) profileHexEl.textContent = color || '#4a9eff';
   // The actual modal box inside the overlay.
   const modal = panel.querySelector('.settings-modal');
+  // A reusable list of all text-bearing element selectors inside the
+  // profile settings panel so we can force them to white.
+  const textSelector = [
+    'h3', 'h4', 'p', 'label', 'span',
+    '.settings-v2-subtitle', '.profile-section-title',
+    '.profile-username', '.profile-userid',
+    '.status-option-label', '.bio-counter',
+    '.toggle-row', '.profile-field-label',
+    '.setting-hint', '.custom-bg-label',
+    '.accent-current-label', '.accent-current-hex',
+    '.accent-preview-btn', '.profile-banner-placeholder span',
+    '.profile-banner-edit', '.profile-banner-remove',
+    '.profile-avatar-edit', '.profile-avatar-remove'
+  ].join(', ');
+
   if (color) {
-    // Set accent CSS variables on the panel scope only (does not change
-    // backgrounds or text colors — just the accent highlight color used
-    // by buttons, links, focus rings, etc.).
+    // Set accent CSS variables on the panel scope.
     panel.style.setProperty('--accent', color);
     panel.style.setProperty('--accent-hover', lighten(color, 0.12));
     panel.style.setProperty('--accent-dim', darken(color, 0.3));
     panel.style.setProperty('--accent-light', lighten(color, 0.3));
     const { r, g, b } = hexToRgb(color);
     panel.style.setProperty('--accent-glow', 'rgba(' + r + ', ' + g + ', ' + b + ', 0.12)');
-    // Compute readable text color for buttons within this panel.
-    const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-    panel.style.setProperty('--accent-text', lum > 0.65 ? '#1a1a1a' : '#ffffff');
-    // Apply a subtle accent header bar at the top of the modal so the
-    // chosen color is visible WITHOUT overwriting the panel background,
-    // text, inputs, toggles, or other UI elements.
+    // Always use white text on the colored background (not luminance-based).
+    panel.style.setProperty('--accent-text', '#ffffff');
+
     if (modal) {
-      // Remove any previously-created accent bar.
+      // Remove any previously-created accent bar (no longer needed).
       const oldBar = modal.querySelector('.panel-accent-bar');
       if (oldBar) oldBar.remove();
-      // Insert a thin colored bar at the very top of the modal.
-      const bar = document.createElement('div');
-      bar.className = 'panel-accent-bar';
-      bar.style.cssText = 'position:absolute;top:0;left:0;right:0;height:4px;background:' + color + ';z-index:10;border-radius:16px 16px 0 0;';
-      modal.style.position = modal.style.position || 'relative';
-      modal.insertBefore(bar, modal.firstChild);
+      // Fill the entire modal background with the chosen color.
+      modal.style.setProperty('background', color, 'important');
+      modal.style.setProperty('border-color', color, 'important');
+
+      // Force ALL text inside the modal to white.
+      modal.querySelectorAll(textSelector).forEach(el => {
+        el.style.setProperty('color', '#ffffff', 'important');
+      });
+
+      // Keep clickable bio links blue (if any <a> tags exist in the panel).
+      modal.querySelectorAll('a').forEach(el => {
+        el.style.setProperty('color', '#6fb5ff', 'important');
+      });
+
+      // Inner cards / sections get a semi-transparent dark overlay so
+      // they remain distinguishable from the colored background while
+      // text stays white.
+      modal.querySelectorAll(
+        '.profile-v2-header-card, .accent-section-card, .accent-preview-strip, .status-option'
+      ).forEach(el => {
+        el.style.setProperty('background', 'rgba(0,0,0,0.22)', 'important');
+        el.style.setProperty('border-color', 'rgba(255,255,255,0.18)', 'important');
+      });
+
+      // Inputs and textareas keep a dark translucent background so they
+      // remain usable (white text on dark input field).
+      modal.querySelectorAll('input[type="text"], input[type="password"], textarea, select').forEach(el => {
+        el.style.setProperty('background', 'rgba(0,0,0,0.3)', 'important');
+        el.style.setProperty('color', '#ffffff', 'important');
+        el.style.setProperty('border-color', 'rgba(255,255,255,0.2)', 'important');
+      });
+
+      // The color picker swatch keeps its checkered background — don't
+      // override it, just make its border lighter.
+      const pickerSwatch = modal.querySelector('.accent-swatch-large');
+      if (pickerSwatch) {
+        pickerSwatch.style.setProperty('border-color', 'rgba(255,255,255,0.3)', 'important');
+      }
+
+      // The X close button stays visible with white color.
+      const closeBtn = modal.querySelector('.slide-panel-close');
+      if (closeBtn) {
+        closeBtn.style.setProperty('color', '#ffffff', 'important');
+      }
+
+      // The header and footer bars get a slightly darker shade of the
+      // chosen color for visual separation.
+      const header = modal.querySelector('.slide-panel-header');
+      if (header) {
+        header.style.setProperty('background', darken(color, 0.18), 'important');
+        header.style.setProperty('border-color', 'rgba(255,255,255,0.1)', 'important');
+      }
+      const footer = modal.querySelector('.profile-v2-footer');
+      if (footer) {
+        footer.style.setProperty('background', darken(color, 0.18), 'important');
+        footer.style.setProperty('border-color', 'rgba(255,255,255,0.1)', 'important');
+      }
+
+      // The banner placeholder text stays white.
+      const bannerPlaceholder = modal.querySelector('.profile-banner-placeholder');
+      if (bannerPlaceholder) {
+        bannerPlaceholder.style.setProperty('color', '#ffffff', 'important');
+        bannerPlaceholder.style.setProperty('background', 'rgba(0,0,0,0.25)', 'important');
+      }
+
+      // Toggle slider track stays visible.
+      modal.querySelectorAll('.toggle-slider').forEach(el => {
+        el.style.setProperty('background', 'rgba(0,0,0,0.3)', 'important');
+      });
+
+      // Bio counter stays white.
+      const bioCounter = modal.querySelector('.bio-counter');
+      if (bioCounter) {
+        bioCounter.style.setProperty('color', 'rgba(255,255,255,0.7)', 'important');
+      }
+
+      // Profile user ID (muted) stays a lighter white.
+      const userId = modal.querySelector('.profile-userid');
+      if (userId) {
+        userId.style.setProperty('color', 'rgba(255,255,255,0.6)', 'important');
+      }
+
+      // Setting hints stay a lighter white.
+      modal.querySelectorAll('.setting-hint').forEach(el => {
+        el.style.setProperty('color', 'rgba(255,255,255,0.65)', 'important');
+      });
+
+      // Custom bg label (Quick Colors label) stays a lighter white.
+      modal.querySelectorAll('.custom-bg-label').forEach(el => {
+        el.style.setProperty('color', 'rgba(255,255,255,0.7)', 'important');
+      });
+
+      // Accent current label stays a lighter white.
+      modal.querySelectorAll('.accent-current-label').forEach(el => {
+        el.style.setProperty('color', 'rgba(255,255,255,0.6)', 'important');
+      });
     }
+
     const picker = $('profile-accent-picker');
     if (picker) picker.value = color;
   } else {
@@ -10486,6 +10587,61 @@ function applyProfileColor() {
     if (modal) {
       const oldBar = modal.querySelector('.panel-accent-bar');
       if (oldBar) oldBar.remove();
+      // Remove all inline styles we applied.
+      modal.style.removeProperty('background');
+      modal.style.removeProperty('border-color');
+      modal.querySelectorAll(textSelector).forEach(el => {
+        el.style.removeProperty('color');
+      });
+      modal.querySelectorAll('a').forEach(el => {
+        el.style.removeProperty('color');
+      });
+      modal.querySelectorAll(
+        '.profile-v2-header-card, .accent-section-card, .accent-preview-strip, .status-option'
+      ).forEach(el => {
+        el.style.removeProperty('background');
+        el.style.removeProperty('border-color');
+      });
+      modal.querySelectorAll('input[type="text"], input[type="password"], textarea, select').forEach(el => {
+        el.style.removeProperty('background');
+        el.style.removeProperty('color');
+        el.style.removeProperty('border-color');
+      });
+      const pickerSwatch = modal.querySelector('.accent-swatch-large');
+      if (pickerSwatch) pickerSwatch.style.removeProperty('border-color');
+      const closeBtn = modal.querySelector('.slide-panel-close');
+      if (closeBtn) closeBtn.style.removeProperty('color');
+      const header = modal.querySelector('.slide-panel-header');
+      if (header) {
+        header.style.removeProperty('background');
+        header.style.removeProperty('border-color');
+      }
+      const footer = modal.querySelector('.profile-v2-footer');
+      if (footer) {
+        footer.style.removeProperty('background');
+        footer.style.removeProperty('border-color');
+      }
+      const bannerPlaceholder = modal.querySelector('.profile-banner-placeholder');
+      if (bannerPlaceholder) {
+        bannerPlaceholder.style.removeProperty('color');
+        bannerPlaceholder.style.removeProperty('background');
+      }
+      modal.querySelectorAll('.toggle-slider').forEach(el => {
+        el.style.removeProperty('background');
+      });
+      const bioCounter = modal.querySelector('.bio-counter');
+      if (bioCounter) bioCounter.style.removeProperty('color');
+      const userId = modal.querySelector('.profile-userid');
+      if (userId) userId.style.removeProperty('color');
+      modal.querySelectorAll('.setting-hint').forEach(el => {
+        el.style.removeProperty('color');
+      });
+      modal.querySelectorAll('.custom-bg-label').forEach(el => {
+        el.style.removeProperty('color');
+      });
+      modal.querySelectorAll('.accent-current-label').forEach(el => {
+        el.style.removeProperty('color');
+      });
     }
     const picker = $('profile-accent-picker');
     if (picker) picker.value = defaultAccent;
