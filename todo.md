@@ -9,5 +9,5 @@
 - [x] 6. Professionalize display name hint
 - [x] 7. Professionalize username hint
 - [x] 8. Verify JS syntax (both files)
-- [ ] 9. Commit and push to GitHub
-- [ ] 10. Verify deploy live on Render
+- [x] 9. Commit and push to GitHub
+- [x] 10. Verify deploy live on Render (HTTP 200, all changes confirmed in live HTML)
