@@ -1,5 +1,16 @@
 // Hellobye Chat — Compatible Backend
 // Express + Socket.io implementation matching the frontend SPA's API surface.
+
+// Global crash diagnostics — log any uncaught errors so we can see them in
+// the Render dashboard logs instead of a silent exit code 1.
+process.on('uncaughtException', (err) => {
+  console.error('[FATAL] Uncaught exception:', err && err.stack ? err.stack : err);
+  process.exit(1);
+});
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('[FATAL] Unhandled rejection:', reason && reason.stack ? reason.stack : reason);
+});
+
 const express = require('express');
 const http = require('http');
 const path = require('path');
@@ -2311,7 +2322,9 @@ async function restoreUploads() {
     console.error('[backup] restoreUploads error:', e);
   }
 }
-restoreUploads();
+// Temporarily disabled startup bulk restore to diagnose OOM crash.
+// Files are still fetched on-demand via the /uploads fallback middleware.
+// restoreUploads();
 
 // ---------- Start ----------
 server.listen(PORT, '0.0.0.0', () => {
