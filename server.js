@@ -398,6 +398,7 @@ function publicUser(u) {
     lastSeen: u.lastSeen || nowISO(),
     showOnlineStatus: u.showOnlineStatus !== false,
     friendRequestsEnabled: u.friendRequestsEnabled !== false,
+    directMessagesEnabled: u.directMessagesEnabled !== false,
     createdAt: u.createdAt || nowISO(),
     id: u.id || null,
     role: u.role || 'user',
@@ -564,6 +565,7 @@ app.post('/api/register', (req, res) => {
     hideLastSeen: false,
     showOnlineStatus: true,
     friendRequestsEnabled: true,
+    directMessagesEnabled: true,
     lastSeen: nowISO(),
     createdAt: nowISO(),
     compactMode: false,
@@ -693,12 +695,13 @@ app.post('/api/profile', authMiddleware, avatarUpload.single('image'), async (re
     return res.json({ success: true, avatar: u.avatar, banner: u.banner });
   }
   // JSON profile update
-  const { bio, hideLastSeen, pronouns, showOnlineStatus, panelColor, friendRequestsEnabled } = req.body || {};
+  const { bio, hideLastSeen, pronouns, showOnlineStatus, panelColor, friendRequestsEnabled, directMessagesEnabled } = req.body || {};
   if (bio !== undefined) u.bio = String(bio).slice(0, 500);
   if (hideLastSeen !== undefined) u.hideLastSeen = !!hideLastSeen;
   if (pronouns !== undefined) u.pronouns = String(pronouns).slice(0, 50);
   if (showOnlineStatus !== undefined) u.showOnlineStatus = showOnlineStatus !== false;
   if (friendRequestsEnabled !== undefined) u.friendRequestsEnabled = friendRequestsEnabled !== false;
+  if (directMessagesEnabled !== undefined) u.directMessagesEnabled = directMessagesEnabled !== false;
   // Panel Theme Color — store a validated hex color (or null to clear).
   // This is what makes the color visible to OTHER users viewing the profile.
   if (panelColor !== undefined) {
@@ -1769,6 +1772,7 @@ function broadcastProfile(username) {
     panelColor: u.panelColor || null,
     showOnlineStatus: u.showOnlineStatus !== false,
     friendRequestsEnabled: u.friendRequestsEnabled !== false,
+    directMessagesEnabled: u.directMessagesEnabled !== false,
     role: u.role || 'user',
     badges: u.badges || [],
     banned: !!u.banned,
@@ -1945,6 +1949,20 @@ io.on('connection', (socket) => {
     try {
       const target = to ? to.toLowerCase() : '';
       if (!db.users[target]) { if (typeof ack === 'function') ack({ error: 'User not found' }); return; }
+      // Direct Messages privacy: a user can turn off their own DMs.
+      //  - If the SENDER has DMs off, they cannot send DMs to anyone.
+      //  - If the RECIPIENT has DMs off, nobody can DM them.
+      // This is enforced server-side so it cannot be bypassed by the client.
+      const senderRecord = db.users[username];
+      if (senderRecord && senderRecord.directMessagesEnabled === false) {
+        if (typeof ack === 'function') ack({ error: 'Your direct messages are turned off. Enable them in Data & Privacy to send messages.', dmDisabled: true });
+        return;
+      }
+      const recipientRecord = db.users[target];
+      if (recipientRecord && recipientRecord.directMessagesEnabled === false) {
+        if (typeof ack === 'function') ack({ error: '@' + recipientRecord.username + ' has direct messages turned off and cannot receive messages.', recipientDmDisabled: true });
+        return;
+      }
       const key = username + ':' + target;
       const last = lastDMTime[key] || 0;
       if (Date.now() - last < 3000) {

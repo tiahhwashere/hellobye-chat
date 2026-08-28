@@ -605,6 +605,11 @@ body.loading-session #chat-app.active::after {
   background: var(--accent-dim); color: #fff;
   border-radius: 14px 14px 4px 14px;
 }
+/* Media-only bubbles: no text means no need for a colored chat background.
+   This removes the accent/blue box around images, videos & GIFs so media
+   sits cleanly on the chat surface with a subtle border instead. */
+.message-bubble.media-only { background: transparent !important; padding: 2px 0; border-radius: 14px; }
+.message-group.own .message-bubble.media-only { background: transparent !important; color: var(--text-primary); }
 .message-bubble.deleted {
   background: transparent; border: 1px dashed var(--border-light);
   color: var(--text-muted); font-style: italic; font-size: 13px;
@@ -672,23 +677,24 @@ body.loading-session #chat-app.active::after {
 
 /* Message file attachments */
 .message-file { margin-top: 8px; }
+.message-bubble.media-only .message-file:first-child { margin-top: 0; }
 .message-file img {
-  max-width: 360px; max-height: 360px; border-radius: 12px; display: block; cursor: pointer;
+  max-width: 360px; max-height: 360px; border-radius: 10px; display: block; cursor: pointer;
   object-fit: cover; image-rendering: -webkit-optimize-contrast; image-rendering: crisp-edges;
-  border: 1px solid var(--border);
-  transition: border-color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+  border: 1px solid rgba(255,255,255,0.08);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
 }
-.message-file img:hover { border-color: var(--border-light); transform: scale(1.012); box-shadow: 0 4px 16px rgba(0,0,0,0.35); }
+.message-file img:hover { border-color: rgba(255,255,255,0.16); box-shadow: 0 3px 12px rgba(0,0,0,0.4); }
 /* 4K/HD enhancement: images are upscaled + sharpened on the server; this
    subtle display filter adds a final crispness/contrast pop when rendered. */
 .message-file img.hd-enhanced { filter: contrast(1.04) saturate(1.06) sharpen(1); }
 .message-file video {
-  max-width: 380px; max-height: 360px; border-radius: 12px; border: 1px solid var(--border);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.25); background: #000;
-  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+  max-width: 380px; max-height: 360px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.08);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3); background: #000;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
-.message-file video:hover { border-color: var(--border-light); box-shadow: 0 4px 16px rgba(0,0,0,0.35); }
+.message-file video:hover { border-color: rgba(255,255,255,0.16); box-shadow: 0 3px 12px rgba(0,0,0,0.4); }
 /* HD enhancement filter for inline videos (server can't transcode video, so
    we apply a light sharpen/contrast/saturate pass at display time). */
 .message-file video.hd-enhanced { filter: contrast(1.05) saturate(1.08) brightness(1.02); }
@@ -696,14 +702,14 @@ body.loading-session #chat-app.active::after {
 .message-file-attachment {
   display: flex; align-items: center; gap: 12px;
   padding: 12px 14px; background: var(--bg-darker);
-  border: 1px solid var(--border); border-radius: 12px;
+  border: 1px solid var(--border); border-radius: 10px;
   text-decoration: none; color: var(--text-primary);
   transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
   max-width: 360px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
 }
 .message-group.own .message-file-attachment { background: rgba(0,0,0,0.15); border-color: rgba(255,255,255,0.15); }
-.message-file-attachment:hover { border-color: var(--accent); background: var(--bg-dark); box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+.message-file-attachment:hover { border-color: var(--accent); background: var(--bg-dark); box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
 .message-group.own .message-file-attachment:hover { background: rgba(0,0,0,0.22); }
 .file-icon {
   width: 42px; height: 42px; border-radius: 10px;
@@ -807,10 +813,12 @@ body.loading-session #chat-app.active::after {
 .attachment-preview-info { flex: 1; min-width: 0; }
 .attachment-preview-name { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .attachment-preview-size { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
-.attachment-preview-progress { height: 4px; background: var(--bg-darker); border-radius: 2px; margin-top: 6px; overflow: hidden; position: relative; }
-.attachment-preview-bar { height: 100%; width: 0%; background: var(--accent); transition: width 0.3s; }
-/* Indeterminate "uploading" animation while file is pending */
-.attachment-preview-bar.uploading { width: 40% !important; animation: uploadIndeterminate 1.2s ease-in-out infinite; border-radius: 2px; }
+.attachment-preview-progress { height: 5px; background: var(--bg-darker); border-radius: 3px; margin-top: 6px; overflow: hidden; position: relative; }
+.attachment-preview-bar { height: 100%; width: 0%; background: var(--accent); transition: width 0.25s ease; border-radius: 3px; }
+/* Indeterminate "uploading" animation while file is pending (pre-send) */
+.attachment-preview-bar.uploading { width: 40% !important; animation: uploadIndeterminate 1.2s ease-in-out infinite; border-radius: 3px; }
+/* Active determinate upload (real progress while sending) */
+.attachment-preview-bar.active { animation: none !important; background: linear-gradient(90deg, var(--accent), var(--accent-light, #6fb5ff)); }
 @keyframes uploadIndeterminate {
   0% { margin-left: -40%; }
   50% { margin-left: 100%; }
@@ -1720,13 +1728,28 @@ body.loading-session #chat-app.active::after {
 }
 .accent-preset:hover { transform: scale(1.2); border-color: var(--text-primary); box-shadow: 0 2px 8px rgba(0,0,0,0.4); }
 .accent-preset.active { border-color: #fff; box-shadow: 0 0 0 2px var(--accent), 0 2px 8px rgba(0,0,0,0.4); }
-/* Accent color section layout */
-.accent-section-card { background: var(--bg-light); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; }
-.accent-current-row { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
-.accent-swatch-large { width: 48px; height: 48px; border-radius: var(--radius-sm); border: 2px solid var(--border); cursor: pointer; box-shadow: 0 1px 4px rgba(0,0,0,0.2); }
-.accent-current-info { display: flex; flex-direction: column; gap: 2px; }
-.accent-current-label { font-size: 13px; font-weight: 600; color: var(--text-primary); }
-.accent-current-hex { font-size: 12px; color: var(--text-muted); font-family: monospace; }
+/* Accent color section layout \u2014 refined, professional card */
+.accent-section-card {
+  background: var(--bg-light); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 16px;
+}
+.accent-current-row {
+  display: flex; align-items: center; gap: 14px; margin-bottom: 16px;
+  flex-wrap: wrap; padding-bottom: 14px; border-bottom: 1px solid var(--border-light);
+}
+.accent-swatch-large {
+  width: 52px; height: 52px; border-radius: 12px; border: 2px solid var(--border);
+  cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+  padding: 0; appearance: none; -webkit-appearance: none;
+}
+.accent-swatch-large:hover { transform: scale(1.05); border-color: var(--text-muted); box-shadow: 0 4px 14px rgba(0,0,0,0.35); }
+.accent-current-info { display: flex; flex-direction: column; gap: 3px; }
+.accent-current-label { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.6px; }
+.accent-current-hex {
+  font-size: 15px; color: var(--text-primary); font-family: 'SF Mono', 'Monaco', 'Cascadia Code', monospace;
+  font-weight: 600; letter-spacing: 0.3px;
+}
 
 /* New background tools */
 .custom-bg-quick-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
@@ -1783,13 +1806,19 @@ body.loading-session #chat-app.active::after {
   background: var(--bg-lighter); color: var(--text-secondary);
   display: flex; align-items: center; justify-content: center;
   font-size: 52px; font-weight: 600; overflow: hidden;
-  margin: -70px auto 0; border: 5px solid var(--bg-dark); position: relative; z-index: 1;
+  margin: -70px 0 0; border: 5px solid var(--bg-dark); position: relative; z-index: 1;
+  flex: 0 0 auto;
 }
 .profile-view-avatar img { width: 100%; height: 100%; object-fit: cover; image-rendering: -webkit-optimize-contrast; }
-.profile-view-info { padding: 14px 32px 20px; text-align: center; }
+/* Main row: avatar on the LEFT, identity info on the right (left-aligned) */
+.profile-view-main {
+  display: flex; align-items: flex-start; gap: 20px;
+  padding: 0 32px; flex-wrap: nowrap;
+}
+.profile-view-info { padding: 14px 0 20px; text-align: left; flex: 1 1 auto; min-width: 0; }
 .profile-view-info h3 { font-size: 19px; font-weight: 600; margin-bottom: 3px; }
 .profile-view-handle { font-size: 14px; color: var(--accent); margin-bottom: 4px; }
-.profile-view-id { font-size: 11px; color: var(--text-muted); font-family: monospace; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; gap: 6px; position: relative; }
+.profile-view-id { font-size: 11px; color: var(--text-muted); font-family: monospace; margin-bottom: 10px; display: flex; align-items: center; justify-content: flex-start; gap: 6px; position: relative; }
 .pv-id-text { }
 .pv-copy-id-btn { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 4px; background: var(--bg-medium); color: var(--text-muted); border: 1px solid var(--border-light); cursor: pointer; transition: var(--transition); padding: 0; }
 .pv-copy-id-btn:hover { background: var(--bg-hover); color: var(--accent); border-color: var(--accent); }
@@ -1802,7 +1831,7 @@ body.loading-session #chat-app.active::after {
 .pv-copy-id-menu-name { font-size: 12px; color: var(--text-primary); font-weight: 500; }
 .pv-copy-id-menu-id { font-size: 10px; color: var(--text-muted); font-family: monospace; }
 .pv-copy-id-menu-empty { font-size: 11px; color: var(--text-muted); padding: 8px; text-align: center; }
-.profile-view-status { font-size: 12px; color: var(--text-secondary); display: flex; align-items: center; justify-content: center; gap: 6px; margin-bottom: 14px; }
+.profile-view-status { font-size: 12px; color: var(--text-secondary); display: flex; align-items: center; justify-content: flex-start; gap: 6px; margin-bottom: 14px; }
 .profile-view-status .status-dot { position: static; border: none; }
 .profile-view-extra {
   display: grid; grid-template-columns: 1fr 1fr; gap: 8px 16px;
@@ -1878,6 +1907,12 @@ body.loading-session #chat-app.active::after {
   color: var(--warning); background: rgba(212,160,23,0.08);
   border-top: 1px solid rgba(212,160,23,0.2);
   flex-shrink: 0;
+}
+.dm-disabled-banner {
+  padding: 14px 20px; text-align: center; font-size: 13px;
+  color: var(--text-muted); background: var(--bg-medium);
+  border-top: 1px solid var(--border);
+  flex-shrink: 0; line-height: 1.5;
 }
 
 /* ============================================
@@ -2755,7 +2790,8 @@ body.loading-session #chat-app.active::after {
 
   /* Profile view modal banner — scale down on mobile but keep taller ratio */
   .profile-view-banner { height: 200px; }
-  .profile-view-avatar { width: 112px; height: 112px; margin: -56px auto 0; font-size: 42px; }
+  .profile-view-avatar { width: 112px; height: 112px; margin: -56px 0 0; font-size: 42px; }
+  .profile-view-main { padding: 0 18px; gap: 14px; }
 
   /* System alert — full width on mobile */
   .system-alert { padding: 12px 14px; gap: 10px; }
@@ -2772,7 +2808,8 @@ body.loading-session #chat-app.active::after {
   .link-embed-title { font-size: 11px; }
   .link-embed-desc { display: none; } /* hide description on very small screens */
   .profile-view-banner { height: 160px; }
-  .profile-view-avatar { width: 96px; height: 96px; margin: -48px auto 0; font-size: 36px; border-width: 4px; }
+  .profile-view-avatar { width: 96px; height: 96px; margin: -48px 0 0; font-size: 36px; border-width: 4px; }
+  .profile-view-main { padding: 0 14px; gap: 12px; }
 }
 
 /* Mobile: admin panel sub-tabs scroll horizontally and wrap nicely */
@@ -3208,7 +3245,7 @@ body.loading-session #chat-app.active::after {
     <div class="slide-panel-header settings-v2-header">
       <div class="settings-v2-titlewrap">
         <h3>Profile Settings</h3>
-        <p class="settings-v2-subtitle">Customize how others see your profile</p>
+        <p class="settings-v2-subtitle">Personalize your profile, banner, and identity details.</p>
       </div>
       <button class="slide-panel-close" id="profile-close">&times;</button>
     </div>
@@ -3314,11 +3351,18 @@ body.loading-session #chat-app.active::after {
 
       <div class="profile-section">
         <div class="profile-section-title">Panel Theme Color</div>
-        <p class="setting-hint">Change the accent color of this profile settings panel. Matches website style.</p>
-        <div class="custom-bg-controls">
-          <input type="color" id="profile-accent-picker" value="#4a9eff" style="width:48px;height:36px;border:none;border-radius:6px;cursor:pointer;background:none;">
+        <p class="setting-hint">Choose an accent color for your profile panel. This color is shown to other members when they view your profile.</p>
+        <div class="accent-section-card">
+          <div class="accent-current-row">
+            <input type="color" id="profile-accent-picker" value="#4a9eff" class="accent-swatch-large" title="Click to pick a custom color">
+            <div class="accent-current-info">
+              <span class="accent-current-label">Current Color</span>
+              <span class="accent-current-hex" id="profile-accent-hex">#4a9eff</span>
+            </div>
+            <button class="setting-save-btn danger-btn" id="profile-accent-revert" style="margin-left:auto;">Revert Color</button>
+          </div>
+          <div class="custom-bg-label" style="font-size:11px;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-muted);font-weight:700;margin-bottom:10px;">Quick Colors</div>
           <div class="accent-preset-row" id="profile-accent-presets"></div>
-          <button class="setting-save-btn danger-btn" id="profile-accent-revert">Revert Color</button>
         </div>
       </div>
 
@@ -3549,7 +3593,7 @@ body.loading-session #chat-app.active::after {
                 </div>
                 <button class="setting-save-btn danger-btn" id="accent-revert-btn" style="margin-left:auto;">Revert Color</button>
               </div>
-              <div class="custom-bg-label" style="font-size:12px;margin-bottom:8px;">Quick Colors</div>
+              <div class="custom-bg-label" style="font-size:11px;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-muted);font-weight:700;margin-bottom:10px;">Quick Colors</div>
               <div class="accent-preset-row" id="accent-presets"></div>
             </div>
           </div>
@@ -3567,6 +3611,13 @@ body.loading-session #chat-app.active::after {
               <span>Allow friend requests<br><small style="color:var(--text-muted);font-size:11px;font-weight:400;">When off, others can't send you friend requests</small></span>
               <span class="toggle-switch">
                 <input type="checkbox" id="friend-requests-toggle" checked>
+                <span class="toggle-slider"></span>
+              </span>
+            </label>
+            <label class="toggle-row" style="margin-top:14px;">
+              <span>Allow direct messages<br><small style="color:var(--text-muted);font-size:11px;font-weight:400;">When off, you can't send or receive direct messages from other users</small></span>
+              <span class="toggle-switch">
+                <input type="checkbox" id="direct-messages-toggle" checked>
                 <span class="toggle-slider"></span>
               </span>
             </label>
@@ -3864,16 +3915,18 @@ body.loading-session #chat-app.active::after {
       <div class="profile-view-banner" id="pv-banner">
         <div class="profile-view-banner-placeholder">No banner</div>
       </div>
-      <div class="profile-view-avatar" id="pv-avatar">
-        <span id="pv-avatar-letter">U</span>
-      </div>
-      <div class="profile-view-info">
-        <h3 id="pv-displayname"></h3>
-        <div class="profile-view-handle" id="pv-handle"></div>
-        <div class="profile-view-id" id="pv-id"></div>
-        <div class="profile-view-status" id="pv-status"></div>
-        <div class="profile-view-extra" id="pv-extra"></div>
-        <div class="profile-view-bio" id="pv-bio"></div>
+      <div class="profile-view-main">
+        <div class="profile-view-avatar" id="pv-avatar">
+          <span id="pv-avatar-letter">U</span>
+        </div>
+        <div class="profile-view-info">
+          <h3 id="pv-displayname"></h3>
+          <div class="profile-view-handle" id="pv-handle"></div>
+          <div class="profile-view-id" id="pv-id"></div>
+          <div class="profile-view-status" id="pv-status"></div>
+          <div class="profile-view-extra" id="pv-extra"></div>
+          <div class="profile-view-bio" id="pv-bio"></div>
+        </div>
       </div>
       <div class="profile-view-actions" id="pv-actions"></div>
       <button class="modal-close-corner" id="pv-close">&times;</button>
@@ -3907,6 +3960,9 @@ body.loading-session #chat-app.active::after {
       </div>
       <div class="dm-blocked-banner" id="dm-blocked-banner" style="display:none;">
         You have blocked this user. Unblock them from the Blocked tab to see messages and reply.
+      </div>
+      <div class="dm-disabled-banner" id="dm-disabled-banner" style="display:none;">
+        <span id="dm-disabled-banner-text"></span>
       </div>
       <div class="dm-typing" id="dm-typing"></div>
       <div class="dm-input-area">
@@ -4943,6 +4999,7 @@ function connectSocket() {
       if (data.panelColor !== undefined) u.panelColor = data.panelColor;
       if (data.showOnlineStatus !== undefined) u.showOnlineStatus = data.showOnlineStatus;
       if (data.friendRequestsEnabled !== undefined) u.friendRequestsEnabled = data.friendRequestsEnabled;
+      if (data.directMessagesEnabled !== undefined) u.directMessagesEnabled = data.directMessagesEnabled;
       if (data.lastSeen !== undefined) u.lastSeen = data.lastSeen;
     }
     if (currentUser && currentUser.username === data.username) {
@@ -4959,6 +5016,7 @@ function connectSocket() {
       if (data.panelColor !== undefined) merge.panelColor = data.panelColor;
       if (data.showOnlineStatus !== undefined) merge.showOnlineStatus = data.showOnlineStatus;
       if (data.friendRequestsEnabled !== undefined) merge.friendRequestsEnabled = data.friendRequestsEnabled;
+      if (data.directMessagesEnabled !== undefined) merge.directMessagesEnabled = data.directMessagesEnabled;
       if (data.lastSeen !== undefined) merge.lastSeen = data.lastSeen;
       currentUser = { ...currentUser, ...merge };
       updateProfilePanel();
@@ -4967,8 +5025,10 @@ function connectSocket() {
     }
     renderUserList();
     updateMessageAvatars(data.username, data.avatar);
-    // If DM open with this user, update header
-    if (activeDMUser === data.username) updateDMHeader();
+    // If DM open with this user, update header + re-evaluate the DM-disabled state
+    if (activeDMUser === data.username) { updateDMHeader(); applyDMDisabledState(); }
+    // If our own DM preference changed, re-evaluate the currently open DM
+    if (currentUser && currentUser.username === data.username && activeDMUser) applyDMDisabledState();
   });
   socket.on('username-changed', (data) => {
     // Refresh everything
@@ -5151,6 +5211,10 @@ function appendMessage(msg, silent) {
     if (msg.files && Array.isArray(msg.files) && msg.files.length > 0) {
       msg.files.forEach(f => { if (f) bubble.appendChild(createFileElement(f)); });
     }
+    // Media-only bubbles (no text, no reply) get a flat/transparent style so
+    // images & videos aren't wrapped in an accent-colored box.
+    const hasMedia = !!(msg.file || (msg.files && msg.files.length));
+    if (hasMedia && !msg.text && !msg.reply) bubble.classList.add('media-only');
   }
 
   // Right-click context for own messages
@@ -5404,6 +5468,42 @@ async function sendMessage() {
   doSendMessage(text);
 }
 
+// ---------- Upload with real progress (XHR) ----------
+// fetch() does not expose upload progress, so we use XMLHttpRequest to
+// animate the preview bar with actual bytes-uploaded percentage.
+function uploadFileWithProgress(file, bar) {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    const fd = new FormData();
+    fd.append('file', file);
+    xhr.open('POST', API_BASE + '/api/upload');
+    // Switch the bar from indeterminate to a determinate active state
+    if (bar) {
+      bar.classList.remove('uploading');
+      bar.classList.add('active');
+      bar.style.width = '0%';
+    }
+    if (xhr.upload) {
+      xhr.upload.onprogress = (e) => {
+        if (e.lengthComputable && bar) {
+          const pct = Math.round((e.loaded / e.total) * 100);
+          bar.style.width = Math.max(2, Math.min(99, pct)) + '%';
+        }
+      };
+    }
+    xhr.onload = () => {
+      if (bar) { bar.classList.remove('active'); bar.style.width = '100%'; }
+      try {
+        const data = JSON.parse(xhr.responseText);
+        if (xhr.status >= 200 && xhr.status < 300) { resolve(data); }
+        else { reject(data && data.error ? data : new Error(data && data.error || 'File upload failed')); }
+      } catch (err) { reject(new Error('File upload failed')); }
+    };
+    xhr.onerror = () => { if (bar) { bar.classList.remove('active'); } reject(new Error('File upload failed')); };
+    xhr.send(fd);
+  });
+}
+
 async function doSendMessage(text) {
   if (!text && !pendingFile) return;
   const isExempt = !!(currentUser && currentUser.cooldownExempt);
@@ -5416,26 +5516,19 @@ async function doSendMessage(text) {
   if (pendingFile) {
     const bar = $('file-preview-bar');
     bar.classList.remove('uploading');
-    bar.style.width = '30%';
+    bar.style.width = '0%';
     try {
-      const formData = new FormData();
-      formData.append('file', pendingFile);
-      const res = await fetch(API_BASE + '/api/upload', { method: 'POST', body: formData });
-      const data = await res.json();
-      if (!res.ok) { toast(data.error || 'File upload failed', 'error'); clearPendingFile(); return; }
-      fileData = data.file; bar.style.width = '100%';
-    } catch (err) { toast('File upload failed', 'error'); clearPendingFile(); return; }
+      const data = await uploadFileWithProgress(pendingFile, bar);
+      fileData = data.file;
+      bar.style.width = '100%';
+    } catch (err) { toast((err && err.error) || 'File upload failed', 'error'); clearPendingFile(); return; }
   }
   // Upload any additional multi-file attachments before sending.
   let extraFileData = [];
   if (pendingFiles.length > 0) {
     for (const f of pendingFiles) {
       try {
-        const formData = new FormData();
-        formData.append('file', f);
-        const res = await fetch(API_BASE + '/api/upload', { method: 'POST', body: formData });
-        const data = await res.json();
-        if (!res.ok) { toast('Upload failed for "' + f.name + '"', 'error'); break; }
+        const data = await uploadFileWithProgress(f, $('file-preview-bar'));
         extraFileData.push(data.file);
       } catch (err) { toast('Upload failed for "' + f.name + '"', 'error'); break; }
     }
@@ -6244,7 +6337,14 @@ function attachUserListListeners() {
       if (un === currentUser.username) return;
       showContextMenu(e.clientX, e.clientY, [
         { label: 'View Profile', icon: 'user', action: () => openProfileView(un) },
-        { label: 'Send Message', icon: 'dm', action: () => openDM(un) },
+        { label: 'Send Message', icon: 'dm', action: () => {
+          const meOff = currentUser && currentUser.directMessagesEnabled === false;
+          const target = users.find(x => x.username === un);
+          const otherOff = target && target.directMessagesEnabled === false;
+          if (meOff) { toast('Your direct messages are turned off. Enable them in Settings \u2192 Data & Privacy.', 'error'); return; }
+          if (otherOff) { toast('@' + un + ' has direct messages turned off.', 'error'); return; }
+          openDM(un);
+        } },
         { label: 'Add Friend', icon: 'friend', action: () => sendFriendRequest(un) },
         { label: 'Block', icon: 'block', danger: true, action: () => promptBlockUser(un) }
       ]);
@@ -6604,6 +6704,7 @@ async function openDM(username) {
   // Show loading state immediately
   dmMessages = [];
   renderDMMessages();
+  applyDMDisabledState();
   $('dm-input').focus();
   // Load messages (the only blocking call needed)
   try {
@@ -6617,6 +6718,30 @@ async function openDM(username) {
   fetch(API_BASE + '/api/dms/mark-read/' + encodeURIComponent(username), { method: 'POST' }).then(() => {
     loadDMConversations();
   }).catch(() => {});
+}
+// Determine whether the current DM conversation should be disabled because
+// either the current user or the other participant has direct messages turned
+// off. Shows a notice banner and hides the input area so the user cannot even
+// attempt to send (the server also enforces this, so it can never be bypassed).
+function applyDMDisabledState() {
+  const banner = $('dm-disabled-banner');
+  const inputArea = document.querySelector('.dm-input-area');
+  if (!banner || !inputArea) return;
+  if (!activeDMUser) { banner.style.display = 'none'; inputArea.style.display = ''; return; }
+  const meOff = currentUser && currentUser.directMessagesEnabled === false;
+  const other = getUserByUsername(activeDMUser);
+  const otherOff = other && other.directMessagesEnabled === false;
+  if (meOff || otherOff) {
+    const txt = meOff
+      ? 'Your direct messages are turned off. Enable them in Settings \u2192 Data & Privacy to send and receive messages.'
+      : '@' + (other ? other.username : activeDMUser) + ' has direct messages turned off and cannot receive messages right now.';
+    $('dm-disabled-banner-text').textContent = txt;
+    banner.style.display = 'block';
+    inputArea.style.display = 'none';
+  } else {
+    banner.style.display = 'none';
+    inputArea.style.display = '';
+  }
 }
 function updateDMHeader() {
   if (!activeDMUser) return;
@@ -6699,6 +6824,8 @@ function appendDMMessage(msg, silent) {
     if (msg.files && Array.isArray(msg.files) && msg.files.length > 0) {
       msg.files.forEach(f => { if (f) bubble.appendChild(createFileElement(f)); });
     }
+    const hasMediaDM = !!(msg.file || (msg.files && msg.files.length));
+    if (hasMediaDM && !msg.text && !msg.reply) bubble.classList.add('media-only');
   }
   if (isOwn && !msg.deleted) {
     const dmCtxItems = [
@@ -6976,25 +7103,16 @@ async function sendDMWithFile(text) {
   const sendBtn = $('dm-send-btn');
   sendBtn.disabled = true;
   bar.classList.remove('uploading');
-  bar.style.width = '30%';
+  bar.style.width = '0%';
   try {
-    const formData = new FormData();
-    formData.append('file', file);
-    const res = await fetch(API_BASE + '/api/upload', { method: 'POST', body: formData });
-    const data = await res.json();
-    if (!res.ok) { toast(data.error || 'File upload failed', 'error'); clearDMPendingFile(); sendBtn.disabled = false; updateDMSend(); return; }
-    if (bar) bar.style.width = '100%';
+    const data = await uploadFileWithProgress(file, bar);
     const fileData = data.file;
     // Upload any additional DM multi-file attachments
     let extraFileData = [];
     if (pendingDMFiles.length > 0) {
       for (const f of pendingDMFiles) {
         try {
-          const fd2 = new FormData();
-          fd2.append('file', f);
-          const r2 = await fetch(API_BASE + '/api/upload', { method: 'POST', body: fd2 });
-          const d2 = await r2.json();
-          if (!r2.ok) { toast('Upload failed for "' + f.name + '"', 'error'); break; }
+          const d2 = await uploadFileWithProgress(f, bar);
           extraFileData.push(d2.file);
         } catch (err) { toast('Upload failed for "' + f.name + '"', 'error'); break; }
       }
@@ -7014,7 +7132,7 @@ async function sendDMWithFile(text) {
         scrollToBottomDM();
       }
     });
-  } catch(err) { toast('File upload failed', 'error'); }
+  } catch(err) { toast((err && err.error) || 'File upload failed', 'error'); }
   clearDMPendingFile();
   dmInputEl.value = ''; dmInputEl.style.height = 'auto';
   updateDMSend();
@@ -7334,6 +7452,7 @@ function updateProfilePanel() {
   if ($('pronouns-input')) $('pronouns-input').value = u.pronouns || '';
   if ($('show-online-toggle')) $('show-online-toggle').checked = u.showOnlineStatus !== false;
   if ($('friend-requests-toggle')) $('friend-requests-toggle').checked = u.friendRequestsEnabled !== false;
+  if ($('direct-messages-toggle')) $('direct-messages-toggle').checked = u.directMessagesEnabled !== false;
   currentStatus = u.status || 'online';
   document.querySelectorAll('.status-option').forEach(opt => opt.classList.toggle('active', opt.dataset.status === currentStatus));
   profileDirty = false;
@@ -7349,6 +7468,12 @@ if ($('friend-requests-toggle')) $('friend-requests-toggle').addEventListener('c
   markProfileDirty();
   var enabled = $('friend-requests-toggle').checked;
   toast(enabled ? 'Friend requests are now ON — others can send you friend requests.' : 'Friend requests are now OFF — others cannot send you friend requests.', enabled ? 'success' : 'info');
+  saveProfileNow(true);
+});
+if ($('direct-messages-toggle')) $('direct-messages-toggle').addEventListener('change', function() {
+  markProfileDirty();
+  var enabled = $('direct-messages-toggle').checked;
+  toast(enabled ? 'Direct messages are now ON — you can send and receive DMs.' : 'Direct messages are now OFF — you cannot send or receive DMs.', enabled ? 'success' : 'info');
   saveProfileNow(true);
 });
 
@@ -7660,11 +7785,12 @@ async function saveProfileNow(silent) {
   const pronouns = $('pronouns-input') ? $('pronouns-input').value.trim() : '';
   const showOnlineStatus = $('show-online-toggle') ? $('show-online-toggle').checked : true;
   const friendRequestsEnabled = $('friend-requests-toggle') ? $('friend-requests-toggle').checked : true;
+  const directMessagesEnabled = $('direct-messages-toggle') ? $('direct-messages-toggle').checked : true;
   const panelColor = getProfileColor() || null;
   const btn = $('bio-save-btn');
   btn.disabled = true; btn.textContent = 'Saving...';
   try {
-    const res = await fetch(API_BASE + '/api/profile', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ bio, hideLastSeen, pronouns, showOnlineStatus, panelColor, friendRequestsEnabled }) });
+    const res = await fetch(API_BASE + '/api/profile', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ bio, hideLastSeen, pronouns, showOnlineStatus, panelColor, friendRequestsEnabled, directMessagesEnabled }) });
     const data = await res.json();
     if (res.ok) {
       if (!silent) toast('Profile saved.', 'success');
@@ -7673,10 +7799,11 @@ async function saveProfileNow(silent) {
       currentUser.pronouns = pronouns;
       currentUser.showOnlineStatus = showOnlineStatus;
       currentUser.friendRequestsEnabled = friendRequestsEnabled;
+      currentUser.directMessagesEnabled = directMessagesEnabled;
       currentUser.panelColor = panelColor;
       // Update in users array
       const uIdx = users.findIndex(x => x.username === currentUser.username);
-      if (uIdx >= 0) { users[uIdx].bio = bio; users[uIdx].pronouns = pronouns; users[uIdx].showOnlineStatus = showOnlineStatus; users[uIdx].panelColor = panelColor; users[uIdx].friendRequestsEnabled = friendRequestsEnabled; }
+      if (uIdx >= 0) { users[uIdx].bio = bio; users[uIdx].pronouns = pronouns; users[uIdx].showOnlineStatus = showOnlineStatus; users[uIdx].panelColor = panelColor; users[uIdx].friendRequestsEnabled = friendRequestsEnabled; users[uIdx].directMessagesEnabled = directMessagesEnabled; }
       profileDirty = false;
       btn.disabled = false; btn.textContent = 'Save Changes';
       return true;
@@ -8129,10 +8256,23 @@ function renderProfileView(data) {
     b.onclick = () => { $('profile-view-modal').classList.remove('show'); $('profile-panel').classList.add('show'); updateProfilePanel(); };
     actions.appendChild(b);
   } else {
-    // DM button
+    // DM button \u2014 disabled with a tooltip when either user has DMs turned off.
+    const meOff = currentUser && currentUser.directMessagesEnabled === false;
+    const otherOff = u.directMessagesEnabled === false;
     const dmBtn = document.createElement('button');
-    dmBtn.className = 'modal-btn primary'; dmBtn.textContent = 'Send Message';
-    dmBtn.onclick = () => { $('profile-view-modal').classList.remove('show'); openDM(u.username); };
+    if (meOff || otherOff) {
+      dmBtn.className = 'modal-btn';
+      dmBtn.textContent = 'Messages Unavailable';
+      dmBtn.disabled = true;
+      dmBtn.title = meOff
+        ? 'Your direct messages are turned off. Enable them in Settings \u2192 Data & Privacy.'
+        : '@' + u.username + ' has direct messages turned off.';
+      dmBtn.style.opacity = '0.6';
+      dmBtn.style.cursor = 'not-allowed';
+    } else {
+      dmBtn.className = 'modal-btn primary'; dmBtn.textContent = 'Send Message';
+      dmBtn.onclick = () => { $('profile-view-modal').classList.remove('show'); openDM(u.username); };
+    }
     actions.appendChild(dmBtn);
     // Friend button
     if (data.isFriend) {
@@ -8934,6 +9074,8 @@ function applyColorSettings() {
   document.documentElement.style.setProperty('--accent-rgb', r + ', ' + g + ', ' + b);
   const picker = $('accent-color-picker');
   if (picker) picker.value = accent;
+  const hexEl = $('accent-current-hex');
+  if (hexEl) hexEl.textContent = accent;
   document.querySelectorAll('#accent-presets .accent-preset').forEach(p => {
     p.classList.toggle('active', p.dataset.color === ((s && s.accent) ? s.accent : ''));
   });
@@ -8977,6 +9119,9 @@ function applyProfileColor() {
   const color = getProfileColor();
   const panel = $('profile-panel');
   if (!panel) return;
+  // Keep the "Current Color" hex readout in sync with the chosen color.
+  const profileHexEl = $('profile-accent-hex');
+  if (profileHexEl) profileHexEl.textContent = color || '#4a9eff';
   // The actual modal box inside the overlay.
   const modal = panel.querySelector('.settings-modal');
   if (color) {
