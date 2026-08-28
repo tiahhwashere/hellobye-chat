@@ -756,13 +756,17 @@ app.post('/api/login', (req, res) => {
   const sid = genId();
   db.sessions[sid] = un;
   // On login, restore the user's explicitly-chosen status.
-  // "offline" = appear offline: must persist and never revert to a prior status.
-  // "online"/"idle"/"dnd": restore that real chosen status.
-  if (user.explicitStatus && user.status === 'offline') {
+  // Two distinct "offline" situations must be told apart:
+  //   (a) The user chose "Appear Offline" -> set-status cleared savedStatus,
+  //       so savedStatus is undefined. This MUST persist as offline.
+  //   (b) The user chose online/idle/dnd but got marked offline by a
+  //       disconnect (savedStatus holds their real choice). This MUST be
+  //       restored to that real status, NOT kept offline.
+  if (user.explicitStatus && user.status === 'offline' && !user.savedStatus) {
     user.status = 'offline'; // appear offline persists across logins
   } else if (user.explicitStatus && user.savedStatus && user.savedStatus !== 'offline') {
     user.status = user.savedStatus;
-  } else if (!user.explicitStatus || user.status !== 'offline') {
+  } else if (!user.explicitStatus) {
     user.status = 'online';
   }
   user.lastSeen = nowISO();
@@ -799,11 +803,14 @@ app.post('/api/login/verify-2sv', (req, res) => {
   const sid = genId();
   db.sessions[sid] = pending.username;
   // Restore status (appear offline persists; otherwise restore real choice)
-  if (user.explicitStatus && user.status === 'offline') {
+  // Same logic as /api/login: only keep offline when the user truly chose
+  // appear-offline (savedStatus cleared). If savedStatus holds a real choice,
+  // the offline state came from a disconnect and must be restored.
+  if (user.explicitStatus && user.status === 'offline' && !user.savedStatus) {
     user.status = 'offline';
   } else if (user.explicitStatus && user.savedStatus && user.savedStatus !== 'offline') {
     user.status = user.savedStatus;
-  } else if (!user.explicitStatus || user.status !== 'offline') {
+  } else if (!user.explicitStatus) {
     user.status = 'online';
   }
   user.lastSeen = nowISO();
@@ -2287,11 +2294,16 @@ io.on('connection', (socket) => {
   socket.join(`user:${username}`);
 
   // Mark online — preserve the user's explicitly-set status.
-  // "offline" here means the user chose "appear offline": it MUST persist
-  // across reconnects/refreshes and never revert to a previous status.
-  if (user.explicitStatus && user.status === 'offline') {
+  // Two distinct "offline" situations must be told apart:
+  //   (a) The user chose "Appear Offline": set-status cleared savedStatus, so
+  //       savedStatus is undefined. This MUST persist as offline across
+  //       reconnects/refreshes and never revert to a previous status.
+  //   (b) The user chose online/idle/dnd but a disconnect set status to
+  //       'offline' while remembering their real choice in savedStatus. This
+  //       MUST be restored to that real chosen status, NOT kept offline.
+  if (user.explicitStatus && user.status === 'offline' && !user.savedStatus) {
     // Appear offline: keep it exactly as the user chose. Do NOT restore any
-    // savedStatus (set-status already clears it), so it can't revert to dnd.
+    // savedStatus (set-status already cleared it), so it can't revert to dnd.
     user.status = 'offline';
   } else if (user.explicitStatus && user.savedStatus && user.savedStatus !== 'offline') {
     // User had chosen online/idle/dnd, then got marked offline by a
