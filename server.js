@@ -336,6 +336,71 @@ if (Array.isArray(db.messages)) {
 function genId() { return crypto.randomUUID(); }
 function hashPass(pw) { return crypto.createHash('sha256').update(pw).digest('hex'); }
 function nowISO() { return new Date().toISOString(); }
+
+// ---------- 2-Step Verification (2SV) helpers ----------
+// Generate a random 24-character alphanumeric code (uppercase letters + digits).
+// This is the "recovery code" the user must enter at login when 2SV is enabled.
+function gen2SVCode() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // no ambiguous chars (0/O, 1/I)
+  let code = '';
+  const bytes = crypto.randomBytes(24);
+  for (let i = 0; i < 24; i++) {
+    code += chars[bytes[i] % chars.length];
+  }
+  return code;
+}
+// Generate a trusted-device token (stored as SHA-256 hash, like passwords).
+function genTrustedDeviceToken() {
+  return crypto.randomBytes(32).toString('hex');
+}
+// 48 hours in milliseconds — codes auto-regenerate after this period.
+const TWO_SV_REGEN_INTERVAL = 48 * 60 * 60 * 1000;
+// 30 days in milliseconds — trusted device tokens last this long.
+const TRUSTED_DEVICE_DURATION = 30 * 24 * 60 * 60 * 1000;
+
+// Check if the user's 2SV code needs regeneration (older than 48h).
+// If so, regenerate and invalidate the old code. Returns the (possibly new) code.
+function refresh2SVCode(user) {
+  if (!user.twoFactorEnabled) return null;
+  const now = Date.now();
+  const generated = user.twoFactorCodeGenerated || 0;
+  if (!user.twoFactorCode || (now - generated) >= TWO_SV_REGEN_INTERVAL) {
+    user.twoFactorCode = gen2SVCode();
+    user.twoFactorCodeGenerated = now;
+    console.log('[2SV] Code auto-regenerated for @' + user.username + ' (48h cycle).');
+    return user.twoFactorCode;
+  }
+  return user.twoFactorCode;
+}
+
+// Validate a trusted-device cookie token against the user's stored trusted devices.
+// Removes expired tokens as a side effect. Returns true if the token is valid.
+function validateTrustedDevice(user, token) {
+  if (!token || !user.twoFactorTrustedDevices) return false;
+  const hashed = hashPass(token);
+  const now = Date.now();
+  let valid = false;
+  user.twoFactorTrustedDevices = user.twoFactorTrustedDevices.filter(d => {
+    if (now >= d.expires) return false; // prune expired
+    if (d.tokenHash === hashed) { valid = true; return true; }
+    return true;
+  });
+  return valid;
+}
+
+// Add a trusted device token to the user's list.
+function addTrustedDevice(user, token) {
+  if (!user.twoFactorTrustedDevices) user.twoFactorTrustedDevices = [];
+  user.twoFactorTrustedDevices.push({
+    tokenHash: hashPass(token),
+    expires: Date.now() + TRUSTED_DEVICE_DURATION,
+    addedAt: Date.now(),
+  });
+  // Keep the list reasonable (max 10 devices)
+  if (user.twoFactorTrustedDevices.length > 10) {
+    user.twoFactorTrustedDevices = user.twoFactorTrustedDevices.slice(-10);
+  }
+}
 // Admin-related constants
 // ADMIN_OWNER_ID is kept for two reasons: (1) the owner can never be banned,
 // and (2) @lore is always displayed as the panel owner in the UI.
@@ -463,6 +528,9 @@ function fullUser(u) {
     pub.muteReason = '';
     pub.mutedBy = '';
   }
+  // 2-Step Verification status (do NOT expose the actual code here)
+  pub.twoFactorEnabled = !!u.twoFactorEnabled;
+  pub.twoFactorCodeGenerated = u.twoFactorCodeGenerated || 0;
   return pub;
 }
 function getSession(req) {
@@ -646,6 +714,44 @@ app.post('/api/login', (req, res) => {
       return res.status(403).json({ error: banMsg });
     }
   }
+
+  // ---------- 2-Step Verification check ----------
+  // If the user has 2SV enabled, we do NOT create a session yet.
+  // Instead, we check for a trusted-device cookie. If valid, skip the code
+  // prompt. Otherwise, return a 2SV-required response with a pending token
+  // that the client uses to submit the verification code.
+  if (user.twoFactorEnabled) {
+    // Auto-regenerate the code if it's older than 48 hours.
+    refresh2SVCode(user);
+    saveDB();
+
+    // Check trusted device cookie
+    let trustedToken = null;
+    if (req.headers.cookie) {
+      const m = /hellobye_2sv_trust=([^;]+)/.exec(req.headers.cookie);
+      if (m) trustedToken = m[1];
+    }
+    if (trustedToken && validateTrustedDevice(user, trustedToken)) {
+      // Trusted device — skip 2SV prompt, proceed to create session
+      saveDB();
+      // Fall through to session creation below
+    } else {
+      // 2SV required — generate a pending login token (valid for 5 minutes)
+      const pendingToken = genId();
+      db.pending2SV = db.pending2SV || {};
+      db.pending2SV[pendingToken] = {
+        username: un,
+        expires: Date.now() + 5 * 60 * 1000, // 5 minute expiry
+      };
+      saveDB();
+      return res.status(200).json({
+        twoFactorRequired: true,
+        pendingToken: pendingToken,
+        message: '2-Step Verification required. Enter your 24-character recovery code.',
+      });
+    }
+  }
+
   const sid = genId();
   db.sessions[sid] = un;
   // On login, restore the user's explicitly-saved status if they had one
@@ -659,6 +765,57 @@ app.post('/api/login', (req, res) => {
   user.lastSeen = nowISO();
   saveDB();
   res.json({ sessionId: sid, user: fullUser(user) });
+});
+
+// ---------- 2-Step Verification: submit code ----------
+app.post('/api/login/verify-2sv', (req, res) => {
+  const { pendingToken, code, trustDevice } = req.body || {};
+  if (!pendingToken || !code) return res.status(400).json({ error: 'Pending token and verification code are required' });
+  db.pending2SV = db.pending2SV || {};
+  const pending = db.pending2SV[pendingToken];
+  if (!pending) return res.status(400).json({ error: 'Invalid or expired verification session' });
+  if (Date.now() >= pending.expires) {
+    delete db.pending2SV[pendingToken];
+    saveDB();
+    return res.status(400).json({ error: 'Verification session expired. Please sign in again.' });
+  }
+  const user = db.users[pending.username];
+  if (!user || !user.twoFactorEnabled) {
+    delete db.pending2SV[pendingToken];
+    saveDB();
+    return res.status(400).json({ error: '2-Step Verification is not enabled for this account' });
+  }
+  // Validate the code (case-insensitive, strip spaces/dashes)
+  const submittedCode = String(code).toUpperCase().replace(/[^A-Z0-9]/g, '');
+  const storedCode = (user.twoFactorCode || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+  if (!storedCode || submittedCode !== storedCode) {
+    return res.status(401).json({ error: 'Incorrect verification code. Please try again.' });
+  }
+  // Code is correct — clean up the pending token and create a session
+  delete db.pending2SV[pendingToken];
+  const sid = genId();
+  db.sessions[sid] = pending.username;
+  // Restore status
+  if (user.explicitStatus && user.savedStatus) {
+    user.status = user.savedStatus;
+  } else if (!user.explicitStatus || user.status !== 'offline') {
+    user.status = 'online';
+  }
+  user.lastSeen = nowISO();
+  // If "trust this device" is checked, generate a trusted-device token
+  let trustToken = null;
+  if (trustDevice) {
+    trustToken = genTrustedDeviceToken();
+    addTrustedDevice(user, trustToken);
+  }
+  saveDB();
+  // Set trusted-device cookie (30 days) if requested, otherwise clear it
+  res.setHeader('Set-Cookie', trustToken
+    ? 'hellobye_2sv_trust=' + trustToken + '; Path=/; Max-Age=2592000; SameSite=Lax; HttpOnly'
+    : 'hellobye_2sv_trust=; Path=/; Max-Age=0; SameSite=Lax; HttpOnly');
+  const response = { sessionId: sid, user: fullUser(user) };
+  if (trustToken) response.trustCookie = true;
+  res.json(response);
 });
 
 app.post('/api/logout', authMiddleware, (req, res) => {
@@ -1157,6 +1314,122 @@ app.post('/api/settings/password', authMiddleware, (req, res) => {
   res.json({ success: true });
 });
 
+// ---------- 2-Step Verification Settings ----------
+// Enable 2SV: generates a new 24-char code and returns it to the user.
+app.post('/api/settings/2sv/enable', authMiddleware, (req, res) => {
+  const { password } = req.body || {};
+  if (req.user.password !== hashPass(String(password || ''))) {
+    return res.status(401).json({ error: 'Password is incorrect' });
+  }
+  if (req.user.twoFactorEnabled) {
+    return res.status(400).json({ error: '2-Step Verification is already enabled' });
+  }
+  req.user.twoFactorEnabled = true;
+  req.user.twoFactorCode = gen2SVCode();
+  req.user.twoFactorCodeGenerated = Date.now();
+  req.user.twoFactorTrustedDevices = [];
+  saveDB();
+  console.log('[2SV] Enabled for @' + req.user.username + '. Code generated.');
+  res.json({
+    success: true,
+    code: req.user.twoFactorCode,
+    generatedAt: req.user.twoFactorCodeGenerated,
+    message: '2-Step Verification enabled. Save your recovery code.',
+  });
+});
+
+// Disable 2SV: requires password, clears all 2SV data.
+app.post('/api/settings/2sv/disable', authMiddleware, (req, res) => {
+  const { password } = req.body || {};
+  if (req.user.password !== hashPass(String(password || ''))) {
+    return res.status(401).json({ error: 'Password is incorrect' });
+  }
+  req.user.twoFactorEnabled = false;
+  req.user.twoFactorCode = null;
+  req.user.twoFactorCodeGenerated = 0;
+  req.user.twoFactorTrustedDevices = [];
+  saveDB();
+  console.log('[2SV] Disabled for @' + req.user.username + '.');
+  res.json({ success: true, message: '2-Step Verification disabled.' });
+});
+
+// Regenerate code: creates a new code, invalidates the old one.
+app.post('/api/settings/2sv/regenerate', authMiddleware, (req, res) => {
+  const { password } = req.body || {};
+  if (req.user.password !== hashPass(String(password || ''))) {
+    return res.status(401).json({ error: 'Password is incorrect' });
+  }
+  if (!req.user.twoFactorEnabled) {
+    return res.status(400).json({ error: '2-Step Verification is not enabled' });
+  }
+  req.user.twoFactorCode = gen2SVCode();
+  req.user.twoFactorCodeGenerated = Date.now();
+  // Regenerating also clears trusted devices (forces re-verification on all devices)
+  req.user.twoFactorTrustedDevices = [];
+  saveDB();
+  console.log('[2SV] Code regenerated for @' + req.user.username + '. Old code invalidated.');
+  res.json({
+    success: true,
+    code: req.user.twoFactorCode,
+    generatedAt: req.user.twoFactorCodeGenerated,
+    message: 'New recovery code generated. The previous code is now invalid.',
+  });
+});
+
+// View current code: requires password, returns the current code + generation time.
+// Also auto-regenerates if the code is older than 48 hours.
+app.post('/api/settings/2sv/view-code', authMiddleware, (req, res) => {
+  const { password } = req.body || {};
+  if (req.user.password !== hashPass(String(password || ''))) {
+    return res.status(401).json({ error: 'Password is incorrect' });
+  }
+  if (!req.user.twoFactorEnabled) {
+    return res.status(400).json({ error: '2-Step Verification is not enabled' });
+  }
+  // Auto-regenerate if older than 48 hours
+  const oldCode = req.user.twoFactorCode;
+  const code = refresh2SVCode(req.user);
+  const wasRegenerated = code !== oldCode;
+  saveDB();
+  res.json({
+    success: true,
+    code: req.user.twoFactorCode,
+    generatedAt: req.user.twoFactorCodeGenerated,
+    regenerated: wasRegenerated,
+  });
+});
+
+// Get 2SV status (no password required, just session auth).
+app.get('/api/settings/2sv/status', authMiddleware, (req, res) => {
+  // Auto-regenerate if the code is older than 48 hours (silent refresh)
+  if (req.user.twoFactorEnabled) {
+    refresh2SVCode(req.user);
+    saveDB();
+  }
+  res.json({
+    enabled: !!req.user.twoFactorEnabled,
+    generatedAt: req.user.twoFactorCodeGenerated || 0,
+    trustedDeviceCount: (req.user.twoFactorTrustedDevices || []).length,
+    nextRegenAt: req.user.twoFactorEnabled
+      ? (req.user.twoFactorCodeGenerated || 0) + TWO_SV_REGEN_INTERVAL
+      : 0,
+  });
+});
+
+// Revoke all trusted devices (forces 2SV on all devices next login).
+app.post('/api/settings/2sv/revoke-devices', authMiddleware, (req, res) => {
+  const { password } = req.body || {};
+  if (req.user.password !== hashPass(String(password || ''))) {
+    return res.status(401).json({ error: 'Password is incorrect' });
+  }
+  if (!req.user.twoFactorEnabled) {
+    return res.status(400).json({ error: '2-Step Verification is not enabled' });
+  }
+  req.user.twoFactorTrustedDevices = [];
+  saveDB();
+  res.json({ success: true, message: 'All trusted devices revoked.' });
+});
+
 app.post('/api/settings/preferences', authMiddleware, (req, res) => {
   const p = req.body || {};
   if (p.notificationsEnabled !== undefined) req.user.notificationsEnabled = !!p.notificationsEnabled;
@@ -1193,6 +1466,12 @@ app.post('/api/settings/delete-account', authMiddleware, (req, res) => {
   }
   for (const [otherUn, convos] of Object.entries(db.dms)) {
     delete convos[un];
+  }
+  // Clean up any pending 2SV tokens for this user
+  if (db.pending2SV) {
+    for (const [token, data] of Object.entries(db.pending2SV)) {
+      if (data.username === un) delete db.pending2SV[token];
+    }
   }
   saveDB();
   res.json({ success: true });

@@ -622,86 +622,268 @@ body.loading-session #chat-app.active::after {
 
 /* Mention highlight in messages */
 .mention-highlight {
-  background: rgba(74,158,255,0.18);
+  background: rgba(74,158,255,0.16);
   color: var(--accent);
-  padding: 1px 4px;
-  border-radius: 4px;
-  font-weight: 600;
+  padding: 1px 5px;
+  border-radius: 5px;
+  font-weight: 700;
   cursor: pointer;
-  transition: background 0.15s ease;
+  transition: background 0.15s ease, transform 0.1s ease;
+  display: inline-block;
+  text-decoration: none;
+  border: 1px solid transparent;
 }
-.mention-highlight:hover { background: rgba(74,158,255,0.30); }
+.mention-highlight:hover {
+  background: rgba(74,158,255,0.30);
+  border-color: rgba(74,158,255,0.35);
+}
 .mention-highlight.mention-self {
-  background: rgba(250,204,21,0.20);
+  background: rgba(250,204,21,0.18);
   color: #facc15;
-  border-left: 2px solid #facc15;
+  border: 1px solid rgba(250,204,21,0.35);
+  border-radius: 5px;
+  padding: 1px 5px;
 }
 .mention-highlight.mention-self:hover { background: rgba(250,204,21,0.32); }
 .message-group.own .mention-highlight {
   background: rgba(255,255,255,0.15);
   color: #e0e0e0;
+  border-color: rgba(255,255,255,0.15);
 }
-/* Pinged message bubble — subtle highlight */
+/* Pinged message bubble — subtle highlight + gentle glow */
 .message-bubble.pinged-msg {
-  box-shadow: 0 0 0 1px rgba(250,204,21,0.4);
-  animation: ping-flash 1.2s ease;
+  box-shadow: 0 0 0 1px rgba(250,204,21,0.45), 0 0 12px rgba(250,204,21,0.12);
+  animation: ping-flash 1.5s ease;
 }
 @keyframes ping-flash {
-  0% { box-shadow: 0 0 0 2px rgba(250,204,21,0.6); }
-  100% { box-shadow: 0 0 0 1px rgba(250,204,21,0.15); }
+  0% { box-shadow: 0 0 0 2px rgba(250,204,21,0.7), 0 0 18px rgba(250,204,21,0.25); }
+  50% { box-shadow: 0 0 0 2px rgba(250,204,21,0.5), 0 0 14px rgba(250,204,21,0.18); }
+  100% { box-shadow: 0 0 0 1px rgba(250,204,21,0.15), 0 0 8px rgba(250,204,21,0.06); }
 }
 
-/* Mention dropdown popup */
+/* Mention dropdown popup — polished, floating above input */
 .mention-dropdown {
   position: absolute;
   bottom: 100%;
   left: 0;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
   background: var(--bg-medium);
   border: 1px solid var(--border-light);
-  border-radius: 10px;
-  box-shadow: 0 -4px 20px rgba(0,0,0,0.35);
-  max-height: 220px;
+  border-radius: 12px;
+  box-shadow: 0 -8px 28px rgba(0,0,0,0.4), 0 -2px 8px rgba(0,0,0,0.2);
+  max-height: 240px;
   overflow-y: auto;
-  min-width: 200px;
-  max-width: 280px;
-  z-index: 500;
-  padding: 4px;
+  min-width: 220px;
+  max-width: 300px;
+  z-index: 600;
+  padding: 6px;
   display: none;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
 }
-.mention-dropdown.show { display: block; }
+.mention-dropdown::-webkit-scrollbar { width: 6px; }
+.mention-dropdown::-webkit-scrollbar-track { background: transparent; }
+.mention-dropdown::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+.mention-dropdown::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+.mention-dropdown.show { display: block; animation: mention-drop-in 0.16s ease; }
+@keyframes mention-drop-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.mention-dropdown-header {
+  font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px;
+  color: var(--text-muted); padding: 6px 10px 4px;
+}
 .mention-dropdown-item {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 7px 10px;
-  border-radius: 7px;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 8px;
   cursor: pointer;
   transition: background 0.12s ease;
+  position: relative;
 }
 .mention-dropdown-item:hover, .mention-dropdown-item.active {
-  background: rgba(74,158,255,0.12);
+  background: rgba(74,158,255,0.14);
+}
+.mention-dropdown-item.active {
+  background: rgba(74,158,255,0.20);
 }
 .mention-dropdown-avatar {
-  width: 24px; height: 24px; border-radius: 50%;
+  width: 28px; height: 28px; border-radius: 50%;
   background: var(--bg-darker);
   display: flex; align-items: center; justify-content: center;
-  font-size: 10px; font-weight: 600; color: var(--text-muted);
+  font-size: 11px; font-weight: 700; color: var(--text-muted);
   flex-shrink: 0; overflow: hidden;
+  position: relative;
 }
 .mention-dropdown-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
-.mention-dropdown-info { overflow: hidden; }
+/* Status dot on avatar in dropdown */
+.mention-dropdown-status {
+  position: absolute;
+  bottom: -1px; right: -1px;
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  border: 2px solid var(--bg-medium);
+  background: var(--text-muted);
+}
+.mention-dropdown-status.online { background: #22c55e; }
+.mention-dropdown-status.idle { background: #facc15; }
+.mention-dropdown-status.dnd { background: #ef4444; }
+.mention-dropdown-status.offline { background: #6b7280; }
+.mention-dropdown-info { overflow: hidden; flex: 1; min-width: 0; }
 .mention-dropdown-name {
   font-size: 13px; font-weight: 600; color: var(--text-primary);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  line-height: 1.3;
 }
 .mention-dropdown-handle {
   font-size: 11px; color: var(--text-muted);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .mention-dropdown-empty {
-  padding: 12px; text-align: center; font-size: 12px; color: var(--text-muted);
+  padding: 14px; text-align: center; font-size: 12px; color: var(--text-muted);
 }
 .message-group.own .inline-link { color: #cce4ff; }
+
+/* ===================== 2-Step Verification UI ===================== */
+/* 2SV verification overlay on login screen */
+.twosv-overlay {
+  position: fixed; inset: 0; z-index: 10000;
+  display: none; align-items: center; justify-content: center;
+  background: rgba(0,0,0,0.7); backdrop-filter: blur(8px);
+  animation: twosv-fade-in 0.2s ease;
+}
+.twosv-overlay.show { display: flex; }
+@keyframes twosv-fade-in { from { opacity: 0; } to { opacity: 1; } }
+.twosv-card {
+  background: var(--bg-medium); border: 1px solid var(--border);
+  border-radius: 16px; padding: 32px 28px; max-width: 440px; width: 90%;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  animation: twosv-slide-up 0.25s ease;
+}
+@keyframes twosv-slide-up { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+.twosv-icon {
+  width: 56px; height: 56px; margin: 0 auto 18px;
+  border-radius: 14px; display: flex; align-items: center; justify-content: center;
+  background: var(--accent-dim); color: var(--accent);
+}
+.twosv-title {
+  text-align: center; font-size: 20px; font-weight: 700;
+  color: var(--text-primary); margin: 0 0 8px;
+}
+.twosv-subtitle {
+  text-align: center; font-size: 13px; color: var(--text-muted);
+  margin: 0 0 22px; line-height: 1.5;
+}
+.twosv-input-wrap {
+  position: relative; margin-bottom: 16px;
+}
+.twosv-code-input {
+  width: 100%; padding: 14px 16px; font-size: 18px; font-weight: 700;
+  text-align: center; letter-spacing: 3px; text-transform: uppercase;
+  background: var(--bg-darkest); border: 2px solid var(--border);
+  border-radius: 10px; color: var(--text-primary);
+  font-family: 'SF Mono', 'Monaco', 'Cascadia Code', monospace;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  outline: none;
+}
+.twosv-code-input:focus {
+  border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow);
+}
+.twosv-code-input::placeholder {
+  letter-spacing: 1px; font-weight: 400; font-size: 14px;
+  color: var(--text-muted); text-transform: none;
+}
+.twosv-trust-row {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 20px;
+  padding: 12px 14px; background: var(--bg-darkest);
+  border: 1px solid var(--border); border-radius: 10px;
+  cursor: pointer; transition: border-color 0.15s ease;
+}
+.twosv-trust-row:hover { border-color: var(--text-muted); }
+.twosv-trust-checkbox {
+  width: 18px; height: 18px; accent-color: var(--accent);
+  cursor: pointer; flex-shrink: 0;
+}
+.twosv-trust-label { font-size: 13px; color: var(--text-secondary); }
+.twosv-btn {
+  width: 100%; padding: 14px; font-size: 15px; font-weight: 700;
+  background: var(--accent); color: #fff; border: none; border-radius: 10px;
+  cursor: pointer; transition: var(--transition); margin-bottom: 10px;
+}
+.twosv-btn:hover:not(:disabled) { background: var(--accent-hover); }
+.twosv-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+.twosv-back-btn {
+  width: 100%; padding: 12px; font-size: 13px; font-weight: 600;
+  background: transparent; color: var(--text-muted); border: 1px solid var(--border);
+  border-radius: 10px; cursor: pointer; transition: var(--transition);
+}
+.twosv-back-btn:hover { color: var(--text-primary); border-color: var(--text-muted); }
+.twosv-error {
+  background: rgba(255,90,90,0.1); border: 1px solid rgba(255,90,90,0.3);
+  color: #ff7a7a; padding: 10px 14px; border-radius: 8px;
+  font-size: 13px; margin-bottom: 16px; display: none;
+}
+.twosv-error.show { display: block; animation: twosv-shake 0.3s ease; }
+@keyframes twosv-shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-6px); }
+  75% { transform: translateX(6px); }
+}
+
+/* 2SV settings section in Data & Privacy tab */
+.twosv-settings-card {
+  background: var(--bg-light); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 18px;
+}
+.twosv-status-row {
+  display: flex; align-items: center; gap: 12px; padding-bottom: 16px;
+  margin-bottom: 16px; border-bottom: 1px solid var(--border-light);
+}
+.twosv-status-icon {
+  width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+.twosv-status-icon.enabled { background: rgba(34,197,94,0.12); color: #22c55e; }
+.twosv-status-icon.disabled { background: var(--bg-darkest); color: var(--text-muted); }
+.twosv-status-text { flex: 1; }
+.twosv-status-label { font-size: 14px; font-weight: 700; color: var(--text-primary); }
+.twosv-status-desc { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+.twosv-code-display {
+  background: var(--bg-darkest); border: 1px solid var(--border);
+  border-radius: 12px; padding: 18px; margin-bottom: 16px;
+}
+.twosv-code-label {
+  font-size: 10px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.8px; color: var(--text-muted); margin-bottom: 10px;
+}
+.twosv-code-value {
+  font-size: 20px; font-weight: 800; letter-spacing: 2px;
+  font-family: 'SF Mono', 'Monaco', 'Cascadia Code', monospace;
+  color: var(--accent); text-align: center; padding: 10px;
+  background: var(--bg-medium); border-radius: 8px;
+  word-break: break-all; line-height: 1.4;
+}
+.twosv-code-warning {
+  font-size: 12px; color: #facc15; margin-top: 12px;
+  display: flex; align-items: flex-start; gap: 8px; line-height: 1.5;
+}
+.twosv-code-meta {
+  display: flex; gap: 16px; margin-bottom: 16px; flex-wrap: wrap;
+}
+.twosv-meta-item {
+  background: var(--bg-darkest); border: 1px solid var(--border);
+  border-radius: 8px; padding: 10px 14px; flex: 1; min-width: 120px;
+}
+.twosv-meta-label {
+  font-size: 10px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.6px; color: var(--text-muted); margin-bottom: 4px;
+}
+.twosv-meta-value { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+.twosv-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.twosv-actions .setting-save-btn { width: auto; margin-top: 0; }
 
 /* Link Embeds */
 .link-embed {
@@ -1741,9 +1923,9 @@ body.loading-session #chat-app.active::after {
 .setting-hint span { color: var(--text-secondary); }
 
 /* Customization section */
-.custom-bg-section { padding: 12px 0; }
+.custom-bg-section { padding: 14px 0; }
 .custom-bg-label { font-size: 13px; font-weight: 600; color: var(--text-secondary); margin-bottom: 8px; }
-.custom-bg-controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 10px; }
+.custom-bg-controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 12px; }
 /* Chat-background action buttons: matte, flat, no gloss/shine — keeps all data,
    just a calmer look. Solid accent blue replaced with a muted surface fill. */
 .custom-bg-controls .setting-save-btn {
@@ -1765,18 +1947,54 @@ body.loading-session #chat-app.active::after {
   background: rgba(255,90,90,0.08); border-color: var(--danger, #ff5a5a);
 }
 .custom-bg-preview {
-  width: 100%; height: 150px; border-radius: var(--radius-sm);
+  width: 100%; height: 160px; border-radius: 12px;
   background: var(--bg-darkest); border: 1px solid var(--border);
   display: flex; align-items: center; justify-content: center;
-  background-size: cover; background-position: center; margin-bottom: 12px;
+  background-size: cover; background-position: center; margin-bottom: 14px;
   overflow: hidden; position: relative;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02);
 }
 .custom-bg-preview img { max-width: 100%; max-height: 100%; object-fit: contain; }
+/* "No background set" placeholder — nicer dashed border look */
+.custom-bg-preview .muted {
+  position: relative; padding: 12px 20px;
+}
+.custom-bg-preview::before {
+  content: ''; position: absolute; inset: 0;
+  background-image:
+    linear-gradient(45deg, rgba(255,255,255,0.015) 25%, transparent 25%),
+    linear-gradient(-45deg, rgba(255,255,255,0.015) 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, rgba(255,255,255,0.015) 75%),
+    linear-gradient(-45deg, transparent 75%, rgba(255,255,255,0.015) 75%);
+  background-size: 20px 20px;
+  background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+  pointer-events: none;
+}
 .custom-bg-scale-controls { display: grid; gap: 10px; }
-.custom-slider-label { font-size: 12px; color: var(--text-secondary); display: flex; justify-content: space-between; align-items: center; }
-.custom-slider-label .slider-val { background: var(--accent-dim); color: var(--accent); padding: 1px 8px; border-radius: 8px; font-size: 11px; font-weight: 700; min-width: 36px; text-align: center; }
-.bg-control-group { background: var(--bg-darkest); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; display: grid; gap: 8px; }
-.bg-control-group-title { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-muted); margin-bottom: 2px; }
+.custom-slider-label {
+  font-size: 12px; color: var(--text-secondary);
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 2px;
+}
+.custom-slider-label .slider-val {
+  background: var(--accent-dim); color: var(--accent);
+  padding: 2px 9px; border-radius: 8px; font-size: 11px;
+  font-weight: 700; min-width: 42px; text-align: center;
+  font-family: 'SF Mono', 'Monaco', 'Cascadia Code', monospace;
+}
+.bg-control-group {
+  background: var(--bg-darkest); border: 1px solid var(--border);
+  border-radius: 12px; padding: 12px 14px; display: grid; gap: 10px;
+}
+.bg-control-group-title {
+  font-size: 10px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.8px; color: var(--text-muted); margin-bottom: 2px;
+  display: flex; align-items: center; gap: 6px;
+}
+.bg-control-group-title::before {
+  content: ''; width: 3px; height: 12px; border-radius: 2px;
+  background: var(--accent); flex-shrink: 0;
+}
 /* Fit Mode segmented control — modern button group */
 .bg-fit-segmented { display: flex; gap: 4px; background: var(--bg-darkest); border: 1px solid var(--border); border-radius: 10px; padding: 4px; }
 .bg-fit-segmented button {
@@ -1792,46 +2010,97 @@ body.loading-session #chat-app.active::after {
 .mini-btn { padding: 6px 12px; font-size: 11px; font-weight: 600; }
 .custom-range {
   width: 100%; height: 6px; -webkit-appearance: none; appearance: none;
-  background: var(--bg-darkest); border-radius: 3px; outline: none; cursor: pointer;
+  background: var(--bg-darker); border-radius: 3px; outline: none; cursor: pointer;
+  margin: 2px 0;
 }
 .custom-range::-webkit-slider-thumb {
   -webkit-appearance: none; appearance: none;
-  width: 16px; height: 16px; border-radius: 50%; background: var(--accent);
-  cursor: pointer; border: 2px solid var(--bg-darker);
+  width: 18px; height: 18px; border-radius: 50%; background: var(--accent);
+  cursor: pointer; border: 3px solid var(--bg-darker);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3); transition: transform 0.1s ease;
 }
+.custom-range::-webkit-slider-thumb:hover { transform: scale(1.15); }
 .custom-range::-moz-range-thumb {
-  width: 16px; height: 16px; border-radius: 50%; background: var(--accent);
-  cursor: pointer; border: 2px solid var(--bg-darker);
+  width: 18px; height: 18px; border-radius: 50%; background: var(--accent);
+  cursor: pointer; border: 3px solid var(--bg-darker);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
 }
-.accent-preset-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
-.accent-preset {
-  width: 28px; height: 28px; border-radius: 50%; cursor: pointer;
-  border: 2px solid var(--border); transition: var(--transition);
-  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-}
-.accent-preset:hover { transform: scale(1.2); border-color: var(--text-primary); box-shadow: 0 2px 8px rgba(0,0,0,0.4); }
-.accent-preset.active { border-color: #fff; box-shadow: 0 0 0 2px var(--accent), 0 2px 8px rgba(0,0,0,0.4); }
-/* Accent color section layout \u2014 refined, professional card */
+/* Accent color section layout \u2014 polished card with live preview */
 .accent-section-card {
   background: var(--bg-light); border: 1px solid var(--border);
-  border-radius: var(--radius); padding: 16px;
+  border-radius: var(--radius); padding: 18px;
 }
 .accent-current-row {
-  display: flex; align-items: center; gap: 14px; margin-bottom: 16px;
-  flex-wrap: wrap; padding-bottom: 14px; border-bottom: 1px solid var(--border-light);
+  display: flex; align-items: center; gap: 14px; margin-bottom: 18px;
+  flex-wrap: wrap; padding-bottom: 16px; border-bottom: 1px solid var(--border-light);
 }
+/* Large swatch with checkered transparency grid behind it */
 .accent-swatch-large {
-  width: 52px; height: 52px; border-radius: 12px; border: 2px solid var(--border);
+  width: 56px; height: 56px; border-radius: 14px; border: 2px solid var(--border);
   cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.25);
   transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
   padding: 0; appearance: none; -webkit-appearance: none;
+  flex-shrink: 0;
+  background-image:
+    linear-gradient(45deg, var(--bg-darker) 25%, transparent 25%),
+    linear-gradient(-45deg, var(--bg-darker) 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, var(--bg-darker) 75%),
+    linear-gradient(-45deg, transparent 75%, var(--bg-darker) 75%);
+  background-size: 12px 12px;
+  background-position: 0 0, 0 6px, 6px -6px, -6px 0px;
 }
-.accent-swatch-large:hover { transform: scale(1.05); border-color: var(--text-muted); box-shadow: 0 4px 14px rgba(0,0,0,0.35); }
-.accent-current-info { display: flex; flex-direction: column; gap: 3px; }
-.accent-current-label { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.6px; }
+.accent-swatch-large:hover {
+  transform: scale(1.06); border-color: var(--text-muted);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.35);
+}
+.accent-current-info { display: flex; flex-direction: column; gap: 4px; }
+.accent-current-label {
+  font-size: 10px; font-weight: 700; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: 0.8px;
+}
 .accent-current-hex {
-  font-size: 15px; color: var(--text-primary); font-family: 'SF Mono', 'Monaco', 'Cascadia Code', monospace;
-  font-weight: 600; letter-spacing: 0.3px;
+  font-size: 16px; color: var(--text-primary);
+  font-family: 'SF Mono', 'Monaco', 'Cascadia Code', monospace;
+  font-weight: 700; letter-spacing: 0.5px;
+}
+/* Subtle live-preview strip showing accent usage */
+.accent-preview-strip {
+  display: flex; align-items: center; gap: 8px; margin-left: auto;
+  padding: 8px 12px; background: var(--bg-darkest);
+  border: 1px solid var(--border); border-radius: 10px;
+}
+.accent-preview-dot {
+  width: 14px; height: 14px; border-radius: 50%;
+  background: var(--accent); flex-shrink: 0;
+  box-shadow: 0 0 8px var(--accent-glow);
+}
+.accent-preview-bar {
+  width: 40px; height: 6px; border-radius: 3px; background: var(--accent);
+}
+.accent-preview-btn {
+  padding: 4px 10px; font-size: 10px; font-weight: 700;
+  background: var(--accent); color: #fff; border: none; border-radius: 6px;
+}
+/* Larger, more touch-friendly preset circles with checkmark */
+.accent-preset-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.accent-preset {
+  width: 32px; height: 32px; border-radius: 50%; cursor: pointer;
+  border: 2px solid var(--border); transition: var(--transition);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  position: relative;
+}
+.accent-preset:hover {
+  transform: scale(1.18); border-color: var(--text-primary);
+  box-shadow: 0 3px 10px rgba(0,0,0,0.4);
+}
+.accent-preset.active {
+  border-color: #fff; box-shadow: 0 0 0 2px var(--accent), 0 3px 10px rgba(0,0,0,0.4);
+  transform: scale(1.1);
+}
+.accent-preset.active::after {
+  content: '\2713'; position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%); color: #fff; font-size: 14px;
+  font-weight: 900; text-shadow: 0 1px 2px rgba(0,0,0,0.5);
 }
 
 /* New background tools */
@@ -3066,6 +3335,27 @@ body.loading-session #chat-app.active::after {
     </div>
   </div>
 
+  <!-- ===================== 2-STEP VERIFICATION OVERLAY ===================== -->
+  <div class="twosv-overlay" id="twosv-overlay">
+    <div class="twosv-card">
+      <div class="twosv-icon">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      </div>
+      <h2 class="twosv-title">2-Step Verification</h2>
+      <p class="twosv-subtitle">Enter your 24-character recovery code to continue signing in.</p>
+      <div class="twosv-error" id="twosv-error"></div>
+      <div class="twosv-input-wrap">
+        <input type="text" class="twosv-code-input" id="twosv-code-input" placeholder="Enter your 24-character code" maxlength="30" autocomplete="off" spellcheck="false">
+      </div>
+      <label class="twosv-trust-row" id="twosv-trust-row">
+        <input type="checkbox" class="twosv-trust-checkbox" id="twosv-trust-checkbox">
+        <span class="twosv-trust-label">Trust this device for 30 days</span>
+      </label>
+      <button class="twosv-btn" id="twosv-verify-btn">Verify &amp; Sign In</button>
+      <button class="twosv-back-btn" id="twosv-back-btn">Back to Sign In</button>
+    </div>
+  </div>
+
   <!-- ===================== CHAT APP ===================== -->
   <div id="chat-app">
     <!-- Sidebar -->
@@ -3449,7 +3739,12 @@ body.loading-session #chat-app.active::after {
               <span class="accent-current-label">Current Color</span>
               <span class="accent-current-hex" id="profile-accent-hex">#4a9eff</span>
             </div>
-            <button class="setting-save-btn danger-btn" id="profile-accent-revert" style="margin-left:auto;">Revert Color</button>
+            <div class="accent-preview-strip">
+              <span class="accent-preview-dot"></span>
+              <span class="accent-preview-bar"></span>
+              <span class="accent-preview-btn">Button</span>
+            </div>
+            <button class="setting-save-btn danger-btn" id="profile-accent-revert">Revert Color</button>
           </div>
           <div class="custom-bg-label" style="font-size:11px;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-muted);font-weight:700;margin-bottom:10px;">Quick Colors</div>
           <div class="accent-preset-row" id="profile-accent-presets"></div>
@@ -3681,7 +3976,12 @@ body.loading-session #chat-app.active::after {
                   <span class="accent-current-label">Current Accent</span>
                   <span class="accent-current-hex" id="accent-current-hex">#4a9eff</span>
                 </div>
-                <button class="setting-save-btn danger-btn" id="accent-revert-btn" style="margin-left:auto;">Revert Color</button>
+                <div class="accent-preview-strip">
+                  <span class="accent-preview-dot"></span>
+                  <span class="accent-preview-bar"></span>
+                  <span class="accent-preview-btn">Button</span>
+                </div>
+                <button class="setting-save-btn danger-btn" id="accent-revert-btn">Revert Color</button>
               </div>
               <div class="custom-bg-label" style="font-size:11px;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-muted);font-weight:700;margin-bottom:10px;">Quick Colors</div>
               <div class="accent-preset-row" id="accent-presets"></div>
@@ -3712,6 +4012,55 @@ body.loading-session #chat-app.active::after {
               </span>
             </label>
           </div>
+          <div class="profile-section">
+            <div class="profile-section-title">2-Step Verification</div>
+            <p class="setting-hint" style="margin-bottom:14px;">Add an extra layer of security. When enabled, you'll need a 24-character recovery code each time you sign in (unless you trust the device).</p>
+            <div class="twosv-settings-card" id="twosv-settings-card">
+              <div class="twosv-status-row">
+                <div class="twosv-status-icon disabled" id="twosv-status-icon">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                </div>
+                <div class="twosv-status-text">
+                  <div class="twosv-status-label" id="twosv-status-label">2-Step Verification is OFF</div>
+                  <div class="twosv-status-desc" id="twosv-status-desc">Your account is protected by password only.</div>
+                </div>
+                <label class="toggle-switch" style="flex-shrink:0;">
+                  <input type="checkbox" id="twosv-toggle">
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+              <div id="twosv-details" style="display:none;">
+                <div class="twosv-code-display" id="twosv-code-display" style="display:none;">
+                  <div class="twosv-code-label">Your Recovery Code</div>
+                  <div class="twosv-code-value" id="twosv-code-value">--------</div>
+                  <div class="twosv-code-warning">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:1px;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                    <span>Save this code securely. You'll need it every time you sign in. The code auto-regenerates every 48 hours.</span>
+                  </div>
+                </div>
+                <div class="twosv-code-meta">
+                  <div class="twosv-meta-item">
+                    <div class="twosv-meta-label">Code Generated</div>
+                    <div class="twosv-meta-value" id="twosv-gen-time">--</div>
+                  </div>
+                  <div class="twosv-meta-item">
+                    <div class="twosv-meta-label">Next Auto-Regen</div>
+                    <div class="twosv-meta-value" id="twosv-regen-time">--</div>
+                  </div>
+                  <div class="twosv-meta-item">
+                    <div class="twosv-meta-label">Trusted Devices</div>
+                    <div class="twosv-meta-value" id="twosv-device-count">0</div>
+                  </div>
+                </div>
+                <div class="twosv-actions">
+                  <button class="setting-save-btn" id="twosv-view-code-btn">View Code</button>
+                  <button class="setting-save-btn" id="twosv-regenerate-btn">Regenerate Code</button>
+                  <button class="setting-save-btn danger-btn" id="twosv-revoke-btn">Revoke Trusted Devices</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div class="profile-section danger-zone">
             <div class="profile-section-title">Danger Zone</div>
             <div class="danger-zone-card">
@@ -4832,6 +5181,12 @@ $('signin-form').addEventListener('submit', async (e) => {
       }
       return;
     }
+    // Check if 2-Step Verification is required
+    if (data.twoFactorRequired && data.pendingToken) {
+      btn.disabled = false; btn.textContent = 'Sign In';
+      show2SVOverlay(data.pendingToken, { username, password });
+      return;
+    }
     toast('Welcome back.', 'success');
     sessionSocketId = data.sessionId;
     localStorage.setItem('hellobye_sid', data.sessionId);
@@ -4896,6 +5251,376 @@ $('signup-form').addEventListener('submit', async (e) => {
     btn.disabled = false; btn.textContent = 'Create Account';
   }
 });
+
+// ---------- 2-Step Verification: Login Overlay ----------
+let twosvPendingToken = null;
+let twosvPendingCreds = null;
+
+function show2SVOverlay(pendingToken, creds) {
+  twosvPendingToken = pendingToken;
+  twosvPendingCreds = creds || null;
+  const overlay = $('twosv-overlay');
+  if (!overlay) return;
+  // Reset state
+  $('twosv-code-input').value = '';
+  $('twosv-error').classList.remove('show');
+  $('twosv-trust-checkbox').checked = false;
+  $('twosv-verify-btn').disabled = false;
+  $('twosv-verify-btn').textContent = 'Verify & Sign In';
+  // Show overlay
+  overlay.classList.add('show');
+  // Focus the input after a short delay (for animation)
+  setTimeout(() => $('twosv-code-input').focus(), 100);
+}
+
+function hide2SVOverlay() {
+  const overlay = $('twosv-overlay');
+  if (overlay) overlay.classList.remove('show');
+  twosvPendingToken = null;
+  twosvPendingCreds = null;
+}
+
+function show2SVError(msg) {
+  const errEl = $('twosv-error');
+  if (errEl) {
+    errEl.textContent = msg;
+    errEl.classList.add('show');
+  }
+}
+
+// Submit 2SV verification
+$('twosv-verify-btn').addEventListener('click', async () => {
+  await submit2SVVerification();
+});
+$('twosv-code-input').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    submit2SVVerification();
+  }
+});
+$('twosv-code-input').addEventListener('input', (e) => {
+  // Auto-uppercase and filter to valid chars
+  e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+  $('twosv-error').classList.remove('show');
+});
+
+async function submit2SVVerification() {
+  const code = $('twosv-code-input').value.trim();
+  const errEl = $('twosv-error');
+  const btn = $('twosv-verify-btn');
+  if (!code) {
+    show2SVError('Please enter your recovery code.');
+    return;
+  }
+  if (code.length < 20) {
+    show2SVError('Code must be at least 20 characters.');
+    return;
+  }
+  if (!twosvPendingToken) {
+    show2SVError('Verification session expired. Please go back and sign in again.');
+    return;
+  }
+  btn.disabled = true; btn.textContent = 'Verifying...';
+  errEl.classList.remove('show');
+  const trustDevice = $('twosv-trust-checkbox').checked;
+  try {
+    const res = await fetch(API_BASE + '/api/login/verify-2sv', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pendingToken: twosvPendingToken, code, trustDevice })
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      show2SVError(data.error || 'Verification failed.');
+      btn.disabled = false; btn.textContent = 'Verify & Sign In';
+      return;
+    }
+    // Success — proceed to chat
+    hide2SVOverlay();
+    toast('Welcome back.', 'success');
+    sessionSocketId = data.sessionId;
+    localStorage.setItem('hellobye_sid', data.sessionId);
+    document.documentElement.classList.add('has-session');
+    initChat({ user: data.user, sessionId: data.sessionId });
+  } catch (err) {
+    show2SVError('Network error. Please try again.');
+    btn.disabled = false; btn.textContent = 'Verify & Sign In';
+  }
+}
+
+// Back button — return to sign in screen
+$('twosv-back-btn').addEventListener('click', () => {
+  hide2SVOverlay();
+  // Reset sign-in form
+  const sb = $('signin-btn'); if (sb) { sb.disabled = false; sb.textContent = 'Sign In'; }
+  $('signin-password').value = '';
+  $('signin-username').focus();
+});
+
+// ---------- 2-Step Verification: Settings Panel ----------
+function formatTimestamp(ts) {
+  if (!ts) return '--';
+  const d = new Date(ts);
+  return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) + ' ' +
+    d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+}
+
+function formatCountdown(targetTs) {
+  if (!targetTs) return '--';
+  const remaining = targetTs - Date.now();
+  if (remaining <= 0) return 'Due now';
+  const hours = Math.floor(remaining / (60 * 60 * 1000));
+  const mins = Math.floor((remaining % (60 * 60 * 1000)) / (60 * 1000));
+  if (hours > 0) return hours + 'h ' + mins + 'm';
+  return mins + 'm';
+}
+
+let twosvNextRegenTs = 0;
+let twosvCountdownTimer = null;
+
+async function update2SVStatus() {
+  if (!currentUser) return;
+  try {
+    const res = await fetch(API_BASE + '/api/settings/2sv/status');
+    if (!res.ok) return;
+    const data = await res.json();
+    render2SVStatus(data);
+  } catch (e) { /* non-fatal */ }
+}
+
+function render2SVStatus(data) {
+  const toggle = $('twosv-toggle');
+  const details = $('twosv-details');
+  const iconEl = $('twosv-status-icon');
+  const labelEl = $('twosv-status-label');
+  const descEl = $('twosv-status-desc');
+  const genTimeEl = $('twosv-gen-time');
+  const regenTimeEl = $('twosv-regen-time');
+  const deviceCountEl = $('twosv-device-count');
+
+  if (data.enabled) {
+    toggle.checked = true;
+    details.style.display = 'block';
+    iconEl.className = 'twosv-status-icon enabled';
+    iconEl.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>';
+    labelEl.textContent = '2-Step Verification is ON';
+    descEl.textContent = 'Your account requires a recovery code at sign-in.';
+    genTimeEl.textContent = formatTimestamp(data.generatedAt);
+    twosvNextRegenTs = data.nextRegenAt;
+    deviceCountEl.textContent = data.trustedDeviceCount;
+    // Start countdown timer for next regen
+    if (twosvCountdownTimer) clearInterval(twosvCountdownTimer);
+    const updateCountdown = () => {
+      regenTimeEl.textContent = formatCountdown(twosvNextRegenTs);
+    };
+    updateCountdown();
+    twosvCountdownTimer = setInterval(updateCountdown, 60000);
+  } else {
+    toggle.checked = false;
+    details.style.display = 'none';
+    iconEl.className = 'twosv-status-icon disabled';
+    iconEl.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>';
+    labelEl.textContent = '2-Step Verification is OFF';
+    descEl.textContent = 'Your account is protected by password only.';
+    if (twosvCountdownTimer) { clearInterval(twosvCountdownTimer); twosvCountdownTimer = null; }
+  }
+}
+
+// Toggle 2SV on/off
+$('twosv-toggle').addEventListener('change', async (e) => {
+  if (!currentUser) return;
+  const enabled = e.target.checked;
+  if (enabled) {
+    // Enabling — ask for password
+    const password = await prompt2SVPassword('Enable 2-Step Verification', 'Enter your password to enable 2-Step Verification.');
+    if (password === null) {
+      e.target.checked = false;
+      return;
+    }
+    if (!password) {
+      toast('Password is required to enable 2-Step Verification.', 'error');
+      e.target.checked = false;
+      return;
+    }
+    try {
+      const res = await fetch(API_BASE + '/api/settings/2sv/enable', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        toast(data.error || 'Failed to enable 2-Step Verification', 'error');
+        e.target.checked = false;
+        return;
+      }
+      // Show the code to the user immediately
+      show2SVCode(data.code, data.generatedAt);
+      currentUser.twoFactorEnabled = true;
+      update2SVStatus();
+      toast('2-Step Verification enabled! Save your recovery code.', 'success');
+    } catch (err) {
+      toast('Network error. Please try again.', 'error');
+      e.target.checked = false;
+    }
+  } else {
+    // Disabling — ask for password
+    const password = await prompt2SVPassword('Disable 2-Step Verification', 'Enter your password to disable 2-Step Verification.');
+    if (password === null) {
+      e.target.checked = true;
+      return;
+    }
+    if (!password) {
+      toast('Password is required to disable 2-Step Verification.', 'error');
+      e.target.checked = true;
+      return;
+    }
+    try {
+      const res = await fetch(API_BASE + '/api/settings/2sv/disable', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        toast(data.error || 'Failed to disable 2-Step Verification', 'error');
+        e.target.checked = true;
+        return;
+      }
+      // Hide the code display
+      $('twosv-code-display').style.display = 'none';
+      currentUser.twoFactorEnabled = false;
+      update2SVStatus();
+      toast('2-Step Verification disabled.', 'success');
+    } catch (err) {
+      toast('Network error. Please try again.', 'error');
+      e.target.checked = true;
+    }
+  }
+});
+
+function show2SVCode(code, generatedAt) {
+  const display = $('twosv-code-display');
+  const valueEl = $('twosv-code-value');
+  if (display && valueEl) {
+    valueEl.textContent = code;
+    display.style.display = 'block';
+  }
+}
+
+// View Code button
+$('twosv-view-code-btn').addEventListener('click', async () => {
+  const password = await prompt2SVPassword('View Recovery Code', 'Enter your password to view your recovery code.');
+  if (!password) {
+    if (password === null) return; // cancelled
+    toast('Password is required.', 'error');
+    return;
+  }
+  try {
+    const res = await fetch(API_BASE + '/api/settings/2sv/view-code', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password })
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      toast(data.error || 'Failed to retrieve code', 'error');
+      return;
+    }
+    show2SVCode(data.code, data.generatedAt);
+    if (data.regenerated) {
+      toast('Your code was auto-regenerated (48h cycle). Save the new code!', 'success');
+    }
+    update2SVStatus();
+  } catch (err) {
+    toast('Network error. Please try again.', 'error');
+  }
+});
+
+// Regenerate Code button
+$('twosv-regenerate-btn').addEventListener('click', async () => {
+  const password = await prompt2SVPassword('Regenerate Recovery Code', 'Enter your password to generate a new recovery code. The old code will be invalidated.');
+  if (!password) {
+    if (password === null) return; // cancelled
+    toast('Password is required.', 'error');
+    return;
+  }
+  try {
+    const res = await fetch(API_BASE + '/api/settings/2sv/regenerate', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password })
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      toast(data.error || 'Failed to regenerate code', 'error');
+      return;
+    }
+    show2SVCode(data.code, data.generatedAt);
+    update2SVStatus();
+    toast('New recovery code generated. Previous code is now invalid.', 'success');
+  } catch (err) {
+    toast('Network error. Please try again.', 'error');
+  }
+});
+
+// Revoke Trusted Devices button
+$('twosv-revoke-btn').addEventListener('click', async () => {
+  const password = await prompt2SVPassword('Revoke Trusted Devices', "Enter your password to revoke all trusted devices. You'll need to verify on every device next sign-in.");
+  if (!password) {
+    if (password === null) return; // cancelled
+    toast('Password is required.', 'error');
+    return;
+  }
+  try {
+    const res = await fetch(API_BASE + '/api/settings/2sv/revoke-devices', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password })
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      toast(data.error || 'Failed to revoke devices', 'error');
+      return;
+    }
+    update2SVStatus();
+    toast('All trusted devices revoked.', 'success');
+  } catch (err) {
+    toast('Network error. Please try again.', 'error');
+  }
+});
+
+// Password prompt modal for 2SV actions
+function prompt2SVPassword(title, message) {
+  return new Promise((resolve) => {
+    // Create modal
+    const modal = document.createElement('div');
+    modal.className = 'modal-overlay';
+    modal.style.zIndex = '10001';
+    modal.innerHTML = '<div class="modal" style="max-width:400px;padding:28px;">' +
+      '<h3 style="margin:0 0 8px;font-size:18px;color:var(--text-primary);">' + escapeHtml(title) + '</h3>' +
+      '<p style="margin:0 0 18px;font-size:13px;color:var(--text-muted);line-height:1.5;">' + escapeHtml(message) + '</p>' +
+      '<div class="pwd-field" style="margin-bottom:18px;">' +
+        '<input type="password" class="form-input" id="twosv-prompt-pw" placeholder="Enter your password" autocomplete="current-password" style="width:100%;">' +
+      '</div>' +
+      '<div style="display:flex;gap:8px;justify-content:flex-end;">' +
+        '<button class="setting-save-btn" id="twosv-prompt-cancel" style="width:auto;margin-top:0;">Cancel</button>' +
+        '<button class="btn-primary" id="twosv-prompt-confirm" style="width:auto;padding:10px 20px;">Confirm</button>' +
+      '</div>' +
+    '</div>';
+    document.body.appendChild(modal);
+    setTimeout(() => modal.classList.add('show'), 10);
+    const pwInput = modal.querySelector('#twosv-prompt-pw');
+    pwInput.focus();
+
+    function close(result) {
+      modal.classList.remove('show');
+      setTimeout(() => modal.remove(), 200);
+      resolve(result);
+    }
+    modal.querySelector('#twosv-prompt-cancel').addEventListener('click', () => close(null));
+    modal.querySelector('#twosv-prompt-confirm').addEventListener('click', () => close(pwInput.value));
+    pwInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); close(pwInput.value); }
+      if (e.key === 'Escape') close(null);
+    });
+    modal.addEventListener('click', (e) => { if (e.target === modal) close(null); });
+  });
+}
 
 // ---------- Init Chat ----------
 async function initChat(existingMeData) {
@@ -5670,6 +6395,15 @@ sendBtn.addEventListener('click', () => {
   sendMessage();
 });
 
+
+// Map status string to CSS class for mention dropdown status dots
+function statusDotClass(status) {
+  if (!status || status === 'offline') return 'offline';
+  if (status === 'idle') return 'idle';
+  if (status === 'dnd') return 'dnd';
+  return 'online';
+}
+
 // ---------- Mention dropdown for chat input ----------
 let chatMentionDropdown = null;
 let chatMentionActiveIndex = -1;
@@ -5715,14 +6449,18 @@ function showChatMentionDropdown(query) {
     dd.classList.add('show');
     return;
   }
-  dd.innerHTML = candidates.map((u, i) => {
+  // Build the dropdown with a header and status-dot avatars
+  let headerHTML = '<div class="mention-dropdown-header">' + (chatMentionQuery ? 'Matching members' : 'Members') + ' &middot; ' + candidates.length + '</div>';
+  dd.innerHTML = headerHTML + candidates.map((u, i) => {
     const avatarInner = u.avatar
       ? '<img src="' + escapeHtml(u.avatar) + '" alt="" />'
       : escapeHtml(getInitials(u.displayName || u.username));
+    const dotClass = statusDotClass(u.status);
+    const isSelf = (currentUser && u.username === currentUser.username);
     return '<div class="mention-dropdown-item" data-idx="' + i + '" data-username="' + escapeHtml(u.username) + '">'
-      + '<div class="mention-dropdown-avatar">' + avatarInner + '</div>'
+      + '<div class="mention-dropdown-avatar">' + avatarInner + '<span class="mention-dropdown-status ' + dotClass + '"></span></div>'
       + '<div class="mention-dropdown-info">'
-      + '<div class="mention-dropdown-name">' + escapeHtml(u.displayName || u.username) + '</div>'
+      + '<div class="mention-dropdown-name">' + escapeHtml(u.displayName || u.username) + (isSelf ? ' <span style="font-size:9px;color:var(--text-muted);font-weight:500;">(you)</span>' : '') + '</div>'
       + '<div class="mention-dropdown-handle">@' + escapeHtml(u.username) + '</div>'
       + '</div></div>';
   }).join('');
@@ -7369,14 +8107,17 @@ function showDMMentionDropdown(query) {
     dd.classList.add('show');
     return;
   }
-  dd.innerHTML = candidates.map((u, i) => {
+  let headerHTML = '<div class="mention-dropdown-header">People &middot; ' + candidates.length + '</div>';
+  dd.innerHTML = headerHTML + candidates.map((u, i) => {
     const avatarInner = u.avatar
       ? '<img src="' + escapeHtml(u.avatar) + '" alt="" />'
       : escapeHtml(getInitials(u.displayName || u.username));
+    const dotClass = statusDotClass(u.status);
+    const isSelf = (currentUser && u.username === currentUser.username);
     return '<div class="mention-dropdown-item" data-idx="' + i + '" data-username="' + escapeHtml(u.username) + '">'
-      + '<div class="mention-dropdown-avatar">' + avatarInner + '</div>'
+      + '<div class="mention-dropdown-avatar">' + avatarInner + '<span class="mention-dropdown-status ' + dotClass + '"></span></div>'
       + '<div class="mention-dropdown-info">'
-      + '<div class="mention-dropdown-name">' + escapeHtml(u.displayName || u.username) + '</div>'
+      + '<div class="mention-dropdown-name">' + escapeHtml(u.displayName || u.username) + (isSelf ? ' <span style="font-size:9px;color:var(--text-muted);font-weight:500;">(you)</span>' : '') + '</div>'
       + '<div class="mention-dropdown-handle">@' + escapeHtml(u.username) + '</div>'
       + '</div></div>';
   }).join('');
@@ -8475,6 +9216,8 @@ function updateSettingsPanel() {
       delBtn.textContent = 'Delete Account';
     }
   }
+  // 2-Step Verification status
+  if (typeof update2SVStatus === 'function') update2SVStatus();
 }
 $('display-name-input').addEventListener('input', (e) => $('displayname-count').textContent = e.target.value.length);
 $('displayname-save').addEventListener('click', async () => {
@@ -8593,6 +9336,8 @@ $('delete-account-confirm').addEventListener('click', async () => {
       sessionSocketId = null;
       clearClientSettings();
       if (socket) socket.disconnect();
+      btn.disabled = false; btn.textContent = 'Delete Permanently';
+      if ($('delete-account-password')) $('delete-account-password').value = '';
       showAuth();
     } else {
       toast(data.error || 'Deletion failed', 'error');
