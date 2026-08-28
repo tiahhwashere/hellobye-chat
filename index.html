@@ -9218,7 +9218,24 @@ async function loadDMConversations() {
   try {
     const res = await fetch(API_BASE + '/api/dm-conversations');
     const data = await res.json();
-    dmConversations = data.conversations || [];
+    const serverConvs = data.conversations || [];
+    // Merge: never let a server refresh wipe out an unread count we just
+    // optimistically incremented (race between dm-receive's optimistic update
+    // and this fetch). Keep the higher of the optimistic vs server unread for
+    // each conversation, and preserve any optimistic conversation that the
+    // server doesn't return yet (e.g. a just-reopened closed convo mid-sync).
+    const merged = serverConvs.map(c => {
+      const prev = dmConversations.find(x => x.user && x.user.username === (c.user && c.user.username));
+      if (prev && (prev.unread || 0) > (c.unread || 0)) c.unread = prev.unread;
+      return c;
+    });
+    for (const prev of dmConversations) {
+      const pun = prev.user && prev.user.username;
+      if (pun && !merged.find(c => c.user && c.user.username === pun) && (prev.unread || 0) > 0) {
+        merged.unshift(prev);
+      }
+    }
+    dmConversations = merged;
     closedDMs = data.closed || [];
     renderDMList();
     updateDMNavBadge();

@@ -1,22 +1,29 @@
-# Hellobye Chat — Remove bottom notification, keep red badge
+# Hellobye Chat — Fix: red badge not showing for @lore (closedDMs suppressing it)
 
-## Investigation (DONE)
-- [x] Cloned repo & confirmed live deploy = latest commit (Round 9, aabb502)
-- [x] Mapped notification system:
-  - Bottom notification = showInAppNotification() rich cards in #toast-container (bottom-center) + toast() toasts
-  - Red notification = #dm-nav-badge unread count on Messages tab + per-conv .dm-unread-badge
-- [x] Confirmed DM-receive -> updateDMNavBadge works for friends & non-friends (only blocked / DM-disabled excluded)
-- [x] Confirmed socket room join user:${username} is correct on server
+## Root cause (FOUND)
+- @lore has closedDMs = ['test','snd_1787944754183_b','tst_1787943910896_a']
+- Server /api/dm-conversations SKIPS closed conversations (server.js:1319)
+  → conversation + unread count excluded from red badge
+- Client dm-receive optimistically shows badge, then loadDMConversations()
+  overwrites with server data → badge disappears for closed convos
+- So a new DM to @lore (who closed that convo) never surfaces a red badge
 
-## Implementation (DONE)
-- [x] Verified DM-receive shows NO showInAppNotification/toast (only sound + red badge) — already correct
-- [x] Removed DM-ping bottom toast ("mentioned you in a DM") -> badge-only
-- [x] Red badge (#dm-nav-badge) is the sole DM signal; works for any user (friend/non-friend) via dm-receive -> updateDMNavBadge
-- [x] Kept public-chat behavior intact
-- [x] JS syntax check passed (3 script blocks, 0 errors)
+## Fix
+- [ ] Server: auto-reopen a conversation for the RECIPIENT when a new DM
+      arrives (remove sender from recipient's closedDMs) so new messages
+      always surface the conversation + red badge, regardless of prior close
+- [ ] Also clean stale closedDMs entries (non-existent users) for all users
+      on startup (defensive)
+- [ ] Client: ensure loadDMConversations() doesn't wipe optimistic unread
+      badge prematurely (keep unread count for newly-reopened convos)
+
+## Data fix (no wipe)
+- [ ] In live db.json: clear @lore's stale closedDMs (test/snd/tst entries)
+      so the badge works immediately for existing conversations
+- [ ] Push updated db.json to GitHub backup repo (tiahhwashere/hellobye-chat-data)
+- [ ] Do NOT delete any users / messages / dms
 
 ## Deploy
-- [ ] Commit + push to GitHub master
-- [ ] Confirm Render auto-deploy picks up commit (autoDeploy=commit)
-- [ ] Trigger/verify deploy goes live; site back online
-- [ ] Verify no data wipe (db.json untouched)
+- [ ] Commit + push code to GitHub master
+- [ ] Render auto-deploy goes live
+- [ ] Verify site online + badge works for @lore & everyone

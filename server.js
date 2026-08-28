@@ -506,6 +506,29 @@ const WELCOME_TITLE_COOLDOWN = 20000; // 20 seconds in ms
   }
 })();
 
+// ---------- Startup: prune stale closedDMs entries ----------
+// A user's closedDMs may contain usernames that no longer exist (e.g. deleted
+// test accounts). Those stale entries are harmless but can hide a real
+// conversation from the Messages list / red badge if a username ever gets
+// reused. Remove any closedDMs entry that doesn't map to a current user.
+(function pruneStaleClosedDMs() {
+  let changed = false;
+  for (const u of Object.values(db.users || {})) {
+    if (Array.isArray(u.closedDMs) && u.closedDMs.length) {
+      const before = u.closedDMs.length;
+      u.closedDMs = u.closedDMs.filter(other => !!db.users[other]);
+      if (u.closedDMs.length !== before) {
+        changed = true;
+        console.log('[startup] Pruned ' + (before - u.closedDMs.length) + ' stale closedDMs entr' + (before - u.closedDMs.length === 1 ? 'y' : 'ies') + ' for @' + u.username);
+      }
+    }
+  }
+  if (changed) {
+    try { fs.writeFileSync(DB_FILE, JSON.stringify(db)); } catch (e) {}
+    scheduleRemoteBackup();
+  }
+})();
+
 // ---------- Periodic check: auto-lift expired temporary bans ----------
 // Runs every 60 seconds. If a user has a temporary ban (bannedUntil > 0) that
 // has expired, the ban is lifted automatically and their profile is broadcast.
@@ -2589,6 +2612,19 @@ io.on('connection', (socket) => {
       theirDMs[username].push(msg);
       if (myDMs[target].length > 1000) myDMs[target] = myDMs[target].slice(-1000);
       if (theirDMs[username].length > 1000) theirDMs[username] = theirDMs[username].slice(-1000);
+      // Auto-reopen: a new incoming DM should ALWAYS surface the conversation
+      // and the red unread badge for the recipient — even if the recipient had
+      // previously closed that conversation. Without this, a closed conversation
+      // is skipped by /api/dm-conversations and the recipient never sees the red
+      // badge (this was why @lore, who had closed some conversations, stopped
+      // getting DM notifications). Removing the sender from the recipient's
+      // closedDMs makes the conversation (and its unread count) reappear.
+      try {
+        const recipientUser = db.users[target];
+        if (recipientUser && Array.isArray(recipientUser.closedDMs) && recipientUser.closedDMs.includes(username)) {
+          recipientUser.closedDMs = recipientUser.closedDMs.filter(u => u !== username);
+        }
+      } catch (e) {}
       saveDB();
       // Emit to recipient
       io.to(`user:${target}`).emit('dm-receive', { message: msg });
