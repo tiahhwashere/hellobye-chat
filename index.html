@@ -412,6 +412,16 @@ body.loading-session #chat-app.active::after {
 .members-bg-layer .members-bg-img,
 .members-bg-layer .members-bg-overlay {
   position: absolute; inset: 0;
+  width: 100%; height: 100%;
+}
+/* The image element defaults to "cover" so it always fills the layer top-to-bottom
+   AND side-to-side. applyMembersBg() overrides background-size with a height-anchored
+   value (auto <scale>%) so the user's scale slider zooms while the vertical fill
+   is guaranteed across browser zoom and mobile viewports. */
+.members-bg-layer .members-bg-img {
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 .members-bg-layer .members-bg-overlay { z-index: 1; }
 /* Keep header/nav/search/footer/views above the bg layer */
@@ -4625,8 +4635,8 @@ body.loading-session #chat-app.active::after {
         <div class="members-bg-slider-block">
           <div class="members-bg-section-label">Image Scale</div>
           <div class="members-bg-scale-row">
-            <label>Size</label>
-            <input type="range" id="members-bg-scale" min="50" max="300" value="100" step="5">
+            <label>Zoom</label>
+            <input type="range" id="members-bg-scale" min="100" max="300" value="100" step="5">
             <span class="scale-val" id="members-bg-scale-val">100%</span>
           </div>
         </div>
@@ -8289,7 +8299,11 @@ document.addEventListener('click', (e) => {
 window.addEventListener('resize', () => {
   if ($('attach-dropdown').classList.contains('show')) positionAttachDropdown($('attach-dropdown'), $('attach-btn'));
   if ($('dm-attach-dropdown').classList.contains('show')) positionAttachDropdown($('dm-attach-dropdown'), $('dm-attach-btn'));
+  /* Re-apply the members-list background so its height-anchored sizing tracks
+     the sidebar's new height after a browser zoom or viewport change. */
+  if (typeof applyMembersBg === 'function') applyMembersBg();
 });
+window.addEventListener('orientationchange', () => { setTimeout(() => { if (typeof applyMembersBg === 'function') applyMembersBg(); }, 220); });
 window.addEventListener('scroll', () => {
   if ($('attach-dropdown').classList.contains('show')) positionAttachDropdown($('attach-dropdown'), $('attach-btn'));
   if ($('dm-attach-dropdown').classList.contains('show')) positionAttachDropdown($('dm-attach-dropdown'), $('dm-attach-btn'));
@@ -10541,6 +10555,10 @@ function loadMembersBgState() {
     const saved = JSON.parse(localStorage.getItem('hellobye_members_bg') || 'null');
     if (saved) membersBgState = saved;
   } catch (e) {}
+  /* Normalize legacy scale values to the new 100-300 range so the background
+     always fills the full sidebar height (top-to-bottom). */
+  if (typeof membersBgState.scale !== 'number' || isNaN(membersBgState.scale)) membersBgState.scale = 100;
+  membersBgState.scale = Math.max(100, Math.min(300, membersBgState.scale));
   applyMembersBg();
 }
 function saveMembersBgState() {
@@ -10565,7 +10583,22 @@ function applyMembersBg() {
   if (url) {
     layer.classList.add('active');
     imgEl.style.backgroundImage = 'url("' + url + '")';
-    imgEl.style.backgroundSize = (scale / 100 * 100) + '% auto';
+    /* Size the image so it ALWAYS covers the full sidebar height top-to-bottom,
+       even when the user zooms (Ctrl+scroll) on desktop or on mobile where the
+       sidebar is tall and narrow.
+
+       Strategy: anchor the image to the layer's HEIGHT.
+         - effectiveScale is clamped to >= 100 so the image height is never
+           smaller than the layer height \u2192 no vertical gaps, ever.
+         - background-size "auto <H>%" sets height = H% of the layer and width
+           auto (preserves aspect ratio). At 100% the image fills top-to-bottom
+           exactly; above 100% it zooms in (crops sides) while still filling
+           vertically.
+       The layer is position:absolute inset:0 so it matches the sidebar's exact
+       rendered height at every zoom level and viewport size, and overflow is
+       clipped by .sidebar { overflow: hidden }. */
+    var effScale = Math.max(100, scale);
+    imgEl.style.backgroundSize = 'auto ' + effScale + '%';
     imgEl.style.backgroundPosition = 'center';
     imgEl.style.backgroundRepeat = 'no-repeat';
     overlayEl.style.background = color;
@@ -10638,7 +10671,7 @@ function updateMembersBgPreview() {
   const preview = $('members-bg-preview');
   const { url, scale, color, opacity } = membersBgState;
   if (url) {
-    preview.innerHTML = '<img src="' + url + '" style="object-position:center;object-fit:' + (scale > 100 ? 'cover' : 'contain') + ';">';
+    preview.innerHTML = '<img src="' + url + '" style="object-position:center;object-fit:cover;width:100%;height:100%;">';
     let overlay = preview.querySelector('.members-bg-overlay');
     if (!overlay) {
       overlay = document.createElement('div');
