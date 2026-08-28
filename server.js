@@ -1950,6 +1950,21 @@ io.on('connection', (socket) => {
       if (db.messages.length > 1000) db.messages = db.messages.slice(-1000);
       saveDB();
       io.emit('new-message', msg);
+      // ---- Ping/mention notifications ----
+      // Parse @mentions from the message text and notify each pinged user
+      // who is currently online. The mention regex matches @username.
+      const mentionMatches = String(text || '').match(/(^|[^\w@])@([a-zA-Z0-9_\-]+)/g) || [];
+      const mentionedSet = new Set();
+      mentionMatches.forEach(m => { const i = m.indexOf('@'); if (i >= 0) mentionedSet.add(m.slice(i + 1).toLowerCase()); });
+      mentionedSet.forEach(mentionedUn => {
+        if (mentionedUn !== username && db.users[mentionedUn]) {
+          io.to('user:' + mentionedUn).emit('pinged', {
+            from: username,
+            messageId: msg.id,
+            text: msg.text.slice(0, 200),
+          });
+        }
+      });
       if (typeof ack === 'function') ack({ success: true, id: msg.id });
     } catch (e) {
       console.error('send-message error', e);
@@ -2054,6 +2069,18 @@ io.on('connection', (socket) => {
       saveDB();
       // Emit to recipient
       io.to(`user:${target}`).emit('dm-receive', { message: msg });
+      // ---- DM Ping/mention notification ----
+      const dmMentionMatches = String(text || '').match(/(^|[^\w@])@([a-zA-Z0-9_\-]+)/g) || [];
+      const dmMentionedSet = new Set();
+      dmMentionMatches.forEach(m => { const i = m.indexOf('@'); if (i >= 0) dmMentionedSet.add(m.slice(i + 1).toLowerCase()); });
+      // Only notify if the RECIPIENT is mentioned (the only other person in a DM)
+      if (dmMentionedSet.has(target)) {
+        io.to('user:' + target).emit('dm-pinged', {
+          from: username,
+          messageId: msg.id,
+          text: msg.text.slice(0, 200),
+        });
+      }
       if (typeof ack === 'function') ack({ success: true, message: msg });
     } catch (e) {
       console.error('dm-send error', e);

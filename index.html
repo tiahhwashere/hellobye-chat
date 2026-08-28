@@ -618,6 +618,88 @@ body.loading-session #chat-app.active::after {
 
 .message-text { display: inline; }
 .inline-link { color: inherit; text-decoration: underline; }
+
+/* Mention highlight in messages */
+.mention-highlight {
+  background: rgba(74,158,255,0.18);
+  color: var(--accent);
+  padding: 1px 4px;
+  border-radius: 4px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.mention-highlight:hover { background: rgba(74,158,255,0.30); }
+.mention-highlight.mention-self {
+  background: rgba(250,204,21,0.20);
+  color: #facc15;
+  border-left: 2px solid #facc15;
+}
+.mention-highlight.mention-self:hover { background: rgba(250,204,21,0.32); }
+.message-group.own .mention-highlight {
+  background: rgba(255,255,255,0.15);
+  color: #e0e0e0;
+}
+/* Pinged message bubble — subtle highlight */
+.message-bubble.pinged-msg {
+  box-shadow: 0 0 0 1px rgba(250,204,21,0.4);
+  animation: ping-flash 1.2s ease;
+}
+@keyframes ping-flash {
+  0% { box-shadow: 0 0 0 2px rgba(250,204,21,0.6); }
+  100% { box-shadow: 0 0 0 1px rgba(250,204,21,0.15); }
+}
+
+/* Mention dropdown popup */
+.mention-dropdown {
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  margin-bottom: 6px;
+  background: var(--bg-medium);
+  border: 1px solid var(--border-light);
+  border-radius: 10px;
+  box-shadow: 0 -4px 20px rgba(0,0,0,0.35);
+  max-height: 220px;
+  overflow-y: auto;
+  min-width: 200px;
+  max-width: 280px;
+  z-index: 500;
+  padding: 4px;
+  display: none;
+}
+.mention-dropdown.show { display: block; }
+.mention-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+.mention-dropdown-item:hover, .mention-dropdown-item.active {
+  background: rgba(74,158,255,0.12);
+}
+.mention-dropdown-avatar {
+  width: 24px; height: 24px; border-radius: 50%;
+  background: var(--bg-darker);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 600; color: var(--text-muted);
+  flex-shrink: 0; overflow: hidden;
+}
+.mention-dropdown-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+.mention-dropdown-info { overflow: hidden; }
+.mention-dropdown-name {
+  font-size: 13px; font-weight: 600; color: var(--text-primary);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.mention-dropdown-handle {
+  font-size: 11px; color: var(--text-muted);
+}
+.mention-dropdown-empty {
+  padding: 12px; text-align: center; font-size: 12px; color: var(--text-muted);
+}
 .message-group.own .inline-link { color: #cce4ff; }
 
 /* Link Embeds */
@@ -4453,6 +4535,34 @@ function escapeHtml(text) {
   div.textContent = text;
   return div.innerHTML;
 }
+
+// Highlight @username mentions in already-escaped HTML text.
+// Wraps each valid @mention in a clickable span. Mentions of the current
+// user get an extra 'mention-self' class for a distinct highlight.
+function highlightMentions(html) {
+  if (!html) return html;
+  // Match @username where username is alphanumeric/underscore/hyphen.
+  // The text is already HTML-escaped so @ is still @.
+  return html.replace(/(^|[^\w@])@([a-zA-Z0-9_\-]+)/g, (full, pre, username) => {
+    const lower = username.toLowerCase();
+    const isSelf = currentUser && currentUser.username && currentUser.username.toLowerCase() === lower;
+    const cls = isSelf ? 'mention-highlight mention-self' : 'mention-highlight';
+    return pre + '<span class="' + cls + '" data-mention="' + escapeHtml(lower) + '">@' + escapeHtml(username) + '</span>';
+  });
+}
+
+// Extract an array of mentioned usernames (lowercase, unique) from raw text.
+function extractMentions(text) {
+  if (!text) return [];
+  const matches = text.match(/(^|[^\w@])@([a-zA-Z0-9_\-]+)/g) || [];
+  const set = new Set();
+  matches.forEach(m => {
+    // Strip the leading non-word char if present, then the @
+    const atIdx = m.indexOf('@');
+    if (atIdx >= 0) set.add(m.slice(atIdx + 1).toLowerCase());
+  });
+  return Array.from(set);
+}
 // Render bio text with clickable links. URLs (http/https/www) become <a> tags
 // that open in a new tab (NOT embedded previews). Everything else is escaped.
 function linkifyBio(text) {
@@ -4987,6 +5097,13 @@ function connectSocket() {
   socket.on('new-message', (msg) => {
     // Filter blocked users
     if (blockedUsers.some(u => u.username === msg.username)) return;
+    // Check if this message mentions the current user
+    if (currentUser && currentUser.username && msg.text) {
+      const mentions = extractMentions(msg.text);
+      if (mentions.includes(currentUser.username.toLowerCase())) {
+        msg.pingedForMe = true;
+      }
+    }
     messages.push(msg);
     appendMessage(msg);
     hideEmptyState();
@@ -4996,9 +5113,32 @@ function connectSocket() {
     if (msg.username !== currentUser.username) {
       const user = users.find(u => u.username === msg.username);
       const name = (user && user.displayName) ? user.displayName : '@' + msg.username;
-      showNotification(name + ' sent a message', msg.text || (msg.file ? 'Sent a file' : ''), user && user.avatar);
+      const isPing = msg.pingedForMe;
+      showNotification((isPing ? name + ' mentioned you' : name + ' sent a message'), msg.text || (msg.file ? 'Sent a file' : ''), user && user.avatar);
+      if (isPing) toast(name + ' mentioned you in chat', 'success');
     }
   });
+  // Pinged in chat — show notification
+  socket.on('pinged', (data) => {
+    if (!data || !data.from) return;
+    if (blockedUsers.some(u => u.username === data.from)) return;
+    const user = users.find(u => u.username === data.from);
+    const name = (user && user.displayName) ? user.displayName : '@' + data.from;
+    // Only show toast if we're not already viewing the chat with focus
+    const isChatFocused = document.hasFocus() && document.getElementById('chat-page') && document.getElementById('chat-page').classList.contains('active');
+    if (!isChatFocused || (data.from !== (currentUser && currentUser.username))) {
+      toast(name + ' mentioned you in chat', 'success');
+    }
+    // Mark the message so it gets the pinged highlight when rendered
+    if (data.messageId) {
+      const msg = messages.find(m => m.id === data.messageId);
+      if (msg) msg.pingedForMe = true;
+      // If the message is already rendered, add the class
+      const el = document.querySelector('.message-group[data-message-id="' + data.messageId + '"] .message-bubble');
+      if (el && !el.classList.contains('pinged-msg')) el.classList.add('pinged-msg');
+    }
+  });
+
   socket.on('message-edited', (data) => {
     const msg = messages.find(m => m.id === data.id);
     if (msg) { msg.text = data.text; msg.edited = data.edited; msg.editedAt = data.editedAt; }
@@ -5100,6 +5240,13 @@ function connectSocket() {
     const from = msg.from;
     // Filter blocked users
     if (blockedUsers.some(u => u.username === from)) return;
+    // Check if this DM mentions the current user
+    if (currentUser && currentUser.username && msg.text) {
+      const mentions = extractMentions(msg.text);
+      if (mentions.includes(currentUser.username.toLowerCase())) {
+        msg.pingedForMe = true;
+      }
+    }
     // Add to conversations
     if (activeDMUser === from) {
       dmMessages.push(msg);
@@ -5109,14 +5256,31 @@ function connectSocket() {
       fetch(API_BASE + '/api/dms/mark-read/' + encodeURIComponent(from), { method: 'POST' });
       updateDMNavBadge();
     } else {
-      toast('New message from @' + from, 'success');
+      const isPing = msg.pingedForMe;
+      toast(isPing ? 'You were mentioned by @' + from : 'New message from @' + from, 'success');
       playMessageSound();
       const user = users.find(u => u.username === from);
       const name = (user && user.displayName) ? user.displayName : '@' + from;
-      showNotification(name + ' sent you a DM', msg.text || (msg.file ? 'Sent a file' : ''), user && user.avatar);
+      showNotification(isPing ? name + ' mentioned you in a DM' : name + ' sent you a DM', msg.text || (msg.file ? 'Sent a file' : ''), user && user.avatar);
     }
     loadDMConversations();
   });
+  // Pinged in DM — show notification
+  socket.on('dm-pinged', (data) => {
+    if (!data || !data.from) return;
+    if (blockedUsers.some(u => u.username === data.from)) return;
+    const user = users.find(u => u.username === data.from);
+    const name = (user && user.displayName) ? user.displayName : '@' + data.from;
+    const isDMFocused = activeDMUser === data.from && document.hasFocus();
+    if (!isDMFocused) {
+      toast(name + ' mentioned you in a DM', 'success');
+    }
+    if (data.messageId) {
+      const m = dmMessages.find(x => x.id === data.messageId);
+      if (m) m.pingedForMe = true;
+    }
+  });
+
   socket.on('dm-edited', (data) => {
     if (activeDMUser === data.from) {
       const m = dmMessages.find(x => x.id === data.id);
@@ -5255,8 +5419,14 @@ function appendMessage(msg, silent) {
     if (msg.text) {
       const textSpan = document.createElement('span');
       textSpan.className = 'message-text';
-      textSpan.innerHTML = linkifyAndEmbed(escapeHtml(msg.text));
+      textSpan.innerHTML = highlightMentions(linkifyAndEmbed(escapeHtml(msg.text)));
       bubble.appendChild(textSpan);
+      // Add pinged class if this message mentions the current user
+      if (msg.pingedForMe) bubble.classList.add('pinged-msg');
+      // Make mention spans clickable to open profile
+      textSpan.querySelectorAll('.mention-highlight').forEach(el => {
+        el.addEventListener('click', () => { const u = el.getAttribute('data-mention'); if (u) openProfileView(u); });
+      });
       // Embed links
       textSpan.querySelectorAll('.link-embed').forEach(el => fetchEmbed(el.dataset.url, el));
     }
@@ -5497,6 +5667,160 @@ chatInput.addEventListener('keydown', (e) => {
 sendBtn.addEventListener('click', () => {
   if (recordSpamClick()) return;
   sendMessage();
+});
+
+// ---------- Mention dropdown for chat input ----------
+let chatMentionDropdown = null;
+let chatMentionActiveIndex = -1;
+let chatMentionItems = [];
+let chatMentionQuery = '';
+
+function buildChatMentionDropdown() {
+  if (!chatMentionDropdown) {
+    chatMentionDropdown = document.createElement('div');
+    chatMentionDropdown.className = 'mention-dropdown';
+    chatMentionDropdown.id = 'chat-mention-dropdown';
+    const wrap = chatInput.closest('.chat-input-wrap') || chatInput.parentElement;
+    if (wrap) { wrap.style.position = 'relative'; wrap.appendChild(chatMentionDropdown); }
+    else { document.body.appendChild(chatMentionDropdown); }
+  }
+  return chatMentionDropdown;
+}
+
+function showChatMentionDropdown(query) {
+  chatMentionQuery = query.toLowerCase();
+  const dd = buildChatMentionDropdown();
+  // Build filtered user list (exclude current user, exclude banned)
+  let candidates = (users || []).filter(u => u.username !== (currentUser && currentUser.username) && !u.banned);
+  if (chatMentionQuery) {
+    candidates = candidates.filter(u =>
+      u.username.toLowerCase().includes(chatMentionQuery) ||
+      (u.displayName && u.displayName.toLowerCase().includes(chatMentionQuery))
+    );
+  }
+  // Sort: online first, then by username
+  candidates.sort((a, b) => {
+    const aOnline = a.status && a.status !== 'offline';
+    const bOnline = b.status && b.status !== 'offline';
+    if (aOnline && !bOnline) return -1;
+    if (!aOnline && bOnline) return 1;
+    return a.username.localeCompare(b.username);
+  });
+  candidates = candidates.slice(0, 12);
+  chatMentionItems = candidates;
+  chatMentionActiveIndex = -1;
+  if (candidates.length === 0) {
+    dd.innerHTML = '<div class="mention-dropdown-empty">No users found</div>';
+    dd.classList.add('show');
+    return;
+  }
+  dd.innerHTML = candidates.map((u, i) => {
+    const avatarInner = u.avatar
+      ? '<img src="' + escapeHtml(u.avatar) + '" alt="" />'
+      : escapeHtml(getInitials(u.displayName || u.username));
+    return '<div class="mention-dropdown-item" data-idx="' + i + '" data-username="' + escapeHtml(u.username) + '">'
+      + '<div class="mention-dropdown-avatar">' + avatarInner + '</div>'
+      + '<div class="mention-dropdown-info">'
+      + '<div class="mention-dropdown-name">' + escapeHtml(u.displayName || u.username) + '</div>'
+      + '<div class="mention-dropdown-handle">@' + escapeHtml(u.username) + '</div>'
+      + '</div></div>';
+  }).join('');
+  dd.classList.add('show');
+  // Click handlers
+  dd.querySelectorAll('.mention-dropdown-item').forEach(item => {
+    item.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+      const un = item.getAttribute('data-username');
+      if (un) insertChatMention(un);
+    });
+  });
+}
+
+function hideChatMentionDropdown() {
+  if (chatMentionDropdown) chatMentionDropdown.classList.remove('show');
+  chatMentionActiveIndex = -1;
+  chatMentionItems = [];
+}
+
+function insertChatMention(username) {
+  const val = chatInput.value;
+  const cursor = chatInput.selectionStart;
+  // Find the @ that started this mention (search backwards from cursor)
+  let atIdx = -1;
+  for (let i = cursor - 1; i >= 0; i--) {
+    if (val[i] === '@') { atIdx = i; break; }
+    if (!/[a-zA-Z0-9_\-]/.test(val[i])) break;
+  }
+  if (atIdx < 0) atIdx = cursor;
+  // Replace from @ to cursor with @username + space
+  chatInput.value = val.slice(0, atIdx) + '@' + username + ' ' + val.slice(cursor);
+  const newPos = atIdx + username.length + 2;
+  chatInput.focus();
+  chatInput.setSelectionRange(newPos, newPos);
+  hideChatMentionDropdown();
+  updateSendButton();
+  chatInput.style.height = 'auto';
+  chatInput.style.height = Math.min(chatInput.scrollHeight, 120) + 'px';
+}
+
+// Detect @ typing in chat input
+chatInput.addEventListener('input', (e) => {
+  const val = chatInput.value;
+  const cursor = chatInput.selectionStart;
+  // Check if we're currently in a mention context (typed @ followed by query chars)
+  let atIdx = -1;
+  for (let i = cursor - 1; i >= 0; i--) {
+    if (val[i] === '@') { atIdx = i; break; }
+    if (!/[a-zA-Z0-9_\-]/.test(val[i])) break;
+  }
+  if (atIdx >= 0 && (atIdx === 0 || /[^\w@]/.test(val[atIdx - 1]))) {
+    const query = val.slice(atIdx + 1, cursor);
+    if (query.length <= 20 && /^[a-zA-Z0-9_\-]*$/.test(query)) {
+      showChatMentionDropdown(query);
+      return;
+    }
+  }
+  hideChatMentionDropdown();
+});
+
+// Keyboard navigation in mention dropdown (arrow up/down, enter, escape)
+chatInput.addEventListener('keydown', (e) => {
+  if (!chatMentionDropdown || !chatMentionDropdown.classList.contains('show')) return;
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    chatMentionActiveIndex = Math.min(chatMentionActiveIndex + 1, chatMentionItems.length - 1);
+    updateChatMentionActive();
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    chatMentionActiveIndex = Math.max(chatMentionActiveIndex - 1, 0);
+    updateChatMentionActive();
+  } else if (e.key === 'Enter' || e.key === 'Tab') {
+    if (chatMentionActiveIndex >= 0 && chatMentionItems[chatMentionActiveIndex]) {
+      e.preventDefault();
+      insertChatMention(chatMentionItems[chatMentionActiveIndex].username);
+    }
+  } else if (e.key === 'Escape') {
+    e.preventDefault();
+    hideChatMentionDropdown();
+  }
+});
+
+function updateChatMentionActive() {
+  if (!chatMentionDropdown) return;
+  chatMentionDropdown.querySelectorAll('.mention-dropdown-item').forEach((item, i) => {
+    item.classList.toggle('active', i === chatMentionActiveIndex);
+    if (i === chatMentionActiveIndex) item.scrollIntoView({ block: 'nearest' });
+  });
+}
+
+// Hide dropdown when clicking outside or losing focus
+document.addEventListener('click', (e) => {
+  if (chatMentionDropdown && chatMentionDropdown.classList.contains('show')) {
+    if (!chatMentionDropdown.contains(e.target) && e.target !== chatInput) hideChatMentionDropdown();
+  }
+});
+chatInput.addEventListener('blur', () => {
+  setTimeout(() => hideChatMentionDropdown(), 150);
 });
 
 async function sendMessage() {
@@ -6871,8 +7195,12 @@ function appendDMMessage(msg, silent) {
     if (msg.text) {
       const textSpan = document.createElement('span');
       textSpan.className = 'message-text';
-      textSpan.innerHTML = linkifyAndEmbed(escapeHtml(msg.text));
+      textSpan.innerHTML = highlightMentions(linkifyAndEmbed(escapeHtml(msg.text)));
       bubble.appendChild(textSpan);
+      if (msg.pingedForMe) bubble.classList.add('pinged-msg');
+      textSpan.querySelectorAll('.mention-highlight').forEach(el => {
+        el.addEventListener('click', () => { const u = el.getAttribute('data-mention'); if (u) openProfileView(u); });
+      });
       textSpan.querySelectorAll('.link-embed').forEach(el => fetchEmbed(el.dataset.url, el));
     }
     if (msg.file) bubble.appendChild(createFileElement(msg.file));
@@ -6995,6 +7323,151 @@ dmInputEl.addEventListener('keydown', (e) => {
 dmSendBtn.addEventListener('click', () => {
   if (recordSpamClick()) return;
   sendDM();
+});
+
+// ---------- Mention dropdown for DM input ----------
+let dmMentionDropdown = null;
+let dmMentionActiveIndex = -1;
+let dmMentionItems = [];
+
+function buildDMMentionDropdown() {
+  if (!dmMentionDropdown) {
+    dmMentionDropdown = document.createElement('div');
+    dmMentionDropdown.className = 'mention-dropdown';
+    dmMentionDropdown.id = 'dm-mention-dropdown';
+    const wrap = dmInputEl.closest('.chat-input-wrap') || dmInputEl.parentElement;
+    if (wrap) { wrap.style.position = 'relative'; wrap.appendChild(dmMentionDropdown); }
+    else { document.body.appendChild(dmMentionDropdown); }
+  }
+  return dmMentionDropdown;
+}
+
+function showDMMentionDropdown(query) {
+  const q = query.toLowerCase();
+  const dd = buildDMMentionDropdown();
+  // In DMs, the only mentionable user is the DM partner (and yourself)
+  let candidates = [];
+  if (activeDMUser) {
+    const partner = users.find(u => u.username === activeDMUser);
+    if (partner) candidates.push(partner);
+    else candidates.push({ username: activeDMUser, displayName: activeDMUser, avatar: null });
+  }
+  if (currentUser && currentUser.username) {
+    candidates.push({ username: currentUser.username, displayName: currentUser.displayName || currentUser.username, avatar: currentUser.avatar || null });
+  }
+  if (q) {
+    candidates = candidates.filter(u =>
+      u.username.toLowerCase().includes(q) ||
+      (u.displayName && u.displayName.toLowerCase().includes(q))
+    );
+  }
+  dmMentionItems = candidates;
+  dmMentionActiveIndex = -1;
+  if (candidates.length === 0) {
+    dd.innerHTML = '<div class="mention-dropdown-empty">No users found</div>';
+    dd.classList.add('show');
+    return;
+  }
+  dd.innerHTML = candidates.map((u, i) => {
+    const avatarInner = u.avatar
+      ? '<img src="' + escapeHtml(u.avatar) + '" alt="" />'
+      : escapeHtml(getInitials(u.displayName || u.username));
+    return '<div class="mention-dropdown-item" data-idx="' + i + '" data-username="' + escapeHtml(u.username) + '">'
+      + '<div class="mention-dropdown-avatar">' + avatarInner + '</div>'
+      + '<div class="mention-dropdown-info">'
+      + '<div class="mention-dropdown-name">' + escapeHtml(u.displayName || u.username) + '</div>'
+      + '<div class="mention-dropdown-handle">@' + escapeHtml(u.username) + '</div>'
+      + '</div></div>';
+  }).join('');
+  dd.classList.add('show');
+  dd.querySelectorAll('.mention-dropdown-item').forEach(item => {
+    item.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+      const un = item.getAttribute('data-username');
+      if (un) insertDMMention(un);
+    });
+  });
+}
+
+function hideDMMentionDropdown() {
+  if (dmMentionDropdown) dmMentionDropdown.classList.remove('show');
+  dmMentionActiveIndex = -1;
+  dmMentionItems = [];
+}
+
+function insertDMMention(username) {
+  const val = dmInputEl.value;
+  const cursor = dmInputEl.selectionStart;
+  let atIdx = -1;
+  for (let i = cursor - 1; i >= 0; i--) {
+    if (val[i] === '@') { atIdx = i; break; }
+    if (!/[a-zA-Z0-9_\-]/.test(val[i])) break;
+  }
+  if (atIdx < 0) atIdx = cursor;
+  dmInputEl.value = val.slice(0, atIdx) + '@' + username + ' ' + val.slice(cursor);
+  const newPos = atIdx + username.length + 2;
+  dmInputEl.focus();
+  dmInputEl.setSelectionRange(newPos, newPos);
+  hideDMMentionDropdown();
+  updateDMSend();
+  dmInputEl.style.height = 'auto';
+  dmInputEl.style.height = Math.min(dmInputEl.scrollHeight, 120) + 'px';
+}
+
+dmInputEl.addEventListener('input', () => {
+  const val = dmInputEl.value;
+  const cursor = dmInputEl.selectionStart;
+  let atIdx = -1;
+  for (let i = cursor - 1; i >= 0; i--) {
+    if (val[i] === '@') { atIdx = i; break; }
+    if (!/[a-zA-Z0-9_\-]/.test(val[i])) break;
+  }
+  if (atIdx >= 0 && (atIdx === 0 || /[^\w@]/.test(val[atIdx - 1]))) {
+    const query = val.slice(atIdx + 1, cursor);
+    if (query.length <= 20 && /^[a-zA-Z0-9_\-]*$/.test(query)) {
+      showDMMentionDropdown(query);
+      return;
+    }
+  }
+  hideDMMentionDropdown();
+});
+
+dmInputEl.addEventListener('keydown', (e) => {
+  if (!dmMentionDropdown || !dmMentionDropdown.classList.contains('show')) return;
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    dmMentionActiveIndex = Math.min(dmMentionActiveIndex + 1, dmMentionItems.length - 1);
+    updateDMMentionActive();
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    dmMentionActiveIndex = Math.max(dmMentionActiveIndex - 1, 0);
+    updateDMMentionActive();
+  } else if (e.key === 'Enter' || e.key === 'Tab') {
+    if (dmMentionActiveIndex >= 0 && dmMentionItems[dmMentionActiveIndex]) {
+      e.preventDefault();
+      insertDMMention(dmMentionItems[dmMentionActiveIndex].username);
+    }
+  } else if (e.key === 'Escape') {
+    e.preventDefault();
+    hideDMMentionDropdown();
+  }
+});
+
+function updateDMMentionActive() {
+  if (!dmMentionDropdown) return;
+  dmMentionDropdown.querySelectorAll('.mention-dropdown-item').forEach((item, i) => {
+    item.classList.toggle('active', i === dmMentionActiveIndex);
+    if (i === dmMentionActiveIndex) item.scrollIntoView({ block: 'nearest' });
+  });
+}
+
+document.addEventListener('click', (e) => {
+  if (dmMentionDropdown && dmMentionDropdown.classList.contains('show')) {
+    if (!dmMentionDropdown.contains(e.target) && e.target !== dmInputEl) hideDMMentionDropdown();
+  }
+});
+dmInputEl.addEventListener('blur', () => {
+  setTimeout(() => hideDMMentionDropdown(), 150);
 });
 
 // ---------- DM File Attachment ----------
