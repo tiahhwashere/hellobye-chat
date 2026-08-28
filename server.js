@@ -1950,14 +1950,10 @@ io.on('connection', (socket) => {
       const target = to ? to.toLowerCase() : '';
       if (!db.users[target]) { if (typeof ack === 'function') ack({ error: 'User not found' }); return; }
       // Direct Messages privacy: a user can turn off their own DMs.
-      //  - If the SENDER has DMs off, they cannot send DMs to anyone.
       //  - If the RECIPIENT has DMs off, nobody can DM them.
+      //  - The sender's own DM setting does NOT prevent them from sending
+      //    (it only controls whether others can DM them).
       // This is enforced server-side so it cannot be bypassed by the client.
-      const senderRecord = db.users[username];
-      if (senderRecord && senderRecord.directMessagesEnabled === false) {
-        if (typeof ack === 'function') ack({ error: 'You have disabled direct messages. Turn them on in Settings, under Data & Privacy, to send private messages.', dmDisabled: true });
-        return;
-      }
       const recipientRecord = db.users[target];
       if (recipientRecord && recipientRecord.directMessagesEnabled === false) {
         if (typeof ack === 'function') ack({ error: '@' + recipientRecord.username + ' has disabled direct messages and is not accepting private messages at this time.', recipientDmDisabled: true });
