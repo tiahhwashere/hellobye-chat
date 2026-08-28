@@ -1998,6 +1998,243 @@ body.loading-session #chat-app.active::after {
 .setting-hint { font-size: 12px; color: var(--text-muted); margin-bottom: 10px; line-height: 1.5; }
 .setting-hint span { color: var(--text-secondary); }
 
+/* ===================== MUSIC PLAYER ===================== */
+.music-link-input-row {
+  display: flex; gap: 8px; align-items: stretch; margin-bottom: 12px;
+}
+.music-link-input {
+  flex: 1; min-width: 0; padding: 11px 14px;
+  background: var(--bg-medium); border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm); color: var(--text-primary); font-size: 13px;
+  font-family: inherit; transition: var(--transition);
+}
+.music-link-input::placeholder { color: var(--text-muted); }
+.music-link-input:focus {
+  outline: none; border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+.music-load-btn {
+  width: auto; padding: 11px 22px; margin-top: 0; flex-shrink: 0;
+  font-size: 13px; font-weight: 600; letter-spacing: 0.3px;
+}
+
+/* Platform pills */
+.music-platform-pills {
+  display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 16px;
+}
+.music-pill {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 5px 11px; font-size: 11px; font-weight: 600;
+  color: var(--text-muted); background: var(--bg-medium);
+  border: 1px solid var(--border); border-radius: 20px;
+  transition: var(--transition); cursor: default; user-select: none;
+}
+.music-pill svg { width: 13px; height: 13px; flex-shrink: 0; }
+.music-pill[data-platform="spotify"] svg { color: #1db954; }
+.music-pill[data-platform="soundcloud"] svg { color: #ff5500; }
+.music-pill[data-platform="youtube"] svg { color: #ff0000; }
+.music-pill[data-platform="apple"] svg { color: #fc3c44; }
+.music-pill[data-platform="deezer"] svg { color: #a238ff; }
+
+/* Empty state */
+.music-empty-state {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 26px 20px; text-align: center;
+  background: var(--bg-medium); border: 1px dashed var(--border-light);
+  border-radius: var(--radius); transition: var(--transition);
+}
+.music-empty-icon {
+  width: 48px; height: 48px; margin-bottom: 10px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text-muted); background: var(--bg-light);
+  border-radius: 50%; transition: var(--transition);
+}
+.music-empty-icon svg { width: 24px; height: 24px; }
+.music-empty-title { font-size: 13px; font-weight: 600; color: var(--text-secondary); margin-bottom: 3px; }
+.music-empty-sub { font-size: 11.5px; color: var(--text-muted); line-height: 1.5; }
+
+/* Player card */
+.music-player-card {
+  position: relative; display: flex; gap: 0; overflow: hidden;
+  background: linear-gradient(135deg, var(--bg-light) 0%, var(--bg-medium) 100%);
+  border: 1px solid var(--border-light); border-radius: var(--radius);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+  transition: var(--transition);
+}
+.music-player-card:hover { box-shadow: 0 6px 28px rgba(0,0,0,0.35); border-color: var(--text-muted); }
+
+/* Artwork */
+.music-player-artwork {
+  flex-shrink: 0; width: 140px; min-height: 180px;
+  background-size: cover; background-position: center; background-color: var(--bg-darker);
+  position: relative; transition: var(--transition);
+}
+.music-player-artwork::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent 50%, rgba(28,31,36,0.6) 100%);
+  pointer-events: none;
+}
+.music-artwork-placeholder {
+  width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
+  color: var(--text-muted);
+}
+.music-artwork-placeholder svg { width: 42px; height: 42px; }
+
+/* Player body */
+.music-player-body {
+  flex: 1; min-width: 0; padding: 16px 18px;
+  display: flex; flex-direction: column; gap: 12px;
+}
+.music-player-meta { display: flex; flex-direction: column; gap: 3px; }
+.music-meta-line {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 2px;
+}
+.music-provider-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 10px; font-weight: 700; letter-spacing: 0.5px;
+  text-transform: uppercase; padding: 2px 8px; border-radius: 10px;
+  background: var(--accent-glow); color: var(--accent);
+  border: 1px solid rgba(74,158,255,0.25);
+}
+.music-now-playing {
+  font-size: 10px; font-weight: 600; letter-spacing: 0.5px;
+  text-transform: uppercase; color: var(--text-muted);
+  display: inline-flex; align-items: center; gap: 5px;
+}
+.music-now-playing::before {
+  content: ''; width: 6px; height: 6px; border-radius: 50%;
+  background: var(--success); animation: music-pulse 1.8s ease-in-out infinite;
+}
+@keyframes music-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.75); }
+}
+.music-track-title {
+  font-size: 15px; font-weight: 700; color: var(--text-primary);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  line-height: 1.3;
+}
+.music-track-artist {
+  font-size: 12px; color: var(--text-secondary);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+/* Embed container (hidden iframe as playback engine) */
+.music-player-embed {
+  width: 1px; height: 1px; overflow: hidden; opacity: 0;
+  position: absolute; pointer-events: none;
+}
+.music-player-embed iframe { border: 0; }
+
+/* Progress bar */
+.music-player-progress {
+  display: flex; align-items: center; gap: 10px;
+}
+.music-time {
+  font-size: 10.5px; font-weight: 600; color: var(--text-muted);
+  font-variant-numeric: tabular-nums; min-width: 32px; text-align: center;
+}
+.music-progress-bar {
+  flex: 1; height: 5px; background: var(--bg-darker);
+  border-radius: 3px; position: relative; cursor: pointer;
+  transition: height 0.15s ease;
+}
+.music-progress-bar:hover { height: 7px; }
+.music-progress-fill {
+  height: 100%; width: 0%; border-radius: 3px;
+  background: linear-gradient(90deg, var(--accent-dim), var(--accent));
+  transition: width 0.1s linear; position: relative;
+}
+.music-progress-handle {
+  position: absolute; top: 50%; left: 0%; transform: translate(-50%, -50%);
+  width: 12px; height: 12px; border-radius: 50%; background: #fff;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.4); opacity: 0;
+  transition: opacity 0.15s ease; pointer-events: none;
+}
+.music-progress-bar:hover .music-progress-handle { opacity: 1; }
+
+/* Controls */
+.music-player-controls {
+  display: flex; align-items: center; gap: 8px;
+}
+.music-ctrl-btn {
+  display: flex; align-items: center; justify-content: center;
+  width: 36px; height: 36px; flex-shrink: 0; border: none;
+  background: var(--bg-light); color: var(--text-secondary);
+  border-radius: 50%; cursor: pointer; transition: var(--transition);
+  position: relative;
+}
+.music-ctrl-btn svg { width: 18px; height: 18px; }
+.music-ctrl-btn:hover:not(:disabled) {
+  background: var(--bg-lighter); color: var(--text-primary);
+  transform: scale(1.08);
+}
+.music-ctrl-btn:active:not(:disabled) { transform: scale(0.94); }
+.music-ctrl-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+.music-ctrl-btn.active {
+  background: var(--accent-glow); color: var(--accent);
+  border: 1px solid rgba(74,158,255,0.3);
+}
+.music-ctrl-btn.small { width: 32px; height: 32px; }
+.music-ctrl-btn.small svg { width: 16px; height: 16px; }
+
+/* Play button — prominent */
+.music-play-btn {
+  width: 46px; height: 46px;
+  background: var(--accent); color: var(--accent-text);
+  box-shadow: 0 2px 10px rgba(74,158,255,0.35);
+}
+.music-play-btn:hover:not(:disabled) {
+  background: var(--accent-hover); color: var(--accent-text);
+  box-shadow: 0 4px 16px rgba(74,158,255,0.5);
+}
+.music-play-btn svg { width: 22px; height: 22px; }
+
+/* Volume group */
+.music-volume-group {
+  display: flex; align-items: center; gap: 6px; margin-left: 4px;
+}
+.music-volume-slider {
+  -webkit-appearance: none; appearance: none;
+  width: 70px; height: 4px; background: var(--bg-darker);
+  border-radius: 2px; cursor: pointer; outline: none;
+}
+.music-volume-slider::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none;
+  width: 12px; height: 12px; border-radius: 50%;
+  background: var(--accent); cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3); transition: var(--transition);
+}
+.music-volume-slider::-webkit-slider-thumb:hover { transform: scale(1.2); }
+.music-volume-slider::-moz-range-thumb {
+  width: 12px; height: 12px; border-radius: 50%; border: none;
+  background: var(--accent); cursor: pointer;
+}
+.music-spacer { flex: 1; }
+
+/* Clear button */
+.music-clear-btn {
+  position: absolute; top: 10px; right: 10px; z-index: 5;
+  width: 26px; height: 26px; flex-shrink: 0; border: none;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(0,0,0,0.4); color: rgba(255,255,255,0.7);
+  border-radius: 50%; cursor: pointer; transition: var(--transition);
+  backdrop-filter: blur(4px);
+}
+.music-clear-btn svg { width: 14px; height: 14px; }
+.music-clear-btn:hover {
+  background: var(--danger); color: #fff; transform: scale(1.1);
+}
+
+/* Responsive */
+@media (max-width: 540px) {
+  .music-player-artwork { width: 110px; min-height: 150px; }
+  .music-player-body { padding: 12px 14px; gap: 10px; }
+  .music-track-title { font-size: 14px; }
+  .music-volume-group { display: none; }
+  .music-load-btn { padding: 11px 16px; }
+}
+
 /* Customization section */
 .custom-bg-section { padding: 14px 0; }
 .custom-bg-label { font-size: 13px; font-weight: 600; color: var(--text-secondary); margin-bottom: 8px; }
@@ -3972,6 +4209,88 @@ body.loading-session #chat-app.active::after {
               </span>
             </label>
             <p class="setting-hint" style="margin-top:8px;">Compact mode reduces spacing between messages for a denser view.</p>
+          </div>
+
+          <div class="profile-section">
+            <div class="profile-section-title">Music Player</div>
+            <p class="setting-hint" style="margin-top:0;margin-bottom:14px;">Paste a link from Spotify, SoundCloud, YouTube, Apple Music, or Deezer. The song will load with a full player right here in your settings.</p>
+            <div class="music-link-input-row">
+              <input type="text" id="music-link-input" class="music-link-input" placeholder="Paste a Spotify, SoundCloud, YouTube, Apple Music, or Deezer link…" autocomplete="off" spellcheck="false">
+              <button class="setting-save-btn music-load-btn" id="music-load-btn" type="button">Load</button>
+            </div>
+            <div class="music-platform-pills" id="music-platform-pills">
+              <span class="music-pill" data-platform="spotify"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm4.6 14.4c-.2.3-.5.4-.8.2-2.2-1.3-5-1.6-8.2-.9-.3.1-.6-.1-.7-.4-.1-.3.1-.6.4-.7 3.6-.8 6.6-.5 9 1 .3.2.4.6.3.8zm1.2-2.7c-.2.3-.6.5-1 .3-2.5-1.5-6.3-2-9.3-1-.4.1-.8-.1-1-.5-.1-.4.1-.8.5-1 3.4-1 7.6-.5 10.5 1.3.4.2.5.7.3.9zm.1-2.8C15.3 9.2 9.5 9 6.7 9.9c-.5.2-1-.1-1.2-.6-.2-.5.1-1 .6-1.2 3.3-1 9.7-.8 13.4 1.4.5.3.6.9.4 1.3-.2.4-.8.6-1.2.4z"/></svg>Spotify</span>
+              <span class="music-pill" data-platform="soundcloud"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M1.5 13.5c-.3 0-.5.2-.5.5v4c0 .3.2.5.5.5s.5-.2.5-.5v-4c0-.3-.2-.5-.5-.5zm2-1.5c-.3 0-.5.2-.5.5v6c0 .3.2.5.5.5s.5-.2.5-.5v-6c0-.3-.2-.5-.5-.5zm2-1c-.3 0-.5.2-.5.5v7c0 .3.2.5.5.5s.5-.2.5-.5v-7c0-.3-.2-.5-.5-.5zm2-1.5c-.3 0-.5.2-.5.5v9c0 .3.2.5.5.5s.5-.2.5-.5v-9c0-.3-.2-.5-.5-.5zm2-1c-.3 0-.5.2-.5.5v10c0 .3.2.5.5.5s.5-.2.5-.5v-10c0-.3-.2-.5-.5-.5zm2 .2c-.3 0-.5.2-.5.5v9.8c0 .3.2.5.5.5s.5-.2.5-.5v-9.8c0-.3-.2-.5-.5-.5zM21 11c-.6 0-1.2.2-1.7.5-.3-2.4-2.3-4.3-4.8-4.3-.6 0-1.1.1-1.6.3-.2.1-.2.1-.2.3v9.2c0 .2.1.3.3.3H21c1.7 0 3-1.3 3-3s-1.3-3-3-3z"/></svg>SoundCloud</span>
+              <span class="music-pill" data-platform="youtube"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M23.5 6.2c-.3-1-1-1.8-2-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.5.6c-1 .3-1.8 1.1-2 2.1C0 8.2 0 12 0 12s0 3.8.5 5.8c.3 1 1 1.8 2 2.1 2 .6 9.5.6 9.5.6s7.5 0 9.5-.6c1-.3 1.8-1.1 2-2.1.5-2 .5-5.8.5-5.8s0-3.8-.5-5.8zM9.5 15.5v-7l6.5 3.5-6.5 3.5z"/></svg>YouTube</span>
+              <span class="music-pill" data-platform="apple"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.05 12.04c-.03-2.7 2.2-3.99 2.3-4.06-1.25-1.83-3.2-2.08-3.89-2.11-1.66-.17-3.24.97-4.08.97-.84 0-2.14-.95-3.52-.92-1.82.03-3.5 1.05-4.43 2.69-1.89 3.27-.48 8.12 1.36 10.78.9 1.31 1.97 2.78 3.38 2.73 1.36-.06 1.87-.88 3.51-.88 1.64 0 2.1.88 3.53.85 1.46-.03 2.38-1.33 3.27-2.65 1.03-1.52 1.46-2.99 1.48-3.07-.03-.01-2.84-1.09-2.87-4.33zM14.34 4.5c.75-.91 1.26-2.17 1.12-3.43-1.08.04-2.39.72-3.17 1.62-.69.8-1.3 2.08-1.14 3.31 1.2.09 2.44-.61 3.19-1.5z"/></svg>Apple Music</span>
+              <span class="music-pill" data-platform="deezer"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.8 7.2h5.2v2.4h-5.2V7.2zm0 3.2h5.2v2.4h-5.2v-2.4zm0 3.2h5.2V16h-5.2v-2.4zm-6.3-6.4h5.2v2.4h-5.2V7.2zm0 3.2h5.2v2.4h-5.2v-2.4zm0 3.2h5.2V16h-5.2v-2.4zM6.3 7.2h5.2v2.4H6.3V7.2zm0 3.2h5.2v2.4H6.3v-2.4zm0 3.2h5.2V16H6.3v-2.4zM1 13.6h5.2V16H1v-2.4z"/></svg>Deezer</span>
+            </div>
+
+            <!-- Music Player Card -->
+            <div class="music-player-card" id="music-player-card" style="display:none;">
+              <div class="music-player-artwork" id="music-artwork">
+                <div class="music-artwork-placeholder">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+                </div>
+              </div>
+              <div class="music-player-body">
+                <div class="music-player-meta">
+                  <div class="music-meta-line">
+                    <span class="music-provider-badge" id="music-provider-badge">Spotify</span>
+                    <span class="music-now-playing">Now Playing</span>
+                  </div>
+                  <h5 class="music-track-title" id="music-track-title">Loading track…</h5>
+                  <p class="music-track-artist" id="music-track-artist"></p>
+                </div>
+                <div class="music-player-embed" id="music-embed-container">
+                  <!-- iframe injected here -->
+                </div>
+                <div class="music-player-progress">
+                  <span class="music-time" id="music-time-current">0:00</span>
+                  <div class="music-progress-bar" id="music-progress-bar">
+                    <div class="music-progress-fill" id="music-progress-fill"></div>
+                    <div class="music-progress-handle" id="music-progress-handle"></div>
+                  </div>
+                  <span class="music-time" id="music-time-total">0:00</span>
+                </div>
+                <div class="music-player-controls">
+                  <button class="music-ctrl-btn" id="music-prev-btn" title="Restart" disabled>
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6V6zm3.5 6l8.5 6V6l-8.5 6z"/></svg>
+                  </button>
+                  <button class="music-ctrl-btn music-play-btn" id="music-play-btn" title="Play">
+                    <svg class="icon-play" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                    <svg class="icon-pause" viewBox="0 0 24 24" fill="currentColor" style="display:none;"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                  </button>
+                  <button class="music-ctrl-btn" id="music-next-btn" title="Skip 10s" disabled>
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
+                  </button>
+                  <div class="music-volume-group">
+                    <button class="music-ctrl-btn small" id="music-mute-btn" title="Mute">
+                      <svg class="icon-vol-high" viewBox="0 0 24 24" fill="currentColor"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/><path d="M14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
+                      <svg class="icon-vol-mute" viewBox="0 0 24 24" fill="currentColor" style="display:none;"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/></svg>
+                    </button>
+                    <input type="range" class="music-volume-slider" id="music-volume-slider" min="0" max="100" value="80">
+                  </div>
+                  <div class="music-spacer"></div>
+                  <button class="music-ctrl-btn" id="music-loop-btn" title="Loop">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+                  </button>
+                </div>
+              </div>
+              <button class="music-clear-btn" id="music-clear-btn" title="Remove track">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
+            </div>
+
+            <!-- Empty state -->
+            <div class="music-empty-state" id="music-empty-state">
+              <div class="music-empty-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+              </div>
+              <p class="music-empty-title">No track loaded</p>
+              <p class="music-empty-sub">Paste a music link above and hit Load to start playing.</p>
+            </div>
+            <p class="setting-hint" style="margin-top:10px;">Your music link is saved to your account and remembered across sessions.</p>
           </div>
         </section>
 
@@ -9264,6 +9583,13 @@ function updateSettingsPanel() {
   if ($('notif-toggle')) $('notif-toggle').checked = currentUser.notificationsEnabled !== false;
   if ($('sound-toggle')) $('sound-toggle').checked = currentUser.messageSounds !== false;
   if ($('compact-toggle')) $('compact-toggle').checked = !!currentUser.compactMode;
+  // Music link — restore saved track
+  if ($('music-link-input') && currentUser.musicLink) {
+    if ($('music-link-input').value !== currentUser.musicLink) {
+      $('music-link-input').value = currentUser.musicLink;
+      loadMusicLink(currentUser.musicLink, true);
+    }
+  }
   // Cooldown
   const changedAt = currentUser.usernameChangedAt || 0;
   if (changedAt) {
@@ -9389,6 +9715,584 @@ if ($('notif-toggle')) $('notif-toggle').addEventListener('change', async (e) =>
 });
 if ($('sound-toggle')) $('sound-toggle').addEventListener('change', savePreferences);
 if ($('compact-toggle')) $('compact-toggle').addEventListener('change', savePreferences);
+
+// ---------- Music Player ----------
+/*
+ * Supports: Spotify, SoundCloud, YouTube, Apple Music, Deezer.
+ * Each platform is played via its official embed iframe (the playback engine).
+ * Metadata (title, artist, artwork) is fetched via oEmbed endpoints where
+ * available (Spotify, SoundCloud, YouTube, Deezer all expose CORS-friendly
+ * oEmbed). Apple Music links are parsed for track IDs and metadata is pulled
+ * from the public Apple Music embed page.
+ */
+const MusicPlayer = {
+  state: {
+    provider: null,
+    link: null,
+    embedUrl: null,
+    isPlaying: false,
+    isLooping: false,
+    volume: 80,
+    muted: false,
+    duration: 0,
+    currentTime: 0,
+    progressTimer: null,
+    iframe: null,
+  },
+
+  // ---------- Link detection ----------
+  detectProvider(url) {
+    if (!url) return null;
+    const u = url.toLowerCase();
+    if (u.includes('spotify.com') || u.includes('open.spotify')) return 'spotify';
+    if (u.includes('soundcloud.com')) return 'soundcloud';
+    if (u.includes('youtube.com') || u.includes('youtu.be')) return 'youtube';
+    if (u.includes('music.apple.com') || u.includes('apple.music')) return 'apple';
+    if (u.includes('deezer.com')) return 'deezer';
+    return null;
+  },
+
+  // ---------- Build embed URL per platform ----------
+  buildEmbed(provider, url) {
+    try {
+      if (provider === 'spotify') {
+        // Spotify: convert track/album/playlist/episode URLs to embed URLs
+        let embed = url;
+        // Handle spotify.link short links by using the original
+        if (embed.includes('/track/')) {
+          const id = embed.match(/\/track\/([a-zA-Z0-9]+)/);
+          if (id) return 'https://open.spotify.com/embed/track/' + id[1];
+        }
+        if (embed.includes('/album/')) {
+          const id = embed.match(/\/album\/([a-zA-Z0-9]+)/);
+          if (id) return 'https://open.spotify.com/embed/album/' + id[1];
+        }
+        if (embed.includes('/playlist/')) {
+          const id = embed.match(/\/playlist\/([a-zA-Z0-9]+)/);
+          if (id) return 'https://open.spotify.com/embed/playlist/' + id[1];
+        }
+        if (embed.includes('/episode/')) {
+          const id = embed.match(/\/episode\/([a-zA-Z0-9]+)/);
+          if (id) return 'https://open.spotify.com/embed/episode/' + id[1];
+        }
+        if (embed.includes('/show/')) {
+          const id = embed.match(/\/show\/([a-zA-Z0-9]+)/);
+          if (id) return 'https://open.spotify.com/embed/show/' + id[1];
+        }
+        // Fallback: replace open.spotify.com with open.spotify.com/embed
+        return embed.replace('open.spotify.com', 'open.spotify.com/embed');
+      }
+      if (provider === 'soundcloud') {
+        // SoundCloud widget API accepts the original track URL
+        return 'https://w.soundcloud.com/player/?url=' + encodeURIComponent(url) +
+               '&auto_play=false&buying=false&sharing=false&download=false&' +
+               'show_artwork=false&show_playcount=false&show_user=false&hide_related=true&' +
+               'visual=false&callback=true';
+      }
+      if (provider === 'youtube') {
+        // Extract video ID from various YouTube URL formats
+        let videoId = null;
+        if (url.includes('youtu.be/')) {
+          videoId = url.split('youtu.be/')[1].split(/[?&#]/)[0];
+        } else if (url.includes('v=')) {
+          videoId = url.split('v=')[1].split(/[?&#]/)[0];
+        } else if (url.includes('/embed/')) {
+          videoId = url.split('/embed/')[1].split(/[?&#]/)[0];
+        } else if (url.includes('music.youtube.com')) {
+          if (url.includes('v=')) videoId = url.split('v=')[1].split(/[?&#]/)[0];
+        }
+        if (videoId) {
+          return 'https://www.youtube.com/embed/' + videoId +
+                 '?enablejsapi=1&playsinline=1&rel=0&modestbranding=1';
+        }
+        return null;
+      }
+      if (provider === 'apple') {
+        // Apple Music embed: music.apple.com/embed style
+        // e.g. https://music.apple.com/us/album/song/123 -> /embed/us/album/song/123
+        const m = url.match(/music\.apple\.com\/([^?]+)/);
+        if (m) return 'https://embed.music.apple.com/' + m[1];
+        return null;
+      }
+      if (provider === 'deezer') {
+        // Deezer embed widget
+        const m = url.match(/deezer\.com\/(track|album|playlist)\/(\d+)/);
+        if (m) {
+          const type = m[1];
+          const id = m[2];
+          return 'https://widget.deezer.com/widget/auto/' + type + '-' + id +
+                 '?tracklist=false&autoplay=false';
+        }
+        return null;
+      }
+    } catch(e) { console.warn('Music embed build error:', e); }
+    return null;
+  },
+
+  // ---------- Fetch metadata via oEmbed ----------
+  async fetchMetadata(provider, url) {
+    const meta = { title: null, artist: null, artwork: null };
+    try {
+      if (provider === 'spotify') {
+        const r = await fetch('https://open.spotify.com/oembed?url=' + encodeURIComponent(url));
+        if (r.ok) {
+          const d = await r.json();
+          meta.title = d.title;
+          meta.artist = d.provider_name === 'Spotify' ? (d.description || '') : '';
+          meta.artwork = d.thumbnail_url;
+        }
+      } else if (provider === 'soundcloud') {
+        const r = await fetch('https://soundcloud.com/oembed?format=json&url=' + encodeURIComponent(url));
+        if (r.ok) {
+          const d = await r.json();
+          meta.title = d.title;
+          meta.artist = d.author_name || '';
+          meta.artwork = d.thumbnail_url;
+        }
+      } else if (provider === 'youtube') {
+        let videoId = null;
+        if (url.includes('youtu.be/')) videoId = url.split('youtu.be/')[1].split(/[?&#]/)[0];
+        else if (url.includes('v=')) videoId = url.split('v=')[1].split(/[?&#]/)[0];
+        if (videoId) {
+          const r = await fetch('https://www.youtube.com/oembed?url=' + encodeURIComponent('https://www.youtube.com/watch?v=' + videoId) + '&format=json');
+          if (r.ok) {
+            const d = await r.json();
+            meta.title = d.title;
+            meta.artist = d.author_name || '';
+            meta.artwork = d.thumbnail_url;
+          }
+        }
+      } else if (provider === 'deezer') {
+        const m = url.match(/deezer\.com\/(track|album|playlist)\/(\d+)/);
+        if (m) {
+          const r = await fetch('https://api.deezer.com/' + m[1] + '/' + m[2] + '?output=jsonp');
+          // Deezer needs JSONP; fallback to oembed
+          const r2 = await fetch('https://api.deezer.com/oembed?url=' + encodeURIComponent(url) + '&format=json');
+          if (r2.ok) {
+            const d = await r2.json();
+            meta.title = d.title;
+            meta.artist = d.author_name || '';
+            meta.artwork = d.thumbnail_url || d.thumbnail;
+          }
+        }
+      } else if (provider === 'apple') {
+        // Apple Music oEmbed
+        const r = await fetch('https://music.apple.com/oembed?url=' + encodeURIComponent(url));
+        if (r.ok) {
+          const d = await r.json();
+          meta.title = d.title;
+          meta.artist = d.author_name || '';
+          meta.artwork = d.thumbnail_url;
+        }
+      }
+    } catch(e) {
+      console.warn('Music metadata fetch error:', e);
+    }
+    return meta;
+  },
+
+  // ---------- Load a track ----------
+  async load(url, silent) {
+    const provider = this.detectProvider(url);
+    if (!provider) {
+      if (!silent) toast('That link is not from a supported music platform. Please use Spotify, SoundCloud, YouTube, Apple Music, or Deezer.', 'error');
+      return false;
+    }
+    const embedUrl = this.buildEmbed(provider, url);
+    if (!embedUrl) {
+      if (!silent) toast('Could not read that ' + provider + ' link. Try copying the full URL from the address bar.', 'error');
+      return false;
+    }
+
+    // Reset state
+    this.stopProgress();
+    this.state = {
+      provider, link: url, embedUrl,
+      isPlaying: false, isLooping: false,
+      volume: this.state.volume || 80,
+      muted: false, duration: 0, currentTime: 0,
+      progressTimer: null, iframe: null,
+    };
+
+    // Show player card
+    $('music-player-card').style.display = 'flex';
+    $('music-empty-state').style.display = 'none';
+    $('music-provider-badge').textContent = provider === 'apple' ? 'Apple Music' :
+      provider.charAt(0).toUpperCase() + provider.slice(1);
+    $('music-track-title').textContent = 'Loading track…';
+    $('music-track-artist').textContent = '';
+    $('music-artwork').style.backgroundImage = '';
+    $('music-artwork').querySelector('.music-artwork-placeholder').style.display = 'flex';
+    $('music-progress-fill').style.width = '0%';
+    $('music-progress-handle').style.left = '0%';
+    $('music-time-current').textContent = '0:00';
+    $('music-time-total').textContent = '0:00';
+    this.setPlayIcon(false);
+    $('music-loop-btn').classList.remove('active');
+    $('music-volume-slider').value = this.state.volume;
+
+    // Inject embed iframe
+    const container = $('music-embed-container');
+    container.innerHTML = '';
+    const iframe = document.createElement('iframe');
+    iframe.src = embedUrl;
+    iframe.width = '300';
+    iframe.height = '80';
+    iframe.allow = 'autoplay; encrypted-media; fullscreen';
+    iframe.setAttribute('frameborder', '0');
+    iframe.setAttribute('allowtransparency', 'true');
+    container.appendChild(iframe);
+    this.state.iframe = iframe;
+
+    // Fetch metadata (non-blocking)
+    this.fetchMetadata(provider, url).then(meta => {
+      if (this.state.link !== url) return; // stale
+      if (meta.title) {
+        $('music-track-title').textContent = meta.title;
+      } else {
+        $('music-track-title').textContent = 'Track loaded';
+      }
+      if (meta.artist) {
+        $('music-track-artist').textContent = meta.artist;
+      }
+      if (meta.artwork) {
+        $('music-artwork').style.backgroundImage = "url('" + meta.artwork + "')";
+        $('music-artwork').querySelector('.music-artwork-placeholder').style.display = 'none';
+      }
+    });
+
+    // Platform-specific postMessage setup
+    this.setupPlatformControls(provider, iframe);
+
+    if (!silent) toast('Track loaded. Press play to start listening.', 'success');
+    return true;
+  },
+
+  // ---------- Platform-specific control wiring ----------
+  setupPlatformControls(provider, iframe) {
+    const self = this;
+    if (provider === 'spotify') {
+      // Spotify Embed Controller via postMessage
+      window.addEventListener('message', function handler(e) {
+        if (!e.data || typeof e.data !== 'object') return;
+        if (e.data.type === 'ready' && e.data.payload && e.data.payload.method === 'ready') {
+          // Spotify iframe ready — set up subscription
+          self.spotifySend(iframe, { method: 'addEventListener', value: 'playback_update' });
+          self.spotifySend(iframe, { method: 'setVolume', value: self.state.volume / 100 });
+          self.spotifySend(iframe, { method: 'addEventListener', value: 'update' });
+        }
+        if (e.data.type === 'event' && e.data.payload) {
+          const p = e.data.payload;
+          if (p.event === 'playback_update' && p.data) {
+            self.state.duration = p.data.duration || 0;
+            self.state.currentTime = p.data.position || 0;
+            self.state.isPlaying = !!p.data.isPaused ? false : (p.data.position != null);
+            if (p.data.duration) {
+              $('music-time-total').textContent = self.formatTime(p.data.duration);
+              const pct = p.data.duration ? (p.data.position / p.data.duration) * 100 : 0;
+              $('music-progress-fill').style.width = pct + '%';
+              $('music-progress-handle').style.left = pct + '%';
+              $('music-time-current').textContent = self.formatTime(p.data.position);
+            }
+            self.setPlayIcon(self.state.isPlaying);
+          }
+        }
+      });
+    } else if (provider === 'soundcloud') {
+      // SoundCloud Widget API
+      const widget = SC.Widget(iframe);
+      self.scWidget = widget;
+      widget.bind(SC.Widget.Events.READY, () => {
+        widget.setVolume(self.state.volume / 100);
+        self.startProgress();
+      });
+      widget.bind(SC.Widget.Events.PLAY, () => { self.state.isPlaying = true; self.setPlayIcon(true); self.startProgress(); });
+      widget.bind(SC.Widget.Events.PAUSE, () => { self.state.isPlaying = false; self.setPlayIcon(false); self.stopProgress(); });
+      widget.bind(SC.Widget.Events.FINISH, () => {
+        if (self.state.isLooping) { widget.seekTo(0); widget.play(); }
+        else { self.state.isPlaying = false; self.setPlayIcon(false); self.stopProgress(); }
+      });
+    } else if (provider === 'youtube') {
+      // YouTube IFrame Player API — create a real YT.Player if API is loaded
+      if (window.YT && window.YT.Player) {
+        self.createYTPlayer(iframe);
+      } else {
+        // Load the API, then create the player
+        if (!document.getElementById('yt-iframe-api')) {
+          const tag = document.createElement('script');
+          tag.id = 'yt-iframe-api';
+          tag.src = 'https://www.youtube.com/iframe_api';
+          document.head.appendChild(tag);
+        }
+        window.onYouTubeIframeAPIReady = window.onYouTubeIframeAPIReady || function() {};
+        const origReady = window.onYouTubeIframeAPIReady;
+        window.onYouTubeIframeAPIReady = function() {
+          origReady();
+          self.createYTPlayer(iframe);
+        };
+      }
+    }
+    // Apple Music & Deezer embeds have limited JS API; controls remain
+    // UI-only (progress bar simulates playback visually). The embed still
+    // plays audio when the user clicks the visible area.
+  },
+
+  spotifySend(iframe, cmd) {
+    iframe.contentWindow.postMessage(cmd, 'https://open.spotify.com');
+  },
+
+  createYTPlayer(iframe) {
+    const self = this;
+    // Extract video ID from embed URL
+    const m = (self.state.embedUrl || '').match(/\/embed\/([a-zA-Z0-9_-]+)/);
+    const videoId = m ? m[1] : null;
+    if (!videoId) return;
+    // Replace iframe with a YT.Player-managed element
+    const container = $('music-embed-container');
+    container.innerHTML = '';
+    const div = document.createElement('div');
+    div.id = 'music-yt-player';
+    div.style.width = '300px'; div.style.height = '200px';
+    container.appendChild(div);
+    self.ytPlayer = new YT.Player('music-yt-player', {
+      videoId: videoId,
+      playerVars: { autoplay: 0, controls: 0, rel: 0, modestbranding: 1, playsinline: 1 },
+      events: {
+        onReady: (e) => {
+          e.target.setVolume(self.state.volume);
+          self.state.duration = e.target.getDuration() || 0;
+          $('music-time-total').textContent = self.formatTime(self.state.duration);
+          self.startProgress();
+        },
+        onStateChange: (e) => {
+          if (e.data === YT.PlayerState.PLAYING) { self.state.isPlaying = true; self.setPlayIcon(true); self.startProgress(); }
+          else if (e.data === YT.PlayerState.PAUSED) { self.state.isPlaying = false; self.setPlayIcon(false); self.stopProgress(); }
+          else if (e.data === YT.PlayerState.ENDED) {
+            if (self.state.isLooping) { e.target.seekTo(0); e.target.playVideo(); }
+            else { self.state.isPlaying = false; self.setPlayIcon(false); self.stopProgress(); }
+          }
+        }
+      }
+    });
+    self.state.iframe = self.ytPlayer;
+  },
+
+  // ---------- Controls ----------
+  togglePlay() {
+    const s = this.state;
+    if (s.provider === 'spotify') {
+      this.spotifySend(s.iframe, { method: s.isPlaying ? 'pause' : 'play' });
+    } else if (s.provider === 'soundcloud' && this.scWidget) {
+      this.scWidget.toggle();
+    } else if (s.provider === 'youtube' && this.ytPlayer) {
+      if (s.isPlaying) this.ytPlayer.pauseVideo();
+      else this.ytPlayer.playVideo();
+    } else if (s.provider === 'apple' || s.provider === 'deezer') {
+      // No reliable JS API — toggle a visual state and attempt iframe play
+      s.isPlaying = !s.isPlaying;
+      this.setPlayIcon(s.isPlaying);
+      this.startProgress();
+    }
+  },
+
+  toggleLoop() {
+    this.state.isLooping = !this.state.isLooping;
+    $('music-loop-btn').classList.toggle('active', this.state.isLooping);
+    if (this.state.isLooping) {
+      toast('Loop enabled — track will repeat.', 'success');
+    } else {
+      toast('Loop disabled.', 'success');
+    }
+  },
+
+  restart() {
+    const s = this.state;
+    if (s.provider === 'spotify') { this.spotifySend(s.iframe, { method: 'seek', value: 0 }); }
+    else if (s.provider === 'soundcloud' && this.scWidget) { this.scWidget.seekTo(0); }
+    else if (s.provider === 'youtube' && this.ytPlayer) { this.ytPlayer.seekTo(0, true); }
+    else { s.currentTime = 0; $('music-progress-fill').style.width = '0%'; $('music-progress-handle').style.left = '0%'; $('music-time-current').textContent = '0:00'; }
+  },
+
+  skip10() {
+    const s = this.state;
+    const target = (s.currentTime || 0) + 10;
+    if (s.provider === 'spotify') { this.spotifySend(s.iframe, { method: 'seek', value: target * 1000 }); }
+    else if (s.provider === 'soundcloud' && this.scWidget) { this.scWidget.seekTo(target * 1000); }
+    else if (s.provider === 'youtube' && this.ytPlayer) { this.ytPlayer.seekTo(target, true); }
+    else { s.currentTime = target; this.updateProgressVisual(); }
+  },
+
+  setVolume(vol) {
+    this.state.volume = vol;
+    const s = this.state;
+    const pct = vol / 100;
+    if (s.provider === 'spotify') { this.spotifySend(s.iframe, { method: 'setVolume', value: pct }); }
+    else if (s.provider === 'soundcloud' && this.scWidget) { this.scWidget.setVolume(pct); }
+    else if (s.provider === 'youtube' && this.ytPlayer && this.ytPlayer.setVolume) { this.ytPlayer.setVolume(vol); }
+  },
+
+  toggleMute() {
+    this.state.muted = !this.state.muted;
+    const s = this.state;
+    $('music-mute-btn').querySelector('.icon-vol-high').style.display = s.muted ? 'none' : 'block';
+    $('music-mute-btn').querySelector('.icon-vol-mute').style.display = s.muted ? 'block' : 'none';
+    if (s.provider === 'spotify') { this.spotifySend(s.iframe, { method: 'setVolume', value: s.muted ? 0 : s.volume / 100 }); }
+    else if (s.provider === 'soundcloud' && this.scWidget) { this.scWidget.setVolume(s.muted ? 0 : s.volume / 100); }
+    else if (s.provider === 'youtube' && this.ytPlayer) { if (s.muted) this.ytPlayer.mute(); else this.ytPlayer.unMute(); }
+  },
+
+  // ---------- Progress tracking ----------
+  startProgress() {
+    this.stopProgress();
+    const self = this;
+    this.state.progressTimer = setInterval(() => {
+      self.tickProgress();
+    }, 500);
+  },
+  stopProgress() {
+    if (this.state.progressTimer) { clearInterval(this.state.progressTimer); this.state.progressTimer = null; }
+  },
+  tickProgress() {
+    const s = this.state;
+    if (s.provider === 'soundcloud' && this.scWidget) {
+      this.scWidget.getPosition(p => {
+        this.scWidget.getDuration(d => {
+          s.currentTime = p / 1000; s.duration = d / 1000;
+          this.updateProgressVisual();
+        });
+      });
+    } else if (s.provider === 'youtube' && this.ytPlayer && this.ytPlayer.getCurrentTime) {
+      s.currentTime = this.ytPlayer.getCurrentTime();
+      s.duration = this.ytPlayer.getDuration() || 0;
+      this.updateProgressVisual();
+    } else if (s.provider === 'apple' || s.provider === 'deezer') {
+      // Simulated progress for platforms without a JS API
+      if (s.isPlaying) { s.currentTime += 0.5; if (s.duration && s.currentTime >= s.duration) { if (s.isLooping) { s.currentTime = 0; } else { s.isPlaying = false; this.setPlayIcon(false); this.stopProgress(); } } }
+      this.updateProgressVisual();
+    }
+  },
+  updateProgressVisual() {
+    const s = this.state;
+    const pct = s.duration ? Math.min(100, (s.currentTime / s.duration) * 100) : 0;
+    $('music-progress-fill').style.width = pct + '%';
+    $('music-progress-handle').style.left = pct + '%';
+    $('music-time-current').textContent = this.formatTime(s.currentTime);
+    if (s.duration) $('music-time-total').textContent = this.formatTime(s.duration);
+  },
+  seekToPct(pct) {
+    const s = this.state;
+    if (!s.duration) return;
+    const target = (pct / 100) * s.duration;
+    s.currentTime = target;
+    if (s.provider === 'spotify') { this.spotifySend(s.iframe, { method: 'seek', value: target * 1000 }); }
+    else if (s.provider === 'soundcloud' && this.scWidget) { this.scWidget.seekTo(target * 1000); }
+    else if (s.provider === 'youtube' && this.ytPlayer) { this.ytPlayer.seekTo(target, true); }
+    this.updateProgressVisual();
+  },
+
+  // ---------- Helpers ----------
+  formatTime(sec) {
+    if (!sec || isNaN(sec)) return '0:00';
+    sec = Math.floor(sec);
+    const m = Math.floor(sec / 60);
+    const s = sec % 60;
+    return m + ':' + (s < 10 ? '0' : '') + s;
+  },
+  setPlayIcon(playing) {
+    const playIcon = $('music-play-btn').querySelector('.icon-play');
+    const pauseIcon = $('music-play-btn').querySelector('.icon-pause');
+    if (playIcon && pauseIcon) {
+      playIcon.style.display = playing ? 'none' : 'block';
+      pauseIcon.style.display = playing ? 'block' : 'none';
+      $('music-play-btn').title = playing ? 'Pause' : 'Play';
+    }
+  },
+  clear() {
+    this.stopProgress();
+    this.state = { provider: null, link: null, embedUrl: null, isPlaying: false, isLooping: false, volume: this.state.volume || 80, muted: false, duration: 0, currentTime: 0, progressTimer: null, iframe: null };
+    $('music-embed-container').innerHTML = '';
+    $('music-player-card').style.display = 'none';
+    $('music-empty-state').style.display = 'flex';
+    $('music-link-input').value = '';
+    this.ytPlayer = null; this.scWidget = null;
+  }
+};
+
+// ---------- Load SoundCloud Widget API ----------
+(function loadSCWidget() {
+  if (window.SC) return;
+  const s = document.createElement('script');
+  s.src = 'https://w.soundcloud.com/player/api.js';
+  s.async = true;
+  document.head.appendChild(s);
+})();
+
+// ---------- Music Player wiring ----------
+function loadMusicLink(url, silent) {
+  return MusicPlayer.load(url, silent);
+}
+
+// Load button
+if ($('music-load-btn')) $('music-load-btn').addEventListener('click', async () => {
+  const url = $('music-link-input').value.trim();
+  if (!url) { toast('Paste a music link first.', 'error'); return; }
+  const ok = await MusicPlayer.load(url, false);
+  if (ok) saveMusicLink(url);
+});
+
+// Enter key on input
+if ($('music-link-input')) $('music-link-input').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') { e.preventDefault(); $('music-load-btn').click(); }
+});
+
+// Play / Pause
+if ($('music-play-btn')) $('music-play-btn').addEventListener('click', () => MusicPlayer.togglePlay());
+
+// Loop
+if ($('music-loop-btn')) $('music-loop-btn').addEventListener('click', () => MusicPlayer.toggleLoop());
+
+// Restart (prev btn)
+if ($('music-prev-btn')) $('music-prev-btn').addEventListener('click', () => MusicPlayer.restart());
+
+// Skip 10s (next btn)
+if ($('music-next-btn')) $('music-next-btn').addEventListener('click', () => MusicPlayer.skip10());
+
+// Volume
+if ($('music-volume-slider')) $('music-volume-slider').addEventListener('input', (e) => {
+  MusicPlayer.setVolume(parseInt(e.target.value, 10));
+});
+
+// Mute
+if ($('music-mute-btn')) $('music-mute-btn').addEventListener('click', () => MusicPlayer.toggleMute());
+
+// Progress bar seek
+if ($('music-progress-bar')) {
+  $('music-progress-bar').addEventListener('click', (e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const pct = ((e.clientX - rect.left) / rect.width) * 100;
+    MusicPlayer.seekToPct(pct);
+  });
+}
+
+// Clear button
+if ($('music-clear-btn')) $('music-clear-btn').addEventListener('click', () => {
+  MusicPlayer.clear();
+  saveMusicLink('');
+  toast('Track removed from your player.', 'success');
+});
+
+// Save music link to server
+function saveMusicLink(url) {
+  fetch(API_BASE + '/api/settings/music-link', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ musicLink: url })
+  }).then(r => r.json()).then(data => {
+    if (data.success) {
+      currentUser.musicLink = url || '';
+    }
+  }).catch(() => {});
+}
 
 // ---------- Delete Account ----------
 $('delete-account-btn').addEventListener('click', () => {

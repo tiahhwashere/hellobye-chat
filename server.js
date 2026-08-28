@@ -516,6 +516,7 @@ function fullUser(u) {
   pub.messageSounds = u.messageSounds !== false;
   pub.theme = u.theme || 'dark';
   pub.preferences = u.preferences || {};
+  pub.musicLink = u.musicLink || '';
   pub.isAdmin = isOwnerUser(u);
   pub.cooldownExempt = (db.cooldownExempt || []).includes(u.username);
   // Mute status — only report if currently muted (not yet expired)
@@ -1450,6 +1451,17 @@ app.post('/api/settings/preferences', authMiddleware, (req, res) => {
   req.user.preferences = p;
   saveDB();
   res.json({ success: true });
+});
+
+// Save / clear the user's music link (Spotify, SoundCloud, YouTube, etc.)
+app.post('/api/settings/music-link', authMiddleware, (req, res) => {
+  const { musicLink } = req.body || {};
+  if (typeof musicLink !== 'string') return res.status(400).json({ error: 'Invalid music link' });
+  const trimmed = musicLink.trim();
+  if (trimmed && trimmed.length > 500) return res.status(400).json({ error: 'Music link is too long' });
+  req.user.musicLink = trimmed || '';
+  saveDB();
+  res.json({ success: true, musicLink: req.user.musicLink });
 });
 
 app.post('/api/settings/delete-account', authMiddleware, (req, res) => {
