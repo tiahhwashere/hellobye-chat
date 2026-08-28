@@ -1,8 +1,7 @@
-# UI Polish Tasks — Round 3
+# UI Polish Tasks — Round 4
 
 ## Tasks
-- [x] (prev) Members List Background UI professionalized + URL modal + sidebar animations + white @username + 2SV card
-- [x] 1. Fix flash bug: Members List Background reverts to normal for a split second when switching Chat/Messages/Friends/Blocked tabs
-- [x] 2. Fix flash bug: Members List Background reverts when sidebar is toggled (collapsed/expanded)
-- [x] 3. Make the Members List Background nav button less cartoony and more modern
+- [x] 1. Make Members List Background cover the whole members tab top-to-bottom (header → footer), including behind the profile footer
+- [x] 2. Ensure the background does NOT overlap/bleed onto other tabs/UIs (chat area, modals, nav buttons' own UI) — strictly contained within the sidebar
+- [x] 3. Keep header/nav/search/footer text readable over arbitrary backgrounds (subtle scrim behind text areas only)
 - [ ] 4. Verify JS syntax, commit, push, verify Render deploy (no data wipe)

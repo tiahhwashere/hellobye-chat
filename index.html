@@ -426,6 +426,13 @@ body.loading-session #chat-app.active::after {
 .sidebar-header {
   display: flex; align-items: center; gap: 11px;
   padding: 16px 16px; border-bottom: 1px solid var(--border);
+  position: relative;
+}
+/* Subtle readable scrim behind the header title over the members-list background. */
+.sidebar-header::before {
+  content: ''; position: absolute; inset: 0; z-index: -1;
+  background: linear-gradient(180deg, rgba(10,11,13,0.55) 0%, rgba(10,11,13,0.0) 100%);
+  pointer-events: none;
 }
 .sidebar-logo { display: flex; }
 .sidebar-title h2 {
@@ -573,10 +580,18 @@ body.loading-session #chat-app.active::after {
 .sidebar-footer {
   display: flex; align-items: center; gap: 10px;
   padding: 12px 14px; border-top: 1px solid var(--border);
-  background: var(--bg-dark);
+  background: transparent;
   cursor: pointer; transition: var(--transition);
+  position: relative;
 }
-.sidebar-footer:hover { background: var(--bg-medium); }
+/* Subtle readable scrim behind the footer so text stays legible over any
+   members-list background, without hiding the background itself. */
+.sidebar-footer::before {
+  content: ''; position: absolute; inset: 0; z-index: -1;
+  background: linear-gradient(180deg, rgba(10,11,13,0.0) 0%, rgba(10,11,13,0.55) 100%);
+  pointer-events: none;
+}
+.sidebar-footer:hover { background: rgba(28,31,36,0.6); }
 .sidebar-footer-info { flex: 1; min-width: 0; }
 .sidebar-footer-name {
   font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
@@ -3646,7 +3661,7 @@ body.loading-session #chat-app.active::after {
   transition: background var(--transition), border-color var(--transition);
   position: relative;
 }
-.sidebar-footer:hover { background: var(--bg-medium); }
+.sidebar-footer:hover { background: rgba(28,31,36,0.6); }
 .sidebar-footer .user-avatar-wrap { position: relative; }
 .sidebar-footer .user-avatar {
   transition: transform var(--transition);
