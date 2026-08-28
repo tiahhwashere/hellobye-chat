@@ -7365,52 +7365,13 @@ function connectSocket() {
       updateDMNavBadge();
     } else {
       const isPing = msg.pingedForMe;
+      // Audible alert only. We intentionally do NOT show a bottom
+      // in-app notification here anymore - the red unread badge on the
+      // Messages tab (kept in sync via the optimistic dmConversations
+      // update + updateDMNavBadge above) and the conversation appearing
+      // in the Messages tab are the only signals. This works for friends
+      // AND non-friends alike.
       playMessageSound();
-      const user = users.find(u => u.username === from);
-      const name = (user && user.displayName) ? user.displayName : '@' + from;
-      // Track how many unread DMs this sender has produced so we can show a
-      // running count on the persistent notification. This works for friends
-      // AND non-friends — there is no friendship check here, so a DM from
-      // anyone (who isn't blocked / hasn't disabled DMs) still triggers the
-      // notification and still appears in the Messages tab.
-      dmNotifCounts[from] = (dmNotifCounts[from] || 0) + 1;
-      const count = dmNotifCounts[from];
-      // If a persistent notification for this sender already exists, update it
-      // in place (refresh the preview text + bump the count pill) instead of
-      // stacking a duplicate notification.
-      const container = $('toast-container');
-      const existing = container && container.querySelector('.in-app-notif.persist[data-notif-username="' + CSS.escape(from) + '"]:not(.fade-out)');
-      if (existing) {
-        const txtEl = existing.querySelector('.in-app-notif-text');
-        if (txtEl) txtEl.textContent = String(msg.text || (msg.file ? 'Sent a file' : '')).slice(0, 200);
-        const titleEl = existing.querySelector('.in-app-notif-title');
-        if (titleEl) titleEl.textContent = isPing ? (name + ' mentioned you in a DM') : (name + ' sent you a DM');
-        const timeEl = existing.querySelector('.in-app-notif-time');
-        if (timeEl) timeEl.textContent = formatTime(new Date().toISOString());
-        let countEl = existing.querySelector('.in-app-notif-dm-count');
-        if (!countEl) {
-          countEl = document.createElement('span');
-          countEl.className = 'in-app-notif-dm-count';
-          existing.appendChild(countEl);
-        }
-        countEl.textContent = count;
-        existing.classList.add('show-count');
-        // Re-trigger the entrance pulse so the updated notification is noticed
-        existing.style.animation = 'none';
-        void existing.offsetWidth;
-        existing.style.animation = '';
-      } else {
-        showInAppNotification({
-          title: isPing ? name + ' mentioned you in a DM' : name + ' sent you a DM',
-          text: msg.text || (msg.file ? 'Sent a file' : ''),
-          avatar: user && user.avatar,
-          type: 'dm',
-          username: from,
-          persist: true,
-          count: count,
-          onClick: () => openDM(from)
-        });
-      }
     }
     loadDMConversations();
   });
