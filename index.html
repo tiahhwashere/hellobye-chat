@@ -5483,6 +5483,10 @@ function uploadFileWithProgress(file, bar) {
     const fd = new FormData();
     fd.append('file', file);
     xhr.open('POST', API_BASE + '/api/upload');
+    // XHR bypasses the global fetch() override that injects X-Session-Id,
+    // so we must add the auth header manually or the server returns 401.
+    const sid = localStorage.getItem('hellobye_sid');
+    if (sid) xhr.setRequestHeader('X-Session-Id', sid);
     // Switch the bar from indeterminate to a determinate active state
     if (bar) {
       bar.classList.remove('uploading');
