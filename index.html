@@ -557,7 +557,7 @@ body.loading-session #chat-app.active::after {
    MESSAGES
    ============================================ */
 .messages-container {
-  flex: 1; overflow-y: auto; padding: 20px 24px;
+  flex: 1; overflow-y: auto; padding: 22px 28px;
   display: flex; flex-direction: column; gap: 4px;
   min-height: 0; -webkit-overflow-scrolling: touch; overscroll-behavior: contain;
 }
@@ -570,7 +570,7 @@ body.loading-session #chat-app.active::after {
 .empty-state p { font-size: 13px; }
 
 .message-group {
-  display: flex; gap: 12px; max-width: 85%;
+  display: flex; gap: 12px; max-width: 92%;
   animation: msgIn 0.2s ease;
 }
 @keyframes msgIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
@@ -598,9 +598,9 @@ body.loading-session #chat-app.active::after {
 .sender-handle { color: var(--text-muted); }
 
 .message-bubble {
-  background: var(--bg-medium); padding: 10px 14px;
+  background: var(--bg-medium); padding: 11px 16px;
   border-radius: 14px 14px 14px 4px;
-  font-size: 14px; word-break: break-word; position: relative;
+  font-size: 14.5px; word-break: break-word; position: relative;
   max-width: 100%;
 }
 .message-group.own .message-bubble {
@@ -616,7 +616,7 @@ body.loading-session #chat-app.active::after {
   background: transparent; border: 1px dashed var(--border-light);
   color: var(--text-muted); font-style: italic; font-size: 13px;
 }
-.message-bubble.dm-bubble { max-width: 560px; }
+.message-bubble.dm-bubble { max-width: 640px; }
 
 .message-text { display: inline; }
 .inline-link { color: inherit; text-decoration: underline; }
@@ -765,92 +765,94 @@ body.loading-session #chat-app.active::after {
 .message-group.own .inline-link { color: #cce4ff; }
 
 /* ===================== 2-Step Verification UI ===================== */
-/* 2SV verification overlay on login screen — professional, minimal */
+/* 2SV verification overlay on login screen — refined, aligned with site aesthetic */
 .twosv-overlay {
   position: fixed; inset: 0; z-index: 10000;
   display: none; align-items: center; justify-content: center;
-  background: rgba(8,9,11,0.78); backdrop-filter: blur(6px);
-  animation: twosv-fade-in 0.18s ease;
+  background: rgba(6,7,9,0.82); backdrop-filter: blur(8px);
+  animation: twosv-fade-in 0.2s ease;
 }
 .twosv-overlay.show { display: flex; }
 @keyframes twosv-fade-in { from { opacity: 0; } to { opacity: 1; } }
 .twosv-card {
-  background: var(--bg-medium); border: 1px solid var(--border);
-  border-radius: 12px; padding: 32px 30px; max-width: 420px; width: 90%;
-  box-shadow: 0 12px 40px rgba(0,0,0,0.45);
-  animation: twosv-slide-up 0.2s ease;
+  background: var(--bg-medium); border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg); padding: 36px 32px; max-width: 400px; width: 90%;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.55), 0 1px 0 rgba(255,255,255,0.04) inset;
+  animation: twosv-slide-up 0.24s cubic-bezier(0.16,1,0.3,1);
 }
-@keyframes twosv-slide-up { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes twosv-slide-up { from { opacity: 0; transform: translateY(12px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
 .twosv-icon {
-  width: 44px; height: 44px; margin: 0 auto 18px;
-  border-radius: 10px; display: flex; align-items: center; justify-content: center;
-  background: var(--bg-light); color: var(--text-secondary);
+  width: 40px; height: 40px; margin: 0 auto 20px;
+  border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center;
+  background: var(--bg-darker); color: var(--accent);
   border: 1px solid var(--border);
 }
-.twosv-icon svg { width: 22px; height: 22px; }
+.twosv-icon svg { width: 20px; height: 20px; }
 .twosv-title {
-  text-align: center; font-size: 17px; font-weight: 600;
-  color: var(--text-primary); margin: 0 0 6px; letter-spacing: -0.2px;
+  text-align: center; font-size: 16px; font-weight: 600;
+  color: var(--text-primary); margin: 0 0 7px; letter-spacing: -0.2px;
 }
 .twosv-subtitle {
-  text-align: center; font-size: 13px; color: var(--text-muted);
-  margin: 0 0 24px; line-height: 1.55;
+  text-align: center; font-size: 12.5px; color: var(--text-muted);
+  margin: 0 0 26px; line-height: 1.6;
 }
 .twosv-input-wrap {
   position: relative; margin-bottom: 14px;
 }
 .twosv-code-input {
-  width: 100%; padding: 13px 16px; font-size: 15px; font-weight: 600;
-  text-align: center; letter-spacing: 1.5px; text-transform: uppercase;
+  width: 100%; padding: 13px 16px; font-size: 14px; font-weight: 600;
+  text-align: center; letter-spacing: 2px; text-transform: uppercase;
   background: var(--bg-darker); border: 1px solid var(--border);
-  border-radius: 8px; color: var(--text-primary);
+  border-radius: var(--radius); color: var(--text-primary);
   font-family: 'SF Mono', 'Monaco', 'Cascadia Code', monospace;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
   outline: none;
 }
 .twosv-code-input:focus {
-  border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow);
+  border-color: var(--accent); background: var(--bg-dark);
+  box-shadow: 0 0 0 3px var(--accent-glow);
 }
 .twosv-code-input::placeholder {
-  letter-spacing: 0.5px; font-weight: 400; font-size: 13px;
+  letter-spacing: 0.4px; font-weight: 400; font-size: 12.5px;
   color: var(--text-muted); text-transform: none;
 }
 .twosv-trust-row {
-  display: flex; align-items: center; gap: 10px; margin-bottom: 18px;
-  padding: 11px 14px; background: var(--bg-darker);
-  border: 1px solid var(--border); border-radius: 8px;
-  cursor: pointer; transition: border-color 0.15s ease;
+  display: flex; align-items: center; gap: 10px; margin-bottom: 20px;
+  padding: 10px 13px; background: var(--bg-darker);
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  cursor: pointer; transition: border-color 0.18s ease;
 }
 .twosv-trust-row:hover { border-color: var(--border-light); }
 .twosv-trust-checkbox {
-  width: 16px; height: 16px; accent-color: var(--accent);
+  width: 15px; height: 15px; accent-color: var(--accent);
   cursor: pointer; flex-shrink: 0;
 }
-.twosv-trust-label { font-size: 12.5px; color: var(--text-secondary); }
+.twosv-trust-label { font-size: 12px; color: var(--text-secondary); }
 .twosv-btn {
-  width: 100%; padding: 12px; font-size: 14px; font-weight: 600;
-  background: var(--accent); color: var(--accent-text); border: none; border-radius: 8px;
-  cursor: pointer; transition: var(--transition); margin-bottom: 8px;
-  display: flex; align-items: center; justify-content: center; gap: 7px;
-  letter-spacing: 0.2px;
+  width: 100%; padding: 12px; font-size: 13.5px; font-weight: 600;
+  background: var(--accent); color: var(--accent-text); border: none;
+  border-radius: var(--radius-sm); cursor: pointer; transition: var(--transition);
+  margin-bottom: 8px; display: flex; align-items: center; justify-content: center; gap: 7px;
+  letter-spacing: 0.2px; box-shadow: 0 1px 2px rgba(0,0,0,0.18);
 }
 .twosv-btn::before {
-  content: ''; width: 16px; height: 16px; flex-shrink: 0;
+  content: ''; width: 15px; height: 15px; flex-shrink: 0;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6L9 17l-5-5'/%3E%3C/svg%3E");
-  background-size: contain; background-repeat: no-repeat; opacity: 0.85;
+  background-size: contain; background-repeat: no-repeat; opacity: 0.9;
 }
-.twosv-btn:hover:not(:disabled) { background: var(--accent-hover); }
+.twosv-btn:hover:not(:disabled) { background: var(--accent-hover); box-shadow: 0 2px 6px rgba(0,0,0,0.22); }
+.twosv-btn:active:not(:disabled) { transform: translateY(1px); }
 .twosv-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 .twosv-back-btn {
-  width: 100%; padding: 10px; font-size: 12.5px; font-weight: 500;
+  width: 100%; padding: 10px; font-size: 12px; font-weight: 500;
   background: transparent; color: var(--text-muted); border: 1px solid var(--border);
-  border-radius: 8px; cursor: pointer; transition: var(--transition);
+  border-radius: var(--radius-sm); cursor: pointer; transition: var(--transition);
 }
-.twosv-back-btn:hover { color: var(--text-primary); border-color: var(--border-light); }
+.twosv-back-btn:hover { color: var(--text-primary); border-color: var(--border-light); background: var(--bg-darker); }
 .twosv-error {
-  background: rgba(240,90,90,0.08); border: 1px solid rgba(240,90,90,0.22);
-  color: #f08080; padding: 10px 13px; border-radius: 7px;
-  font-size: 12.5px; margin-bottom: 14px; display: none; line-height: 1.5;
+  background: rgba(240,90,90,0.06); border: 1px solid rgba(240,90,90,0.18);
+  color: #e88080; padding: 10px 13px; border-radius: var(--radius-sm);
+  font-size: 12px; margin-bottom: 14px; display: none; line-height: 1.5;
 }
 .twosv-error.show { display: block; }
 @keyframes twosv-shake {
@@ -859,43 +861,43 @@ body.loading-session #chat-app.active::after {
   75% { transform: translateX(4px); }
 }
 
-/* 2SV settings section in Data & Privacy tab — professional, minimal */
+/* 2SV settings section in Data & Privacy tab — refined, consistent with site */
 .twosv-settings-card {
   background: var(--bg-medium); border: 1px solid var(--border);
-  border-radius: 10px; padding: 18px;
+  border-radius: var(--radius); padding: 20px;
 }
 .twosv-status-row {
-  display: flex; align-items: center; gap: 12px; padding-bottom: 16px;
-  margin-bottom: 16px; border-bottom: 1px solid var(--border-light);
+  display: flex; align-items: center; gap: 13px; padding-bottom: 18px;
+  margin-bottom: 18px; border-bottom: 1px solid var(--border-light);
 }
 .twosv-status-icon {
-  width: 40px; height: 40px; border-radius: 8px; flex-shrink: 0;
+  width: 38px; height: 38px; border-radius: var(--radius-sm); flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
   transition: var(--transition);
 }
-.twosv-status-icon.enabled { background: rgba(34,197,94,0.10); color: #22c55e; }
+.twosv-status-icon.enabled { background: rgba(34,197,94,0.08); color: #22c55e; }
 .twosv-status-icon.disabled { background: var(--bg-darker); color: var(--text-muted); }
 .twosv-status-text { flex: 1; }
-.twosv-status-label { font-size: 13.5px; font-weight: 600; color: var(--text-primary); }
-.twosv-status-desc { font-size: 11.5px; color: var(--text-muted); margin-top: 2px; }
+.twosv-status-label { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+.twosv-status-desc { font-size: 11.5px; color: var(--text-muted); margin-top: 2px; line-height: 1.5; }
 .twosv-code-display {
   background: var(--bg-darker); border: 1px solid var(--border);
-  border-radius: 8px; padding: 16px; margin-bottom: 14px;
+  border-radius: var(--radius-sm); padding: 16px; margin-bottom: 14px;
 }
 .twosv-code-label {
   font-size: 10px; font-weight: 600; text-transform: uppercase;
-  letter-spacing: 0.6px; color: var(--text-muted); margin-bottom: 8px;
+  letter-spacing: 0.6px; color: var(--text-muted); margin-bottom: 9px;
 }
 .twosv-code-value {
-  font-size: 17px; font-weight: 700; letter-spacing: 1.5px;
+  font-size: 16px; font-weight: 700; letter-spacing: 1.4px;
   font-family: 'SF Mono', 'Monaco', 'Cascadia Code', monospace;
-  color: var(--text-primary); text-align: center; padding: 12px;
-  background: var(--bg-medium); border-radius: 7px;
+  color: var(--text-primary); text-align: center; padding: 13px;
+  background: var(--bg-medium); border-radius: var(--radius-sm);
   border: 1px solid var(--border);
   word-break: break-all; line-height: 1.5;
 }
 .twosv-code-warning {
-  font-size: 11.5px; color: #c9a635; margin-top: 10px;
+  font-size: 11.5px; color: #c9a635; margin-top: 11px;
   display: flex; align-items: flex-start; gap: 7px; line-height: 1.5;
 }
 .twosv-code-meta {
@@ -903,13 +905,13 @@ body.loading-session #chat-app.active::after {
 }
 .twosv-meta-item {
   background: var(--bg-darker); border: 1px solid var(--border);
-  border-radius: 7px; padding: 10px 14px; flex: 1; min-width: 110px;
+  border-radius: var(--radius-sm); padding: 10px 14px; flex: 1; min-width: 110px;
 }
 .twosv-meta-label {
   font-size: 9.5px; font-weight: 600; text-transform: uppercase;
   letter-spacing: 0.5px; color: var(--text-muted); margin-bottom: 3px;
 }
-.twosv-meta-value { font-size: 12.5px; font-weight: 600; color: var(--text-primary); }
+.twosv-meta-value { font-size: 12px; font-weight: 600; color: var(--text-primary); }
 .twosv-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 .twosv-actions .setting-save-btn { width: auto; margin-top: 0; }
 .twosv-actions .setting-save-btn:disabled { opacity: 0.4; cursor: not-allowed; }
@@ -918,7 +920,7 @@ body.loading-session #chat-app.active::after {
 .link-embed {
   margin-top: 8px; border: 1px solid var(--border);
   border-radius: 10px; overflow: hidden;
-  max-width: 520px; background: var(--bg-darker);
+  max-width: 600px; background: var(--bg-darker);
   transition: border-color 0.15s ease, background 0.15s ease;
 }
 .link-embed:hover { border-color: var(--border-light); background: var(--bg-dark); }
@@ -2285,7 +2287,7 @@ body.loading-session #chat-app.active::after {
 
 /* Customization section */
 .custom-bg-section { padding: 14px 0; }
-.custom-bg-label { font-size: 13px; font-weight: 600; color: var(--text-secondary); margin-bottom: 8px; }
+.custom-bg-label { font-size: 12.5px; font-weight: 600; color: var(--text-secondary); margin-bottom: 8px; }
 .custom-bg-controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 12px; }
 /* Chat-background action buttons: matte, flat, no gloss/shine — keeps all data,
    just a calmer look. Solid accent blue replaced with a muted surface fill. */
@@ -2308,12 +2310,12 @@ body.loading-session #chat-app.active::after {
   background: rgba(255,90,90,0.08); border-color: var(--danger, #ff5a5a);
 }
 .custom-bg-preview {
-  width: 100%; height: 160px; border-radius: 12px;
+  width: 100%; height: 150px; border-radius: var(--radius);
   background: var(--bg-darkest); border: 1px solid var(--border);
   display: flex; align-items: center; justify-content: center;
-  background-size: cover; background-position: center; margin-bottom: 14px;
+  background-size: cover; background-position: center; margin-bottom: 16px;
   overflow: hidden; position: relative;
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.015);
 }
 .custom-bg-preview img { max-width: 100%; max-height: 100%; object-fit: contain; }
 /* "No background set" placeholder — nicer dashed border look */
@@ -2331,60 +2333,62 @@ body.loading-session #chat-app.active::after {
   background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
   pointer-events: none;
 }
-.custom-bg-scale-controls { display: grid; gap: 10px; }
+.custom-bg-scale-controls { display: grid; gap: 12px; }
 .custom-slider-label {
-  font-size: 12px; color: var(--text-secondary);
+  font-size: 11.5px; color: var(--text-secondary);
   display: flex; justify-content: space-between; align-items: center;
-  margin-bottom: 2px;
+  margin-bottom: 3px;
 }
 .custom-slider-label .slider-val {
-  background: var(--accent-dim); color: var(--accent);
-  padding: 2px 9px; border-radius: 8px; font-size: 11px;
+  background: var(--bg-darker); color: var(--text-primary);
+  padding: 2px 8px; border-radius: var(--radius-sm); font-size: 10.5px;
   font-weight: 700; min-width: 42px; text-align: center;
   font-family: 'SF Mono', 'Monaco', 'Cascadia Code', monospace;
+  border: 1px solid var(--border);
 }
 .bg-control-group {
   background: var(--bg-darkest); border: 1px solid var(--border);
-  border-radius: 12px; padding: 12px 14px; display: grid; gap: 10px;
+  border-radius: var(--radius); padding: 13px 15px; display: grid; gap: 11px;
 }
 .bg-control-group-title {
   font-size: 10px; font-weight: 700; text-transform: uppercase;
-  letter-spacing: 0.8px; color: var(--text-muted); margin-bottom: 2px;
+  letter-spacing: 0.7px; color: var(--text-muted); margin-bottom: 1px;
   display: flex; align-items: center; gap: 6px;
 }
 .bg-control-group-title::before {
-  content: ''; width: 3px; height: 12px; border-radius: 2px;
-  background: var(--accent); flex-shrink: 0;
+  content: ''; width: 3px; height: 11px; border-radius: 2px;
+  background: var(--accent); flex-shrink: 0; opacity: 0.7;
 }
 /* Fit Mode segmented control — modern button group */
-.bg-fit-segmented { display: flex; gap: 4px; background: var(--bg-darkest); border: 1px solid var(--border); border-radius: 10px; padding: 4px; }
+.bg-fit-segmented { display: flex; gap: 4px; background: var(--bg-darker); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 4px; }
 .bg-fit-segmented button {
-  flex: 1; padding: 8px 6px; border: none; border-radius: 7px; background: transparent;
-  color: var(--text-secondary); font-size: 11px; font-weight: 600; cursor: pointer;
+  flex: 1; padding: 8px 6px; border: none; border-radius: 5px; background: transparent;
+  color: var(--text-secondary); font-size: 10.5px; font-weight: 600; cursor: pointer;
   transition: var(--transition); display: flex; flex-direction: column; align-items: center; gap: 4px;
 }
-.bg-fit-segmented button svg { width: 18px; height: 18px; opacity: 0.7; }
+.bg-fit-segmented button svg { width: 16px; height: 16px; opacity: 0.6; transition: var(--transition); }
 .bg-fit-segmented button:hover { background: var(--bg-medium); color: var(--text-primary); }
-.bg-fit-segmented button.active { background: var(--accent); color: var(--accent-text); box-shadow: 0 2px 8px rgba(74,158,255,0.3); }
+.bg-fit-segmented button:hover svg { opacity: 0.8; }
+.bg-fit-segmented button.active { background: var(--accent); color: var(--accent-text); box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
 .bg-fit-segmented button.active svg { opacity: 1; }
 .custom-bg-quick-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 .mini-btn { padding: 6px 12px; font-size: 11px; font-weight: 600; }
 .custom-range {
-  width: 100%; height: 6px; -webkit-appearance: none; appearance: none;
-  background: var(--bg-darker); border-radius: 3px; outline: none; cursor: pointer;
-  margin: 2px 0;
+  width: 100%; height: 5px; -webkit-appearance: none; appearance: none;
+  background: var(--bg-medium); border-radius: 3px; outline: none; cursor: pointer;
+  margin: 3px 0;
 }
 .custom-range::-webkit-slider-thumb {
   -webkit-appearance: none; appearance: none;
-  width: 18px; height: 18px; border-radius: 50%; background: var(--accent);
-  cursor: pointer; border: 3px solid var(--bg-darker);
-  box-shadow: 0 2px 6px rgba(0,0,0,0.3); transition: transform 0.1s ease;
+  width: 15px; height: 15px; border-radius: 50%; background: var(--accent);
+  cursor: pointer; border: 2px solid var(--bg-darker);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.3); transition: transform 0.12s ease;
 }
-.custom-range::-webkit-slider-thumb:hover { transform: scale(1.15); }
+.custom-range::-webkit-slider-thumb:hover { transform: scale(1.12); }
 .custom-range::-moz-range-thumb {
-  width: 18px; height: 18px; border-radius: 50%; background: var(--accent);
-  cursor: pointer; border: 3px solid var(--bg-darker);
-  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  width: 15px; height: 15px; border-radius: 50%; background: var(--accent);
+  cursor: pointer; border: 2px solid var(--bg-darker);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.3);
 }
 /* Accent color section layout \u2014 polished card with live preview */
 .accent-section-card {
@@ -2476,16 +2480,16 @@ body.loading-session #chat-app.active::after {
 }
 .mini-btn { padding: 6px 12px !important; font-size: 11px !important; opacity: 1; }
 .mini-btn:hover { opacity: 1; }
-.custom-bg-presets { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border); }
+.custom-bg-presets { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border); }
 .bg-preset-row { display: flex; gap: 10px; flex-wrap: wrap; }
 .bg-preset-chip {
-  padding: 8px 16px; border-radius: var(--radius-sm); border: 1px solid var(--border);
-  font-size: 12px; font-weight: 600; color: var(--text-secondary); cursor: pointer;
+  padding: 7px 14px; border-radius: var(--radius-sm); border: 1px solid var(--border);
+  font-size: 11.5px; font-weight: 600; color: var(--text-secondary); cursor: pointer;
   background: var(--bg-light); text-shadow: none; transition: var(--transition);
-  min-width: 72px; text-align: center; box-shadow: none;
+  min-width: 68px; text-align: center; box-shadow: none;
   display: inline-flex; align-items: center; justify-content: center; gap: 6px;
 }
-.bg-preset-chip:hover { transform: translateY(-1px); background: var(--bg-lighter); color: var(--text-primary); border-color: var(--accent); box-shadow: 0 2px 8px rgba(0,0,0,0.25); }
+.bg-preset-chip:hover { background: var(--bg-lighter); color: var(--text-primary); border-color: var(--border-light); }
 .bg-preset-chip.active { border-color: var(--accent); color: var(--accent); background: rgba(74,158,255,0.08); }
 
 .info-row {
@@ -2609,11 +2613,11 @@ body.loading-session #chat-app.active::after {
 .dm-header-status.idle { color: var(--idle); }
 .dm-header-status.dnd { color: var(--dnd); }
 .dm-messages {
-  flex: 1; overflow-y: auto; padding: 20px;
+  flex: 1; overflow-y: auto; padding: 24px;
   display: flex; flex-direction: column; gap: 6px;
   min-height: 0; -webkit-overflow-scrolling: touch; overscroll-behavior: contain;
 }
-.dm-messages .message-group { max-width: 88%; }
+.dm-messages .message-group { max-width: 93%; }
 .dm-typing { padding: 2px 20px 6px; font-size: 12px; color: var(--text-muted); font-style: italic; min-height: 18px; flex-shrink: 0; }
 .dm-input-area { padding: 12px 18px 16px; border-top: 1px solid var(--border); background: var(--bg-darker); flex-shrink: 0; }
 .dm-blocked-banner {
@@ -3623,9 +3627,6 @@ body.loading-session #chat-app.active::after {
   <div id="auth-screen">
     <div class="auth-container">
       <div class="auth-brand">
-        <div class="auth-brand-mark">
-          <svg viewBox="0 0 100 100" width="52" height="52"><rect width="100" height="100" rx="22" fill="#141618"/><rect x="24" y="30" width="52" height="40" rx="10" fill="none" stroke="#4a9eff" stroke-width="5"/><circle cx="42" cy="50" r="4" fill="#4a9eff"/><circle cx="58" cy="50" r="4" fill="#4a9eff"/></svg>
-        </div>
         <h1>hellobye</h1>
         <p>Secure real-time communication for professionals. Send encrypted messages, share files, and connect with end-to-end protected direct messages.</p>
       </div>
@@ -3654,7 +3655,7 @@ body.loading-session #chat-app.active::after {
             </div>
           </div>
           <button type="submit" class="btn-primary" id="signin-btn">Sign In</button>
-          <div style="text-align:center; margin-top:10px; font-size:11px; color:var(--text-muted);">
+          <div style="text-align:left; margin-top:10px; font-size:11px; color:var(--text-muted);">
             <a href="#" id="reset-password-link" style="color:var(--text-muted); text-decoration:none; transition:color 0.2s;">Reset Password</a>
           </div>
         </form>
@@ -3951,7 +3952,7 @@ body.loading-session #chat-app.active::after {
   <div class="modal-overlay" id="block-modal">
     <div class="modal small">
       <h3>Block <span id="block-modal-username"></span>?</h3>
-      <p>Are you sure you want to block this user? They will be removed from your friends list, and you will no longer see their messages in chat or direct messages. You can unblock them at any time from the Blocked tab.</p>
+      <p>They'll be removed from your friends list and hidden from your chat and DMs. You can unblock them anytime from the Blocked tab.</p>
       <div class="modal-actions">
         <button class="modal-btn" id="block-cancel">Cancel</button>
         <button class="modal-btn danger" id="block-confirm">Block User</button>
