@@ -229,12 +229,12 @@ html.has-session #chat-app:not(.active) { opacity: 0; } /* invisible until JS ac
   text-transform: uppercase; letter-spacing: 0.4px;
 }
 .form-input {
-  width: 100%; padding: 12px 14px;
+  width: 100%; padding: 11px 14px;
   background: var(--bg-darker);
   border: 1px solid var(--border-light);
   border-radius: var(--radius-sm);
   color: var(--text-primary); font-size: 14px;
-  transition: var(--transition);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 .form-input:focus {
   outline: none; border-color: var(--accent);
@@ -1627,11 +1627,11 @@ body.loading-session #chat-app.active::after {
 .settings-v2-pane { display: none; animation: paneFade 0.18s ease; }
 .settings-v2-pane.active { display: block; }
 @keyframes paneFade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
-.settings-v2-pane-head { margin-bottom: 6px; }
-.settings-v2-pane-head h4 { font-size: 16px; font-weight: 600; color: var(--text-primary); }
-.settings-v2-pane-head p { font-size: 12px; color: var(--text-muted); margin-top: 3px; }
-.settings-v2-pane .profile-section { padding: 18px 0; border-top: 1px solid var(--border); }
-.settings-v2-pane .profile-section:first-of-type { border-top: none; padding-top: 14px; }
+.settings-v2-pane-head { margin-bottom: 4px; padding-bottom: 14px; border-bottom: 1px solid var(--border); }
+.settings-v2-pane-head h4 { font-size: 15px; font-weight: 600; color: var(--text-primary); letter-spacing: 0.1px; }
+.settings-v2-pane-head p { font-size: 12px; color: var(--text-muted); margin-top: 4px; line-height: 1.5; }
+.settings-v2-pane .profile-section { padding: 20px 0; border-top: 1px solid var(--border); }
+.settings-v2-pane .profile-section:first-of-type { border-top: none; padding-top: 16px; }
 
 /* Stat grid for Account Info */
 .settings-stat-grid {
@@ -1711,7 +1711,7 @@ body.loading-session #chat-app.active::after {
 
 /* --- Header card (banner + identity row) --- */
 .profile-v2-header-card {
-  background: var(--bg-medium);
+  background: var(--bg-darker);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   /* Allow the avatar to overlap the banner bottom edge without being clipped.
@@ -1721,7 +1721,7 @@ body.loading-session #chat-app.active::after {
 }
 /* Override banner for new card context: full-bleed, no big bottom margin */
 .profile-v2-header-card .profile-banner-section {
-  height: 260px;
+  height: 240px;
   margin-bottom: 0;
   border-radius: var(--radius) var(--radius) 0 0;
   border-bottom: 1px solid var(--border);
@@ -1744,7 +1744,7 @@ body.loading-session #chat-app.active::after {
   flex: 0 0 auto;
   /* Subtle overlap so the avatar anchors on the banner edge but the FULL
      circle + its action buttons stay clearly visible below it. */
-  margin-top: -30px;
+  margin-top: -28px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1752,14 +1752,14 @@ body.loading-session #chat-app.active::after {
   position: relative;
   z-index: 2;
 }
-/* Avatar: override centered margin from old layout — bigger so it reads clearly */
+/* Avatar: override centered margin from old layout — refined sizing */
 .profile-v2-avatar-wrap .profile-avatar-large {
   margin: 0;
-  width: 140px;
-  height: 140px;
-  font-size: 48px;
-  border: 5px solid var(--bg-medium);
-  box-shadow: 0 6px 20px rgba(0,0,0,0.5);
+  width: 132px;
+  height: 132px;
+  font-size: 46px;
+  border: 4px solid var(--bg-darker);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.45);
   background: var(--bg-lighter);
 }
 .profile-v2-avatar-wrap .profile-avatar-actions {
@@ -1775,21 +1775,23 @@ body.loading-session #chat-app.active::after {
 /* ID block on the right side */
 .profile-v2-idblock {
   flex: 1 1 auto;
-  padding-top: 12px;
+  padding-top: 14px;
   min-width: 0;
 }
 .profile-v2-idblock .profile-username {
-  font-size: 18px;
+  font-size: 17px;
   font-weight: 700;
   margin-bottom: 3px;
   display: flex;
   align-items: center;
   gap: 6px;
+  color: var(--text-primary);
 }
 .profile-v2-idblock .profile-userid {
   font-size: 11px;
   color: var(--text-muted);
-  font-family: monospace;
+  font-family: 'SF Mono', 'Monaco', 'Cascadia Code', 'Roboto Mono', monospace;
+  letter-spacing: 0.2px;
 }
 
 /* Sections inside profile-v2-body keep their existing spacing */
@@ -1903,18 +1905,19 @@ body.loading-session #chat-app.active::after {
 .status-options { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .status-option {
   display: flex; align-items: center; gap: 9px;
-  padding: 10px 12px; background: var(--bg-medium);
+  padding: 10px 12px; background: var(--bg-darker);
   border: 1px solid var(--border); border-radius: var(--radius-sm);
   cursor: pointer; transition: var(--transition);
 }
-.status-option:hover { background: var(--bg-light); }
+.status-option:hover { background: var(--bg-light); border-color: var(--border-light); }
 .status-option.active { border-color: var(--accent); background: var(--accent-glow); }
 .status-option-dot { width: 16px; height: 16px; border-radius: 50%; flex-shrink: 0; background-size: contain; background-repeat: no-repeat; background-position: center; }
 .status-option-dot.online { background-image: url('online.png'); }
 .status-option-dot.idle { background-image: url('idle.png'); }
 .status-option-dot.dnd { background-image: url('dnd.png'); }
 .status-option-dot.offline { background-image: url('offline.png'); }
-.status-option-label { font-size: 13px; font-weight: 500; }
+.status-option-label { font-size: 13px; font-weight: 500; color: var(--text-secondary); }
+.status-option.active .status-option-label { color: var(--text-primary); }
 
 .bio-textarea {
   width: 100%; padding: 12px 14px; resize: vertical; min-height: 120px;
@@ -1954,25 +1957,25 @@ body.loading-session #chat-app.active::after {
 
 .save-section { margin-top: 8px; }
 .profile-save-btn, .setting-save-btn {
-  width: 100%; padding: 12px 16px; font-size: 14px; font-weight: 600;
+  width: 100%; padding: 11px 16px; font-size: 13.5px; font-weight: 600;
   background: var(--accent); color: var(--accent-text); border-radius: var(--radius-sm);
-  transition: var(--transition); margin-top: 6px;
+  transition: background 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease; margin-top: 8px;
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
   letter-spacing: 0.2px; position: relative; overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.18);
 }
 .profile-save-btn::before, .setting-save-btn::before {
-  content: ''; width: 16px; height: 16px; flex-shrink: 0;
+  content: ''; width: 14px; height: 14px; flex-shrink: 0;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6L9 17l-5-5'/%3E%3C/svg%3E");
   background-size: contain; background-repeat: no-repeat; background-position: center;
-  opacity: 0.9;
+  opacity: 0.85;
 }
 .profile-save-btn:hover:not(:disabled), .setting-save-btn:hover:not(:disabled) {
-  background: var(--accent-hover); transform: translateY(-1px);
-  box-shadow: 0 4px 14px rgba(0,0,0,0.3);
+  background: var(--accent-hover);
+  box-shadow: 0 2px 8px rgba(74,158,255,0.22);
 }
 .profile-save-btn:active:not(:disabled), .setting-save-btn:active:not(:disabled) {
-  transform: translateY(0); box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.18);
 }
 .profile-save-btn:disabled, .setting-save-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
 /* Save button loading state */
@@ -2285,212 +2288,230 @@ body.loading-session #chat-app.active::after {
   .music-load-btn { padding: 10px 16px; }
 }
 
-/* Customization section */
+/* ============================================
+   Customization section — Background & Theme
+   Refined, professional, flat treatment.
+   ============================================ */
 .custom-bg-section { padding: 14px 0; }
-.custom-bg-label { font-size: 12.5px; font-weight: 600; color: var(--text-secondary); margin-bottom: 8px; }
-.custom-bg-controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 12px; }
-/* Chat-background action buttons: matte, flat, no gloss/shine — keeps all data,
-   just a calmer look. Solid accent blue replaced with a muted surface fill. */
+.custom-bg-label {
+  font-size: 11px; font-weight: 600; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;
+}
+
+/* ---- Action buttons row: calm, outlined, uniform ---- */
+.custom-bg-controls {
+  display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 14px;
+}
 .custom-bg-controls .setting-save-btn {
-  padding: 8px 14px; font-size: 12px; font-weight: 600;
-  width: auto; margin-top: 0;
-  background: var(--bg-light); color: var(--text-primary);
+  padding: 9px 15px; font-size: 12.5px; font-weight: 600;
+  width: auto; margin-top: 0; letter-spacing: 0.1px;
+  background: var(--bg-darker); color: var(--text-secondary);
   border: 1px solid var(--border); border-radius: var(--radius-sm);
   box-shadow: none;
 }
 .custom-bg-controls .setting-save-btn:hover:not(:disabled) {
-  background: var(--bg-lighter); color: var(--text-primary);
-  border-color: var(--text-muted);
+  background: var(--bg-light); color: var(--text-primary);
+  border-color: var(--border-light);
 }
 .custom-bg-controls .setting-save-btn.danger-btn {
-  background: transparent; color: var(--danger, #ff5a5a);
+  background: transparent; color: var(--text-muted);
   border-color: var(--border);
 }
 .custom-bg-controls .setting-save-btn.danger-btn:hover:not(:disabled) {
-  background: rgba(255,90,90,0.08); border-color: var(--danger, #ff5a5a);
+  background: rgba(216,58,58,0.07); color: var(--danger);
+  border-color: rgba(216,58,58,0.4);
 }
+
+/* ---- Preview frame: clean, neutral, subtle ---- */
 .custom-bg-preview {
-  width: 100%; height: 150px; border-radius: var(--radius);
+  width: 100%; height: 140px; border-radius: var(--radius-sm);
   background: var(--bg-darkest); border: 1px solid var(--border);
   display: flex; align-items: center; justify-content: center;
   background-size: cover; background-position: center; margin-bottom: 16px;
   overflow: hidden; position: relative;
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.015);
 }
 .custom-bg-preview img { max-width: 100%; max-height: 100%; object-fit: contain; }
-/* "No background set" placeholder — nicer dashed border look */
 .custom-bg-preview .muted {
-  position: relative; padding: 12px 20px;
+  position: relative; padding: 10px 18px; font-size: 12px;
+  color: var(--text-muted); letter-spacing: 0.2px;
 }
+/* Subtle, even grid texture for empty state — quiet, not busy */
 .custom-bg-preview::before {
   content: ''; position: absolute; inset: 0;
   background-image:
-    linear-gradient(45deg, rgba(255,255,255,0.015) 25%, transparent 25%),
-    linear-gradient(-45deg, rgba(255,255,255,0.015) 25%, transparent 25%),
-    linear-gradient(45deg, transparent 75%, rgba(255,255,255,0.015) 75%),
-    linear-gradient(-45deg, transparent 75%, rgba(255,255,255,0.015) 75%);
-  background-size: 20px 20px;
-  background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+    linear-gradient(rgba(255,255,255,0.012) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.012) 1px, transparent 1px);
+  background-size: 22px 22px;
   pointer-events: none;
 }
-.custom-bg-scale-controls { display: grid; gap: 12px; }
+
+/* ---- Scale / adjustments panel ---- */
+.custom-bg-scale-controls { display: grid; gap: 14px; }
 .custom-slider-label {
-  font-size: 11.5px; color: var(--text-secondary);
+  font-size: 12px; color: var(--text-secondary); font-weight: 500;
   display: flex; justify-content: space-between; align-items: center;
-  margin-bottom: 3px;
+  margin-bottom: 4px;
 }
 .custom-slider-label .slider-val {
-  background: var(--bg-darker); color: var(--text-primary);
-  padding: 2px 8px; border-radius: var(--radius-sm); font-size: 10.5px;
-  font-weight: 700; min-width: 42px; text-align: center;
-  font-family: 'SF Mono', 'Monaco', 'Cascadia Code', monospace;
+  background: var(--bg-darkest); color: var(--text-secondary);
+  padding: 2px 8px; border-radius: 4px; font-size: 10.5px;
+  font-weight: 600; min-width: 44px; text-align: center;
+  font-family: 'SF Mono', 'Monaco', 'Cascadia Code', 'Roboto Mono', monospace;
   border: 1px solid var(--border);
 }
 .bg-control-group {
-  background: var(--bg-darkest); border: 1px solid var(--border);
-  border-radius: var(--radius); padding: 13px 15px; display: grid; gap: 11px;
+  background: var(--bg-darker); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 14px 16px; display: grid; gap: 13px;
 }
 .bg-control-group-title {
-  font-size: 10px; font-weight: 700; text-transform: uppercase;
-  letter-spacing: 0.7px; color: var(--text-muted); margin-bottom: 1px;
-  display: flex; align-items: center; gap: 6px;
+  font-size: 10.5px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.6px; color: var(--text-muted); margin-bottom: 2px;
+  display: flex; align-items: center; gap: 7px;
 }
 .bg-control-group-title::before {
-  content: ''; width: 3px; height: 11px; border-radius: 2px;
-  background: var(--accent); flex-shrink: 0; opacity: 0.7;
+  content: ''; width: 2px; height: 10px; border-radius: 1px;
+  background: var(--text-muted); flex-shrink: 0; opacity: 0.6;
 }
-/* Fit Mode segmented control — modern button group */
-.bg-fit-segmented { display: flex; gap: 4px; background: var(--bg-darker); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 4px; }
+
+/* Fit Mode segmented control — flat, even button group */
+.bg-fit-segmented {
+  display: flex; gap: 2px; background: var(--bg-darkest);
+  border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 3px;
+}
 .bg-fit-segmented button {
-  flex: 1; padding: 8px 6px; border: none; border-radius: 5px; background: transparent;
-  color: var(--text-secondary); font-size: 10.5px; font-weight: 600; cursor: pointer;
+  flex: 1; padding: 8px 6px; border: none; border-radius: 4px; background: transparent;
+  color: var(--text-muted); font-size: 10.5px; font-weight: 600; cursor: pointer;
   transition: var(--transition); display: flex; flex-direction: column; align-items: center; gap: 4px;
 }
-.bg-fit-segmented button svg { width: 16px; height: 16px; opacity: 0.6; transition: var(--transition); }
-.bg-fit-segmented button:hover { background: var(--bg-medium); color: var(--text-primary); }
-.bg-fit-segmented button:hover svg { opacity: 0.8; }
-.bg-fit-segmented button.active { background: var(--accent); color: var(--accent-text); box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+.bg-fit-segmented button svg { width: 15px; height: 15px; opacity: 0.55; transition: var(--transition); }
+.bg-fit-segmented button:hover { background: var(--bg-light); color: var(--text-secondary); }
+.bg-fit-segmented button:hover svg { opacity: 0.75; }
+.bg-fit-segmented button.active {
+  background: var(--bg-lighter); color: var(--text-primary);
+  box-shadow: inset 0 0 0 1px var(--border-light);
+}
 .bg-fit-segmented button.active svg { opacity: 1; }
-.custom-bg-quick-actions { display: flex; gap: 8px; flex-wrap: wrap; }
-.mini-btn { padding: 6px 12px; font-size: 11px; font-weight: 600; }
+
+.custom-bg-quick-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; }
+.mini-btn { padding: 7px 12px; font-size: 11px; font-weight: 600; }
+
+/* ---- Range sliders: thin, precise, professional ---- */
 .custom-range {
-  width: 100%; height: 5px; -webkit-appearance: none; appearance: none;
-  background: var(--bg-medium); border-radius: 3px; outline: none; cursor: pointer;
-  margin: 3px 0;
+  width: 100%; height: 4px; -webkit-appearance: none; appearance: none;
+  background: var(--bg-light); border-radius: 2px; outline: none; cursor: pointer;
+  margin: 4px 0;
 }
 .custom-range::-webkit-slider-thumb {
   -webkit-appearance: none; appearance: none;
-  width: 15px; height: 15px; border-radius: 50%; background: var(--accent);
+  width: 14px; height: 14px; border-radius: 50%; background: var(--text-secondary);
   cursor: pointer; border: 2px solid var(--bg-darker);
-  box-shadow: 0 1px 4px rgba(0,0,0,0.3); transition: transform 0.12s ease;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.35); transition: background 0.15s ease, border-color 0.15s ease;
 }
-.custom-range::-webkit-slider-thumb:hover { transform: scale(1.12); }
+.custom-range::-webkit-slider-thumb:hover { background: var(--accent); border-color: var(--bg-darker); }
+.custom-range:active::-webkit-slider-thumb { background: var(--accent); }
 .custom-range::-moz-range-thumb {
-  width: 15px; height: 15px; border-radius: 50%; background: var(--accent);
+  width: 14px; height: 14px; border-radius: 50%; background: var(--text-secondary);
   cursor: pointer; border: 2px solid var(--bg-darker);
-  box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.35);
 }
-/* Accent color section layout \u2014 polished card with live preview */
+.custom-range::-moz-range-thumb:hover { background: var(--accent); }
+
+/* ---- Accent color section: clean card ---- */
 .accent-section-card {
-  background: var(--bg-light); border: 1px solid var(--border);
-  border-radius: var(--radius); padding: 18px;
+  background: var(--bg-darker); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 18px;
 }
 .accent-current-row {
-  display: flex; align-items: center; gap: 14px; margin-bottom: 18px;
-  flex-wrap: wrap; padding-bottom: 16px; border-bottom: 1px solid var(--border-light);
+  display: flex; align-items: center; gap: 16px; margin-bottom: 18px;
+  flex-wrap: wrap; padding-bottom: 16px; border-bottom: 1px solid var(--border);
 }
-/* Large swatch with checkered transparency grid behind it */
+/* Swatch: restrained, square-ish, fine border */
 .accent-swatch-large {
-  width: 56px; height: 56px; border-radius: 14px; border: 2px solid var(--border);
-  cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.25);
-  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
-  padding: 0; appearance: none; -webkit-appearance: none;
-  flex-shrink: 0;
+  width: 52px; height: 52px; border-radius: 8px; border: 1px solid var(--border-light);
+  cursor: pointer; box-shadow: 0 1px 4px rgba(0,0,0,0.25);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  padding: 0; appearance: none; -webkit-appearance: none; flex-shrink: 0;
   background-image:
-    linear-gradient(45deg, var(--bg-darker) 25%, transparent 25%),
-    linear-gradient(-45deg, var(--bg-darker) 25%, transparent 25%),
-    linear-gradient(45deg, transparent 75%, var(--bg-darker) 75%),
-    linear-gradient(-45deg, transparent 75%, var(--bg-darker) 75%);
+    linear-gradient(45deg, var(--bg-darkest) 25%, transparent 25%),
+    linear-gradient(-45deg, var(--bg-darkest) 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, var(--bg-darkest) 75%),
+    linear-gradient(-45deg, transparent 75%, var(--bg-darkest) 75%);
   background-size: 12px 12px;
   background-position: 0 0, 0 6px, 6px -6px, -6px 0px;
 }
 .accent-swatch-large:hover {
-  transform: scale(1.06); border-color: var(--text-muted);
-  box-shadow: 0 4px 16px rgba(0,0,0,0.35);
+  border-color: var(--text-muted); box-shadow: 0 2px 8px rgba(0,0,0,0.35);
 }
-.accent-current-info { display: flex; flex-direction: column; gap: 4px; }
+.accent-current-info { display: flex; flex-direction: column; gap: 3px; }
 .accent-current-label {
-  font-size: 10px; font-weight: 700; color: var(--text-muted);
-  text-transform: uppercase; letter-spacing: 0.8px;
+  font-size: 10px; font-weight: 600; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: 0.6px;
 }
 .accent-current-hex {
-  font-size: 16px; color: var(--text-primary);
-  font-family: 'SF Mono', 'Monaco', 'Cascadia Code', monospace;
-  font-weight: 700; letter-spacing: 0.5px;
+  font-size: 15px; color: var(--text-primary);
+  font-family: 'SF Mono', 'Monaco', 'Cascadia Code', 'Roboto Mono', monospace;
+  font-weight: 600; letter-spacing: 0.4px;
 }
-/* Subtle live-preview strip showing accent usage */
+/* Live-preview strip: muted, informative */
 .accent-preview-strip {
-  display: flex; align-items: center; gap: 8px; margin-left: auto;
-  padding: 8px 12px; background: var(--bg-darkest);
-  border: 1px solid var(--border); border-radius: 10px;
+  display: flex; align-items: center; gap: 9px; margin-left: auto;
+  padding: 8px 13px; background: var(--bg-darkest);
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
 }
 .accent-preview-dot {
-  width: 14px; height: 14px; border-radius: 50%;
+  width: 12px; height: 12px; border-radius: 50%;
   background: var(--accent); flex-shrink: 0;
-  box-shadow: 0 0 8px var(--accent-glow);
 }
 .accent-preview-bar {
-  width: 40px; height: 6px; border-radius: 3px; background: var(--accent);
+  width: 36px; height: 5px; border-radius: 2px; background: var(--accent);
 }
 .accent-preview-btn {
-  padding: 4px 10px; font-size: 10px; font-weight: 700;
-  background: var(--accent); color: var(--accent-text); border: none; border-radius: 6px;
+  padding: 4px 10px; font-size: 10px; font-weight: 600;
+  background: var(--accent); color: var(--accent-text); border: none; border-radius: 4px;
+  letter-spacing: 0.2px;
 }
-/* Larger, more touch-friendly preset circles with checkmark */
+/* Preset circles: even, restrained, no bounce */
 .accent-preset-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
 .accent-preset {
-  width: 32px; height: 32px; border-radius: 50%; cursor: pointer;
-  border: 2px solid var(--border); transition: var(--transition);
-  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-  position: relative;
+  width: 28px; height: 28px; border-radius: 50%; cursor: pointer;
+  border: 2px solid var(--border); transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.25); position: relative;
 }
-.accent-preset:hover {
-  transform: scale(1.18); border-color: var(--text-primary);
-  box-shadow: 0 3px 10px rgba(0,0,0,0.4);
-}
+.accent-preset:hover { border-color: var(--text-muted); box-shadow: 0 2px 6px rgba(0,0,0,0.35); }
 .accent-preset.active {
-  border-color: #fff; box-shadow: 0 0 0 2px var(--accent), 0 3px 10px rgba(0,0,0,0.4);
-  transform: scale(1.1);
+  border-color: var(--text-primary);
+  box-shadow: 0 0 0 2px var(--bg-darker), 0 0 0 3px var(--accent), 0 2px 6px rgba(0,0,0,0.35);
 }
 .accent-preset.active::after {
   content: '\2713'; position: absolute; top: 50%; left: 50%;
-  transform: translate(-50%, -50%); color: #fff; font-size: 14px;
-  font-weight: 900; text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+  transform: translate(-50%, -50%); color: #fff; font-size: 12px;
+  font-weight: 900; text-shadow: 0 1px 2px rgba(0,0,0,0.55);
 }
 
-/* New background tools */
-.custom-bg-quick-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
-/* Quick-action mini buttons: flat matte chips, no glossy accent */
+/* ---- Quick-action mini buttons: flat matte chips ---- */
 .custom-bg-quick-actions .setting-save-btn.mini-btn {
-  background: var(--bg-light) !important; color: var(--text-primary) !important;
+  background: var(--bg-darker) !important; color: var(--text-secondary) !important;
   border: 1px solid var(--border); box-shadow: none; width: auto; margin-top: 0;
 }
 .custom-bg-quick-actions .setting-save-btn.mini-btn:hover:not(:disabled) {
-  background: var(--bg-lighter) !important; border-color: var(--text-muted);
+  background: var(--bg-light) !important; color: var(--text-primary) !important;
+  border-color: var(--border-light);
 }
-.mini-btn { padding: 6px 12px !important; font-size: 11px !important; opacity: 1; }
+.mini-btn { padding: 7px 12px !important; font-size: 11px !important; opacity: 1; }
 .mini-btn:hover { opacity: 1; }
+
+/* ---- Quick presets row ---- */
 .custom-bg-presets { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border); }
-.bg-preset-row { display: flex; gap: 10px; flex-wrap: wrap; }
+.bg-preset-row { display: flex; gap: 8px; flex-wrap: wrap; }
 .bg-preset-chip {
-  padding: 7px 14px; border-radius: var(--radius-sm); border: 1px solid var(--border);
-  font-size: 11.5px; font-weight: 600; color: var(--text-secondary); cursor: pointer;
-  background: var(--bg-light); text-shadow: none; transition: var(--transition);
-  min-width: 68px; text-align: center; box-shadow: none;
+  padding: 7px 13px; border-radius: var(--radius-sm); border: 1px solid var(--border);
+  font-size: 11.5px; font-weight: 600; color: var(--text-muted); cursor: pointer;
+  background: var(--bg-darker); text-shadow: none; transition: var(--transition);
+  min-width: 64px; text-align: center; box-shadow: none;
   display: inline-flex; align-items: center; justify-content: center; gap: 6px;
 }
-.bg-preset-chip:hover { background: var(--bg-lighter); color: var(--text-primary); border-color: var(--border-light); }
-.bg-preset-chip.active { border-color: var(--accent); color: var(--accent); background: rgba(74,158,255,0.08); }
+.bg-preset-chip:hover { background: var(--bg-light); color: var(--text-secondary); border-color: var(--border-light); }
+.bg-preset-chip.active { border-color: var(--accent); color: var(--accent); background: rgba(74,158,255,0.06); }
 
 .info-row {
   display: flex; justify-content: space-between; align-items: center;
@@ -4050,7 +4071,7 @@ body.loading-session #chat-app.active::after {
           </div>
           <div class="status-option" data-status="offline">
             <div class="status-option-dot offline"></div>
-            <div class="status-option-label">offline</div>
+            <div class="status-option-label">Offline</div>
           </div>
         </div>
       </div>
@@ -4182,8 +4203,9 @@ body.loading-session #chat-app.active::after {
 
           <div class="profile-section">
             <div class="profile-section-title">Reset Password</div>
+            <p class="setting-hint">Choose a strong password of at least 6 characters. You'll stay logged in after changing it.</p>
             <input type="password" class="form-input" id="current-password-input" placeholder="Enter your current password">
-            <input type="password" class="form-input" id="new-password-input" placeholder="Enter your new password (minimum 6 characters)" style="margin-top:8px;">
+            <input type="password" class="form-input" id="new-password-input" placeholder="Enter your new password (minimum 6 characters)" style="margin-top:10px;">
             <button class="setting-save-btn" id="password-save">Reset Password</button>
           </div>
         </section>
@@ -4407,7 +4429,7 @@ body.loading-session #chat-app.active::after {
               </div>
             </div>
             <div class="custom-bg-presets">
-              <div class="custom-bg-label" style="font-size:12px;margin-bottom:6px;">Quick Presets</div>
+              <div class="custom-bg-label">Quick Presets</div>
               <div class="bg-preset-row" id="bg-preset-row"></div>
             </div>
           </div>
@@ -4428,7 +4450,7 @@ body.loading-session #chat-app.active::after {
                 </div>
                 <button class="setting-save-btn danger-btn" id="accent-revert-btn">Revert Color</button>
               </div>
-              <div class="custom-bg-label" style="font-size:11px;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-muted);font-weight:700;margin-bottom:10px;">Quick Colors</div>
+              <div class="custom-bg-label">Quick Colors</div>
               <div class="accent-preset-row" id="accent-presets"></div>
             </div>
           </div>
