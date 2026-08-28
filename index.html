@@ -2003,7 +2003,7 @@ body.loading-session #chat-app.active::after {
   display: flex; gap: 8px; align-items: stretch; margin-bottom: 12px;
 }
 .music-link-input {
-  flex: 1; min-width: 0; padding: 11px 14px;
+  flex: 1; min-width: 0; padding: 10px 14px;
   background: var(--bg-medium); border: 1px solid var(--border-light);
   border-radius: var(--radius-sm); color: var(--text-primary); font-size: 13px;
   font-family: inherit; transition: var(--transition);
@@ -2014,22 +2014,22 @@ body.loading-session #chat-app.active::after {
   box-shadow: 0 0 0 3px var(--accent-glow);
 }
 .music-load-btn {
-  width: auto; padding: 11px 22px; margin-top: 0; flex-shrink: 0;
+  width: auto; padding: 10px 22px; margin-top: 0; flex-shrink: 0;
   font-size: 13px; font-weight: 600; letter-spacing: 0.3px;
 }
 
 /* Platform pills */
 .music-platform-pills {
-  display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 16px;
+  display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px;
 }
 .music-pill {
   display: inline-flex; align-items: center; gap: 5px;
-  padding: 5px 11px; font-size: 11px; font-weight: 600;
+  padding: 4px 10px; font-size: 11px; font-weight: 600;
   color: var(--text-muted); background: var(--bg-medium);
   border: 1px solid var(--border); border-radius: 20px;
   transition: var(--transition); cursor: default; user-select: none;
 }
-.music-pill svg { width: 13px; height: 13px; flex-shrink: 0; }
+.music-pill svg { width: 12px; height: 12px; flex-shrink: 0; }
 .music-pill[data-platform="spotify"] svg { color: #1db954; }
 .music-pill[data-platform="soundcloud"] svg { color: #ff5500; }
 .music-pill[data-platform="youtube"] svg { color: #ff0000; }
@@ -2039,145 +2039,131 @@ body.loading-session #chat-app.active::after {
 /* Empty state */
 .music-empty-state {
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  padding: 26px 20px; text-align: center;
+  padding: 24px 20px; text-align: center;
   background: var(--bg-medium); border: 1px dashed var(--border-light);
   border-radius: var(--radius); transition: var(--transition);
 }
 .music-empty-icon {
-  width: 48px; height: 48px; margin-bottom: 10px;
+  width: 44px; height: 44px; margin-bottom: 10px;
   display: flex; align-items: center; justify-content: center;
   color: var(--text-muted); background: var(--bg-light);
   border-radius: 50%; transition: var(--transition);
 }
-.music-empty-icon svg { width: 24px; height: 24px; }
+.music-empty-icon svg { width: 22px; height: 22px; }
 .music-empty-title { font-size: 13px; font-weight: 600; color: var(--text-secondary); margin-bottom: 3px; }
 .music-empty-sub { font-size: 11.5px; color: var(--text-muted); line-height: 1.5; }
 
-/* Player card */
+/* ===== Player card — professional, clean, non-cartoony ===== */
 .music-player-card {
   position: relative; display: flex; flex-direction: column; overflow: hidden;
-  background: linear-gradient(135deg, var(--bg-light) 0%, var(--bg-medium) 100%);
+  background: var(--bg-medium);
   border: 1px solid var(--border-light); border-radius: var(--radius);
-  box-shadow: 0 4px 20px rgba(0,0,0,0.25);
-  transition: var(--transition);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.18);
 }
-.music-player-card:hover { box-shadow: 0 6px 28px rgba(0,0,0,0.35); border-color: var(--text-muted); }
 
-/* Artwork banner — full width across the top */
+/* Artwork + info row: artwork on left, info on right */
 .music-player-artwork {
-  width: 100%; height: 140px; flex-shrink: 0;
+  width: 72px; height: 72px; flex-shrink: 0;
   background-size: cover; background-position: center; background-color: var(--bg-darker);
-  position: relative; transition: var(--transition);
-}
-.music-player-artwork::after {
-  content: ''; position: absolute; inset: 0;
-  background: linear-gradient(180deg, transparent 30%, rgba(20,22,26,0.85) 100%);
-  pointer-events: none;
+  border-radius: 8px; position: relative; transition: var(--transition);
+  margin: 14px 0 0 16px;
 }
 .music-artwork-placeholder {
   width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
   color: var(--text-muted);
 }
-.music-artwork-placeholder svg { width: 42px; height: 42px; }
+.music-artwork-placeholder svg { width: 32px; height: 32px; }
 
-/* Player body */
-.music-player-body {
-  padding: 14px 18px 16px;
-  display: flex; flex-direction: column; gap: 12px;
+/* Top row: artwork + metadata side by side */
+.music-player-top {
+  display: flex; gap: 12px; padding: 0 16px;
+  align-items: flex-start;
 }
-.music-player-meta { display: flex; flex-direction: column; gap: 3px; }
+.music-player-meta {
+  flex: 1; min-width: 0; padding-top: 14px; display: flex; flex-direction: column; gap: 2px;
+}
 .music-meta-line {
-  display: flex; align-items: center; gap: 8px; margin-bottom: 2px;
+  display: flex; align-items: center; gap: 7px; margin-bottom: 3px;
 }
 .music-provider-badge {
   display: inline-flex; align-items: center; gap: 4px;
-  font-size: 10px; font-weight: 700; letter-spacing: 0.5px;
-  text-transform: uppercase; padding: 2px 8px; border-radius: 10px;
-  background: var(--accent-glow); color: var(--accent);
-  border: 1px solid rgba(74,158,255,0.25);
+  font-size: 9.5px; font-weight: 700; letter-spacing: 0.4px;
+  text-transform: uppercase; padding: 2px 7px; border-radius: 8px;
+  background: var(--bg-light); color: var(--text-secondary);
+  border: 1px solid var(--border);
 }
 .music-now-playing {
-  font-size: 10px; font-weight: 600; letter-spacing: 0.5px;
+  font-size: 9.5px; font-weight: 600; letter-spacing: 0.4px;
   text-transform: uppercase; color: var(--text-muted);
   display: inline-flex; align-items: center; gap: 5px;
 }
 .music-now-playing::before {
-  content: ''; width: 6px; height: 6px; border-radius: 50%;
+  content: ''; width: 5px; height: 5px; border-radius: 50%;
   background: var(--success); animation: music-pulse 1.8s ease-in-out infinite;
 }
 .music-playlist-badge {
   display: inline-flex; align-items: center; gap: 4px;
-  font-size: 10px; font-weight: 700; letter-spacing: 0.5px;
-  text-transform: uppercase; padding: 2px 8px; border-radius: 10px;
-  background: rgba(255,170,0,0.12); color: #ffaa00;
-  border: 1px solid rgba(255,170,0,0.25);
+  font-size: 9.5px; font-weight: 700; letter-spacing: 0.4px;
+  text-transform: uppercase; padding: 2px 7px; border-radius: 8px;
+  background: rgba(255,170,0,0.10); color: #ffaa00;
+  border: 1px solid rgba(255,170,0,0.20);
 }
 .music-playlist-badge::before {
-  content: ''; width: 0; height: 0; border-left: 4px solid transparent;
-  border-right: 4px solid transparent; border-top: 5px solid currentColor;
+  content: ''; width: 0; height: 0; border-left: 3px solid transparent;
+  border-right: 3px solid transparent; border-top: 4px solid currentColor;
 }
 @keyframes music-pulse {
   0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.4; transform: scale(0.75); }
+  50% { opacity: 0.3; transform: scale(0.7); }
 }
 .music-track-title {
-  font-size: 15px; font-weight: 700; color: var(--text-primary);
+  font-size: 14px; font-weight: 700; color: var(--text-primary);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   line-height: 1.3;
 }
 .music-track-artist {
   font-size: 12px; color: var(--text-secondary);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  line-height: 1.3;
 }
 
-/* Embed container — VISIBLE and interactive so audio can actually play.
-   Browsers require a user gesture (click) inside the iframe to start audio,
-   and the embed's native playlist/queue only works when the iframe is live. */
+/* Hidden embed container — iframe is invisible but still functional for audio.
+   The user controls playback through our custom UI, never sees the platform embed. */
 .music-player-embed {
-  width: 100%; border-radius: var(--radius-sm); overflow: hidden;
-  background: var(--bg-darker); border: 1px solid var(--border);
-  position: relative; transition: var(--transition);
+  position: fixed; left: -9999px; top: -9999px;
+  width: 1px; height: 1px; opacity: 0; pointer-events: none;
+  overflow: hidden; border: 0;
 }
 .music-player-embed iframe {
-  border: 0; display: block; width: 100%;
+  border: 0; display: block; width: 300px; height: 200px;
 }
-.music-player-embed.embed-spotify iframe { height: 152px; }
-.music-player-embed.embed-soundcloud iframe { height: 166px; }
-.music-player-embed.embed-youtube iframe { height: 180px; }
-.music-player-embed.embed-apple iframe { height: 180px; }
-.music-player-embed.embed-deezer iframe { height: 240px; }
-.music-player-embed.embed-loading { min-height: 100px; display: flex; align-items: center; justify-content: center; }
-.music-embed-loading-text {
-  font-size: 12px; color: var(--text-muted); padding: 30px; text-align: center;
-}
-.music-embed-loading-text::after {
-  content: ''; display: inline-block; width: 12px; height: 12px; margin-left: 6px;
-  border: 2px solid var(--text-muted); border-top-color: transparent;
-  border-radius: 50%; animation: btn-spin 0.8s linear infinite; vertical-align: middle;
+.music-player-embed.embed-loading {
+  position: fixed; left: -9999px; top: -9999px;
 }
 
 /* Progress bar */
 .music-player-progress {
   display: flex; align-items: center; gap: 10px;
+  padding: 14px 16px 0;
 }
 .music-time {
-  font-size: 10.5px; font-weight: 600; color: var(--text-muted);
+  font-size: 10px; font-weight: 600; color: var(--text-muted);
   font-variant-numeric: tabular-nums; min-width: 32px; text-align: center;
 }
 .music-progress-bar {
-  flex: 1; height: 5px; background: var(--bg-darker);
+  flex: 1; height: 4px; background: var(--bg-darker);
   border-radius: 3px; position: relative; cursor: pointer;
   transition: height 0.15s ease;
 }
-.music-progress-bar:hover { height: 7px; }
+.music-progress-bar:hover { height: 6px; }
 .music-progress-fill {
   height: 100%; width: 0%; border-radius: 3px;
-  background: linear-gradient(90deg, var(--accent-dim), var(--accent));
+  background: var(--accent);
   transition: width 0.1s linear; position: relative;
 }
 .music-progress-handle {
   position: absolute; top: 50%; left: 0%; transform: translate(-50%, -50%);
-  width: 12px; height: 12px; border-radius: 50%; background: #fff;
+  width: 10px; height: 10px; border-radius: 50%; background: #fff;
   box-shadow: 0 1px 4px rgba(0,0,0,0.4); opacity: 0;
   transition: opacity 0.15s ease; pointer-events: none;
 }
@@ -2185,85 +2171,112 @@ body.loading-session #chat-app.active::after {
 
 /* Controls */
 .music-player-controls {
-  display: flex; align-items: center; gap: 8px;
+  display: flex; align-items: center; gap: 6px;
+  padding: 10px 16px 14px;
 }
 .music-ctrl-btn {
   display: flex; align-items: center; justify-content: center;
-  width: 36px; height: 36px; flex-shrink: 0; border: none;
-  background: var(--bg-light); color: var(--text-secondary);
+  width: 34px; height: 34px; flex-shrink: 0; border: none;
+  background: transparent; color: var(--text-secondary);
   border-radius: 50%; cursor: pointer; transition: var(--transition);
   position: relative;
 }
 .music-ctrl-btn svg { width: 18px; height: 18px; }
 .music-ctrl-btn:hover:not(:disabled) {
-  background: var(--bg-lighter); color: var(--text-primary);
-  transform: scale(1.08);
+  background: var(--bg-light); color: var(--text-primary);
 }
-.music-ctrl-btn:active:not(:disabled) { transform: scale(0.94); }
-.music-ctrl-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+.music-ctrl-btn:active:not(:disabled) { transform: scale(0.92); }
+.music-ctrl-btn:disabled { opacity: 0.3; cursor: not-allowed; }
 .music-ctrl-btn.active {
   background: var(--accent-glow); color: var(--accent);
-  border: 1px solid rgba(74,158,255,0.3);
 }
-.music-ctrl-btn.small { width: 32px; height: 32px; }
+.music-ctrl-btn.small { width: 30px; height: 30px; }
 .music-ctrl-btn.small svg { width: 16px; height: 16px; }
 
-/* Play button — prominent */
+/* Play button — clean, solid accent */
 .music-play-btn {
-  width: 46px; height: 46px;
+  width: 42px; height: 42px;
   background: var(--accent); color: var(--accent-text);
-  box-shadow: 0 2px 10px rgba(74,158,255,0.35);
+  box-shadow: 0 2px 8px rgba(74,158,255,0.30);
 }
 .music-play-btn:hover:not(:disabled) {
   background: var(--accent-hover); color: var(--accent-text);
-  box-shadow: 0 4px 16px rgba(74,158,255,0.5);
+  box-shadow: 0 3px 12px rgba(74,158,255,0.40);
 }
-.music-play-btn svg { width: 22px; height: 22px; }
+.music-play-btn svg { width: 20px; height: 20px; }
 
 /* Volume group */
 .music-volume-group {
-  display: flex; align-items: center; gap: 6px; margin-left: 4px;
+  display: flex; align-items: center; gap: 4px; margin-left: 2px;
 }
 .music-volume-slider {
   -webkit-appearance: none; appearance: none;
-  width: 70px; height: 4px; background: var(--bg-darker);
+  width: 64px; height: 4px; background: var(--bg-darker);
   border-radius: 2px; cursor: pointer; outline: none;
 }
 .music-volume-slider::-webkit-slider-thumb {
   -webkit-appearance: none; appearance: none;
-  width: 12px; height: 12px; border-radius: 50%;
+  width: 11px; height: 11px; border-radius: 50%;
   background: var(--accent); cursor: pointer;
   box-shadow: 0 1px 3px rgba(0,0,0,0.3); transition: var(--transition);
 }
 .music-volume-slider::-webkit-slider-thumb:hover { transform: scale(1.2); }
 .music-volume-slider::-moz-range-thumb {
-  width: 12px; height: 12px; border-radius: 50%; border: none;
+  width: 11px; height: 11px; border-radius: 50%; border: none;
   background: var(--accent); cursor: pointer;
 }
 .music-spacer { flex: 1; }
 
 /* Clear button */
 .music-clear-btn {
-  position: absolute; top: 10px; right: 10px; z-index: 5;
-  width: 26px; height: 26px; flex-shrink: 0; border: none;
+  position: absolute; top: 8px; right: 8px; z-index: 5;
+  width: 24px; height: 24px; flex-shrink: 0; border: none;
   display: flex; align-items: center; justify-content: center;
-  background: rgba(0,0,0,0.4); color: rgba(255,255,255,0.7);
+  background: transparent; color: var(--text-muted);
   border-radius: 50%; cursor: pointer; transition: var(--transition);
-  backdrop-filter: blur(4px);
 }
 .music-clear-btn svg { width: 14px; height: 14px; }
 .music-clear-btn:hover {
-  background: var(--danger); color: #fff; transform: scale(1.1);
+  background: var(--bg-light); color: var(--danger);
 }
+
+/* Loading text for embed (hidden, but exists for state) */
+.music-embed-loading-text { display: none; }
+
+/* Mini embed for Apple Music & Deezer — these platforms have no JS control
+   API, so the embed must be visible for the user to press play inside it.
+   Styled as a compact, professional mini-player below the custom controls. */
+.music-player-embed.embed-mini {
+  position: relative; left: auto; top: auto;
+  width: 100%; height: auto; opacity: 1; pointer-events: auto;
+  margin: 0 0 14px 0; border-radius: var(--radius-sm);
+  overflow: hidden; border: 1px solid var(--border);
+  background: var(--bg-darker);
+}
+.music-player-embed.embed-mini iframe {
+  border: 0; display: block; width: 100%;
+}
+
+/* Native mini-player (Apple Music / Deezer) — inserted inside the card */
+.music-native-mini {
+  margin: 0 16px 14px; border-radius: var(--radius-sm); overflow: hidden;
+  border: 1px solid var(--border); background: var(--bg-darker);
+}
+.music-native-label {
+  font-size: 10px; font-weight: 600; letter-spacing: 0.4px;
+  text-transform: uppercase; color: var(--text-muted);
+  padding: 7px 10px 5px; background: var(--bg-medium);
+  border-bottom: 1px solid var(--border);
+}
+.music-native-mini iframe { border: 0; display: block; }
 
 /* Responsive */
 @media (max-width: 540px) {
-  .music-player-artwork { height: 110px; }
-  .music-player-body { padding: 12px 14px 14px; gap: 10px; }
-  .music-track-title { font-size: 14px; }
+  .music-player-artwork { width: 60px; height: 60px; margin: 12px 0 0 14px; }
+  .music-player-top { padding: 0 14px; }
+  .music-track-title { font-size: 13px; }
   .music-volume-group { display: none; }
-  .music-load-btn { padding: 11px 16px; }
-  .music-player-embed.embed-deezer iframe { height: 200px; }
+  .music-load-btn { padding: 10px 16px; }
 }
 
 /* Customization section */
@@ -4259,12 +4272,12 @@ body.loading-session #chat-app.active::after {
 
             <!-- Music Player Card -->
             <div class="music-player-card" id="music-player-card" style="display:none;">
-              <div class="music-player-artwork" id="music-artwork">
-                <div class="music-artwork-placeholder">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+              <div class="music-player-top">
+                <div class="music-player-artwork" id="music-artwork">
+                  <div class="music-artwork-placeholder">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+                  </div>
                 </div>
-              </div>
-              <div class="music-player-body">
                 <div class="music-player-meta">
                   <div class="music-meta-line">
                     <span class="music-provider-badge" id="music-provider-badge">Spotify</span>
@@ -4274,45 +4287,46 @@ body.loading-session #chat-app.active::after {
                   <h5 class="music-track-title" id="music-track-title">Loading track…</h5>
                   <p class="music-track-artist" id="music-track-artist"></p>
                 </div>
-                <div class="music-player-embed" id="music-embed-container">
-                  <!-- iframe injected here -->
+              </div>
+              <div class="music-player-progress">
+                <span class="music-time" id="music-time-current">0:00</span>
+                <div class="music-progress-bar" id="music-progress-bar">
+                  <div class="music-progress-fill" id="music-progress-fill"></div>
+                  <div class="music-progress-handle" id="music-progress-handle"></div>
                 </div>
-                <div class="music-player-progress">
-                  <span class="music-time" id="music-time-current">0:00</span>
-                  <div class="music-progress-bar" id="music-progress-bar">
-                    <div class="music-progress-fill" id="music-progress-fill"></div>
-                    <div class="music-progress-handle" id="music-progress-handle"></div>
-                  </div>
-                  <span class="music-time" id="music-time-total">0:00</span>
+                <span class="music-time" id="music-time-total">0:00</span>
+              </div>
+              <div class="music-player-controls">
+                <button class="music-ctrl-btn" id="music-prev-btn" title="Restart" disabled>
+                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6V6zm3.5 6l8.5 6V6l-8.5 6z"/></svg>
+                </button>
+                <button class="music-ctrl-btn music-play-btn" id="music-play-btn" title="Play">
+                  <svg class="icon-play" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                  <svg class="icon-pause" viewBox="0 0 24 24" fill="currentColor" style="display:none;"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                </button>
+                <button class="music-ctrl-btn" id="music-next-btn" title="Skip 10s" disabled>
+                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
+                </button>
+                <div class="music-volume-group">
+                  <button class="music-ctrl-btn small" id="music-mute-btn" title="Mute">
+                    <svg class="icon-vol-high" viewBox="0 0 24 24" fill="currentColor"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/><path d="M14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
+                    <svg class="icon-vol-mute" viewBox="0 0 24 24" fill="currentColor" style="display:none;"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/></svg>
+                  </button>
+                  <input type="range" class="music-volume-slider" id="music-volume-slider" min="0" max="100" value="80">
                 </div>
-                <div class="music-player-controls">
-                  <button class="music-ctrl-btn" id="music-prev-btn" title="Restart" disabled>
-                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6V6zm3.5 6l8.5 6V6l-8.5 6z"/></svg>
-                  </button>
-                  <button class="music-ctrl-btn music-play-btn" id="music-play-btn" title="Play">
-                    <svg class="icon-play" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-                    <svg class="icon-pause" viewBox="0 0 24 24" fill="currentColor" style="display:none;"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
-                  </button>
-                  <button class="music-ctrl-btn" id="music-next-btn" title="Skip 10s" disabled>
-                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
-                  </button>
-                  <div class="music-volume-group">
-                    <button class="music-ctrl-btn small" id="music-mute-btn" title="Mute">
-                      <svg class="icon-vol-high" viewBox="0 0 24 24" fill="currentColor"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/><path d="M14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
-                      <svg class="icon-vol-mute" viewBox="0 0 24 24" fill="currentColor" style="display:none;"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/></svg>
-                    </button>
-                    <input type="range" class="music-volume-slider" id="music-volume-slider" min="0" max="100" value="80">
-                  </div>
-                  <div class="music-spacer"></div>
-                  <button class="music-ctrl-btn" id="music-loop-btn" title="Loop">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
-                  </button>
-                </div>
+                <div class="music-spacer"></div>
+                <button class="music-ctrl-btn" id="music-loop-btn" title="Loop">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+                </button>
               </div>
               <button class="music-clear-btn" id="music-clear-btn" title="Remove track">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
               </button>
             </div>
+
+            <!-- Hidden embed container — iframe is invisible, audio-only.
+                 The user controls playback through the custom UI above. -->
+            <div class="music-player-embed" id="music-embed-container"></div>
 
             <!-- Empty state -->
             <div class="music-empty-state" id="music-empty-state">
@@ -9775,12 +9789,18 @@ const MusicPlayer = {
     playlistTracks: [],
     validated: false,
   },
+  // Platform controller instances
+  spotifyController: null,
+  scWidget: null,
+  ytPlayer: null,
+  _spotifyApiLoaded: false,
+  _ytApiLoaded: false,
+  _pendingLoad: null,  // stores { provider, url, embedUrl, info } while waiting for API
 
   // ---------- Link detection ----------
   detectProvider(url) {
     if (!url) return null;
     const u = url.toLowerCase().trim();
-    // Must start with http(s)://
     if (!/^https?:\/\//.test(u)) return null;
     if (u.includes('spotify.com') || u.includes('open.spotify.com') || u.includes('spotify.link')) return 'spotify';
     if (u.includes('soundcloud.com')) return 'soundcloud';
@@ -9793,21 +9813,11 @@ const MusicPlayer = {
   // ---------- Detect if a link is a playlist ----------
   detectPlaylist(provider, url) {
     const u = url.toLowerCase();
-    if (provider === 'spotify') {
-      return /\/(playlist|album|show)\//.test(u);
-    }
-    if (provider === 'soundcloud') {
-      return /\/sets\//.test(u) || /\/playlists\//.test(u);
-    }
-    if (provider === 'youtube') {
-      return u.includes('list=') || /\/playlist\?/.test(u);
-    }
-    if (provider === 'deezer') {
-      return /\/playlist\//.test(u) || /\/album\//.test(u);
-    }
-    if (provider === 'apple') {
-      return /\/playlist\//.test(u) || /\/album\//.test(u);
-    }
+    if (provider === 'spotify') return /\/(playlist|album|show)\//.test(u);
+    if (provider === 'soundcloud') return /\/sets\//.test(u) || /\/playlists\//.test(u);
+    if (provider === 'youtube') return u.includes('list=') || /\/playlist\?/.test(u);
+    if (provider === 'deezer') return /\/playlist\//.test(u) || /\/album\//.test(u);
+    if (provider === 'apple') return /\/playlist\//.test(u) || /\/album\//.test(u);
     return false;
   },
 
@@ -9815,30 +9825,12 @@ const MusicPlayer = {
   buildEmbed(provider, url) {
     try {
       if (provider === 'spotify') {
-        if (url.includes('/track/')) {
-          const id = url.match(/\/track\/([a-zA-Z0-9]+)/);
-          if (id) return 'https://open.spotify.com/embed/track/' + id[1] + '?utm_source=generator';
-        }
-        if (url.includes('/album/')) {
-          const id = url.match(/\/album\/([a-zA-Z0-9]+)/);
-          if (id) return 'https://open.spotify.com/embed/album/' + id[1] + '?utm_source=generator';
-        }
-        if (url.includes('/playlist/')) {
-          const id = url.match(/\/playlist\/([a-zA-Z0-9]+)/);
-          if (id) return 'https://open.spotify.com/embed/playlist/' + id[1] + '?utm_source=generator';
-        }
-        if (url.includes('/episode/')) {
-          const id = url.match(/\/episode\/([a-zA-Z0-9]+)/);
-          if (id) return 'https://open.spotify.com/embed/episode/' + id[1] + '?utm_source=generator';
-        }
-        if (url.includes('/show/')) {
-          const id = url.match(/\/show\/([a-zA-Z0-9]+)/);
-          if (id) return 'https://open.spotify.com/embed/show/' + id[1] + '?utm_source=generator';
-        }
-        if (url.includes('/artist/')) {
-          const id = url.match(/\/artist\/([a-zA-Z0-9]+)/);
-          if (id) return 'https://open.spotify.com/embed/artist/' + id[1] + '?utm_source=generator';
-        }
+        if (url.includes('/track/')) { const id = url.match(/\/track\/([a-zA-Z0-9]+)/); if (id) return 'https://open.spotify.com/embed/track/' + id[1] + '?utm_source=generator&theme=dark'; }
+        if (url.includes('/album/')) { const id = url.match(/\/album\/([a-zA-Z0-9]+)/); if (id) return 'https://open.spotify.com/embed/album/' + id[1] + '?utm_source=generator&theme=dark'; }
+        if (url.includes('/playlist/')) { const id = url.match(/\/playlist\/([a-zA-Z0-9]+)/); if (id) return 'https://open.spotify.com/embed/playlist/' + id[1] + '?utm_source=generator&theme=dark'; }
+        if (url.includes('/episode/')) { const id = url.match(/\/episode\/([a-zA-Z0-9]+)/); if (id) return 'https://open.spotify.com/embed/episode/' + id[1] + '?utm_source=generator&theme=dark'; }
+        if (url.includes('/show/')) { const id = url.match(/\/show\/([a-zA-Z0-9]+)/); if (id) return 'https://open.spotify.com/embed/show/' + id[1] + '?utm_source=generator&theme=dark'; }
+        if (url.includes('/artist/')) { const id = url.match(/\/artist\/([a-zA-Z0-9]+)/); if (id) return 'https://open.spotify.com/embed/artist/' + id[1] + '?utm_source=generator&theme=dark'; }
         return null;
       }
       if (provider === 'soundcloud') {
@@ -9848,29 +9840,18 @@ const MusicPlayer = {
                'visual=false&callback=true';
       }
       if (provider === 'youtube') {
-        let videoId = null;
-        let listId = null;
-        if (url.includes('youtu.be/')) {
-          videoId = url.split('youtu.be/')[1].split(/[?&#]/)[0];
-        } else if (url.includes('v=')) {
-          const m = url.match(/[?&]v=([a-zA-Z0-9_-]+)/);
-          if (m) videoId = m[1];
-        } else if (url.includes('/embed/')) {
-          videoId = url.split('/embed/')[1].split(/[?&#]/)[0];
-        }
+        let videoId = null, listId = null;
+        if (url.includes('youtu.be/')) videoId = url.split('youtu.be/')[1].split(/[?&#]/)[0];
+        else if (url.includes('v=')) { const m = url.match(/[?&]v=([a-zA-Z0-9_-]+)/); if (m) videoId = m[1]; }
+        else if (url.includes('/embed/')) videoId = url.split('/embed/')[1].split(/[?&#]/)[0];
         const lm = url.match(/[?&]list=([a-zA-Z0-9_-]+)/);
         if (lm) listId = lm[1];
         if (videoId) {
-          let e = 'https://www.youtube.com/embed/' + videoId +
-                  '?enablejsapi=1&playsinline=1&rel=0&modestbranding=1';
+          let e = 'https://www.youtube.com/embed/' + videoId + '?enablejsapi=1&playsinline=1&rel=0&modestbranding=1';
           if (listId) e += '&list=' + listId;
           return e;
         }
-        if (listId) {
-          // Playlist-only link (no specific video)
-          return 'https://www.youtube.com/embed/videoseries?list=' + listId +
-                 '&enablejsapi=1&playsinline=1&rel=0&modestbranding=1';
-        }
+        if (listId) return 'https://www.youtube.com/embed/videoseries?list=' + listId + '&enablejsapi=1&playsinline=1&rel=0&modestbranding=1';
         return null;
       }
       if (provider === 'apple') {
@@ -9880,24 +9861,15 @@ const MusicPlayer = {
       }
       if (provider === 'deezer') {
         const m = url.match(/deezer\.com\/(track|album|playlist)\/(\d+)/);
-        if (m) {
-          const type = m[1];
-          const id = m[2];
-          return 'https://widget.deezer.com/widget/auto/' + type + '-' + id +
-                 '?tracklist=true&autoplay=false';
-        }
+        if (m) return 'https://widget.deezer.com/widget/auto/' + m[1] + '-' + m[2] + '?tracklist=true&autoplay=false';
         return null;
       }
     } catch(e) { console.warn('Music embed build error:', e); }
     return null;
   },
 
-  // ---------- Validate + fetch metadata via oEmbed ----------
-  // Returns { valid, title, artist, artwork, isPlaylist } — if oEmbed fails,
-  // valid=false meaning the link does not resolve to a real track.
+  // ---------- Validate + fetch metadata via server-side oEmbed proxy ----------
   async validateAndFetch(provider, url) {
-    // Delegate validation to the server-side proxy to avoid browser CORS
-    // restrictions on oEmbed endpoints (YouTube, Apple Music, Deezer, etc.).
     try {
       const r = await fetch(API_BASE + '/api/validate-music-link', {
         method: 'POST',
@@ -9906,21 +9878,9 @@ const MusicPlayer = {
       });
       if (r.ok) {
         const d = await r.json();
-        return {
-          valid: !!d.valid,
-          title: d.title || null,
-          artist: d.artist || null,
-          artwork: d.artwork || null,
-          isPlaylist: !!d.isPlaylist
-        };
+        return { valid: !!d.valid, title: d.title || null, artist: d.artist || null, artwork: d.artwork || null, isPlaylist: !!d.isPlaylist };
       }
-    } catch (e) {
-      console.warn('Music validate error (server proxy):', e);
-    }
-    // Fallback: rely on client-side playlist detection only if the server
-    // proxy is unreachable, but mark as invalid so we don't reject a link
-    // purely due to a transient network issue. The load() method will still
-    // attempt to embed, and the user can press play manually.
+    } catch (e) { console.warn('Music validate error (server proxy):', e); }
     return { valid: false, title: null, artist: null, artwork: null, isPlaylist: this.detectPlaylist(provider, url), proxyFailed: true };
   },
 
@@ -9937,8 +9897,13 @@ const MusicPlayer = {
       return false;
     }
 
-    // Show loading state immediately
+    // Reset state
     this.stopProgress();
+    this.spotifyController = null;
+    this.scWidget = null;
+    this.ytPlayer = null;
+    const oldMini = $('music-player-card').querySelector('.music-native-mini');
+    if (oldMini) oldMini.remove();
     this.state = {
       provider, link: url, embedUrl,
       isPlaying: false, isLooping: false,
@@ -9949,6 +9914,7 @@ const MusicPlayer = {
       validated: false,
     };
 
+    // Show card
     $('music-player-card').style.display = 'flex';
     $('music-empty-state').style.display = 'none';
     $('music-provider-badge').textContent = provider === 'apple' ? 'Apple Music' :
@@ -9968,27 +9934,13 @@ const MusicPlayer = {
     $('music-prev-btn').disabled = true;
     $('music-next-btn').disabled = true;
 
-    // Show loading embed placeholder
-    const container = $('music-embed-container');
-    container.innerHTML = '<div class="music-embed-loading-text">Connecting to ' + (provider === 'apple' ? 'Apple Music' : provider) + '…</div>';
-    container.className = 'music-player-embed embed-' + provider + ' embed-loading';
-
     // ---- Validate the link via the server-side oEmbed proxy ----
     const info = await this.validateAndFetch(provider, url);
     if (!info.valid && !info.proxyFailed) {
-      // Genuinely invalid link — hide the player and show error
       $('music-player-card').style.display = 'none';
       $('music-empty-state').style.display = 'flex';
-      container.innerHTML = '';
       if (!silent) toast('That link could not be verified. It may be invalid, private, or region-locked. Try a different link.', 'error');
       return false;
-    }
-    // If the proxy failed (network issue / server down) but we detected a
-    // supported provider, proceed to embed the link optimistically so the
-    // user can still press play. The embed itself will show if the link is
-    // actually invalid.
-    if (info.proxyFailed && !silent) {
-      toast('Verifying link… (if the track doesn\'t load, check the link is public.)', 'info');
     }
 
     this.state.validated = true;
@@ -10001,147 +9953,205 @@ const MusicPlayer = {
       $('music-artwork').style.backgroundImage = "url('" + info.artwork + "')";
       $('music-artwork').querySelector('.music-artwork-placeholder').style.display = 'none';
     }
-    if (info.isPlaylist) {
-      $('music-playlist-badge').style.display = 'inline-flex';
-    }
+    if (info.isPlaylist) $('music-playlist-badge').style.display = 'inline-flex';
 
-    // ---- Inject the embed iframe (visible & interactive) ----
-    container.innerHTML = '';
-    container.className = 'music-player-embed embed-' + provider;
-    const iframe = document.createElement('iframe');
-    iframe.src = embedUrl;
-    iframe.width = '100%';
-    iframe.allow = 'autoplay; encrypted-media; fullscreen; picture-in-picture';
-    iframe.setAttribute('frameborder', '0');
-    iframe.setAttribute('allowtransparency', 'true');
-    iframe.setAttribute('loading', 'lazy');
-    container.appendChild(iframe);
-    this.state.iframe = iframe;
-
-    // Wire up platform-specific controls
-    this.setupPlatformControls(provider, iframe);
+    // ---- Inject the HIDDEN embed iframe and wire up platform controls ----
+    this.injectEmbed(provider, embedUrl);
 
     $('music-prev-btn').disabled = false;
     $('music-next-btn').disabled = false;
 
     if (!silent) {
-      if (info.isPlaylist) {
-        toast('Playlist loaded. Press play to start — songs will play in order.', 'success');
-      } else {
-        toast('Track loaded. Press play to start listening.', 'success');
-      }
+      if (info.isPlaylist) toast('Playlist loaded. Press play to start — songs will play in order.', 'success');
+      else toast('Track loaded. Press play to start listening.', 'success');
     }
     return true;
   },
 
-  // ---------- Platform-specific control wiring ----------
-  setupPlatformControls(provider, iframe) {
-    const self = this;
+  // ---------- Inject hidden iframe + wire up platform-specific API ----------
+  injectEmbed(provider, embedUrl) {
+    const container = $('music-embed-container');
+    container.innerHTML = '';
+    container.className = 'music-player-embed embed-' + provider;
+
     if (provider === 'spotify') {
-      // Spotify Embed Controller — listen for messages from the iframe
-      if (!this._spotifyMsgBound) {
-        this._spotifyMsgBound = true;
-        window.addEventListener('message', (e) => {
-          if (!e.data || typeof e.data !== 'string') {
-            // Some Spotify messages come as JSON strings
-          }
-          let payload = e.data;
-          if (typeof payload === 'string') {
-            try { payload = JSON.parse(payload); } catch(_) { return; }
-          }
-          if (!payload || typeof payload !== 'object') return;
-          // Spotify embed sends: { type: 'ready' } and { type: 'event', event: 'playback_update', data: {...} }
-          if (payload.type === 'ready') {
-            self.spotifyReady = true;
-            self.spotifySend(iframe, { command: 'setVolume', value: self.state.volume });
-            self.spotifySend(iframe, { command: 'subscribeToEvents', value: true });
-          }
-          if (payload.type === 'event' && payload.event === 'playback_update') {
-            const d = payload.data || {};
-            if (d.duration) self.state.duration = d.duration / 1000;
-            if (d.position != null) self.state.currentTime = d.position / 1000;
-            self.state.isPlaying = !!d.isPaused ? false : (d.position != null || d.isPlaying === true);
-            self.setPlayIcon(self.state.isPlaying);
-            if (self.state.isPlaying) self.startProgress(); else self.stopProgress();
-            self.updateProgressVisual();
-            // Detect track end for non-loop playlist advance (Spotify handles
-            // playlist auto-advance natively inside the embed, so we only
-            // handle the single-track loop case here.)
-          }
-        });
-      }
-    } else if (provider === 'soundcloud') {
-      // SoundCloud Widget API
-      const tryInit = () => {
-        if (!window.SC || !window.SC.Widget) { setTimeout(tryInit, 300); return; }
-        const widget = SC.Widget(iframe);
-        self.scWidget = widget;
-        widget.bind(SC.Widget.Events.READY, () => {
-          widget.setVolume(self.state.volume / 100);
-          widget.getSounds(tracks => {
-            if (tracks && tracks.length > 1) {
-              self.state.isPlaylist = true;
-              self.state.playlistTracks = tracks;
-              $('music-playlist-badge').style.display = 'inline-flex';
-            }
+      // Use the official Spotify iFrame API: createController replaces a
+      // placeholder element with the embed and gives us an EmbedController
+      // for programmatic play/pause/seek control.
+      this._loadSpotifyApi((IFrameAPI) => {
+        if (!IFrameAPI) {
+          // Fallback: inject a plain iframe if the API fails to load
+          const iframe = document.createElement('iframe');
+          iframe.src = embedUrl;
+          iframe.allow = 'autoplay; encrypted-media; fullscreen; picture-in-picture';
+          iframe.setAttribute('frameborder', '0');
+          iframe.setAttribute('allowtransparency', 'true');
+          container.appendChild(iframe);
+          this.state.iframe = iframe;
+          return;
+        }
+        const placeholder = document.createElement('div');
+        container.appendChild(placeholder);
+        const options = { uri: this._spotifyUriFromUrl(embedUrl), width: 300, height: 200 };
+        IFrameAPI.createController(placeholder, options, (EmbedController) => {
+          this.spotifyController = EmbedController;
+          this.state.iframe = container.querySelector('iframe');
+          EmbedController.addListener('playback_update', (e) => {
+            const d = (e && e.data) || {};
+            if (d.duration) this.state.duration = d.duration / 1000;
+            if (d.position != null) this.state.currentTime = d.position / 1000;
+            this.state.isPlaying = !d.isPaused;
+            this.setPlayIcon(this.state.isPlaying);
+            if (this.state.isPlaying) this.startProgress(); else this.stopProgress();
+            this.updateProgressVisual();
           });
         });
-        widget.bind(SC.Widget.Events.PLAY, () => { self.state.isPlaying = true; self.setPlayIcon(true); self.startProgress(); });
-        widget.bind(SC.Widget.Events.PAUSE, () => { self.state.isPlaying = false; self.setPlayIcon(false); self.stopProgress(); });
-        widget.bind(SC.Widget.Events.FINISH, () => {
-          if (self.state.isLooping) { widget.seekTo(0); widget.play(); }
-          else if (self.state.isPlaylist) {
-            // Advance to next track in the SoundCloud playlist
-            const idx = self.state.playlistIndex + 1;
-            if (self.state.playlistTracks.length > 0 && idx < self.state.playlistTracks.length) {
-              self.state.playlistIndex = idx;
-              widget.skip(idx);
-              widget.play();
-            } else {
-              // End of playlist
-              self.state.isPlaying = false; self.setPlayIcon(false); self.stopProgress();
-            }
-          } else {
-            self.state.isPlaying = false; self.setPlayIcon(false); self.stopProgress();
+      });
+    } else if (provider === 'soundcloud') {
+      const iframe = document.createElement('iframe');
+      iframe.src = embedUrl;
+      iframe.allow = 'autoplay; encrypted-media';
+      iframe.setAttribute('frameborder', '0');
+      container.appendChild(iframe);
+      this.state.iframe = iframe;
+      this._setupSoundCloud(iframe);
+    } else if (provider === 'youtube') {
+      // YouTube: use IFrame API to create a player in a div (not an iframe
+      // directly — the API creates and manages the iframe for us).
+      this._loadYouTubeApi(() => {
+        const playerDiv = document.createElement('div');
+        playerDiv.id = 'music-yt-player';
+        container.appendChild(playerDiv);
+        this._createYTPlayer(playerDiv.id);
+      });
+    } else if (provider === 'apple' || provider === 'deezer') {
+      // Apple Music & Deezer have no JS control API, so the user must
+      // interact with the platform's native embed to play. We insert a
+      // compact, styled mini-player inside the card (below the controls)
+      // so it looks integrated and professional.
+      const card = $('music-player-card');
+      // Remove any existing mini-player
+      const existingMini = card.querySelector('.music-native-mini');
+      if (existingMini) existingMini.remove();
+      const miniWrap = document.createElement('div');
+      miniWrap.className = 'music-native-mini';
+      const label = document.createElement('div');
+      label.className = 'music-native-label';
+      label.textContent = provider === 'apple' ? 'Apple Music player' : 'Deezer player';
+      miniWrap.appendChild(label);
+      const iframe = document.createElement('iframe');
+      iframe.src = embedUrl;
+      iframe.allow = 'autoplay; encrypted-media; fullscreen; picture-in-picture';
+      iframe.setAttribute('frameborder', '0');
+      iframe.setAttribute('allowtransparency', 'true');
+      iframe.style.width = '100%';
+      iframe.style.height = provider === 'deezer' ? '120px' : '140px';
+      miniWrap.appendChild(iframe);
+      card.appendChild(miniWrap);
+      this.state.iframe = iframe;
+    }
+  },
+
+  // ---------- Convert embed URL to Spotify URI ----------
+  _spotifyUriFromUrl(embedUrl) {
+    // embedUrl like https://open.spotify.com/embed/track/ID?...
+    const m = embedUrl.match(/\/embed\/(track|album|playlist|episode|show|artist)\/([a-zA-Z0-9]+)/);
+    if (m) return 'spotify:' + m[1] + ':' + m[2];
+    return embedUrl;
+  },
+
+  // ---------- Load Spotify iFrame API ----------
+  _loadSpotifyApi(callback) {
+    // If already loaded, callback immediately with the API object
+    if (this._spotifyApiLoaded && window._spotifyIframeApi) { callback(window._spotifyIframeApi); return; }
+    // Set up the global callback that Spotify's script calls when ready.
+    // Store pending callbacks so multiple loads don't conflict.
+    if (!window._spotifyApiCallbacks) window._spotifyApiCallbacks = [];
+    window._spotifyApiCallbacks.push(callback);
+    window.onSpotifyIframeApiReady = (IFrameAPI) => {
+      window._spotifyIframeApi = IFrameAPI;
+      this._spotifyApiLoaded = true;
+      const cbs = window._spotifyApiCallbacks;
+      window._spotifyApiCallbacks = [];
+      cbs.forEach(cb => { try { cb(IFrameAPI); } catch(e) { console.warn('Spotify API callback error:', e); } });
+    };
+    if (!document.querySelector('script[src*="spotify.com/embed/iframe-api"]')) {
+      const s = document.createElement('script');
+      s.src = 'https://open.spotify.com/embed/iframe-api/v1';
+      s.async = true;
+      document.head.appendChild(s);
+    }
+  },
+
+  // ---------- Load YouTube IFrame API ----------
+  _loadYouTubeApi(callback) {
+    // If already loaded, callback immediately
+    if (this._ytApiLoaded && window.YT && window.YT.Player) { callback(); return; }
+    // Queue the callback so multiple loads don't conflict
+    if (!window._ytApiCallbacks) window._ytApiCallbacks = [];
+    window._ytApiCallbacks.push(callback);
+    window.onYouTubeIframeAPIReady = () => {
+      this._ytApiLoaded = true;
+      const cbs = window._ytApiCallbacks;
+      window._ytApiCallbacks = [];
+      cbs.forEach(cb => { try { cb(); } catch(e) { console.warn('YT API callback error:', e); } });
+    };
+    if (!document.querySelector('script[src*="youtube.com/iframe_api"]')) {
+      const s = document.createElement('script');
+      s.src = 'https://www.youtube.com/iframe_api';
+      s.async = true;
+      document.head.appendChild(s);
+    } else if (window.YT && window.YT.Player) {
+      // Script already loaded and ready
+      this._ytApiLoaded = true;
+      const cbs = window._ytApiCallbacks; window._ytApiCallbacks = [];
+      cbs.forEach(cb => { try { cb(); } catch(e) {} });
+    }
+  },
+
+  // ---------- Setup SoundCloud Widget ----------
+  _setupSoundCloud(iframe) {
+    const self = this;
+    const tryInit = () => {
+      if (!window.SC || !window.SC.Widget) { setTimeout(tryInit, 300); return; }
+      const widget = SC.Widget(iframe);
+      self.scWidget = widget;
+      widget.bind(SC.Widget.Events.READY, () => {
+        widget.setVolume(self.state.volume / 100);
+        widget.getSounds(tracks => {
+          if (tracks && tracks.length > 1) {
+            self.state.isPlaylist = true;
+            self.state.playlistTracks = tracks;
+            $('music-playlist-badge').style.display = 'inline-flex';
           }
         });
-        widget.bind(SC.Widget.Events.PLAY_PROGRESS, () => {});
-      };
-      tryInit();
-    } else if (provider === 'youtube') {
-      const tryInit = () => {
-        if (!window.YT || !window.YT.Player) { setTimeout(tryInit, 300); return; }
-        self.createYTPlayer();
-      };
-      tryInit();
-    }
-    // Apple Music & Deezer embeds are interactive iframes — the user clicks
-    // play inside them. The embed handles playlist auto-advance natively.
-    // Our custom play button toggles a visual state for these platforms.
+      });
+      widget.bind(SC.Widget.Events.PLAY, () => { self.state.isPlaying = true; self.setPlayIcon(true); self.startProgress(); });
+      widget.bind(SC.Widget.Events.PAUSE, () => { self.state.isPlaying = false; self.setPlayIcon(false); self.stopProgress(); });
+      widget.bind(SC.Widget.Events.FINISH, () => {
+        if (self.state.isLooping) { widget.seekTo(0); widget.play(); }
+        else if (self.state.isPlaylist) {
+          const idx = self.state.playlistIndex + 1;
+          if (self.state.playlistTracks.length > 0 && idx < self.state.playlistTracks.length) {
+            self.state.playlistIndex = idx; widget.skip(idx); widget.play();
+          } else { self.state.isPlaying = false; self.setPlayIcon(false); self.stopProgress(); }
+        } else { self.state.isPlaying = false; self.setPlayIcon(false); self.stopProgress(); }
+      });
+    };
+    tryInit();
   },
 
-  spotifySend(iframe, cmd) {
-    try {
-      // Spotify Embed Controller expects a specific message format
-      iframe.contentWindow.postMessage(JSON.stringify(cmd), '*');
-    } catch(e) { /* iframe may not be ready yet */ }
-  },
-
-  createYTPlayer() {
+  // ---------- Create YouTube Player ----------
+  _createYTPlayer(divId) {
     const self = this;
-    const m = (self.state.embedUrl || '').match(/\/(?:embed|videoseries)\/([a-zA-Z0-9_-]+)/);
+    const embedUrl = self.state.embedUrl || '';
+    const m = embedUrl.match(/\/(?:embed|videoseries)\/([a-zA-Z0-9_-]+)/);
     const videoId = m ? m[1] : null;
     if (!videoId) return;
-    const container = $('music-embed-container');
-    const existing = container.querySelector('iframe, #music-yt-player');
-    if (existing) existing.remove();
-    const div = document.createElement('div');
-    div.id = 'music-yt-player';
-    container.appendChild(div);
     const lm = (self.state.link || '').match(/[?&]list=([a-zA-Z0-9_-]+)/);
-    const playerVars = { autoplay: 0, controls: 1, rel: 0, modestbranding: 1, playsinline: 1 };
+    const playerVars = { autoplay: 0, controls: 0, rel: 0, modestbranding: 1, playsinline: 1, disablekb: 1, fs: 0 };
     if (lm) { playerVars.listType = 'playlist'; playerVars.list = lm[1]; }
-    self.ytPlayer = new YT.Player('music-yt-player', {
+    self.ytPlayer = new YT.Player(divId, {
       videoId: videoId === 'videoseries' ? null : videoId,
       playerVars: playerVars,
       events: {
@@ -10149,15 +10159,14 @@ const MusicPlayer = {
           e.target.setVolume(self.state.volume);
           self.state.duration = e.target.getDuration() || 0;
           $('music-time-total').textContent = self.formatTime(self.state.duration);
+          self.state.iframe = $('music-embed-container').querySelector('iframe');
         },
         onStateChange: (e) => {
-          if (e.data === YT.PlayerState.PLAYING) { self.state.isPlaying = true; self.setPlayIcon(true); self.startProgress(); }
+          if (e.data === YT.PlayerState.PLAYING) { self.state.isPlaying = true; self.setPlayIcon(true); self.state.duration = e.target.getDuration() || 0; $('music-time-total').textContent = self.formatTime(self.state.duration); self.startProgress(); }
           else if (e.data === YT.PlayerState.PAUSED) { self.state.isPlaying = false; self.setPlayIcon(false); self.stopProgress(); }
           else if (e.data === YT.PlayerState.ENDED) {
             if (self.state.isLooping) { e.target.seekTo(0); e.target.playVideo(); }
             else if (self.state.isPlaylist) {
-              // YouTube playlist auto-advances natively when using the list
-              // param, but if it doesn't, try nextVideo()
               if (e.target.nextVideo) e.target.nextVideo();
               else { self.state.isPlaying = false; self.setPlayIcon(false); self.stopProgress(); }
             }
@@ -10172,33 +10181,28 @@ const MusicPlayer = {
   togglePlay() {
     const s = this.state;
     if (!s.validated) return;
-    if (s.provider === 'spotify') {
-      this.spotifySend(s.iframe, { command: s.isPlaying ? 'pause' : 'play' });
-      // Fallback visual toggle in case postMessage is delayed
-      setTimeout(() => { if (s.isPlaying === (s.isPlaying)) {} }, 800);
+    if (s.provider === 'spotify' && this.spotifyController) {
+      this.spotifyController.togglePlay();
     } else if (s.provider === 'soundcloud' && this.scWidget) {
       this.scWidget.toggle();
     } else if (s.provider === 'youtube' && this.ytPlayer) {
       if (s.isPlaying) this.ytPlayer.pauseVideo();
       else this.ytPlayer.playVideo();
     } else if (s.provider === 'apple' || s.provider === 'deezer') {
-      // No JS API — instruct user to click play in the embed
-      toast('Press the play button inside the ' + (s.provider === 'apple' ? 'Apple Music' : 'Deezer') + ' player below.', 'success');
-      s.isPlaying = !s.isPlaying;
-      this.setPlayIcon(s.isPlaying);
-      this.startProgress();
+      // No JS API for these platforms. The embed must be interacted with
+      // directly. Show a toast guiding the user.
+      toast('Use the ' + (s.provider === 'apple' ? 'Apple Music' : 'Deezer') + ' player controls below to play this track.', 'info');
+    } else {
+      // API not ready yet — retry shortly
+      toast('Player is still loading, try again in a moment.', 'info');
     }
   },
 
   toggleLoop() {
     this.state.isLooping = !this.state.isLooping;
     $('music-loop-btn').classList.toggle('active', this.state.isLooping);
-    if (this.state.isLooping) {
-      toast('Loop enabled — the current track will repeat.', 'success');
-    } else {
-      toast('Loop disabled.', 'success');
-    }
-    // For YouTube, set loop via API
+    if (this.state.isLooping) toast('Loop enabled — the current track will repeat.', 'success');
+    else toast('Loop disabled.', 'success');
     if (this.state.provider === 'youtube' && this.ytPlayer && this.ytPlayer.setLoop) {
       this.ytPlayer.setLoop(this.state.isLooping);
     }
@@ -10206,7 +10210,7 @@ const MusicPlayer = {
 
   restart() {
     const s = this.state;
-    if (s.provider === 'spotify') { this.spotifySend(s.iframe, { command: 'seek', value: 0 }); }
+    if (s.provider === 'spotify' && this.spotifyController) { this.spotifyController.seek(0); }
     else if (s.provider === 'soundcloud' && this.scWidget) { this.scWidget.seekTo(0); }
     else if (s.provider === 'youtube' && this.ytPlayer) { this.ytPlayer.seekTo(0, true); }
     else { s.currentTime = 0; $('music-progress-fill').style.width = '0%'; $('music-progress-handle').style.left = '0%'; $('music-time-current').textContent = '0:00'; }
@@ -10215,7 +10219,7 @@ const MusicPlayer = {
   skip10() {
     const s = this.state;
     const target = (s.currentTime || 0) + 10;
-    if (s.provider === 'spotify') { this.spotifySend(s.iframe, { command: 'seek', value: Math.round(target * 1000) }); }
+    if (s.provider === 'spotify' && this.spotifyController) { this.spotifyController.seek(target); }
     else if (s.provider === 'soundcloud' && this.scWidget) { this.scWidget.seekTo(target * 1000); }
     else if (s.provider === 'youtube' && this.ytPlayer) { this.ytPlayer.seekTo(target, true); }
     else { s.currentTime = target; this.updateProgressVisual(); }
@@ -10225,9 +10229,9 @@ const MusicPlayer = {
     this.state.volume = vol;
     const s = this.state;
     const pct = vol / 100;
-    if (s.provider === 'spotify') { this.spotifySend(s.iframe, { command: 'setVolume', value: pct }); }
-    else if (s.provider === 'soundcloud' && this.scWidget) { this.scWidget.setVolume(pct); }
+    if (s.provider === 'soundcloud' && this.scWidget) { this.scWidget.setVolume(pct); }
     else if (s.provider === 'youtube' && this.ytPlayer && this.ytPlayer.setVolume) { this.ytPlayer.setVolume(vol); }
+    // Spotify iFrame API doesn't expose setVolume — controlled by browser
   },
 
   toggleMute() {
@@ -10235,8 +10239,7 @@ const MusicPlayer = {
     const s = this.state;
     $('music-mute-btn').querySelector('.icon-vol-high').style.display = s.muted ? 'none' : 'block';
     $('music-mute-btn').querySelector('.icon-vol-mute').style.display = s.muted ? 'block' : 'none';
-    if (s.provider === 'spotify') { this.spotifySend(s.iframe, { command: 'setVolume', value: s.muted ? 0 : s.volume / 100 }); }
-    else if (s.provider === 'soundcloud' && this.scWidget) { this.scWidget.setVolume(s.muted ? 0 : s.volume / 100); }
+    if (s.provider === 'soundcloud' && this.scWidget) { this.scWidget.setVolume(s.muted ? 0 : s.volume / 100); }
     else if (s.provider === 'youtube' && this.ytPlayer) { if (s.muted) this.ytPlayer.mute(); else this.ytPlayer.unMute(); }
   },
 
@@ -10265,15 +10268,6 @@ const MusicPlayer = {
     } else if (s.provider === 'spotify') {
       // Spotify progress is updated via the playback_update event handler
       this.updateProgressVisual();
-    } else if (s.provider === 'apple' || s.provider === 'deezer') {
-      if (s.isPlaying) {
-        s.currentTime += 0.5;
-        if (s.duration && s.currentTime >= s.duration) {
-          if (s.isLooping) { s.currentTime = 0; }
-          else { s.isPlaying = false; this.setPlayIcon(false); this.stopProgress(); }
-        }
-      }
-      this.updateProgressVisual();
     }
   },
   updateProgressVisual() {
@@ -10289,7 +10283,7 @@ const MusicPlayer = {
     if (!s.duration) return;
     const target = (pct / 100) * s.duration;
     s.currentTime = target;
-    if (s.provider === 'spotify') { this.spotifySend(s.iframe, { command: 'seek', value: Math.round(target * 1000) }); }
+    if (s.provider === 'spotify' && this.spotifyController) { this.spotifyController.seek(target); }
     else if (s.provider === 'soundcloud' && this.scWidget) { this.scWidget.seekTo(target * 1000); }
     else if (s.provider === 'youtube' && this.ytPlayer) { this.ytPlayer.seekTo(target, true); }
     this.updateProgressVisual();
@@ -10322,7 +10316,9 @@ const MusicPlayer = {
     $('music-empty-state').style.display = 'flex';
     $('music-link-input').value = '';
     $('music-playlist-badge').style.display = 'none';
-    this.ytPlayer = null; this.scWidget = null;
+    this.ytPlayer = null; this.scWidget = null; this.spotifyController = null;
+    const mini = $('music-player-card').querySelector('.music-native-mini');
+    if (mini) mini.remove();
   }
 };
 
