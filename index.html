@@ -7375,16 +7375,13 @@ function connectSocket() {
     }
     loadDMConversations();
   });
-  // Pinged in DM — show notification
+  // Pinged in DM — NO bottom notification. The red unread badge on the
+  // Messages tab is the only signal (plus the in-conversation ping highlight
+  // when the conversation is opened). This keeps behaviour consistent for
+  // friends and non-friends alike.
   socket.on('dm-pinged', (data) => {
     if (!data || !data.from) return;
     if (blockedUsers.some(u => u.username === data.from)) return;
-    const user = users.find(u => u.username === data.from);
-    const name = (user && user.displayName) ? user.displayName : '@' + data.from;
-    const isDMFocused = activeDMUser === data.from && document.hasFocus();
-    if (!isDMFocused) {
-      toast(name + ' mentioned you in a DM', 'success');
-    }
     if (data.messageId) {
       const m = dmMessages.find(x => x.id === data.messageId);
       if (m) m.pingedForMe = true;
