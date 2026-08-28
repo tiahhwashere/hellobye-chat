@@ -1,13 +1,12 @@
-# Professionalization + Feature Tweaks
+# Todo: Block UI icon removal, save buttons UI, checkmark UIs, ping system, profile picture sizing, 2SV UI
 
 ## Tasks
-- [x] 1. Regenerate Recovery Code: enforce 48h cooldown (server 429 + client button disabled)
-- [x] 2. Panel Theme Color: accent bar + accent vars only, no full bg overwrite
-- [x] 3. Website Accent Color: --accent-text CSS var for readable button text on any color
-- [x] 4. Professionalize 2SV description text
-- [x] 5. Professionalize 2SV code warning text
-- [x] 6. Professionalize display name hint
-- [x] 7. Professionalize username hint
-- [x] 8. Verify JS syntax (both files)
-- [x] 9. Commit and push to GitHub
-- [x] 10. Verify deploy live on Render (HTTP 200, all changes confirmed in live HTML)
+- [x] 1. Remove SVG icon from block UI fully (sidebar Blocked nav + block modal)
+- [x] 2. Add UI for save changes buttons (professional styling)
+- [x] 3. Revamp all UIs with checkmark icons — make them better + professional
+- [x] 4. Improve the @ (pinging system) UI
+- [x] 5. Make circle profile picture bigger + wider (own profile)
+- [x] 6. Add bigger profile picture for viewing other users' profiles
+- [x] 7. Add better UI for 2-Step Verification section
+- [x] 8. Verify JS syntax (node -c)
+- [ ] 9. Commit & push, verify deploy

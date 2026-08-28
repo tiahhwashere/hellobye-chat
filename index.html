@@ -623,29 +623,34 @@ body.loading-session #chat-app.active::after {
 
 /* Mention highlight in messages */
 .mention-highlight {
-  background: rgba(74,158,255,0.16);
+  background: rgba(74,158,255,0.14);
   color: var(--accent);
-  padding: 1px 5px;
-  border-radius: 5px;
+  padding: 2px 7px;
+  border-radius: 6px;
   font-weight: 700;
   cursor: pointer;
-  transition: background 0.15s ease, transform 0.1s ease;
+  transition: background 0.15s ease, transform 0.1s ease, box-shadow 0.15s ease;
   display: inline-block;
   text-decoration: none;
-  border: 1px solid transparent;
+  border: 1px solid rgba(74,158,255,0.2);
 }
 .mention-highlight:hover {
-  background: rgba(74,158,255,0.30);
-  border-color: rgba(74,158,255,0.35);
+  background: rgba(74,158,255,0.28);
+  border-color: rgba(74,158,255,0.4);
+  box-shadow: 0 2px 8px rgba(74,158,255,0.15);
 }
 .mention-highlight.mention-self {
-  background: rgba(250,204,21,0.18);
+  background: rgba(250,204,21,0.20);
   color: #facc15;
-  border: 1px solid rgba(250,204,21,0.35);
-  border-radius: 5px;
-  padding: 1px 5px;
+  border: 1px solid rgba(250,204,21,0.4);
+  border-radius: 6px;
+  padding: 2px 7px;
+  box-shadow: 0 0 8px rgba(250,204,21,0.12);
 }
-.mention-highlight.mention-self:hover { background: rgba(250,204,21,0.32); }
+.mention-highlight.mention-self:hover {
+  background: rgba(250,204,21,0.34);
+  box-shadow: 0 0 14px rgba(250,204,21,0.22);
+}
 .message-group.own .mention-highlight {
   background: rgba(255,255,255,0.15);
   color: #e0e0e0;
@@ -667,15 +672,16 @@ body.loading-session #chat-app.active::after {
   position: absolute;
   bottom: 100%;
   left: 0;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
   background: var(--bg-medium);
   border: 1px solid var(--border-light);
-  border-radius: 12px;
-  box-shadow: 0 -8px 28px rgba(0,0,0,0.4), 0 -2px 8px rgba(0,0,0,0.2);
-  max-height: 240px;
+  border-top: 3px solid var(--accent);
+  border-radius: 14px;
+  box-shadow: 0 -10px 36px rgba(0,0,0,0.45), 0 -2px 10px rgba(0,0,0,0.25);
+  max-height: 280px;
   overflow-y: auto;
-  min-width: 220px;
-  max-width: 300px;
+  min-width: 240px;
+  max-width: 320px;
   z-index: 600;
   padding: 6px;
   display: none;
@@ -692,32 +698,42 @@ body.loading-session #chat-app.active::after {
   to { opacity: 1; transform: translateY(0); }
 }
 .mention-dropdown-header {
-  font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px;
-  color: var(--text-muted); padding: 6px 10px 4px;
+  font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px;
+  color: var(--text-muted); padding: 8px 10px 6px;
+  border-bottom: 1px solid var(--border-light); margin-bottom: 4px;
+  display: flex; align-items: center; gap: 6px;
+}
+.mention-dropdown-header::before {
+  content: ''; width: 14px; height: 14px; flex-shrink: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.5'%3E%3Ccircle cx='12' cy='12' r='4'/%3E%3Cpath d='M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-4 8'/%3E%3C/svg%3E");
+  background-size: contain; background-repeat: no-repeat; opacity: 0.6;
 }
 .mention-dropdown-item {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 8px 10px;
-  border-radius: 8px;
+  gap: 11px;
+  padding: 9px 10px;
+  border-radius: 10px;
   cursor: pointer;
-  transition: background 0.12s ease;
+  transition: background 0.12s ease, transform 0.08s ease;
   position: relative;
 }
 .mention-dropdown-item:hover, .mention-dropdown-item.active {
   background: rgba(74,158,255,0.14);
 }
 .mention-dropdown-item.active {
-  background: rgba(74,158,255,0.20);
+  background: rgba(74,158,255,0.22);
+  box-shadow: inset 3px 0 0 var(--accent);
 }
+.mention-dropdown-item:active { transform: scale(0.98); }
 .mention-dropdown-avatar {
-  width: 28px; height: 28px; border-radius: 50%;
+  width: 34px; height: 34px; border-radius: 50%;
   background: var(--bg-darker);
   display: flex; align-items: center; justify-content: center;
-  font-size: 11px; font-weight: 700; color: var(--text-muted);
+  font-size: 13px; font-weight: 700; color: var(--text-muted);
   flex-shrink: 0; overflow: hidden;
   position: relative;
+  border: 2px solid var(--border-light);
 }
 .mention-dropdown-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
 /* Status dot on avatar in dropdown */
@@ -760,15 +776,17 @@ body.loading-session #chat-app.active::after {
 @keyframes twosv-fade-in { from { opacity: 0; } to { opacity: 1; } }
 .twosv-card {
   background: var(--bg-medium); border: 1px solid var(--border);
-  border-radius: 16px; padding: 32px 28px; max-width: 440px; width: 90%;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  border-top: 3px solid var(--accent);
+  border-radius: 18px; padding: 36px 32px; max-width: 460px; width: 90%;
+  box-shadow: 0 24px 70px rgba(0,0,0,0.55), 0 0 40px rgba(74,158,255,0.05);
   animation: twosv-slide-up 0.25s ease;
 }
 @keyframes twosv-slide-up { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
 .twosv-icon {
-  width: 56px; height: 56px; margin: 0 auto 18px;
-  border-radius: 14px; display: flex; align-items: center; justify-content: center;
+  width: 64px; height: 64px; margin: 0 auto 20px;
+  border-radius: 16px; display: flex; align-items: center; justify-content: center;
   background: var(--accent-dim); color: var(--accent);
+  box-shadow: 0 0 24px rgba(74,158,255,0.15);
 }
 .twosv-title {
   text-align: center; font-size: 20px; font-weight: 700;
@@ -782,10 +800,10 @@ body.loading-session #chat-app.active::after {
   position: relative; margin-bottom: 16px;
 }
 .twosv-code-input {
-  width: 100%; padding: 14px 16px; font-size: 18px; font-weight: 700;
+  width: 100%; padding: 16px 18px; font-size: 20px; font-weight: 700;
   text-align: center; letter-spacing: 3px; text-transform: uppercase;
   background: var(--bg-darkest); border: 2px solid var(--border);
-  border-radius: 10px; color: var(--text-primary);
+  border-radius: 12px; color: var(--text-primary);
   font-family: 'SF Mono', 'Monaco', 'Cascadia Code', monospace;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
   outline: none;
@@ -798,11 +816,12 @@ body.loading-session #chat-app.active::after {
   color: var(--text-muted); text-transform: none;
 }
 .twosv-trust-row {
-  display: flex; align-items: center; gap: 10px; margin-bottom: 20px;
-  padding: 12px 14px; background: var(--bg-darkest);
-  border: 1px solid var(--border); border-radius: 10px;
-  cursor: pointer; transition: border-color 0.15s ease;
+  display: flex; align-items: center; gap: 11px; margin-bottom: 20px;
+  padding: 14px 16px; background: var(--bg-darkest);
+  border: 1px solid var(--border); border-radius: 12px;
+  cursor: pointer; transition: border-color 0.15s ease, background 0.15s ease;
 }
+.twosv-trust-row:hover { border-color: var(--text-muted); background: var(--bg-dark); }
 .twosv-trust-row:hover { border-color: var(--text-muted); }
 .twosv-trust-checkbox {
   width: 18px; height: 18px; accent-color: var(--accent);
@@ -810,9 +829,16 @@ body.loading-session #chat-app.active::after {
 }
 .twosv-trust-label { font-size: 13px; color: var(--text-secondary); }
 .twosv-btn {
-  width: 100%; padding: 14px; font-size: 15px; font-weight: 700;
-  background: var(--accent); color: var(--accent-text); border: none; border-radius: 10px;
+  width: 100%; padding: 15px; font-size: 15px; font-weight: 700;
+  background: var(--accent); color: var(--accent-text); border: none; border-radius: 12px;
   cursor: pointer; transition: var(--transition); margin-bottom: 10px;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  letter-spacing: 0.3px; box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+}
+.twosv-btn::before {
+  content: ''; width: 18px; height: 18px; flex-shrink: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6L9 17l-5-5'/%3E%3C/svg%3E");
+  background-size: contain; background-repeat: no-repeat; opacity: 0.9;
 }
 .twosv-btn:hover:not(:disabled) { background: var(--accent-hover); }
 .twosv-btn:disabled { opacity: 0.6; cursor: not-allowed; }
@@ -837,35 +863,40 @@ body.loading-session #chat-app.active::after {
 /* 2SV settings section in Data & Privacy tab */
 .twosv-settings-card {
   background: var(--bg-light); border: 1px solid var(--border);
-  border-radius: var(--radius); padding: 18px;
+  border-radius: var(--radius); padding: 20px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.15);
 }
 .twosv-status-row {
-  display: flex; align-items: center; gap: 12px; padding-bottom: 16px;
-  margin-bottom: 16px; border-bottom: 1px solid var(--border-light);
+  display: flex; align-items: center; gap: 14px; padding-bottom: 18px;
+  margin-bottom: 18px; border-bottom: 1px solid var(--border-light);
 }
 .twosv-status-icon {
-  width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0;
+  width: 48px; height: 48px; border-radius: 12px; flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
+  transition: var(--transition);
 }
-.twosv-status-icon.enabled { background: rgba(34,197,94,0.12); color: #22c55e; }
+.twosv-status-icon.enabled { background: rgba(34,197,94,0.14); color: #22c55e; box-shadow: 0 0 12px rgba(34,197,94,0.15); }
 .twosv-status-icon.disabled { background: var(--bg-darkest); color: var(--text-muted); }
 .twosv-status-text { flex: 1; }
 .twosv-status-label { font-size: 14px; font-weight: 700; color: var(--text-primary); }
 .twosv-status-desc { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
 .twosv-code-display {
   background: var(--bg-darkest); border: 1px solid var(--border);
-  border-radius: 12px; padding: 18px; margin-bottom: 16px;
+  border-radius: 14px; padding: 20px; margin-bottom: 16px;
+  box-shadow: inset 0 2px 8px rgba(0,0,0,0.3);
 }
 .twosv-code-label {
   font-size: 10px; font-weight: 700; text-transform: uppercase;
   letter-spacing: 0.8px; color: var(--text-muted); margin-bottom: 10px;
 }
 .twosv-code-value {
-  font-size: 20px; font-weight: 800; letter-spacing: 2px;
+  font-size: 22px; font-weight: 800; letter-spacing: 2.5px;
   font-family: 'SF Mono', 'Monaco', 'Cascadia Code', monospace;
-  color: var(--accent); text-align: center; padding: 10px;
-  background: var(--bg-medium); border-radius: 8px;
-  word-break: break-all; line-height: 1.4;
+  color: var(--accent); text-align: center; padding: 14px;
+  background: var(--bg-medium); border-radius: 10px;
+  border: 1px solid rgba(74,158,255,0.15);
+  word-break: break-all; line-height: 1.5;
+  box-shadow: 0 0 16px rgba(74,158,255,0.08);
 }
 .twosv-code-warning {
   font-size: 12px; color: #facc15; margin-top: 12px;
@@ -876,8 +907,10 @@ body.loading-session #chat-app.active::after {
 }
 .twosv-meta-item {
   background: var(--bg-darkest); border: 1px solid var(--border);
-  border-radius: 8px; padding: 10px 14px; flex: 1; min-width: 120px;
+  border-radius: 10px; padding: 12px 16px; flex: 1; min-width: 120px;
+  transition: var(--transition);
 }
+.twosv-meta-item:hover { border-color: var(--border-light); }
 .twosv-meta-label {
   font-size: 10px; font-weight: 700; text-transform: uppercase;
   letter-spacing: 0.6px; color: var(--text-muted); margin-bottom: 4px;
@@ -1726,11 +1759,11 @@ body.loading-session #chat-app.active::after {
 /* Avatar: override centered margin from old layout — bigger so it reads clearly */
 .profile-v2-avatar-wrap .profile-avatar-large {
   margin: 0;
-  width: 120px;
-  height: 120px;
-  font-size: 42px;
-  border: 4px solid var(--bg-medium);
-  box-shadow: 0 4px 14px rgba(0,0,0,0.45);
+  width: 140px;
+  height: 140px;
+  font-size: 48px;
+  border: 5px solid var(--bg-medium);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.5);
   background: var(--bg-lighter);
 }
 .profile-v2-avatar-wrap .profile-avatar-actions {
@@ -1787,9 +1820,11 @@ body.loading-session #chat-app.active::after {
 }
 .profile-v2-footer .profile-save-btn {
   width: auto;
-  min-width: 150px;
+  min-width: 160px;
   margin-top: 0;
-  padding: 11px 28px;
+  padding: 12px 32px;
+  font-size: 14px;
+  border-radius: var(--radius-sm);
 }
 
 @media (max-width: 520px) {
@@ -1802,7 +1837,7 @@ body.loading-session #chat-app.active::after {
   /* Keep the avatar fully visible on mobile: smaller banner + tighter overlap */
   .profile-v2-header-card .profile-banner-section { height: 210px; }
   .profile-v2-avatar-wrap { margin-top: -26px; }
-  .profile-v2-avatar-wrap .profile-avatar-large { width: 96px; height: 96px; font-size: 34px; }
+  .profile-v2-avatar-wrap .profile-avatar-large { width: 108px; height: 108px; font-size: 38px; }
 }
 
 .profile-banner-section {
@@ -1837,11 +1872,12 @@ body.loading-session #chat-app.active::after {
 
 .profile-avatar-section { text-align: center; margin-bottom: 24px; position: relative; }
 .profile-avatar-large {
-  width: 110px; height: 110px; border-radius: 50%;
+  width: 128px; height: 128px; border-radius: 50%;
   background: var(--bg-lighter); color: var(--text-secondary);
   display: flex; align-items: center; justify-content: center;
-  font-size: 40px; font-weight: 600; margin: 0 auto 12px;
-  overflow: hidden; border: 3px solid var(--bg-darker);
+  font-size: 46px; font-weight: 600; margin: 0 auto 12px;
+  overflow: hidden; border: 4px solid var(--bg-darker);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.4);
 }
 .profile-avatar-large img { width: 100%; height: 100%; object-fit: cover; image-rendering: -webkit-optimize-contrast; }
 .profile-avatar-actions { display: flex; gap: 8px; justify-content: center; margin-bottom: 12px; flex-wrap: wrap; }
@@ -1897,28 +1933,66 @@ body.loading-session #chat-app.active::after {
   display: flex; align-items: center; justify-content: space-between;
   padding: 8px 0; font-size: 13px; color: var(--text-secondary); cursor: pointer;
 }
-.toggle-switch { position: relative; width: 40px; height: 22px; }
+.toggle-switch { position: relative; width: 44px; height: 24px; flex-shrink: 0; }
 .toggle-switch input { opacity: 0; width: 0; height: 0; }
 .toggle-slider {
   position: absolute; inset: 0; background: var(--bg-lighter);
-  border-radius: 22px; transition: var(--transition);
+  border-radius: 24px; transition: var(--transition);
+  border: 1px solid var(--border);
 }
 .toggle-slider::before {
-  content: ''; position: absolute; height: 16px; width: 16px;
-  left: 3px; top: 3px; background: var(--text-secondary);
+  content: ''; position: absolute; height: 18px; width: 18px;
+  left: 2px; top: 2px; background: var(--text-secondary);
   border-radius: 50%; transition: var(--transition);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
 }
-.toggle-switch input:checked + .toggle-slider { background: var(--accent); }
-.toggle-switch input:checked + .toggle-slider::before { transform: translateX(18px); background: #fff; }
+.toggle-switch input:checked + .toggle-slider { background: var(--accent); border-color: var(--accent); }
+.toggle-switch input:checked + .toggle-slider::before { transform: translateX(20px); background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,0.4); }
+/* Checkmark appears inside the knob when toggled ON */
+.toggle-switch input:checked + .toggle-slider::after {
+  content: ''; position: absolute; left: 6px; top: 50%; transform: translateY(-50%);
+  width: 10px; height: 10px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6L9 17l-5-5'/%3E%3C/svg%3E");
+  background-size: contain; background-repeat: no-repeat; background-position: center;
+}
 
 .save-section { margin-top: 8px; }
 .profile-save-btn, .setting-save-btn {
-  width: 100%; padding: 11px; font-size: 14px; font-weight: 600;
+  width: 100%; padding: 12px 16px; font-size: 14px; font-weight: 600;
   background: var(--accent); color: var(--accent-text); border-radius: var(--radius-sm);
   transition: var(--transition); margin-top: 6px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  letter-spacing: 0.2px; position: relative; overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
 }
-.profile-save-btn:hover:not(:disabled), .setting-save-btn:hover:not(:disabled) { background: var(--accent-hover); }
-.profile-save-btn:disabled, .setting-save-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.profile-save-btn::before, .setting-save-btn::before {
+  content: ''; width: 16px; height: 16px; flex-shrink: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6L9 17l-5-5'/%3E%3C/svg%3E");
+  background-size: contain; background-repeat: no-repeat; background-position: center;
+  opacity: 0.9;
+}
+.profile-save-btn:hover:not(:disabled), .setting-save-btn:hover:not(:disabled) {
+  background: var(--accent-hover); transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(0,0,0,0.3);
+}
+.profile-save-btn:active:not(:disabled), .setting-save-btn:active:not(:disabled) {
+  transform: translateY(0); box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+}
+.profile-save-btn:disabled, .setting-save-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+/* Save button loading state */
+.profile-save-btn.saving, .setting-save-btn.saving {
+  pointer-events: none; opacity: 0.75;
+}
+.profile-save-btn.saving::before, .setting-save-btn.saving::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='3'%3E%3Cpath d='M21 12a9 9 0 1 1-6.219-8.56'/%3E%3C/svg%3E");
+  animation: btn-spin 0.8s linear infinite;
+}
+@keyframes btn-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+/* Danger variant: no checkmark, uses X icon */
+.setting-save-btn.danger-btn::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.5' stroke-linecap='round'%3E%3Cpath d='M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2'/%3E%3C/svg%3E");
+}
 
 /* Settings panel specifics */
 .setting-hint { font-size: 12px; color: var(--text-muted); margin-bottom: 10px; line-height: 1.5; }
@@ -2156,12 +2230,13 @@ body.loading-session #chat-app.active::after {
   color: var(--text-muted); font-size: 13px; border-bottom: 1px dashed var(--border-light);
 }
 .profile-view-avatar {
-  width: 140px; height: 140px; border-radius: 50%;
+  width: 168px; height: 168px; border-radius: 50%;
   background: var(--bg-lighter); color: var(--text-secondary);
   display: flex; align-items: center; justify-content: center;
-  font-size: 52px; font-weight: 600; overflow: hidden;
-  margin: -70px 0 0; border: 5px solid var(--bg-dark); position: relative; z-index: 1;
+  font-size: 60px; font-weight: 600; overflow: hidden;
+  margin: -84px 0 0; border: 6px solid var(--bg-dark); position: relative; z-index: 1;
   flex: 0 0 auto;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.5);
 }
 .profile-view-avatar img { width: 100%; height: 100%; object-fit: cover; image-rendering: -webkit-optimize-contrast; }
 /* Main row: avatar on the LEFT, identity info on the right (left-aligned) */
@@ -2412,15 +2487,15 @@ body.loading-session #chat-app.active::after {
 }
 .toast {
   pointer-events: auto;
-  padding: 12px 16px 12px 14px; background: var(--bg-light); border: 1px solid var(--border-light);
+  padding: 13px 18px 13px 16px; background: var(--bg-light); border: 1px solid var(--border-light);
   border-radius: 12px; color: var(--text-primary); font-size: 13px; font-weight: 500;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3); animation: toastIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-  display: flex; align-items: center; gap: 10px; width: 100%; box-sizing: border-box;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35); animation: toastIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex; align-items: center; gap: 11px; width: 100%; box-sizing: border-box;
   position: relative; overflow: hidden; cursor: pointer; backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
 }
-.toast-icon { flex-shrink: 0; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; }
-.toast-icon svg { width: 18px; height: 18px; }
+.toast-icon { flex-shrink: 0; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; }
+.toast-icon svg { width: 20px; height: 20px; }
 .toast-msg { flex: 1; min-width: 0; line-height: 1.4; }
 .toast-close { flex-shrink: 0; opacity: 0.5; font-size: 16px; line-height: 1; padding: 2px 4px; border-radius: 4px; transition: opacity 0.15s; }
 .toast-close:hover { opacity: 1; }
@@ -3144,7 +3219,7 @@ body.loading-session #chat-app.active::after {
 
   /* Profile view modal banner — scale down on mobile but keep taller ratio */
   .profile-view-banner { height: 200px; }
-  .profile-view-avatar { width: 112px; height: 112px; margin: -56px 0 0; font-size: 42px; }
+  .profile-view-avatar { width: 128px; height: 128px; margin: -64px 0 0; font-size: 48px; }
   .profile-view-main { padding: 0 18px; gap: 14px; }
 
   /* System alert — full width on mobile */
@@ -3162,7 +3237,7 @@ body.loading-session #chat-app.active::after {
   .link-embed-title { font-size: 11px; }
   .link-embed-desc { display: none; } /* hide description on very small screens */
   .profile-view-banner { height: 160px; }
-  .profile-view-avatar { width: 96px; height: 96px; margin: -48px 0 0; font-size: 36px; border-width: 4px; }
+  .profile-view-avatar { width: 108px; height: 108px; margin: -54px 0 0; font-size: 40px; border-width: 5px; }
   .profile-view-main { padding: 0 14px; gap: 12px; }
 }
 
@@ -3386,7 +3461,6 @@ body.loading-session #chat-app.active::after {
           <span class="nav-badge accent" id="friend-nav-badge" style="display:none;">0</span>
         </button>
         <button class="sidebar-nav-btn" data-view="blocked" title="Blocked Users">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="10" cy="7" r="3"/><path d="M3 21v-1a6 6 0 0 1 6-6h2a6 6 0 0 1 5 2.5"/><circle cx="17" cy="17" r="5"/><line x1="13.5" y1="13.5" x2="20.5" y2="20.5"/></svg>
           <span>Blocked</span>
           <span class="nav-badge" id="blocked-nav-badge" style="display:none;">0</span>
         </button>
@@ -3590,9 +3664,6 @@ body.loading-session #chat-app.active::after {
   <!-- ===================== BLOCK CONFIRMATION MODAL ===================== -->
   <div class="modal-overlay" id="block-modal">
     <div class="modal small">
-      <div class="modal-icon danger">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="10" cy="7" r="3"/><path d="M3 21v-1a6 6 0 0 1 6-6h2a6 6 0 0 1 5 2.5"/><circle cx="17" cy="17" r="5"/><line x1="13.5" y1="13.5" x2="20.5" y2="20.5"/></svg>
-      </div>
       <h3>Block <span id="block-modal-username"></span>?</h3>
       <p>Are you sure you want to block this user? They will be removed from your friends list, and you will no longer see their messages in chat or direct messages. You can unblock them at any time from the Blocked tab.</p>
       <div class="modal-actions">
@@ -4771,7 +4842,7 @@ function toast(msg, type = '') {
   el.className = 'toast ' + type;
   // Icons for each toast type
   const icons = {
-    success: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>',
+    success: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>',
     error: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>',
     info: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>',
     warning: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
@@ -9073,7 +9144,7 @@ async function saveProfileNow(silent) {
   const directMessagesEnabled = $('direct-messages-toggle') ? $('direct-messages-toggle').checked : true;
   const panelColor = getProfileColor() || null;
   const btn = $('bio-save-btn');
-  btn.disabled = true; btn.textContent = 'Saving...';
+  btn.disabled = true; btn.classList.add('saving'); btn.textContent = 'Saving';
   try {
     const res = await fetch(API_BASE + '/api/profile', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ bio, hideLastSeen, pronouns, showOnlineStatus, panelColor, friendRequestsEnabled, directMessagesEnabled }) });
     const data = await res.json();
@@ -9090,11 +9161,11 @@ async function saveProfileNow(silent) {
       const uIdx = users.findIndex(x => x.username === currentUser.username);
       if (uIdx >= 0) { users[uIdx].bio = bio; users[uIdx].pronouns = pronouns; users[uIdx].showOnlineStatus = showOnlineStatus; users[uIdx].panelColor = panelColor; users[uIdx].friendRequestsEnabled = friendRequestsEnabled; users[uIdx].directMessagesEnabled = directMessagesEnabled; }
       profileDirty = false;
-      btn.disabled = false; btn.textContent = 'Save Changes';
+      btn.disabled = false; btn.classList.remove('saving'); btn.textContent = 'Save Changes';
       return true;
     } else { toast(data.error || 'Unable to update your profile. Please try again.', 'error'); }
   } catch (err) { toast('Unable to update your profile. Please try again.', 'error'); }
-  btn.disabled = false; btn.textContent = 'Save Changes';
+  btn.disabled = false; btn.classList.remove('saving'); btn.textContent = 'Save Changes';
   return false;
 }
 $('bio-save-btn').addEventListener('click', saveProfileNow);
@@ -9234,21 +9305,21 @@ $('display-name-input').addEventListener('input', (e) => $('displayname-count').
 $('displayname-save').addEventListener('click', async () => {
   const dn = $('display-name-input').value.trim();
   const btn = $('displayname-save');
-  btn.disabled = true; btn.textContent = 'Saving...';
+  btn.disabled = true; btn.classList.add('saving'); btn.textContent = 'Saving';
   try {
     const res = await fetch(API_BASE + '/api/settings/display-name', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ displayName: dn }) });
     const data = await res.json();
     if (res.ok) { toast('Display name has been updated.', 'success'); currentUser.displayName = dn; updateSidebarSelf(); }
     else toast(data.error || 'Unable to complete the request. Please try again.', 'error');
   } catch(e) { toast('Unable to complete the request. Please try again.', 'error'); }
-  btn.disabled = false; btn.textContent = 'Update Display Name';
+  btn.disabled = false; btn.classList.remove('saving'); btn.textContent = 'Update Display Name';
 });
 $('username-save').addEventListener('click', async () => {
   const newUn = $('new-username-input').value.trim().toLowerCase();
   if (!newUn) { toast('Enter a new username.', 'error'); return; }
   if (newUn === currentUser.username) { toast('That is already your username.', 'error'); return; }
   const btn = $('username-save');
-  btn.disabled = true; btn.textContent = 'Changing...';
+  btn.disabled = true; btn.classList.add('saving'); btn.textContent = 'Changing';
   try {
     const res = await fetch(API_BASE + '/api/settings/username', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: newUn }) });
     const data = await res.json();
@@ -9263,7 +9334,7 @@ $('username-save').addEventListener('click', async () => {
       connectSocket();
     } else { toast(data.error || 'Unable to complete the request. Please try again.', 'error'); }
   } catch(e) { toast('Unable to complete the request. Please try again.', 'error'); }
-  btn.disabled = false; btn.textContent = 'Change Username';
+  btn.disabled = false; btn.classList.remove('saving'); btn.textContent = 'Change Username';
 });
 $('password-save').addEventListener('click', async () => {
   const cur = $('current-password-input').value;
@@ -9271,14 +9342,14 @@ $('password-save').addEventListener('click', async () => {
   if (!cur || !np) { toast('Fill in both password fields.', 'error'); return; }
   if (np.length < 6) { toast('New password must be at least 6 characters.', 'error'); return; }
   const btn = $('password-save');
-  btn.disabled = true; btn.textContent = 'Resetting...';
+  btn.disabled = true; btn.classList.add('saving'); btn.textContent = 'Resetting';
   try {
     const res = await fetch(API_BASE + '/api/settings/password', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ currentPassword: cur, newPassword: np }) });
     const data = await res.json();
     if (res.ok) { toast('Your password has been reset successfully.', 'success'); $('current-password-input').value = ''; $('new-password-input').value = ''; }
     else toast(data.error || 'Unable to complete the request. Please try again.', 'error');
   } catch(e) { toast('Unable to complete the request. Please try again.', 'error'); }
-  btn.disabled = false; btn.textContent = 'Reset Password';
+  btn.disabled = false; btn.classList.remove('saving'); btn.textContent = 'Reset Password';
 });
 
 // ---------- Preferences: Notifications, Sounds, Compact Mode ----------
