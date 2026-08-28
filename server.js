@@ -1464,6 +1464,89 @@ app.post('/api/settings/music-link', authMiddleware, (req, res) => {
   res.json({ success: true, musicLink: req.user.musicLink });
 });
 
+// Validate a music link server-side via oEmbed (bypasses browser CORS).
+// Returns { valid, title, artist, artwork, provider, isPlaylist }.
+function fetchOEmbedJson(url, maxRedirects) {
+  maxRedirects = maxRedirects || 5;
+  return new Promise((resolve) => {
+    try {
+      const u = new URL(url);
+      const proto = u.protocol === 'https:' ? require('https') : require('http');
+      const r = proto.get(u, { headers: { 'User-Agent': 'hellobye-chat/1.0', 'Accept': 'application/json, text/html, */*' } }, (resp) => {
+        if (resp.statusCode >= 300 && resp.statusCode < 400 && resp.headers.location && maxRedirects > 0) {
+          return fetchOEmbedJson(resp.headers.location, maxRedirects - 1).then(resolve);
+        }
+        if (resp.statusCode !== 200) { resolve(null); return; }
+        let chunks = '';
+        resp.on('data', (c) => { chunks += c; });
+        resp.on('end', () => {
+          let parsed = null;
+          try { parsed = chunks ? JSON.parse(chunks) : null; } catch (e) { parsed = null; }
+          resolve(parsed);
+        });
+      });
+      r.on('error', () => resolve(null));
+      r.setTimeout(8000, () => { r.destroy(); resolve(null); });
+    } catch (e) { resolve(null); }
+  });
+}
+
+app.post('/api/validate-music-link', authMiddleware, async (req, res) => {
+  const { url } = req.body || {};
+  if (typeof url !== 'string' || !url.trim()) return res.json({ valid: false });
+  const raw = url.trim();
+  const u = raw.toLowerCase();
+  if (!/^https?:\/\//.test(u)) return res.json({ valid: false, error: 'Invalid URL format' });
+
+  let provider = null;
+  if (u.includes('spotify.com') || u.includes('spotify.link')) provider = 'spotify';
+  else if (u.includes('soundcloud.com')) provider = 'soundcloud';
+  else if (u.includes('youtube.com') || u.includes('youtu.be') || u.includes('music.youtube.com')) provider = 'youtube';
+  else if (u.includes('music.apple.com') || u.includes('apple.music')) provider = 'apple';
+  else if (u.includes('deezer.com')) provider = 'deezer';
+  if (!provider) return res.json({ valid: false, error: 'Unsupported platform' });
+
+  // Detect playlist
+  let isPlaylist = false;
+  if (provider === 'spotify') isPlaylist = /\/(playlist|album|show)\//.test(u);
+  else if (provider === 'soundcloud') isPlaylist = /\/sets\//.test(u) || /\/playlists\//.test(u);
+  else if (provider === 'youtube') isPlaylist = u.includes('list=') || /\/playlist\?/.test(u);
+  else if (provider === 'deezer') isPlaylist = /\/playlist\//.test(u) || /\/album\//.test(u);
+  else if (provider === 'apple') isPlaylist = /\/playlist\//.test(u) || /\/album\//.test(u);
+
+  const result = { valid: false, provider, isPlaylist, title: null, artist: null, artwork: null };
+
+  try {
+    if (provider === 'spotify') {
+      const d = await fetchOEmbedJson('https://open.spotify.com/oembed?url=' + encodeURIComponent(raw));
+      if (d && d.title) { result.valid = true; result.title = d.title; result.artist = d.provider_name || ''; result.artwork = d.thumbnail_url || null; }
+    } else if (provider === 'soundcloud') {
+      const d = await fetchOEmbedJson('https://soundcloud.com/oembed?format=json&url=' + encodeURIComponent(raw));
+      if (d && d.title) { result.valid = true; result.title = d.title; result.artist = d.author_name || ''; result.artwork = d.thumbnail_url || null; }
+    } else if (provider === 'youtube') {
+      let videoId = null;
+      if (raw.includes('youtu.be/')) videoId = raw.split('youtu.be/')[1].split(/[?&#]/)[0];
+      else { const m = raw.match(/[?&]v=([a-zA-Z0-9_-]+)/); if (m) videoId = m[1]; }
+      if (videoId) {
+        const d = await fetchOEmbedJson('https://www.youtube.com/oembed?url=' + encodeURIComponent('https://www.youtube.com/watch?v=' + videoId) + '&format=json');
+        if (d && d.title) { result.valid = true; result.title = d.title; result.artist = d.author_name || ''; result.artwork = d.thumbnail_url || null; }
+      }
+      if (!result.valid && u.includes('list=')) {
+        // Playlist link without a specific video — accept as valid
+        result.valid = true; result.title = 'YouTube Playlist';
+      }
+    } else if (provider === 'deezer') {
+      const d = await fetchOEmbedJson('https://api.deezer.com/oembed?url=' + encodeURIComponent(raw) + '&format=json');
+      if (d && d.title) { result.valid = true; result.title = d.title; result.artist = d.author_name || ''; result.artwork = d.thumbnail_url || d.thumbnail || null; }
+    } else if (provider === 'apple') {
+      const d = await fetchOEmbedJson('https://music.apple.com/oembed?url=' + encodeURIComponent(raw));
+      if (d && d.title) { result.valid = true; result.title = d.title; result.artist = d.author_name || ''; result.artwork = d.thumbnail_url || null; }
+    }
+  } catch (e) { /* validation failed */ }
+
+  res.json(result);
+});
+
 app.post('/api/settings/delete-account', authMiddleware, (req, res) => {
   // The owner account (@lore) cannot be deleted — this protects the primary
   // admin account from accidental or malicious removal.

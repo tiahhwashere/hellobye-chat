@@ -1,15 +1,11 @@
-# Music Player Feature — Implementation Plan
+# Music Player CORS Fix — Todo
 
 ## Tasks
-- [x] Examine current Notifications & Appearance settings structure
-- [x] Examine server-side preferences endpoint and data model
-- [x] Examine existing CSS patterns and design variables
-- [ ] Add Music Player HTML section to Notifications & Appearance tab (after Appearance section)
-- [ ] Add professional Music Player CSS (player card, controls, artwork, progress bar, song info)
-- [ ] Add JavaScript: link parsing (Spotify/SoundCloud/YouTube/Apple Music/Deezer), embed generation, play/pause/loop/volume controls, song metadata display, save link to preferences
-- [ ] Update server.js preferences endpoint to persist musicLink
-- [ ] Update fullUser() to expose musicLink to client
-- [ ] Wire up save/load logic for music link in JS
-- [ ] Verify JS syntax with node -c
-- [ ] Commit, push to GitHub, verify Render deploy goes live
-- [ ] Verify feature works on production URL
+- [x] Add server-side `POST /api/validate-music-link` endpoint to server.js
+- [x] Update client-side `validateAndFetch` in index.html to call server proxy
+- [x] Update `load()` to handle `proxyFailed` gracefully
+- [x] Verify index.html JS syntax (node -c)
+- [x] Verify server.js syntax (node -c)
+- [ ] Commit and push to GitHub
+- [ ] Verify Render deploy goes live
+- [ ] Confirm fix works on production URL

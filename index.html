@@ -9896,72 +9896,32 @@ const MusicPlayer = {
   // Returns { valid, title, artist, artwork, isPlaylist } — if oEmbed fails,
   // valid=false meaning the link does not resolve to a real track.
   async validateAndFetch(provider, url) {
-    const result = { valid: false, title: null, artist: null, artwork: null, isPlaylist: this.detectPlaylist(provider, url) };
+    // Delegate validation to the server-side proxy to avoid browser CORS
+    // restrictions on oEmbed endpoints (YouTube, Apple Music, Deezer, etc.).
     try {
-      if (provider === 'spotify') {
-        const r = await fetch('https://open.spotify.com/oembed?url=' + encodeURIComponent(url));
-        if (r.ok) {
-          const d = await r.json();
-          result.valid = true;
-          result.title = d.title;
-          result.artist = d.provider_name === 'Spotify' ? (d.description || '') : (d.provider_name || '');
-          result.artwork = d.thumbnail_url;
-        }
-      } else if (provider === 'soundcloud') {
-        const r = await fetch('https://soundcloud.com/oembed?format=json&url=' + encodeURIComponent(url));
-        if (r.ok) {
-          const d = await r.json();
-          result.valid = true;
-          result.title = d.title;
-          result.artist = d.author_name || '';
-          result.artwork = d.thumbnail_url;
-        }
-      } else if (provider === 'youtube') {
-        let videoId = null;
-        if (url.includes('youtu.be/')) videoId = url.split('youtu.be/')[1].split(/[?&#]/)[0];
-        else { const m = url.match(/[?&]v=([a-zA-Z0-9_-]+)/); if (m) videoId = m[1]; }
-        // For playlist-only links, oEmbed may not work; accept if list= present
-        if (videoId) {
-          const r = await fetch('https://www.youtube.com/oembed?url=' + encodeURIComponent('https://www.youtube.com/watch?v=' + videoId) + '&format=json');
-          if (r.ok) {
-            const d = await r.json();
-            result.valid = true;
-            result.title = d.title;
-            result.artist = d.author_name || '';
-            result.artwork = d.thumbnail_url;
-          }
-        } else if (url.toLowerCase().includes('list=')) {
-          // Playlist link without a specific video — treat as valid
-          result.valid = true;
-          result.title = 'YouTube Playlist';
-          result.artist = '';
-        }
-      } else if (provider === 'deezer') {
-        const m = url.match(/deezer\.com\/(track|album|playlist)\/(\d+)/);
-        if (m) {
-          const r2 = await fetch('https://api.deezer.com/oembed?url=' + encodeURIComponent(url) + '&format=json');
-          if (r2.ok) {
-            const d = await r2.json();
-            result.valid = true;
-            result.title = d.title;
-            result.artist = d.author_name || '';
-            result.artwork = d.thumbnail_url || d.thumbnail;
-          }
-        }
-      } else if (provider === 'apple') {
-        const r = await fetch('https://music.apple.com/oembed?url=' + encodeURIComponent(url));
-        if (r.ok) {
-          const d = await r.json();
-          result.valid = true;
-          result.title = d.title;
-          result.artist = d.author_name || '';
-          result.artwork = d.thumbnail_url;
-        }
+      const r = await fetch(API_BASE + '/api/validate-music-link', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url })
+      });
+      if (r.ok) {
+        const d = await r.json();
+        return {
+          valid: !!d.valid,
+          title: d.title || null,
+          artist: d.artist || null,
+          artwork: d.artwork || null,
+          isPlaylist: !!d.isPlaylist
+        };
       }
-    } catch(e) {
-      console.warn('Music validate/fetch error:', e);
+    } catch (e) {
+      console.warn('Music validate error (server proxy):', e);
     }
-    return result;
+    // Fallback: rely on client-side playlist detection only if the server
+    // proxy is unreachable, but mark as invalid so we don't reject a link
+    // purely due to a transient network issue. The load() method will still
+    // attempt to embed, and the user can press play manually.
+    return { valid: false, title: null, artist: null, artwork: null, isPlaylist: this.detectPlaylist(provider, url), proxyFailed: true };
   },
 
   // ---------- Load a track ----------
@@ -10013,15 +9973,22 @@ const MusicPlayer = {
     container.innerHTML = '<div class="music-embed-loading-text">Connecting to ' + (provider === 'apple' ? 'Apple Music' : provider) + '…</div>';
     container.className = 'music-player-embed embed-' + provider + ' embed-loading';
 
-    // ---- Validate the link via oEmbed ----
+    // ---- Validate the link via the server-side oEmbed proxy ----
     const info = await this.validateAndFetch(provider, url);
-    if (!info.valid) {
-      // Invalid link — hide the player and show error
+    if (!info.valid && !info.proxyFailed) {
+      // Genuinely invalid link — hide the player and show error
       $('music-player-card').style.display = 'none';
       $('music-empty-state').style.display = 'flex';
       container.innerHTML = '';
       if (!silent) toast('That link could not be verified. It may be invalid, private, or region-locked. Try a different link.', 'error');
       return false;
+    }
+    // If the proxy failed (network issue / server down) but we detected a
+    // supported provider, proceed to embed the link optimistically so the
+    // user can still press play. The embed itself will show if the link is
+    // actually invalid.
+    if (info.proxyFailed && !silent) {
+      toast('Verifying link… (if the track doesn\'t load, check the link is public.)', 'info');
     }
 
     this.state.validated = true;
