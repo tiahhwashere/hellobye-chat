@@ -2873,6 +2873,19 @@ body.loading-session #chat-app.active::after {
 }
 
 
+/* DM disabled button - professional muted style for the profile view */
+.dm-disabled-btn {
+  background: var(--panel-bg, #f0f0f0);
+  border: 1px solid rgba(0,0,0,0.12);
+  color: rgba(0,0,0,0.5);
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+.dm-disabled-btn:hover {
+  background: var(--panel-bg, #f0f0f0);
+  opacity: 0.6 !important;
+}
+
 </style>
   <link rel="icon" type="image/jpeg" href="/uploads/favicon.jpg">
   <link rel="apple-touch-icon" href="/uploads/favicon.jpg">
@@ -5035,6 +5048,22 @@ function connectSocket() {
     if (activeDMUser === data.username) { updateDMHeader(); applyDMDisabledState(); }
     // If our own DM preference changed, re-evaluate the currently open DM
     if (currentUser && currentUser.username === data.username && activeDMUser) applyDMDisabledState();
+    // Live-update the profile view modal if it's open showing this user,
+    // so the DM button (Send Message vs Direct Messages Disabled) reflects
+    // the new DM preference immediately without closing/reopening.
+    if (currentProfileViewUser === data.username && $('profile-view-modal').classList.contains('show')) {
+      const pvUser = getUserByUsername(data.username);
+      if (pvUser) {
+        updateProfileViewDMButton(pvUser);
+      }
+    }
+    // Also update if OUR own DM preference changed and we're viewing someone's profile
+    if (currentUser && currentUser.username === data.username && currentProfileViewUser && $('profile-view-modal').classList.contains('show')) {
+      const pvUser = getUserByUsername(currentProfileViewUser);
+      if (pvUser) {
+        updateProfileViewDMButton(pvUser);
+      }
+    }
   });
   socket.on('username-changed', (data) => {
     // Refresh everything
@@ -6351,8 +6380,8 @@ function attachUserListListeners() {
           const meOff = currentUser && currentUser.directMessagesEnabled === false;
           const target = users.find(x => x.username === un);
           const otherOff = target && target.directMessagesEnabled === false;
-          if (meOff) { toast('Your direct messages are turned off. Enable them in Settings \u2192 Data & Privacy.', 'error'); return; }
-          if (otherOff) { toast('@' + un + ' has direct messages turned off.', 'error'); return; }
+          if (meOff) { toast('You have disabled direct messages. Turn them on in Settings, under Data & Privacy.', 'error'); return; }
+          if (otherOff) { toast('@' + un + ' has disabled direct messages and is not accepting private messages.', 'error'); return; }
           openDM(un);
         } },
         { label: 'Add Friend', icon: 'friend', action: () => sendFriendRequest(un) },
@@ -6602,7 +6631,7 @@ $('block-confirm').addEventListener('click', async () => {
   $('block-modal').classList.remove('show');
   await blockUser(username);
   // Close profile view if open for this user
-  $('profile-view-modal').classList.remove('show');
+  closeProfileView();
 });
 async function blockUser(username) {
   // Optimistic UI FIRST: update instantly before network round-trip
@@ -6743,8 +6772,8 @@ function applyDMDisabledState() {
   const otherOff = other && other.directMessagesEnabled === false;
   if (meOff || otherOff) {
     const txt = meOff
-      ? 'Your direct messages are turned off. Enable them in Settings \u2192 Data & Privacy to send and receive messages.'
-      : '@' + (other ? other.username : activeDMUser) + ' has direct messages turned off and cannot receive messages right now.';
+      ? 'You have disabled direct messages. Turn them on in Settings, under Data & Privacy, to send and receive private messages.'
+      : '@' + (other ? other.username : activeDMUser) + ' has disabled direct messages and is not accepting private messages at this time.';
     $('dm-disabled-banner-text').textContent = txt;
     banner.style.display = 'block';
     inputArea.style.display = 'none';
@@ -7483,7 +7512,7 @@ if ($('friend-requests-toggle')) $('friend-requests-toggle').addEventListener('c
 if ($('direct-messages-toggle')) $('direct-messages-toggle').addEventListener('change', function() {
   markProfileDirty();
   var enabled = $('direct-messages-toggle').checked;
-  toast(enabled ? 'Direct messages are now ON — you can send and receive DMs.' : 'Direct messages are now OFF — you cannot send or receive DMs.', enabled ? 'success' : 'info');
+  toast(enabled ? 'Direct messages are now enabled. You can send and receive private messages.' : 'Direct messages are now disabled. You cannot send or receive private messages.', enabled ? 'success' : 'info');
   saveProfileNow(true);
 });
 
@@ -8112,6 +8141,10 @@ document.addEventListener('click', (e) => {
   }
 });
 
+// Track which user's profile view is currently open so we can live-update
+// the DM button when their DM preference changes (profile-updated event).
+let currentProfileViewUser = null;
+
 async function openProfileView(username) {
   if (username === currentUser.username) {
     // Open own profile settings instead
@@ -8124,6 +8157,7 @@ async function openProfileView(username) {
     const data = await res.json();
     if (!res.ok) { toast(data.error || 'User not found', 'error'); return; }
     renderProfileView(data);
+    currentProfileViewUser = username;
     $('profile-view-modal').classList.add('show');
   } catch(e) { toast('Failed to load profile', 'error'); }
 }
@@ -8171,6 +8205,37 @@ function applyProfileViewPanelColor(u) {
       closeBtn.style.setProperty('color', '#fff', 'important');
     }
   }
+}
+
+// Live-update the DM button in an open profile view modal when the DM
+// preference of either user changes. This avoids a full re-render (which
+// would reset scroll position and re-fetch data) and just swaps the button.
+function updateProfileViewDMButton(u) {
+  const actions = $('pv-actions');
+  if (!actions) return;
+  // Find the existing DM button - it's the first button in the actions area
+  // for non-me profiles.
+  const existingBtn = actions.querySelector('button');
+  if (!existingBtn) return;
+  const meOff = currentUser && currentUser.directMessagesEnabled === false;
+  const otherOff = u.directMessagesEnabled === false;
+  const dmBtn = document.createElement('button');
+  if (meOff || otherOff) {
+    dmBtn.className = 'modal-btn dm-disabled-btn';
+    dmBtn.textContent = 'Direct Messages Disabled';
+    dmBtn.disabled = true;
+    dmBtn.title = meOff
+      ? 'You have disabled direct messages. Turn them on in Settings, under Data & Privacy, to send and receive private messages.'
+      : '@' + u.username + ' has disabled direct messages and is not accepting private messages at this time.';
+    dmBtn.style.opacity = '0.6';
+    dmBtn.style.cursor = 'not-allowed';
+  } else {
+    dmBtn.className = 'modal-btn primary';
+    dmBtn.textContent = 'Send Message';
+    dmBtn.onclick = () => { closeProfileView(); openDM(u.username); };
+  }
+  // Replace the old button with the new one (preserves position in actions)
+  existingBtn.replaceWith(dmBtn);
 }
 
 function renderProfileView(data) {
@@ -8263,7 +8328,7 @@ function renderProfileView(data) {
   if (data.isMe) {
     const b = document.createElement('button');
     b.className = 'modal-btn primary'; b.textContent = 'Edit My Profile';
-    b.onclick = () => { $('profile-view-modal').classList.remove('show'); $('profile-panel').classList.add('show'); updateProfilePanel(); };
+    b.onclick = () => { closeProfileView(); $('profile-panel').classList.add('show'); updateProfilePanel(); };
     actions.appendChild(b);
   } else {
     // DM button \u2014 disabled with a tooltip when either user has DMs turned off.
@@ -8271,24 +8336,24 @@ function renderProfileView(data) {
     const otherOff = u.directMessagesEnabled === false;
     const dmBtn = document.createElement('button');
     if (meOff || otherOff) {
-      dmBtn.className = 'modal-btn';
-      dmBtn.textContent = 'Messages Unavailable';
+      dmBtn.className = 'modal-btn dm-disabled-btn';
+      dmBtn.textContent = 'Direct Messages Disabled';
       dmBtn.disabled = true;
       dmBtn.title = meOff
-        ? 'Your direct messages are turned off. Enable them in Settings \u2192 Data & Privacy.'
-        : '@' + u.username + ' has direct messages turned off.';
+        ? 'You have disabled direct messages. Turn them on in Settings, under Data & Privacy, to send and receive private messages.'
+        : '@' + u.username + ' has disabled direct messages and is not accepting private messages at this time.';
       dmBtn.style.opacity = '0.6';
       dmBtn.style.cursor = 'not-allowed';
     } else {
       dmBtn.className = 'modal-btn primary'; dmBtn.textContent = 'Send Message';
-      dmBtn.onclick = () => { $('profile-view-modal').classList.remove('show'); openDM(u.username); };
+      dmBtn.onclick = () => { closeProfileView(); openDM(u.username); };
     }
     actions.appendChild(dmBtn);
     // Friend button
     if (data.isFriend) {
       const fb = document.createElement('button');
       fb.className = 'modal-btn danger'; fb.textContent = 'Remove Friend';
-      fb.onclick = () => { removeFriend(u.username); $('profile-view-modal').classList.remove('show'); };
+      fb.onclick = () => { removeFriend(u.username); closeProfileView(); };
       actions.appendChild(fb);
     } else if (data.outgoingRequest) {
       const fb = document.createElement('button');
@@ -8328,8 +8393,12 @@ function renderProfileView(data) {
     }
   }
 }
-$('pv-close').addEventListener('click', () => $('profile-view-modal').classList.remove('show'));
-$('profile-view-modal').addEventListener('click', (e) => { if (e.target === $('profile-view-modal')) $('profile-view-modal').classList.remove('show'); });
+function closeProfileView() {
+  $('profile-view-modal').classList.remove('show');
+  currentProfileViewUser = null;
+}
+$('pv-close').addEventListener('click', closeProfileView);
+$('profile-view-modal').addEventListener('click', (e) => { if (e.target === $('profile-view-modal')) closeProfileView(); });
 
 // ---------- Client-Side Background & Color Changer (Per-User) ----------
 const defaultAccent = '#4a9eff';

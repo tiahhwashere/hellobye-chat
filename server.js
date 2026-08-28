@@ -1955,12 +1955,12 @@ io.on('connection', (socket) => {
       // This is enforced server-side so it cannot be bypassed by the client.
       const senderRecord = db.users[username];
       if (senderRecord && senderRecord.directMessagesEnabled === false) {
-        if (typeof ack === 'function') ack({ error: 'Your direct messages are turned off. Enable them in Data & Privacy to send messages.', dmDisabled: true });
+        if (typeof ack === 'function') ack({ error: 'You have disabled direct messages. Turn them on in Settings, under Data & Privacy, to send private messages.', dmDisabled: true });
         return;
       }
       const recipientRecord = db.users[target];
       if (recipientRecord && recipientRecord.directMessagesEnabled === false) {
-        if (typeof ack === 'function') ack({ error: '@' + recipientRecord.username + ' has direct messages turned off and cannot receive messages.', recipientDmDisabled: true });
+        if (typeof ack === 'function') ack({ error: '@' + recipientRecord.username + ' has disabled direct messages and is not accepting private messages at this time.', recipientDmDisabled: true });
         return;
       }
       const key = username + ':' + target;
