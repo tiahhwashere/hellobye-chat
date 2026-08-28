@@ -9412,41 +9412,156 @@ async function openProfileView(username) {
   } catch(e) { toast('Failed to load profile', 'error'); }
 }
 // Apply the OTHER user's Panel Theme Color to the profile-view modal.
-// Instead of overwriting the entire modal background (which makes text and
-// UI elements hard to read), we apply the color as a thin accent bar at the
-// top of the modal and set accent CSS variables so links, buttons, and the
-// @handle use the chosen color. The modal background stays as the standard
-// dark theme so all text remains readable.
+// Fills the entire modal background with the chosen color, forces all text
+// to white, and keeps clickable bio/website links blue. Inner cards get
+// semi-transparent dark overlays for readability.
 function applyProfileViewPanelColor(u) {
   const modal = document.querySelector('.profile-view-modal');
   if (!modal) return;
   const color = (u && u.panelColor) ? u.panelColor : null;
+  // Text-bearing element selectors inside the profile view modal.
+  const textSelector = [
+    'h3', '.profile-view-handle', '.profile-view-id', '.pv-id-text',
+    '.profile-view-status', '.profile-view-bio', '.profile-view-extra',
+    '.pv-extra-label', '.pv-extra-value', '.pv-status',
+    '.profile-view-banner-placeholder'
+  ].join(', ');
+  // Elements with their own background that need a dark overlay.
+  const cardSelector = [
+    '.profile-view-bio', '.profile-view-status', '.profile-view-extra',
+    '.pv-copy-id-btn', '.pv-copy-id-menu', '.pv-copy-id-menu-item',
+    '.pv-copy-id-menu-name', '.pv-copy-id-menu-id', '.pv-copy-id-menu-header',
+    '.pv-copy-id-menu-empty'
+  ].join(', ');
+
   // Reset any previously-applied inline styles first.
   modal.style.removeProperty('background');
   modal.style.removeProperty('border-color');
-  // Restore text colors to defaults.
-  const textEls = modal.querySelectorAll('h3, .profile-view-handle, .profile-view-id, .profile-view-status, .profile-view-bio, .profile-view-extra, .pv-extra-label, .pv-extra-value, .pv-status');
-  textEls.forEach(el => { el.style.removeProperty('color'); });
+  modal.querySelectorAll(textSelector).forEach(el => { el.style.removeProperty('color'); });
+  modal.querySelectorAll(cardSelector).forEach(el => {
+    el.style.removeProperty('background');
+    el.style.removeProperty('border-color');
+  });
+  modal.querySelectorAll('a').forEach(el => { el.style.removeProperty('color'); });
   // Remove any previously-created accent bar.
   const oldBar = modal.querySelector('.panel-accent-bar');
   if (oldBar) oldBar.remove();
+  // Reset accent variables.
+  modal.style.removeProperty('--accent');
+  modal.style.removeProperty('--accent-hover');
+  modal.style.removeProperty('--accent-dim');
+  modal.style.removeProperty('--accent-light');
+  modal.style.removeProperty('--accent-glow');
+  modal.style.removeProperty('--accent-text');
+
   if (color) {
-    // Set accent CSS variables on the modal so links, @handle, buttons
-    // use the chosen color without changing the background.
+    // Set accent CSS variables on the modal scope.
     modal.style.setProperty('--accent', color, 'important');
     modal.style.setProperty('--accent-hover', lighten(color, 0.12), 'important');
     modal.style.setProperty('--accent-dim', darken(color, 0.3), 'important');
-    // Insert a thin colored accent bar at the top of the modal.
-    const bar = document.createElement('div');
-    bar.className = 'panel-accent-bar';
-    bar.style.cssText = 'position:absolute;top:0;left:0;right:0;height:4px;background:' + color + ';z-index:10;';
-    modal.style.position = modal.style.position || 'relative';
-    modal.insertBefore(bar, modal.firstChild);
-  } else {
-    // Reset accent variables to inherit from root.
-    modal.style.removeProperty('--accent');
-    modal.style.removeProperty('--accent-hover');
-    modal.style.removeProperty('--accent-dim');
+    modal.style.setProperty('--accent-light', lighten(color, 0.3), 'important');
+    const { r, g, b } = hexToRgb(color);
+    modal.style.setProperty('--accent-glow', 'rgba(' + r + ', ' + g + ', ' + b + ', 0.12)', 'important');
+    // Always white text on the colored background.
+    modal.style.setProperty('--accent-text', '#ffffff', 'important');
+
+    // Fill the entire modal background with the chosen color.
+    modal.style.setProperty('background', color, 'important');
+    modal.style.setProperty('border-color', color, 'important');
+
+    // Force ALL text inside the modal to white.
+    modal.querySelectorAll(textSelector).forEach(el => {
+      el.style.setProperty('color', '#ffffff', 'important');
+    });
+
+    // Keep clickable links (bio links, website links) blue.
+    modal.querySelectorAll('a').forEach(el => {
+      el.style.setProperty('color', '#6fb5ff', 'important');
+    });
+
+    // Inner cards get a semi-transparent dark overlay for readability.
+    modal.querySelectorAll(
+      '.profile-view-bio, .profile-view-status, .profile-view-extra'
+    ).forEach(el => {
+      el.style.setProperty('background', 'rgba(0,0,0,0.22)', 'important');
+      el.style.setProperty('border-color', 'rgba(255,255,255,0.18)', 'important');
+    });
+
+    // Copy-ID buttons + dropdown menu get dark overlay.
+    modal.querySelectorAll('.pv-copy-id-btn').forEach(el => {
+      el.style.setProperty('background', 'rgba(0,0,0,0.3)', 'important');
+      el.style.setProperty('color', 'rgba(255,255,255,0.7)', 'important');
+      el.style.setProperty('border-color', 'rgba(255,255,255,0.2)', 'important');
+    });
+    const copyMenu = modal.querySelector('.pv-copy-id-menu');
+    if (copyMenu) {
+      copyMenu.style.setProperty('background', 'rgba(0,0,0,0.85)', 'important');
+      copyMenu.style.setProperty('border-color', 'rgba(255,255,255,0.2)', 'important');
+    }
+    modal.querySelectorAll('.pv-copy-id-menu-item').forEach(el => {
+      el.style.removeProperty('background');
+    });
+
+    // Avatar border matches the colored background.
+    const avatar = modal.querySelector('.profile-view-avatar');
+    if (avatar) {
+      avatar.style.setProperty('border-color', color, 'important');
+    }
+
+    // Banner placeholder gets a dark overlay.
+    const bannerPlaceholder = modal.querySelector('.profile-view-banner-placeholder');
+    if (bannerPlaceholder) {
+      bannerPlaceholder.style.setProperty('color', 'rgba(255,255,255,0.7)', 'important');
+      bannerPlaceholder.style.setProperty('background', 'rgba(0,0,0,0.3)', 'important');
+    }
+
+    // The X close button stays white.
+    const closeBtn = modal.querySelector('.modal-close-corner');
+    if (closeBtn) {
+      closeBtn.style.setProperty('color', '#ffffff', 'important');
+    }
+
+    // Action buttons: primary uses accent (with white text via --accent-text),
+    // secondary/danger get dark overlays with white text.
+    modal.querySelectorAll('.profile-view-actions .modal-btn').forEach(el => {
+      if (el.classList.contains('primary')) {
+        el.style.setProperty('color', '#ffffff', 'important');
+      } else if (el.classList.contains('danger')) {
+        el.style.setProperty('background', 'rgba(0,0,0,0.25)', 'important');
+        el.style.setProperty('color', '#ff6b6b', 'important');
+        el.style.setProperty('border-color', 'rgba(255,107,107,0.4)', 'important');
+      } else {
+        el.style.setProperty('background', 'rgba(0,0,0,0.25)', 'important');
+        el.style.setProperty('color', '#ffffff', 'important');
+        el.style.setProperty('border-color', 'rgba(255,255,255,0.2)', 'important');
+      }
+    });
+
+    // Blocked notice stays readable.
+    modal.querySelectorAll('.blocked-notice').forEach(el => {
+      el.style.setProperty('color', '#ffffff', 'important');
+      el.style.setProperty('background', 'rgba(0,0,0,0.25)', 'important');
+    });
+
+    // DM disabled button stays readable.
+    modal.querySelectorAll('.dm-disabled-btn').forEach(el => {
+      el.style.setProperty('background', 'rgba(0,0,0,0.25)', 'important');
+      el.style.setProperty('color', 'rgba(255,255,255,0.7)', 'important');
+    });
+
+    // Muted text variants for visual hierarchy.
+    modal.querySelectorAll('.profile-view-id, .pv-id-text').forEach(el => {
+      el.style.setProperty('color', 'rgba(255,255,255,0.6)', 'important');
+    });
+    modal.querySelectorAll('.pv-extra-label').forEach(el => {
+      el.style.setProperty('color', 'rgba(255,255,255,0.5)', 'important');
+    });
+    modal.querySelectorAll('.pv-extra-value').forEach(el => {
+      el.style.setProperty('color', 'rgba(255,255,255,0.85)', 'important');
+    });
+    modal.querySelectorAll('.profile-view-status').forEach(el => {
+      el.style.setProperty('color', 'rgba(255,255,255,0.8)', 'important');
+    });
   }
 }
 
@@ -9476,13 +9591,26 @@ function updateProfileViewDMButton(u) {
   }
   // Replace the old button with the new one (preserves position in actions)
   existingBtn.replaceWith(dmBtn);
+  // Re-apply panel color styling to the new button so it matches the
+  // colored modal background (white text on accent for primary, dark
+  // overlay for disabled).
+  const modal = document.querySelector('.profile-view-modal');
+  if (modal) {
+    const panelColor = modal.style.getPropertyValue('--accent');
+    if (panelColor) {
+      if (dmBtn.classList.contains('primary')) {
+        dmBtn.style.setProperty('color', '#ffffff', 'important');
+      } else {
+        dmBtn.style.setProperty('background', 'rgba(0,0,0,0.25)', 'important');
+        dmBtn.style.setProperty('color', 'rgba(255,255,255,0.7)', 'important');
+        dmBtn.style.setProperty('border-color', 'rgba(255,255,255,0.2)', 'important');
+      }
+    }
+  }
 }
 
 function renderProfileView(data) {
   const u = data.user;
-  // Apply the other user's Panel Theme Color to the whole modal (preserves
-  // text colors + X button).
-  applyProfileViewPanelColor(u);
   // Banner
   const bannerEl = $('pv-banner');
   if (u.banner) {
@@ -9550,7 +9678,7 @@ function renderProfileView(data) {
       if (f.href) {
         const a = document.createElement('a');
         a.href = f.href; a.target = '_blank'; a.rel = 'noopener';
-        a.textContent = f.value; a.style.color = 'var(--accent)';
+        a.textContent = f.value; a.style.color = '#6fb5ff';
         val.appendChild(a);
       } else {
         val.textContent = f.value;
@@ -9629,6 +9757,10 @@ function renderProfileView(data) {
       actions.appendChild(notice);
     }
   }
+  // Apply the other user's Panel Theme Color to the whole modal AFTER all
+  // dynamic content (bio links, extra fields, action buttons) has been
+  // rendered, so the color styling covers every element.
+  applyProfileViewPanelColor(u);
 }
 function closeProfileView() {
   $('profile-view-modal').classList.remove('show');
