@@ -572,6 +572,7 @@ body.loading-session #chat-app.active::after {
 .message-group {
   display: flex; gap: 12px; max-width: 92%;
   animation: msgIn 0.2s ease;
+  padding: 1px 0;
 }
 @keyframes msgIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
 .message-group.own { flex-direction: row-reverse; margin-left: auto; }
@@ -581,10 +582,11 @@ body.loading-session #chat-app.active::after {
   background: var(--bg-lighter); color: var(--text-secondary);
   display: flex; align-items: center; justify-content: center;
   font-size: 15px; font-weight: 600; flex-shrink: 0; overflow: hidden;
+  border: 1px solid var(--border);
 }
 .message-avatar img { width: 100%; height: 100%; object-fit: cover; image-rendering: -webkit-optimize-contrast; }
 .message-avatar.clickable, .message-sender.clickable { cursor: pointer; transition: var(--transition); }
-.message-avatar.clickable:hover { opacity: 0.85; }
+.message-avatar.clickable:hover { opacity: 0.85; transform: scale(1.04); }
 .message-sender.clickable:hover { color: var(--accent); }
 
 .message-bubble-wrap { min-width: 0; display: flex; flex-direction: column; }
@@ -592,21 +594,27 @@ body.loading-session #chat-app.active::after {
 
 .message-sender {
   font-size: 12px; font-weight: 500; color: var(--text-secondary);
-  margin-bottom: 3px; padding: 0 4px;
+  margin-bottom: 4px; padding: 0 4px;
+  display: flex; align-items: center; gap: 6px;
 }
-.sender-displayname { color: var(--text-primary); font-weight: 600; }
-.sender-handle { color: var(--text-muted); }
+.sender-displayname { color: var(--text-primary); font-weight: 600; font-size: 13px; }
+.sender-handle { color: var(--text-muted); font-size: 11.5px; }
 
 .message-bubble {
   background: var(--bg-medium); padding: 11px 16px;
   border-radius: 14px 14px 14px 4px;
-  font-size: 14.5px; word-break: break-word; position: relative;
+  font-size: 14.5px; line-height: 1.5; word-break: break-word; position: relative;
   max-width: 100%;
+  border: 1px solid var(--border);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
+.message-bubble:hover { border-color: var(--border-light); box-shadow: 0 2px 10px rgba(0,0,0,0.12); }
 .message-group.own .message-bubble {
   background: var(--accent-dim); color: #fff;
   border-radius: 14px 14px 4px 14px;
+  border-color: rgba(74,158,255,0.2);
 }
+.message-group.own .message-bubble:hover { border-color: rgba(74,158,255,0.35); box-shadow: 0 2px 12px rgba(74,158,255,0.12); }
 /* Media-only bubbles: no text means no need for a colored chat background.
    This removes the accent/blue box around images, videos & GIFs so media
    sits cleanly on the chat surface with a subtle border instead. */
@@ -1026,25 +1034,25 @@ body.loading-session #chat-app.active::after {
 .message-file-attachment:hover .file-dl-icon { color: var(--accent); }
 
 .message-actions {
-  display: flex; gap: 4px; margin-top: 6px;
-  opacity: 0; transition: var(--transition);
+  display: flex; gap: 5px; margin-top: 7px;
+  opacity: 0; transition: opacity 0.15s ease;
 }
 .message-bubble:hover .message-actions { opacity: 1; }
 .msg-action-btn {
-  padding: 3px 8px; font-size: 11px; font-weight: 600;
-  background: rgba(255,255,255,0.08); color: var(--text-secondary);
-  border-radius: 4px; transition: var(--transition);
+  padding: 4px 10px; font-size: 11px; font-weight: 600;
+  background: rgba(255,255,255,0.06); color: var(--text-secondary);
+  border-radius: 6px; transition: var(--transition); border: 1px solid transparent;
 }
-.message-group.own .msg-action-btn { background: rgba(255,255,255,0.15); color: #fff; }
-.msg-action-btn:hover { background: rgba(255,255,255,0.18); }
-.msg-action-btn.danger:hover { background: var(--danger); color: #fff; }
+.message-group.own .msg-action-btn { background: rgba(255,255,255,0.12); color: #fff; }
+.msg-action-btn:hover { background: rgba(255,255,255,0.16); border-color: var(--border-light); }
+.msg-action-btn.danger:hover { background: var(--danger); color: #fff; border-color: var(--danger); }
 
 .message-meta {
   font-size: 10px; color: var(--text-muted);
-  margin-top: 3px; padding: 0 4px;
+  margin-top: 4px; padding: 0 4px;
   display: flex; gap: 6px; align-items: center;
 }
-.message-edited-tag { font-style: italic; opacity: 0.8; }
+.message-edited-tag { font-style: italic; opacity: 0.7; font-size: 9.5px; }
 
 .edit-input-wrap { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
 .edit-input {
@@ -1080,14 +1088,15 @@ body.loading-session #chat-app.active::after {
 /* Reply Preview */
 .reply-preview {
   display: flex; align-items: center; gap: 10px;
-  padding: 8px 12px; margin-bottom: 8px;
+  padding: 10px 14px; margin-bottom: 8px;
   background: var(--bg-medium); border-radius: var(--radius-sm);
   border-left: 3px solid var(--accent);
   animation: fadeUp 0.15s ease;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
 }
 .reply-preview-bar { width: 3px; align-self: stretch; background: var(--accent); border-radius: 2px; flex-shrink: 0; }
 .reply-preview-content { flex: 1; min-width: 0; overflow: hidden; }
-.reply-preview-label { font-size: 12px; font-weight: 600; color: var(--accent); margin-bottom: 2px; }
+.reply-preview-label { font-size: 11px; font-weight: 700; color: var(--accent); margin-bottom: 2px; text-transform: uppercase; letter-spacing: 0.5px; }
 .reply-preview-text { font-size: 13px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .reply-preview-cancel { flex-shrink: 0; width: 24px; height: 24px; border-radius: 50%; font-size: 18px; color: var(--text-muted); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: var(--transition); background: none; border: none; }
 .reply-preview-cancel:hover { background: var(--bg-dark); color: var(--text-primary); }
@@ -1103,6 +1112,243 @@ body.loading-session #chat-app.active::after {
 .reply-quote:hover { background: rgba(0,0,0,0.35); }
 .reply-quote-sender { font-weight: 600; color: var(--accent); flex-shrink: 0; }
 .reply-quote-text { color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 240px; }
+
+/* ---- Replied-to message highlight (task b) ---- */
+/* When someone replies to YOUR message, your original message gets a soft
+   accent tint + left bar so you notice the reply. */
+.message-group.replied-to-me .message-bubble {
+  box-shadow: 0 0 0 1px rgba(74,158,255,0.35), 0 0 14px rgba(74,158,255,0.10);
+  animation: reply-flash 2s ease;
+}
+@keyframes reply-flash {
+  0%   { box-shadow: 0 0 0 2px rgba(74,158,255,0.6), 0 0 20px rgba(74,158,255,0.22); }
+  60%  { box-shadow: 0 0 0 1px rgba(74,158,255,0.4), 0 0 12px rgba(74,158,255,0.14); }
+  100% { box-shadow: 0 0 0 1px rgba(74,158,255,0.18), 0 0 6px rgba(74,158,255,0.05); }
+}
+/* Persistent subtle indicator (after flash ends) */
+.message-group.replied-to-me::before {
+  content: '';
+  position: absolute; left: -4px; top: 50%; transform: translateY(-50%);
+  width: 3px; height: 60%; border-radius: 3px;
+  background: var(--accent); opacity: 0.5;
+}
+.message-group { position: relative; }
+
+/* ---- Reply quote v2: richer, with hover lift ---- */
+.reply-quote {
+  background: rgba(74,158,255,0.06);
+  border-left: 2px solid var(--accent);
+  border-radius: 8px;
+}
+.reply-quote:hover {
+  background: rgba(74,158,255,0.12);
+  transform: translateX(2px);
+}
+
+/* ---- Message search panel ---- */
+#search-msg-panel {
+  position: fixed; top: 0; right: 0; bottom: 0;
+  width: min(440px, 100vw); z-index: 250;
+  background: var(--bg-darker);
+  border-left: 1px solid var(--border-light);
+  box-shadow: -12px 0 40px rgba(0,0,0,0.4);
+  display: none; flex-direction: column;
+  animation: slideInRight 0.22s cubic-bezier(0.16,1,0.3,1);
+}
+#search-msg-panel.open { display: flex; }
+@keyframes slideInRight { from { transform: translateX(100%); } to { transform: translateX(0); } }
+.search-msg-header {
+  padding: 16px 18px 12px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 10px; flex-shrink: 0;
+}
+.search-msg-header h3 {
+  font-size: 15px; font-weight: 700; color: var(--text-primary);
+  display: flex; align-items: center; gap: 8px; margin: 0; flex: 1;
+}
+.search-msg-header h3 svg { width: 18px; height: 18px; color: var(--accent); }
+.search-msg-close {
+  width: 30px; height: 30px; border-radius: 8px; border: none;
+  background: var(--bg-medium); color: var(--text-muted);
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: var(--transition); flex-shrink: 0;
+}
+.search-msg-close:hover { background: var(--bg-light); color: var(--text-primary); }
+.search-msg-input-wrap {
+  padding: 12px 18px; border-bottom: 1px solid var(--border); flex-shrink: 0;
+  display: flex; gap: 8px; align-items: center;
+}
+.search-msg-input {
+  flex: 1; padding: 10px 14px; border-radius: 10px;
+  background: var(--bg-medium); border: 1px solid var(--border);
+  color: var(--text-primary); font-size: 13.5px; outline: none;
+  transition: var(--transition);
+}
+.search-msg-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(74,158,255,0.12); }
+.search-msg-input::placeholder { color: var(--text-muted); }
+.search-msg-scope {
+  display: flex; gap: 4px; padding: 0 18px 10px; flex-shrink: 0;
+}
+.search-msg-scope button {
+  padding: 5px 12px; border-radius: 7px; border: 1px solid var(--border);
+  background: var(--bg-medium); color: var(--text-secondary);
+  font-size: 11.5px; font-weight: 600; cursor: pointer; transition: var(--transition);
+}
+.search-msg-scope button.active {
+  background: var(--accent); color: #fff; border-color: var(--accent);
+}
+.search-msg-results {
+  flex: 1; overflow-y: auto; padding: 8px 12px 16px;
+  scrollbar-width: thin; scrollbar-color: var(--border) transparent;
+}
+.search-msg-results::-webkit-scrollbar { width: 6px; }
+.search-msg-results::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+.search-msg-empty {
+  text-align: center; padding: 40px 20px; color: var(--text-muted);
+  font-size: 13px; line-height: 1.6;
+}
+.search-msg-empty svg { width: 36px; height: 36px; margin: 0 auto 12px; opacity: 0.4; display: block; }
+.search-result-item {
+  padding: 12px 14px; margin-bottom: 8px; border-radius: 10px;
+  background: var(--bg-dark); border: 1px solid var(--border);
+  cursor: pointer; transition: var(--transition);
+}
+.search-result-item:hover {
+  background: var(--bg-medium); border-color: var(--accent);
+  transform: translateY(-1px); box-shadow: 0 4px 14px rgba(0,0,0,0.2);
+}
+.search-result-head {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 5px;
+}
+.search-result-avatar {
+  width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0;
+  background: var(--bg-lighter); display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 700; color: var(--text-secondary); overflow: hidden;
+}
+.search-result-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.search-result-name { font-size: 12.5px; font-weight: 600; color: var(--text-primary); }
+.search-result-time { font-size: 11px; color: var(--text-muted); margin-left: auto; }
+.search-result-text {
+  font-size: 13px; color: var(--text-secondary); line-height: 1.45;
+  overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
+  word-break: break-word;
+}
+.search-result-text mark {
+  background: rgba(250,204,21,0.25); color: #facc15; padding: 0 2px; border-radius: 3px;
+}
+.search-result-jump {
+  margin-top: 8px; font-size: 11.5px; font-weight: 600; color: var(--accent);
+  display: flex; align-items: center; gap: 5px;
+}
+.search-result-jump svg { width: 13px; height: 13px; }
+
+/* ---- Members-list background button + modal (task m) ---- */
+#members-bg-modal {
+  position: fixed; inset: 0; z-index: 280; display: none;
+  align-items: center; justify-content: center; padding: 20px;
+  background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);
+}
+#members-bg-modal.open { display: flex; animation: fadeIn 0.18s ease; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+.members-bg-card {
+  width: min(480px, 100%); max-height: 90vh; overflow-y: auto;
+  background: var(--bg-dark); border: 1px solid var(--border-light);
+  border-radius: 16px; box-shadow: var(--shadow-lg);
+  animation: cardIn 0.2s cubic-bezier(0.16,1,0.3,1);
+}
+@keyframes cardIn { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
+.members-bg-head {
+  padding: 18px 20px 14px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 10px;
+}
+.members-bg-head h3 {
+  font-size: 16px; font-weight: 700; color: var(--text-primary); margin: 0; flex: 1;
+  display: flex; align-items: center; gap: 8px;
+}
+.members-bg-head h3 svg { width: 19px; height: 19px; color: var(--accent); }
+.members-bg-body { padding: 18px 20px; }
+.members-bg-body .setting-hint { font-size: 12.5px; color: var(--text-muted); margin: 0 0 16px; line-height: 1.5; }
+.members-bg-controls { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+.members-bg-preview {
+  width: 100%; height: 160px; border-radius: 10px;
+  background: var(--bg-darkest); border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden; position: relative; margin-bottom: 16px;
+}
+.members-bg-preview img { width: 100%; height: 100%; object-fit: contain; }
+.members-bg-scale-row {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 14px;
+}
+.members-bg-scale-row label { font-size: 12.5px; color: var(--text-secondary); flex-shrink: 0; min-width: 50px; }
+.members-bg-scale-row input[type=range] { flex: 1; accent-color: var(--accent); }
+.members-bg-scale-row .scale-val { font-size: 12px; color: var(--text-muted); min-width: 36px; text-align: right; }
+.members-bg-color-row {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 16px;
+}
+.members-bg-color-row label { font-size: 12.5px; color: var(--text-secondary); flex-shrink: 0; min-width: 50px; }
+.members-bg-color-row input[type=color] {
+  width: 38px; height: 38px; border: 1px solid var(--border); border-radius: 8px;
+  background: transparent; cursor: pointer; padding: 2px;
+}
+.members-bg-color-row input[type=range] { flex: 1; accent-color: var(--accent); }
+
+/* ---- Better save button UI (task k) ---- */
+.profile-save-btn.saved {
+  background: var(--success) !important; color: #fff !important; border-color: var(--success) !important;
+}
+.profile-save-btn.saving .save-btn-text { opacity: 0.6; }
+.profile-save-btn .save-spinner {
+  display: none; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: #fff; border-radius: 50%; animation: spin 0.6s linear infinite;
+}
+.profile-save-btn.saving .save-spinner { display: inline-block; }
+.profile-save-btn .save-check {
+  display: none; width: 16px; height: 16px;
+}
+.profile-save-btn.saved .save-check { display: inline-block; }
+.profile-save-btn.saved .save-btn-text { display: none; }
+.profile-save-btn.saved .save-spinner { display: none; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ---- Professional notifications (task l) ---- */
+.in-app-notif {
+  pointer-events: auto; width: 100%;
+  padding: 12px 14px; margin-bottom: 10px; border-radius: 12px;
+  background: var(--bg-light); border: 1px solid var(--border-light);
+  box-shadow: 0 8px 28px rgba(0,0,0,0.35);
+  display: flex; align-items: flex-start; gap: 11px;
+  animation: notifIn 0.35s cubic-bezier(0.16,1,0.3,1);
+  cursor: pointer; position: relative; overflow: hidden;
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+}
+@keyframes notifIn { from { opacity: 0; transform: translateY(16px) scale(0.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
+.in-app-notif:hover { border-color: var(--accent); transform: translateY(-1px); box-shadow: 0 10px 32px rgba(0,0,0,0.4); }
+.in-app-notif-avatar {
+  width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0; overflow: hidden;
+  background: var(--bg-medium); display: flex; align-items: center; justify-content: center;
+  font-size: 14px; font-weight: 700; color: var(--text-secondary);
+}
+.in-app-notif-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.in-app-notif-body { flex: 1; min-width: 0; }
+.in-app-notif-title { font-size: 13px; font-weight: 700; color: var(--text-primary); margin-bottom: 2px; }
+.in-app-notif-text { font-size: 12.5px; color: var(--text-secondary); line-height: 1.4; word-break: break-word; }
+.in-app-notif-time { font-size: 10.5px; color: var(--text-muted); margin-top: 4px; }
+.in-app-notif-badge {
+  position: absolute; top: 0; left: 0; width: 3px; height: 100%;
+}
+.in-app-notif.mention .in-app-notif-badge { background: var(--success); }
+.in-app-notif.message .in-app-notif-badge { background: var(--accent); }
+.in-app-notif.dm .in-app-notif-badge { background: #a855f7; }
+.in-app-notif.reply .in-app-notif-badge { background: #facc15; }
+.in-app-notif.system .in-app-notif-badge { background: var(--text-muted); }
+.in-app-notif-icon {
+  width: 32px; height: 32px; border-radius: 8px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+.in-app-notif.mention .in-app-notif-icon { background: rgba(34,197,94,0.15); color: var(--success); }
+.in-app-notif.message .in-app-notif-icon { background: rgba(74,158,255,0.15); color: var(--accent); }
+.in-app-notif.dm .in-app-notif-icon { background: rgba(168,85,247,0.15); color: #a855f7; }
+.in-app-notif.reply .in-app-notif-icon { background: rgba(250,204,21,0.15); color: #facc15; }
+.in-app-notif-icon svg { width: 17px; height: 17px; }
 .file-attachment-preview {
   display: none; align-items: center; gap: 10px;
   padding: 10px 12px; margin-bottom: 10px;
@@ -2419,15 +2665,15 @@ body.loading-session #chat-app.active::after {
   border-color: rgba(216,58,58,0.4);
 }
 
-/* ---- Preview frame: clean, neutral, subtle ---- */
+/* ---- Preview frame: full image, clean, neutral ---- */
 .custom-bg-preview {
-  width: 100%; height: 140px; border-radius: var(--radius-sm);
+  width: 100%; height: 240px; border-radius: var(--radius-sm);
   background: var(--bg-darkest); border: 1px solid var(--border);
   display: flex; align-items: center; justify-content: center;
   background-size: cover; background-position: center; margin-bottom: 16px;
   overflow: hidden; position: relative;
 }
-.custom-bg-preview img { max-width: 100%; max-height: 100%; object-fit: contain; }
+.custom-bg-preview img { width: 100%; height: 100%; object-fit: contain; }
 .custom-bg-preview .muted {
   position: relative; padding: 10px 18px; font-size: 12px;
   color: var(--text-muted); letter-spacing: 0.2px;
@@ -2884,6 +3130,10 @@ body.loading-session #chat-app.active::after {
 .ctx-user { background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a0a0b0' stroke-width='2'%3E%3Cpath d='M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2'/%3E%3Ccircle cx='12' cy='7' r='4'/%3E%3C/svg%3E") center/contain no-repeat; }
 .ctx-download { background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a0a0b0' stroke-width='2'%3E%3Cpath d='M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4'/%3E%3Cpolyline points='7 10 12 15 17 10'/%3E%3Cline x1='12' y1='15' x2='12' y2='3'/%3E%3C/svg%3E") center/contain no-repeat; }
 .ctx-friend { background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a0a0b0' stroke-width='2'%3E%3Cpath d='M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2'/%3E%3Ccircle cx='9' cy='7' r='4'/%3E%3Cline x1='19' y1='8' x2='19' y2='14'/%3E%3Cline x1='22' y1='11' x2='16' y2='11'/%3E%3C/svg%3E") center/contain no-repeat; }
+.ctx-block { background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23d83a3a' stroke-width='2'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cline x1='4.93' y1='4.93' x2='19.07' y2='19.07'/%3E%3C/svg%3E") center/contain no-repeat; }
+.ctx-dm { background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a0a0b0' stroke-width='2'%3E%3Cpath d='M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z'/%3E%3C/svg%3E") center/contain no-repeat; }
+.ctx-close { background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a0a0b0' stroke-width='2'%3E%3Cline x1='18' y1='6' x2='6' y2='18'/%3E%3Cline x1='6' y1='6' x2='18' y2='18'/%3E%3C/svg%3E") center/contain no-repeat; }
+.ctx-none { background: none; }
 
 /* ============================================
    TOASTS
@@ -3723,6 +3973,66 @@ body.loading-session #chat-app.active::after {
   opacity: 0.6 !important;
 }
 
+/* ============================================
+   MOBILE SUPPORT FOR NEW FEATURES (task n)
+   ============================================ */
+@media (max-width: 768px) {
+  /* Search panel: full width on mobile */
+  #search-msg-panel { width: 100vw; }
+  .search-msg-header { padding: 14px 14px 10px; }
+  .search-msg-input-wrap { padding: 10px 14px; }
+  .search-msg-input { font-size: 16px; padding: 11px 14px; } /* prevent iOS zoom */
+  .search-msg-scope { padding: 0 14px 8px; }
+  .search-msg-scope button { padding: 6px 14px; font-size: 12px; }
+  .search-msg-results { padding: 6px 10px 14px; }
+  .search-result-item { padding: 10px 12px; }
+  .search-result-text { font-size: 12.5px; -webkit-line-clamp: 4; }
+
+  /* Members bg modal: full width with padding */
+  #members-bg-modal { padding: 12px; }
+  .members-bg-card { max-height: 92vh; }
+  .members-bg-body { padding: 14px 16px; }
+  .members-bg-preview { height: 140px; }
+  .members-bg-controls button, .members-bg-controls label { font-size: 12px; padding: 8px 14px; }
+  .members-bg-color-row input[type=color] { width: 36px; height: 36px; }
+
+  /* Rich notifications: smaller on mobile */
+  .in-app-notif { padding: 10px 12px; }
+  .in-app-notif-avatar { width: 34px; height: 34px; }
+  .in-app-notif-title { font-size: 12.5px; }
+  .in-app-notif-text { font-size: 12px; }
+
+  /* Message bubbles: slightly less padding on mobile for readability */
+  .message-bubble { padding: 10px 14px; font-size: 14px; }
+  .message-group { max-width: 96%; gap: 10px; }
+  .message-avatar { width: 34px; height: 34px; }
+
+  /* Message actions always visible on touch (no hover) */
+  .message-actions { opacity: 1 !important; }
+
+  /* Reply preview full width */
+  .reply-preview { margin: 0 10px 8px; }
+
+  /* Members bg button: same compact style as other nav buttons */
+  .sidebar-nav-btn[data-action="members-bg"] { padding: 6px 2px; }
+  .sidebar-nav-btn[data-action="members-bg"] span:not(.nav-badge) { font-size: 8px; }
+  .sidebar-nav-btn[data-action="members-bg"] svg { width: 18px; height: 18px; }
+}
+@media (max-width: 480px) {
+  .search-msg-header h3 { font-size: 14px; }
+  .search-result-text { -webkit-line-clamp: 5; }
+  .members-bg-scale-row label, .members-bg-color-row label { min-width: 44px; font-size: 12px; }
+}
+
+/* Touch devices: show message actions without hover */
+@media (hover: none) and (pointer: coarse) {
+  .message-actions { opacity: 1 !important; }
+  .message-bubble:hover { box-shadow: none; }
+}
+
+/* Long-press support hint: context menus work via right-click on desktop
+   and long-press on touch (native browser behavior) */
+
 </style>
   <link rel="icon" type="image/jpeg" href="/uploads/favicon.jpg">
   <link rel="apple-touch-icon" href="/uploads/favicon.jpg">
@@ -3946,6 +4256,9 @@ body.loading-session #chat-app.active::after {
           <button class="icon-btn mobile-menu-btn" id="mobile-menu-btn" title="Menu">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
           </button>
+          <button class="icon-btn" id="search-msg-btn" title="Search Messages">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          </button>
           <button class="icon-btn" id="settings-btn" title="Account Settings">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
           </button>
@@ -4098,6 +4411,65 @@ body.loading-session #chat-app.active::after {
   <!-- ===================== CONTEXT MENU ===================== -->
   <div class="context-menu" id="context-menu"></div>
 
+  <!-- ===================== MESSAGE SEARCH PANEL ===================== -->
+  <div id="search-msg-panel">
+    <div class="search-msg-header">
+      <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> Search Messages</h3>
+      <button class="search-msg-close" id="search-msg-close" title="Close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="search-msg-input-wrap">
+      <input type="text" class="search-msg-input" id="search-msg-input" placeholder="Search messages by keyword or @username" autocomplete="off">
+    </div>
+    <div class="search-msg-scope">
+      <button type="button" class="active" data-scope="chat">Public Chat</button>
+      <button type="button" data-scope="dms">Direct Messages</button>
+    </div>
+    <div class="search-msg-results" id="search-msg-results">
+      <div class="search-msg-empty">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        Type to search through messages.<br>Click any result to jump straight to it.
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== MEMBERS LIST BACKGROUND MODAL ===================== -->
+  <div id="members-bg-modal">
+    <div class="members-bg-card">
+      <div class="members-bg-head">
+        <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg> Members List Background</h3>
+        <button class="search-msg-close" id="members-bg-close" title="Close">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="members-bg-body">
+        <p class="setting-hint">Upload an image or GIF, or paste a URL. Adjust the scale and add a color overlay with opacity to match your style.</p>
+        <div class="members-bg-controls">
+          <label class="setting-save-btn" for="members-bg-file" style="cursor:pointer;display:inline-block;">Upload Image / GIF</label>
+          <input type="file" id="members-bg-file" accept="image/*,image/gif" hidden>
+          <button class="setting-save-btn" id="members-bg-url-btn">Use URL</button>
+          <button class="setting-save-btn danger-btn" id="members-bg-clear-btn">Clear</button>
+        </div>
+        <div class="members-bg-preview" id="members-bg-preview">
+          <span class="muted" style="font-size:12px;">No background set</span>
+        </div>
+        <div class="members-bg-scale-row">
+          <label>Scale</label>
+          <input type="range" id="members-bg-scale" min="50" max="300" value="100" step="5">
+          <span class="scale-val" id="members-bg-scale-val">100%</span>
+        </div>
+        <div class="members-bg-color-row">
+          <label>Overlay</label>
+          <input type="color" id="members-bg-color" value="#0a0b0d">
+          <input type="range" id="members-bg-opacity" min="0" max="100" value="0" step="5">
+          <span class="scale-val" id="members-bg-opacity-val">0%</span>
+        </div>
+        <button class="setting-save-btn" id="members-bg-save" style="width:100%;">Apply Background</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ===================== PROFILE SETTINGS MODAL ===================== -->
   <div class="modal-overlay settings-modal-overlay" id="profile-panel">
     <div class="modal settings-modal profile-modal-v2">
@@ -4226,7 +4598,7 @@ body.loading-session #chat-app.active::after {
 
     </div>
     <div class="profile-v2-footer">
-      <button class="profile-save-btn" id="bio-save-btn">Save Changes</button>
+      <button class="profile-save-btn" id="bio-save-btn"><span class="save-spinner"></span><svg class="save-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg><span class="save-btn-text">Save Changes</span></button>
     </div>
     </div>
   </div>
@@ -4395,7 +4767,7 @@ body.loading-session #chat-app.active::after {
 
           <div class="profile-section">
             <div class="profile-section-title">Music Player</div>
-            <p class="setting-hint" style="margin-top:0;margin-bottom:14px;">Paste a link from Spotify, SoundCloud, YouTube, Apple Music, or Deezer. The song will load with a full player right here in your settings.</p>
+            <p class="setting-hint" style="margin-top:0;margin-bottom:14px;">Paste a music link (Spotify, YouTube, SoundCloud, Apple Music, or Deezer) to load a player here.</p>
             <div class="music-link-input-row">
               <input type="text" id="music-link-input" class="music-link-input" placeholder="Paste a Spotify, SoundCloud, YouTube, Apple Music, or Deezer link…" autocomplete="off" spellcheck="false">
               <button class="setting-save-btn music-load-btn" id="music-load-btn" type="button">Load</button>
@@ -5412,8 +5784,8 @@ function showNotification(title, body, icon) {
   // Always fire the in-app toast ping immediately (even when focused) so the
   // user sees activity without delay. Desktop notification still respects focus.
   if (document.hasFocus()) {
-    // Window is focused — show a quick toast ping instead of a desktop notification
-    toast(title + ': ' + (body || ''), 'info');
+    // Window is focused — show a rich in-app notification card
+    showInAppNotification({ title: title, text: body, avatar: icon, type: 'message' });
     return;
   }
   if (!('Notification' in window)) return;
@@ -5430,6 +5802,53 @@ function showNotification(title, body, icon) {
       setTimeout(() => { try { n.close(); } catch(e) {} }, 4000);
     } catch(e) {}
   }
+  // Also show the rich in-app notification when not focused
+  showInAppNotification({ title: title, text: body, avatar: icon, type: 'message' });
+}
+
+// ---------- Rich In-App Notification System (task l) ----------
+let notifHistory = [];
+function showInAppNotification(opts) {
+  // opts: { title, text, avatar, type ('mention'|'message'|'dm'|'reply'|'system'), icon, onClick, username }
+  const container = $('toast-container');
+  if (!container) return;
+  const type = opts.type || 'message';
+  const el = document.createElement('div');
+  el.className = 'in-app-notif ' + type;
+  const typeIcons = {
+    mention: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-4 8"/></svg>',
+    message: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>',
+    dm: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>',
+    reply: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg>',
+    system: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
+  };
+  const avatarHtml = opts.avatar
+    ? '<div class="in-app-notif-avatar"><img src="' + escapeHtml(opts.avatar) + '"></div>'
+    : '<div class="in-app-notif-icon">' + (typeIcons[type] || typeIcons.message) + '</div>';
+  el.innerHTML =
+    '<span class="in-app-notif-badge"></span>' +
+    avatarHtml +
+    '<div class="in-app-notif-body">' +
+      '<div class="in-app-notif-title">' + escapeHtml(opts.title || '') + '</div>' +
+      (opts.text ? '<div class="in-app-notif-text">' + escapeHtml(String(opts.text).slice(0, 200)) + '</div>' : '') +
+      '<div class="in-app-notif-time">' + formatTime(new Date().toISOString()) + '</div>' +
+    '</div>' +
+    '<span class="toast-close">&times;</span>';
+  container.appendChild(el);
+  // Store in history (keep last 50)
+  notifHistory.unshift({ title: opts.title, text: opts.text, type, avatar: opts.avatar, time: new Date().toISOString(), username: opts.username });
+  if (notifHistory.length > 50) notifHistory = notifHistory.slice(0, 50);
+  let dismissTimer = null;
+  function dismiss() {
+    if (el.classList.contains('fade-out')) return;
+    clearTimeout(dismissTimer);
+    el.classList.add('fade-out');
+    setTimeout(() => el.remove(), 300);
+  }
+  el.querySelector('.toast-close').addEventListener('click', (e) => { e.stopPropagation(); dismiss(); });
+  if (opts.onClick) el.addEventListener('click', (e) => { if (e.target.classList.contains('toast-close')) return; dismiss(); opts.onClick(); });
+  else el.addEventListener('click', dismiss);
+  dismissTimer = setTimeout(dismiss, 5000);
 }
 function requestNotificationPermission() {
   if (!('Notification' in window)) { toast('Desktop notifications are not supported in this browser.', 'error'); return Promise.resolve(false); }
@@ -6436,7 +6855,6 @@ function connectSocket() {
       const name = (user && user.displayName) ? user.displayName : '@' + msg.username;
       const isPing = msg.pingedForMe;
       showNotification((isPing ? name + ' mentioned you' : name + ' sent a message'), msg.text || (msg.file ? 'Sent a file' : ''), user && user.avatar);
-      if (isPing) toast(name + ' mentioned you in chat', 'success');
     }
   });
   // Pinged in chat — show notification
@@ -6448,7 +6866,7 @@ function connectSocket() {
     // Only show toast if we're not already viewing the chat with focus
     const isChatFocused = document.hasFocus() && document.getElementById('chat-page') && document.getElementById('chat-page').classList.contains('active');
     if (!isChatFocused || (data.from !== (currentUser && currentUser.username))) {
-      toast(name + ' mentioned you in chat', 'success');
+      showInAppNotification({ title: name + ' mentioned you', text: data.text, avatar: user && user.avatar, type: 'mention', username: data.from, onClick: () => switchSidebarView('public') });
     }
     // Mark the message so it gets the pinged highlight when rendered
     if (data.messageId) {
@@ -6464,6 +6882,34 @@ function connectSocket() {
     const msg = messages.find(m => m.id === data.id);
     if (msg) { msg.text = data.text; msg.edited = data.edited; msg.editedAt = data.editedAt; }
     renderMessages();
+  });
+  // ---- Reply highlight: when someone replies to MY message, highlight it ----
+  socket.on('replied-to', (data) => {
+    if (!data || !data.messageId) return;
+    if (blockedUsers.some(u => u.username === data.by)) return;
+    const el = document.querySelector('.message-group[data-message-id="' + CSS.escape(data.messageId) + '"]');
+    if (el) {
+      el.classList.remove('replied-to-me');
+      void el.offsetWidth; // restart animation
+      el.classList.add('replied-to-me');
+      // Show a subtle toast only if chat not focused
+      const isChatFocused = document.hasFocus() && document.getElementById('chat-page') && document.getElementById('chat-page').classList.contains('active');
+      if (!isChatFocused) {
+        const user = users.find(u => u.username === data.by);
+        const name = (user && user.displayName) ? user.displayName : '@' + data.by;
+        toast(name + ' replied to your message', 'info');
+      }
+    }
+  });
+  socket.on('dm-replied-to', (data) => {
+    if (!data || !data.messageId) return;
+    if (blockedUsers.some(u => u.username === data.by)) return;
+    const el = document.querySelector('[data-dm-id="' + CSS.escape(data.messageId) + '"]');
+    if (el) {
+      el.classList.remove('replied-to-me');
+      void el.offsetWidth;
+      el.classList.add('replied-to-me');
+    }
   });
   socket.on('message-deleted', (data) => {
     const msg = messages.find(m => m.id === data.id);
@@ -6578,11 +7024,17 @@ function connectSocket() {
       updateDMNavBadge();
     } else {
       const isPing = msg.pingedForMe;
-      toast(isPing ? 'You were mentioned by @' + from : 'New message from @' + from, 'success');
       playMessageSound();
       const user = users.find(u => u.username === from);
       const name = (user && user.displayName) ? user.displayName : '@' + from;
-      showNotification(isPing ? name + ' mentioned you in a DM' : name + ' sent you a DM', msg.text || (msg.file ? 'Sent a file' : ''), user && user.avatar);
+      showInAppNotification({
+        title: isPing ? name + ' mentioned you in a DM' : name + ' sent you a DM',
+        text: msg.text || (msg.file ? 'Sent a file' : ''),
+        avatar: user && user.avatar,
+        type: 'dm',
+        username: from,
+        onClick: () => openDM(from)
+      });
     }
     loadDMConversations();
   });
@@ -8054,7 +8506,10 @@ function attachUserListListeners() {
       e.preventDefault();
       const un = item.dataset.username;
       if (un === currentUser.username) return;
-      showContextMenu(e.clientX, e.clientY, [
+      // Context-aware friend status
+      const isFriend = friends.some(f => f.username === un);
+      const requestSent = friendRequests.sent.some(f => f.username === un);
+      const items = [
         { label: 'View Profile', icon: 'user', action: () => openProfileView(un) },
         { label: 'Send Message', icon: 'dm', action: () => {
           const target = users.find(x => x.username === un);
@@ -8062,9 +8517,18 @@ function attachUserListListeners() {
           if (otherOff) { toast('@' + un + ' has disabled direct messages and is not accepting private messages.', 'error'); return; }
           openDM(un);
         } },
-        { label: 'Add Friend', icon: 'friend', action: () => sendFriendRequest(un) },
-        { label: 'Block', icon: 'block', danger: true, action: () => promptBlockUser(un) }
-      ]);
+      ];
+      // Friend-related action is context-aware
+      if (isFriend) {
+        items.push({ label: 'Unfriend', icon: 'friend', danger: true, action: () => removeFriend(un) });
+      } else if (requestSent) {
+        items.push({ label: 'Cancel Friend Request', icon: 'friend', action: () => cancelFriendRequest(un) });
+      } else {
+        items.push({ label: 'Add Friend', icon: 'friend', action: () => sendFriendRequest(un) });
+      }
+      items.push({ label: 'Copy User ID', icon: 'user', action: () => copyUserIdToClipboard(un, un) });
+      items.push({ label: 'Block', icon: 'block', danger: true, action: () => promptBlockUser(un) });
+      showContextMenu(e.clientX, e.clientY, items);
     });
   });
 }
@@ -8140,6 +8604,35 @@ function attachFriendListeners() {
     item.addEventListener('click', (e) => {
       if (e.target.closest('.friend-actions')) return;
       openProfileView(item.dataset.username);
+    });
+    // Right-click context menu on friends and requests
+    item.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+      const un = item.dataset.username;
+      if (un === currentUser.username) return;
+      const isFriend = friends.some(f => f.username === un);
+      const isOutgoing = friendRequests.sent.some(f => f.username === un);
+      const isIncoming = friendRequests.received.some(f => f.username === un);
+      const items = [
+        { label: 'View Profile', icon: 'user', action: () => openProfileView(un) },
+        { label: 'Send Message', icon: 'dm', action: () => {
+          const target = users.find(x => x.username === un);
+          const otherOff = target && target.directMessagesEnabled === false;
+          if (otherOff) { toast('@' + un + ' has disabled direct messages and is not accepting private messages.', 'error'); return; }
+          openDM(un);
+        } },
+        { label: 'Copy User ID', icon: 'user', action: () => copyUserIdToClipboard(un, un) },
+      ];
+      if (isFriend) {
+        items.push({ label: 'Unfriend', icon: 'friend', danger: true, action: () => removeFriend(un) });
+        items.push({ label: 'Block', icon: 'block', danger: true, action: () => promptBlockUser(un) });
+      } else if (isOutgoing) {
+        items.push({ label: 'Cancel Friend Request', icon: 'friend', action: () => cancelFriendRequest(un) });
+      } else if (isIncoming) {
+        items.push({ label: 'Accept Request', icon: 'friend', action: () => acceptFriendRequest(un) });
+        items.push({ label: 'Decline Request', icon: 'friend', danger: true, action: () => declineFriendRequest(un) });
+      }
+      showContextMenu(e.clientX, e.clientY, items);
     });
   });
   document.querySelectorAll('#friends-list .mini-btn').forEach(btn => {
@@ -9657,7 +10150,11 @@ async function saveProfileNow(silent) {
   const directMessagesEnabled = $('direct-messages-toggle') ? $('direct-messages-toggle').checked : true;
   const panelColor = getProfileColor() || null;
   const btn = $('bio-save-btn');
-  btn.disabled = true; btn.classList.add('saving'); btn.textContent = 'Saving';
+  btn.disabled = true;
+  btn.classList.remove('saved');
+  btn.classList.add('saving');
+  const txtEl = btn.querySelector('.save-btn-text');
+  if (txtEl) txtEl.textContent = 'Saving…';
   try {
     const res = await fetch(API_BASE + '/api/profile', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ bio, hideLastSeen, pronouns, showOnlineStatus, panelColor, friendRequestsEnabled, directMessagesEnabled }) });
     const data = await res.json();
@@ -9674,11 +10171,18 @@ async function saveProfileNow(silent) {
       const uIdx = users.findIndex(x => x.username === currentUser.username);
       if (uIdx >= 0) { users[uIdx].bio = bio; users[uIdx].pronouns = pronouns; users[uIdx].showOnlineStatus = showOnlineStatus; users[uIdx].panelColor = panelColor; users[uIdx].friendRequestsEnabled = friendRequestsEnabled; users[uIdx].directMessagesEnabled = directMessagesEnabled; }
       profileDirty = false;
-      btn.disabled = false; btn.classList.remove('saving'); btn.textContent = 'Save Changes';
+      // Show "Saved" success state with check icon for 1.5s
+      btn.classList.remove('saving');
+      btn.classList.add('saved');
+      if (txtEl) txtEl.textContent = 'Save Changes';
+      btn.disabled = false;
+      setTimeout(() => { btn.classList.remove('saved'); }, 1500);
       return true;
     } else { toast(data.error || 'Unable to update your profile. Please try again.', 'error'); }
   } catch (err) { toast('Unable to update your profile. Please try again.', 'error'); }
-  btn.disabled = false; btn.classList.remove('saving'); btn.textContent = 'Save Changes';
+  btn.classList.remove('saving');
+  if (txtEl) txtEl.textContent = 'Save Changes';
+  btn.disabled = false;
   return false;
 }
 $('bio-save-btn').addEventListener('click', saveProfileNow);
@@ -9704,6 +10208,255 @@ $('unsaved-save').addEventListener('click', async () => {
   if (ok && pendingNavigation) { pendingNavigation(); pendingNavigation = null; }
 });
 $('unsaved-modal').addEventListener('click', (e) => { if (e.target === $('unsaved-modal')) $('unsaved-modal').classList.remove('show'); });
+
+// ---------- Message Search Panel (task c) ----------
+let searchMsgScope = 'chat';
+let searchMsgTimer = null;
+$('search-msg-btn').addEventListener('click', () => {
+  $('search-msg-panel').classList.add('open');
+  setTimeout(() => $('search-msg-input').focus(), 100);
+});
+$('search-msg-close').addEventListener('click', () => {
+  $('search-msg-panel').classList.remove('open');
+});
+document.querySelectorAll('.search-msg-scope button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.search-msg-scope button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    searchMsgScope = btn.dataset.scope;
+    if ($('search-msg-input').value.trim()) runMessageSearch();
+  });
+});
+$('search-msg-input').addEventListener('input', () => {
+  clearTimeout(searchMsgTimer);
+  const val = $('search-msg-input').value.trim();
+  if (!val) {
+    $('search-msg-results').innerHTML = '<div class="search-msg-empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>Type to search through messages.<br>Click any result to jump straight to it.</div>';
+    return;
+  }
+  searchMsgTimer = setTimeout(() => runMessageSearch(), 250);
+});
+async function runMessageSearch() {
+  const q = $('search-msg-input').value.trim();
+  if (!q) return;
+  $('search-msg-results').innerHTML = '<div class="search-msg-empty" style="color:var(--text-muted);">Searching…</div>';
+  try {
+    const res = await fetch(API_BASE + '/api/search-messages?q=' + encodeURIComponent(q) + '&scope=' + encodeURIComponent(searchMsgScope));
+    const data = await res.json();
+    renderSearchResults(data.results || [], q);
+  } catch (e) {
+    $('search-msg-results').innerHTML = '<div class="search-msg-empty">Search failed. Please try again.</div>';
+  }
+}
+function highlightSearchTerm(text, term) {
+  if (!text) return '';
+  const escaped = escapeHtml(text);
+  const lower = text.toLowerCase();
+  const tLower = term.toLowerCase();
+  const idx = lower.indexOf(tLower);
+  if (idx < 0) return escaped;
+  return escaped.slice(0, idx) + '<mark>' + escaped.slice(idx, idx + term.length) + '</mark>' + escaped.slice(idx + term.length);
+}
+function renderSearchResults(results, q) {
+  const container = $('search-msg-results');
+  if (!results.length) {
+    container.innerHTML = '<div class="search-msg-empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>No messages found for "' + escapeHtml(q) + '"</div>';
+    return;
+  }
+  container.innerHTML = results.map(r => {
+    const user = users.find(u => u.username === r.username);
+    const avatarInner = (user && user.avatar) ? '<img src="' + user.avatar + '">' : getInitials(r.username);
+    const nameDisplay = r.displayName ? escapeHtml(r.displayName) : '@' + escapeHtml(r.username);
+    const textPreview = r.text ? highlightSearchTerm(r.text.slice(0, 300), q.replace(/^@/, '')) : (r.file ? '📎 ' + escapeHtml(r.file.name) : '');
+    const typeLabel = r.type === 'dm' ? 'DM with @' + escapeHtml(r.withUser) : 'Public Chat';
+    return '<div class="search-result-item" data-type="' + r.type + '" data-id="' + escapeHtml(r.id) + '" data-with="' + (r.withUser ? escapeHtml(r.withUser) : '') + '">' +
+      '<div class="search-result-head">' +
+        '<div class="search-result-avatar">' + avatarInner + '</div>' +
+        '<span class="search-result-name">' + nameDisplay + '</span>' +
+        '<span class="search-result-time">' + escapeHtml(typeLabel) + ' · ' + formatTime(r.timestamp) + '</span>' +
+      '</div>' +
+      '<div class="search-result-text">' + textPreview + '</div>' +
+      '<div class="search-result-jump"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>Jump to message</div>' +
+    '</div>';
+  }).join('');
+  container.querySelectorAll('.search-result-item').forEach(item => {
+    item.addEventListener('click', () => jumpToSearchResult(item.dataset.type, item.dataset.id, item.dataset.with));
+  });
+}
+async function jumpToSearchResult(type, id, withUser) {
+  $('search-msg-panel').classList.remove('open');
+  if (type === 'dm') {
+    // Switch to DM view, open the conversation, then scroll to message
+    switchSidebarView('dms');
+    if (activeDMUser !== withUser) {
+      await openDM(withUser);
+    }
+    setTimeout(() => {
+      const el = document.querySelector('[data-dm-id="' + CSS.escape(id) + '"]');
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        el.classList.remove('replied-to-me');
+        void el.offsetWidth;
+        el.classList.add('replied-to-me');
+      }
+    }, 300);
+  } else {
+    // Switch to public chat, scroll to message
+    switchSidebarView('public');
+    setTimeout(() => {
+      const el = document.querySelector('.message-group[data-message-id="' + CSS.escape(id) + '"]');
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        el.classList.remove('replied-to-me');
+        void el.offsetWidth;
+        el.classList.add('replied-to-me');
+      } else {
+        // Message might be older than loaded — reload full history then try
+        toast('Message found — loading history…', 'info');
+      }
+    }, 200);
+  }
+}
+// Close search panel on Escape
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && $('search-msg-panel').classList.contains('open')) {
+    $('search-msg-panel').classList.remove('open');
+  }
+});
+
+// ---------- Members List Background Modal (task m) ----------
+let membersBgState = { url: null, scale: 100, color: '#0a0b0d', opacity: 0 };
+function loadMembersBgState() {
+  try {
+    const saved = JSON.parse(localStorage.getItem('hellobye_members_bg') || 'null');
+    if (saved) membersBgState = saved;
+  } catch (e) {}
+  applyMembersBg();
+}
+function saveMembersBgState() {
+  localStorage.setItem('hellobye_members_bg', JSON.stringify(membersBgState));
+  applyMembersBg();
+}
+function applyMembersBg() {
+  const sidebar = document.querySelector('.sidebar');
+  if (!sidebar) return;
+  const userList = sidebar.querySelector('.user-list');
+  const { url, scale, color, opacity } = membersBgState;
+  if (url) {
+    sidebar.style.setProperty('--members-bg-image', 'url("' + url + '")');
+    sidebar.style.setProperty('--members-bg-size', (scale / 100 * 100) + '% auto');
+    sidebar.style.setProperty('--members-bg-overlay', color);
+    sidebar.style.setProperty('--members-bg-opacity', (opacity / 100));
+    document.querySelectorAll('.sidebar-view').forEach(v => {
+      v.style.backgroundImage = 'var(--members-bg-image)';
+      v.style.backgroundSize = 'var(--members-bg-size)';
+      v.style.backgroundPosition = 'center';
+      v.style.backgroundRepeat = 'no-repeat';
+      v.style.position = 'relative';
+    });
+    // Add overlay via a pseudo-element workaround: use a box-shadow inset
+    document.querySelectorAll('.sidebar-view').forEach(v => {
+      let overlay = v.querySelector('.members-bg-overlay');
+      if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.className = 'members-bg-overlay';
+        overlay.style.cssText = 'position:absolute;inset:0;pointer-events:none;z-index:0;';
+        v.insertBefore(overlay, v.firstChild);
+      }
+      overlay.style.background = color;
+      overlay.style.opacity = (opacity / 100);
+    });
+    document.querySelectorAll('.sidebar-view > *').forEach(el => { el.style.position = 'relative'; el.style.zIndex = '1'; });
+  } else {
+    document.querySelectorAll('.sidebar-view').forEach(v => {
+      v.style.backgroundImage = '';
+      v.style.backgroundSize = '';
+      const overlay = v.querySelector('.members-bg-overlay');
+      if (overlay) overlay.remove();
+    });
+  }
+}
+// Add the members-bg button next to the Blocked button — inserted via JS to ensure placement
+(function addMembersBgButton() {
+  const nav = document.querySelector('.sidebar-nav');
+  if (!nav) return;
+  const blockedBtn = nav.querySelector('[data-view="blocked"]');
+  if (!blockedBtn) return;
+  if (nav.querySelector('[data-action="members-bg"]')) return; // already added
+  const btn = document.createElement('button');
+  btn.className = 'sidebar-nav-btn';
+  btn.setAttribute('data-action', 'members-bg');
+  btn.setAttribute('title', 'Members List Background');
+  btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg><span>Background</span>';
+  blockedBtn.insertAdjacentElement('afterend', btn);
+  btn.addEventListener('click', () => {
+    // Refresh preview from current state
+    updateMembersBgPreview();
+    $('members-bg-modal').classList.add('open');
+  });
+})();
+$('members-bg-close').addEventListener('click', () => $('members-bg-modal').classList.remove('open'));
+$('members-bg-modal').addEventListener('click', (e) => { if (e.target === $('members-bg-modal')) $('members-bg-modal').classList.remove('open'); });
+function updateMembersBgPreview() {
+  const preview = $('members-bg-preview');
+  const { url, scale, color, opacity } = membersBgState;
+  if (url) {
+    preview.innerHTML = '<img src="' + url + '" style="object-position:center;object-fit:' + (scale > 100 ? 'cover' : 'contain') + ';">';
+    let overlay = preview.querySelector('.members-bg-overlay');
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.className = 'members-bg-overlay';
+      overlay.style.cssText = 'position:absolute;inset:0;pointer-events:none;';
+      preview.appendChild(overlay);
+    }
+    overlay.style.background = color;
+    overlay.style.opacity = (opacity / 100);
+  } else {
+    preview.innerHTML = '<span class="muted" style="font-size:12px;">No background set</span>';
+  }
+  $('members-bg-scale').value = scale;
+  $('members-bg-scale-val').textContent = scale + '%';
+  $('members-bg-color').value = color;
+  $('members-bg-opacity').value = opacity;
+  $('members-bg-opacity-val').textContent = opacity + '%';
+}
+$('members-bg-scale').addEventListener('input', (e) => {
+  membersBgState.scale = parseInt(e.target.value);
+  $('members-bg-scale-val').textContent = membersBgState.scale + '%';
+  updateMembersBgPreview();
+});
+$('members-bg-color').addEventListener('input', (e) => {
+  membersBgState.color = e.target.value;
+  updateMembersBgPreview();
+});
+$('members-bg-opacity').addEventListener('input', (e) => {
+  membersBgState.opacity = parseInt(e.target.value);
+  $('members-bg-opacity-val').textContent = membersBgState.opacity + '%';
+  updateMembersBgPreview();
+});
+$('members-bg-file').addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  if (file.size > 8 * 1024 * 1024) { toast('Image must be under 8MB', 'error'); return; }
+  const reader = new FileReader();
+  reader.onload = () => { membersBgState.url = reader.result; updateMembersBgPreview(); };
+  reader.readAsDataURL(file);
+});
+$('members-bg-url-btn').addEventListener('click', () => {
+  const url = prompt('Paste an image or GIF URL:');
+  if (url && url.trim()) { membersBgState.url = url.trim(); updateMembersBgPreview(); }
+});
+$('members-bg-clear-btn').addEventListener('click', () => {
+  membersBgState = { url: null, scale: 100, color: '#0a0b0d', opacity: 0 };
+  updateMembersBgPreview();
+});
+$('members-bg-save').addEventListener('click', () => {
+  saveMembersBgState();
+  $('members-bg-modal').classList.remove('open');
+  toast('Members list background updated', 'success');
+});
+// Apply members bg on load
+setTimeout(loadMembersBgState, 500);
 
 // ---------- Settings Panel ----------
 $('settings-btn').addEventListener('click', () => {

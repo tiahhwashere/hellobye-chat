@@ -896,6 +896,52 @@ app.get('/api/messages', authMiddleware, (req, res) => {
   res.json({ messages: db.messages.slice(-500) });
 });
 
+// ---------- Message Search ----------
+// Searches public chat messages and all of the requesting user's DMs.
+// Supports keyword search and @username filtering.
+app.get('/api/search-messages', authMiddleware, (req, res) => {
+  try {
+    const q = String(req.query.q || '').trim().toLowerCase();
+    const scope = String(req.query.scope || 'chat'); // 'chat' | 'dms'
+    const results = [];
+    if (!q) return res.json({ results: [] });
+    if (scope === 'chat' || scope === 'all') {
+      // Search public messages (last 1000), exclude deleted
+      db.messages.slice(-1000).forEach(m => {
+        if (m.deleted) return;
+        if (m.username && m.username.toLowerCase() === q.replace(/^@/, '')) {
+          results.push({ type: 'chat', id: m.id, username: m.username, displayName: m.displayName, text: m.text, timestamp: m.timestamp, file: m.file ? { name: m.file.name } : null });
+          return;
+        }
+        if (m.text && m.text.toLowerCase().includes(q)) {
+          results.push({ type: 'chat', id: m.id, username: m.username, displayName: m.displayName, text: m.text, timestamp: m.timestamp, file: m.file ? { name: m.file.name } : null });
+        }
+      });
+    }
+    if (scope === 'dms' || scope === 'all') {
+      const myDMs = db.dms[req.user.username] || {};
+      Object.entries(myDMs).forEach(([otherUser, msgs]) => {
+        (msgs || []).slice(-500).forEach(m => {
+          if (m.deleted) return;
+          if (m.from && m.from.toLowerCase() === q.replace(/^@/, '')) {
+            results.push({ type: 'dm', id: m.id, username: m.from, displayName: m.displayName, withUser: otherUser, text: m.text, timestamp: m.timestamp, file: m.file ? { name: m.file.name } : null });
+            return;
+          }
+          if (m.text && m.text.toLowerCase().includes(q)) {
+            results.push({ type: 'dm', id: m.id, username: m.from, displayName: m.displayName, withUser: otherUser, text: m.text, timestamp: m.timestamp, file: m.file ? { name: m.file.name } : null });
+          }
+        });
+      });
+    }
+    // Sort by timestamp descending, limit to 50
+    results.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    res.json({ results: results.slice(0, 50) });
+  } catch (e) {
+    console.error('search-messages error', e);
+    res.json({ results: [] });
+  }
+});
+
 // ---------- Users ----------
 app.get('/api/users', authMiddleware, (req, res) => {
   const list = Object.values(db.users).map(u => publicUser(u));
@@ -2414,6 +2460,20 @@ io.on('connection', (socket) => {
       if (db.messages.length > 1000) db.messages = db.messages.slice(-1000);
       saveDB();
       io.emit('new-message', msg);
+      // ---- Reply highlight notification ----
+      // When a message is a reply, notify the original message's author so
+      // their client can highlight the message that was replied to.
+      if (msg.reply && msg.reply.id && msg.reply.username && msg.reply.username !== username) {
+        const replyTarget = msg.reply.username.toLowerCase();
+        if (db.users[replyTarget]) {
+          io.to('user:' + replyTarget).emit('replied-to', {
+            messageId: msg.reply.id,
+            by: username,
+            replyId: msg.id,
+            text: msg.text.slice(0, 200),
+          });
+        }
+      }
       // ---- Ping/mention notifications ----
       // Parse @mentions from the message text and notify each pinged user
       // who is currently online. The mention regex matches @username.
@@ -2532,6 +2592,15 @@ io.on('connection', (socket) => {
       saveDB();
       // Emit to recipient
       io.to(`user:${target}`).emit('dm-receive', { message: msg });
+      // ---- DM Reply highlight notification ----
+      if (msg.reply && msg.reply.id && msg.reply.username && msg.reply.username === target) {
+        io.to('user:' + target).emit('dm-replied-to', {
+          messageId: msg.reply.id,
+          by: username,
+          replyId: msg.id,
+          text: msg.text.slice(0, 200),
+        });
+      }
       // ---- DM Ping/mention notification ----
       const dmMentionMatches = String(text || '').match(/(^|[^\w@])@([a-zA-Z0-9_\-]+)/g) || [];
       const dmMentionedSet = new Set();
