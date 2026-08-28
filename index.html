@@ -2022,6 +2022,12 @@ body.loading-session #chat-app.active::after {
   font-family: inherit; transition: var(--transition);
 }
 .media-send-caption-row textarea:focus { outline: none; border-color: var(--accent); }
+.media-send-attach-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.media-send-attach-btn { display: inline-flex; align-items: center; padding: 8px 14px; font-size: 13px; font-weight: 500; border: 1px dashed var(--border); border-radius: var(--radius-sm); background: transparent; color: var(--text-secondary); cursor: pointer; transition: all 0.15s ease; }
+.media-send-attach-btn:hover { border-color: var(--accent); color: var(--accent); background: rgba(74,158,255,0.05); }
+.media-send-attach-name { font-size: 12px; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 200px; }
+.media-send-attach-remove { font-size: 11px; color: var(--danger); background: none; border: none; cursor: pointer; padding: 2px 6px; }
+.media-send-attach-remove:hover { text-decoration: underline; }
 
 /* ============================================
    CONTEXT MENU
@@ -3179,9 +3185,6 @@ body.loading-session #chat-app.active::after {
   <!-- ===================== DELETE MESSAGE MODAL ===================== -->
   <div class="modal-overlay" id="delete-msg-modal">
     <div class="modal small">
-      <div class="modal-icon danger">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-      </div>
       <h3>Delete this message?</h3>
       <p>This action cannot be undone. The message will be permanently removed from the conversation.</p>
       <div class="modal-actions">
@@ -3194,9 +3197,6 @@ body.loading-session #chat-app.active::after {
   <!-- ===================== ADMIN DELETE MESSAGE MODAL ===================== -->
   <div class="modal-overlay" id="admin-delete-msg-modal">
     <div class="modal small">
-      <div class="modal-icon danger">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-      </div>
       <h3>Delete this message instantly for everyone?</h3>
       <p>This cannot be undone. The message will be permanently removed for all users.</p>
       <div class="modal-actions">
@@ -3694,7 +3694,7 @@ body.loading-session #chat-app.active::after {
               </div>
               <div class="profile-section">
                 <div class="profile-section-title">Disable Chat Cooldown for User</div>
-                <p style="color:var(--text-muted); font-size:12px; margin-bottom:12px;">Select a user to exempt them from the 5-second chat message cooldown. They will be able to send messages without waiting.</p>
+                <p style="color:var(--text-muted); font-size:12px; margin-bottom:12px;">Select a user to exempt them from the 3-second chat message cooldown. They will be able to send messages without waiting.</p>
                 <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:12px;">
                   <select id="admin-cooldown-exempt-select" class="admin-input" style="flex:1; min-width:200px; padding:8px 10px;">
                     <option value="">— Select a user —</option>
@@ -3737,7 +3737,7 @@ body.loading-session #chat-app.active::after {
             <div class="admin-subpane" data-admin-subpane="ban">
               <div class="profile-section">
                 <div class="profile-section-title">Ban a User</div>
-                <p style="color:var(--text-muted); font-size:12px; margin-bottom:12px;">Search for a user by username or ID, then ban them with a reason.</p>
+                <p style="color:var(--text-muted); font-size:12px; margin-bottom:12px;">Search for a user by username or ID, then ban them with a reason. Choose a duration from permanent to 14 days.</p>
                 <div class="admin-ban-search-row">
                   <input type="text" id="admin-ban-search" class="admin-input" placeholder="Search by username or ID" />
                   <button class="setting-save-btn" id="admin-ban-search-btn">Search</button>
@@ -3745,6 +3745,18 @@ body.loading-session #chat-app.active::after {
                 <div id="admin-ban-results" class="admin-ban-results"></div>
                 <div id="admin-ban-form" style="display:none; margin-top:16px;">
                   <div class="admin-ban-target-info" id="admin-ban-target-info"></div>
+                  <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:8px;">
+                    <label style="font-size:12px; color:var(--text-muted); white-space:nowrap;">Ban duration:</label>
+                    <select id="admin-ban-duration" class="admin-input" style="flex:1; min-width:180px; padding:8px 10px;">
+                      <option value="0">Permanent</option>
+                      <option value="86400000">1 day</option>
+                      <option value="172800000">2 days</option>
+                      <option value="259200000">3 days</option>
+                      <option value="432000000">5 days</option>
+                      <option value="604800000">7 days</option>
+                      <option value="1209600000">14 days</option>
+                    </select>
+                  </div>
                   <textarea id="admin-ban-reason" class="admin-textarea" placeholder="Enter the ban reason (required)" rows="3"></textarea>
                   <button class="setting-save-btn danger-btn" id="admin-ban-confirm-btn" style="margin-top:8px;">Ban User</button>
                 </div>
@@ -4134,10 +4146,19 @@ body.loading-session #chat-app.active::after {
   <div class="modal-overlay" id="media-send-modal">
     <div class="modal media-send-modal">
       <h3 id="media-send-title">Send Media</h3>
-      <p class="setting-hint">Add a caption (optional) then confirm to send.</p>
+      <p class="setting-hint">Review your media below. You may add a caption or attach an additional file before sending.</p>
       <div class="media-send-preview" id="media-send-preview"></div>
       <div class="media-send-caption-row">
-        <textarea id="media-send-caption" placeholder="Add a caption" rows="2" maxlength="500"></textarea>
+        <textarea id="media-send-caption" placeholder="Add a caption (optional)" rows="2" maxlength="500"></textarea>
+      </div>
+      <div class="media-send-attach-row" id="media-send-attach-row">
+        <input type="file" id="media-send-extra-file" style="display:none;" accept="image/*,video/*,audio/*,.pdf,.txt,.doc,.docx,.zip,.rar,.7z" />
+        <button class="media-send-attach-btn" id="media-send-attach-btn" type="button">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-3px;margin-right:6px;"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+          Attach a file or picture (optional)
+        </button>
+        <span class="media-send-attach-name" id="media-send-attach-name"></span>
+        <button class="media-send-attach-remove" id="media-send-attach-remove" type="button" style="display:none;">Remove</button>
       </div>
       <div class="modal-actions">
         <button class="modal-btn" id="media-send-cancel">Cancel</button>
@@ -4846,7 +4867,7 @@ function showAuth() {
 
 // Show a full-screen "You have been banned" overlay, then let the user
 // return to the login screen. Used when an admin bans the current user.
-function showBannedScreen(reason) {
+function showBannedScreen(reason, bannedUntil) {
   if (socket) { try { socket.disconnect(); } catch (e) {} socket = null; }
   let overlay = document.getElementById('banned-overlay');
   if (!overlay) {
@@ -4857,7 +4878,8 @@ function showBannedScreen(reason) {
             + '<div style="width:48px;height:48px;margin:0 auto 16px;border-radius:50%;border:2px solid var(--danger);display:flex;align-items:center;justify-content:center;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="color:var(--danger);"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg></div>'
             + '<h2 style="color:var(--danger);margin:0 0 12px;">You Have Been Banned</h2>'
       + '<p style="color:var(--text-secondary);font-size:14px;margin:0 0 8px;">Your account has been banned by an administrator.</p>'
-      + '<p id="banned-reason" style="color:var(--text-muted);font-size:13px;margin:0 0 24px;font-style:italic;"></p>'
+      + '<p id="banned-reason" style="color:var(--text-muted);font-size:13px;margin:0 0 8px;font-style:italic;"></p>'
+      + '<p id="banned-duration" style="color:var(--text-secondary);font-size:13px;margin:0 0 24px;"></p>'
       + '<button id="banned-ok-btn" style="background:var(--danger);color:#fff;border:none;border-radius:8px;padding:10px 28px;font-size:14px;cursor:pointer;">OK</button>'
       + '</div>';
     document.body.appendChild(overlay);
@@ -4868,6 +4890,26 @@ function showBannedScreen(reason) {
   }
   const reasonEl = overlay.querySelector('#banned-reason');
   if (reasonEl) reasonEl.textContent = 'Reason: ' + (reason || 'No reason provided');
+  const durEl = overlay.querySelector('#banned-duration');
+  if (durEl) {
+    if (bannedUntil && bannedUntil > 0) {
+      const expiry = new Date(bannedUntil);
+      const now = new Date();
+      const diffMs = bannedUntil - Date.now();
+      let timeText = '';
+      if (diffMs > 0) {
+        const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        if (days > 0) timeText = days + ' day' + (days > 1 ? 's' : '') + (hours > 0 ? ' ' + hours + ' hour' + (hours > 1 ? 's' : '') : '');
+        else { const mins = Math.floor(diffMs / (1000 * 60)); timeText = mins + ' minute' + (mins > 1 ? 's' : ''); }
+        durEl.textContent = 'This ban is temporary and expires on ' + expiry.toLocaleString() + ' (in ' + timeText + ').';
+      } else {
+        durEl.textContent = '';
+      }
+    } else {
+      durEl.textContent = 'This ban is permanent.';
+    }
+  }
   overlay.style.display = 'flex';
 }
 
@@ -4918,6 +4960,7 @@ function connectSocket() {
   // Banned by an admin — force logout immediately and show the ban reason.
   socket.on('banned', (payload) => {
     const reason = (payload && payload.reason) ? payload.reason : 'No reason provided';
+    const bannedUntil = (payload && payload.bannedUntil) ? payload.bannedUntil : 0;
     sessionSocketId = null;
     localStorage.removeItem('hellobye_sid');
     // Close any open panels
@@ -4925,7 +4968,7 @@ function connectSocket() {
     // Show a clear ban message then return to the login screen
     if (typeof toast === 'function') toast('You have been banned: ' + reason, 'error');
     setTimeout(() => {
-      showBannedScreen(reason);
+      showBannedScreen(reason, bannedUntil);
     }, 300);
   });
 
@@ -5487,7 +5530,11 @@ async function sendMessage() {
       file: pendingFile,
       context: 'chat',
       initialCaption: text,
-      onConfirm: (caption) => { chatInput.value = ''; updateSendButton(); doSendMessage(caption); }
+      onConfirm: (caption, extraFile) => {
+        chatInput.value = ''; updateSendButton();
+        if (extraFile) { pendingFiles.push(extraFile); }
+        doSendMessage(caption);
+      }
     });
     return;
   }
@@ -5585,7 +5632,7 @@ async function doSendMessage(text) {
       updateSendButton();
     } else {
       // Start 5-second cooldown after successful send (skip for exempt users)
-      if (!isExempt) startCooldown(5);
+      if (!isExempt) startCooldown(3);
       cancelReply();
     }
   });
@@ -5778,7 +5825,7 @@ function sendGifAsMessage(fileData) {
       toast(res.error, 'error');
       if (res.cooldown) startCooldown(res.cooldown);
     } else {
-      if (!isExempt) startCooldown(5);
+      if (!isExempt) startCooldown(3);
       cancelReply();
     }
   });
@@ -7094,7 +7141,11 @@ function sendDM() {
       file: pendingDMFile,
       context: 'dm',
       initialCaption: text,
-      onConfirm: (caption) => { dmInputEl.value = ''; dmInputEl.style.height = 'auto'; updateDMSend(); doSendDM(caption); }
+      onConfirm: (caption, extraFile) => {
+        dmInputEl.value = ''; dmInputEl.style.height = 'auto'; updateDMSend();
+        if (extraFile) { pendingDMFiles.push(extraFile); }
+        doSendDM(caption);
+      }
     });
     return;
   }
@@ -7241,18 +7292,58 @@ function openMediaSendModal(opts) {
     card.appendChild(icon); card.appendChild(info);
     previewWrap.appendChild(card);
   }
+  // Reset the optional extra-file attachment picker
+  const extraFileInput = $('media-send-extra-file');
+  const extraFileName = $('media-send-attach-name');
+  const extraFileRemove = $('media-send-attach-remove');
+  if (extraFileInput) extraFileInput.value = '';
+  if (extraFileName) extraFileName.textContent = '';
+  if (extraFileRemove) extraFileRemove.style.display = 'none';
   $('media-send-modal').classList.add('show');
   setTimeout(() => captionEl.focus(), 50);
 }
-$('media-send-cancel').addEventListener('click', () => { $('media-send-modal').classList.remove('show'); mediaSendCallback = null; });
-$('media-send-modal').addEventListener('click', (e) => { if (e.target === $('media-send-modal')) { $('media-send-modal').classList.remove('show'); mediaSendCallback = null; } });
+// Optional extra file/picture attachment in the media send modal
+let mediaSendExtraFile = null;
+(function() {
+  const extraFileInput = $('media-send-extra-file');
+  const extraFileName = $('media-send-attach-name');
+  const extraFileRemove = $('media-send-attach-remove');
+  const attachBtn = $('media-send-attach-btn');
+  if (attachBtn && extraFileInput) {
+    attachBtn.addEventListener('click', () => extraFileInput.click());
+  }
+  if (extraFileInput) {
+    extraFileInput.addEventListener('change', () => {
+      mediaSendExtraFile = extraFileInput.files[0] || null;
+      if (mediaSendExtraFile) {
+        if (extraFileName) extraFileName.textContent = mediaSendExtraFile.name;
+        if (extraFileRemove) extraFileRemove.style.display = '';
+      } else {
+        if (extraFileName) extraFileName.textContent = '';
+        if (extraFileRemove) extraFileRemove.style.display = 'none';
+      }
+    });
+  }
+  if (extraFileRemove) {
+    extraFileRemove.addEventListener('click', () => {
+      mediaSendExtraFile = null;
+      if (extraFileInput) extraFileInput.value = '';
+      if (extraFileName) extraFileName.textContent = '';
+      extraFileRemove.style.display = 'none';
+    });
+  }
+})();
+$('media-send-cancel').addEventListener('click', () => { $('media-send-modal').classList.remove('show'); mediaSendCallback = null; mediaSendExtraFile = null; });
+$('media-send-modal').addEventListener('click', (e) => { if (e.target === $('media-send-modal')) { $('media-send-modal').classList.remove('show'); mediaSendCallback = null; mediaSendExtraFile = null; } });
 $('media-send-caption').addEventListener('keydown', (e) => {
   if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); $('media-send-confirm').click(); }
 });
 $('media-send-confirm').addEventListener('click', () => {
   const caption = $('media-send-caption').value.trim();
+  const extraFile = mediaSendExtraFile;
   $('media-send-modal').classList.remove('show');
-  if (mediaSendCallback) { const cb = mediaSendCallback; mediaSendCallback = null; cb(caption); }
+  mediaSendExtraFile = null;
+  if (mediaSendCallback) { const cb = mediaSendCallback; mediaSendCallback = null; cb(caption, extraFile); }
 });
 
 function showContextMenu(x, y, items) {
@@ -7498,7 +7589,7 @@ if ($('friend-requests-toggle')) $('friend-requests-toggle').addEventListener('c
 if ($('direct-messages-toggle')) $('direct-messages-toggle').addEventListener('change', function() {
   markProfileDirty();
   var enabled = $('direct-messages-toggle').checked;
-  toast(enabled ? 'Direct messages are now enabled. Other users can send you private messages.' : 'Direct messages are now disabled. Other users cannot send you private messages, but you can still message others.', enabled ? 'success' : 'info');
+  toast(enabled ? 'Direct messages enabled.' : 'Direct messages disabled. Others cannot message you, but you can still message them.', enabled ? 'success' : 'info');
   saveProfileNow(true);
 });
 
@@ -9650,6 +9741,8 @@ function renderAdminAccounts() {
       '<div class="admin-account-detail"><span class="label">Created:</span> ' + new Date(u.createdAt).toLocaleString() + '</div>' +
       '<div class="admin-account-detail"><span class="label">Last Seen:</span> ' + new Date(u.lastSeen).toLocaleString() + '</div>' +
       (u.banned ? '<div class="admin-account-detail"><span class="label">Ban Reason:</span> ' + escapeHtml(u.banReason || 'N/A') + '</div>' : '') +
+      (u.banned && u.bannedUntil && u.bannedUntil > 0 ? '<div class="admin-account-detail"><span class="label">Ban Expires:</span> ' + new Date(u.bannedUntil).toLocaleString() + '</div>' : '') +
+      (u.banned && (!u.bannedUntil || u.bannedUntil === 0) ? '<div class="admin-account-detail"><span class="label">Ban Type:</span> Permanent</div>' : '') +
     '</div>';
   }).join('');
 }
@@ -9664,10 +9757,24 @@ function renderAdminBannedList() {
     return;
   }
   container.innerHTML = banned.map(u => {
+    let durLine = 'Reason: ' + escapeHtml(u.banReason || 'N/A') + ' — Banned at ' + new Date(u.bannedAt).toLocaleString();
+    if (u.bannedUntil && u.bannedUntil > 0) {
+      const remaining = u.bannedUntil - Date.now();
+      if (remaining > 0) {
+        const days = Math.floor(remaining / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((remaining % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        let timeText = days > 0 ? days + 'd' + (hours > 0 ? ' ' + hours + 'h' : '') : Math.ceil(remaining / (1000 * 60)) + 'm';
+        durLine += ' — Expires in ' + timeText + ' (' + new Date(u.bannedUntil).toLocaleString() + ')';
+      } else {
+        durLine += ' — Expired (will be lifted shortly)';
+      }
+    } else {
+      durLine += ' — Permanent';
+    }
     return '<div class="admin-banned-item">' +
       '<div class="admin-banned-item-info">' +
         '<div class="admin-banned-item-name">@' + escapeHtml(u.username) + ' (' + escapeHtml(u.displayName || u.username) + ')</div>' +
-        '<div class="admin-banned-item-reason">Reason: ' + escapeHtml(u.banReason || 'N/A') + ' — Banned at ' + new Date(u.bannedAt).toLocaleString() + '</div>' +
+        '<div class="admin-banned-item-reason">' + durLine + '</div>' +
       '</div>' +
       '<button class="setting-save-btn" onclick="adminUnbanUser(\'' + escapeHtml(u.username) + '\')">Unban</button>' +
     '</div>';
@@ -9805,10 +9912,12 @@ async function adminBanUser() {
   if (isOwnerUserFE(adminBanTarget)) { toast('The owner (@lore) cannot be banned.', 'error'); return; }
   const reason = $('admin-ban-reason').value.trim();
   if (!reason) { toast('Please provide a ban reason', 'error'); return; }
+  const durationSelect = $('admin-ban-duration');
+  const durationMs = durationSelect ? Number(durationSelect.value) : 0;
   try {
     const res = await fetch(API_BASE + '/api/admin/ban', {
       method: 'POST', headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username: adminBanTarget.username, reason }),
+      body: JSON.stringify({ username: adminBanTarget.username, reason, durationMs }),
     });
     const data = await res.json();
     if (data.success) { toast('User banned successfully', 'success'); $('admin-ban-form').style.display = 'none'; adminBanTarget = null; $('admin-ban-search').value = ''; $('admin-ban-results').innerHTML = ''; loadAdminData(); }

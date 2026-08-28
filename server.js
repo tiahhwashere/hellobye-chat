@@ -278,7 +278,7 @@ if (!db.cooldownExempt) db.cooldownExempt = []; // [username, ...] — users exe
       let ownerCleaned = false;
       for (const u of Object.values(db.users || {})) {
         if (isOwnerUser(u)) {
-          if (u.banned) { u.banned = false; u.banReason = null; u.bannedAt = null; u.bannedBy = null; ownerCleaned = true; }
+          if (u.banned) { u.banned = false; u.banReason = null; u.bannedAt = null; u.bannedBy = null; u.bannedUntil = 0; ownerCleaned = true; }
           if (u.mutedUntil && u.mutedUntil > 0) { u.mutedUntil = 0; u.muteReason = ''; u.mutedBy = ''; ownerCleaned = true; }
         }
       }
@@ -363,6 +363,7 @@ const WELCOME_TITLE_COOLDOWN = 20000; // 20 seconds in ms
         u.banReason = null;
         u.bannedAt = null;
         u.bannedBy = null;
+        u.bannedUntil = 0;
         changed = true;
         console.log('[startup] Cleared existing ban on owner @' + u.username);
       }
@@ -380,6 +381,27 @@ const WELCOME_TITLE_COOLDOWN = 20000; // 20 seconds in ms
     scheduleRemoteBackup();
   }
 })();
+
+// ---------- Periodic check: auto-lift expired temporary bans ----------
+// Runs every 60 seconds. If a user has a temporary ban (bannedUntil > 0) that
+// has expired, the ban is lifted automatically and their profile is broadcast.
+setInterval(() => {
+  let changed = false;
+  const now = Date.now();
+  for (const u of Object.values(db.users || {})) {
+    if (u.banned && u.bannedUntil && u.bannedUntil > 0 && now >= u.bannedUntil) {
+      u.banned = false;
+      u.banReason = null;
+      u.bannedAt = null;
+      u.bannedBy = null;
+      u.bannedUntil = 0;
+      changed = true;
+      console.log('[ban-expiry] Temporary ban expired for @' + u.username + ' — lifted automatically.');
+      broadcastProfile(u.username);
+    }
+  }
+  if (changed) { saveDB(); emitUsersList(); }
+}, 60 * 1000);
 
 function publicUser(u) {
   if (!u) return null;
@@ -405,6 +427,7 @@ function publicUser(u) {
     badges: u.badges || [],
     banned: !!u.banned,
     banReason: u.banReason || null,
+    bannedUntil: u.bannedUntil || 0,
     mutedUntil: (u.mutedUntil && Date.now() < u.mutedUntil) ? u.mutedUntil : 0,
     isOwner: isOwnerUser(u),
   };
@@ -592,8 +615,25 @@ app.post('/api/login', (req, res) => {
   if (!user || user.password !== hashPass(String(password))) {
     return res.status(401).json({ error: 'Invalid username or password' });
   }
+  // Check ban status. If the ban has a temporary expiry (bannedUntil > 0) and
+  // it has already passed, lift the ban automatically so the user can log in.
   if (user.banned) {
-    return res.status(403).json({ error: 'This account has been banned' + (user.banReason ? ': ' + user.banReason : '') });
+    if (user.bannedUntil && user.bannedUntil > 0 && Date.now() >= user.bannedUntil) {
+      user.banned = false;
+      user.banReason = null;
+      user.bannedAt = null;
+      user.bannedBy = null;
+      user.bannedUntil = 0;
+      saveDB();
+      console.log('[login] Temporary ban expired for @' + user.username + ' — ban lifted automatically.');
+    } else {
+      let banMsg = 'This account has been banned' + (user.banReason ? ': ' + user.banReason : '');
+      if (user.bannedUntil && user.bannedUntil > 0) {
+        const remaining = user.bannedUntil - Date.now();
+        banMsg += ' (expires in ' + formatMuteDuration(remaining) + ')';
+      }
+      return res.status(403).json({ error: banMsg });
+    }
   }
   const sid = genId();
   db.sessions[sid] = un;
@@ -1228,7 +1268,7 @@ app.get('/api/admin/data', authMiddleware, adminMiddleware, (req, res) => {
 
 // Ban a user
 app.post('/api/admin/ban', authMiddleware, adminMiddleware, (req, res) => {
-  const { username, reason } = req.body || {};
+  const { username, reason, durationMs } = req.body || {};
   if (!username) return res.status(400).json({ error: 'Username required' });
   const target = db.users[String(username).toLowerCase().trim()];
   if (!target) return res.status(404).json({ error: 'User not found' });
@@ -1238,8 +1278,23 @@ app.post('/api/admin/ban', authMiddleware, adminMiddleware, (req, res) => {
   target.banReason = String(reason || 'No reason provided').trim();
   target.bannedAt = nowISO();
   target.bannedBy = req.user.username;
+  // Temporary ban: if durationMs is provided and > 0, set an expiry timestamp.
+  // Duration is clamped to 1 day (86400000) – 14 days (1209600000).
+  // A value of 0 or omitted means a permanent ban (bannedUntil = 0).
+  let dur = Number(durationMs);
+  let durationText = 'Permanent';
+  if (dur && !isNaN(dur) && dur > 0) {
+    const minMs = 24 * 60 * 60 * 1000;       // 1 day
+    const maxMs = 14 * 24 * 60 * 60 * 1000;  // 14 days
+    if (dur < minMs) dur = minMs;
+    if (dur > maxMs) dur = maxMs;
+    target.bannedUntil = Date.now() + dur;
+    durationText = formatMuteDuration(dur);
+  } else {
+    target.bannedUntil = 0;
+  }
   if (!db.adminActivity) db.adminActivity = [];
-  db.adminActivity.push({ action: 'ban', admin: req.user.username, target: target.username, reason: target.banReason, timestamp: nowISO() });
+  db.adminActivity.push({ action: 'ban', admin: req.user.username, target: target.username, reason: target.banReason, duration: durationText, timestamp: nowISO() });
   saveDB();
 
   // ---- Force logout the banned user ----
@@ -1248,6 +1303,8 @@ app.post('/api/admin/ban', authMiddleware, adminMiddleware, (req, res) => {
   io.to(`user:${target.username}`).emit('banned', {
     reason: target.banReason,
     bannedBy: req.user.username,
+    bannedUntil: target.bannedUntil || 0,
+    durationText: durationText,
   });
   // 2. Delete ALL of the target's sessions so they can't reconnect or make
   //    new API requests with an existing session token.
@@ -1269,7 +1326,7 @@ app.post('/api/admin/ban', authMiddleware, adminMiddleware, (req, res) => {
 
   broadcastProfile(target.username);
   emitUsersList();
-  res.json({ success: true, user: publicUser(target) });
+  res.json({ success: true, user: publicUser(target), durationText: durationText });
 });
 
 // Unban a user
@@ -1282,6 +1339,7 @@ app.post('/api/admin/unban', authMiddleware, adminMiddleware, (req, res) => {
   target.banReason = null;
   target.bannedAt = null;
   target.bannedBy = null;
+  target.bannedUntil = 0;
   if (!db.adminActivity) db.adminActivity = [];
   db.adminActivity.push({ action: 'unban', admin: req.user.username, target: target.username, reason: '', timestamp: nowISO() });
   saveDB();
@@ -1863,12 +1921,12 @@ io.on('connection', (socket) => {
         user.mutedUntil = 0; user.muteReason = ''; user.mutedBy = '';
         saveDB();
       }
-      // 5-second cooldown (skip if user is exempt)
+      // 3-second cooldown (skip if user is exempt)
       const isExempt = (db.cooldownExempt || []).includes(username);
       if (!isExempt) {
         const last = lastMessageTime[username] || 0;
-        if (Date.now() - last < 5000) {
-          const cooldown = Math.ceil((5000 - (Date.now() - last)) / 1000);
+        if (Date.now() - last < 3000) {
+          const cooldown = Math.ceil((3000 - (Date.now() - last)) / 1000);
           if (typeof ack === 'function') ack({ error: 'Please wait ' + cooldown + 's before sending another message', cooldown });
           return;
         }
