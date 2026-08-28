@@ -765,43 +765,47 @@ body.loading-session #chat-app.active::after {
 .message-group.own .inline-link { color: #cce4ff; }
 
 /* ===================== 2-Step Verification UI ===================== */
-/* 2SV verification overlay on login screen — refined, aligned with site aesthetic */
+/* 2SV verification overlay on login screen — professional, focused security card */
 .twosv-overlay {
   position: fixed; inset: 0; z-index: 10000;
   display: none; align-items: center; justify-content: center;
-  background: rgba(6,7,9,0.82); backdrop-filter: blur(8px);
+  background: rgba(6,7,9,0.82); backdrop-filter: blur(10px);
   animation: twosv-fade-in 0.2s ease;
 }
 .twosv-overlay.show { display: flex; }
 @keyframes twosv-fade-in { from { opacity: 0; } to { opacity: 1; } }
 .twosv-card {
   background: var(--bg-medium); border: 1px solid var(--border-light);
-  border-radius: var(--radius-lg); padding: 36px 32px; max-width: 400px; width: 90%;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.55), 0 1px 0 rgba(255,255,255,0.04) inset;
-  animation: twosv-slide-up 0.24s cubic-bezier(0.16,1,0.3,1);
+  border-radius: var(--radius-lg); padding: 40px 36px 32px; max-width: 420px; width: 90%;
+  box-shadow: 0 24px 70px rgba(0,0,0,0.6), 0 1px 0 rgba(255,255,255,0.05) inset;
+  animation: twosv-slide-up 0.26s cubic-bezier(0.16,1,0.3,1);
 }
-@keyframes twosv-slide-up { from { opacity: 0; transform: translateY(12px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@keyframes twosv-slide-up { from { opacity: 0; transform: translateY(14px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
 .twosv-icon {
-  width: 40px; height: 40px; margin: 0 auto 20px;
+  width: 46px; height: 46px; margin: 0 auto 22px;
   border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center;
   background: var(--bg-darker); color: var(--accent);
-  border: 1px solid var(--border);
+  border: 1px solid var(--border); position: relative;
 }
-.twosv-icon svg { width: 20px; height: 20px; }
+.twosv-icon::after {
+  content: ''; position: absolute; inset: -6px; border-radius: var(--radius-sm);
+  border: 1px solid rgba(74,158,255,0.12); pointer-events: none;
+}
+.twosv-icon svg { width: 22px; height: 22px; }
 .twosv-title {
-  text-align: center; font-size: 16px; font-weight: 600;
-  color: var(--text-primary); margin: 0 0 7px; letter-spacing: -0.2px;
+  text-align: center; font-size: 17px; font-weight: 600;
+  color: var(--text-primary); margin: 0 0 8px; letter-spacing: -0.2px;
 }
 .twosv-subtitle {
   text-align: center; font-size: 12.5px; color: var(--text-muted);
-  margin: 0 0 26px; line-height: 1.6;
+  margin: 0 0 24px; line-height: 1.6; max-width: 320px; margin-left: auto; margin-right: auto;
 }
 .twosv-input-wrap {
   position: relative; margin-bottom: 14px;
 }
 .twosv-code-input {
-  width: 100%; padding: 13px 16px; font-size: 14px; font-weight: 600;
-  text-align: center; letter-spacing: 2px; text-transform: uppercase;
+  width: 100%; padding: 14px 18px; font-size: 15px; font-weight: 600;
+  text-align: center; letter-spacing: 3px; text-transform: uppercase;
   background: var(--bg-darker); border: 1px solid var(--border);
   border-radius: var(--radius); color: var(--text-primary);
   font-family: 'SF Mono', 'Monaco', 'Cascadia Code', monospace;
@@ -817,19 +821,19 @@ body.loading-session #chat-app.active::after {
   color: var(--text-muted); text-transform: none;
 }
 .twosv-trust-row {
-  display: flex; align-items: center; gap: 10px; margin-bottom: 20px;
-  padding: 10px 13px; background: var(--bg-darker);
+  display: flex; align-items: center; gap: 11px; margin-bottom: 22px;
+  padding: 11px 14px; background: var(--bg-darker);
   border: 1px solid var(--border); border-radius: var(--radius-sm);
-  cursor: pointer; transition: border-color 0.18s ease;
+  cursor: pointer; transition: border-color 0.18s ease, background 0.18s ease;
 }
-.twosv-trust-row:hover { border-color: var(--border-light); }
+.twosv-trust-row:hover { border-color: var(--border-light); background: var(--bg-dark); }
 .twosv-trust-checkbox {
   width: 15px; height: 15px; accent-color: var(--accent);
   cursor: pointer; flex-shrink: 0;
 }
-.twosv-trust-label { font-size: 12px; color: var(--text-secondary); }
+.twosv-trust-label { font-size: 12px; color: var(--text-secondary); line-height: 1.4; }
 .twosv-btn {
-  width: 100%; padding: 12px; font-size: 13.5px; font-weight: 600;
+  width: 100%; padding: 13px; font-size: 13.5px; font-weight: 600;
   background: var(--accent); color: var(--accent-text); border: none;
   border-radius: var(--radius-sm); cursor: pointer; transition: var(--transition);
   margin-bottom: 8px; display: flex; align-items: center; justify-content: center; gap: 7px;
@@ -840,18 +844,18 @@ body.loading-session #chat-app.active::after {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6L9 17l-5-5'/%3E%3C/svg%3E");
   background-size: contain; background-repeat: no-repeat; opacity: 0.9;
 }
-.twosv-btn:hover:not(:disabled) { background: var(--accent-hover); box-shadow: 0 2px 6px rgba(0,0,0,0.22); }
+.twosv-btn:hover:not(:disabled) { background: var(--accent-hover); box-shadow: 0 2px 8px rgba(74,158,255,0.24); }
 .twosv-btn:active:not(:disabled) { transform: translateY(1px); }
 .twosv-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 .twosv-back-btn {
-  width: 100%; padding: 10px; font-size: 12px; font-weight: 500;
+  width: 100%; padding: 11px; font-size: 12px; font-weight: 500;
   background: transparent; color: var(--text-muted); border: 1px solid var(--border);
   border-radius: var(--radius-sm); cursor: pointer; transition: var(--transition);
 }
 .twosv-back-btn:hover { color: var(--text-primary); border-color: var(--border-light); background: var(--bg-darker); }
 .twosv-error {
-  background: rgba(240,90,90,0.06); border: 1px solid rgba(240,90,90,0.18);
-  color: #e88080; padding: 10px 13px; border-radius: var(--radius-sm);
+  background: rgba(240,90,90,0.07); border: 1px solid rgba(240,90,90,0.2);
+  color: #e88080; padding: 11px 14px; border-radius: var(--radius-sm);
   font-size: 12px; margin-bottom: 14px; display: none; line-height: 1.5;
 }
 .twosv-error.show { display: block; }
@@ -1632,6 +1636,99 @@ body.loading-session #chat-app.active::after {
 .settings-v2-pane-head p { font-size: 12px; color: var(--text-muted); margin-top: 4px; line-height: 1.5; }
 .settings-v2-pane .profile-section { padding: 20px 0; border-top: 1px solid var(--border); }
 .settings-v2-pane .profile-section:first-of-type { border-top: none; padding-top: 16px; }
+
+/* ============================================
+   Identity tab — polished, professional field cards
+   ============================================ */
+.identity-card {
+  background: var(--bg-darker); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 20px 22px; margin-bottom: 16px;
+  transition: border-color 0.18s ease;
+}
+.identity-card:last-child { margin-bottom: 0; }
+.identity-card:hover { border-color: var(--border-light); }
+.identity-card-head {
+  display: flex; align-items: center; gap: 12px; margin-bottom: 6px;
+}
+.identity-card-icon {
+  width: 34px; height: 34px; border-radius: var(--radius-sm); flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--bg-medium); color: var(--accent);
+  border: 1px solid var(--border);
+}
+.identity-card-icon svg { width: 17px; height: 17px; }
+.identity-card-title {
+  font-size: 13.5px; font-weight: 600; color: var(--text-primary); letter-spacing: 0.1px;
+}
+.identity-card-hint {
+  font-size: 12px; color: var(--text-muted); line-height: 1.55; margin: 0 0 14px;
+  padding-left: 46px;
+}
+.identity-card-hint .id-hint-note { color: var(--text-secondary); }
+.identity-field { margin-bottom: 10px; }
+.identity-field:last-of-type { margin-bottom: 12px; }
+.identity-field .form-input {
+  background: var(--bg-medium); border-color: var(--border);
+  padding: 12px 15px; font-size: 13.5px;
+}
+.identity-field .form-input:focus { border-color: var(--accent); background: var(--bg-dark); }
+.identity-meta-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  font-size: 11.5px; color: var(--text-muted); margin-top: 7px;
+}
+.identity-cooldown-pill {
+  display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px;
+  background: rgba(34,197,94,0.08); color: #4ade80; border: 1px solid rgba(34,197,94,0.22);
+  border-radius: 100px; font-size: 10.5px; font-weight: 600; letter-spacing: 0.2px;
+}
+.identity-cooldown-pill.waiting {
+  background: rgba(234,179,8,0.08); color: #eab308; border-color: rgba(234,179,8,0.22);
+}
+.identity-card .setting-save-btn {
+  width: auto; align-self: flex-start; padding: 10px 20px; margin-top: 4px;
+  font-size: 12.5px;
+}
+.identity-card .bio-counter { margin-top: 6px; margin-bottom: 12px; }
+
+/* ============================================
+   Background & Theme tab — professional field cards
+   ============================================ */
+.theme-card {
+  background: var(--bg-darker); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 20px 22px; margin-bottom: 16px;
+  transition: border-color 0.18s ease;
+}
+.theme-card:last-child { margin-bottom: 0; }
+.theme-card:hover { border-color: var(--border-light); }
+.theme-card-head {
+  display: flex; align-items: center; gap: 12px; margin-bottom: 6px;
+}
+.theme-card-icon {
+  width: 34px; height: 34px; border-radius: var(--radius-sm); flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--bg-medium); color: var(--accent);
+  border: 1px solid var(--border);
+}
+.theme-card-icon svg { width: 17px; height: 17px; }
+.theme-card-title {
+  font-size: 13.5px; font-weight: 600; color: var(--text-primary); letter-spacing: 0.1px;
+}
+.theme-card-hint {
+  font-size: 12px; color: var(--text-muted); line-height: 1.55; margin: 0 0 16px;
+  padding-left: 46px;
+}
+.theme-card .custom-bg-controls { margin-bottom: 14px; }
+.theme-card .custom-bg-preview { margin-bottom: 16px; }
+.theme-card .bg-control-group {
+  background: var(--bg-medium); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 14px 16px;
+}
+.theme-card .bg-control-group + .bg-control-group { margin-top: 12px; }
+.theme-card .bg-fit-segmented { margin-bottom: 14px; }
+.theme-card .custom-bg-presets { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); }
+.theme-card .accent-section-card {
+  background: var(--bg-medium); border: 1px solid var(--border);
+}
 
 /* Stat grid for Account Info */
 .settings-stat-grid {
@@ -2422,35 +2519,36 @@ body.loading-session #chat-app.active::after {
   border-radius: var(--radius-sm); padding: 18px;
 }
 .accent-current-row {
-  display: flex; align-items: center; gap: 16px; margin-bottom: 18px;
+  display: flex; align-items: center; gap: 14px; margin-bottom: 18px;
   flex-wrap: wrap; padding-bottom: 16px; border-bottom: 1px solid var(--border);
 }
-/* Swatch: restrained, square-ish, fine border */
+/* Swatch: clean, solid color — no checkerboard */
 .accent-swatch-large {
-  width: 52px; height: 52px; border-radius: 8px; border: 1px solid var(--border-light);
-  cursor: pointer; box-shadow: 0 1px 4px rgba(0,0,0,0.25);
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  width: 48px; height: 48px; border-radius: var(--radius-sm);
+  border: 2px solid var(--bg-darker);
+  cursor: pointer; box-shadow: 0 0 0 1px var(--border-light), 0 2px 6px rgba(0,0,0,0.3);
+  transition: box-shadow 0.18s ease, transform 0.18s ease;
   padding: 0; appearance: none; -webkit-appearance: none; flex-shrink: 0;
-  background-image:
-    linear-gradient(45deg, var(--bg-darkest) 25%, transparent 25%),
-    linear-gradient(-45deg, var(--bg-darkest) 25%, transparent 25%),
-    linear-gradient(45deg, transparent 75%, var(--bg-darkest) 75%),
-    linear-gradient(-45deg, transparent 75%, var(--bg-darkest) 75%);
-  background-size: 12px 12px;
-  background-position: 0 0, 0 6px, 6px -6px, -6px 0px;
+  background-color: #4a9eff; background-image: none;
 }
 .accent-swatch-large:hover {
-  border-color: var(--text-muted); box-shadow: 0 2px 8px rgba(0,0,0,0.35);
+  box-shadow: 0 0 0 1px var(--text-muted), 0 3px 10px rgba(0,0,0,0.4);
+  transform: scale(1.04);
 }
-.accent-current-info { display: flex; flex-direction: column; gap: 3px; }
+.accent-swatch-large:focus { outline: none; }
+/* Hide the native color picker's inner swatch padding so the color fills fully */
+.accent-swatch-large::-webkit-color-swatch-wrapper { padding: 0; }
+.accent-swatch-large::-webkit-color-swatch { border: none; border-radius: calc(var(--radius-sm) - 2px); }
+.accent-swatch-large::-moz-color-swatch { border: none; border-radius: calc(var(--radius-sm) - 2px); }
+.accent-current-info { display: flex; flex-direction: column; gap: 2px; }
 .accent-current-label {
-  font-size: 10px; font-weight: 600; color: var(--text-muted);
-  text-transform: uppercase; letter-spacing: 0.6px;
+  font-size: 10px; font-weight: 700; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: 0.7px;
 }
 .accent-current-hex {
   font-size: 15px; color: var(--text-primary);
   font-family: 'SF Mono', 'Monaco', 'Cascadia Code', 'Roboto Mono', monospace;
-  font-weight: 600; letter-spacing: 0.4px;
+  font-weight: 600; letter-spacing: 0.5px;
 }
 /* Live-preview strip: muted, informative */
 .accent-preview-strip {
@@ -3729,7 +3827,7 @@ body.loading-session #chat-app.active::after {
       <p class="twosv-subtitle">Enter your 24-character recovery code to continue signing in.</p>
       <div class="twosv-error" id="twosv-error"></div>
       <div class="twosv-input-wrap">
-        <input type="text" class="twosv-code-input" id="twosv-code-input" placeholder="Enter your 24-character code" maxlength="30" autocomplete="off" spellcheck="false">
+        <input type="text" class="twosv-code-input" id="twosv-code-input" placeholder="Enter your 24-character code" maxlength="30" autocomplete="off" spellcheck="false" inputmode="text">
       </div>
       <label class="twosv-trust-row" id="twosv-trust-row">
         <input type="checkbox" class="twosv-trust-checkbox" id="twosv-trust-checkbox">
@@ -4112,7 +4210,7 @@ body.loading-session #chat-app.active::after {
 
       <div class="profile-section">
         <div class="profile-section-title">Panel Theme Color</div>
-        <p class="setting-hint">Choose an accent color for your profile panel. This color is shown to other members when they view your profile.</p>
+        <p class="setting-hint">Shown to other members when they view your profile.</p>
         <div class="accent-section-card">
           <div class="accent-current-row">
             <input type="color" id="profile-accent-picker" value="#4a9eff" class="accent-swatch-large" title="Click to pick a custom color">
@@ -4120,14 +4218,8 @@ body.loading-session #chat-app.active::after {
               <span class="accent-current-label">Current Color</span>
               <span class="accent-current-hex" id="profile-accent-hex">#4a9eff</span>
             </div>
-            <div class="accent-preview-strip">
-              <span class="accent-preview-dot"></span>
-              <span class="accent-preview-bar"></span>
-              <span class="accent-preview-btn">Button</span>
-            </div>
-            <button class="setting-save-btn danger-btn" id="profile-accent-revert">Revert Color</button>
+            <button class="setting-save-btn danger-btn" id="profile-accent-revert">Revert</button>
           </div>
-          <div class="custom-bg-label" style="font-size:11px;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-muted);font-weight:700;margin-bottom:10px;">Quick Colors</div>
           <div class="accent-preset-row" id="profile-accent-presets"></div>
         </div>
       </div>
@@ -4186,26 +4278,45 @@ body.loading-session #chat-app.active::after {
             <h4>Identity</h4>
             <p>Update your display name, username and password.</p>
           </div>
-          <div class="profile-section">
-            <div class="profile-section-title">Display Name</div>
-            <p class="setting-hint">Displayed alongside your @username across messages, profiles, and member lists.</p>
-            <input type="text" class="form-input" id="display-name-input" placeholder="Enter your display name" maxlength="32">
-            <div class="bio-counter"><span id="displayname-count">0</span> / 32</div>
+          <div class="identity-card">
+            <div class="identity-card-head">
+              <div class="identity-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 19v-1a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v1"/><circle cx="8.5" cy="7" r="4"/><path d="M20 8v6M23 11h-6"/></svg></div>
+              <div class="identity-card-title">Display Name</div>
+            </div>
+            <p class="identity-card-hint">Shown alongside your @username across messages, profiles, and member lists.</p>
+            <div class="identity-field">
+              <input type="text" class="form-input" id="display-name-input" placeholder="Enter your display name" maxlength="32">
+            </div>
+            <div class="identity-meta-row">
+              <span class="bio-counter"><span id="displayname-count">0</span> / 32</span>
+            </div>
             <button class="setting-save-btn" id="displayname-save">Update Display Name</button>
           </div>
 
-          <div class="profile-section">
-            <div class="profile-section-title">Change Username</div>
-            <p class="setting-hint">Your unique identifier on the platform. May be changed once every 24 hours. <span id="username-cooldown-text"></span></p>
-            <input type="text" class="form-input" id="new-username-input" placeholder="Enter your new username" spellcheck="false">
+          <div class="identity-card">
+            <div class="identity-card-head">
+              <div class="identity-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+              <div class="identity-card-title">Username</div>
+            </div>
+            <p class="identity-card-hint">Your unique identifier on the platform. <span class="id-hint-note" id="username-cooldown-text"></span></p>
+            <div class="identity-field">
+              <input type="text" class="form-input" id="new-username-input" placeholder="Enter your new username" spellcheck="false">
+            </div>
             <button class="setting-save-btn" id="username-save">Change Username</button>
           </div>
 
-          <div class="profile-section">
-            <div class="profile-section-title">Reset Password</div>
-            <p class="setting-hint">Choose a strong password of at least 6 characters. You'll stay logged in after changing it.</p>
-            <input type="password" class="form-input" id="current-password-input" placeholder="Enter your current password">
-            <input type="password" class="form-input" id="new-password-input" placeholder="Enter your new password (minimum 6 characters)" style="margin-top:10px;">
+          <div class="identity-card">
+            <div class="identity-card-head">
+              <div class="identity-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+              <div class="identity-card-title">Password</div>
+            </div>
+            <p class="identity-card-hint">Choose a strong password of at least 6 characters. You'll stay logged in after changing it.</p>
+            <div class="identity-field">
+              <input type="password" class="form-input" id="current-password-input" placeholder="Enter your current password">
+            </div>
+            <div class="identity-field">
+              <input type="password" class="form-input" id="new-password-input" placeholder="Enter your new password (minimum 6 characters)">
+            </div>
             <button class="setting-save-btn" id="password-save">Reset Password</button>
           </div>
         </section>
@@ -4374,8 +4485,12 @@ body.loading-session #chat-app.active::after {
             <h4>Background &amp; Theme</h4>
             <p>Customize your chat background and accent color. Only visible to you. Saved to your browser.</p>
           </div>
-          <div class="profile-section">
-            <div class="profile-section-title">Chat Background</div>
+          <div class="theme-card">
+            <div class="theme-card-head">
+              <div class="theme-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></div>
+              <div class="theme-card-title">Chat Background</div>
+            </div>
+            <p class="theme-card-hint">Upload an image or GIF, or paste a URL. Adjust scale, position, and appearance to fit your style.</p>
             <div class="custom-bg-controls">
               <label class="setting-save-btn" for="bg-file-input" style="cursor:pointer;display:inline-block;">Upload Image / GIF</label>
               <input type="file" id="bg-file-input" accept="image/*,image/gif" hidden>
@@ -4434,8 +4549,12 @@ body.loading-session #chat-app.active::after {
             </div>
           </div>
 
-          <div class="profile-section">
-            <div class="profile-section-title">Website Accent Color</div>
+          <div class="theme-card">
+            <div class="theme-card-head">
+              <div class="theme-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="10.5" r="2.5"/><circle cx="8.5" cy="7.5" r="2.5"/><circle cx="6.5" cy="12.5" r="2.5"/><path d="M12 22a10 10 0 1 1 0-20 10 10 0 0 1 10 10c0 2-1 3-2.5 3H15a2 2 0 0 0-1.5 3.5c.5 1 0 2.5-1.5 2.5z"/></svg></div>
+              <div class="theme-card-title">Website Accent Color</div>
+            </div>
+            <p class="theme-card-hint">Sets the accent color across buttons, links, and highlights throughout the app. Only visible to you.</p>
             <div class="accent-section-card">
               <div class="accent-current-row">
                 <input type="color" id="accent-color-picker" value="#4a9eff" class="accent-swatch-large" title="Click to pick a custom color">

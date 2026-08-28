@@ -322,15 +322,63 @@ function saveDB() {
 }
 setInterval(saveDB, 15000); // periodic save
 
-// On startup: purge any chat messages that were soft-deleted but never got
-// removed (e.g. the server restarted before the 2-minute cleanup timer fired).
-// This prevents stuck "This message was deleted" placeholders from lingering.
-if (Array.isArray(db.messages)) {
-  const before = db.messages.length;
-  db.messages = db.messages.filter(m => !m.deleted);
-  const purged = before - db.messages.length;
-  if (purged > 0) { saveDB(); console.log(`Startup cleanup: removed ${purged} stuck deleted message(s).`); }
+// On startup: purge any chat messages / DMs that were soft-deleted but never
+// got permanently removed (e.g. the server restarted/spun down before the
+// 2-minute cleanup window elapsed). This prevents stuck
+// "This message was deleted" placeholders from lingering in the DB. Live
+// clients will simply not receive these on their next /api/messages fetch;
+// any currently-connected clients are handled by the periodic sweep below.
+const DELETE_WINDOW_MS = 2 * 60 * 1000; // 2 minutes
+function purgeExpiredDeletedMessages(emitRemovals) {
+  let purged = 0;
+  const removedIds = [];
+  if (Array.isArray(db.messages)) {
+    const now = Date.now();
+    const kept = [];
+    for (const m of db.messages) {
+      if (m.deleted) {
+        // Always purge soft-deleted messages whose window has elapsed. Also
+        // purge any without a deletedAt (legacy) so they can't stick around.
+        const age = m.deletedAt ? (now - new Date(m.deletedAt).getTime()) : Infinity;
+        if (age >= DELETE_WINDOW_MS) { purged++; removedIds.push({ kind: 'message', id: m.id }); continue; }
+      }
+      kept.push(m);
+    }
+    db.messages = kept;
+  }
+  // Purge expired soft-deleted DMs across all users' DM stores.
+  if (db.dms && typeof db.dms === 'object') {
+    const now = Date.now();
+    for (const [owner, convos] of Object.entries(db.dms)) {
+      if (!convos || typeof convos !== 'object') continue;
+      for (const [other, msgs] of Object.entries(convos)) {
+        if (!Array.isArray(msgs)) continue;
+        const before = msgs.length;
+        const kept = msgs.filter(m => {
+          if (!m.deleted) return true;
+          const age = m.deletedAt ? (now - new Date(m.deletedAt).getTime()) : Infinity;
+          if (age >= DELETE_WINDOW_MS) { purged++; removedIds.push({ kind: 'dm', id: m.id, owner, to: m.to }); return false; }
+          return true;
+        });
+        if (kept.length !== before) convos[other] = kept;
+      }
+    }
+  }
+  if (purged > 0) {
+    saveDB();
+    if (emitRemovals && typeof io !== 'undefined' && io && io.emit) {
+      for (const r of removedIds) {
+        if (r.kind === 'message') io.emit('message-removed', { id: r.id });
+        else { io.to(`user:${r.owner}`).emit('dm-removed', { id: r.id }); if (r.to) io.to(`user:${r.to}`).emit('dm-removed', { id: r.id }); }
+      }
+    }
+    console.log(`Cleanup: permanently removed ${purged} expired deleted message(s)/DM(s).`);
+  }
+  return purged;
 }
+
+// Startup purge (no live clients to notify yet — they'll fetch fresh state).
+purgeExpiredDeletedMessages(false);
 
 // ---------- Helpers ----------
 function genId() { return crypto.randomUUID(); }
@@ -2406,6 +2454,15 @@ io.on('connection', (socket) => {
   });
 
   // ---- Delete message ----
+  // Soft-delete: mark the message deleted and emit immediately so all clients
+  // show "This message was deleted". The PERMANENT removal (splice + emit
+  // 'message-removed') is handled by a periodic cleanup interval that runs
+  // ~2 minutes after deletedAt. This is restart-safe: unlike a setTimeout,
+  // a periodic sweep based on the persisted deletedAt timestamp will always
+  // finish the deletion even if the user leaves the site or the server
+  // restarts/spins down before the timer would have fired. On startup, any
+  // leftover soft-deleted messages older than the window are purged
+  // immediately (see startup cleanup below).
   socket.on('delete-message', ({ id }, ack) => {
     try {
       const msg = db.messages.find(m => m.id === id);
@@ -2418,16 +2475,6 @@ io.on('connection', (socket) => {
       saveDB();
       io.emit('message-deleted', { id: msg.id, deletedAt: msg.deletedAt });
       if (typeof ack === 'function') ack({ success: true });
-      // After 2 minutes, permanently remove the message from chat & database
-      const removeId = msg.id;
-      setTimeout(() => {
-        const idx = db.messages.findIndex(m => m.id === removeId);
-        if (idx >= 0) {
-          db.messages.splice(idx, 1);
-          saveDB();
-          io.emit('message-removed', { id: removeId });
-        }
-      }, 2 * 60 * 1000); // 2 minutes
     } catch (e) {
       if (typeof ack === 'function') ack({ error: 'Failed' });
     }
@@ -2527,6 +2574,10 @@ io.on('connection', (socket) => {
   });
 
   // ---- DM delete ----
+  // Soft-delete only here. Permanent removal is handled by the periodic
+  // cleanup interval (restart-safe, completes even if the user leaves or the
+  // server restarts before a timer would have fired). See startup cleanup +
+  // setInterval below.
   socket.on('dm-delete', ({ id }, ack) => {
     try {
       const myDMs = db.dms[username] || {};
@@ -2543,26 +2594,6 @@ io.on('connection', (socket) => {
       saveDB();
       io.to(`user:${found.to}`).emit('dm-deleted', { id: found.id, from: username, deletedAt: found.deletedAt });
       if (typeof ack === 'function') ack({ success: true });
-      // After 2 minutes, permanently remove the DM from chat & database
-      const removeId = found.id;
-      const removeTo = found.to;
-      setTimeout(() => {
-        // Remove from sender's DM store
-        const senderDMs = db.dms[username] || {};
-        for (const [other, msgs] of Object.entries(senderDMs)) {
-          const idx = msgs.findIndex(x => x.id === removeId);
-          if (idx >= 0) { msgs.splice(idx, 1); break; }
-        }
-        // Remove from recipient's DM store
-        const recipDMs = db.dms[removeTo] || {};
-        for (const [other, msgs] of Object.entries(recipDMs)) {
-          const idx = msgs.findIndex(x => x.id === removeId);
-          if (idx >= 0) { msgs.splice(idx, 1); break; }
-        }
-        saveDB();
-        io.to(`user:${username}`).emit('dm-removed', { id: removeId });
-        io.to(`user:${removeTo}`).emit('dm-removed', { id: removeId });
-      }, 2 * 60 * 1000); // 2 minutes
     } catch (e) {
       if (typeof ack === 'function') ack({ error: 'Failed' });
     }
@@ -2630,6 +2661,17 @@ io.on('connection', (socket) => {
     socketToUser.delete(socket.id);
   });
 });
+
+// ---------- Periodic deleted-message cleanup ----------
+// Replaces the old per-delete setTimeout approach. Every 30 seconds we sweep
+// for soft-deleted public messages and DMs whose deletedAt is older than the
+// 2-minute window, permanently remove them from the DB, and emit
+// 'message-removed' / 'dm-removed' to live clients so the placeholder
+// disappears. This is restart-safe: if the server restarts mid-window, the
+// startup purge + this interval finish the job — deleted messages can no
+// longer get "stuck" as placeholders when a user leaves or the server spins
+// down.
+setInterval(() => { purgeExpiredDeletedMessages(true); }, 30 * 1000);
 
 // ---------- Multer Error Handler ----------
 // Catches file-size-exceeded and other multer errors so the client gets a
