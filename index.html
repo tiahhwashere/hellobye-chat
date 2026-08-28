@@ -433,6 +433,40 @@ body.loading-session #chat-app.active::after {
   position: relative;
   z-index: 1;
 }
+
+/* ---- Members List Background also paints the chat header ("Welcome" UI)
+   and the chat-input area (under the chatbox). Each bar gets its own
+   .members-bg-layer so the image shows there WITHOUT overlapping the
+   messages container or any other UI. ---- */
+.chat-header,
+.chat-input-area {
+  position: relative;
+}
+/* Make the two bars transparent so the background layer shows through; the
+   original solid colors are dropped in favor of a readable scrim + the image. */
+.chat-header.members-bg-on,
+.chat-input-area.members-bg-on {
+  background: transparent;
+}
+/* Subtle scrim on top of the image so header text / input controls stay legible */
+.chat-header.members-bg-on::after,
+.chat-input-area.members-bg-on::after {
+  content: "";
+  position: absolute; inset: 0;
+  background: linear-gradient(180deg, rgba(10,11,13,0.45) 0%, rgba(10,11,13,0.30) 100%);
+  pointer-events: none;
+  z-index: 1;
+}
+/* Keep the header content and input controls above the scrim + bg layer */
+.chat-header > *:not(.members-bg-layer),
+.chat-input-area > *:not(.members-bg-layer) {
+  position: relative;
+  z-index: 2;
+}
+/* The chat-input-area uses a bottom scrim so the input reads well */
+.chat-input-area.members-bg-on::after {
+  background: linear-gradient(0deg, rgba(10,11,13,0.50) 0%, rgba(10,11,13,0.30) 100%);
+}
 .sidebar-header {
   display: flex; align-items: center; gap: 11px;
   padding: 16px 16px; border-bottom: 1px solid var(--border);
@@ -10569,40 +10603,53 @@ function applyMembersBg() {
   const sidebar = document.querySelector('.sidebar');
   if (!sidebar) return;
   const { url, scale, color, opacity } = membersBgState;
-  // Ensure a single persistent background layer exists (behind all views + footer)
-  let layer = sidebar.querySelector('.members-bg-layer');
-  if (!layer) {
-    layer = document.createElement('div');
-    layer.className = 'members-bg-layer';
-    layer.innerHTML = '<div class="members-bg-img"></div><div class="members-bg-overlay"></div>';
-    // Insert as the FIRST child so every other element paints above it
-    sidebar.insertBefore(layer, sidebar.firstChild);
-  }
-  const imgEl = layer.querySelector('.members-bg-img');
-  const overlayEl = layer.querySelector('.members-bg-overlay');
-  if (url) {
-    layer.classList.add('active');
-    imgEl.style.backgroundImage = 'url("' + url + '")';
-    /* Size the image so it ALWAYS covers the full sidebar height top-to-bottom,
-       even when the user zooms (Ctrl+scroll) on desktop or on mobile where the
-       sidebar is tall and narrow.
+  var effScale = Math.max(100, scale);
 
-       Strategy: anchor the image to the layer's HEIGHT.
-         - effectiveScale is clamped to >= 100 so the image height is never
-           smaller than the layer height \u2192 no vertical gaps, ever.
-         - background-size "auto <H>%" sets height = H% of the layer and width
-           auto (preserves aspect ratio). At 100% the image fills top-to-bottom
-           exactly; above 100% it zooms in (crops sides) while still filling
-           vertically.
-       The layer is position:absolute inset:0 so it matches the sidebar's exact
-       rendered height at every zoom level and viewport size, and overflow is
-       clipped by .sidebar { overflow: hidden }. */
-    var effScale = Math.max(100, scale);
-    imgEl.style.backgroundSize = 'auto ' + effScale + '%';
-    imgEl.style.backgroundPosition = 'center';
-    imgEl.style.backgroundRepeat = 'no-repeat';
-    overlayEl.style.background = color;
-    overlayEl.style.opacity = (opacity / 100);
+  /* Helper: ensure a single .members-bg-layer exists inside a container and
+     apply (or clear) the background image + overlay to it. Returns nothing. */
+  function applyToContainer(host, opts) {
+    if (!host) return;
+    let layer = host.querySelector(':scope > .members-bg-layer');
+    if (!layer) {
+      layer = document.createElement('div');
+      layer.className = 'members-bg-layer';
+      layer.innerHTML = '<div class="members-bg-img"></div><div class="members-bg-overlay"></div>';
+      host.insertBefore(layer, host.firstChild);
+    }
+    const imgEl = layer.querySelector('.members-bg-img');
+    const overlayEl = layer.querySelector('.members-bg-overlay');
+    if (url) {
+      layer.classList.add('active');
+      host.classList.add('members-bg-on');
+      imgEl.style.backgroundImage = 'url("' + url + '")';
+      /* Height-anchored sizing guarantees the image fills the host top-to-bottom
+         at every zoom level and on mobile. For the wide chat bars we use "cover"
+         so the image also fills horizontally without leaving side gaps. */
+      imgEl.style.backgroundSize = opts && opts.cover ? 'cover' : ('auto ' + effScale + '%');
+      imgEl.style.backgroundPosition = 'center';
+      imgEl.style.backgroundRepeat = 'no-repeat';
+      overlayEl.style.background = color;
+      overlayEl.style.opacity = (opacity / 100);
+    } else {
+      layer.classList.remove('active');
+      host.classList.remove('members-bg-on');
+      imgEl.style.backgroundImage = '';
+      imgEl.style.backgroundSize = '';
+      overlayEl.style.background = '';
+      overlayEl.style.opacity = '';
+    }
+  }
+
+  // 1) Sidebar (members list) — height-anchored, persists across tab switches
+  applyToContainer(sidebar);
+
+  // 2) Chat header ("Welcome - to the safe place" UI) — cover, no overlap into messages
+  applyToContainer(document.querySelector('.chat-main > .chat-header'), { cover: true });
+
+  // 3) Chat input area (under the chatbox) — cover, no overlap into messages
+  applyToContainer(document.querySelector('.chat-main > .chat-input-area'), { cover: true });
+
+  if (url) {
     // Clear any legacy per-view inline styles from older versions
     document.querySelectorAll('.sidebar-view').forEach(v => {
       v.style.backgroundImage = '';
@@ -10620,10 +10667,6 @@ function applyMembersBg() {
       if (fov) fov.remove();
     }
   } else {
-    layer.classList.remove('active');
-    imgEl.style.backgroundImage = '';
-    overlayEl.style.background = '';
-    overlayEl.style.opacity = '';
     // Clean up legacy per-view styles too
     document.querySelectorAll('.sidebar-view').forEach(v => {
       v.style.backgroundImage = '';
