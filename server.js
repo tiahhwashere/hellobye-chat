@@ -2263,6 +2263,12 @@ async function backupUploadFile(filename) {
 }
 
 // Restore uploads from the backup repo on startup (files not already present).
+// IMPORTANT: On Render's free tier (512MB RAM), downloading all uploads at
+// startup can cause OOM crashes. We skip files larger than 5MB on startup —
+// they are fetched on-demand when a user accesses them (see /uploads fallback
+// above). We also cap total startup restore at 20MB to stay memory-safe.
+const STARTUP_RESTORE_MAX_FILE = 5 * 1024 * 1024; // 5MB per file
+const STARTUP_RESTORE_MAX_TOTAL = 20 * 1024 * 1024; // 20MB total
 async function restoreUploads() {
   if (!BACKUP_ENABLED) return;
   try {
@@ -2272,20 +2278,35 @@ async function restoreUploads() {
       return;
     }
     let restored = 0;
+    let restoredBytes = 0;
+    let skippedLarge = 0;
     for (const item of r.data) {
       if (item.type !== 'file') continue;
       const localPath = path.join(UPLOAD_DIR, item.name);
       if (fs.existsSync(localPath)) continue; // already present (e.g. badge icons)
+      const fileSize = item.size || 0;
+      // Skip large files on startup — they'll be fetched on-demand.
+      if (fileSize > STARTUP_RESTORE_MAX_FILE) {
+        skippedLarge++;
+        continue;
+      }
+      // Stop if we've hit the total restore cap.
+      if (restoredBytes + fileSize > STARTUP_RESTORE_MAX_TOTAL) {
+        console.log(`[backup] Startup restore cap reached (${restoredBytes} bytes). Remaining files will be fetched on-demand.`);
+        break;
+      }
       try {
         const buf = await fetchBackupFile(item.name);
         if (buf && buf.length > 0) {
           fs.writeFileSync(localPath, buf);
           restored++;
+          restoredBytes += buf.length;
         }
       } catch (e) { console.error(`[backup] Failed to restore upload ${item.name}:`, e); }
     }
-    if (restored > 0) console.log(`[backup] Restored ${restored} user upload(s) from GitHub.`);
+    if (restored > 0) console.log(`[backup] Restored ${restored} user upload(s) (${restoredBytes} bytes) from GitHub.`);
     else console.log('[backup] No user uploads needed restoring.');
+    if (skippedLarge > 0) console.log(`[backup] Skipped ${skippedLarge} large file(s) on startup — will fetch on-demand.`);
   } catch (e) {
     console.error('[backup] restoreUploads error:', e);
   }
