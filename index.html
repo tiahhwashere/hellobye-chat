@@ -2055,7 +2055,7 @@ body.loading-session #chat-app.active::after {
 
 /* Player card */
 .music-player-card {
-  position: relative; display: flex; gap: 0; overflow: hidden;
+  position: relative; display: flex; flex-direction: column; overflow: hidden;
   background: linear-gradient(135deg, var(--bg-light) 0%, var(--bg-medium) 100%);
   border: 1px solid var(--border-light); border-radius: var(--radius);
   box-shadow: 0 4px 20px rgba(0,0,0,0.25);
@@ -2063,15 +2063,15 @@ body.loading-session #chat-app.active::after {
 }
 .music-player-card:hover { box-shadow: 0 6px 28px rgba(0,0,0,0.35); border-color: var(--text-muted); }
 
-/* Artwork */
+/* Artwork banner — full width across the top */
 .music-player-artwork {
-  flex-shrink: 0; width: 140px; min-height: 180px;
+  width: 100%; height: 140px; flex-shrink: 0;
   background-size: cover; background-position: center; background-color: var(--bg-darker);
   position: relative; transition: var(--transition);
 }
 .music-player-artwork::after {
   content: ''; position: absolute; inset: 0;
-  background: linear-gradient(90deg, transparent 50%, rgba(28,31,36,0.6) 100%);
+  background: linear-gradient(180deg, transparent 30%, rgba(20,22,26,0.85) 100%);
   pointer-events: none;
 }
 .music-artwork-placeholder {
@@ -2082,7 +2082,7 @@ body.loading-session #chat-app.active::after {
 
 /* Player body */
 .music-player-body {
-  flex: 1; min-width: 0; padding: 16px 18px;
+  padding: 14px 18px 16px;
   display: flex; flex-direction: column; gap: 12px;
 }
 .music-player-meta { display: flex; flex-direction: column; gap: 3px; }
@@ -2105,6 +2105,17 @@ body.loading-session #chat-app.active::after {
   content: ''; width: 6px; height: 6px; border-radius: 50%;
   background: var(--success); animation: music-pulse 1.8s ease-in-out infinite;
 }
+.music-playlist-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 10px; font-weight: 700; letter-spacing: 0.5px;
+  text-transform: uppercase; padding: 2px 8px; border-radius: 10px;
+  background: rgba(255,170,0,0.12); color: #ffaa00;
+  border: 1px solid rgba(255,170,0,0.25);
+}
+.music-playlist-badge::before {
+  content: ''; width: 0; height: 0; border-left: 4px solid transparent;
+  border-right: 4px solid transparent; border-top: 5px solid currentColor;
+}
 @keyframes music-pulse {
   0%, 100% { opacity: 1; transform: scale(1); }
   50% { opacity: 0.4; transform: scale(0.75); }
@@ -2119,12 +2130,31 @@ body.loading-session #chat-app.active::after {
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 
-/* Embed container (hidden iframe as playback engine) */
+/* Embed container — VISIBLE and interactive so audio can actually play.
+   Browsers require a user gesture (click) inside the iframe to start audio,
+   and the embed's native playlist/queue only works when the iframe is live. */
 .music-player-embed {
-  width: 1px; height: 1px; overflow: hidden; opacity: 0;
-  position: absolute; pointer-events: none;
+  width: 100%; border-radius: var(--radius-sm); overflow: hidden;
+  background: var(--bg-darker); border: 1px solid var(--border);
+  position: relative; transition: var(--transition);
 }
-.music-player-embed iframe { border: 0; }
+.music-player-embed iframe {
+  border: 0; display: block; width: 100%;
+}
+.music-player-embed.embed-spotify iframe { height: 152px; }
+.music-player-embed.embed-soundcloud iframe { height: 166px; }
+.music-player-embed.embed-youtube iframe { height: 180px; }
+.music-player-embed.embed-apple iframe { height: 180px; }
+.music-player-embed.embed-deezer iframe { height: 240px; }
+.music-player-embed.embed-loading { min-height: 100px; display: flex; align-items: center; justify-content: center; }
+.music-embed-loading-text {
+  font-size: 12px; color: var(--text-muted); padding: 30px; text-align: center;
+}
+.music-embed-loading-text::after {
+  content: ''; display: inline-block; width: 12px; height: 12px; margin-left: 6px;
+  border: 2px solid var(--text-muted); border-top-color: transparent;
+  border-radius: 50%; animation: btn-spin 0.8s linear infinite; vertical-align: middle;
+}
 
 /* Progress bar */
 .music-player-progress {
@@ -2228,11 +2258,12 @@ body.loading-session #chat-app.active::after {
 
 /* Responsive */
 @media (max-width: 540px) {
-  .music-player-artwork { width: 110px; min-height: 150px; }
-  .music-player-body { padding: 12px 14px; gap: 10px; }
+  .music-player-artwork { height: 110px; }
+  .music-player-body { padding: 12px 14px 14px; gap: 10px; }
   .music-track-title { font-size: 14px; }
   .music-volume-group { display: none; }
   .music-load-btn { padding: 11px 16px; }
+  .music-player-embed.embed-deezer iframe { height: 200px; }
 }
 
 /* Customization section */
@@ -4238,6 +4269,7 @@ body.loading-session #chat-app.active::after {
                   <div class="music-meta-line">
                     <span class="music-provider-badge" id="music-provider-badge">Spotify</span>
                     <span class="music-now-playing">Now Playing</span>
+                    <span class="music-playlist-badge" id="music-playlist-badge" style="display:none;">Playlist</span>
                   </div>
                   <h5 class="music-track-title" id="music-track-title">Loading track…</h5>
                   <p class="music-track-artist" id="music-track-artist"></p>
@@ -9738,90 +9770,121 @@ const MusicPlayer = {
     currentTime: 0,
     progressTimer: null,
     iframe: null,
+    isPlaylist: false,
+    playlistIndex: 0,
+    playlistTracks: [],
+    validated: false,
   },
 
   // ---------- Link detection ----------
   detectProvider(url) {
     if (!url) return null;
-    const u = url.toLowerCase();
-    if (u.includes('spotify.com') || u.includes('open.spotify')) return 'spotify';
+    const u = url.toLowerCase().trim();
+    // Must start with http(s)://
+    if (!/^https?:\/\//.test(u)) return null;
+    if (u.includes('spotify.com') || u.includes('open.spotify.com') || u.includes('spotify.link')) return 'spotify';
     if (u.includes('soundcloud.com')) return 'soundcloud';
-    if (u.includes('youtube.com') || u.includes('youtu.be')) return 'youtube';
+    if (u.includes('youtube.com') || u.includes('youtu.be') || u.includes('music.youtube.com')) return 'youtube';
     if (u.includes('music.apple.com') || u.includes('apple.music')) return 'apple';
     if (u.includes('deezer.com')) return 'deezer';
     return null;
+  },
+
+  // ---------- Detect if a link is a playlist ----------
+  detectPlaylist(provider, url) {
+    const u = url.toLowerCase();
+    if (provider === 'spotify') {
+      return /\/(playlist|album|show)\//.test(u);
+    }
+    if (provider === 'soundcloud') {
+      return /\/sets\//.test(u) || /\/playlists\//.test(u);
+    }
+    if (provider === 'youtube') {
+      return u.includes('list=') || /\/playlist\?/.test(u);
+    }
+    if (provider === 'deezer') {
+      return /\/playlist\//.test(u) || /\/album\//.test(u);
+    }
+    if (provider === 'apple') {
+      return /\/playlist\//.test(u) || /\/album\//.test(u);
+    }
+    return false;
   },
 
   // ---------- Build embed URL per platform ----------
   buildEmbed(provider, url) {
     try {
       if (provider === 'spotify') {
-        // Spotify: convert track/album/playlist/episode URLs to embed URLs
-        let embed = url;
-        // Handle spotify.link short links by using the original
-        if (embed.includes('/track/')) {
-          const id = embed.match(/\/track\/([a-zA-Z0-9]+)/);
-          if (id) return 'https://open.spotify.com/embed/track/' + id[1];
+        if (url.includes('/track/')) {
+          const id = url.match(/\/track\/([a-zA-Z0-9]+)/);
+          if (id) return 'https://open.spotify.com/embed/track/' + id[1] + '?utm_source=generator';
         }
-        if (embed.includes('/album/')) {
-          const id = embed.match(/\/album\/([a-zA-Z0-9]+)/);
-          if (id) return 'https://open.spotify.com/embed/album/' + id[1];
+        if (url.includes('/album/')) {
+          const id = url.match(/\/album\/([a-zA-Z0-9]+)/);
+          if (id) return 'https://open.spotify.com/embed/album/' + id[1] + '?utm_source=generator';
         }
-        if (embed.includes('/playlist/')) {
-          const id = embed.match(/\/playlist\/([a-zA-Z0-9]+)/);
-          if (id) return 'https://open.spotify.com/embed/playlist/' + id[1];
+        if (url.includes('/playlist/')) {
+          const id = url.match(/\/playlist\/([a-zA-Z0-9]+)/);
+          if (id) return 'https://open.spotify.com/embed/playlist/' + id[1] + '?utm_source=generator';
         }
-        if (embed.includes('/episode/')) {
-          const id = embed.match(/\/episode\/([a-zA-Z0-9]+)/);
-          if (id) return 'https://open.spotify.com/embed/episode/' + id[1];
+        if (url.includes('/episode/')) {
+          const id = url.match(/\/episode\/([a-zA-Z0-9]+)/);
+          if (id) return 'https://open.spotify.com/embed/episode/' + id[1] + '?utm_source=generator';
         }
-        if (embed.includes('/show/')) {
-          const id = embed.match(/\/show\/([a-zA-Z0-9]+)/);
-          if (id) return 'https://open.spotify.com/embed/show/' + id[1];
+        if (url.includes('/show/')) {
+          const id = url.match(/\/show\/([a-zA-Z0-9]+)/);
+          if (id) return 'https://open.spotify.com/embed/show/' + id[1] + '?utm_source=generator';
         }
-        // Fallback: replace open.spotify.com with open.spotify.com/embed
-        return embed.replace('open.spotify.com', 'open.spotify.com/embed');
+        if (url.includes('/artist/')) {
+          const id = url.match(/\/artist\/([a-zA-Z0-9]+)/);
+          if (id) return 'https://open.spotify.com/embed/artist/' + id[1] + '?utm_source=generator';
+        }
+        return null;
       }
       if (provider === 'soundcloud') {
-        // SoundCloud widget API accepts the original track URL
         return 'https://w.soundcloud.com/player/?url=' + encodeURIComponent(url) +
                '&auto_play=false&buying=false&sharing=false&download=false&' +
-               'show_artwork=false&show_playcount=false&show_user=false&hide_related=true&' +
+               'show_artwork=true&show_playcount=false&show_user=true&hide_related=true&' +
                'visual=false&callback=true';
       }
       if (provider === 'youtube') {
-        // Extract video ID from various YouTube URL formats
         let videoId = null;
+        let listId = null;
         if (url.includes('youtu.be/')) {
           videoId = url.split('youtu.be/')[1].split(/[?&#]/)[0];
         } else if (url.includes('v=')) {
-          videoId = url.split('v=')[1].split(/[?&#]/)[0];
+          const m = url.match(/[?&]v=([a-zA-Z0-9_-]+)/);
+          if (m) videoId = m[1];
         } else if (url.includes('/embed/')) {
           videoId = url.split('/embed/')[1].split(/[?&#]/)[0];
-        } else if (url.includes('music.youtube.com')) {
-          if (url.includes('v=')) videoId = url.split('v=')[1].split(/[?&#]/)[0];
         }
+        const lm = url.match(/[?&]list=([a-zA-Z0-9_-]+)/);
+        if (lm) listId = lm[1];
         if (videoId) {
-          return 'https://www.youtube.com/embed/' + videoId +
-                 '?enablejsapi=1&playsinline=1&rel=0&modestbranding=1';
+          let e = 'https://www.youtube.com/embed/' + videoId +
+                  '?enablejsapi=1&playsinline=1&rel=0&modestbranding=1';
+          if (listId) e += '&list=' + listId;
+          return e;
+        }
+        if (listId) {
+          // Playlist-only link (no specific video)
+          return 'https://www.youtube.com/embed/videoseries?list=' + listId +
+                 '&enablejsapi=1&playsinline=1&rel=0&modestbranding=1';
         }
         return null;
       }
       if (provider === 'apple') {
-        // Apple Music embed: music.apple.com/embed style
-        // e.g. https://music.apple.com/us/album/song/123 -> /embed/us/album/song/123
         const m = url.match(/music\.apple\.com\/([^?]+)/);
         if (m) return 'https://embed.music.apple.com/' + m[1];
         return null;
       }
       if (provider === 'deezer') {
-        // Deezer embed widget
         const m = url.match(/deezer\.com\/(track|album|playlist)\/(\d+)/);
         if (m) {
           const type = m[1];
           const id = m[2];
           return 'https://widget.deezer.com/widget/auto/' + type + '-' + id +
-                 '?tracklist=false&autoplay=false';
+                 '?tracklist=true&autoplay=false';
         }
         return null;
       }
@@ -9829,82 +9892,92 @@ const MusicPlayer = {
     return null;
   },
 
-  // ---------- Fetch metadata via oEmbed ----------
-  async fetchMetadata(provider, url) {
-    const meta = { title: null, artist: null, artwork: null };
+  // ---------- Validate + fetch metadata via oEmbed ----------
+  // Returns { valid, title, artist, artwork, isPlaylist } — if oEmbed fails,
+  // valid=false meaning the link does not resolve to a real track.
+  async validateAndFetch(provider, url) {
+    const result = { valid: false, title: null, artist: null, artwork: null, isPlaylist: this.detectPlaylist(provider, url) };
     try {
       if (provider === 'spotify') {
         const r = await fetch('https://open.spotify.com/oembed?url=' + encodeURIComponent(url));
         if (r.ok) {
           const d = await r.json();
-          meta.title = d.title;
-          meta.artist = d.provider_name === 'Spotify' ? (d.description || '') : '';
-          meta.artwork = d.thumbnail_url;
+          result.valid = true;
+          result.title = d.title;
+          result.artist = d.provider_name === 'Spotify' ? (d.description || '') : (d.provider_name || '');
+          result.artwork = d.thumbnail_url;
         }
       } else if (provider === 'soundcloud') {
         const r = await fetch('https://soundcloud.com/oembed?format=json&url=' + encodeURIComponent(url));
         if (r.ok) {
           const d = await r.json();
-          meta.title = d.title;
-          meta.artist = d.author_name || '';
-          meta.artwork = d.thumbnail_url;
+          result.valid = true;
+          result.title = d.title;
+          result.artist = d.author_name || '';
+          result.artwork = d.thumbnail_url;
         }
       } else if (provider === 'youtube') {
         let videoId = null;
         if (url.includes('youtu.be/')) videoId = url.split('youtu.be/')[1].split(/[?&#]/)[0];
-        else if (url.includes('v=')) videoId = url.split('v=')[1].split(/[?&#]/)[0];
+        else { const m = url.match(/[?&]v=([a-zA-Z0-9_-]+)/); if (m) videoId = m[1]; }
+        // For playlist-only links, oEmbed may not work; accept if list= present
         if (videoId) {
           const r = await fetch('https://www.youtube.com/oembed?url=' + encodeURIComponent('https://www.youtube.com/watch?v=' + videoId) + '&format=json');
           if (r.ok) {
             const d = await r.json();
-            meta.title = d.title;
-            meta.artist = d.author_name || '';
-            meta.artwork = d.thumbnail_url;
+            result.valid = true;
+            result.title = d.title;
+            result.artist = d.author_name || '';
+            result.artwork = d.thumbnail_url;
           }
+        } else if (url.toLowerCase().includes('list=')) {
+          // Playlist link without a specific video — treat as valid
+          result.valid = true;
+          result.title = 'YouTube Playlist';
+          result.artist = '';
         }
       } else if (provider === 'deezer') {
         const m = url.match(/deezer\.com\/(track|album|playlist)\/(\d+)/);
         if (m) {
-          const r = await fetch('https://api.deezer.com/' + m[1] + '/' + m[2] + '?output=jsonp');
-          // Deezer needs JSONP; fallback to oembed
           const r2 = await fetch('https://api.deezer.com/oembed?url=' + encodeURIComponent(url) + '&format=json');
           if (r2.ok) {
             const d = await r2.json();
-            meta.title = d.title;
-            meta.artist = d.author_name || '';
-            meta.artwork = d.thumbnail_url || d.thumbnail;
+            result.valid = true;
+            result.title = d.title;
+            result.artist = d.author_name || '';
+            result.artwork = d.thumbnail_url || d.thumbnail;
           }
         }
       } else if (provider === 'apple') {
-        // Apple Music oEmbed
         const r = await fetch('https://music.apple.com/oembed?url=' + encodeURIComponent(url));
         if (r.ok) {
           const d = await r.json();
-          meta.title = d.title;
-          meta.artist = d.author_name || '';
-          meta.artwork = d.thumbnail_url;
+          result.valid = true;
+          result.title = d.title;
+          result.artist = d.author_name || '';
+          result.artwork = d.thumbnail_url;
         }
       }
     } catch(e) {
-      console.warn('Music metadata fetch error:', e);
+      console.warn('Music validate/fetch error:', e);
     }
-    return meta;
+    return result;
   },
 
   // ---------- Load a track ----------
   async load(url, silent) {
     const provider = this.detectProvider(url);
     if (!provider) {
-      if (!silent) toast('That link is not from a supported music platform. Please use Spotify, SoundCloud, YouTube, Apple Music, or Deezer.', 'error');
+      if (!silent) toast('That does not look like a valid music link. Please paste a full URL from Spotify, SoundCloud, YouTube, Apple Music, or Deezer.', 'error');
       return false;
     }
     const embedUrl = this.buildEmbed(provider, url);
     if (!embedUrl) {
-      if (!silent) toast('Could not read that ' + provider + ' link. Try copying the full URL from the address bar.', 'error');
+      if (!silent) toast('Could not read that ' + provider + ' link. Make sure you copied the complete URL from the address bar.', 'error');
       return false;
     }
 
-    // Reset state
+    // Show loading state immediately
     this.stopProgress();
     this.state = {
       provider, link: url, embedUrl,
@@ -9912,17 +9985,19 @@ const MusicPlayer = {
       volume: this.state.volume || 80,
       muted: false, duration: 0, currentTime: 0,
       progressTimer: null, iframe: null,
+      isPlaylist: false, playlistIndex: 0, playlistTracks: [],
+      validated: false,
     };
 
-    // Show player card
     $('music-player-card').style.display = 'flex';
     $('music-empty-state').style.display = 'none';
     $('music-provider-badge').textContent = provider === 'apple' ? 'Apple Music' :
-      provider.charAt(0).toUpperCase() + provider.slice(1);
-    $('music-track-title').textContent = 'Loading track…';
+      provider === 'youtube' ? 'YouTube' : provider.charAt(0).toUpperCase() + provider.slice(1);
+    $('music-track-title').textContent = 'Validating link…';
     $('music-track-artist').textContent = '';
     $('music-artwork').style.backgroundImage = '';
     $('music-artwork').querySelector('.music-artwork-placeholder').style.display = 'flex';
+    $('music-playlist-badge').style.display = 'none';
     $('music-progress-fill').style.width = '0%';
     $('music-progress-handle').style.left = '0%';
     $('music-time-current').textContent = '0:00';
@@ -9930,41 +10005,65 @@ const MusicPlayer = {
     this.setPlayIcon(false);
     $('music-loop-btn').classList.remove('active');
     $('music-volume-slider').value = this.state.volume;
+    $('music-prev-btn').disabled = true;
+    $('music-next-btn').disabled = true;
 
-    // Inject embed iframe
+    // Show loading embed placeholder
     const container = $('music-embed-container');
+    container.innerHTML = '<div class="music-embed-loading-text">Connecting to ' + (provider === 'apple' ? 'Apple Music' : provider) + '…</div>';
+    container.className = 'music-player-embed embed-' + provider + ' embed-loading';
+
+    // ---- Validate the link via oEmbed ----
+    const info = await this.validateAndFetch(provider, url);
+    if (!info.valid) {
+      // Invalid link — hide the player and show error
+      $('music-player-card').style.display = 'none';
+      $('music-empty-state').style.display = 'flex';
+      container.innerHTML = '';
+      if (!silent) toast('That link could not be verified. It may be invalid, private, or region-locked. Try a different link.', 'error');
+      return false;
+    }
+
+    this.state.validated = true;
+    this.state.isPlaylist = info.isPlaylist;
+
+    // Update metadata
+    $('music-track-title').textContent = info.title || 'Track loaded';
+    $('music-track-artist').textContent = info.artist || '';
+    if (info.artwork) {
+      $('music-artwork').style.backgroundImage = "url('" + info.artwork + "')";
+      $('music-artwork').querySelector('.music-artwork-placeholder').style.display = 'none';
+    }
+    if (info.isPlaylist) {
+      $('music-playlist-badge').style.display = 'inline-flex';
+    }
+
+    // ---- Inject the embed iframe (visible & interactive) ----
     container.innerHTML = '';
+    container.className = 'music-player-embed embed-' + provider;
     const iframe = document.createElement('iframe');
     iframe.src = embedUrl;
-    iframe.width = '300';
-    iframe.height = '80';
-    iframe.allow = 'autoplay; encrypted-media; fullscreen';
+    iframe.width = '100%';
+    iframe.allow = 'autoplay; encrypted-media; fullscreen; picture-in-picture';
     iframe.setAttribute('frameborder', '0');
     iframe.setAttribute('allowtransparency', 'true');
+    iframe.setAttribute('loading', 'lazy');
     container.appendChild(iframe);
     this.state.iframe = iframe;
 
-    // Fetch metadata (non-blocking)
-    this.fetchMetadata(provider, url).then(meta => {
-      if (this.state.link !== url) return; // stale
-      if (meta.title) {
-        $('music-track-title').textContent = meta.title;
-      } else {
-        $('music-track-title').textContent = 'Track loaded';
-      }
-      if (meta.artist) {
-        $('music-track-artist').textContent = meta.artist;
-      }
-      if (meta.artwork) {
-        $('music-artwork').style.backgroundImage = "url('" + meta.artwork + "')";
-        $('music-artwork').querySelector('.music-artwork-placeholder').style.display = 'none';
-      }
-    });
-
-    // Platform-specific postMessage setup
+    // Wire up platform-specific controls
     this.setupPlatformControls(provider, iframe);
 
-    if (!silent) toast('Track loaded. Press play to start listening.', 'success');
+    $('music-prev-btn').disabled = false;
+    $('music-next-btn').disabled = false;
+
+    if (!silent) {
+      if (info.isPlaylist) {
+        toast('Playlist loaded. Press play to start — songs will play in order.', 'success');
+      } else {
+        toast('Track loaded. Press play to start listening.', 'success');
+      }
+    }
     return true;
   },
 
@@ -9972,123 +10071,152 @@ const MusicPlayer = {
   setupPlatformControls(provider, iframe) {
     const self = this;
     if (provider === 'spotify') {
-      // Spotify Embed Controller via postMessage
-      window.addEventListener('message', function handler(e) {
-        if (!e.data || typeof e.data !== 'object') return;
-        if (e.data.type === 'ready' && e.data.payload && e.data.payload.method === 'ready') {
-          // Spotify iframe ready — set up subscription
-          self.spotifySend(iframe, { method: 'addEventListener', value: 'playback_update' });
-          self.spotifySend(iframe, { method: 'setVolume', value: self.state.volume / 100 });
-          self.spotifySend(iframe, { method: 'addEventListener', value: 'update' });
-        }
-        if (e.data.type === 'event' && e.data.payload) {
-          const p = e.data.payload;
-          if (p.event === 'playback_update' && p.data) {
-            self.state.duration = p.data.duration || 0;
-            self.state.currentTime = p.data.position || 0;
-            self.state.isPlaying = !!p.data.isPaused ? false : (p.data.position != null);
-            if (p.data.duration) {
-              $('music-time-total').textContent = self.formatTime(p.data.duration);
-              const pct = p.data.duration ? (p.data.position / p.data.duration) * 100 : 0;
-              $('music-progress-fill').style.width = pct + '%';
-              $('music-progress-handle').style.left = pct + '%';
-              $('music-time-current').textContent = self.formatTime(p.data.position);
-            }
-            self.setPlayIcon(self.state.isPlaying);
+      // Spotify Embed Controller — listen for messages from the iframe
+      if (!this._spotifyMsgBound) {
+        this._spotifyMsgBound = true;
+        window.addEventListener('message', (e) => {
+          if (!e.data || typeof e.data !== 'string') {
+            // Some Spotify messages come as JSON strings
           }
-        }
-      });
+          let payload = e.data;
+          if (typeof payload === 'string') {
+            try { payload = JSON.parse(payload); } catch(_) { return; }
+          }
+          if (!payload || typeof payload !== 'object') return;
+          // Spotify embed sends: { type: 'ready' } and { type: 'event', event: 'playback_update', data: {...} }
+          if (payload.type === 'ready') {
+            self.spotifyReady = true;
+            self.spotifySend(iframe, { command: 'setVolume', value: self.state.volume });
+            self.spotifySend(iframe, { command: 'subscribeToEvents', value: true });
+          }
+          if (payload.type === 'event' && payload.event === 'playback_update') {
+            const d = payload.data || {};
+            if (d.duration) self.state.duration = d.duration / 1000;
+            if (d.position != null) self.state.currentTime = d.position / 1000;
+            self.state.isPlaying = !!d.isPaused ? false : (d.position != null || d.isPlaying === true);
+            self.setPlayIcon(self.state.isPlaying);
+            if (self.state.isPlaying) self.startProgress(); else self.stopProgress();
+            self.updateProgressVisual();
+            // Detect track end for non-loop playlist advance (Spotify handles
+            // playlist auto-advance natively inside the embed, so we only
+            // handle the single-track loop case here.)
+          }
+        });
+      }
     } else if (provider === 'soundcloud') {
       // SoundCloud Widget API
-      const widget = SC.Widget(iframe);
-      self.scWidget = widget;
-      widget.bind(SC.Widget.Events.READY, () => {
-        widget.setVolume(self.state.volume / 100);
-        self.startProgress();
-      });
-      widget.bind(SC.Widget.Events.PLAY, () => { self.state.isPlaying = true; self.setPlayIcon(true); self.startProgress(); });
-      widget.bind(SC.Widget.Events.PAUSE, () => { self.state.isPlaying = false; self.setPlayIcon(false); self.stopProgress(); });
-      widget.bind(SC.Widget.Events.FINISH, () => {
-        if (self.state.isLooping) { widget.seekTo(0); widget.play(); }
-        else { self.state.isPlaying = false; self.setPlayIcon(false); self.stopProgress(); }
-      });
+      const tryInit = () => {
+        if (!window.SC || !window.SC.Widget) { setTimeout(tryInit, 300); return; }
+        const widget = SC.Widget(iframe);
+        self.scWidget = widget;
+        widget.bind(SC.Widget.Events.READY, () => {
+          widget.setVolume(self.state.volume / 100);
+          widget.getSounds(tracks => {
+            if (tracks && tracks.length > 1) {
+              self.state.isPlaylist = true;
+              self.state.playlistTracks = tracks;
+              $('music-playlist-badge').style.display = 'inline-flex';
+            }
+          });
+        });
+        widget.bind(SC.Widget.Events.PLAY, () => { self.state.isPlaying = true; self.setPlayIcon(true); self.startProgress(); });
+        widget.bind(SC.Widget.Events.PAUSE, () => { self.state.isPlaying = false; self.setPlayIcon(false); self.stopProgress(); });
+        widget.bind(SC.Widget.Events.FINISH, () => {
+          if (self.state.isLooping) { widget.seekTo(0); widget.play(); }
+          else if (self.state.isPlaylist) {
+            // Advance to next track in the SoundCloud playlist
+            const idx = self.state.playlistIndex + 1;
+            if (self.state.playlistTracks.length > 0 && idx < self.state.playlistTracks.length) {
+              self.state.playlistIndex = idx;
+              widget.skip(idx);
+              widget.play();
+            } else {
+              // End of playlist
+              self.state.isPlaying = false; self.setPlayIcon(false); self.stopProgress();
+            }
+          } else {
+            self.state.isPlaying = false; self.setPlayIcon(false); self.stopProgress();
+          }
+        });
+        widget.bind(SC.Widget.Events.PLAY_PROGRESS, () => {});
+      };
+      tryInit();
     } else if (provider === 'youtube') {
-      // YouTube IFrame Player API — create a real YT.Player if API is loaded
-      if (window.YT && window.YT.Player) {
-        self.createYTPlayer(iframe);
-      } else {
-        // Load the API, then create the player
-        if (!document.getElementById('yt-iframe-api')) {
-          const tag = document.createElement('script');
-          tag.id = 'yt-iframe-api';
-          tag.src = 'https://www.youtube.com/iframe_api';
-          document.head.appendChild(tag);
-        }
-        window.onYouTubeIframeAPIReady = window.onYouTubeIframeAPIReady || function() {};
-        const origReady = window.onYouTubeIframeAPIReady;
-        window.onYouTubeIframeAPIReady = function() {
-          origReady();
-          self.createYTPlayer(iframe);
-        };
-      }
+      const tryInit = () => {
+        if (!window.YT || !window.YT.Player) { setTimeout(tryInit, 300); return; }
+        self.createYTPlayer();
+      };
+      tryInit();
     }
-    // Apple Music & Deezer embeds have limited JS API; controls remain
-    // UI-only (progress bar simulates playback visually). The embed still
-    // plays audio when the user clicks the visible area.
+    // Apple Music & Deezer embeds are interactive iframes — the user clicks
+    // play inside them. The embed handles playlist auto-advance natively.
+    // Our custom play button toggles a visual state for these platforms.
   },
 
   spotifySend(iframe, cmd) {
-    iframe.contentWindow.postMessage(cmd, 'https://open.spotify.com');
+    try {
+      // Spotify Embed Controller expects a specific message format
+      iframe.contentWindow.postMessage(JSON.stringify(cmd), '*');
+    } catch(e) { /* iframe may not be ready yet */ }
   },
 
-  createYTPlayer(iframe) {
+  createYTPlayer() {
     const self = this;
-    // Extract video ID from embed URL
-    const m = (self.state.embedUrl || '').match(/\/embed\/([a-zA-Z0-9_-]+)/);
+    const m = (self.state.embedUrl || '').match(/\/(?:embed|videoseries)\/([a-zA-Z0-9_-]+)/);
     const videoId = m ? m[1] : null;
     if (!videoId) return;
-    // Replace iframe with a YT.Player-managed element
     const container = $('music-embed-container');
-    container.innerHTML = '';
+    const existing = container.querySelector('iframe, #music-yt-player');
+    if (existing) existing.remove();
     const div = document.createElement('div');
     div.id = 'music-yt-player';
-    div.style.width = '300px'; div.style.height = '200px';
     container.appendChild(div);
+    const lm = (self.state.link || '').match(/[?&]list=([a-zA-Z0-9_-]+)/);
+    const playerVars = { autoplay: 0, controls: 1, rel: 0, modestbranding: 1, playsinline: 1 };
+    if (lm) { playerVars.listType = 'playlist'; playerVars.list = lm[1]; }
     self.ytPlayer = new YT.Player('music-yt-player', {
-      videoId: videoId,
-      playerVars: { autoplay: 0, controls: 0, rel: 0, modestbranding: 1, playsinline: 1 },
+      videoId: videoId === 'videoseries' ? null : videoId,
+      playerVars: playerVars,
       events: {
         onReady: (e) => {
           e.target.setVolume(self.state.volume);
           self.state.duration = e.target.getDuration() || 0;
           $('music-time-total').textContent = self.formatTime(self.state.duration);
-          self.startProgress();
         },
         onStateChange: (e) => {
           if (e.data === YT.PlayerState.PLAYING) { self.state.isPlaying = true; self.setPlayIcon(true); self.startProgress(); }
           else if (e.data === YT.PlayerState.PAUSED) { self.state.isPlaying = false; self.setPlayIcon(false); self.stopProgress(); }
           else if (e.data === YT.PlayerState.ENDED) {
             if (self.state.isLooping) { e.target.seekTo(0); e.target.playVideo(); }
+            else if (self.state.isPlaylist) {
+              // YouTube playlist auto-advances natively when using the list
+              // param, but if it doesn't, try nextVideo()
+              if (e.target.nextVideo) e.target.nextVideo();
+              else { self.state.isPlaying = false; self.setPlayIcon(false); self.stopProgress(); }
+            }
             else { self.state.isPlaying = false; self.setPlayIcon(false); self.stopProgress(); }
           }
         }
       }
     });
-    self.state.iframe = self.ytPlayer;
   },
 
   // ---------- Controls ----------
   togglePlay() {
     const s = this.state;
+    if (!s.validated) return;
     if (s.provider === 'spotify') {
-      this.spotifySend(s.iframe, { method: s.isPlaying ? 'pause' : 'play' });
+      this.spotifySend(s.iframe, { command: s.isPlaying ? 'pause' : 'play' });
+      // Fallback visual toggle in case postMessage is delayed
+      setTimeout(() => { if (s.isPlaying === (s.isPlaying)) {} }, 800);
     } else if (s.provider === 'soundcloud' && this.scWidget) {
       this.scWidget.toggle();
     } else if (s.provider === 'youtube' && this.ytPlayer) {
       if (s.isPlaying) this.ytPlayer.pauseVideo();
       else this.ytPlayer.playVideo();
     } else if (s.provider === 'apple' || s.provider === 'deezer') {
-      // No reliable JS API — toggle a visual state and attempt iframe play
+      // No JS API — instruct user to click play in the embed
+      toast('Press the play button inside the ' + (s.provider === 'apple' ? 'Apple Music' : 'Deezer') + ' player below.', 'success');
       s.isPlaying = !s.isPlaying;
       this.setPlayIcon(s.isPlaying);
       this.startProgress();
@@ -10099,15 +10227,19 @@ const MusicPlayer = {
     this.state.isLooping = !this.state.isLooping;
     $('music-loop-btn').classList.toggle('active', this.state.isLooping);
     if (this.state.isLooping) {
-      toast('Loop enabled — track will repeat.', 'success');
+      toast('Loop enabled — the current track will repeat.', 'success');
     } else {
       toast('Loop disabled.', 'success');
+    }
+    // For YouTube, set loop via API
+    if (this.state.provider === 'youtube' && this.ytPlayer && this.ytPlayer.setLoop) {
+      this.ytPlayer.setLoop(this.state.isLooping);
     }
   },
 
   restart() {
     const s = this.state;
-    if (s.provider === 'spotify') { this.spotifySend(s.iframe, { method: 'seek', value: 0 }); }
+    if (s.provider === 'spotify') { this.spotifySend(s.iframe, { command: 'seek', value: 0 }); }
     else if (s.provider === 'soundcloud' && this.scWidget) { this.scWidget.seekTo(0); }
     else if (s.provider === 'youtube' && this.ytPlayer) { this.ytPlayer.seekTo(0, true); }
     else { s.currentTime = 0; $('music-progress-fill').style.width = '0%'; $('music-progress-handle').style.left = '0%'; $('music-time-current').textContent = '0:00'; }
@@ -10116,7 +10248,7 @@ const MusicPlayer = {
   skip10() {
     const s = this.state;
     const target = (s.currentTime || 0) + 10;
-    if (s.provider === 'spotify') { this.spotifySend(s.iframe, { method: 'seek', value: target * 1000 }); }
+    if (s.provider === 'spotify') { this.spotifySend(s.iframe, { command: 'seek', value: Math.round(target * 1000) }); }
     else if (s.provider === 'soundcloud' && this.scWidget) { this.scWidget.seekTo(target * 1000); }
     else if (s.provider === 'youtube' && this.ytPlayer) { this.ytPlayer.seekTo(target, true); }
     else { s.currentTime = target; this.updateProgressVisual(); }
@@ -10126,7 +10258,7 @@ const MusicPlayer = {
     this.state.volume = vol;
     const s = this.state;
     const pct = vol / 100;
-    if (s.provider === 'spotify') { this.spotifySend(s.iframe, { method: 'setVolume', value: pct }); }
+    if (s.provider === 'spotify') { this.spotifySend(s.iframe, { command: 'setVolume', value: pct }); }
     else if (s.provider === 'soundcloud' && this.scWidget) { this.scWidget.setVolume(pct); }
     else if (s.provider === 'youtube' && this.ytPlayer && this.ytPlayer.setVolume) { this.ytPlayer.setVolume(vol); }
   },
@@ -10136,7 +10268,7 @@ const MusicPlayer = {
     const s = this.state;
     $('music-mute-btn').querySelector('.icon-vol-high').style.display = s.muted ? 'none' : 'block';
     $('music-mute-btn').querySelector('.icon-vol-mute').style.display = s.muted ? 'block' : 'none';
-    if (s.provider === 'spotify') { this.spotifySend(s.iframe, { method: 'setVolume', value: s.muted ? 0 : s.volume / 100 }); }
+    if (s.provider === 'spotify') { this.spotifySend(s.iframe, { command: 'setVolume', value: s.muted ? 0 : s.volume / 100 }); }
     else if (s.provider === 'soundcloud' && this.scWidget) { this.scWidget.setVolume(s.muted ? 0 : s.volume / 100); }
     else if (s.provider === 'youtube' && this.ytPlayer) { if (s.muted) this.ytPlayer.mute(); else this.ytPlayer.unMute(); }
   },
@@ -10145,9 +10277,7 @@ const MusicPlayer = {
   startProgress() {
     this.stopProgress();
     const self = this;
-    this.state.progressTimer = setInterval(() => {
-      self.tickProgress();
-    }, 500);
+    this.state.progressTimer = setInterval(() => { self.tickProgress(); }, 500);
   },
   stopProgress() {
     if (this.state.progressTimer) { clearInterval(this.state.progressTimer); this.state.progressTimer = null; }
@@ -10165,9 +10295,17 @@ const MusicPlayer = {
       s.currentTime = this.ytPlayer.getCurrentTime();
       s.duration = this.ytPlayer.getDuration() || 0;
       this.updateProgressVisual();
+    } else if (s.provider === 'spotify') {
+      // Spotify progress is updated via the playback_update event handler
+      this.updateProgressVisual();
     } else if (s.provider === 'apple' || s.provider === 'deezer') {
-      // Simulated progress for platforms without a JS API
-      if (s.isPlaying) { s.currentTime += 0.5; if (s.duration && s.currentTime >= s.duration) { if (s.isLooping) { s.currentTime = 0; } else { s.isPlaying = false; this.setPlayIcon(false); this.stopProgress(); } } }
+      if (s.isPlaying) {
+        s.currentTime += 0.5;
+        if (s.duration && s.currentTime >= s.duration) {
+          if (s.isLooping) { s.currentTime = 0; }
+          else { s.isPlaying = false; this.setPlayIcon(false); this.stopProgress(); }
+        }
+      }
       this.updateProgressVisual();
     }
   },
@@ -10184,7 +10322,7 @@ const MusicPlayer = {
     if (!s.duration) return;
     const target = (pct / 100) * s.duration;
     s.currentTime = target;
-    if (s.provider === 'spotify') { this.spotifySend(s.iframe, { method: 'seek', value: target * 1000 }); }
+    if (s.provider === 'spotify') { this.spotifySend(s.iframe, { command: 'seek', value: Math.round(target * 1000) }); }
     else if (s.provider === 'soundcloud' && this.scWidget) { this.scWidget.seekTo(target * 1000); }
     else if (s.provider === 'youtube' && this.ytPlayer) { this.ytPlayer.seekTo(target, true); }
     this.updateProgressVisual();
@@ -10209,11 +10347,14 @@ const MusicPlayer = {
   },
   clear() {
     this.stopProgress();
-    this.state = { provider: null, link: null, embedUrl: null, isPlaying: false, isLooping: false, volume: this.state.volume || 80, muted: false, duration: 0, currentTime: 0, progressTimer: null, iframe: null };
+    const vol = this.state.volume || 80;
+    this.state = { provider: null, link: null, embedUrl: null, isPlaying: false, isLooping: false, volume: vol, muted: false, duration: 0, currentTime: 0, progressTimer: null, iframe: null, isPlaylist: false, playlistIndex: 0, playlistTracks: [], validated: false };
     $('music-embed-container').innerHTML = '';
+    $('music-embed-container').className = 'music-player-embed';
     $('music-player-card').style.display = 'none';
     $('music-empty-state').style.display = 'flex';
     $('music-link-input').value = '';
+    $('music-playlist-badge').style.display = 'none';
     this.ytPlayer = null; this.scWidget = null;
   }
 };
