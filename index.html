@@ -821,24 +821,24 @@ body.no-anim .friend-item { animation: none !important; }
 .sender-handle { color: var(--text-muted); font-size: 12px; opacity: 0.7; font-weight: 500; }
 
 .message-bubble {
-  background: var(--bg-medium); padding: 9px 14px;
-  border-radius: 4px 14px 14px 14px;
+  background: var(--bg-medium); padding: 10px 14px;
+  border-radius: 12px;
   font-size: 15px; line-height: 1.5; word-break: break-word; position: relative;
   max-width: 100%;
-  border: 1px solid transparent;
-  transition: border-color 0.15s ease, background 0.15s ease;
+  border: 1px solid var(--border);
+  transition: border-color 0.15s ease, background 0.15s ease, transform 0.12s ease;
 }
-.message-bubble:hover { background: var(--bg-light); }
+.message-bubble:hover { background: var(--bg-light); border-color: var(--border-light); }
 .message-group.own .message-bubble {
   background: var(--accent-dim); color: #fff;
   border-color: transparent;
-  border-radius: 14px 4px 14px 14px;
+  border-radius: 12px;
 }
 .message-group.own .message-bubble:hover { background: var(--accent); }
 /* Media-only bubbles: no text means no need for a colored chat background.
    This removes the accent/blue box around images, videos & GIFs so media
    sits cleanly on the chat surface with a subtle border instead. */
-.message-bubble.media-only { background: transparent !important; padding: 2px 0; border-radius: 14px; border-color: transparent !important; }
+.message-bubble.media-only { background: transparent !important; padding: 2px 0; border-radius: 12px; border-color: transparent !important; }
 .message-group.own .message-bubble.media-only { background: transparent !important; color: var(--text-primary); }
 .message-bubble.deleted {
   background: transparent; border: 1px dashed var(--border-light);
@@ -1256,50 +1256,50 @@ body.no-anim .friend-item { animation: none !important; }
   background: var(--accent-dim); color: #fff; text-transform: uppercase; letter-spacing: 0.3px;
 }
 
-/* Message file attachments — modern, clean framing (not cartoony) */
+/* Message file attachments — modern, clean card style (not cartoony) */
 .message-file { margin-top: 8px; }
 .message-bubble.media-only .message-file:first-child { margin-top: 0; }
 .message-file img {
-  max-width: 360px; max-height: 360px; border-radius: 8px; display: block; cursor: pointer;
+  max-width: 360px; max-height: 360px; border-radius: 10px; display: block; cursor: pointer;
   object-fit: cover; image-rendering: -webkit-optimize-contrast;
   border: 1px solid var(--border);
-  transition: border-color 0.15s ease;
+  transition: border-color 0.15s ease, transform 0.15s ease;
   box-shadow: none;
 }
-.message-file img:hover { border-color: var(--border-light); }
+.message-file img:hover { border-color: var(--border-light); transform: scale(1.01); }
 /* 4K/HD enhancement: images are upscaled + sharpened on the server; this
    subtle display filter adds a final crispness/contrast pop when rendered. */
 .message-file img.hd-enhanced { filter: contrast(1.04) saturate(1.06) sharpen(1); }
 .message-file video {
-  max-width: 380px; max-height: 360px; border-radius: 8px; border: 1px solid var(--border);
+  max-width: 380px; max-height: 360px; border-radius: 10px; border: 1px solid var(--border);
   box-shadow: none; background: #000;
-  transition: border-color 0.15s ease;
+  transition: border-color 0.15s ease, transform 0.15s ease;
 }
-.message-file video:hover { border-color: var(--border-light); }
+.message-file video:hover { border-color: var(--border-light); transform: scale(1.01); }
 /* HD enhancement filter for inline videos (server can't transcode video, so
    we apply a light sharpen/contrast/saturate pass at display time). */
 .message-file video.hd-enhanced { filter: contrast(1.05) saturate(1.08) brightness(1.02); }
-.message-file audio { width: 320px; border-radius: 8px; }
+.message-file audio { width: 320px; border-radius: 10px; }
 .message-file-attachment {
   display: flex; align-items: center; gap: 12px;
-  padding: 10px 12px; background: var(--bg-darker);
-  border: 1px solid var(--border); border-radius: 8px;
+  padding: 11px 14px; background: var(--bg-darker);
+  border: 1px solid var(--border); border-radius: 10px;
   text-decoration: none; color: var(--text-primary);
-  transition: border-color 0.15s ease, background 0.15s ease;
+  transition: border-color 0.15s ease, background 0.15s ease, transform 0.12s ease;
   max-width: 360px;
   box-shadow: none;
 }
-.message-group.own .message-file-attachment { background: rgba(0,0,0,0.12); border-color: rgba(255,255,255,0.10); }
-.message-file-attachment:hover { border-color: var(--border-light); background: var(--bg-dark); }
-.message-group.own .message-file-attachment:hover { background: rgba(0,0,0,0.20); }
+.message-group.own .message-file-attachment { background: rgba(0,0,0,0.15); border-color: rgba(255,255,255,0.12); }
+.message-file-attachment:hover { border-color: var(--border-light); background: var(--bg-dark); transform: translateY(-1px); }
+.message-group.own .message-file-attachment:hover { background: rgba(0,0,0,0.22); }
 .file-icon {
-  width: 38px; height: 38px; border-radius: 8px;
+  width: 40px; height: 40px; border-radius: 10px;
   background: var(--accent-dim); color: #fff;
   display: flex; align-items: center; justify-content: center;
   font-size: 10px; font-weight: 700; flex-shrink: 0;
   letter-spacing: 0.3px;
 }
-.message-group.own .file-icon { background: rgba(255,255,255,0.18); }
+.message-group.own .file-icon { background: rgba(255,255,255,0.20); }
 .file-info { flex: 1; min-width: 0; }
 .file-name { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text-primary); }
 .file-size { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
@@ -1864,9 +1864,9 @@ body.no-anim .friend-item { animation: none !important; }
 }
 .remove-attachment { width: 24px; height: 24px; border-radius: 50%; background: var(--bg-lighter); color: var(--text-secondary); font-size: 16px; line-height: 1; }
 
-.chat-input-wrap { display: flex; align-items: flex-end; gap: 8px; background: var(--bg-medium); border: 1px solid var(--border-light); border-radius: var(--radius); padding: 6px 8px; }
-.chat-input-wrap:focus-within { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-glow); }
-.attach-btn { width: 34px; height: 34px; border-radius: 50%; color: var(--text-muted); display: flex; align-items: center; justify-content: center; transition: var(--transition); flex-shrink: 0; position: relative; }
+.chat-input-wrap { display: flex; align-items: flex-end; gap: 6px; background: var(--bg-medium); border: 1px solid var(--border-light); border-radius: 24px; padding: 6px 6px 6px 10px; transition: border-color 0.18s ease, box-shadow 0.18s ease; }
+.chat-input-wrap:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+.attach-btn { width: 36px; height: 36px; border-radius: 50%; color: var(--text-muted); display: flex; align-items: center; justify-content: center; transition: var(--transition); flex-shrink: 0; position: relative; background: transparent; border: none; cursor: pointer; }
 .attach-btn:hover { background: var(--bg-lighter); color: var(--text-secondary); }
 .attach-btn svg { width: 20px; height: 20px; }
 .attach-btn.active { background: var(--accent-dim); color: var(--accent); }
@@ -1991,19 +1991,22 @@ body.no-anim .friend-item { animation: none !important; }
 .gif-picker-tab:hover:not(.active) { color: var(--text-primary); }
 .chat-textarea {
   flex: 1; resize: none; border: none; background: transparent;
-  color: var(--text-primary); font-size: 14px; line-height: 1.5;
-  padding: 8px 4px; max-height: 120px;
+  color: var(--text-primary); font-size: 15px; line-height: 1.5;
+  padding: 9px 6px; max-height: 120px;
 }
 .chat-textarea:focus { outline: none; }
 .chat-textarea::placeholder { color: var(--text-muted); }
 .send-btn {
-  width: 34px; height: 34px; border-radius: 50%;
+  width: 36px; height: 36px; border-radius: 50%;
   background: var(--accent); color: var(--accent-text);
   display: flex; align-items: center; justify-content: center;
   transition: var(--transition); flex-shrink: 0;
+  border: none; cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.18);
 }
-.send-btn:hover:not(:disabled) { background: var(--accent-hover); }
-.send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.send-btn:hover:not(:disabled) { background: var(--accent-hover); box-shadow: 0 3px 12px rgba(0,0,0,0.24); transform: translateY(-1px); }
+.send-btn:active:not(:disabled) { transform: translateY(0) scale(0.96); }
+.send-btn:disabled { opacity: 0.35; cursor: not-allowed; box-shadow: none; transform: none; }
 .send-btn svg { width: 18px; height: 18px; }
 
 /* ============================================
@@ -3769,8 +3772,8 @@ body.no-anim .friend-item { animation: none !important; }
   .message-sender { font-size: 14px; margin-bottom: 5px; }
   .sender-displayname { font-size: 16.5px; }
   .sender-handle { font-size: 14.5px; }
-  .message-bubble { font-size: 18px; line-height: 1.55; padding: 12px 18px; border-radius: 6px 16px 16px 16px; }
-  .message-group.own .message-bubble { border-radius: 16px 6px 16px 16px; }
+  .message-bubble { font-size: 18px; line-height: 1.55; padding: 12px 18px; border-radius: 14px; }
+  .message-group.own .message-bubble { border-radius: 14px; }
   .message-meta { font-size: 12px; }
   .message-actions { gap: 6px; margin-top: 8px; }
   .msg-action-btn { padding: 5px 12px; font-size: 12px; }
@@ -3940,7 +3943,7 @@ body.no-anim .friend-item { animation: none !important; }
   max-height: min(70vh, 560px);
   background: var(--bg-dark);
   border: 1px solid var(--border-light);
-  border-radius: 14px;
+  border-radius: 16px;
   box-shadow: 0 16px 48px rgba(0,0,0,0.55), 0 2px 8px rgba(0,0,0,0.3);
   z-index: 9000;
   display: flex;
@@ -3975,7 +3978,7 @@ body.no-anim .friend-item { animation: none !important; }
 .mini-profile-scroll {
   flex: 1;
   overflow-y: auto;
-  padding: 16px;
+  padding: 18px 18px 14px;
   scrollbar-width: thin;
   scrollbar-color: #000 transparent;
 }
@@ -3988,24 +3991,24 @@ body.no-anim .friend-item { animation: none !important; }
 .mini-profile-header {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding-bottom: 14px;
-  margin-bottom: 6px;
+  gap: 14px;
+  padding-bottom: 16px;
+  margin-bottom: 4px;
   border-bottom: 1px solid var(--border);
 }
 .mini-profile-avatar-wrap { position: relative; flex-shrink: 0; }
 .mini-profile-avatar {
-  width: 48px; height: 48px; border-radius: 50%;
+  width: 52px; height: 52px; border-radius: 50%;
   background: var(--accent); color: #fff;
   display: flex; align-items: center; justify-content: center;
-  font-size: 18px; font-weight: 700; overflow: hidden;
+  font-size: 20px; font-weight: 700; overflow: hidden;
   border: 2px solid var(--bg-dark);
   box-shadow: 0 0 0 2px var(--accent-dim);
 }
 .mini-profile-avatar img { width: 100%; height: 100%; object-fit: cover; }
 .mini-profile-avatar-wrap .status-dot {
   position: absolute; bottom: 0; right: 0;
-  width: 14px; height: 14px; border-radius: 50%;
+  width: 15px; height: 15px; border-radius: 50%;
   border: 2.5px solid var(--bg-dark);
   background-size: contain; background-repeat: no-repeat; background-position: center;
 }
@@ -4017,10 +4020,12 @@ body.no-anim .friend-item { animation: none !important; }
 .mini-profile-name {
   font-size: 15px; font-weight: 600; color: var(--text-primary);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  line-height: 1.3;
 }
 .mini-profile-name .sender-displayname { font-weight: 700; }
 .mini-profile-statustext {
-  font-size: 12px; color: var(--text-muted); margin-top: 1px;
+  font-size: 12px; color: var(--text-muted); margin-top: 3px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .mini-profile-statustext.online { color: var(--online); }
 .mini-profile-statustext.idle { color: var(--idle); }
@@ -4029,59 +4034,60 @@ body.no-anim .friend-item { animation: none !important; }
 
 /* Sections */
 .mini-profile-section {
-  padding: 12px 0;
+  padding: 14px 0;
   border-top: 1px solid var(--border);
 }
-.mini-profile-section:first-of-type { border-top: none; padding-top: 10px; }
+.mini-profile-section:first-of-type { border-top: none; padding-top: 12px; }
 .mini-profile-section-title {
   font-size: 10px; font-weight: 700; color: var(--text-muted);
-  text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 8px;
+  text-transform: uppercase; letter-spacing: 0.7px; margin-bottom: 10px;
 }
 
 /* Status options — compact 2-col grid */
-.mini-status-options { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.mini-status-options { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
 .mini-status-options .status-option {
-  padding: 7px 10px; gap: 7px;
+  padding: 8px 10px; gap: 7px;
 }
 .mini-status-options .status-option-label { font-size: 12px; }
 .mini-status-options .status-option-dot { width: 14px; height: 14px; }
 
 /* Compact bio textarea */
 .mini-bio {
-  min-height: 64px; padding: 9px 12px; font-size: 12px; line-height: 1.5;
+  min-height: 64px; padding: 10px 12px; font-size: 12px; line-height: 1.5;
+  border-radius: 8px;
 }
-.mini-input { padding: 8px 12px; font-size: 12px; }
+.mini-input { padding: 9px 12px; font-size: 12px; border-radius: 8px; }
 
 /* Compact toggle rows */
-.mini-toggle-row { padding: 5px 0; font-size: 12px; }
+.mini-toggle-row { padding: 6px 0; font-size: 12px; }
 
 /* Compact accent row */
 .mini-accent-row {
-  display: flex; align-items: center; gap: 10px; margin-bottom: 8px;
+  display: flex; align-items: center; gap: 10px; margin-bottom: 10px;
 }
 .mini-accent-row .accent-swatch-large {
-  width: 34px; height: 34px; padding: 0; border: none;
-  border-radius: 8px; cursor: pointer; background: none;
+  width: 36px; height: 36px; padding: 0; border: none;
+  border-radius: 9px; cursor: pointer; background: none;
 }
 .mini-accent-row .accent-swatch-large::-webkit-color-swatch-wrapper { padding: 0; }
-.mini-accent-row .accent-swatch-large::-webkit-color-swatch { border: 2px solid var(--border-light); border-radius: 8px; }
+.mini-accent-row .accent-swatch-large::-webkit-color-swatch { border: 2px solid var(--border-light); border-radius: 9px; }
 .mini-accent-hex {
   flex: 1; font-size: 12px; font-family: 'SF Mono', 'Monaco', monospace;
   color: var(--text-secondary); font-weight: 500;
 }
 .mini-accent-revert {
-  padding: 5px 10px; font-size: 11px; font-weight: 600;
+  padding: 6px 12px; font-size: 11px; font-weight: 600;
   background: var(--bg-darker); border: 1px solid var(--border);
-  border-radius: 6px; color: var(--text-secondary); cursor: pointer;
+  border-radius: 7px; color: var(--text-secondary); cursor: pointer;
   transition: var(--transition);
 }
 .mini-accent-revert:hover { background: var(--bg-light); color: var(--text-primary); }
-.mini-accent-presets { gap: 7px; }
-.mini-accent-presets .accent-preset { width: 22px; height: 22px; }
+.mini-accent-presets { gap: 8px; }
+.mini-accent-presets .accent-preset { width: 24px; height: 24px; }
 
 /* Footer */
 .mini-profile-footer {
-  padding: 10px 16px;
+  padding: 12px 18px;
   border-top: 1px solid var(--border);
   background: var(--bg-darker);
   display: flex;
@@ -4094,15 +4100,15 @@ body.no-anim .friend-item { animation: none !important; }
 .mini-dirty-indicator svg { width: 13px; height: 13px; }
 .mini-profile-footer-btns { display: flex; gap: 8px; }
 .mini-open-full-btn {
-  padding: 7px 12px; font-size: 12px; font-weight: 600;
+  padding: 8px 14px; font-size: 12px; font-weight: 600;
   background: transparent; border: 1px solid var(--border-light);
-  border-radius: 7px; color: var(--text-secondary); cursor: pointer;
+  border-radius: 8px; color: var(--text-secondary); cursor: pointer;
   transition: var(--transition); white-space: nowrap;
 }
 .mini-open-full-btn:hover { background: var(--bg-light); color: var(--text-primary); border-color: var(--text-muted); }
 .mini-save-btn {
-  padding: 7px 16px; font-size: 12px; font-weight: 600;
-  background: var(--accent); border: none; border-radius: 7px;
+  padding: 8px 18px; font-size: 12px; font-weight: 600;
+  background: var(--accent); border: none; border-radius: 8px;
   color: var(--accent-text); cursor: pointer; transition: var(--transition);
   white-space: nowrap; display: inline-flex; align-items: center; gap: 6px;
 }
@@ -4312,8 +4318,8 @@ body.no-anim .friend-item { animation: none !important; }
   /* Message bubbles: compact */
   .message-avatar { width: 30px; height: 30px; font-size: 12px; }
   .message-sender { font-size: 12px; }
-  .message-bubble { font-size: 15.5px; padding: 9px 13px; border-radius: 4px 13px 13px 13px; }
-  .message-group.own .message-bubble { border-radius: 13px 4px 13px 13px; }
+  .message-bubble { font-size: 15.5px; padding: 9px 13px; border-radius: 12px; }
+  .message-group.own .message-bubble { border-radius: 12px; }
   .message-meta { font-size: 10px; }
   
   /* Input area: compact, prevent iOS zoom */
@@ -4625,8 +4631,8 @@ body.no-anim .friend-item { animation: none !important; }
   .in-app-notif-text { font-size: 12px; }
 
   /* Message bubbles: slightly less padding on mobile for readability */
-  .message-bubble { padding: 10px 14px; font-size: 15px; border-radius: 4px 14px 14px 14px; }
-  .message-group.own .message-bubble { border-radius: 14px 4px 14px 14px; }
+  .message-bubble { padding: 10px 14px; font-size: 15px; border-radius: 12px; }
+  .message-group.own .message-bubble { border-radius: 12px; }
   .message-group { max-width: 96%; gap: 9px; }
   .message-avatar { width: 34px; height: 34px; }
 
@@ -4655,6 +4661,136 @@ body.no-anim .friend-item { animation: none !important; }
 
 /* Long-press support hint: context menus work via right-click on desktop
    and long-press on touch (native browser behavior) */
+
+/* ============================================
+   ROUND 45 — ADDITIONAL MOBILE SUPPORT & FIXES
+   ============================================ */
+
+/* Ensure the new pill-shaped composer is comfortable on mobile */
+@media (max-width: 768px) {
+  .chat-input-wrap { border-radius: 22px; padding: 5px 6px 5px 10px; gap: 4px; }
+  .attach-btn { width: 38px; height: 38px; }
+  .send-btn { width: 38px; height: 38px; }
+  .send-btn svg { width: 19px; height: 19px; }
+  .attach-btn svg { width: 22px; height: 22px; }
+  /* Composer touch targets meet 44px minimum when stacked */
+}
+
+@media (max-width: 480px) {
+  .chat-input-wrap { border-radius: 20px; padding: 4px 5px 4px 8px; gap: 3px; }
+  .attach-btn { width: 40px; height: 40px; }
+  .send-btn { width: 40px; height: 40px; }
+  .send-btn svg { width: 20px; height: 20px; }
+  .attach-btn svg { width: 22px; height: 22px; }
+  .chat-textarea { font-size: 16px; padding: 10px 4px; }
+}
+
+/* File attachment preview (before sending) — fit mobile width */
+@media (max-width: 768px) {
+  .file-attachment-preview { max-width: 100%; gap: 8px; }
+  .file-attachment-preview img { max-width: 120px; max-height: 100px; }
+  .remove-attachment { width: 28px; height: 28px; }
+}
+@media (max-width: 480px) {
+  .file-attachment-preview img { max-width: 100px; max-height: 80px; }
+  .file-preview { flex-direction: column; align-items: stretch; }
+  .file-preview-info { width: 100%; }
+}
+
+/* Attach dropdown menu — full-width bottom sheet on mobile */
+@media (max-width: 768px) {
+  .attach-dropdown {
+    left: 10px !important; right: 10px; bottom: auto; top: auto;
+    min-width: auto; max-width: calc(100vw - 20px);
+    border-radius: 14px;
+  }
+  .attach-dropdown-item { padding: 14px 14px; min-height: 48px; font-size: 15px; }
+}
+
+/* Message actions — always visible + bigger touch targets on touch devices */
+@media (hover: none) and (pointer: coarse) {
+  .msg-action-btn { padding: 6px 12px; font-size: 12px; min-height: 36px; }
+  .message-actions { gap: 6px; }
+}
+
+/* Cooldown bar — safe-area aware on mobile */
+@media (max-width: 480px) {
+  .cooldown-indicator { bottom: calc(78px + env(safe-area-inset-bottom, 0px)); }
+}
+
+/* GIF picker modal — responsive on mobile */
+@media (max-width: 768px) {
+  .gif-picker-modal { width: 94%; max-height: 75vh; border-radius: 14px; }
+  .gif-picker-header { padding: 12px 14px; gap: 8px; }
+  .gif-picker-header h3 { font-size: 16px; }
+  .gif-picker-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 6px; }
+  .gif-picker-search { font-size: 16px; padding: 10px 12px 10px 36px; }
+}
+@media (max-width: 480px) {
+  .gif-picker-grid { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); }
+  .gif-picker-footer { font-size: 10px; padding: 8px 14px; }
+}
+
+/* Mini profile popover — better fit on small phones */
+@media (max-width: 480px) {
+  .mini-profile-popover { left: 8px; right: 8px; width: auto; bottom: 70px; border-radius: 14px; }
+  .mini-profile-popover .mini-profile-arrow { left: 24px; }
+  .mini-profile-scroll { padding: 14px 14px 10px; }
+  .mini-profile-header { gap: 12px; padding-bottom: 12px; }
+  .mini-profile-avatar { width: 46px; height: 46px; font-size: 18px; }
+  .mini-profile-footer { padding: 10px 14px; }
+  .mini-status-options .status-option { padding: 9px 8px; }
+  .mini-save-btn { padding: 9px 16px; }
+  .mini-open-full-btn { padding: 9px 12px; }
+}
+
+/* Admin rename panel — responsive on mobile */
+@media (max-width: 768px) {
+  #admin-rename-form .admin-ban-search-row { flex-direction: column; align-items: stretch; gap: 8px; }
+  #admin-rename-form .admin-ban-search-row .admin-input { width: 100%; }
+  #admin-rename-new { min-width: 0 !important; width: 100%; }
+}
+
+/* Link embeds in DMs — fit mobile width */
+@media (max-width: 768px) {
+  .dm-bubble .link-embed { max-width: 100%; }
+}
+
+/* Prevent horizontal scroll from wide content / code blocks */
+@media (max-width: 768px) {
+  .message-bubble { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .message-bubble pre { max-width: 100%; overflow-x: auto; }
+}
+
+/* Profile view modal — better mobile sizing */
+@media (max-width: 480px) {
+  .profile-view-modal { max-width: calc(100vw - 12px); max-height: 92vh; }
+  .profile-view-header { padding: 14px 16px; }
+  .profile-view-name { font-size: 18px; }
+  .profile-view-handle { font-size: 13px; }
+  .profile-view-tabs { gap: 0; }
+  .profile-view-tab { padding: 10px 12px; font-size: 13px; }
+}
+
+/* Settings panel nav — horizontal scroll with larger touch targets on mobile */
+@media (max-width: 480px) {
+  .settings-v2-nav { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 4px; }
+  .settings-v2-nav-btn { min-height: 44px; flex-shrink: 0; }
+}
+
+/* Modal buttons — ensure 44px touch target across all modals on mobile */
+@media (max-width: 480px) {
+  .modal-btn, .btn-primary, .btn-secondary, .setting-save-btn, .admin-btn { min-height: 44px; }
+  .setting-save-btn { padding: 10px 16px; font-size: 14px; }
+}
+
+/* Message group — tighter spacing on very small screens to fit more content */
+@media (max-width: 360px) {
+  .message-group { margin-bottom: 10px; }
+  .message-avatar { width: 26px; height: 26px; }
+  .message-sender { font-size: 11px; margin-bottom: 2px; }
+  .sender-displayname { font-size: 12px; }
+}
 
 </style>
   <link rel="icon" type="image/jpeg" href="/uploads/favicon.jpg">
@@ -5903,6 +6039,7 @@ body.no-anim .friend-item { animation: none !important; }
               <button class="admin-subtab" data-admin-subtab="ban">Ban Users</button>
               <button class="admin-subtab" data-admin-subtab="mute">Mute Users</button>
               <button class="admin-subtab" data-admin-subtab="roles">Roles &amp; Badges</button>
+              <button class="admin-subtab" data-admin-subtab="rename">Rename User</button>
               <button class="admin-subtab" data-admin-subtab="messages">Messages</button>
               <button class="admin-subtab" data-admin-subtab="broadcast">Broadcast</button>
               <button class="admin-subtab" data-admin-subtab="whitelist">Whitelist</button>
@@ -5926,7 +6063,7 @@ body.no-anim .friend-item { animation: none !important; }
               </div>
               <div class="profile-section">
                 <div class="profile-section-title">Disable Chat Cooldown for User</div>
-                <p style="color:var(--text-muted); font-size:12px; margin-bottom:12px;">Select a user to exempt them from message cooldowns. This applies to the chatroom (3-second cooldown) and group chats (0.3-second cooldown) — they will be able to send messages without waiting. Direct messages have no cooldown.</p>
+                <p style="color:var(--text-muted); font-size:12px; margin-bottom:12px;">Select a user to exempt them from message cooldowns. This applies to the chatroom (2-second cooldown) and group chats (0.3-second cooldown) — they will be able to send messages without waiting. Direct messages have no cooldown.</p>
                 <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:12px;">
                   <select id="admin-cooldown-exempt-select" class="admin-input" style="flex:1; min-width:200px; padding:8px 10px;">
                     <option value="">— Select a user —</option>
@@ -6090,6 +6227,28 @@ body.no-anim .friend-item { animation: none !important; }
                   <div id="admin-badge-current" style="margin-top:12px;"></div>
                 </div>
                 <p style="color:var(--text-muted); font-size:11px; margin-top:8px;">Search for a user above to assign badges.</p>
+              </div>
+            </div>
+
+            <!-- Sub-tab: Rename User -->
+            <div class="admin-subpane" data-admin-subpane="rename">
+              <div class="profile-section">
+                <div class="profile-section-title">Rename a User</div>
+                <p style="color:var(--text-muted); font-size:12px; margin-bottom:12px; line-height:1.55;">Change any user's <strong>username</strong> (their @handle / login name). As an admin you can bypass the normal 3–20 character limit — you may use 1–32 characters (letters, numbers, and underscores only). All of the user's data (friends, DMs, group chats, messages, roles, whitelist, etc.) is automatically migrated to the new username. The user will be reloaded automatically.</p>
+                <div class="admin-ban-search-row">
+                  <input type="text" id="admin-rename-search" class="admin-input" placeholder="Search by username or ID" autocomplete="off" />
+                  <button class="setting-save-btn no-checkmark" id="admin-rename-search-btn">Search</button>
+                </div>
+                <div id="admin-rename-results" class="admin-ban-results"></div>
+                <div id="admin-rename-form" style="display:none; margin-top:16px;">
+                  <div class="admin-ban-target-info" id="admin-rename-target-info"></div>
+                  <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:8px;">
+                    <label style="font-size:12px; color:var(--text-muted); white-space:nowrap;">New username:</label>
+                    <input type="text" id="admin-rename-new" class="admin-input" placeholder="Enter new username (1–32 chars, a-z 0-9 _)" style="flex:1; min-width:200px; padding:8px 10px;" autocomplete="off" />
+                  </div>
+                  <p style="color:var(--text-muted); font-size:11px; margin-bottom:10px;">Admin override: the usual 3-character minimum is disabled. Max 32 characters.</p>
+                  <button class="setting-save-btn no-checkmark" id="admin-rename-confirm-btn" style="margin-top:4px;">Rename User</button>
+                </div>
               </div>
             </div>
 
@@ -8146,6 +8305,12 @@ function connectSocket() {
       updateProfilePanel(); updateSettingsPanel(); updateSidebarSelf();
     }
   });
+  // An admin renamed this user's account — notify and reload so the
+  // session reflects the new username everywhere.
+  socket.on('force-reload', (data) => {
+    toast((data && data.reason) ? data.reason : 'Your account was updated by an admin. Reloading...', 'info');
+    setTimeout(() => { try { location.reload(); } catch (e) {} }, 2200);
+  });
   socket.on('user-typing', (data) => showTypingIndicator(data.username, data.typing));
 
   // DM events
@@ -9138,8 +9303,8 @@ async function doSendMessage(text) {
       if (fileData) { pendingFile = null; /* can't restore file easily */ }
       updateSendButton();
     } else {
-      // Start 5-second cooldown after successful send (skip for exempt users)
-      if (!isExempt) startCooldown(3);
+      // Start 2-second cooldown after successful send (skip for exempt users)
+      if (!isExempt) startCooldown(2);
       cancelReply();
     }
   });
@@ -9374,7 +9539,7 @@ function sendGifAsMessage(fileData) {
       toast(res.error, 'error');
       if (res.cooldown) startCooldown(res.cooldown);
     } else {
-      if (!isExempt) startCooldown(3);
+      if (!isExempt) startCooldown(2);
       cancelReply();
     }
   });
@@ -16582,6 +16747,61 @@ async function adminUnmuteUser(username) {
   } catch (e) { toast('A network error occurred. Please try again.', 'error'); }
 }
 
+// ---------- Rename management ----------
+let adminRenameTarget = null;
+function adminSelectRenameUser(cacheKey) {
+  const user = (window._adminSearchCache && window._adminSearchCache[cacheKey]) || null;
+  if (!user) { console.error('Admin select rename user: cache miss for', cacheKey); return; }
+  adminRenameTarget = user;
+  const renameForm = $('admin-rename-form');
+  const renameTargetInfo = $('admin-rename-target-info');
+  if (renameForm && renameTargetInfo) {
+    renameForm.style.display = '';
+    const avatarHtml = user.avatar ? '<img src="' + user.avatar + '" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">' : '<div style="width:32px;height:32px;border-radius:50%;background:var(--accent);color:var(--accent-text);display:flex;align-items:center;justify-content:center;font-weight:600;font-size:13px;">' + escapeHtml(getInitials(user.username)) + '</div>';
+    const ownerTag = isOwnerUserFE(user) ? ' <span style="color:var(--accent);font-size:11px;">(Owner)</span>' : '';
+    renameTargetInfo.innerHTML = avatarHtml + '<div><div class="at-name">' + escapeHtml(user.displayName || user.username) + ownerTag + ' @' + escapeHtml(user.username) + '</div><div class="at-meta">ID: ' + escapeHtml(user.id || 'N/A') + '</div></div>';
+    $('admin-rename-new').value = '';
+    const renameBtn = $('admin-rename-confirm-btn');
+    if (renameBtn) {
+      if (isOwnerUserFE(user)) {
+        renameBtn.disabled = true;
+        renameBtn.textContent = 'Owner Cannot Be Renamed';
+        renameBtn.style.opacity = '0.55';
+        renameBtn.style.cursor = 'not-allowed';
+      } else {
+        renameBtn.disabled = false;
+        renameBtn.textContent = 'Rename User';
+        renameBtn.style.opacity = '';
+        renameBtn.style.cursor = '';
+      }
+    }
+  }
+}
+async function adminRenameUser() {
+  if (!adminRenameTarget) return;
+  if (isOwnerUserFE(adminRenameTarget)) { toast('The owner (@lore) cannot be renamed.', 'error'); return; }
+  const newUsername = $('admin-rename-new').value.trim().toLowerCase();
+  if (!newUsername) { toast('Please enter a new username.', 'error'); return; }
+  if (newUsername.length < 1 || newUsername.length > 32) { toast('Username must be between 1 and 32 characters.', 'error'); return; }
+  if (!/^[a-z0-9_]+$/.test(newUsername)) { toast('Username may only contain lowercase letters, numbers, and underscores.', 'error'); return; }
+  if (newUsername === adminRenameTarget.username) { toast('The new username is the same as the current one.', 'error'); return; }
+  try {
+    const res = await fetch(API_BASE + '/api/admin/rename-user', {
+      method: 'POST', headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: adminRenameTarget.username, newUsername }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      toast('User has been renamed to @' + escapeHtml(data.newUsername || newUsername) + '.', 'success');
+      $('admin-rename-form').style.display = 'none';
+      adminRenameTarget = null;
+      $('admin-rename-search').value = '';
+      $('admin-rename-results').innerHTML = '';
+      loadAdminData();
+    } else { toast(data.error || 'Unable to rename this user. Please try again.', 'error'); }
+  } catch (e) { toast('A network error occurred. Please try again.', 'error'); }
+}
+
 async function adminSetRole() {
   if (!adminRoleTarget) return;
   const role = $('admin-role-select').value;
@@ -17049,6 +17269,22 @@ function initAdminEventListeners() {
   // Mute confirm
   const muteConfirmBtn = $('admin-mute-confirm-btn');
   if (muteConfirmBtn) muteConfirmBtn.addEventListener('click', adminMuteUser);
+  // Rename search
+  const renameSearchBtn = $('admin-rename-search-btn');
+  if (renameSearchBtn) {
+    renameSearchBtn.addEventListener('click', () => {
+      adminSearchUsers($('admin-rename-search').value, $('admin-rename-results'), adminSelectRenameUser);
+    });
+  }
+  const renameSearchInput = $('admin-rename-search');
+  if (renameSearchInput) {
+    renameSearchInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') adminSearchUsers(renameSearchInput.value, $('admin-rename-results'), adminSelectRenameUser);
+    });
+  }
+  // Rename confirm
+  const renameConfirmBtn = $('admin-rename-confirm-btn');
+  if (renameConfirmBtn) renameConfirmBtn.addEventListener('click', adminRenameUser);
   // Role search
   const roleSearchBtn = $('admin-role-search-btn');
   if (roleSearchBtn) {

@@ -2386,6 +2386,133 @@ app.post('/api/admin/set-role', authMiddleware, adminMiddleware, (req, res) => {
   res.json({ success: true, user: publicUser(target) });
 });
 
+// Admin: Rename a user's USERNAME (the login handle / @handle).
+// This bypasses the normal 3-20 character limit so admins can set short
+// (1-2 char) or longer usernames. Basic safety is still enforced: the new
+// username must be non-empty, max 32 chars, and only contain letters,
+// numbers, and underscores (lowercased). All associated data (sessions,
+// friends, blocked, DMs, group chats, messages, cooldownExempt, whitelist,
+// custom roles, closedDMs) is migrated to the new username.
+app.post('/api/admin/rename-user', authMiddleware, adminMiddleware, (req, res) => {
+  const { username, newUsername } = req.body || {};
+  if (!username) return res.status(400).json({ error: 'Target username required' });
+  const oldUn = String(username).toLowerCase().trim();
+  const target = db.users[oldUn];
+  if (!target) return res.status(404).json({ error: 'User not found' });
+  // Normalize + validate the new username. Bypass the normal 3-char minimum
+  // (allow 1+) but keep a sane maximum of 32 and restrict to safe characters.
+  const newUn = String(newUsername || '').toLowerCase().trim();
+  if (!newUn) return res.status(400).json({ error: 'New username is required' });
+  if (!/^[a-z0-9_]+$/.test(newUn)) return res.status(400).json({ error: 'Username can only contain letters, numbers, and underscores' });
+  if (newUn.length > 32) return res.status(400).json({ error: 'Username cannot exceed 32 characters' });
+  if (newUn === oldUn) return res.status(400).json({ error: 'New username is the same as the current one' });
+  if (db.users[newUn]) return res.status(409).json({ error: 'That username is already taken' });
+  // Prevent renaming the owner unless the acting admin IS the owner.
+  if (isOwnerUser(target) && !isOwnerUser(req.user)) {
+    return res.status(403).json({ error: 'Only the owner can rename the owner account' });
+  }
+
+  // ---- Migrate user data ----
+  const user = db.users[oldUn];
+  delete db.users[oldUn];
+  user.username = newUn;
+  db.users[newUn] = user;
+
+  // ---- Migrate sessions ----
+  for (const [sid, un] of Object.entries(db.sessions)) {
+    if (un === oldUn) db.sessions[sid] = newUn;
+  }
+
+  // ---- Migrate friends ----
+  if (db.friends) {
+    const f = db.friends[oldUn];
+    if (f) { delete db.friends[oldUn]; db.friends[newUn] = f; }
+    for (const [un, fr] of Object.entries(db.friends)) {
+      if (fr.friends) fr.friends = fr.friends.map(x => x === oldUn ? newUn : x);
+      if (fr.sent) fr.sent = fr.sent.map(x => x === oldUn ? newUn : x);
+      if (fr.received) fr.received = fr.received.map(x => x === oldUn ? newUn : x);
+    }
+  }
+
+  // ---- Migrate blocked ----
+  if (db.blocked) {
+    const bl = db.blocked[oldUn];
+    if (bl) { delete db.blocked[oldUn]; db.blocked[newUn] = bl; }
+    for (const [un, arr] of Object.entries(db.blocked)) {
+      db.blocked[un] = arr.map(x => x === oldUn ? newUn : x);
+    }
+  }
+
+  // ---- Migrate DMs ----
+  if (db.dms) {
+    const myDMs = db.dms[oldUn];
+    if (myDMs) { delete db.dms[oldUn]; db.dms[newUn] = myDMs; }
+    for (const [un, convos] of Object.entries(db.dms)) {
+      if (un === newUn) continue;
+      if (convos && convos[oldUn]) { convos[newUn] = convos[oldUn]; delete convos[oldUn]; }
+      // Update from/to fields inside DM messages
+      if (convos) {
+        for (const convo of Object.values(convos)) {
+          if (Array.isArray(convo)) convo.forEach(m => { if (m.from === oldUn) m.from = newUn; if (m.to === oldUn) m.to = newUn; });
+        }
+      }
+    }
+    // Also fix from/to inside the renamed user's own conversations
+    if (db.dms[newUn]) {
+      for (const convo of Object.values(db.dms[newUn])) {
+        if (Array.isArray(convo)) convo.forEach(m => { if (m.from === oldUn) m.from = newUn; if (m.to === oldUn) m.to = newUn; });
+      }
+    }
+  }
+
+  // ---- Migrate group chats (owner + members + message usernames) ----
+  if (Array.isArray(db.groupChats)) {
+    for (const g of db.groupChats) {
+      if (g.owner === oldUn) g.owner = newUn;
+      if (Array.isArray(g.members)) g.members = g.members.map(m => m === oldUn ? newUn : m);
+      if (Array.isArray(g.messages)) g.messages.forEach(m => { if (m.username === oldUn) m.username = newUn; if (m.from === oldUn) m.from = newUn; });
+    }
+  }
+
+  // ---- Update public chat message usernames ----
+  if (Array.isArray(db.messages)) db.messages.forEach(m => { if (m.username === oldUn) m.username = newUn; });
+
+  // ---- Migrate cooldownExempt list ----
+  if (Array.isArray(db.cooldownExempt)) {
+    db.cooldownExempt = db.cooldownExempt.map(x => x === oldUn ? newUn : x);
+  }
+
+  // ---- Migrate whitelist ----
+  if (Array.isArray(db.whitelist)) {
+    db.whitelist = db.whitelist.map(x => x === oldUn ? newUn : x);
+  }
+
+  // ---- Migrate custom role memberships ----
+  if (Array.isArray(db.customRoles)) {
+    for (const role of db.customRoles) {
+      if (Array.isArray(role.members)) role.members = role.members.map(x => x === oldUn ? newUn : x);
+    }
+  }
+
+  // ---- Migrate closedDMs references on every user ----
+  for (const u of Object.values(db.users)) {
+    if (Array.isArray(u.closedDMs)) u.closedDMs = u.closedDMs.map(x => x === oldUn ? newUn : x);
+  }
+
+  if (!db.adminActivity) db.adminActivity = [];
+  db.adminActivity.push({ action: 'rename-user', admin: req.user.username, target: oldUn, reason: oldUn + ' -> ' + newUn, timestamp: nowISO() });
+  saveDB();
+
+  // Notify ALL clients so they update the renamed user everywhere
+  // (member list, messages, DMs, etc.).
+  io.emit('username-changed', { oldUsername: oldUn, newUsername: newUn, username: newUn, adminRenamed: true });
+  // Force the renamed user's own client to reload their session info.
+  io.to('user:' + newUn).emit('force-reload', { reason: 'Your username was changed by an admin.' });
+  broadcastProfile(newUn);
+  emitUsersList();
+  res.json({ success: true, oldUsername: oldUn, newUsername: newUn, user: publicUser(target) });
+});
+
 // Add a badge/icon to a user (moderator, developer)
 app.post('/api/admin/add-badge', authMiddleware, adminMiddleware, (req, res) => {
   const { username, badge } = req.body || {};
@@ -2979,12 +3106,12 @@ io.on('connection', (socket) => {
         user.mutedUntil = 0; user.muteReason = ''; user.mutedBy = '';
         saveDB();
       }
-      // 3-second cooldown (skip if user is exempt)
+      // 2-second cooldown (skip if user is exempt)
       const isExempt = (db.cooldownExempt || []).includes(username);
       if (!isExempt) {
         const last = lastMessageTime[username] || 0;
-        if (Date.now() - last < 3000) {
-          const cooldown = Math.ceil((3000 - (Date.now() - last)) / 1000);
+        if (Date.now() - last < 2000) {
+          const cooldown = Math.ceil((2000 - (Date.now() - last)) / 1000);
           if (typeof ack === 'function') ack({ error: 'Please wait ' + cooldown + 's before sending another message', cooldown });
           return;
         }
