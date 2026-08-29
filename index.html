@@ -10729,9 +10729,13 @@ function doSendGroup(text) {
   socket.emit('group-send', { groupId: activeGroupId, text, reply: replyingToGroup }, (res) => {
     if (res && res.error) { toast(res.error, 'error'); return; }
     if (res && res.message) {
-      groupMessages.push(res.message);
-      appendGroupMessage(res.message);
-      scrollToBottomGroup();
+      // Dedup: the server also broadcasts group-message to all members
+      // (including us), so this message may already be in groupMessages.
+      if (!groupMessages.some(m => m.id === res.message.id)) {
+        groupMessages.push(res.message);
+        appendGroupMessage(res.message);
+        scrollToBottomGroup();
+      }
       // Update sidebar preview
       updateGroupConvPreview(activeGroupId, res.message);
     }
@@ -10763,9 +10767,11 @@ async function sendGroupWithFile(text) {
     socket.emit('group-send', { groupId: activeGroupId, text, file: fileData, files: allFiles, reply: replyingToGroup }, (res) => {
       if (res && res.error) { toast(res.error, 'error'); return; }
       if (res && res.message) {
-        groupMessages.push(res.message);
-        appendGroupMessage(res.message);
-        scrollToBottomGroup();
+        if (!groupMessages.some(m => m.id === res.message.id)) {
+          groupMessages.push(res.message);
+          appendGroupMessage(res.message);
+          scrollToBottomGroup();
+        }
         updateGroupConvPreview(activeGroupId, res.message);
       }
     });
