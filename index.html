@@ -115,7 +115,7 @@ a { color: var(--accent); }
    via /api/me and only show auth again if the session is actually invalid. */
 html.has-session #auth-screen { display: none !important; }
 html.has-session #chat-app { display: grid; } /* show chat grid immediately */
-html.has-session #chat-app:not(.active) { opacity: 0; } /* invisible until JS activates */
+/* Chat app is visible immediately — no opacity fade-in on load (instant). */
 .auth-container {
   width: 100%; max-width: 820px;
   padding: 24px;
@@ -304,25 +304,12 @@ html.has-session #chat-app:not(.active) { opacity: 0; } /* invisible until JS ac
   letter-spacing: 0.3px;
 }
 
-/* Loading state while session is being restored */
-body.loading-session #chat-app.active::before {
-  content: '';
-  position: fixed; inset: 0;
-  background: var(--bg-dark);
-  z-index: 200;
-  display: flex; align-items: center; justify-content: center;
-}
-body.loading-session #chat-app.active::after {
-  content: '';
-  position: fixed; top: 50%; left: 50%;
-  width: 40px; height: 40px;
-  margin: -20px 0 0 -20px;
-  border: 3px solid var(--border);
-  border-top-color: var(--accent);
-  border-radius: 50%;
-  z-index: 201;
-  animation: spin 0.8s linear infinite;
-}
+/* Session restore: no full-screen loading spinner overlay — the chat grid
+   is shown instantly (the early head script already hid auth via CSS). Data
+   populates as it arrives with no fade-in delay. The body.loading-session
+   class is kept as a no-op for backwards compatibility but renders nothing. */
+body.loading-session #chat-app.active::before { content: none; }
+body.loading-session #chat-app.active::after { content: none; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
 /* ============================================
@@ -696,6 +683,14 @@ body.loading-session #chat-app.active::after {
   padding: 2px 0;
 }
 @keyframes msgIn { from { opacity: 0; transform: translateY(7px); } to { opacity: 1; transform: translateY(0); } }
+/* During initial page load, suppress entrance animations so everything
+   appears instantly instead of slowly fading/sliding in. The no-anim class
+   is added to <body> before the first render and removed right after. */
+body.no-anim .message-group,
+body.no-anim .sidebar-view.active,
+body.no-anim .user-item,
+body.no-anim .dm-list-item,
+body.no-anim .friend-item { animation: none !important; }
 .message-group.own { flex-direction: row-reverse; margin-left: auto; }
 
 .message-avatar {
@@ -4401,6 +4396,13 @@ body.loading-session #chat-app.active::after {
     var sid = localStorage.getItem('hellobye_sid');
     if (sid) {
       document.documentElement.classList.add('has-session');
+      // Suppress entrance animations during initial load so the chat appears
+      // instantly. Removed after the first render completes in initChat().
+      document.addEventListener('DOMContentLoaded', function() {
+        document.body.classList.add('no-anim');
+      }, { once: true });
+      // In case DOMContentLoaded already fired, add immediately:
+      if (document.body) document.body.classList.add('no-anim');
     }
   } catch(e) {}
 })();
@@ -6104,6 +6106,11 @@ let pendingDMFiles = []; // array of additional DM files for multi-file upload (
 let profileDirty = false;
 let pendingNavigation = null;
 let pendingImageEdit = null; // { file, type, scale, imgEl }
+// Snapshot of the last SAVED avatar/banner URLs. Captured when the profile
+// panel opens and after a successful Save. Used by the Discard button to
+// revert an uploaded (but unsaved) profile picture/banner back to what it
+// was before the user started editing.
+let savedProfileImages = { avatar: null, banner: null };
 
 // ---------- DOM ----------
 const $ = (id) => document.getElementById(id);
@@ -7094,6 +7101,16 @@ async function initChat(existingMeData) {
   loadDMConversations();
   initAdminTab(); // Pre-show admin nav tab if user is admin (owner or whitelisted)
   initAdminEventListeners(); // Wire up all admin panel button event listeners
+
+  // Re-enable entrance animations after the initial render has painted.
+  // We wait two animation frames so the browser commits the no-anim render
+  // before removing the class — this ensures messages/lists appeared instantly
+  // and only NEW content added afterwards animates in.
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      document.body.classList.remove('no-anim');
+    });
+  });
 }
 
 function showAuth() {
@@ -10214,6 +10231,9 @@ function closeAllPanels() {
 function openProfilePanel() {
   $('settings-panel').classList.remove('show');
   updateProfilePanel();
+  // Snapshot the saved avatar/banner BEFORE the user can edit them, so the
+  // Discard button can revert an unsaved picture/banner change.
+  captureSavedProfileImages();
   $('profile-panel').classList.add('show');
 }
 // Helper: open the Account Settings panel, ensuring the Profile panel is closed first.
@@ -10313,6 +10333,13 @@ function updateProfilePanel() {
 // Dirty tracking for profile
 function markProfileDirty() { profileDirty = true; updateProfileDirtyIndicator(); }
 function clearProfileDirty() { profileDirty = false; updateProfileDirtyIndicator(); }
+// Snapshot the current saved avatar/banner so Discard can revert to them.
+// Called when the profile panel opens (before any edits) and after a
+// successful Save Settings (the new images become the saved baseline).
+function captureSavedProfileImages() {
+  if (!currentUser) return;
+  savedProfileImages = { avatar: currentUser.avatar || null, banner: currentUser.banner || null };
+}
 // Visual indicator so users can SEE they have unsaved changes (a subtle
 // "Unsaved changes" pill near the Save button) — not just the modal on exit.
 function updateProfileDirtyIndicator() {
@@ -10688,6 +10715,9 @@ async function saveProfileNow(silent) {
       if (uIdx >= 0) { users[uIdx].bio = bio; users[uIdx].pronouns = pronouns; users[uIdx].showOnlineStatus = showOnlineStatus; users[uIdx].panelColor = panelColor; users[uIdx].friendRequestsEnabled = friendRequestsEnabled; users[uIdx].directMessagesEnabled = directMessagesEnabled; }
       // Profile saved successfully — clear dirty flag + hide indicator.
       clearProfileDirty();
+      // After a save, the current avatar/banner are the new saved baseline,
+      // so future Discards revert to THIS state (not the pre-edit one).
+      captureSavedProfileImages();
       // Show "Saved" success state with check icon for 1.5s
       btn.classList.remove('saving');
       btn.classList.add('saved');
@@ -10713,8 +10743,44 @@ function checkDirtyBeforeAction(continueAction) {
   }
   return false;
 }
-$('unsaved-discard').addEventListener('click', () => {
-  profileDirty = false;
+$('unsaved-discard').addEventListener('click', async () => {
+  const btn = $('unsaved-discard');
+  const prevText = btn.textContent;
+  btn.disabled = true; btn.textContent = 'Discarding…';
+  try {
+    // Revert profile picture/banner if they were changed but not saved.
+    // Compare the current currentUser avatar/banner to the saved snapshot
+    // captured when the profile panel opened (or after the last save).
+    if (currentUser) {
+      const avChanged = (currentUser.avatar || null) !== (savedProfileImages.avatar || null);
+      const bnChanged = (currentUser.banner || null) !== (savedProfileImages.banner || null);
+      if (avChanged || bnChanged) {
+        try {
+          const revRes = await fetch(API_BASE + '/api/profile/revert-image', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ avatar: savedProfileImages.avatar, banner: savedProfileImages.banner })
+          });
+          if (revRes.ok) {
+            const revData = await revRes.json();
+            // Restore currentUser + shared users[] entry to the reverted state.
+            currentUser.avatar = revData.avatar || null;
+            currentUser.banner = revData.banner || null;
+            const me = users.find(x => x.username === currentUser.username);
+            if (me) { me.avatar = currentUser.avatar; me.banner = currentUser.banner; }
+            updateProfilePanel();
+            updateSidebarSelf();
+            if (typeof renderUserList === 'function') renderUserList();
+            if (typeof updateMessageAvatars === 'function') updateMessageAvatars(currentUser.username, currentUser.avatar);
+          }
+        } catch (e) { /* best-effort revert */ }
+      }
+    }
+  } finally {
+    btn.disabled = false; btn.textContent = prevText;
+  }
+  // Clear dirty (images reverted + text fields will be re-synced by the
+  // navigation target calling updateProfilePanel, or we do it here).
+  clearProfileDirty();
   $('unsaved-modal').classList.remove('show');
   if (pendingNavigation) { pendingNavigation(); pendingNavigation = null; }
 });
@@ -12000,8 +12066,9 @@ let currentProfileViewUser = null;
 async function openProfileView(username) {
   if (username === currentUser.username) {
     // Open own profile settings instead — respect unsaved-changes guard
-    if (checkDirtyBeforeAction(() => { updateProfilePanel(); $('profile-panel').classList.add('show'); })) return;
+    if (checkDirtyBeforeAction(() => { updateProfilePanel(); captureSavedProfileImages(); $('profile-panel').classList.add('show'); })) return;
     updateProfilePanel();
+    captureSavedProfileImages();
     $('profile-panel').classList.add('show');
     return;
   }
@@ -12299,7 +12366,7 @@ function renderProfileView(data) {
   if (data.isMe) {
     const b = document.createElement('button');
     b.className = 'modal-btn primary'; b.textContent = 'Edit My Profile';
-    b.onclick = () => { if (checkDirtyBeforeAction(() => { closeProfileView(); updateProfilePanel(); $('profile-panel').classList.add('show'); })) return; };
+    b.onclick = () => { if (checkDirtyBeforeAction(() => { closeProfileView(); updateProfilePanel(); captureSavedProfileImages(); $('profile-panel').classList.add('show'); })) return; };
     actions.appendChild(b);
   } else {
     // DM button \u2014 disabled with a tooltip when either user has DMs turned off.

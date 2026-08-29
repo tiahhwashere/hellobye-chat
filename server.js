@@ -1061,6 +1061,34 @@ app.post('/api/profile/remove-image', authMiddleware, (req, res) => {
   res.json({ success: true });
 });
 
+// Revert profile avatar/banner to a previously-saved value (or null).
+// Used by the "Discard" button in the unsaved-changes modal: when a user
+// uploads a new picture/banner but then discards (instead of Save Settings),
+// the frontend sends back the *original* avatar/banner URL so we restore it.
+// Old upload files are never deleted, so reverting to a prior URL is safe.
+// Only accepts paths that point to our own /uploads/ directory (no arbitrary
+// URLs) to prevent abuse.
+app.post('/api/profile/revert-image', authMiddleware, (req, res) => {
+  const { avatar, banner } = req.body || {};
+  const safePath = (val) => {
+    if (val === null || val === undefined || val === '') return null;
+    const s = String(val).split('?')[0]; // strip cache-bust query
+    if (!s.startsWith('/uploads/')) return undefined; // reject non-upload paths
+    return s;
+  };
+  const av = safePath(avatar);
+  const bn = safePath(banner);
+  if (av === undefined || bn === undefined) {
+    return res.status(400).json({ error: 'Invalid image path' });
+  }
+  if (av !== undefined) req.user.avatar = av;
+  if (bn !== undefined) req.user.banner = bn;
+  saveDB();
+  broadcastProfile(req.user.username);
+  emitUsersList();
+  res.json({ success: true, avatar: req.user.avatar, banner: req.user.banner });
+});
+
 // ---------- File Upload ----------
 app.post('/api/upload', authMiddleware, upload.single('file'), async (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'No file provided' });
