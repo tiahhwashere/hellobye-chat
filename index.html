@@ -641,6 +641,38 @@ body.loading-session #chat-app.active::after { content: none; }
 .user-status-text.idle { color: var(--idle); }
 .user-status-text.dnd { color: var(--dnd); }
 
+/* Status Message bubble — shown on member list items & profile view */
+.status-msg-bubble {
+  display: inline-flex; align-items: center; gap: 4px;
+  max-width: 100%;
+  font-size: 10.5px; font-weight: 500; line-height: 1.2;
+  color: var(--text-secondary);
+  background: var(--bg-medium);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 2px 7px;
+  margin-top: 3px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  transition: var(--transition);
+}
+.status-msg-bubble .sm-icon { flex-shrink: 0; width: 9px; height: 9px; opacity: 0.7; }
+.status-msg-bubble .sm-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.status-msg-bubble.online { border-color: rgba(59,165,93,0.35); color: var(--online); }
+.status-msg-bubble.idle { border-color: rgba(212,160,23,0.35); color: var(--idle); }
+.status-msg-bubble.dnd { border-color: rgba(216,58,58,0.35); color: var(--dnd); }
+
+/* Mini-profile status message input */
+.mini-statusmsg-input { font-size: 13px; }
+.mini-statusmsg-hint {
+  font-size: 10.5px; color: var(--text-muted); margin-top: 5px; line-height: 1.3;
+}
+
+/* Profile view status message bubble (slightly larger) */
+.profile-view-status-msg { margin-bottom: 14px; }
+.profile-view-status-msg .status-msg-bubble {
+  font-size: 12px; padding: 3px 9px; border-radius: 9px;
+}
+
 .friend-item .user-info { display: flex; flex-direction: column; }
 .friend-actions { display: flex; gap: 5px; margin-top: 4px; }
 .mini-btn {
@@ -4886,6 +4918,14 @@ body.no-anim .friend-item { animation: none !important; }
           <div class="bio-counter"><span id="mini-bio-count">0</span> / 500</div>
         </div>
 
+        <!-- Status Message -->
+        <div class="mini-profile-section">
+          <div class="mini-profile-section-title">Status Message</div>
+          <input type="text" class="form-input mini-input mini-statusmsg-input" id="mini-statusmsg-input" placeholder="Set a custom status message..." maxlength="25" autocomplete="off">
+          <div class="bio-counter"><span id="mini-statusmsg-count">0</span> / 25</div>
+          <div class="mini-statusmsg-hint">Shown to others when you're Online, Idle, or Do Not Disturb.</div>
+        </div>
+
         <!-- Pronouns -->
         <div class="mini-profile-section">
           <div class="mini-profile-section-title">Pronouns</div>
@@ -6130,6 +6170,7 @@ body.no-anim .friend-item { animation: none !important; }
           <div class="profile-view-handle" id="pv-handle"></div>
           <div class="profile-view-id" id="pv-id"></div>
           <div class="profile-view-status" id="pv-status"></div>
+          <div class="profile-view-status-msg" id="pv-statusmsg"></div>
           <div class="profile-view-extra" id="pv-extra"></div>
           <div class="profile-view-bio" id="pv-bio"></div>
         </div>
@@ -8033,6 +8074,7 @@ function connectSocket() {
       if (data.showOnlineStatus !== undefined) u.showOnlineStatus = data.showOnlineStatus;
       if (data.friendRequestsEnabled !== undefined) u.friendRequestsEnabled = data.friendRequestsEnabled;
       if (data.directMessagesEnabled !== undefined) u.directMessagesEnabled = data.directMessagesEnabled;
+      if (data.statusMessage !== undefined) u.statusMessage = data.statusMessage;
       if (data.lastSeen !== undefined) u.lastSeen = data.lastSeen;
     }
     if (currentUser && currentUser.username === data.username) {
@@ -8050,6 +8092,7 @@ function connectSocket() {
       if (data.showOnlineStatus !== undefined) merge.showOnlineStatus = data.showOnlineStatus;
       if (data.friendRequestsEnabled !== undefined) merge.friendRequestsEnabled = data.friendRequestsEnabled;
       if (data.directMessagesEnabled !== undefined) merge.directMessagesEnabled = data.directMessagesEnabled;
+      if (data.statusMessage !== undefined) merge.statusMessage = data.statusMessage;
       if (data.lastSeen !== undefined) merge.lastSeen = data.lastSeen;
       currentUser = { ...currentUser, ...merge };
       updateProfilePanel();
@@ -9913,7 +9956,13 @@ function userListItemHTML(u) {
   const nameDisplay = u.displayName ? '<span class="user-displayname">' + escapeHtml(u.displayName) + ' </span>' : '';
   const handleDisplay = '<span class="user-handle">@' + escapeHtml(u.username) + '</span>';
   const statusText = u.status === 'offline' ? (u.hideLastSeen ? 'Offline' : 'Last seen ' + getRelativeLastSeen(u.lastSeen)) : getStatusText(u.status);
-  return '<div class="user-item" data-username="' + u.username + '"><div class="user-avatar-wrap"><div class="user-avatar" data-avatar-user="' + escapeHtml(u.username) + '">' + avatarInner + '</div><div class="status-dot ' + u.status + '"></div></div><div class="user-info"><div class="user-name">' + nameDisplay + handleDisplay + '</div><div class="user-status-text ' + u.status + '">' + escapeHtml(statusText) + '</div></div></div>';
+  // Status message bubble — only visible when the user is online, idle, or dnd
+  // (not offline) and they have actually set a custom status message.
+  const showStatusMsg = u.statusMessage && (u.status === 'online' || u.status === 'idle' || u.status === 'dnd');
+  const statusMsgBubble = showStatusMsg
+    ? '<div class="status-msg-bubble ' + u.status + '"><svg class="sm-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg><span class="sm-text">' + escapeHtml(u.statusMessage) + '</span></div>'
+    : '';
+  return '<div class="user-item" data-username="' + u.username + '"><div class="user-avatar-wrap"><div class="user-avatar" data-avatar-user="' + escapeHtml(u.username) + '">' + avatarInner + '</div><div class="status-dot ' + u.status + '"></div></div><div class="user-info"><div class="user-name">' + nameDisplay + handleDisplay + '</div><div class="user-status-text ' + u.status + '">' + escapeHtml(statusText) + '</div>' + statusMsgBubble + '</div></div>';
 }
 function attachUserListListeners() {
   document.querySelectorAll('#user-list .user-item').forEach(item => {
@@ -12346,6 +12395,12 @@ function updateMiniProfile() {
   $('mini-bio-count').textContent = (u.bio || '').length;
   // Pronouns
   $('mini-pronouns-input').value = u.pronouns || '';
+  // Status Message
+  const smInput = $('mini-statusmsg-input');
+  if (smInput) {
+    smInput.value = u.statusMessage || '';
+    $('mini-statusmsg-count').textContent = (u.statusMessage || '').length;
+  }
   // Privacy toggles
   $('mini-hide-lastseen-toggle').checked = !!u.hideLastSeen;
   $('mini-show-online-toggle').checked = u.showOnlineStatus !== false;
@@ -12459,6 +12514,7 @@ async function saveMiniProfile(silent) {
   const pronouns = $('mini-pronouns-input').value.trim();
   const showOnlineStatus = $('mini-show-online-toggle').checked;
   const panelColor = getProfileColor() || null;
+  const statusMessage = $('mini-statusmsg-input') ? $('mini-statusmsg-input').value.trim() : '';
   const btn = $('mini-save-btn');
   if (btn) { btn.disabled = true; btn.classList.add('saving'); }
   const txtEl = btn ? btn.querySelector('.save-btn-text') : null;
@@ -12466,7 +12522,7 @@ async function saveMiniProfile(silent) {
   try {
     const res = await fetch(API_BASE + '/api/profile', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ bio, hideLastSeen, pronouns, showOnlineStatus, panelColor })
+      body: JSON.stringify({ bio, hideLastSeen, pronouns, showOnlineStatus, panelColor, statusMessage })
     });
     const data = await res.json();
     if (res.ok) {
@@ -12540,6 +12596,14 @@ function initMiniProfileListeners() {
   // Pronouns → dirty
   const pronInput = $('mini-pronouns-input');
   if (pronInput) pronInput.addEventListener('input', markMiniProfileDirty);
+  // Status Message → dirty + char counter
+  const statusMsgInput = $('mini-statusmsg-input');
+  if (statusMsgInput) {
+    statusMsgInput.addEventListener('input', (e) => {
+      $('mini-statusmsg-count').textContent = e.target.value.length;
+      markMiniProfileDirty();
+    });
+  }
   // Privacy toggles → dirty
   const hideToggle = $('mini-hide-lastseen-toggle');
   if (hideToggle) hideToggle.addEventListener('change', markMiniProfileDirty);
@@ -14075,11 +14139,13 @@ function applyProfileViewPanelColor(u) {
     'h3', '.profile-view-handle', '.profile-view-id', '.pv-id-text',
     '.profile-view-status', '.profile-view-bio', '.profile-view-extra',
     '.pv-extra-label', '.pv-extra-value', '.pv-status',
+    '.profile-view-status-msg', '.status-msg-bubble', '.sm-text',
     '.profile-view-banner-placeholder'
   ].join(', ');
   // Elements with their own background that need a dark overlay.
   const cardSelector = [
     '.profile-view-bio', '.profile-view-status', '.profile-view-extra',
+    '.profile-view-status-msg', '.status-msg-bubble',
     '.pv-copy-id-btn', '.pv-copy-id-menu', '.pv-copy-id-menu-item',
     '.pv-copy-id-menu-name', '.pv-copy-id-menu-id', '.pv-copy-id-menu-header',
     '.pv-copy-id-menu-empty'
@@ -14132,7 +14198,7 @@ function applyProfileViewPanelColor(u) {
 
     // Inner cards get a semi-transparent dark overlay for readability.
     modal.querySelectorAll(
-      '.profile-view-bio, .profile-view-status, .profile-view-extra'
+      '.profile-view-bio, .profile-view-status, .profile-view-extra, .profile-view-status-msg, .status-msg-bubble'
     ).forEach(el => {
       el.style.setProperty('background', 'rgba(0,0,0,0.22)', 'important');
       el.style.setProperty('border-color', 'rgba(255,255,255,0.18)', 'important');
@@ -14316,6 +14382,14 @@ function renderProfileView(data) {
   // Status
   const st = u.status === 'offline' ? (u.hideLastSeen ? 'Offline' : 'Last seen ' + getRelativeLastSeen(u.lastSeen)) : getStatusText(u.status);
   $('pv-status').innerHTML = '<span class="status-dot ' + u.status + '"></span> ' + escapeHtml(st);
+  // Status message bubble — only when online/idle/dnd and a message is set
+  const pvSm = $('pv-statusmsg');
+  if (pvSm) {
+    const showPvSm = u.statusMessage && (u.status === 'online' || u.status === 'idle' || u.status === 'dnd');
+    pvSm.innerHTML = showPvSm
+      ? '<div class="status-msg-bubble ' + u.status + '"><svg class="sm-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg><span class="sm-text">' + escapeHtml(u.statusMessage) + '</span></div>'
+      : '';
+  }
   $('pv-bio').innerHTML = u.bio ? linkifyBio(u.bio) : 'No bio set.';
   // Extra info: pronouns, location, website, member since
   const extra = $('pv-extra');

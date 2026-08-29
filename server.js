@@ -692,6 +692,7 @@ function publicUser(u) {
       showOnlineStatus: false,
       friendRequestsEnabled: false,
       directMessagesEnabled: false,
+      statusMessage: '',
       createdAt: u.createdAt || nowISO(),
       id: u.id || null,
       role: 'user',
@@ -720,6 +721,7 @@ function publicUser(u) {
     showOnlineStatus: u.showOnlineStatus !== false,
     friendRequestsEnabled: u.friendRequestsEnabled !== false,
     directMessagesEnabled: u.directMessagesEnabled !== false,
+    statusMessage: u.statusMessage || '',
     createdAt: u.createdAt || nowISO(),
     id: u.id || null,
     role: u.role || 'user',
@@ -1251,13 +1253,18 @@ app.post('/api/profile', authMiddleware, avatarUpload.single('image'), async (re
     return res.json({ success: true, avatar: u.avatar, banner: u.banner });
   }
   // JSON profile update
-  const { bio, hideLastSeen, pronouns, showOnlineStatus, panelColor, friendRequestsEnabled, directMessagesEnabled } = req.body || {};
+  const { bio, hideLastSeen, pronouns, showOnlineStatus, panelColor, friendRequestsEnabled, directMessagesEnabled, statusMessage } = req.body || {};
   if (bio !== undefined) u.bio = String(bio).slice(0, 500);
   if (hideLastSeen !== undefined) u.hideLastSeen = !!hideLastSeen;
   if (pronouns !== undefined) u.pronouns = String(pronouns).slice(0, 50);
   if (showOnlineStatus !== undefined) u.showOnlineStatus = showOnlineStatus !== false;
   if (friendRequestsEnabled !== undefined) u.friendRequestsEnabled = friendRequestsEnabled !== false;
   if (directMessagesEnabled !== undefined) u.directMessagesEnabled = directMessagesEnabled !== false;
+  // Status Message — short custom message (max 25 chars) shown to others when
+  // the user's presence is Online, Idle, or Do Not Disturb. Empty string clears it.
+  if (statusMessage !== undefined) {
+    u.statusMessage = String(statusMessage).trim().slice(0, 25);
+  }
   // Panel Theme Color — store a validated hex color (or null to clear).
   // This is what makes the color visible to OTHER users viewing the profile.
   if (panelColor !== undefined) {
@@ -2849,6 +2856,7 @@ function broadcastProfile(username) {
       showOnlineStatus: false,
       friendRequestsEnabled: false,
       directMessagesEnabled: false,
+      statusMessage: '',
       role: 'user',
       badges: [],
       banned: false,
@@ -2870,6 +2878,7 @@ function broadcastProfile(username) {
     showOnlineStatus: u.showOnlineStatus !== false,
     friendRequestsEnabled: u.friendRequestsEnabled !== false,
     directMessagesEnabled: u.directMessagesEnabled !== false,
+    statusMessage: u.statusMessage || '',
     role: u.role || 'user',
     badges: u.badges || [],
     banned: !!u.banned,
