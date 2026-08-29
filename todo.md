@@ -6,6 +6,6 @@
 - [x] Style it as a compact popover/dropdown anchored near the profile button
 
 ## 2. Deploy
-- [ ] Commit and push to GitHub
-- [ ] Deploy/update on Render (autoDeploy)
-- [ ] Verify at https://hellobye-chat.onrender.com/
+- [x] Commit and push to GitHub (fd54673)
+- [x] Deploy/update on Render (autoDeploy — dep-da9fm6s9v7es73djjkug live)
+- [x] Verify at https://hellobye-chat.onrender.com/ (HTTP 200, all markers confirmed)
