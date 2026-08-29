@@ -3605,8 +3605,8 @@ body.no-anim .friend-item { animation: none !important; }
   display: block; height: 100%; width: 100%;
   background: var(--warning); transition: width 1s linear;
 }
-/* DM + Group cooldown indicators: positioned above the input area */
-#dm-cooldown-indicator, #group-cooldown-indicator {
+/* Group cooldown indicator: positioned above the input area */
+#group-cooldown-indicator {
   padding: 6px 18px 4px;
 }
 
@@ -3640,6 +3640,14 @@ body.no-anim .friend-item { animation: none !important; }
   background: var(--danger) !important; color: #fff !important;
 }
 .danger-btn:hover:not(:disabled) { background: var(--danger-hover) !important; }
+/* Owner-locked danger button (e.g. Disable Account for the owner @lore):
+   fully greyed-out, non-interactive, with a lock cursor to signal it's blocked. */
+.danger-btn.owner-locked, .setting-save-btn.owner-locked {
+  opacity: 0.4 !important;
+  cursor: not-allowed !important;
+  filter: grayscale(0.6);
+  pointer-events: none;
+}
 
 /* ============================================
    DESKTOP ENHANCEMENT — bigger, clearer chat for large screens
@@ -5501,7 +5509,7 @@ body.no-anim .friend-item { animation: none !important; }
               </div>
               <div class="profile-section">
                 <div class="profile-section-title">Disable Chat Cooldown for User</div>
-                <p style="color:var(--text-muted); font-size:12px; margin-bottom:12px;">Select a user to exempt them from the 3-second chat message cooldown. This applies to the chatroom, direct messages, and group chats — they will be able to send messages without waiting.</p>
+                <p style="color:var(--text-muted); font-size:12px; margin-bottom:12px;">Select a user to exempt them from message cooldowns. This applies to the chatroom (3-second cooldown) and group chats (0.3-second cooldown) — they will be able to send messages without waiting. Direct messages have no cooldown.</p>
                 <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:12px;">
                   <select id="admin-cooldown-exempt-select" class="admin-input" style="flex:1; min-width:200px; padding:8px 10px;">
                     <option value="">— Select a user —</option>
@@ -5800,10 +5808,6 @@ body.no-anim .friend-item { animation: none !important; }
         <span id="dm-disabled-banner-text"></span>
       </div>
       <div class="dm-typing" id="dm-typing"></div>
-      <div class="cooldown-indicator" id="dm-cooldown-indicator" style="display:none;">
-        <span class="cooldown-bar"><span class="cooldown-bar-fill" id="dm-cooldown-bar-fill"></span></span>
-        <span id="dm-cooldown-text">Please wait...</span>
-      </div>
       <div class="dm-input-area">
         <div class="reply-preview" id="dm-reply-preview" style="display:none;">
           <div class="reply-preview-bar"></div>
@@ -8735,38 +8739,10 @@ function startCooldown(seconds) {
   }, 1000);
 }
 
-// ---------- DM + Group cooldown indicators ----------
-let dmCooldownEnds = 0;
-let dmCooldownTimer = null;
+// ---------- Group cooldown indicator ----------
+// (DM cooldown was removed in Round 30 — DMs have no rate limit now)
 let groupCooldownEnds = 0;
 let groupCooldownTimer = null;
-function startDMCooldown(seconds) {
-  dmCooldownEnds = Date.now() + (seconds * 1000);
-  const indicator = $('dm-cooldown-indicator');
-  const bar = $('dm-cooldown-bar-fill');
-  const text = $('dm-cooldown-text');
-  if (!indicator || !bar || !text) return;
-  indicator.style.display = 'flex';
-  bar.style.transition = 'none';
-  bar.style.width = '100%';
-  bar.offsetHeight;
-  bar.style.transition = 'width ' + seconds + 's linear';
-  bar.style.width = '0%';
-  let remaining = seconds;
-  text.textContent = 'Cooldown: ' + remaining + 's';
-  if (dmCooldownTimer) clearInterval(dmCooldownTimer);
-  dmCooldownTimer = setInterval(() => {
-    remaining--;
-    if (remaining <= 0) {
-      clearInterval(dmCooldownTimer);
-      dmCooldownTimer = null;
-      indicator.style.display = 'none';
-      dmCooldownEnds = 0;
-    } else {
-      text.textContent = 'Cooldown: ' + remaining + 's';
-    }
-  }, 1000);
-}
 function startGroupCooldown(seconds) {
   groupCooldownEnds = Date.now() + (seconds * 1000);
   const indicator = $('group-cooldown-indicator');
@@ -8779,9 +8755,19 @@ function startGroupCooldown(seconds) {
   bar.offsetHeight;
   bar.style.transition = 'width ' + seconds + 's linear';
   bar.style.width = '0%';
+  // Support sub-second cooldowns (e.g. 0.3s) — show rounded-up seconds in text
+  text.textContent = 'Cooldown: ' + (seconds < 1 ? 1 : seconds) + 's';
+  if (groupCooldownTimer) { clearTimeout(groupCooldownTimer); clearInterval(groupCooldownTimer); groupCooldownTimer = null; }
+  // For very short cooldowns (< 1s), just hide after the duration rather than counting down
+  if (seconds < 1) {
+    groupCooldownTimer = setTimeout(() => {
+      indicator.style.display = 'none';
+      groupCooldownEnds = 0;
+      groupCooldownTimer = null;
+    }, seconds * 1000);
+    return;
+  }
   let remaining = seconds;
-  text.textContent = 'Cooldown: ' + remaining + 's';
-  if (groupCooldownTimer) clearInterval(groupCooldownTimer);
   groupCooldownTimer = setInterval(() => {
     remaining--;
     if (remaining <= 0) {
@@ -8963,13 +8949,11 @@ function sendGifAsMessage(fileData) {
 function sendGifAsDM(fileData) {
   const text = dmInputEl.value.trim() || '';
   socket.emit('dm-send', { to: activeDMUser, text, file: fileData, files: null, reply: replyingToDM }, (res) => {
-    if (res && res.error) { toast(res.error, 'error'); if (res.cooldown) startDMCooldown(res.cooldown); return; }
+    if (res && res.error) { toast(res.error, 'error'); return; }
     if (res && res.message) {
       dmMessages.push(res.message);
       appendDMMessage(res.message);
       scrollToBottomDM();
-      const isExempt = !!(currentUser && currentUser.cooldownExempt);
-      if (!isExempt) startDMCooldown(3);
     }
   });
   dmInputEl.value = ''; dmInputEl.style.height = 'auto';
@@ -10632,13 +10616,7 @@ groupSendBtn.addEventListener('click', () => { if (recordSpamClick()) return; se
 function sendGroupMessage() {
   const text = groupInputEl.value.trim();
   if (!text && !pendingGroupFile) return;
-  // Cooldown check (skip for exempt users)
-  const isExempt = !!(currentUser && currentUser.cooldownExempt);
-  if (!isExempt && Date.now() < groupCooldownEnds) {
-    const remaining = Math.ceil((groupCooldownEnds - Date.now()) / 1000);
-    toast('Please wait ' + remaining + ' second(s) before sending another message.', 'error');
-    return;
-  }
+  // Note: group cooldown is now 0.3s (server-enforced) — too short for a visible client-side indicator.
   if (pendingGroupFile) {
     openMediaSendModal({
       file: pendingGroupFile,
@@ -10669,9 +10647,9 @@ function doSendGroup(text) {
       }
       // Update sidebar preview
       updateGroupConvPreview(activeGroupId, res.message);
-      // Start client-side cooldown indicator (unless exempt)
+      // Start client-side cooldown indicator (0.3s, unless exempt)
       const isExempt = !!(currentUser && currentUser.cooldownExempt);
-      if (!isExempt) startGroupCooldown(3);
+      if (!isExempt) startGroupCooldown(0.3);
     }
   });
   groupInputEl.value = ''; groupInputEl.style.height = 'auto';
@@ -10708,7 +10686,7 @@ async function sendGroupWithFile(text) {
         }
         updateGroupConvPreview(activeGroupId, res.message);
         const isExempt = !!(currentUser && currentUser.cooldownExempt);
-        if (!isExempt) startGroupCooldown(3);
+        if (!isExempt) startGroupCooldown(0.3);
       }
     });
   } catch(err) { toast((err && err.error) || 'File upload failed.', 'error'); }
@@ -11529,13 +11507,6 @@ $('dm-remove-attachment').addEventListener('click', () => { clearDMPendingFile()
 function sendDM() {
   const text = dmInputEl.value.trim();
   if (!text && !pendingDMFile) return;
-  // Cooldown check (skip for exempt users)
-  const isExempt = !!(currentUser && currentUser.cooldownExempt);
-  if (!isExempt && Date.now() < dmCooldownEnds) {
-    const remaining = Math.ceil((dmCooldownEnds - Date.now()) / 1000);
-    toast('Please wait ' + remaining + ' second(s) before sending another message.', 'error');
-    return;
-  }
   // If there's a pending file, show the media caption + confirm modal first
   if (pendingDMFile) {
     openMediaSendModal({
@@ -11559,14 +11530,11 @@ function doSendDM(text) {
     return;
   }
   socket.emit('dm-send', { to: activeDMUser, text, reply: replyingToDM }, (res) => {
-    if (res && res.error) { toast(res.error, 'error'); if (res.cooldown) startDMCooldown(res.cooldown); return; }
+    if (res && res.error) { toast(res.error, 'error'); return; }
     if (res && res.message) {
       dmMessages.push(res.message);
       appendDMMessage(res.message);
       scrollToBottomDM();
-      // Start client-side cooldown indicator (unless exempt)
-      const isExempt = !!(currentUser && currentUser.cooldownExempt);
-      if (!isExempt) startDMCooldown(3);
     }
   });
   dmInputEl.value = ''; dmInputEl.style.height = 'auto';
@@ -11604,13 +11572,11 @@ async function sendDMWithFile(text) {
       allFiles = extraFileData.slice(0, 5);
     }
     socket.emit('dm-send', { to: activeDMUser, text, file: fileData, files: allFiles, reply: replyingToDM }, (res) => {
-      if (res && res.error) { toast(res.error, 'error'); if (res.cooldown) startDMCooldown(res.cooldown); return; }
+      if (res && res.error) { toast(res.error, 'error'); return; }
       if (res && res.message) {
         dmMessages.push(res.message);
         appendDMMessage(res.message);
         scrollToBottomDM();
-        const isExempt = !!(currentUser && currentUser.cooldownExempt);
-        if (!isExempt) startDMCooldown(3);
       }
     });
   } catch(err) { toast((err && err.error) || 'File upload failed. Please try again.', 'error'); }
@@ -12006,6 +11972,21 @@ function updateProfilePanel() {
   if ($('direct-messages-toggle')) $('direct-messages-toggle').checked = u.directMessagesEnabled !== false;
   currentStatus = u.status || 'online';
   document.querySelectorAll('.status-option').forEach(opt => opt.classList.toggle('active', opt.dataset.status === currentStatus));
+  // Owner account protection: the owner (@lore) cannot disable their own account.
+  // Visually disable the button (greyed out, not clickable) instead of just toast-on-click.
+  const disableBtn = $('disable-account-btn');
+  if (disableBtn) {
+    const isOwner = !!(currentUser && (currentUser.isOwner || currentUser.username === 'lore'));
+    if (isOwner) {
+      disableBtn.disabled = true;
+      disableBtn.title = 'The owner account cannot be disabled.';
+      disableBtn.classList.add('owner-locked');
+    } else {
+      disableBtn.disabled = false;
+      disableBtn.title = '';
+      disableBtn.classList.remove('owner-locked');
+    }
+  }
   // Reset dirty state since we just synced the panel to the saved profile.
   // Use clearProfileDirty() so the visual indicator hides too.
   clearProfileDirty();

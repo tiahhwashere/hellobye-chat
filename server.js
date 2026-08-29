@@ -2899,9 +2899,8 @@ function emitUsersList() {
 
 const connectedUsers = new Map(); // username -> Set(socketIds)
 const socketToUser = new Map(); // socketId -> username
-const lastMessageTime = {}; // username -> timestamp (cooldown)
-const lastDMTime = {}; // username:other -> timestamp
-const lastGroupTime = {}; // username:groupId -> timestamp (group chat cooldown)
+const lastMessageTime = {}; // username -> timestamp (chatroom cooldown)
+const lastGroupTime = {}; // username:groupId -> timestamp (group chat cooldown, 0.3s)
 
 function getConnectedUserSockets(username) {
   return connectedUsers.get(username) || new Set();
@@ -3095,18 +3094,7 @@ io.on('connection', (socket) => {
         if (typeof ack === 'function') ack({ error: '@' + recipientRecord.username + ' has disabled direct messages and is not accepting private messages at this time.', recipientDmDisabled: true });
         return;
       }
-      // 3-second DM cooldown (skip if user is exempt via admin panel)
-      const dmExempt = (db.cooldownExempt || []).includes(username);
-      if (!dmExempt) {
-        const key = username + ':' + target;
-        const last = lastDMTime[key] || 0;
-        if (Date.now() - last < 3000) {
-          const cooldown = Math.ceil((3000 - (Date.now() - last)) / 1000);
-          if (typeof ack === 'function') ack({ error: 'Please wait ' + cooldown + 's', cooldown });
-          return;
-        }
-        lastDMTime[key] = Date.now();
-      }
+      // DM cooldown removed entirely (Round 30) — no rate limit on DMs.
       const msg = {
         id: genId(),
         from: username,
@@ -3240,14 +3228,15 @@ io.on('connection', (socket) => {
       const g = findGroup(groupId);
       if (!g) { if (typeof ack === 'function') ack({ error: 'Group not found' }); return; }
       if (!(g.members || []).includes(username)) { if (typeof ack === 'function') ack({ error: 'You are not a member of this group' }); return; }
-      // 3-second group chat cooldown (skip if user is exempt via admin panel)
+      // 0.3-second (300ms) group chat cooldown (skip if user is exempt via admin panel)
+      // (Round 30: reduced from 3s to 0.3s — prevents accidental double-sends without noticeable delay)
       const groupExempt = (db.cooldownExempt || []).includes(username);
       if (!groupExempt) {
         const gkey = username + ':' + groupId;
         const glast = lastGroupTime[gkey] || 0;
-        if (Date.now() - glast < 3000) {
-          const cooldown = Math.ceil((3000 - (Date.now() - glast)) / 1000);
-          if (typeof ack === 'function') ack({ error: 'Please wait ' + cooldown + 's before sending another message', cooldown });
+        if (Date.now() - glast < 300) {
+          // Sub-second cooldown: silently drop the duplicate without a confusing "1s" message
+          if (typeof ack === 'function') ack({ error: 'Sending too fast — please slow down', cooldown: 0.3 });
           return;
         }
         lastGroupTime[gkey] = Date.now();
