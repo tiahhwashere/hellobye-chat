@@ -540,9 +540,9 @@ body.loading-session #chat-app.active::after { content: none; }
   animation: navIconPop 0.32s cubic-bezier(0.34,1.56,0.64,1);
 }
 
-.sidebar-search { padding: 10px 12px; display: flex; gap: 8px; align-items: center; }
+.sidebar-search { padding: 10px 12px; }
 .sidebar-search input {
-  flex: 1; width: 100%; padding: 8px 12px;
+  width: 100%; padding: 8px 12px;
   background: var(--bg-dark); border: 1px solid var(--border);
   border-radius: var(--radius-sm); color: var(--text-primary); font-size: 13px;
 }
@@ -2073,213 +2073,166 @@ body.no-anim .friend-item { animation: none !important; }
 
 /* ===== Admin Panel ===== */
 .admin-subtabs {
-  display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 20px;
-  border-bottom: 1px solid var(--border); padding-bottom: 10px;
+  display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 16px;
+  border-bottom: 1px solid var(--border); padding-bottom: 8px;
 }
 .admin-subtab {
   background: transparent; border: 1px solid transparent; color: var(--text-secondary);
-  padding: 9px 16px; border-radius: 9px; cursor: pointer; font-size: 12.5px; font-weight: 600;
-  transition: var(--transition); letter-spacing: 0.2px;
+  padding: 8px 14px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 500;
+  transition: var(--transition);
 }
 .admin-subtab:hover { background: var(--bg-medium); color: var(--text-primary); }
-.admin-subtab.active {
-  background: linear-gradient(135deg, rgba(99,102,241,0.20), rgba(99,102,241,0.10));
-  color: #a5b4fc; border-color: rgba(99,102,241,0.35);
-  box-shadow: 0 2px 8px rgba(99,102,241,0.18);
-}
-.admin-subpane { display: none; padding-top: 6px; }
-.admin-subpane.active { display: block; animation: adminPaneIn 0.22s cubic-bezier(0.16,1,0.3,1); }
-@keyframes adminPaneIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-.admin-subpane .profile-section + .profile-section { margin-top: 32px; padding-top: 32px; border-top: 1px solid var(--border); }
-.admin-subpane .profile-section-title {
-  display: flex; align-items: center; gap: 10px; font-size: 14.5px; font-weight: 700;
-  color: var(--text-primary); margin-bottom: 2px; letter-spacing: 0.1px;
-}
+.admin-subtab.active { background: rgba(99,102,241,0.15); color: #818cf8; border-color: rgba(99,102,241,0.3); }
+.admin-subpane { display: none; padding-top: 4px; }
+.admin-subpane.active { display: block; }
+.admin-subpane .profile-section + .profile-section { margin-top: 28px; padding-top: 28px; border-top: 1px solid var(--border); }
+.admin-subpane .profile-section-title { display: flex; align-items: center; gap: 8px; }
 .admin-subpane .profile-section-title::before {
-  content: ''; display: inline-block; width: 4px; height: 20px; border-radius: 2px;
-  background: linear-gradient(180deg, #818cf8, #6366f1); flex-shrink: 0;
-}
-.admin-subpane .profile-section > p {
-  color: var(--text-muted); font-size: 12.5px; line-height: 1.6; margin-bottom: 14px;
+  content: ''; display: inline-block; width: 4px; height: 18px; border-radius: 2px;
+  background: #6366f1; flex-shrink: 0;
 }
 
 .admin-input {
   flex: 1; background: var(--bg-dark); border: 1px solid var(--border); color: var(--text-primary);
-  padding: 11px 15px; border-radius: 10px; font-size: 13.5px; outline: none; transition: var(--transition);
+  padding: 10px 14px; border-radius: 8px; font-size: 13px; outline: none; transition: var(--transition);
 }
 .admin-input:hover { border-color: var(--text-muted); }
-.admin-input:focus { border-color: #818cf8; box-shadow: 0 0 0 3px rgba(99,102,241,0.14); }
+.admin-input:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.12); }
 .admin-textarea {
   width: 100%; background: var(--bg-dark); border: 1px solid var(--border); color: var(--text-primary);
-  padding: 13px 17px; border-radius: 11px; font-size: 13.5px; outline: none; resize: vertical; transition: var(--transition);
-  font-family: inherit; line-height: 1.6;
+  padding: 12px 16px; border-radius: 10px; font-size: 13px; outline: none; resize: vertical; transition: var(--transition);
+  font-family: inherit; line-height: 1.55;
 }
-.admin-textarea:focus { border-color: #818cf8; box-shadow: 0 0 0 3px rgba(99,102,241,0.14); }
+.admin-textarea:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.12); }
 .admin-select {
   background: var(--bg-dark); border: 1px solid var(--border); color: var(--text-primary);
-  padding: 11px 38px 11px 15px; border-radius: 10px; font-size: 13.5px; outline: none; cursor: pointer;
+  padding: 10px 36px 10px 14px; border-radius: 8px; font-size: 13px; outline: none; cursor: pointer;
   appearance: none; -webkit-appearance: none; -moz-appearance: none; transition: var(--transition);
   background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
-  background-repeat: no-repeat; background-position: right 14px center;
+  background-repeat: no-repeat; background-position: right 12px center;
 }
 .admin-select:hover { border-color: var(--text-muted); }
-.admin-select:focus { border-color: #818cf8; box-shadow: 0 0 0 3px rgba(99,102,241,0.14); }
-.admin-ban-search-row { display: flex; gap: 10px; margin-bottom: 14px; }
-.admin-role-select-row { display: flex; gap: 10px; align-items: center; }
+.admin-select:focus { border-color: #6366f1; }
+.admin-ban-search-row { display: flex; gap: 8px; margin-bottom: 12px; }
+.admin-role-select-row { display: flex; gap: 8px; align-items: center; }
 
-.admin-ban-results { display: flex; flex-direction: column; gap: 10px; }
+.admin-ban-results { display: flex; flex-direction: column; gap: 8px; }
 .admin-search-result {
-  display: flex; align-items: center; gap: 14px; padding: 14px 16px;
-  background: linear-gradient(135deg, var(--bg-medium), var(--bg-darker));
-  border-radius: 12px; cursor: pointer; transition: var(--transition); border: 1px solid var(--border);
+  display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: var(--bg-medium);
+  border-radius: 10px; cursor: pointer; transition: var(--transition); border: 1px solid transparent;
 }
-.admin-search-result:hover { border-color: #818cf8; background: var(--bg-light); transform: translateY(-1px); box-shadow: 0 4px 16px rgba(0,0,0,0.25); }
+.admin-search-result:hover { border-color: #6366f1; background: var(--bg-light); }
 .admin-search-result-avatar {
-  width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #6366f1, #4f46e5); color: #fff;
-  display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; flex-shrink: 0; overflow: hidden;
-  box-shadow: 0 2px 8px rgba(99,102,241,0.25);
+  width: 32px; height: 32px; border-radius: 50%; background: var(--accent); color: var(--accent-text);
+  display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 13px; flex-shrink: 0; overflow: hidden;
 }
 .admin-search-result-avatar img { width: 100%; height: 100%; object-fit: cover; }
 .admin-search-result-info { flex: 1; min-width: 0; }
-.admin-search-result-name { font-weight: 700; font-size: 13.5px; color: var(--text-primary); }
-.admin-search-result-meta { font-size: 11.5px; color: var(--text-muted); margin-top: 2px; }
+.admin-search-result-name { font-weight: 600; font-size: 13px; color: var(--text-primary); }
+.admin-search-result-meta { font-size: 11px; color: var(--text-muted); }
 
 .admin-ban-target-info {
-  padding: 16px 18px; background: linear-gradient(135deg, var(--bg-medium), var(--bg-darker));
-  border-radius: 12px; margin-bottom: 16px;
-  display: flex; align-items: center; gap: 14px; border: 1px solid var(--border);
+  padding: 14px; background: var(--bg-medium); border-radius: 10px; margin-bottom: 14px;
+  display: flex; align-items: center; gap: 12px;
 }
-.admin-ban-target-info .at-name { font-weight: 700; font-size: 14.5px; color: var(--text-primary); }
-.admin-ban-target-info .at-meta { font-size: 11.5px; color: var(--text-muted); margin-top: 2px; }
+.admin-ban-target-info .at-name { font-weight: 600; font-size: 14px; color: var(--text-primary); }
+.admin-ban-target-info .at-meta { font-size: 11px; color: var(--text-muted); }
 
-.admin-user-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
+.admin-user-grid { display: grid; grid-template-columns: 1fr; gap: 8px; }
 .admin-user-card {
-  display: flex; align-items: center; gap: 14px; padding: 14px 16px;
-  background: linear-gradient(135deg, var(--bg-medium), var(--bg-darker));
-  border-radius: 12px; border: 1px solid var(--border); transition: var(--transition);
+  display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: var(--bg-medium);
+  border-radius: 10px; border: 1px solid var(--border);
 }
-.admin-user-card:hover { border-color: var(--border-light); transform: translateY(-1px); }
 .admin-user-card-avatar {
-  width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, #6366f1, #4f46e5); color: #fff;
-  display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px; flex-shrink: 0; overflow: hidden;
-  box-shadow: 0 2px 8px rgba(99,102,241,0.22);
+  width: 28px; height: 28px; border-radius: 50%; background: var(--accent); color: var(--accent-text);
+  display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 11px; flex-shrink: 0; overflow: hidden;
 }
 .admin-user-card-avatar img { width: 100%; height: 100%; object-fit: cover; }
 .admin-user-card-info { flex: 1; min-width: 0; }
-.admin-user-card-name { font-weight: 700; font-size: 13px; color: var(--text-primary); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-.admin-user-card-meta { font-size: 10.5px; color: var(--text-muted); display: flex; gap: 10px; flex-wrap: wrap; margin-top: 4px; }
-.admin-user-card-status { font-size: 10px; padding: 2px 8px; border-radius: 5px; font-weight: 700; letter-spacing: 0.3px; }
-.admin-user-card-status.online { background: rgba(34,197,94,0.18); color: #4ade80; }
-.admin-user-card-status.idle { background: rgba(234,179,8,0.18); color: #facc15; }
-.admin-user-card-status.dnd { background: rgba(239,68,68,0.18); color: #f87171; }
-.admin-user-card-status.offline { background: rgba(107,114,128,0.18); color: #9ca3af; }
-.admin-user-card-status.banned { background: rgba(239,68,68,0.22); color: #f87171; }
+.admin-user-card-name { font-weight: 600; font-size: 12px; color: var(--text-primary); }
+.admin-user-card-meta { font-size: 10px; color: var(--text-muted); display: flex; gap: 8px; flex-wrap: wrap; }
+.admin-user-card-status { font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: 600; }
+.admin-user-card-status.online { background: rgba(34,197,94,0.15); color: #22c55e; }
+.admin-user-card-status.idle { background: rgba(234,179,8,0.15); color: #eab308; }
+.admin-user-card-status.dnd { background: rgba(239,68,68,0.15); color: #ef4444; }
+.admin-user-card-status.offline { background: rgba(107,114,128,0.15); color: #6b7280; }
+.admin-user-card-status.banned { background: rgba(239,68,68,0.2); color: #ef4444; }
 
-.admin-activity-list { display: flex; flex-direction: column; gap: 10px; max-height: 360px; overflow-y: auto; padding: 4px; }
-.admin-activity-list::-webkit-scrollbar { width: 6px; }
-.admin-activity-list::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 3px; }
+.admin-activity-list { display: flex; flex-direction: column; gap: 8px; max-height: 340px; overflow-y: auto; padding: 2px; }
 .admin-activity-item {
-  padding: 12px 16px; background: linear-gradient(135deg, var(--bg-medium), var(--bg-darker));
-  border-radius: 10px; font-size: 12.5px;
-  display: flex; align-items: center; gap: 12px; border-left: 3px solid #818cf8;
-  border-top: 1px solid var(--border); border-right: 1px solid var(--border); border-bottom: 1px solid var(--border);
-  line-height: 1.5; transition: var(--transition);
+  padding: 10px 14px; background: var(--bg-medium); border-radius: 8px; font-size: 12px;
+  display: flex; align-items: center; gap: 10px; border-left: 3px solid #6366f1;
+  line-height: 1.45;
 }
-.admin-activity-item:hover { border-left-color: #a5b4fc; transform: translateX(2px); }
-.admin-activity-item .aa-action {
-  font-weight: 700; color: #a5b4fc; text-transform: capitalize; font-size: 11px;
-  padding: 3px 9px; background: rgba(99,102,241,0.14); border-radius: 5px; white-space: nowrap; flex-shrink: 0;
-}
+.admin-activity-item .aa-action { font-weight: 600; color: #818cf8; text-transform: capitalize; }
 .admin-activity-item .aa-detail { color: var(--text-secondary); flex: 1; }
-.admin-activity-item .aa-time { color: var(--text-muted); font-size: 10.5px; white-space: nowrap; flex-shrink: 0; }
+.admin-activity-item .aa-time { color: var(--text-muted); font-size: 10px; white-space: nowrap; }
 
-.admin-accounts-list { display: flex; flex-direction: column; gap: 12px; }
+.admin-accounts-list { display: flex; flex-direction: column; gap: 10px; }
 .admin-account-row {
-  padding: 18px 20px; background: linear-gradient(135deg, var(--bg-medium), var(--bg-darker));
-  border-radius: 13px; border: 1px solid var(--border); transition: var(--transition);
+  padding: 16px; background: var(--bg-medium); border-radius: 10px; border: 1px solid var(--border);
 }
-.admin-account-row:hover { border-color: var(--border-light); }
-.admin-account-row-header { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
-.admin-account-row-name { font-weight: 700; font-size: 14px; color: var(--text-primary); }
-.admin-account-row-id { font-size: 10.5px; color: var(--text-muted); }
-.admin-account-detail { font-size: 11.5px; color: var(--text-secondary); margin: 6px 0; word-break: break-all; line-height: 1.6; }
-.admin-account-detail .label { color: var(--text-muted); font-weight: 600; }
-.admin-account-detail .mono { font-family: 'Courier New', monospace; color: #818cf8; font-size: 11px; }
+.admin-account-row-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
+.admin-account-row-name { font-weight: 600; font-size: 13px; color: var(--text-primary); }
+.admin-account-row-id { font-size: 10px; color: var(--text-muted); }
+.admin-account-detail { font-size: 11px; color: var(--text-secondary); margin: 4px 0; word-break: break-all; line-height: 1.5; }
+.admin-account-detail .label { color: var(--text-muted); font-weight: 500; }
+.admin-account-detail .mono { font-family: 'Courier New', monospace; color: var(--accent); }
 
 .admin-banned-list { display: flex; flex-direction: column; gap: 10px; }
 .admin-banned-item {
-  display: flex; align-items: center; gap: 14px; padding: 14px 16px;
-  background: linear-gradient(135deg, rgba(239,68,68,0.10), rgba(239,68,68,0.04));
-  border-radius: 12px; border: 1px solid rgba(239,68,68,0.22); transition: var(--transition);
+  display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: rgba(239,68,68,0.08);
+  border-radius: 10px; border: 1px solid rgba(239,68,68,0.2);
 }
-.admin-banned-item:hover { border-color: rgba(239,68,68,0.35); }
 .admin-banned-item-info { flex: 1; }
-.admin-banned-item-name { font-weight: 700; font-size: 13.5px; color: var(--text-primary); }
-.admin-banned-item-reason { font-size: 11.5px; color: var(--text-muted); margin-top: 3px; line-height: 1.5; }
+.admin-banned-item-name { font-weight: 600; font-size: 13px; color: var(--text-primary); }
+.admin-banned-item-reason { font-size: 11px; color: var(--text-muted); }
 
 /* Admin message moderation list */
-.admin-msg-list { display: flex; flex-direction: column; gap: 10px; max-height: 480px; overflow-y: auto; padding: 4px; }
-.admin-msg-list::-webkit-scrollbar { width: 6px; }
-.admin-msg-list::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 3px; }
+.admin-msg-list { display: flex; flex-direction: column; gap: 8px; max-height: 460px; overflow-y: auto; }
 .admin-msg-item {
-  display: flex; gap: 14px; padding: 13px 15px;
-  background: linear-gradient(135deg, var(--bg-medium), var(--bg-darker));
-  border: 1px solid var(--border); border-radius: 12px; align-items: flex-start; transition: var(--transition);
+  display: flex; gap: 12px; padding: 10px 12px; background: var(--bg-medium);
+  border: 1px solid var(--border); border-radius: 10px; align-items: flex-start;
 }
-.admin-msg-item:hover { border-color: var(--border-light); }
 .admin-msg-item .am-avatar {
-  width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0; overflow: hidden;
-  background: linear-gradient(135deg, #6366f1, #4f46e5); display: flex; align-items: center; justify-content: center;
-  font-size: 12px; font-weight: 700; color: #fff;
+  width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0; overflow: hidden;
+  background: var(--bg-lighter); display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700; color: var(--text-secondary);
 }
 .admin-msg-item .am-avatar img { width: 100%; height: 100%; object-fit: cover; }
 .admin-msg-item .am-body { flex: 1; min-width: 0; }
-.admin-msg-item .am-head { display: flex; gap: 8px; align-items: baseline; margin-bottom: 3px; }
-.admin-msg-item .am-name { font-weight: 700; font-size: 12.5px; color: var(--text-primary); }
+.admin-msg-item .am-head { display: flex; gap: 6px; align-items: baseline; margin-bottom: 2px; }
+.admin-msg-item .am-name { font-weight: 600; font-size: 12px; color: var(--text-primary); }
 .admin-msg-item .am-handle { font-size: 11px; color: var(--text-muted); }
-.admin-msg-item .am-time { font-size: 10.5px; color: var(--text-muted); margin-left: auto; white-space: nowrap; }
-.admin-msg-item .am-text { font-size: 12.5px; color: var(--text-secondary); word-break: break-word; line-height: 1.45; }
-.admin-msg-item .am-file { font-size: 10.5px; color: #818cf8; margin-top: 3px; }
+.admin-msg-item .am-time { font-size: 10px; color: var(--text-muted); margin-left: auto; white-space: nowrap; }
+.admin-msg-item .am-text { font-size: 12px; color: var(--text-secondary); word-break: break-word; line-height: 1.35; }
+.admin-msg-item .am-file { font-size: 10px; color: var(--accent); margin-top: 2px; }
 .admin-msg-item .am-del {
-  flex-shrink: 0; padding: 6px 12px; font-size: 11px; border-radius: 7px;
+  flex-shrink: 0; padding: 4px 10px; font-size: 11px; border-radius: 6px;
   background: rgba(239,68,68,0.15); color: var(--danger); border: 1px solid rgba(239,68,68,0.3);
-  cursor: pointer; font-weight: 700; transition: var(--transition); align-self: center;
+  cursor: pointer; font-weight: 600;
 }
-.admin-msg-item .am-del:hover { background: var(--danger); color: #fff; box-shadow: 0 2px 10px rgba(239,68,68,0.35); }
-.admin-msg-empty { color: var(--text-muted); font-size: 13px; padding: 24px 0; text-align: center; }
+.admin-msg-item .am-del:hover { background: var(--danger); color: #fff; }
+.admin-msg-empty { color: var(--text-muted); font-size: 12px; padding: 16px 0; text-align: center; }
 
-.admin-badge-buttons { display: flex; gap: 12px; flex-wrap: wrap; }
+.admin-badge-buttons { display: flex; gap: 10px; flex-wrap: wrap; }
 .admin-badge-btn {
-  display: flex; align-items: center; gap: 9px; padding: 12px 16px;
-  background: linear-gradient(135deg, var(--bg-medium), var(--bg-darker));
-  border: 1px solid var(--border); border-radius: 11px; cursor: pointer; color: var(--text-primary);
-  font-size: 13px; font-weight: 600; transition: var(--transition);
+  display: flex; align-items: center; gap: 8px; padding: 10px 14px; background: var(--bg-medium);
+  border: 1px solid var(--border); border-radius: 8px; cursor: pointer; color: var(--text-primary);
+  font-size: 13px; font-weight: 500; transition: var(--transition);
 }
-.admin-badge-btn:hover { border-color: #818cf8; background: var(--bg-light); transform: translateY(-1px); }
-.admin-badge-btn.active { border-color: #818cf8; background: rgba(99,102,241,0.14); box-shadow: 0 2px 12px rgba(99,102,241,0.2); }
+.admin-badge-btn:hover { border-color: #6366f1; background: var(--bg-light); }
+.admin-badge-btn.active { border-color: #6366f1; background: rgba(99,102,241,0.12); }
 .admin-badge-btn.remove { border-color: var(--danger); color: var(--danger); }
-.admin-badge-preview { width: 22px; height: 22px; border-radius: 5px; object-fit: cover; }
+.admin-badge-preview { width: 20px; height: 20px; border-radius: 4px; object-fit: cover; }
 
-.admin-whitelist-list { display: flex; flex-direction: column; gap: 8px; }
+.admin-whitelist-list { display: flex; flex-direction: column; gap: 6px; }
 .admin-whitelist-item {
-  display: flex; align-items: center; gap: 12px; padding: 12px 15px;
-  background: linear-gradient(135deg, var(--bg-medium), var(--bg-darker));
-  border-radius: 11px; border: 1px solid var(--border); transition: var(--transition);
+  display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: var(--bg-medium);
+  border-radius: 8px; border: 1px solid var(--border);
 }
-.admin-whitelist-item:hover { border-color: var(--border-light); }
-.admin-whitelist-item-name { flex: 1; font-weight: 700; font-size: 13.5px; color: var(--text-primary); }
-.admin-whitelist-item .owner-badge { font-size: 10px; padding: 3px 9px; background: rgba(234,179,8,0.18); color: #facc15; border-radius: 5px; font-weight: 700; letter-spacing: 0.3px; }
-
-/* Admin custom roles */
-.admin-custom-role-card {
-  padding: 16px 18px; background: linear-gradient(135deg, var(--bg-medium), var(--bg-darker));
-  border-radius: 13px; border: 1px solid var(--border); margin-bottom: 12px; transition: var(--transition);
-}
-.admin-custom-role-card:hover { border-color: var(--border-light); }
-.admin-custom-role-name { font-weight: 700; font-size: 14px; display: flex; align-items: center; gap: 10px; }
-
-/* Admin buttons polish */
-.admin-subpane .setting-save-btn { font-weight: 600; }
+.admin-whitelist-item-name { flex: 1; font-weight: 600; font-size: 13px; color: var(--text-primary); }
+.admin-whitelist-item .owner-badge { font-size: 10px; padding: 2px 8px; background: rgba(234,179,8,0.15); color: #eab308; border-radius: 4px; font-weight: 600; }
 
 /* ===== Username Badges / Role Tags ===== */
 .user-badge-icon {
@@ -3716,27 +3669,21 @@ body.no-anim .friend-item { animation: none !important; }
 .image-lightbox.show { display: flex; }
 @keyframes lightboxIn { from { opacity: 0; } to { opacity: 1; } }
 .image-lightbox-stage {
-  position: relative; max-width: 80vw; max-height: 82vh;
+  position: relative; max-width: 92vw; max-height: 86vh;
   display: flex; align-items: center; justify-content: center;
-  border-radius: 12px; overflow: hidden; padding: 10px;
-  background: rgba(18, 20, 24, 0.55); border: 1px solid rgba(255,255,255,0.08);
-  box-shadow: 0 24px 80px rgba(0,0,0,0.65);
-  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
-  cursor: zoom-in;
-  animation: lightboxZoom 0.24s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.image-lightbox-stage.zoomed {
-  cursor: zoom-out; transform: scale(1.7);
-  box-shadow: 0 30px 100px rgba(0,0,0,0.75);
+  border-radius: 8px; overflow: hidden;
 }
 .image-lightbox-stage img {
-  max-width: 78vw; max-height: 80vh; object-fit: contain;
-  border-radius: 8px; pointer-events: none;
+  max-width: 92vw; max-height: 86vh; object-fit: contain;
+  border-radius: 6px; box-shadow: 0 20px 70px rgba(0,0,0,0.6);
+  animation: lightboxZoom 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: zoom-in;
 }
 @keyframes lightboxZoom {
-  from { opacity: 0; transform: scale(0.9); }
+  from { opacity: 0; transform: scale(0.92); }
   to { opacity: 1; transform: scale(1); }
 }
+.image-lightbox-stage img.zoomed { cursor: zoom-out; transform: scale(2.2); transition: transform 0.18s ease; }
 .image-lightbox-close {
   position: absolute; top: 18px; right: 22px; z-index: 2;
   width: 42px; height: 42px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.12);
@@ -5096,6 +5043,7 @@ body.no-anim .friend-item { animation: none !important; }
     </div>
   </div>
 
+
   <!-- ===================== DELETE ACCOUNT MODAL ===================== -->
   <div class="modal-overlay" id="delete-account-modal">
     <div class="modal small">
@@ -5809,7 +5757,7 @@ body.no-anim .friend-item { animation: none !important; }
             <div class="admin-subpane active" data-admin-subpane="activity">
               <div class="profile-section">
                 <div class="profile-section-title">Change Welcome Title</div>
-                <p style="color:var(--text-muted); font-size:12.5px; margin-bottom:14px; line-height:1.6;">Change the text shown in the chatroom header (currently "welcome - to the safe place"). A 20-second cooldown applies between changes.</p>
+                <p style="color:var(--text-muted); font-size:12px; margin-bottom:12px;">Change the text shown in the chatroom header (currently "welcome - to the safe place"). A 20-second cooldown applies between changes.</p>
                 <div style="display:flex; gap:8px; align-items:center; margin-bottom:8px;">
                   <input type="text" id="admin-welcome-title-input" class="admin-input" placeholder="Enter the new welcome title" maxlength="100" style="flex:1;" />
                   <button class="setting-save-btn no-checkmark" id="admin-welcome-title-btn">Update Title</button>
@@ -5822,7 +5770,7 @@ body.no-anim .friend-item { animation: none !important; }
               </div>
               <div class="profile-section">
                 <div class="profile-section-title">Disable Chat Cooldown for User</div>
-                <p style="color:var(--text-muted); font-size:12.5px; margin-bottom:14px; line-height:1.6;">Select a user to exempt them from the 3-second chat message cooldown. They will be able to send messages without waiting.</p>
+                <p style="color:var(--text-muted); font-size:12px; margin-bottom:12px;">Select a user to exempt them from the 3-second chat message cooldown. They will be able to send messages without waiting.</p>
                 <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:12px;">
                   <select id="admin-cooldown-exempt-select" class="admin-input" style="flex:1; min-width:200px; padding:8px 10px;">
                     <option value="">— Select a user —</option>
@@ -5857,7 +5805,7 @@ body.no-anim .friend-item { animation: none !important; }
             <div class="admin-subpane" data-admin-subpane="accounts">
               <div class="profile-section">
                 <div class="profile-section-title">Account Credentials &amp; Sessions</div>
-                <p style="color:var(--text-muted); font-size:12.5px; margin-bottom:14px; line-height:1.6;">View password hashes and active session counts for all accounts.</p>
+                <p style="color:var(--text-muted); font-size:12px; margin-bottom:12px;">View password hashes and active session counts for all accounts.</p>
                 <div id="admin-accounts-list" class="admin-accounts-list">
                   <p style="color:var(--text-muted); padding:12px 0;">Loading accounts...</p>
                 </div>
@@ -5868,7 +5816,7 @@ body.no-anim .friend-item { animation: none !important; }
             <div class="admin-subpane" data-admin-subpane="ban">
               <div class="profile-section">
                 <div class="profile-section-title">Ban a User</div>
-                <p style="color:var(--text-muted); font-size:12.5px; margin-bottom:14px; line-height:1.6;">Search for a user by username or ID, then ban them with a reason. Choose a duration from permanent to 14 days.</p>
+                <p style="color:var(--text-muted); font-size:12px; margin-bottom:12px;">Search for a user by username or ID, then ban them with a reason. Choose a duration from permanent to 14 days.</p>
                 <div class="admin-ban-search-row">
                   <input type="text" id="admin-ban-search" class="admin-input" placeholder="Search by username or ID" />
                   <button class="setting-save-btn no-checkmark" id="admin-ban-search-btn">Search</button>
@@ -5904,7 +5852,7 @@ body.no-anim .friend-item { animation: none !important; }
             <div class="admin-subpane" data-admin-subpane="mute">
               <div class="profile-section">
                 <div class="profile-section-title">Mute a User</div>
-                <p style="color:var(--text-muted); font-size:12.5px; margin-bottom:14px; line-height:1.6;">Mute a user to prevent them from sending messages in public chat. Muted users can still use DMs. Duration can be anywhere from 1 minute to 14 days.</p>
+                <p style="color:var(--text-muted); font-size:12px; margin-bottom:12px;">Mute a user to prevent them from sending messages in public chat. Muted users can still use DMs. Duration can be anywhere from 1 minute to 14 days.</p>
                 <div class="admin-ban-search-row">
                   <input type="text" id="admin-mute-search" class="admin-input" placeholder="Search by username or ID" />
                   <button class="setting-save-btn no-checkmark" id="admin-mute-search-btn">Search</button>
@@ -5945,7 +5893,7 @@ body.no-anim .friend-item { animation: none !important; }
             <div class="admin-subpane" data-admin-subpane="roles">
               <div class="profile-section">
                 <div class="profile-section-title">Assign Role</div>
-                <p style="color:var(--text-muted); font-size:12.5px; margin-bottom:14px; line-height:1.6;">Give a user a role tag that appears next to their username in chat and DMs.</p>
+                <p style="color:var(--text-muted); font-size:12px; margin-bottom:12px;">Give a user a role tag that appears next to their username in chat and DMs.</p>
                 <div class="admin-ban-search-row">
                   <input type="text" id="admin-role-search" class="admin-input" placeholder="Search by username or ID" />
                   <button class="setting-save-btn no-checkmark" id="admin-role-search-btn">Search</button>
@@ -5967,7 +5915,7 @@ body.no-anim .friend-item { animation: none !important; }
               </div>
               <div class="profile-section">
                 <div class="profile-section-title">Assign Badge / Icon</div>
-                <p style="color:var(--text-muted); font-size:12.5px; margin-bottom:14px; line-height:1.6;">Add an icon badge next to a user's username. Icons appear at the same size as the username text.</p>
+                <p style="color:var(--text-muted); font-size:12px; margin-bottom:12px;">Add an icon badge next to a user's username. Icons appear at the same size as the username text.</p>
                 <div id="admin-badge-form" style="display:none; margin-top:8px;">
                   <div class="admin-badge-buttons">
                     <button class="admin-badge-btn" data-badge="moderator">
@@ -5993,7 +5941,7 @@ body.no-anim .friend-item { animation: none !important; }
             <div class="admin-subpane" data-admin-subpane="messages">
               <div class="profile-section">
                 <div class="profile-section-title">Moderate Chat Messages</div>
-                <p style="color:var(--text-muted); font-size:12.5px; margin-bottom:14px; line-height:1.6;">View and instantly delete any user's message from the chat. Deleted messages are removed for everyone immediately.</p>
+                <p style="color:var(--text-muted); font-size:12px; margin-bottom:12px;">View and instantly delete any user's message from the chat. Deleted messages are removed for everyone immediately.</p>
                 <div style="display:flex; gap:8px; margin-bottom:12px; align-items:center;">
                   <input type="text" id="admin-msg-search" class="admin-input" placeholder="Filter by username or message text" style="flex:1;" />
                   <button class="setting-save-btn no-checkmark" id="admin-msg-refresh-btn">Refresh</button>
@@ -6011,14 +5959,14 @@ body.no-anim .friend-item { animation: none !important; }
             <div class="admin-subpane" data-admin-subpane="broadcast">
               <div class="profile-section">
                 <div class="profile-section-title">Broadcast System Alert</div>
-                <p style="color:var(--text-muted); font-size:12.5px; margin-bottom:14px; line-height:1.6;">Send a one-time announcement to every connected user. It appears as a brief alert at the top of their screen and is not posted in chat.</p>
+                <p style="color:var(--text-muted); font-size:12px; margin-bottom:14px; line-height:1.55;">Send a one-time announcement to every connected user. It appears as a brief alert at the top of their screen and is not posted in chat.</p>
                 <textarea id="admin-broadcast-text" class="admin-textarea" placeholder="Type your announcement (maximum 500 characters)" rows="3" maxlength="500"></textarea>
                 <div style="display:flex; gap:10px; align-items:center; margin-top:12px;">
                   <button class="setting-save-btn no-checkmark" id="admin-broadcast-send-btn">Send Alert to Everyone</button>
                   <span id="admin-broadcast-count" style="color:var(--text-muted); font-size:11px;">0 / 500</span>
                 </div>
-                <p style="color:var(--text-muted); font-size:11.5px; margin-top:14px; font-weight:600;">Live preview</p>
-                <div id="admin-broadcast-preview" style="margin-top:10px; padding:16px; background:linear-gradient(135deg, var(--bg-medium), var(--bg-darker)); border-radius:12px; border:1px solid var(--border);"></div>
+                <p style="color:var(--text-muted); font-size:11px; margin-top:14px;">Live preview</p>
+                <div id="admin-broadcast-preview" style="margin-top:8px;"></div>
               </div>
             </div>
 
@@ -6026,7 +5974,7 @@ body.no-anim .friend-item { animation: none !important; }
             <div class="admin-subpane" data-admin-subpane="whitelist">
               <div class="profile-section">
                 <div class="profile-section-title">Admin Whitelist</div>
-                <p style="color:var(--text-muted); font-size:12.5px; margin-bottom:14px; line-height:1.6;">Users on this list can access the Administrator panel. The owner, <strong style="color:var(--text-secondary);">@lore</strong>, always has access.</p>
+                <p style="color:var(--text-muted); font-size:12px; margin-bottom:12px;">Users on this list can access the Administrator panel. The owner, <strong style="color:var(--text-secondary);">@lore</strong>, always has access.</p>
                 <div class="admin-ban-search-row">
                   <input type="text" id="admin-whitelist-input" class="admin-input" placeholder="Enter a username to add" />
                   <button class="setting-save-btn no-checkmark" id="admin-whitelist-add-btn">Add to Whitelist</button>
@@ -6041,7 +5989,7 @@ body.no-anim .friend-item { animation: none !important; }
             <div class="admin-subpane" data-admin-subpane="customroles">
               <div class="profile-section">
                 <div class="profile-section-title">Create Custom Member Role</div>
-                <p style="color:var(--text-muted); font-size:12.5px; margin-bottom:14px; line-height:1.6;">Create custom roles that appear as labeled groups in the chatroom member sidebar. Each role can hold up to 30 members.</p>
+                <p style="color:var(--text-muted); font-size:12px; margin-bottom:12px;">Create custom roles that appear as labeled groups in the chatroom member sidebar. Each role can hold up to 30 members.</p>
                 <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:12px;">
                   <input type="text" id="admin-custom-role-name" class="admin-input" placeholder="Enter a role name" maxlength="30" style="flex:1; min-width:180px;" />
                   <input type="color" id="admin-custom-role-color" value="#818cf8" style="width:40px; height:38px; border:1px solid var(--border-light); border-radius:var(--radius-sm); background:var(--bg-medium); cursor:pointer;" title="Role color" />
@@ -8383,8 +8331,7 @@ function openImageLightbox(src) {
 }
 function renderLightbox() {
   const img = $('image-lightbox-img'); if (!img) return;
-  const stage = $('image-lightbox-stage');
-  if (stage) stage.classList.remove('zoomed');
+  img.classList.remove('zoomed');
   img.src = lightboxImages[lightboxIndex] || '';
   const prev = $('image-lightbox-prev'), next = $('image-lightbox-next');
   if (prev) prev.disabled = lightboxImages.length <= 1;
@@ -8407,22 +8354,20 @@ function lightboxStep(delta) {
   function ready(fn) { if (document.readyState !== 'loading') fn(); else document.addEventListener('DOMContentLoaded', fn); }
   ready(() => {
     const box = $('image-lightbox'); if (!box) return;
-    const stage = $('image-lightbox-stage');
+    const img = $('image-lightbox-img');
     const close = $('image-lightbox-close');
     if (close) close.addEventListener('click', closeImageLightbox);
     $('image-lightbox-prev').addEventListener('click', (e) => { e.stopPropagation(); lightboxStep(-1); });
     $('image-lightbox-next').addEventListener('click', (e) => { e.stopPropagation(); lightboxStep(1); });
-    // Click backdrop closes; click the stage/box toggles zoom on the WHOLE box
-    box.addEventListener('click', (e) => { if (e.target === box) closeImageLightbox(); });
-    if (stage) stage.addEventListener('click', (e) => { e.stopPropagation(); stage.classList.toggle('zoomed'); });
-    // Keyboard: Esc close, arrows navigate, +/- zoom the whole box
+    // Click backdrop closes; click image toggles zoom
+    box.addEventListener('click', (e) => { if (e.target === box || e.target.classList.contains('image-lightbox-stage')) closeImageLightbox(); });
+    if (img) img.addEventListener('click', (e) => { e.stopPropagation(); img.classList.toggle('zoomed'); });
+    // Keyboard: Esc close, arrows navigate
     document.addEventListener('keydown', (e) => {
       if (!box.classList.contains('show')) return;
       if (e.key === 'Escape') { e.preventDefault(); closeImageLightbox(); }
       else if (e.key === 'ArrowLeft') { e.preventDefault(); lightboxStep(-1); }
       else if (e.key === 'ArrowRight') { e.preventDefault(); lightboxStep(1); }
-      else if (e.key === '+' || e.key === '=') { if (stage) { e.preventDefault(); stage.classList.add('zoomed'); } }
-      else if (e.key === '-' || e.key === '_') { if (stage) { e.preventDefault(); stage.classList.remove('zoomed'); } }
     });
   });
 })();
@@ -10188,6 +10133,7 @@ document.querySelector('.sidebar-nav-btn[data-view="dms"]').addEventListener('co
   }));
   showContextMenu(e.clientX, e.clientY, items);
 });
+
 
 // ============================================================
 // GROUP CHAT SYSTEM — Frontend logic
@@ -16042,18 +15988,18 @@ function renderAdminCustomRoles() {
         return '<span style="display:inline-flex; align-items:center; gap:4px; padding:3px 8px; background:var(--bg-medium); border-radius:var(--radius-sm); font-size:11px;">@' + escapeHtml(m) +
           ' <button onclick="adminRemoveCustomRoleMember(&apos;' + escapeHtml(role.id) + '&apos;, &apos;' + escapeHtml(m) + '&apos;)" style="background:none; border:none; color:var(--danger); cursor:pointer; font-size:13px; padding:0; line-height:1;">&times;</button></span>';
       }).join('') + '</div>' : '<p style="color:var(--text-muted); font-size:11px; margin-top:8px;">No members in this role yet.</p>';
-    return '<div class="admin-custom-role-card">' +
+    return '<div class="admin-custom-role-item" style="padding:14px; background:var(--bg-medium); border-radius:var(--radius); border:1px solid var(--border-light); margin-bottom:12px;">' +
       '<div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">' +
         '<div style="display:flex; align-items:center; gap:8px;">' +
           '<span style="width:12px; height:12px; border-radius:50%; background:' + escapeHtml(role.color || '#818cf8') + '; display:inline-block;"></span>' +
-          '<span style="font-size:14.5px; font-weight:700; color:' + escapeHtml(role.color || '#818cf8') + ';">' + escapeHtml(role.name) + '</span>' +
-          '<span style="font-size:11px; color:var(--text-muted); padding:2px 8px; background:var(--bg-dark); border-radius:5px;">' + members.length + '/30 members</span>' +
+          '<span style="font-size:14px; font-weight:600; color:' + escapeHtml(role.color || '#818cf8') + ';">' + escapeHtml(role.name) + '</span>' +
+          '<span style="font-size:11px; color:var(--text-muted);">' + members.length + '/30 members</span>' +
         '</div>' +
         '<button class="setting-save-btn no-checkmark danger-btn" style="padding:4px 10px; font-size:11px;" onclick="adminRemoveCustomRole(&apos;' + escapeHtml(role.id) + '&apos;)">Delete Role</button>' +
       '</div>' +
       '<div style="display:flex; gap:8px; align-items:center; margin-top:8px;">' +
-        '<input type="text" class="admin-input" placeholder="Add a username to this role" style="flex:1; font-size:12.5px;" id="custom-role-add-input-' + escapeHtml(role.id) + '" />' +
-        '<button class="setting-save-btn no-checkmark" style="padding:7px 14px; font-size:11.5px;" onclick="adminAddCustomRoleMember(&apos;' + escapeHtml(role.id) + '&apos;)">Add</button>' +
+        '<input type="text" class="admin-input" placeholder="Add a username to this role" style="flex:1; font-size:12px;" id="custom-role-add-input-' + escapeHtml(role.id) + '" />' +
+        '<button class="setting-save-btn no-checkmark" style="padding:6px 12px; font-size:11px;" onclick="adminAddCustomRoleMember(&apos;' + escapeHtml(role.id) + '&apos;)">Add</button>' +
       '</div>' +
       memberListHtml +
     '</div>';
