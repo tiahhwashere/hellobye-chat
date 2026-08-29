@@ -5972,6 +5972,13 @@ body.no-anim .friend-item { animation: none !important; }
                 <span class="toggle-slider"></span>
               </span>
             </label>
+            <label class="toggle-row" style="margin-top:14px;">
+              <span>Hide last online<br><small style="color:var(--text-muted);font-size:11px;font-weight:400;">When on, other users will only see you as "Offline" instead of your last active time.</small></span>
+              <span class="toggle-switch">
+                <input type="checkbox" id="hide-lastseen-settings-toggle">
+                <span class="toggle-slider"></span>
+              </span>
+            </label>
           </div>
           <div class="profile-section">
             <div class="profile-section-title">2-Step Verification</div>
@@ -12961,6 +12968,7 @@ function initMiniProfileListeners() {
     if ($('bio-count')) $('bio-count').textContent = $('mini-bio-input').value.length;
     if ($('pronouns-input')) $('pronouns-input').value = $('mini-pronouns-input').value;
     if ($('hide-lastseen-toggle')) $('hide-lastseen-toggle').checked = $('mini-hide-lastseen-toggle').checked;
+    if ($('hide-lastseen-settings-toggle')) $('hide-lastseen-settings-toggle').checked = $('mini-hide-lastseen-toggle').checked;
     if ($('show-online-toggle')) $('show-online-toggle').checked = $('mini-show-online-toggle').checked;
     if ($('hide-profile-toggle') && $('mini-hide-profile-toggle')) $('hide-profile-toggle').checked = $('mini-hide-profile-toggle').checked;
     // Carry dirty state to the full panel
@@ -13081,6 +13089,7 @@ function updateProfilePanel() {
   if ($('show-online-toggle')) $('show-online-toggle').checked = u.showOnlineStatus !== false;
   if ($('friend-requests-toggle')) $('friend-requests-toggle').checked = u.friendRequestsEnabled !== false;
   if ($('direct-messages-toggle')) $('direct-messages-toggle').checked = u.directMessagesEnabled !== false;
+  if ($('hide-lastseen-settings-toggle')) $('hide-lastseen-settings-toggle').checked = !!u.hideLastSeen;
   if ($('hide-profile-toggle')) $('hide-profile-toggle').checked = !!u.hideProfile;
   currentStatus = u.status || 'online';
   document.querySelectorAll('#profile-panel .status-option').forEach(opt => opt.classList.toggle('active', opt.dataset.status === currentStatus));
@@ -13126,7 +13135,10 @@ function updateProfileDirtyIndicator() {
   else indicator.classList.remove('show');
 }
 $('bio-input').addEventListener('input', (e) => { $('bio-count').textContent = e.target.value.length; markProfileDirty(); });
-$('hide-lastseen-toggle').addEventListener('change', markProfileDirty);
+$('hide-lastseen-toggle').addEventListener('change', function() {
+  markProfileDirty();
+  if ($('hide-lastseen-settings-toggle')) $('hide-lastseen-settings-toggle').checked = $('hide-lastseen-toggle').checked;
+});
 if ($('pronouns-input')) $('pronouns-input').addEventListener('input', markProfileDirty);
 if ($('statusmsg-input')) $('statusmsg-input').addEventListener('input', (e) => { $('statusmsg-count').textContent = e.target.value.length; markProfileDirty(); });
 if ($('show-online-toggle')) $('show-online-toggle').addEventListener('change', markProfileDirty);
@@ -13141,6 +13153,14 @@ if ($('direct-messages-toggle')) $('direct-messages-toggle').addEventListener('c
   markProfileDirty();
   var enabled = $('direct-messages-toggle').checked;
   toast(enabled ? 'Direct messages are now on. Others can message you privately.' : 'Direct messages are off. Others can no longer message you, but you can still message them.', enabled ? 'success' : 'info');
+  saveProfileNow(true);
+});
+if ($('hide-lastseen-settings-toggle')) $('hide-lastseen-settings-toggle').addEventListener('change', function() {
+  markProfileDirty();
+  var enabled = $('hide-lastseen-settings-toggle').checked;
+  // Keep the old profile-panel toggle in sync
+  if ($('hide-lastseen-toggle')) $('hide-lastseen-toggle').checked = enabled;
+  toast(enabled ? 'Your last online time is now hidden. Others will only see you as Offline.' : 'Your last online time is now visible to others.', enabled ? 'success' : 'info');
   saveProfileNow(true);
 });
 
@@ -13473,7 +13493,7 @@ document.querySelectorAll('#profile-panel .status-option').forEach(opt => {
 // that resolves to true on success (and clears profileDirty) or false on failure.
 async function saveProfileNow(silent) {
   const bio = $('bio-input').value.trim();
-  const hideLastSeen = $('hide-lastseen-toggle').checked;
+  const hideLastSeen = $('hide-lastseen-settings-toggle') ? $('hide-lastseen-settings-toggle').checked : ($('hide-lastseen-toggle') ? $('hide-lastseen-toggle').checked : false);
   const pronouns = $('pronouns-input') ? $('pronouns-input').value.trim() : '';
   const statusMessage = $('statusmsg-input') ? $('statusmsg-input').value.trim() : '';
   const showOnlineStatus = $('show-online-toggle') ? $('show-online-toggle').checked : true;
