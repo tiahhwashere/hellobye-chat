@@ -669,7 +669,35 @@ setInterval(() => {
   if (changed) { saveDB(); emitUsersList(); }
 }, 60 * 1000);
 
-function publicUser(u) {
+// Apply "Hide profile from others" privacy to an already-built public user
+// object. When the target user has hideProfile enabled, every viewer EXCEPT
+// the user themselves sees only their visual identity (avatar, banner,
+// username, display name, status dot). Sensitive details — bio, status
+// message, pronouns, location, website, and last-seen text — are stripped.
+//
+// IMPORTANT: this works for EVERY user, not just the panel owner. There is no
+// owner/admin bypass; "hide profile from others" means exactly that.
+// `viewerUsername` is optional. When omitted (e.g. broadcast lists that go to
+// many viewers), sensitive fields are always stripped for hidden profiles —
+// each client still receives its own full profile via /api/me.
+function applyProfileHiding(pub, u, viewerUsername) {
+  if (!pub || !u || !u.hideProfile) return pub;
+  // The user themselves always see their own full profile.
+  if (viewerUsername && String(viewerUsername).toLowerCase() === String(u.username).toLowerCase()) {
+    return pub;
+  }
+  pub.bio = '';
+  pub.statusMessage = '';
+  pub.pronouns = '';
+  pub.location = '';
+  pub.website = '';
+  // Keep the status dot (online/offline) but hide the "last seen" text.
+  pub.hideLastSeen = true;
+  pub.profileHidden = true;
+  return pub;
+}
+
+function publicUser(u, viewerUsername) {
   if (!u) return null;
   // Disabled accounts present as a generic "deleted user" placeholder so
   // their real profile (avatar, bio, etc.) is hidden while in the grace
@@ -706,7 +734,7 @@ function publicUser(u) {
       hideProfile: !!u.hideProfile,
     };
   }
-  return {
+  const pub = {
     username: u.username,
     displayName: u.displayName || u.username,
     avatar: u.avatar || null,
@@ -735,9 +763,12 @@ function publicUser(u) {
     disabled: false,
     hideProfile: !!u.hideProfile,
   };
+  return applyProfileHiding(pub, u, viewerUsername);
 }
 function fullUser(u) {
-  const pub = publicUser(u);
+  // Pass the user's own username as the viewer so "hide profile from others"
+  // never redacts the user's own profile/settings (sourced via /api/me).
+  const pub = publicUser(u, u && u.username);
   pub.email = u.email || '';
   pub.compactMode = !!u.compactMode;
   pub.notificationsEnabled = u.notificationsEnabled !== false;
@@ -1185,7 +1216,10 @@ app.get('/api/search-messages', authMiddleware, (req, res) => {
 
 // ---------- Users ----------
 app.get('/api/users', authMiddleware, (req, res) => {
-  const list = Object.values(db.users).map(u => publicUser(u));
+  // Viewer-aware: hidden profiles are redacted for everyone except the user
+  // themselves (who receives their full data via /api/me anyway).
+  const viewer = req.user && req.user.username;
+  const list = Object.values(db.users).map(u => publicUser(u, viewer));
   res.json({ users: list });
 });
 
@@ -1200,27 +1234,14 @@ app.get('/api/user/:username', authMiddleware, (req, res) => {
   const me = req.user;
   const myFriends = db.friends[me.username] || { friends: [], sent: [], received: [] };
   const isMe = (me.username === u.username);
-  // Profile hiding: when the viewed user has hideProfile enabled, only the
-  // owner (@lore) and the user themselves see the full profile. Everyone else
-  // gets the banner/avatar/gif (visual identity) but their bio, status,
-  // pronouns, and extra details are stripped, with a profileHidden flag so
-  // the client can show a professional "this profile is hidden" notice.
-  const viewerIsOwner = isOwnerUser(me);
-  const profileHidden = !!u.hideProfile && !isMe && !viewerIsOwner;
-  let viewUser = publicUser(u);
-  if (profileHidden) {
-    viewUser = {
-      ...viewUser,
-      bio: '',
-      statusMessage: '',
-      pronouns: '',
-      location: '',
-      website: '',
-      // Keep the status dot (online/offline) but hide the "last seen" text
-      hideLastSeen: true,
-      profileHidden: true,
-    };
-  }
+  // "Hide profile from others" works for EVERY user: when the viewed user has
+  // hideProfile enabled, every viewer EXCEPT the user themselves sees only the
+  // visual identity (avatar/banner/username/status dot) — bio, status message,
+  // pronouns, location, website and last-seen text are stripped, with a
+  // profileHidden flag so the client can show a "this profile is private"
+  // notice. There is NO owner/admin bypass; hiding means hidden from everyone.
+  const profileHidden = !!u.hideProfile && !isMe;
+  const viewUser = publicUser(u, me.username);
   res.json({
     user: viewUser,
     isMe,
@@ -3020,7 +3041,8 @@ function broadcastProfile(username) {
     });
     return;
   }
-  io.emit('profile-updated', {
+  // Build the FULL profile payload (the user's true current state).
+  const fullPayload = {
     username: u.username,
     status: u.status || 'online',
     avatar: u.avatar,
@@ -3040,7 +3062,20 @@ function broadcastProfile(username) {
     banned: !!u.banned,
     disabled: false,
     hideProfile: !!u.hideProfile,
-  });
+  };
+  // "Hide profile from others": every OTHER viewer receives a redacted
+  // payload (sensitive details stripped) when hideProfile is on. The user
+  // themselves always receives their own full profile via their private
+  // room so their local state (bio editor, etc.) stays accurate. There is
+  // no owner/admin bypass — hiding means hidden from all other viewers.
+  if (u.hideProfile) {
+    // Full profile to the user themselves (their own sockets).
+    io.to(`user:${u.username}`).emit('profile-updated', fullPayload);
+    // Redacted profile to everyone else.
+    io.except(`user:${u.username}`).emit('profile-updated', applyProfileHiding({ ...fullPayload }, u, null));
+  } else {
+    io.emit('profile-updated', fullPayload);
+  }
 }
 
 function emitUsersList() {

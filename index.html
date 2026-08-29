@@ -8359,10 +8359,11 @@ function connectSocket() {
       if (pvUser) {
         updateProfileViewDMButton(pvUser);
         // Respect profile hiding: if the viewed user has hideProfile on and
-        // the current viewer is not the owner or self, only update the DM
-        // button — don't reveal status message bubble or last-seen text.
-        const viewerIsOwner = !!(currentUser && (currentUser.isOwner || currentUser.username === 'lore'));
-        const pvHidden = !!pvUser.hideProfile && currentUser && currentUser.username !== pvUser.username && !viewerIsOwner;
+        // the current viewer is not that user themselves, only update the DM
+        // button — don't reveal the status message bubble or last-seen text.
+        // This applies to EVERYONE (including the panel owner); "hide profile
+        // from others" means hidden from all other viewers with no bypass.
+        const pvHidden = !!pvUser.hideProfile && currentUser && currentUser.username !== pvUser.username;
         if (!pvHidden) {
           // Live-update the display name + inline status message bubble beside it
           const showPvNameSm = pvUser.statusMessage && (pvUser.status === 'online' || pvUser.status === 'idle' || pvUser.status === 'dnd');
