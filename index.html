@@ -3896,7 +3896,7 @@ body.no-anim .friend-item { animation: none !important; }
   position: fixed;
   bottom: 64px;
   left: 14px;
-  width: 300px;
+  width: 340px;
   max-height: min(70vh, 560px);
   background: var(--bg-dark);
   border: 1px solid var(--border-light);
@@ -12388,6 +12388,7 @@ function initMiniAccentPresets() {
     el.addEventListener('click', () => {
       saveProfileColor(color);
       applyProfileColor();
+      applyMiniProfileColor();
       syncProfileColorToServer(color);
       const picker = $('mini-accent-picker');
       if (picker) picker.value = color;
@@ -12409,6 +12410,8 @@ function openMiniProfile() {
   $('profile-panel').classList.remove('show');
   $('settings-panel').classList.remove('show');
   updateMiniProfile();
+  // Apply the saved panel theme color to the entire mini popover.
+  applyMiniProfileColor();
   captureSavedProfileImages();
   $('mini-profile-popover').classList.add('show');
 }
@@ -12534,6 +12537,7 @@ function initMiniProfileListeners() {
   if (picker) picker.addEventListener('input', (e) => {
     saveProfileColor(e.target.value);
     applyProfileColor();
+    applyMiniProfileColor();
     syncProfileColorToServer(e.target.value);
     const hexEl = $('mini-accent-hex');
     if (hexEl) hexEl.textContent = e.target.value;
@@ -12546,6 +12550,7 @@ function initMiniProfileListeners() {
   if (revertBtn) revertBtn.addEventListener('click', () => {
     saveProfileColor(null);
     applyProfileColor();
+    applyMiniProfileColor();
     syncProfileColorToServer(null);
     if (picker) picker.value = '#4a9eff';
     const hexEl = $('mini-accent-hex');
@@ -15401,6 +15406,232 @@ function applyProfileColor() {
     p.classList.toggle('active', p.dataset.color === (color || ''));
   });
 }
+
+// ============================================================
+// applyMiniProfileColor()
+// Applies the saved Panel Theme Color to the ENTIRE mini profile
+// popover — background, text, sections, inputs, toggles, footer —
+// so the whole mini UI is tinted the chosen color. Mirrors the
+// approach used by applyProfileColor() for the full profile panel
+// but targets #mini-profile-popover. Called whenever the color
+// changes (picker, preset, reset) and when the popover opens.
+// ============================================================
+function applyMiniProfileColor() {
+  const color = getProfileColor();
+  const pop = $('mini-profile-popover');
+  if (!pop) return;
+
+  // Keep the mini hex readout in sync.
+  const miniHexEl = $('mini-accent-hex');
+  if (miniHexEl) miniHexEl.textContent = color || '#4a9eff';
+
+  // All text-bearing selectors inside the mini popover.
+  const textSelector = [
+    'h3', 'h4', 'p', 'label', 'span',
+    '.mini-profile-section-title',
+    '.mini-profile-name', '.mini-profile-statustext',
+    '.status-option-label', '.bio-counter',
+    '.mini-toggle-row', '.mini-accent-hex',
+    '.mini-open-full-btn', '.mini-save-btn .save-btn-text',
+    '.mini-accent-revert', '.mini-dirty-indicator'
+  ].join(', ');
+
+  if (color) {
+    // Set accent CSS variables on the popover scope so toggles,
+    // active status options, etc. use the chosen color.
+    pop.style.setProperty('--accent', color);
+    pop.style.setProperty('--accent-hover', lighten(color, 0.12));
+    pop.style.setProperty('--accent-dim', darken(color, 0.3));
+    pop.style.setProperty('--accent-light', lighten(color, 0.3));
+    const { r, g, b } = hexToRgb(color);
+    pop.style.setProperty('--accent-glow', 'rgba(' + r + ', ' + g + ', ' + b + ', 0.15)');
+    pop.style.setProperty('--accent-text', '#ffffff');
+
+    // Fill the entire popover background with the chosen color.
+    pop.style.setProperty('background', color, 'important');
+    pop.style.setProperty('border-color', color, 'important');
+
+    // Force ALL text inside the popover to white.
+    pop.querySelectorAll(textSelector).forEach(el => {
+      el.style.setProperty('color', '#ffffff', 'important');
+    });
+
+    // Keep clickable links blue (if any).
+    pop.querySelectorAll('a').forEach(el => {
+      el.style.setProperty('color', '#6fb5ff', 'important');
+    });
+
+    // Inner cards / sections get a semi-transparent dark overlay so
+    // they remain distinguishable from the colored background while
+    // text stays white. Also the status options.
+    pop.querySelectorAll('.mini-profile-header, .mini-profile-section, .status-option').forEach(el => {
+      el.style.setProperty('background', 'rgba(0,0,0,0.18)', 'important');
+      el.style.setProperty('border-color', 'rgba(255,255,255,0.15)', 'important');
+    });
+
+    // The scroll area itself stays the color background (no extra bg).
+    const scroll = pop.querySelector('.mini-profile-scroll');
+    if (scroll) scroll.style.setProperty('background', 'transparent', 'important');
+
+    // Inputs and textareas keep a dark translucent background so they
+    // remain usable (white text on dark input field).
+    pop.querySelectorAll('input[type="text"], textarea, select').forEach(el => {
+      el.style.setProperty('background', 'rgba(0,0,0,0.3)', 'important');
+      el.style.setProperty('color', '#ffffff', 'important');
+      el.style.setProperty('border-color', 'rgba(255,255,255,0.2)', 'important');
+    });
+
+    // The color picker swatch border — lighter.
+    const pickerSwatch = pop.querySelector('.accent-swatch-large');
+    if (pickerSwatch) {
+      pickerSwatch.style.setProperty('border-color', 'rgba(255,255,255,0.3)', 'important');
+    }
+
+    // The footer bar gets a slightly darker shade of the chosen color.
+    const footer = pop.querySelector('.mini-profile-footer');
+    if (footer) {
+      footer.style.setProperty('background', darken(color, 0.18), 'important');
+      footer.style.setProperty('border-color', 'rgba(255,255,255,0.1)', 'important');
+    }
+
+    // The header area gets a subtle dark overlay for separation.
+    const header = pop.querySelector('.mini-profile-header');
+    if (header) {
+      header.style.setProperty('border-color', 'rgba(255,255,255,0.12)', 'important');
+    }
+
+    // Toggle slider track stays visible (dark).
+    pop.querySelectorAll('.toggle-slider').forEach(el => {
+      el.style.setProperty('background', 'rgba(0,0,0,0.3)', 'important');
+    });
+
+    // Bio counter stays a lighter white.
+    pop.querySelectorAll('.bio-counter').forEach(el => {
+      el.style.setProperty('color', 'rgba(255,255,255,0.7)', 'important');
+    });
+
+    // Section titles stay a lighter white.
+    pop.querySelectorAll('.mini-profile-section-title').forEach(el => {
+      el.style.setProperty('color', 'rgba(255,255,255,0.65)', 'important');
+    });
+
+    // Status text stays a lighter white (overrides the status-color CSS).
+    pop.querySelectorAll('.mini-profile-statustext').forEach(el => {
+      el.style.setProperty('color', 'rgba(255,255,255,0.8)', 'important');
+    });
+
+    // "Open Full Profile" button — dark translucent for contrast.
+    const fullBtn = pop.querySelector('.mini-open-full-btn');
+    if (fullBtn) {
+      fullBtn.style.setProperty('background', 'rgba(0,0,0,0.25)', 'important');
+      fullBtn.style.setProperty('border-color', 'rgba(255,255,255,0.2)', 'important');
+      fullBtn.style.setProperty('color', '#ffffff', 'important');
+    }
+
+    // "Reset" accent button — dark translucent.
+    pop.querySelectorAll('.mini-accent-revert').forEach(el => {
+      el.style.setProperty('background', 'rgba(0,0,0,0.25)', 'important');
+      el.style.setProperty('border-color', 'rgba(255,255,255,0.15)', 'important');
+      el.style.setProperty('color', 'rgba(255,255,255,0.8)', 'important');
+    });
+
+    // Accent preset swatches get a subtle ring.
+    pop.querySelectorAll('#mini-accent-presets .accent-preset').forEach(el => {
+      el.style.setProperty('border-color', 'rgba(255,255,255,0.25)', 'important');
+    });
+
+    // The arrow gets the same color.
+    const arrow = pop.querySelector('.mini-profile-arrow');
+    if (arrow) {
+      arrow.style.setProperty('background', color, 'important');
+      arrow.style.setProperty('border-color', color, 'important');
+    }
+
+    // Status option dots — keep their icon backgrounds intact (they use
+    // background-image url, not background-color), so no override needed.
+
+    // Dirty indicator — amber stays amber for visibility, but text white.
+    const dirtyInd = pop.querySelector('.mini-dirty-indicator');
+    if (dirtyInd) {
+      dirtyInd.style.setProperty('color', '#ffffff', 'important');
+    }
+  } else {
+    // Reset everything to defaults — remove all inline styles we applied.
+    pop.style.removeProperty('--accent');
+    pop.style.removeProperty('--accent-hover');
+    pop.style.removeProperty('--accent-dim');
+    pop.style.removeProperty('--accent-light');
+    pop.style.removeProperty('--accent-glow');
+    pop.style.removeProperty('--accent-text');
+    pop.style.removeProperty('background');
+    pop.style.removeProperty('border-color');
+
+    pop.querySelectorAll(textSelector).forEach(el => {
+      el.style.removeProperty('color');
+    });
+    pop.querySelectorAll('a').forEach(el => {
+      el.style.removeProperty('color');
+    });
+    pop.querySelectorAll('.mini-profile-header, .mini-profile-section, .status-option').forEach(el => {
+      el.style.removeProperty('background');
+      el.style.removeProperty('border-color');
+    });
+    const scroll = pop.querySelector('.mini-profile-scroll');
+    if (scroll) scroll.style.removeProperty('background');
+    pop.querySelectorAll('input[type="text"], textarea, select').forEach(el => {
+      el.style.removeProperty('background');
+      el.style.removeProperty('color');
+      el.style.removeProperty('border-color');
+    });
+    const pickerSwatch = pop.querySelector('.accent-swatch-large');
+    if (pickerSwatch) pickerSwatch.style.removeProperty('border-color');
+    const footer = pop.querySelector('.mini-profile-footer');
+    if (footer) {
+      footer.style.removeProperty('background');
+      footer.style.removeProperty('border-color');
+    }
+    const header = pop.querySelector('.mini-profile-header');
+    if (header) header.style.removeProperty('border-color');
+    pop.querySelectorAll('.toggle-slider').forEach(el => {
+      el.style.removeProperty('background');
+    });
+    pop.querySelectorAll('.bio-counter').forEach(el => {
+      el.style.removeProperty('color');
+    });
+    pop.querySelectorAll('.mini-profile-section-title').forEach(el => {
+      el.style.removeProperty('color');
+    });
+    pop.querySelectorAll('.mini-profile-statustext').forEach(el => {
+      el.style.removeProperty('color');
+    });
+    const fullBtn = pop.querySelector('.mini-open-full-btn');
+    if (fullBtn) {
+      fullBtn.style.removeProperty('background');
+      fullBtn.style.removeProperty('border-color');
+      fullBtn.style.removeProperty('color');
+    }
+    pop.querySelectorAll('.mini-accent-revert').forEach(el => {
+      el.style.removeProperty('background');
+      el.style.removeProperty('border-color');
+      el.style.removeProperty('color');
+    });
+    pop.querySelectorAll('#mini-accent-presets .accent-preset').forEach(el => {
+      el.style.removeProperty('border-color');
+    });
+    const arrow = pop.querySelector('.mini-profile-arrow');
+    if (arrow) {
+      arrow.style.removeProperty('background');
+      arrow.style.removeProperty('border-color');
+    }
+    const dirtyInd = pop.querySelector('.mini-dirty-indicator');
+    if (dirtyInd) dirtyInd.style.removeProperty('color');
+  }
+
+  // Sync the mini accent preset active states.
+  document.querySelectorAll('#mini-accent-presets .accent-preset').forEach(p => {
+    p.classList.toggle('active', p.dataset.color === (color || ''));
+  });
+}
 function initProfileAccentPresets() {
   const container = $('profile-accent-presets');
   if (!container) return;
@@ -15414,6 +15645,7 @@ function initProfileAccentPresets() {
     el.addEventListener('click', () => {
       saveProfileColor(color);
       applyProfileColor();
+      applyMiniProfileColor();
       syncProfileColorToServer(color);
       toast('Profile panel color has been updated.', 'success');
     });
@@ -15424,6 +15656,7 @@ if ($('profile-accent-picker')) {
   $('profile-accent-picker').addEventListener('input', (e) => {
     saveProfileColor(e.target.value);
     applyProfileColor();
+    applyMiniProfileColor();
     syncProfileColorToServer(e.target.value);
   });
 }
@@ -15431,6 +15664,7 @@ if ($('profile-accent-revert')) {
   $('profile-accent-revert').addEventListener('click', () => {
     saveProfileColor(null);
     applyProfileColor();
+    applyMiniProfileColor();
     syncProfileColorToServer(null);
     toast('Profile panel color has been reverted to the default.', 'success');
   });
@@ -15445,6 +15679,7 @@ function applyClientSettings() {
   initProfileAccentPresets();
   initMiniProfileListeners();
   applyProfileColor();
+  applyMiniProfileColor();
   // Restore the saved members-list background for this user (re-applied after login).
   if (typeof restoreMembersBg === 'function') restoreMembersBg();
 }
