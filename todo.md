@@ -1,38 +1,32 @@
-# Round 24 (Redo) — Revert image zoom + admin overhaul, keep group chat + ALL prior features
+# Round 25 Todo — Fix "Unable to load this profile" + ALL broken settings/UIs/features/backgrounds
 
-## Problem
-The first attempt reverted to Round 22 base, which lost Round 23's working state.
-The user reported the whole site broke (usernames, backgrounds, etc. not showing).
-Fix: start from the complete working Round 23 state, then surgically remove ONLY
-the image-zoom and admin-overhaul changes, keeping group chat + everything else.
+## Root Cause Analysis
+- [x] Investigate "Unable to load this profile" error on live site
+- [x] Discover JS crash: `TypeError: Cannot read properties of null (reading 'on')` at line 10854
+- [x] Identify root cause: 6 group socket listeners at TOP LEVEL of script, but `socket` is null until `connectSocket()` runs after login
+- [x] Confirm this crash broke ALL features (profiles, settings, backgrounds, UIs) by stopping JS execution at parse-time
 
-## Task 1: Restore complete Round 23 working state (e53c4be)
-- [x] git checkout e53c4be -- index.html server.js (full working state restored)
+## Fixes Applied
+- [x] Move 6 group socket listeners (group-message, group-updated, group-removed, group-edited, group-deleted, group-typing) from top-level INTO `connectSocket()` function
+- [x] Verify JS syntax passes (node --check)
+- [x] Verify server.js syntax + boot test
+- [x] Fix duplicate group messages: add dedup check (by message ID) in group-message listener
+- [x] Fix duplicate group messages: add dedup check in doSendGroup ack callback
+- [x] Fix duplicate group messages: add dedup check in sendGroupWithFile ack callback
 
-## Task 2: Revert ONLY the image-zoom feature (back to Round 22 lightbox)
-- [x] Revert .image-lightbox-stage CSS (zoom inner img, not the stage box)
-- [x] Revert renderLightbox() JS (img.classList, not stage.classList)
-- [x] Revert attachLightboxHandlers() JS (click img to zoom, remove +/- keyboard)
+## Deploy & Verify
+- [x] Commit and push all fixes (commits 741e961, f8a94bf, b77a73b)
+- [x] Verify Render deploys go live
+- [x] Test live site: no JS errors, all functions defined (connectSocket, openProfileView, renderMessages, init, sendGroupMessage)
+- [x] Test login/registration: works, full chat UI renders with user list
+- [x] Test profile view: "Unable to load this profile" error GONE — profile modal shows avatar, name, badges, ID, bio, pronouns, member since
+- [x] Test settings panel: works — banner, profile pic, status, about me, privacy, pronouns, panel theme color
+- [x] Test background feature: works — upload/URL/clear, image scale, color overlay, apply
+- [x] Test group chat: creation works, member search/add works, messaging works, no duplicate messages
+- [x] Test DMs/Messages view: works — empty state, group chat listed
 
-## Task 3: Revert ONLY the admin UI overhaul (back to Round 22 admin styling)
-- [x] Replace entire admin CSS block with Round 22 version
-- [x] Revert admin-broadcast-preview inline style
-- [x] Revert admin whitelist paragraph inline style
-- [x] Revert 10 admin description paragraph styles
-- [x] Revert custom role card render (admin-custom-role-item, not -card)
-- [x] Revert Live preview label style
-
-## Task 4: Confirm group chat is intact (untouched from Round 23)
-- [x] All group HTML elements present (modals, overlay, plus button)
-- [x] All group JS functions present
-- [x] All group server endpoints + socket handlers present
-
-## Task 5: Verify no other features were lost
-- [x] Diff vs Round 22 confirms ONLY group chat added + image-zoom/admin reverted
-- [x] Background images, usernames, profiles, avatars all present
-- [x] server.js syntax OK, JS parse OK, boot test OK
-
-## Task 6: Deploy
-- [x] Commit ec55a51 + push
-- [x] Render deploy LIVE
-- [x] Live site verified: group chat present, image-zoom/admin reverted, core features intact
+## Summary
+Root cause was a single bug: group chat socket listeners at the top level of the script
+crashed because `socket` was null. This cascading crash broke every feature. Moving the
+listeners inside connectSocket() fixed everything. Also fixed a duplicate message issue
+in group chat as a bonus.
