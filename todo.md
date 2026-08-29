@@ -1,10 +1,11 @@
-# Round 49 Todo
+# Round 50 Todo
 
 ## Tasks
-- [x] Task 1: Investigate existing "Hide last online" (hideLastSeen) implementation in server.js + index.html
-- [x] Task 2: Find the "Data & Privacy" section in full Account Settings profile panel
-- [x] Task 3: Add "Hide last online" toggle to the Data & Privacy section (HTML + load + dirty + save)
-- [x] Task 4: Syntax-verify JS (node --check) for server.js + inline JS
-- [x] Task 5: Boot-test server (HTTP 200)
-- [ ] Task 6: Commit + push to GitHub master
-- [ ] Task 7: Verify Render auto-deploy + live URL matches
+- [x] Task 1: Investigate current "Hide profile from others" implementation (mini, full panel, Data & Privacy, server, renderProfileView)
+- [x] Task 2: Remove "Hide profile from others" toggle from mini profile only (HTML + load + dirty + save references)
+- [x] Task 3: Verify server-side hideProfile logic works for all users (publicUser, /api/user/:username, /api/profile, broadcastProfile)
+- [x] Task 4: Verify client-side renderProfileView hidden state works for all users + fix live-update edge case
+- [x] Task 5: Syntax-verify JS (node --check) for server.js + inline JS
+- [x] Task 6: Boot-test server (HTTP 200)
+- [ ] Task 7: Commit + push to GitHub master
+- [ ] Task 8: Verify Render auto-deploy + live URL matches
