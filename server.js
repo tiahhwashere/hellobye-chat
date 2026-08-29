@@ -809,6 +809,9 @@ app.post('/api/register', (req, res) => {
   const sid = genId();
   db.sessions[sid] = un;
   saveDB();
+  // Notify any open admin panels that the account list changed (new signup)
+  // so the Account Credentials & Sessions list refreshes in real time.
+  try { if (typeof io !== 'undefined' && io && io.emit) io.emit('admin-data-changed', { reason: 'register', username: un }); } catch (e) {}
   res.json({ sessionId: sid, user: fullUser(user) });
 });
 
@@ -1820,6 +1823,9 @@ app.post('/api/settings/delete-account', authMiddleware, (req, res) => {
     }
   }
   saveDB();
+  // Notify any open admin panels that the account list changed (account
+  // deleted) so the Account Credentials & Sessions list updates in real time.
+  try { if (typeof io !== 'undefined' && io && io.emit) io.emit('admin-data-changed', { reason: 'delete-account', username: un }); } catch (e) {}
   res.json({ success: true });
 });
 

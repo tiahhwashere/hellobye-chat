@@ -690,7 +690,7 @@ body.loading-session #chat-app.active::after { content: none; }
    ============================================ */
 .messages-container {
   flex: 1; overflow-y: auto; padding: 22px 28px;
-  display: flex; flex-direction: column; gap: 5px;
+  display: flex; flex-direction: column; gap: 6px;
   min-height: 0; -webkit-overflow-scrolling: touch; overscroll-behavior: contain;
 }
 .empty-state {
@@ -735,26 +735,27 @@ body.no-anim .friend-item { animation: none !important; }
 
 .message-sender {
   font-size: 13px; font-weight: 500; color: var(--text-secondary);
-  margin-bottom: 5px; padding: 0 2px;
+  margin-bottom: 4px; padding: 0 2px;
   display: flex; align-items: center; gap: 6px;
 }
-.sender-displayname { color: var(--text-primary); font-weight: 600; font-size: 14.5px; }
-.sender-handle { color: var(--text-primary); font-size: 13px; opacity: 0.7; font-weight: 500; }
+.sender-displayname { color: var(--text-primary); font-weight: 600; font-size: 14px; }
+.sender-handle { color: var(--text-secondary); font-size: 12.5px; opacity: 0.65; font-weight: 500; }
 
 .message-bubble {
-  background: var(--bg-medium); padding: 11px 15px;
-  border-radius: 16px;
-  font-size: 16px; line-height: 1.5; word-break: break-word; position: relative;
+  background: var(--bg-medium); padding: 10px 14px;
+  border-radius: 16px 16px 16px 4px;
+  font-size: 15px; line-height: 1.5; word-break: break-word; position: relative;
   max-width: 100%;
   border: 1px solid var(--border);
   transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
 }
-.message-bubble:hover { border-color: var(--border-light); box-shadow: 0 2px 10px rgba(0,0,0,0.14); }
+.message-bubble:hover { border-color: var(--border-light); box-shadow: 0 2px 12px rgba(0,0,0,0.16); }
 .message-group.own .message-bubble {
   background: var(--accent-dim); color: #fff;
   border-color: rgba(74,158,255,0.18);
+  border-radius: 16px 16px 4px 16px;
 }
-.message-group.own .message-bubble:hover { border-color: rgba(74,158,255,0.34); box-shadow: 0 2px 12px rgba(74,158,255,0.14); }
+.message-group.own .message-bubble:hover { border-color: rgba(74,158,255,0.34); box-shadow: 0 2px 14px rgba(74,158,255,0.16); }
 /* Media-only bubbles: no text means no need for a colored chat background.
    This removes the accent/blue box around images, videos & GIFs so media
    sits cleanly on the chat surface with a subtle border instead. */
@@ -1037,9 +1038,8 @@ body.no-anim .friend-item { animation: none !important; }
   letter-spacing: 0.2px; box-shadow: 0 1px 2px rgba(0,0,0,0.18);
 }
 .twosv-btn::before {
-  content: ''; width: 15px; height: 15px; flex-shrink: 0;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6L9 17l-5-5'/%3E%3C/svg%3E");
-  background-size: contain; background-repeat: no-repeat; opacity: 0.9;
+  /* Checkmark icon removed \u2014 the button label ("Verify & Sign In") is enough. */
+  content: none;
 }
 .twosv-btn:hover:not(:disabled) { background: var(--accent-hover); box-shadow: 0 2px 8px rgba(74,158,255,0.24); }
 .twosv-btn:active:not(:disabled) { transform: translateY(1px); }
@@ -1230,38 +1230,49 @@ body.no-anim .friend-item { animation: none !important; }
 .message-file-attachment:hover .file-dl-icon { color: var(--accent); }
 
 .message-actions {
-  display: flex; gap: 5px; margin-top: 7px;
-  opacity: 0; transition: opacity 0.15s ease;
+  display: flex; gap: 4px; margin-top: 6px;
+  opacity: 0; transition: opacity 0.16s ease;
 }
 .message-bubble:hover .message-actions { opacity: 1; }
 .msg-action-btn {
   padding: 4px 10px; font-size: 11px; font-weight: 600;
-  background: rgba(255,255,255,0.06); color: var(--text-secondary);
-  border-radius: 6px; transition: var(--transition); border: 1px solid transparent;
+  background: rgba(255,255,255,0.05); color: var(--text-secondary);
+  border-radius: 7px; transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+  border: 1px solid rgba(255,255,255,0.06);
+  letter-spacing: 0.2px;
 }
-.message-group.own .msg-action-btn { background: rgba(255,255,255,0.12); color: #fff; }
-.msg-action-btn:hover { background: rgba(255,255,255,0.16); border-color: var(--border-light); }
+.message-group.own .msg-action-btn { background: rgba(255,255,255,0.1); color: #fff; border-color: rgba(255,255,255,0.1); }
+.msg-action-btn:hover { background: rgba(255,255,255,0.14); border-color: var(--border-light); }
+.msg-action-btn:active { transform: scale(0.96); }
 .msg-action-btn.danger:hover { background: var(--danger); color: #fff; border-color: var(--danger); }
 
 .message-meta {
-  font-size: 11.5px; color: var(--text-muted);
+  font-size: 11px; color: var(--text-muted);
   margin-top: 4px; padding: 0 2px;
   display: flex; gap: 6px; align-items: center;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.2px;
 }
-.message-edited-tag { font-style: italic; opacity: 0.7; font-size: 10.5px; }
+.message-edited-tag { font-style: italic; opacity: 0.65; font-size: 10px; }
 
 .edit-input-wrap { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
 .edit-input {
-  flex: 1; min-width: 150px; padding: 6px 10px;
+  flex: 1; min-width: 150px; padding: 7px 11px;
   background: var(--bg-darker); border: 1px solid var(--border-light);
-  border-radius: 4px; color: var(--text-primary); font-size: 13px;
+  border-radius: 8px; color: var(--text-primary); font-size: 13px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
-.edit-input:focus { outline: none; border-color: var(--accent); }
+.edit-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(74,158,255,0.12); }
 .edit-confirm, .edit-cancel {
-  padding: 5px 11px; font-size: 11px; font-weight: 600; border-radius: 4px;
+  padding: 6px 13px; font-size: 11px; font-weight: 600; border-radius: 8px;
+  transition: transform 0.1s ease, background 0.15s ease;
 }
 .edit-confirm { background: var(--accent-dim); color: #fff; }
+.edit-confirm:hover { filter: brightness(1.08); }
+.edit-confirm:active { transform: scale(0.96); }
 .edit-cancel { background: var(--bg-lighter); color: var(--text-secondary); }
+.edit-cancel:hover { background: var(--bg-hover); }
+.edit-cancel:active { transform: scale(0.96); }
 
 .typing-indicator {
   padding: 4px 24px 8px; font-size: 12px; color: var(--text-muted);
@@ -2483,7 +2494,7 @@ body.no-anim .friend-item { animation: none !important; }
 }
 .profile-v2-idblock .profile-userid {
   font-size: 11px;
-  color: var(--text-muted);
+  color: var(--text-primary);
   font-family: 'SF Mono', 'Monaco', 'Cascadia Code', 'Roboto Mono', monospace;
   letter-spacing: 0.2px;
 }
@@ -2604,8 +2615,8 @@ body.no-anim .friend-item { animation: none !important; }
 .profile-avatar-remove { color: var(--danger); }
 .profile-avatar-remove:hover { background: rgba(216,58,58,0.15); border-color: var(--danger); }
 .profile-username { font-size: 16px; font-weight: 600; margin-bottom: 2px; }
-.profile-username-handle { color: var(--accent); }
-.profile-userid { font-size: 11px; color: var(--text-muted); font-family: monospace; }
+.profile-username-handle { color: var(--text-primary); }
+.profile-userid { font-size: 11px; color: var(--text-primary); font-family: monospace; }
 
 .profile-section {
   padding: 18px 0; border-top: 1px solid var(--border);
@@ -3220,17 +3231,31 @@ body.no-anim .friend-item { animation: none !important; }
 .mini-btn:hover { opacity: 1; }
 
 /* ---- Quick presets row ---- */
-.custom-bg-presets { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border); }
-.bg-preset-row { display: flex; gap: 8px; flex-wrap: wrap; }
-.bg-preset-chip {
-  padding: 7px 13px; border-radius: var(--radius-sm); border: 1px solid var(--border);
-  font-size: 11.5px; font-weight: 600; color: var(--text-muted); cursor: pointer;
-  background: var(--bg-darker); text-shadow: none; transition: var(--transition);
-  min-width: 64px; text-align: center; box-shadow: none;
-  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+.custom-bg-presets { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--border); }
+.custom-bg-label {
+  font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px;
+  color: var(--text-muted); margin-bottom: 10px;
 }
-.bg-preset-chip:hover { background: var(--bg-light); color: var(--text-secondary); border-color: var(--border-light); }
-.bg-preset-chip.active { border-color: var(--accent); color: var(--accent); background: rgba(74,158,255,0.06); }
+.bg-preset-row { display: flex; gap: 9px; flex-wrap: wrap; }
+.bg-preset-chip {
+  position: relative; padding: 0; border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  font-size: 11px; font-weight: 600; color: #fff; cursor: pointer;
+  background: var(--bg-darker); text-shadow: 0 1px 3px rgba(0,0,0,0.6); transition: var(--transition);
+  min-width: 78px; height: 38px; box-shadow: none;
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  overflow: hidden;
+}
+.bg-preset-chip::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(180deg, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.45) 100%);
+  pointer-events: none; transition: var(--transition);
+}
+.bg-preset-chip span, .bg-preset-chip { position: relative; z-index: 1; }
+.bg-preset-chip:hover { border-color: var(--text-muted); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.4); }
+.bg-preset-chip:hover::after { background: linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.55) 100%); }
+.bg-preset-chip.active { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(74,158,255,0.25), 0 4px 12px rgba(0,0,0,0.4); }
+.bg-preset-chip.active::after { background: linear-gradient(180deg, rgba(74,158,255,0.08) 0%, rgba(0,0,0,0.45) 100%); }
 
 .info-row {
   display: flex; justify-content: space-between; align-items: center;
@@ -3355,10 +3380,10 @@ body.no-anim .friend-item { animation: none !important; }
 .dm-header-status.dnd { color: var(--dnd); }
 .dm-messages {
   flex: 1; overflow-y: auto; padding: 26px 24px;
-  display: flex; flex-direction: column; gap: 7px;
+  display: flex; flex-direction: column; gap: 8px;
   min-height: 0; -webkit-overflow-scrolling: touch; overscroll-behavior: contain;
 }
-.dm-messages .message-group { max-width: 90%; }
+.dm-messages .message-group { max-width: 88%; }
 .dm-typing { padding: 2px 20px 6px; font-size: 12px; color: var(--text-muted); font-style: italic; min-height: 18px; flex-shrink: 0; }
 .dm-input-area { padding: 12px 18px 16px; border-top: 1px solid var(--border); background: var(--bg-darker); flex-shrink: 0; }
 .dm-blocked-banner {
@@ -3377,60 +3402,69 @@ body.no-anim .friend-item { animation: none !important; }
 /* ============================================
    IMAGE SCALE MODAL
    ============================================ */
-.image-scale-modal { max-width: 520px; text-align: left; }
+.image-scale-modal { max-width: 540px; text-align: left; }
 #image-scale-modal { z-index: 400 !important; }
-.image-scale-modal h3 { font-size: 16px; margin-bottom: 4px; }
+.image-scale-modal h3 { font-size: 17px; margin-bottom: 4px; font-weight: 600; letter-spacing: -0.2px; }
 .image-scale-preview {
-  margin: 16px 0; display: flex; justify-content: center;
-  background: var(--bg-darkest); border-radius: var(--radius); padding: 16px;
+  margin: 18px 0; display: flex; justify-content: center;
+  background: var(--bg-darkest); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 18px;
 }
 .image-scale-frame {
   position: relative; overflow: hidden; border-radius: var(--radius-sm);
   background: var(--bg-medium); border: 1px solid var(--border);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.25);
 }
 .image-scale-frame.avatar { width: 200px; height: 200px; }
-.image-scale-frame.banner { width: 360px; height: 200px; }
+.image-scale-frame.banner { width: 380px; height: 200px; }
 .image-scale-frame img {
   width: 100%; height: 100%; object-fit: cover;
   transform-origin: center; transition: transform 0.1s;
   cursor: move;
 }
 .image-scale-controls {
-  display: flex; align-items: center; gap: 12px; margin-bottom: 20px;
+  display: flex; align-items: center; gap: 12px; margin-bottom: 18px;
+  padding: 12px 14px; background: var(--bg-darker); border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
 }
-.image-scale-controls label { font-size: 13px; color: var(--text-secondary); }
+.image-scale-controls label { font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.4px; }
 .image-scale-controls input[type=range] {
-  flex: 1; accent-color: var(--accent);
+  flex: 1; accent-color: var(--accent); height: 4px;
 }
-#image-scale-value { font-size: 12px; color: var(--text-muted); min-width: 42px; text-align: right; }
+#image-scale-value { font-size: 12px; font-weight: 600; color: var(--text-primary); min-width: 46px; text-align: right; }
 
 /* Image scale position controls (extra tools) */
 .image-scale-extras {
-  display: flex; gap: 16px; margin-bottom: 16px; flex-wrap: wrap;
+  display: flex; gap: 14px; margin-bottom: 14px; flex-wrap: wrap;
 }
 .image-scale-extras .extra-group {
-  display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 110px;
+  display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 110px;
+  padding: 10px 12px; background: var(--bg-darker); border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
 }
 .image-scale-extras .extra-group label {
-  font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;
+  font-size: 10.5px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;
+  display: flex; justify-content: space-between; align-items: center;
 }
-.image-scale-extras input[type=range] { width: 100%; accent-color: var(--accent); }
-.image-scale-extras .extra-val { font-size: 11px; color: var(--text-secondary); }
+.image-scale-extras input[type=range] { width: 100%; accent-color: var(--accent); height: 4px; }
+.image-scale-extras .extra-val { font-size: 11px; color: var(--text-primary); font-weight: 600; text-transform: none; letter-spacing: 0; }
 .image-scale-rotate-row {
-  display: flex; align-items: center; gap: 8px; margin-bottom: 16px;
+  display: flex; align-items: center; gap: 10px; margin-bottom: 14px;
+  padding: 10px 12px; background: var(--bg-darker); border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
 }
-.image-scale-rotate-row label { font-size: 12px; color: var(--text-secondary); }
+.image-scale-rotate-row label { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.4px; }
 .image-scale-rotate-row select {
-  background: var(--bg-medium); border: 1px solid var(--border); color: var(--text-primary);
-  border-radius: var(--radius-sm); padding: 4px 8px; font-size: 12px;
+  flex: 1; background: var(--bg-medium); border: 1px solid var(--border); color: var(--text-primary);
+  border-radius: var(--radius-sm); padding: 6px 10px; font-size: 12px; cursor: pointer;
 }
-.image-scale-btns { display: flex; gap: 8px; margin-bottom: 16px; }
+.image-scale-btns { display: flex; gap: 8px; margin-bottom: 18px; }
 .image-scale-btns button {
   flex: 1; background: var(--bg-medium); border: 1px solid var(--border);
-  color: var(--text-secondary); border-radius: var(--radius-sm); padding: 6px 10px;
-  font-size: 12px; cursor: pointer; transition: var(--transition);
+  color: var(--text-secondary); border-radius: var(--radius-sm); padding: 8px 12px;
+  font-size: 12px; font-weight: 600; cursor: pointer; transition: var(--transition);
 }
-.image-scale-btns button:hover { background: var(--bg-hover); color: var(--text-primary); }
+.image-scale-btns button:hover { background: var(--bg-hover); color: var(--text-primary); border-color: var(--border-light); }
 
 /* ============================================
    URL INPUT MODAL
@@ -3560,50 +3594,107 @@ body.no-anim .friend-item { animation: none !important; }
 .system-alert-container {
   position: fixed; top: 24px; left: 50%; transform: translateX(-50%);
   z-index: 600; display: flex; flex-direction: column; gap: 10px; align-items: center;
-  width: min(560px, 92vw); pointer-events: none;
+  width: min(520px, 92vw); pointer-events: none;
 }
 .system-alert {
   pointer-events: auto;
   width: 100%; box-sizing: border-box;
-  padding: 14px 18px 14px 16px;
-  background: rgba(18, 20, 24, 0.82);
-  border: 1px solid rgba(255,255,255,0.08);
+  padding: 14px 16px 14px 18px;
+  background: #16181c;
+  border: 1px solid var(--border-light);
   border-left: 3px solid var(--accent);
-  border-radius: 14px;
+  border-radius: 10px;
   color: var(--text-primary);
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.45);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.4);
   display: flex; gap: 12px; align-items: flex-start;
-  animation: alertIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-  backdrop-filter: blur(20px) saturate(1.6); -webkit-backdrop-filter: blur(20px) saturate(1.6);
+  animation: alertIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .system-alert.fade-out { animation: alertFadeOut 0.4s ease forwards; }
 @keyframes alertIn {
-  from { opacity: 0; transform: translateY(-16px) scale(0.97); }
-  to   { opacity: 1; transform: translateY(0) scale(1); }
+  from { opacity: 0; transform: translateY(-12px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 @keyframes alertFadeOut {
-  from { opacity: 1; transform: translateY(0) scale(1); }
-  to   { opacity: 0; transform: translateY(-16px) scale(0.97); }
+  from { opacity: 1; transform: translateY(0); }
+  to   { opacity: 0; transform: translateY(-12px); }
 }
 .system-alert-body { flex: 1; min-width: 0; }
 .system-alert-label {
-  font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px;
-  color: var(--accent); margin-bottom: 4px;
-  display: flex; align-items: center; gap: 5px;
+  font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.7px;
+  color: var(--accent); margin-bottom: 5px;
+  display: flex; align-items: center; gap: 6px;
 }
 .system-alert-label::before {
-  content: ''; display: inline-block; width: 14px; height: 14px; flex-shrink: 0;
+  content: ''; display: inline-block; width: 13px; height: 13px; flex-shrink: 0;
   background: var(--accent); -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.5'><path d='M3 11l18-5v12L3 14v-3z'/><path d='M11.6 16.8a3 3 0 11-5.8-1.6'/></svg>") center/contain no-repeat;
   mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.5'><path d='M3 11l18-5v12L3 14v-3z'/><path d='M11.6 16.8a3 3 0 11-5.8-1.6'/></svg>") center/contain no-repeat;
 }
-.system-alert-text { font-size: 14px; font-weight: 500; line-height: 1.45; word-break: break-word; color: var(--text-primary); }
-.system-alert-from { font-size: 11px; color: var(--text-muted); margin-top: 5px; font-weight: 400; }
+.system-alert-text { font-size: 14px; font-weight: 500; line-height: 1.5; word-break: break-word; color: var(--text-primary); }
+.system-alert-from { font-size: 11px; color: var(--text-muted); margin-top: 6px; font-weight: 400; }
 .system-alert-close {
-  flex-shrink: 0; width: 24px; height: 24px; border-radius: 6px; border: none; cursor: pointer;
-  background: transparent; color: var(--text-muted); font-size: 16px; line-height: 1;
-  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; width: 26px; height: 26px; border-radius: 6px; border: none; cursor: pointer;
+  background: transparent; color: var(--text-muted); font-size: 18px; line-height: 1;
+  display: flex; align-items: center; justify-content: center; transition: var(--transition);
 }
-.system-alert-close:hover { background: var(--bg-darker); color: var(--text-primary); }
+.system-alert-close:hover { background: var(--bg-hover); color: var(--text-primary); }
+
+/* ===== Image Lightbox (in-app zoom, no redirect) ===== */
+.image-lightbox {
+  position: fixed; inset: 0; z-index: 9000;
+  display: none; align-items: center; justify-content: center;
+  background: rgba(6, 7, 9, 0.92);
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  animation: lightboxIn 0.2s ease;
+}
+.image-lightbox.show { display: flex; }
+@keyframes lightboxIn { from { opacity: 0; } to { opacity: 1; } }
+.image-lightbox-stage {
+  position: relative; max-width: 92vw; max-height: 86vh;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 8px; overflow: hidden;
+}
+.image-lightbox-stage img {
+  max-width: 92vw; max-height: 86vh; object-fit: contain;
+  border-radius: 6px; box-shadow: 0 20px 70px rgba(0,0,0,0.6);
+  animation: lightboxZoom 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: zoom-in;
+}
+@keyframes lightboxZoom {
+  from { opacity: 0; transform: scale(0.92); }
+  to { opacity: 1; transform: scale(1); }
+}
+.image-lightbox-stage img.zoomed { cursor: zoom-out; transform: scale(2.2); transition: transform 0.18s ease; }
+.image-lightbox-close {
+  position: absolute; top: 18px; right: 22px; z-index: 2;
+  width: 42px; height: 42px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(20,22,24,0.7); color: #fff; font-size: 24px; line-height: 1;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: var(--transition);
+}
+.image-lightbox-close:hover { background: var(--danger); border-color: var(--danger); }
+.image-lightbox-nav {
+  position: absolute; top: 50%; transform: translateY(-50%); z-index: 2;
+  width: 44px; height: 44px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(20,22,24,0.7); color: #fff; font-size: 24px; line-height: 1;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: var(--transition);
+}
+.image-lightbox-nav:hover { background: var(--bg-hover); border-color: var(--border-light); }
+.image-lightbox-nav:disabled { opacity: 0.3; cursor: not-allowed; }
+.image-lightbox-prev { left: 18px; }
+.image-lightbox-next { right: 18px; }
+.image-lightbox-open-external {
+  position: absolute; bottom: 22px; left: 50%; transform: translateX(-50%); z-index: 2;
+  padding: 8px 16px; border-radius: var(--radius-sm); font-size: 12px; font-weight: 600;
+  background: rgba(20,22,24,0.7); color: var(--text-secondary);
+  border: 1px solid rgba(255,255,255,0.12); text-decoration: none; transition: var(--transition);
+}
+.image-lightbox-open-external:hover { background: var(--bg-hover); color: var(--text-primary); border-color: var(--border-light); }
+@media (max-width: 600px) {
+  .image-lightbox-nav { width: 38px; height: 38px; font-size: 20px; }
+  .image-lightbox-prev { left: 10px; }
+  .image-lightbox-next { right: 10px; }
+}
 
 /* ============================================
    RESPONSIVE / MOBILE SUPPORT
@@ -4597,7 +4688,7 @@ body.no-anim .friend-item { animation: none !important; }
   <div class="twosv-overlay" id="twosv-overlay">
     <div class="twosv-card">
       <div class="twosv-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
       </div>
       <h2 class="twosv-title">2-Step Verification</h2>
       <p class="twosv-subtitle">Enter your 24-character recovery code to continue signing in.</p>
@@ -5771,14 +5862,14 @@ body.no-anim .friend-item { animation: none !important; }
             <div class="admin-subpane" data-admin-subpane="broadcast">
               <div class="profile-section">
                 <div class="profile-section-title">Broadcast System Alert</div>
-                <p style="color:var(--text-muted); font-size:12px; margin-bottom:12px;">Send an announcement that pops up as an alert at the top-center of every connected user's screen for 5 seconds, then fades away. It is not posted into the chat.</p>
+                <p style="color:var(--text-muted); font-size:12px; margin-bottom:14px; line-height:1.55;">Send a one-time announcement to every connected user. It appears as a brief alert at the top of their screen and is not posted in chat.</p>
                 <textarea id="admin-broadcast-text" class="admin-textarea" placeholder="Type your announcement (maximum 500 characters)" rows="3" maxlength="500"></textarea>
-                <div style="display:flex; gap:10px; align-items:center; margin-top:10px;">
+                <div style="display:flex; gap:10px; align-items:center; margin-top:12px;">
                   <button class="setting-save-btn no-checkmark" id="admin-broadcast-send-btn">Send Alert to Everyone</button>
                   <span id="admin-broadcast-count" style="color:var(--text-muted); font-size:11px;">0 / 500</span>
                 </div>
-                <p style="color:var(--text-muted); font-size:11px; margin-top:10px;">A live preview of how the alert will look:</p>
-                <div id="admin-broadcast-preview" style="margin-top:6px;"></div>
+                <p style="color:var(--text-muted); font-size:11px; margin-top:14px;">Live preview</p>
+                <div id="admin-broadcast-preview" style="margin-top:8px;"></div>
               </div>
             </div>
 
@@ -6057,6 +6148,17 @@ body.no-anim .friend-item { animation: none !important; }
   <div class="toast-container" id="toast-container"></div>
   <div class="system-alert-container" id="system-alert-container"></div>
 
+  <!-- ===================== IMAGE LIGHTBOX (zoom) ===================== -->
+  <div class="image-lightbox" id="image-lightbox" aria-hidden="true">
+    <button class="image-lightbox-close" id="image-lightbox-close" aria-label="Close">&times;</button>
+    <button class="image-lightbox-nav image-lightbox-prev" id="image-lightbox-prev" aria-label="Previous">&#8249;</button>
+    <div class="image-lightbox-stage" id="image-lightbox-stage">
+      <img id="image-lightbox-img" alt="" />
+    </div>
+    <button class="image-lightbox-nav image-lightbox-next" id="image-lightbox-next" aria-label="Next">&#8250;</button>
+    <a class="image-lightbox-open-external" id="image-lightbox-open-external" target="_blank" rel="noopener">Open in new tab</a>
+  </div>
+
   <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
   <script>
 // ============================================================
@@ -6231,6 +6333,11 @@ let pendingImageEdit = null; // { file, type, scale, imgEl }
 // revert an uploaded (but unsaved) profile picture/banner back to what it
 // was before the user started editing.
 let savedProfileImages = { avatar: null, banner: null };
+// When the user clicks "Remove" on their banner, we only do a LOCAL preview
+// (hide the banner) until they click Save Changes. This flag tells
+// saveProfileNow() to actually delete the banner server-side on save, and
+// tells Discard (via the existing revert-image logic) to restore it.
+let pendingBannerRemoval = false;
 
 // ---------- DOM ----------
 const $ = (id) => document.getElementById(id);
@@ -7422,6 +7529,18 @@ function connectSocket() {
   // System broadcast alert (shown as a top-center popup, not a chat message)
   socket.on('system-alert', (payload) => { showSystemAlert(payload); });
 
+  // Admin data changed in real time (e.g. a new user signed up, or a user
+  // deleted their account). Refresh the admin panel data so the Account
+  // Credentials & Sessions list appears/updates without a manual reload.
+  socket.on('admin-data-changed', () => {
+    // Only reload if the admin panel is actually open + unlocked to avoid
+    // unnecessary fetches for non-admin users.
+    const content = $('admin-panel-content');
+    if (content && content.style.display !== 'none' && typeof loadAdminData === 'function') {
+      loadAdminData();
+    }
+  });
+
   socket.on('connect_error', (err) => {
     // The server emits "Not authenticated" (and older paths may use
     // "unauthorized") when the session is missing or expired. Handle both
@@ -7986,7 +8105,7 @@ function createFileElement(file) {
     const img = document.createElement('img');
     img.src = file.url; img.alt = file.name; img.loading = 'lazy';
     img.classList.add('hd-enhanced'); // server upscales/sharpens to 4K/HD
-    img.onclick = () => window.open(file.url, '_blank');
+    img.onclick = () => openImageLightbox(file.url);
     img.style.cursor = 'pointer';
     img.addEventListener('contextmenu', (e) => {
       e.preventDefault(); e.stopPropagation();
@@ -8041,6 +8160,66 @@ function createFileElement(file) {
   return wrapper;
 }
 
+// ---------- Image Lightbox (in-app zoom, no redirect) ----------
+let lightboxImages = [];
+let lightboxIndex = 0;
+function openImageLightbox(src) {
+  const box = $('image-lightbox'); if (!box) return;
+  // Build a list of all currently-visible message images in the active view
+  // so prev/next can cycle through them. Falls back to just the clicked image.
+  const view = document.querySelector('#messages .active, #messages, #dm-messages');
+  const imgs = view ? Array.from(view.querySelectorAll('.message-file img[src]')) : [];
+  lightboxImages = imgs.map(i => i.getAttribute('src')).filter(Boolean);
+  if (lightboxImages.length === 0) lightboxImages = [src];
+  lightboxIndex = Math.max(0, lightboxImages.indexOf(src));
+  renderLightbox();
+  box.classList.add('show');
+  box.setAttribute('aria-hidden', 'false');
+  document.body.style.overflow = 'hidden';
+}
+function renderLightbox() {
+  const img = $('image-lightbox-img'); if (!img) return;
+  img.classList.remove('zoomed');
+  img.src = lightboxImages[lightboxIndex] || '';
+  const prev = $('image-lightbox-prev'), next = $('image-lightbox-next');
+  if (prev) prev.disabled = lightboxImages.length <= 1;
+  if (next) next.disabled = lightboxImages.length <= 1;
+  const ext = $('image-lightbox-open-external');
+  if (ext) ext.href = lightboxImages[lightboxIndex] || '#';
+}
+function closeImageLightbox() {
+  const box = $('image-lightbox'); if (!box) return;
+  box.classList.remove('show');
+  box.setAttribute('aria-hidden', 'true');
+  document.body.style.overflow = '';
+}
+function lightboxStep(delta) {
+  if (lightboxImages.length <= 1) return;
+  lightboxIndex = (lightboxIndex + delta + lightboxImages.length) % lightboxImages.length;
+  renderLightbox();
+}
+(function attachLightboxHandlers() {
+  function ready(fn) { if (document.readyState !== 'loading') fn(); else document.addEventListener('DOMContentLoaded', fn); }
+  ready(() => {
+    const box = $('image-lightbox'); if (!box) return;
+    const img = $('image-lightbox-img');
+    const close = $('image-lightbox-close');
+    if (close) close.addEventListener('click', closeImageLightbox);
+    $('image-lightbox-prev').addEventListener('click', (e) => { e.stopPropagation(); lightboxStep(-1); });
+    $('image-lightbox-next').addEventListener('click', (e) => { e.stopPropagation(); lightboxStep(1); });
+    // Click backdrop closes; click image toggles zoom
+    box.addEventListener('click', (e) => { if (e.target === box || e.target.classList.contains('image-lightbox-stage')) closeImageLightbox(); });
+    if (img) img.addEventListener('click', (e) => { e.stopPropagation(); img.classList.toggle('zoomed'); });
+    // Keyboard: Esc close, arrows navigate
+    document.addEventListener('keydown', (e) => {
+      if (!box.classList.contains('show')) return;
+      if (e.key === 'Escape') { e.preventDefault(); closeImageLightbox(); }
+      else if (e.key === 'ArrowLeft') { e.preventDefault(); lightboxStep(-1); }
+      else if (e.key === 'ArrowRight') { e.preventDefault(); lightboxStep(1); }
+    });
+  });
+})();
+
 function updateMessageAvatars(username, avatar) {
   document.querySelectorAll('.message-avatar[data-username="' + username + '"]').forEach(el => {
     el.innerHTML = '';
@@ -8073,14 +8252,21 @@ function startEditMessage(msgId, bubble) {
   confirm.className = 'edit-confirm'; confirm.textContent = 'Save';
   const cancel = document.createElement('button');
   cancel.className = 'edit-cancel'; cancel.textContent = 'Cancel';
-  confirm.onclick = () => {
+  const doSave = () => {
     const newText = input.value.trim();
     if (newText && newText !== msg.text) {
       socket.emit('edit-message', { id: msgId, text: newText }, (res) => { if (res && res.error) toast(res.error, 'error'); });
     }
     editingMessageId = null; renderMessages();
   };
-  cancel.onclick = () => { editingMessageId = null; renderMessages(); };
+  const doCancel = () => { editingMessageId = null; renderMessages(); };
+  confirm.onclick = doSave;
+  cancel.onclick = doCancel;
+  // Keyboard shortcut: Enter saves the edit, Escape cancels it.
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); doSave(); }
+    else if (e.key === 'Escape') { e.preventDefault(); doCancel(); }
+  });
   wrap.appendChild(input); wrap.appendChild(confirm); wrap.appendChild(cancel);
   textEl.replaceWith(wrap);
   input.focus(); input.select();
@@ -8091,11 +8277,12 @@ function confirmDeleteMessage(msgId) {
   pendingDeleteMsgId = msgId;
   $('delete-msg-modal').classList.add('show');
 }
-$('delete-msg-cancel').addEventListener('click', () => {
+function dismissDeleteModal() {
   $('delete-msg-modal').classList.remove('show');
   pendingDeleteMsgId = null;
-});
-$('delete-msg-confirm').addEventListener('click', () => {
+  pendingDeleteDM = null;
+}
+function executeDeleteModal() {
   if (pendingDeleteMsgId) {
     socket.emit('delete-message', { id: pendingDeleteMsgId }, (res) => {
       if (res && res.error) toast(res.error, 'error');
@@ -8110,9 +8297,20 @@ $('delete-msg-confirm').addEventListener('click', () => {
     pendingDeleteDM = null;
   }
   $('delete-msg-modal').classList.remove('show');
-});
+}
+$('delete-msg-cancel').addEventListener('click', dismissDeleteModal);
+$('delete-msg-confirm').addEventListener('click', executeDeleteModal);
 $('delete-msg-modal').addEventListener('click', (e) => {
-  if (e.target === $('delete-msg-modal')) { $('delete-msg-modal').classList.remove('show'); pendingDeleteMsgId = null; }
+  if (e.target === $('delete-msg-modal')) dismissDeleteModal();
+});
+// Keyboard shortcuts for the delete modal: Enter = confirm delete, Escape = cancel.
+document.addEventListener('keydown', (e) => {
+  if (!$('delete-msg-modal').classList.contains('show')) return;
+  // Avoid hijacking Enter when a textarea/input inside the modal is focused
+  // (there are none here, but be safe).
+  const tag = (e.target && e.target.tagName) ? e.target.tagName.toLowerCase() : '';
+  if (e.key === 'Enter' && tag !== 'textarea') { e.preventDefault(); executeDeleteModal(); }
+  else if (e.key === 'Escape') { e.preventDefault(); dismissDeleteModal(); }
 });
 
 // ---------- Send Message ----------
@@ -9863,14 +10061,21 @@ function startEditDM(msgId, bubble) {
   confirm.className = 'edit-confirm'; confirm.textContent = 'Save';
   const cancel = document.createElement('button');
   cancel.className = 'edit-cancel'; cancel.textContent = 'Cancel';
-  confirm.onclick = () => {
+  const doSave = () => {
     const newText = input.value.trim();
     if (newText && newText !== msg.text) {
       socket.emit('dm-edit', { id: msgId, to: activeDMUser, text: newText }, (res) => { if (res && res.error) toast(res.error, 'error'); });
     }
     editingDMMessageId = null; renderDMMessages();
   };
-  cancel.onclick = () => { editingDMMessageId = null; renderDMMessages(); };
+  const doCancel = () => { editingDMMessageId = null; renderDMMessages(); };
+  confirm.onclick = doSave;
+  cancel.onclick = doCancel;
+  // Keyboard shortcut: Enter saves the DM edit, Escape cancels it.
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); doSave(); }
+    else if (e.key === 'Escape') { e.preventDefault(); doCancel(); }
+  });
   wrap.appendChild(input); wrap.appendChild(confirm); wrap.appendChild(cancel);
   textEl.replaceWith(wrap);
   input.focus(); input.select();
@@ -10630,6 +10835,8 @@ function clearProfileDirty() { profileDirty = false; updateProfileDirtyIndicator
 function captureSavedProfileImages() {
   if (!currentUser) return;
   savedProfileImages = { avatar: currentUser.avatar || null, banner: currentUser.banner || null };
+  // Opening the panel / finishing a save means no pending removal anymore.
+  pendingBannerRemoval = false;
 }
 // Visual indicator so users can SEE they have unsaved changes (a subtle
 // "Unsaved changes" pill near the Save button) — not just the modal on exit.
@@ -10887,7 +11094,7 @@ async function uploadProfileImage(file, type) {
     if (!res.ok) { toast(data.error || 'Upload failed. Please try again.', 'error'); return; }
     toast(type === 'avatar' ? 'Profile picture has been updated.' : 'Banner has been updated.', 'success');
     if (type === 'avatar') currentUser.avatar = data.avatar;
-    else currentUser.banner = data.banner;
+    else { currentUser.banner = data.banner; pendingBannerRemoval = false; }
     updateProfilePanel(); updateSidebarSelf();
     // Mark the profile as having unsaved changes so the "You have unsaved
     // changes" guard fires if the user navigates away (closes Profile Settings,
@@ -10930,20 +11137,23 @@ $('avatar-remove-btn').addEventListener('click', async () => {
   toast('Profile picture has been removed.', 'success');
 });
 $('banner-remove-btn').addEventListener('click', async () => {
-  try {
-    await fetch(API_BASE + '/api/profile/remove-image', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'banner' }) });
-  } catch (e) {}
+  // LOCAL-ONLY PREVIEW: do NOT delete the banner server-side yet. We just
+  // hide it locally and mark the profile dirty so the "You have unsaved
+  // changes" indicator appears. The actual deletion is committed only when
+  // the user clicks Save Changes (saveProfileNow). If they navigate away
+  // without saving and choose Discard, the existing revert-image logic
+  // restores the banner from the savedProfileImages snapshot.
+  pendingBannerRemoval = true;
   currentUser.banner = null;
   const me = users.find(x => x.username === currentUser.username);
   if (me) me.banner = null;
   updateProfilePanel();
   updateSidebarSelf();
   if (typeof renderUserList === 'function') renderUserList();
-  // Mark profile dirty so the unsaved-changes guard fires on navigation,
-  // consistent with changing the banner.
+  // Mark profile dirty so the unsaved-changes guard fires on navigation.
   markProfileDirty();
   updateProfileDirtyIndicator();
-  toast('Banner has been removed.', 'success');
+  toast('Banner removed. Click Save Changes to apply.', 'info');
 });
 
 // ---------- Status Change ----------
@@ -10993,6 +11203,14 @@ async function saveProfileNow(silent) {
     const res = await fetch(API_BASE + '/api/profile', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ bio, hideLastSeen, pronouns, showOnlineStatus, panelColor, friendRequestsEnabled, directMessagesEnabled }) });
     const data = await res.json();
     if (res.ok) {
+      // Commit a pending banner removal (the user clicked Remove but hadn't
+      // saved yet). Now that they're saving, actually delete it server-side.
+      if (pendingBannerRemoval) {
+        try {
+          await fetch(API_BASE + '/api/profile/remove-image', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'banner' }) });
+        } catch (e) {}
+        pendingBannerRemoval = false;
+      }
       if (!silent) toast('Profile has been saved successfully.', 'success');
       currentUser.bio = bio;
       currentUser.hideLastSeen = hideLastSeen;
@@ -13477,9 +13695,11 @@ function initBgPresets() {
     const el = document.createElement('button');
     el.type = 'button';
     el.className = 'bg-preset-chip';
-    el.style.background = p.value;
+    el.style.background = p.value; // gradient shows through the ::after overlay
     el.title = p.name;
-    el.textContent = p.name;
+    const label = document.createElement('span');
+    label.textContent = p.name;
+    el.appendChild(label);
     el.addEventListener('click', () => {
       const s = getCurrentBgSettings();
       s.url = '__gradient__' + p.value; // special marker — applyBgSettings handles gradients
