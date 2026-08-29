@@ -742,10 +742,10 @@ body.loading-session #chat-app.active::after { content: none; }
 
 .message-group {
   display: flex; gap: 11px; max-width: 94%;
-  animation: msgIn 0.24s cubic-bezier(0.16,1,0.3,1);
+  animation: msgIn 0.22s cubic-bezier(0.16,1,0.3,1);
   padding: 2px 0;
 }
-@keyframes msgIn { from { opacity: 0; transform: translateY(7px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes msgIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
 /* During initial page load, suppress entrance animations so everything
    appears instantly instead of slowly fading/sliding in. The no-anim class
    is added to <body> before the first render and removed right after. */
@@ -757,16 +757,17 @@ body.no-anim .friend-item { animation: none !important; }
 .message-group.own { flex-direction: row-reverse; margin-left: auto; }
 
 .message-avatar {
-  width: 42px; height: 42px; border-radius: 50%;
+  width: 40px; height: 40px; border-radius: 50%;
   background: var(--bg-lighter); color: var(--text-secondary);
   display: flex; align-items: center; justify-content: center;
-  font-size: 16px; font-weight: 600; flex-shrink: 0; overflow: hidden;
+  font-size: 15px; font-weight: 600; flex-shrink: 0; overflow: hidden;
   border: 1px solid var(--border);
-  box-shadow: 0 1px 2px rgba(0,0,0,0.12);
+  box-shadow: none;
+  transition: transform 0.18s ease;
 }
 .message-avatar img { width: 100%; height: 100%; object-fit: cover; image-rendering: -webkit-optimize-contrast; }
 .message-avatar.clickable, .message-sender.clickable { cursor: pointer; transition: var(--transition); }
-.message-avatar.clickable:hover { opacity: 0.9; transform: scale(1.04); }
+.message-avatar.clickable:hover { opacity: 0.92; transform: scale(1.05); }
 .message-sender.clickable:hover { color: var(--accent); }
 
 .message-bubble-wrap { min-width: 0; display: flex; flex-direction: column; }
@@ -774,85 +775,83 @@ body.no-anim .friend-item { animation: none !important; }
 
 .message-sender {
   font-size: 13px; font-weight: 500; color: var(--text-secondary);
-  margin-bottom: 4px; padding: 0 2px;
+  margin-bottom: 3px; padding: 0 2px;
   display: flex; align-items: center; gap: 6px;
 }
 .sender-displayname { color: var(--text-primary); font-weight: 600; font-size: 14px; }
-.sender-handle { color: var(--text-secondary); font-size: 12.5px; opacity: 0.65; font-weight: 500; }
+.sender-handle { color: var(--text-muted); font-size: 12px; opacity: 0.7; font-weight: 500; }
 
 .message-bubble {
-  background: var(--bg-medium); padding: 10px 15px;
-  border-radius: 14px 14px 14px 4px;
-  font-size: 16.5px; line-height: 1.55; word-break: break-word; position: relative;
+  background: var(--bg-medium); padding: 9px 14px;
+  border-radius: 4px 14px 14px 14px;
+  font-size: 15px; line-height: 1.5; word-break: break-word; position: relative;
   max-width: 100%;
-  border: 1px solid rgba(255,255,255,0.05);
-  transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+  border: 1px solid transparent;
+  transition: border-color 0.15s ease, background 0.15s ease;
 }
-.message-bubble:hover { border-color: rgba(255,255,255,0.10); box-shadow: 0 1px 8px rgba(0,0,0,0.14); }
+.message-bubble:hover { background: var(--bg-light); }
 .message-group.own .message-bubble {
   background: var(--accent-dim); color: #fff;
-  border-color: rgba(74,158,255,0.14);
-  border-radius: 14px 14px 4px 14px;
+  border-color: transparent;
+  border-radius: 14px 4px 14px 14px;
 }
-.message-group.own .message-bubble:hover { border-color: rgba(74,158,255,0.28); box-shadow: 0 1px 10px rgba(74,158,255,0.14); }
+.message-group.own .message-bubble:hover { background: var(--accent); }
 /* Media-only bubbles: no text means no need for a colored chat background.
    This removes the accent/blue box around images, videos & GIFs so media
    sits cleanly on the chat surface with a subtle border instead. */
-.message-bubble.media-only { background: transparent !important; padding: 2px 0; border-radius: 13px; }
+.message-bubble.media-only { background: transparent !important; padding: 2px 0; border-radius: 14px; border-color: transparent !important; }
 .message-group.own .message-bubble.media-only { background: transparent !important; color: var(--text-primary); }
 .message-bubble.deleted {
   background: transparent; border: 1px dashed var(--border-light);
   color: var(--text-muted); font-style: italic; font-size: 13px;
+  border-radius: 10px;
 }
 .message-bubble.dm-bubble { max-width: 740px; }
 
 .message-text { display: inline; }
-.inline-link { color: inherit; text-decoration: underline; }
+.inline-link { color: inherit; text-decoration: underline; text-underline-offset: 2px; text-decoration-color: rgba(255,255,255,0.25); }
+.message-group:not(.own) .inline-link { text-decoration-color: rgba(74,158,255,0.4); }
 
 /* Mention highlight in messages */
 .mention-highlight {
-  background: rgba(74,158,255,0.14);
+  background: rgba(74,158,255,0.10);
   color: var(--accent);
-  padding: 2px 7px;
-  border-radius: 6px;
-  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-weight: 600;
   cursor: pointer;
-  transition: background 0.15s ease, transform 0.1s ease, box-shadow 0.15s ease;
+  transition: background 0.15s ease;
   display: inline-block;
   text-decoration: none;
-  border: 1px solid rgba(74,158,255,0.2);
+  border: none;
 }
 .mention-highlight:hover {
-  background: rgba(74,158,255,0.28);
-  border-color: rgba(74,158,255,0.4);
-  box-shadow: 0 2px 8px rgba(74,158,255,0.15);
+  background: rgba(74,158,255,0.18);
 }
 .mention-highlight.mention-self {
-  background: rgba(250,204,21,0.20);
+  background: rgba(250,204,21,0.14);
   color: #facc15;
-  border: 1px solid rgba(250,204,21,0.4);
-  border-radius: 6px;
-  padding: 2px 7px;
-  box-shadow: 0 0 8px rgba(250,204,21,0.12);
+  border: none;
+  border-radius: 4px;
+  padding: 1px 6px;
 }
 .mention-highlight.mention-self:hover {
-  background: rgba(250,204,21,0.34);
-  box-shadow: 0 0 14px rgba(250,204,21,0.22);
+  background: rgba(250,204,21,0.22);
 }
 .message-group.own .mention-highlight {
-  background: rgba(255,255,255,0.15);
-  color: #e0e0e0;
-  border-color: rgba(255,255,255,0.15);
+  background: rgba(255,255,255,0.14);
+  color: #fff;
+  border: none;
 }
 /* Pinged message bubble — subtle highlight + gentle glow */
 .message-bubble.pinged-msg {
-  box-shadow: 0 0 0 1px rgba(250,204,21,0.45), 0 0 12px rgba(250,204,21,0.12);
+  box-shadow: 0 0 0 1px rgba(250,204,21,0.35), 0 0 10px rgba(250,204,21,0.08);
   animation: ping-flash 1.5s ease;
 }
 @keyframes ping-flash {
-  0% { box-shadow: 0 0 0 2px rgba(250,204,21,0.7), 0 0 18px rgba(250,204,21,0.25); }
-  50% { box-shadow: 0 0 0 2px rgba(250,204,21,0.5), 0 0 14px rgba(250,204,21,0.18); }
-  100% { box-shadow: 0 0 0 1px rgba(250,204,21,0.15), 0 0 8px rgba(250,204,21,0.06); }
+  0% { box-shadow: 0 0 0 2px rgba(250,204,21,0.6), 0 0 16px rgba(250,204,21,0.2); }
+  50% { box-shadow: 0 0 0 1.5px rgba(250,204,21,0.4), 0 0 12px rgba(250,204,21,0.14); }
+  100% { box-shadow: 0 0 0 1px rgba(250,204,21,0.12), 0 0 6px rgba(250,204,21,0.04); }
 }
 
 /* Mention dropdown popup — polished, floating above input */
@@ -1165,14 +1164,14 @@ body.no-anim .friend-item { animation: none !important; }
 
 /* Link Embeds — clean, compact, modern */
 .link-embed {
-  margin-top: 8px; border: 1px solid rgba(255,255,255,0.06);
-  border-radius: 12px; overflow: hidden;
+  margin-top: 8px; border: 1px solid var(--border);
+  border-radius: 8px; overflow: hidden;
   max-width: 600px; background: var(--bg-darker);
-  transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+  transition: border-color 0.15s ease, background 0.15s ease;
 }
-.link-embed:hover { border-color: rgba(255,255,255,0.12); background: var(--bg-dark); box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
-.message-group.own .link-embed { background: rgba(0,0,0,0.16); border-color: rgba(255,255,255,0.10); }
-.message-group.own .link-embed:hover { background: rgba(0,0,0,0.24); border-color: rgba(255,255,255,0.18); }
+.link-embed:hover { border-color: var(--border-light); background: var(--bg-dark); }
+.message-group.own .link-embed { background: rgba(0,0,0,0.14); border-color: rgba(255,255,255,0.08); }
+.message-group.own .link-embed:hover { background: rgba(0,0,0,0.22); border-color: rgba(255,255,255,0.14); }
 .link-embed-loading { padding: 10px 14px; font-size: 12px; color: var(--text-muted); }
 .link-embed-fallback { padding: 10px 14px; font-size: 12px; }
 .link-embed-fallback a { color: var(--accent); word-break: break-all; }
@@ -1222,40 +1221,40 @@ body.no-anim .friend-item { animation: none !important; }
 .message-file { margin-top: 8px; }
 .message-bubble.media-only .message-file:first-child { margin-top: 0; }
 .message-file img {
-  max-width: 360px; max-height: 360px; border-radius: 12px; display: block; cursor: pointer;
+  max-width: 360px; max-height: 360px; border-radius: 8px; display: block; cursor: pointer;
   object-fit: cover; image-rendering: -webkit-optimize-contrast;
-  border: 1px solid rgba(255,255,255,0.06);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.22);
+  border: 1px solid var(--border);
+  transition: border-color 0.15s ease;
+  box-shadow: none;
 }
-.message-file img:hover { border-color: rgba(255,255,255,0.12); box-shadow: 0 4px 18px rgba(0,0,0,0.34); transform: translateY(-1px); }
+.message-file img:hover { border-color: var(--border-light); }
 /* 4K/HD enhancement: images are upscaled + sharpened on the server; this
    subtle display filter adds a final crispness/contrast pop when rendered. */
 .message-file img.hd-enhanced { filter: contrast(1.04) saturate(1.06) sharpen(1); }
 .message-file video {
-  max-width: 380px; max-height: 360px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.06);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.22); background: #000;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+  max-width: 380px; max-height: 360px; border-radius: 8px; border: 1px solid var(--border);
+  box-shadow: none; background: #000;
+  transition: border-color 0.15s ease;
 }
-.message-file video:hover { border-color: rgba(255,255,255,0.12); box-shadow: 0 4px 18px rgba(0,0,0,0.34); transform: translateY(-1px); }
+.message-file video:hover { border-color: var(--border-light); }
 /* HD enhancement filter for inline videos (server can't transcode video, so
    we apply a light sharpen/contrast/saturate pass at display time). */
 .message-file video.hd-enhanced { filter: contrast(1.05) saturate(1.08) brightness(1.02); }
-.message-file audio { width: 320px; border-radius: 12px; }
+.message-file audio { width: 320px; border-radius: 8px; }
 .message-file-attachment {
   display: flex; align-items: center; gap: 12px;
-  padding: 11px 13px; background: var(--bg-darker);
-  border: 1px solid rgba(255,255,255,0.06); border-radius: 12px;
+  padding: 10px 12px; background: var(--bg-darker);
+  border: 1px solid var(--border); border-radius: 8px;
   text-decoration: none; color: var(--text-primary);
-  transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+  transition: border-color 0.15s ease, background 0.15s ease;
   max-width: 360px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.16);
+  box-shadow: none;
 }
 .message-group.own .message-file-attachment { background: rgba(0,0,0,0.12); border-color: rgba(255,255,255,0.10); }
-.message-file-attachment:hover { border-color: var(--accent); background: var(--bg-dark); box-shadow: 0 2px 10px rgba(0,0,0,0.26); transform: translateY(-1px); }
+.message-file-attachment:hover { border-color: var(--border-light); background: var(--bg-dark); }
 .message-group.own .message-file-attachment:hover { background: rgba(0,0,0,0.20); }
 .file-icon {
-  width: 40px; height: 40px; border-radius: 10px;
+  width: 38px; height: 38px; border-radius: 8px;
   background: var(--accent-dim); color: #fff;
   display: flex; align-items: center; justify-content: center;
   font-size: 10px; font-weight: 700; flex-shrink: 0;
@@ -1270,29 +1269,31 @@ body.no-anim .friend-item { animation: none !important; }
 
 .message-actions {
   display: flex; gap: 4px; margin-top: 6px;
-  opacity: 0; transition: opacity 0.16s ease;
+  opacity: 0; transition: opacity 0.15s ease;
 }
 .message-bubble:hover .message-actions { opacity: 1; }
 .msg-action-btn {
-  padding: 4px 10px; font-size: 11px; font-weight: 600;
-  background: rgba(255,255,255,0.05); color: var(--text-secondary);
-  border-radius: 7px; transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
-  border: 1px solid rgba(255,255,255,0.06);
-  letter-spacing: 0.2px;
+  padding: 3px 9px; font-size: 11px; font-weight: 500;
+  background: transparent; color: var(--text-muted);
+  border-radius: 5px; transition: background 0.15s ease, color 0.15s ease;
+  border: none;
+  letter-spacing: 0;
 }
-.message-group.own .msg-action-btn { background: rgba(255,255,255,0.1); color: #fff; border-color: rgba(255,255,255,0.1); }
-.msg-action-btn:hover { background: rgba(255,255,255,0.14); border-color: var(--border-light); }
+.message-group.own .msg-action-btn { background: transparent; color: rgba(255,255,255,0.6); border: none; }
+.msg-action-btn:hover { background: rgba(255,255,255,0.06); color: var(--text-primary); }
+.message-group.own .msg-action-btn:hover { background: rgba(255,255,255,0.12); color: #fff; }
 .msg-action-btn:active { transform: scale(0.96); }
-.msg-action-btn.danger:hover { background: var(--danger); color: #fff; border-color: var(--danger); }
+.msg-action-btn.danger:hover { background: var(--danger); color: #fff; }
 
 .message-meta {
-  font-size: 11px; color: var(--text-muted);
-  margin-top: 4px; padding: 0 2px;
+  font-size: 10px; color: var(--text-muted);
+  margin-top: 3px; padding: 0 2px;
   display: flex; gap: 6px; align-items: center;
   font-variant-numeric: tabular-nums;
-  letter-spacing: 0.2px;
+  letter-spacing: 0;
+  opacity: 0.7;
 }
-.message-edited-tag { font-style: italic; opacity: 0.65; font-size: 10px; }
+.message-edited-tag { font-style: italic; opacity: 0.6; font-size: 9px; }
 
 .edit-input-wrap { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
 .edit-input {
@@ -1352,13 +1353,15 @@ body.no-anim .friend-item { animation: none !important; }
 /* Reply quote in messages — rich, with avatar + jump icon */
 .reply-quote {
   display: flex; align-items: center; gap: 8px;
-  padding: 7px 12px; margin-bottom: 6px;
-  background: rgba(74,158,255,0.06); border-radius: 10px;
-  border-left: 2px solid var(--accent); font-size: 12px;
-  cursor: pointer; transition: background 0.15s ease, transform 0.15s ease;
+  padding: 6px 10px; margin-bottom: 6px;
+  background: rgba(255,255,255,0.04); border-radius: 6px;
+  border-left: 2px solid var(--text-muted); font-size: 12px;
+  cursor: pointer; transition: background 0.15s ease, border-color 0.15s ease;
   max-width: 100%; overflow: hidden;
 }
-.reply-quote:hover { background: rgba(74,158,255,0.12); transform: translateX(2px); }
+.reply-quote:hover { background: rgba(255,255,255,0.07); border-left-color: var(--accent); }
+.message-group.own .reply-quote { background: rgba(0,0,0,0.14); border-left-color: rgba(255,255,255,0.4); }
+.message-group.own .reply-quote:hover { background: rgba(0,0,0,0.22); border-left-color: rgba(255,255,255,0.7); }
 .reply-quote-avatar {
   width: 20px; height: 20px; border-radius: 50%; flex-shrink: 0;
   background: var(--bg-darker); overflow: hidden;
@@ -1379,20 +1382,20 @@ body.no-anim .friend-item { animation: none !important; }
 /* When someone replies to YOUR message, your original message gets a soft
    accent tint + left bar so you notice the reply. */
 .message-group.replied-to-me .message-bubble {
-  box-shadow: 0 0 0 1px rgba(74,158,255,0.35), 0 0 14px rgba(74,158,255,0.10);
+  box-shadow: 0 0 0 1px rgba(74,158,255,0.25);
   animation: reply-flash 2s ease;
 }
 @keyframes reply-flash {
-  0%   { box-shadow: 0 0 0 2px rgba(74,158,255,0.6), 0 0 20px rgba(74,158,255,0.22); }
-  60%  { box-shadow: 0 0 0 1px rgba(74,158,255,0.4), 0 0 12px rgba(74,158,255,0.14); }
-  100% { box-shadow: 0 0 0 1px rgba(74,158,255,0.18), 0 0 6px rgba(74,158,255,0.05); }
+  0%   { box-shadow: 0 0 0 2px rgba(74,158,255,0.5), 0 0 16px rgba(74,158,255,0.15); }
+  60%  { box-shadow: 0 0 0 1.5px rgba(74,158,255,0.3), 0 0 10px rgba(74,158,255,0.08); }
+  100% { box-shadow: 0 0 0 1px rgba(74,158,255,0.12); }
 }
 /* Persistent subtle indicator (after flash ends) */
 .message-group.replied-to-me::before {
   content: '';
   position: absolute; left: -4px; top: 50%; transform: translateY(-50%);
-  width: 3px; height: 60%; border-radius: 3px;
-  background: var(--accent); opacity: 0.5;
+  width: 2px; height: 50%; border-radius: 2px;
+  background: var(--accent); opacity: 0.4;
 }
 .message-group { position: relative; }
 
@@ -3729,9 +3732,9 @@ body.no-anim .friend-item { animation: none !important; }
   .message-sender { font-size: 14px; margin-bottom: 5px; }
   .sender-displayname { font-size: 16.5px; }
   .sender-handle { font-size: 14.5px; }
-  .message-bubble { font-size: 19px; line-height: 1.6; padding: 15px 22px; border-radius: 18px; }
-  .message-group.own .message-bubble { border-radius: 18px; }
-  .message-meta { font-size: 12.5px; }
+  .message-bubble { font-size: 18px; line-height: 1.55; padding: 12px 18px; border-radius: 6px 16px 16px 16px; }
+  .message-group.own .message-bubble { border-radius: 16px 6px 16px 16px; }
+  .message-meta { font-size: 12px; }
   .message-actions { gap: 6px; margin-top: 8px; }
   .msg-action-btn { padding: 5px 12px; font-size: 12px; }
 
@@ -4271,7 +4274,8 @@ body.no-anim .friend-item { animation: none !important; }
   /* Message bubbles: compact */
   .message-avatar { width: 30px; height: 30px; font-size: 12px; }
   .message-sender { font-size: 12px; }
-  .message-bubble { font-size: 15.5px; padding: 9px 13px; border-radius: 14px; }
+  .message-bubble { font-size: 15.5px; padding: 9px 13px; border-radius: 4px 13px 13px 13px; }
+  .message-group.own .message-bubble { border-radius: 13px 4px 13px 13px; }
   .message-meta { font-size: 10px; }
   
   /* Input area: compact, prevent iOS zoom */
@@ -4583,7 +4587,8 @@ body.no-anim .friend-item { animation: none !important; }
   .in-app-notif-text { font-size: 12px; }
 
   /* Message bubbles: slightly less padding on mobile for readability */
-  .message-bubble { padding: 10px 14px; font-size: 15px; border-radius: 14px; }
+  .message-bubble { padding: 10px 14px; font-size: 15px; border-radius: 4px 14px 14px 14px; }
+  .message-group.own .message-bubble { border-radius: 14px 4px 14px 14px; }
   .message-group { max-width: 96%; gap: 9px; }
   .message-avatar { width: 34px; height: 34px; }
 

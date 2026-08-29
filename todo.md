@@ -1,11 +1,15 @@
-# Hellobye Chat Update Tasks — Round 34
+# Round 35: Revamp Message Bubble Chat UI
 
-## 1. Mini profile Panel Theme Color fills entire UI
-- [x] Apply the Panel Theme Color to the entire mini profile popover (background, text, sections, inputs, toggles, footer)
-- [x] Color changes from mini popover, full profile panel, and presets all stay in sync
-- [x] Make the mini profile popover wider (300px → 340px)
-
-## 2. Deploy
-- [x] Commit and push to GitHub (ed37271)
-- [x] Render auto-deploy live (dep-da9fqi6k1f9s73cc0bu0)
-- [x] Verify at https://hellobye-chat.onrender.com/ (HTTP 200, all markers confirmed)
+## Tasks
+- [x] Revamp core message bubble CSS (bubble, avatar, sender, meta, actions, reply-quote, link-embed, file-embed, mention-highlight, replied-to-me)
+- [x] Update large-screen media query override (line ~3735)
+- [x] Update mid-range breakpoint (line ~3614 — no border-radius, inherits correctly)
+- [x] Update mobile breakpoint (line ~4277) — asymmetric border-radius
+- [x] Update second mobile breakpoint (line ~4589) — asymmetric border-radius
+- [x] Update touch-device hover override (line ~4610) — background change
+- [x] Verify compact mode override (line ~3785 — no border-radius, inherits correctly)
+- [ ] Syntax-verify all `<script>` blocks
+- [ ] Boot-test server (HTTP 200)
+- [ ] Commit and push to GitHub
+- [ ] Verify Render auto-deploy goes live
+- [ ] Verify at https://hellobye-chat.onrender.com/
