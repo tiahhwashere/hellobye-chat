@@ -1,13 +1,39 @@
-# Round 30 — To-Do
+# Hellobye Chat Update Tasks — Round 31
 
-## Explicit Changes Requested
-- [x] 1. Remove the DM cooldown entirely (backend `dm-send` handler + frontend indicators/checks)
-- [x] 2. Change group chat cooldown from 3 seconds to 0.3 seconds (backend `group-send` handler + frontend)
-- [x] 3. Visually disable the "Disable Account" button for @lore (the owner) — disabled attribute + styling, not just a toast
-- [x] 4. Fix/patch all bugs found during audit:
-  - Removed dead `lastDMTime` declaration (no longer used)
-  - Removed dead `startDMCooldown` function + `dmCooldownEnds`/`dmCooldownTimer` vars + DM cooldown indicator HTML + CSS
-  - Fixed `startGroupCooldown` to handle sub-second (0.3s) cooldowns with `setTimeout` + universal clear (clearTimeout+clearInterval) to avoid timer-type mismatch
-  - Updated admin panel cooldown-exempt description (DMs no longer have a cooldown; chatroom=3s, group=0.3s)
-- [x] 5. Commit + push to GitHub (commit e4d5f82)
-- [x] 6. Verify Render deploy + live site (deploy dep-da9dv5oae00c73aj6n50 status=live, all changes verified on https://hellobye-chat.onrender.com/)
+## 1. Friend request logic
+- [x] When friend requests are OFF: only show "has friend requests turned off" (do NOT show "Friend request has been sent to")
+- [x] When friend requests are ON: show "Friend request has been sent to"
+
+## 2. Member list background persistence
+- [x] If user has a member list background set, on logout revert it to normal
+- [x] When user logs back in, add it back
+
+## 3. Account UI icons
+- [x] Remove the icon from "Disable your account?" UI
+- [x] Remove the trashcan icon from "Delete your account?" UI
+
+## 4. Member stats fix
+- [x] Fix the 3 members stat: online · dnd · offline (idle merged into online)
+
+## 5. Notification UIs revamp
+- [x] Revamp notification UIs when toggling options (modern + professional, refined toast CSS + contextual messages)
+
+## 6. Profile/Banner update UIs
+- [x] Revamp "Profile picture has been updated." UI (premium confirm toast)
+- [x] Revamp "Banner has been updated." UI (premium confirm toast)
+
+## 7. Group chat GIF support
+- [x] Allow GIF support for group chat profile (owners) (accept + hint)
+- [x] Ensure animated GIF works and is visible for all users/members (skipAnimated + clean render)
+
+## 8. Search Messages UI animation
+- [x] Add revamped open/close animation for the Search Messages UI (slide+scale+staggered fade)
+
+## 9. Conversation closed UI
+- [x] Revamp "Conversation closed. Reopen it anytime by right-clicking the Messages tab." UI (info toast + optimistic)
+- [x] Ensure close/open conversation right-click dropdown options work (not broken)
+
+## 10. Deploy
+- [ ] Commit and push to GitHub
+- [ ] Deploy/update on Render
+- [ ] Verify at https://hellobye-chat.onrender.com/

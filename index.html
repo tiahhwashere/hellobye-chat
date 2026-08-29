@@ -1405,10 +1405,25 @@ body.no-anim .friend-item { animation: none !important; }
   box-shadow: -16px 0 48px rgba(0,0,0,0.45);
   display: none; flex-direction: column;
 }
-#search-msg-panel.open { display: flex; animation: slideInRight 0.34s cubic-bezier(0.22,1,0.36,1); }
-#search-msg-panel.closing { animation: slideOutRight 0.26s cubic-bezier(0.4,0,0.6,1) forwards; }
-@keyframes slideInRight { from { transform: translateX(100%) scale(0.98); opacity: 0; } 60% { opacity: 1; } to { transform: translateX(0) scale(1); opacity: 1; } }
-@keyframes slideOutRight { from { transform: translateX(0); opacity: 1; } to { transform: translateX(100%); opacity: 0; } }
+#search-msg-panel.open { display: flex; animation: searchPanelIn 0.38s cubic-bezier(0.22,1,0.36,1); }
+#search-msg-panel.closing { animation: searchPanelOut 0.3s cubic-bezier(0.55,0,0.68,0) forwards; }
+/* Revamped open/close: a refined slide-in with a gentle scale + opacity ramp and
+   a soft accent glow that fades in, then a swift slide-out. Modern and smooth. */
+@keyframes searchPanelIn {
+  from { transform: translateX(40px) scale(0.985); opacity: 0; box-shadow: -16px 0 48px rgba(0,0,0,0); }
+  55%  { opacity: 1; }
+  to   { transform: translateX(0) scale(1); opacity: 1; box-shadow: -16px 0 48px rgba(0,0,0,0.45); }
+}
+@keyframes searchPanelOut {
+  from { transform: translateX(0) scale(1); opacity: 1; }
+  to   { transform: translateX(60px) scale(0.99); opacity: 0; }
+}
+/* Inner content staggers in subtly for a polished entrance. */
+#search-msg-panel.open .search-msg-header { animation: searchFadeUp 0.42s cubic-bezier(0.22,1,0.36,1) both; animation-delay: 0.04s; }
+#search-msg-panel.open .search-msg-input-wrap { animation: searchFadeUp 0.42s cubic-bezier(0.22,1,0.36,1) both; animation-delay: 0.08s; }
+#search-msg-panel.open .search-msg-scope { animation: searchFadeUp 0.42s cubic-bezier(0.22,1,0.36,1) both; animation-delay: 0.12s; }
+#search-msg-panel.open .search-msg-results { animation: searchFadeUp 0.42s cubic-bezier(0.22,1,0.36,1) both; animation-delay: 0.16s; }
+@keyframes searchFadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 .search-msg-header {
   padding: 20px 22px 16px; border-bottom: 1px solid var(--border);
   display: flex; align-items: center; gap: 12px; flex-shrink: 0;
@@ -3309,36 +3324,53 @@ body.no-anim .friend-item { animation: none !important; }
 }
 .toast {
   pointer-events: auto;
-  padding: 13px 18px 13px 16px; background: rgba(18, 20, 24, 0.82); border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 14px; color: var(--text-primary); font-size: 13px; font-weight: 500;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.45); animation: toastIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  padding: 13px 18px 13px 16px; background: rgba(18, 20, 24, 0.88); border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 12px; color: var(--text-primary); font-size: 13px; font-weight: 500; letter-spacing: 0.1px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5); animation: toastIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   display: flex; align-items: center; gap: 11px; width: 100%; box-sizing: border-box;
   position: relative; overflow: hidden; cursor: pointer;
-  backdrop-filter: blur(20px) saturate(1.6); -webkit-backdrop-filter: blur(20px) saturate(1.6);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  backdrop-filter: blur(24px) saturate(1.4); -webkit-backdrop-filter: blur(24px) saturate(1.4);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
-.toast:hover { transform: translateY(-2px); box-shadow: 0 14px 48px rgba(0, 0, 0, 0.55); }
-.toast-icon { flex-shrink: 0; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 8px; }
-.toast-icon svg { width: 18px; height: 18px; }
-.toast-msg { flex: 1; min-width: 0; line-height: 1.4; }
-.toast-close { flex-shrink: 0; opacity: 0.5; font-size: 16px; line-height: 1; padding: 2px 4px; border-radius: 4px; transition: opacity 0.15s; background: none; border: none; color: var(--text-muted); cursor: pointer; }
+.toast:hover { transform: translateY(-1px); box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6); }
+.toast-icon { flex-shrink: 0; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; border-radius: 7px; }
+.toast-icon svg { width: 16px; height: 16px; stroke-width: 2.2; }
+.toast-msg { flex: 1; min-width: 0; line-height: 1.45; }
+.toast-close { flex-shrink: 0; opacity: 0.45; font-size: 15px; line-height: 1; padding: 2px 4px; border-radius: 4px; transition: opacity 0.15s; background: none; border: none; color: var(--text-muted); cursor: pointer; }
 .toast-close:hover { opacity: 1; }
 .toast-progress {
-  position: absolute; bottom: 0; left: 0; height: 3px; border-radius: 0 0 0 14px;
+  position: absolute; bottom: 0; left: 0; height: 2px; border-radius: 0;
   animation: toastProgress 4s linear forwards;
 }
 .toast.success { border-left: 3px solid var(--success); }
-.toast.success .toast-icon { color: var(--success); background: rgba(34,197,94,0.12); }
-.toast.success .toast-progress { background: linear-gradient(90deg, var(--success), #4ade80); }
+.toast.success .toast-icon { color: var(--success); background: rgba(59,165,93,0.14); }
+.toast.success .toast-progress { background: var(--success); opacity: 0.7; }
 .toast.error { border-left: 3px solid var(--danger); }
-.toast.error .toast-icon { color: var(--danger); background: rgba(239,68,68,0.12); }
-.toast.error .toast-progress { background: linear-gradient(90deg, var(--danger), #f87171); }
+.toast.error .toast-icon { color: var(--danger); background: rgba(216,58,58,0.14); }
+.toast.error .toast-progress { background: var(--danger); opacity: 0.7; }
 .toast.info { border-left: 3px solid var(--accent); }
-.toast.info .toast-icon { color: var(--accent); background: rgba(74,158,255,0.12); }
-.toast.info .toast-progress { background: linear-gradient(90deg, var(--accent), #93c5fd); }
-.toast.warning { border-left: 3px solid #f0ad4e; }
-.toast.warning .toast-icon { color: #f0ad4e; background: rgba(240,173,78,0.12); }
-.toast.warning .toast-progress { background: linear-gradient(90deg, #f0ad4e, #fbbf24); }
+.toast.info .toast-icon { color: var(--accent); background: rgba(74,158,255,0.14); }
+.toast.info .toast-progress { background: var(--accent); opacity: 0.7; }
+.toast.warning { border-left: 3px solid #d4a017; }
+.toast.warning .toast-icon { color: #d4a017; background: rgba(212,160,23,0.14); }
+.toast.warning .toast-progress { background: #d4a017; opacity: 0.7; }
+/* Premium confirmation toast — used for profile picture / banner updates.
+   A more refined, professional confirmation card (not cartoony): subtle
+   gradient accent bar, larger refined icon badge, slightly wider. */
+.toast.confirm {
+  border: 1px solid rgba(59,165,93,0.22); border-left: 3px solid var(--success);
+  background: linear-gradient(90deg, rgba(59,165,93,0.10), rgba(18,20,24,0.92) 30%);
+  border-radius: 12px; padding: 14px 18px;
+  box-shadow: 0 10px 36px rgba(0,0,0,0.55), 0 0 0 1px rgba(59,165,93,0.04) inset;
+}
+.toast.confirm .toast-icon {
+  width: 30px; height: 30px; border-radius: 9px;
+  color: var(--success); background: rgba(59,165,93,0.16);
+  box-shadow: 0 0 0 4px rgba(59,165,93,0.06);
+}
+.toast.confirm .toast-icon svg { width: 17px; height: 17px; stroke-width: 2.4; }
+.toast.confirm .toast-msg { font-weight: 600; font-size: 13.5px; letter-spacing: 0.12px; }
+.toast.confirm .toast-progress { background: var(--success); opacity: 0.55; height: 2px; }
 .toast.fade-out { animation: toastOut 0.3s ease forwards; }
 @keyframes toastIn { from { opacity: 0; transform: translateY(20px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
 @keyframes toastOut { from { opacity: 1; transform: translateY(0) scale(1); } to { opacity: 0; transform: translateY(20px) scale(0.95); } }
@@ -4768,11 +4800,12 @@ body.no-anim .friend-item { animation: none !important; }
         <div id="group-settings-icon-wrap" style="position:relative; flex-shrink:0;">
           <div id="group-settings-icon" style="width:56px; height:56px; border-radius:50%; background:linear-gradient(135deg,#6366f1,#4f46e5); display:flex; align-items:center; justify-content:center; font-size:22px; font-weight:700; color:#fff; overflow:hidden;">G</div>
           <button id="group-settings-icon-btn" title="Change group icon" style="position:absolute; bottom:-2px; right:-2px; width:22px; height:22px; border-radius:50%; border:2px solid var(--bg-darkest); background:var(--accent); color:#fff; display:none; align-items:center; justify-content:center; cursor:pointer; font-size:14px; line-height:1;">+</button>
-          <input type="file" id="group-settings-icon-input" accept="image/*" hidden />
+          <input type="file" id="group-settings-icon-input" accept="image/*,image/gif" hidden />
         </div>
         <div style="flex:1;">
           <label style="display:block; font-size:12px; color:var(--text-muted); margin-bottom:6px; font-weight:600;">Group name <span style="font-weight:400; font-size:11px;">(max 10 characters)</span></label>
           <input type="text" id="group-settings-name" class="admin-input" placeholder="Group name" maxlength="10" style="width:100%;" />
+          <p id="group-icon-hint" style="font-size:11px; color:var(--text-muted); margin-top:6px; line-height:1.45; display:none;">Tap <strong style="color:var(--text-secondary);">+</strong> on the icon to upload an image or animated GIF. GIFs animate for all members.</p>
         </div>
       </div>
       <div style="margin-bottom:10px;">
@@ -4822,9 +4855,6 @@ body.no-anim .friend-item { animation: none !important; }
   <!-- ===================== DELETE ACCOUNT MODAL ===================== -->
   <div class="modal-overlay" id="delete-account-modal">
     <div class="modal small">
-      <div class="modal-icon danger">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-      </div>
       <h3>Delete your account?</h3>
       <p>This action is permanent and cannot be undone. All your messages, profile data, and connections will be permanently removed. Enter your password to confirm.</p>
       <input type="password" class="form-input" id="delete-account-password" placeholder="Enter your password to confirm" style="margin-bottom:16px;">
@@ -4837,9 +4867,6 @@ body.no-anim .friend-item { animation: none !important; }
 
   <div class="modal-overlay" id="disable-account-modal">
     <div class="modal small">
-      <div class="modal-icon danger">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
-      </div>
       <h3>Disable your account?</h3>
       <p>Your profile will be hidden and displayed as "deleted user" to others. You can reinstate your account within 30 days by logging back in. After 30 days, your account will be permanently deleted. Enter your password to confirm.</p>
       <input type="password" class="form-input" id="disable-account-password" placeholder="Enter your password to confirm" style="margin-bottom:16px;">
@@ -6259,6 +6286,7 @@ function toast(msg, type = '') {
   // Icons for each toast type
   const icons = {
     success: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>',
+    confirm: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>',
     error: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>',
     info: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>',
     warning: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
@@ -9497,12 +9525,13 @@ function renderUserList() {
   $('online-count').textContent = online.length;
   $('offline-count').textContent = offline.length;
   if (currentView === 'public') {
-    const onlineCount = online.filter(u => u.status === 'online').length;
-    const idleCount = online.filter(u => u.status === 'idle').length;
+    // Header member stats — exactly three categories: online · dnd · offline.
+    // "online" includes both online and idle users (idle is treated as online
+    // for the header summary so the stats always read the 3 expected labels).
+    const onlineCount = online.filter(u => u.status === 'online' || u.status === 'idle').length;
     const dndCount = online.filter(u => u.status === 'dnd').length;
     let parts = [onlineCount + ' online'];
-    if (idleCount > 0) parts.push(idleCount + ' idle');
-    if (dndCount > 0) parts.push(dndCount + ' dnd');
+    parts.push(dndCount + ' dnd');
     parts.push(offline.length + ' offline');
     $('member-count-text').textContent = users.length + ' members - ' + parts.join(' · ');
   }
@@ -9571,6 +9600,8 @@ function attachUserListListeners() {
         const isClosed = closedDMs.some(c => c.toLowerCase() === un.toLowerCase());
         if (isClosed) {
           items.push({ label: 'Open Conversation', icon: 'dm', action: () => {
+            // Optimistic: remove from closedDMs locally so the list updates instantly.
+            closedDMs = closedDMs.filter(c => c.toLowerCase() !== un.toLowerCase());
             toast('Conversation has been reopened.', 'success');
             fetch(API_BASE + '/api/dms/reopen/' + encodeURIComponent(un), { method: 'POST' }).then(() => {
               loadDMConversations();
@@ -9712,10 +9743,19 @@ function attachFriendListeners() {
 
 async function sendFriendRequest(username) {
   if (username === currentUser.username) { toast('You cannot send a friend request to yourself.', 'error'); return; }
-  // Optimistic UI: show "pending" state immediately for instant feel
+  // Pre-check: if the target has friend requests turned OFF, only show the
+  // "has friend requests turned off" message — do NOT show the "sent to"
+  // toast, and skip the optimistic pending state entirely.
+  const targetUser = users.find(u => u.username === username);
+  if (targetUser && targetUser.friendRequestsEnabled === false) {
+    toast('@' + username + ' has friend requests turned off', 'error');
+    return;
+  }
+  // Optimistic UI: show "pending" state immediately for instant feel.
+  // Only shown when friend requests are ON (handled above).
   const existing = friendRequests.sent.find(f => f.username === username);
   if (!existing) {
-    friendRequests.sent.push({ username, displayName: (users.find(u => u.username === username) || {}).displayName || '' });
+    friendRequests.sent.push({ username, displayName: (targetUser || {}).displayName || '' });
     renderFriendsList();
   }
   toast('Friend request has been sent to @' + username, 'success');
@@ -10085,8 +10125,17 @@ $('dm-header-name').addEventListener('click', () => {
 });
 
 async function closeDM(username) {
-  // Optimistic: show toast and update UI immediately
-  toast('Conversation closed. Reopen it anytime by right-clicking the Messages tab.', 'success');
+  // Optimistic: update the local closedDMs list immediately so the
+  // right-click "reopen" menu on the Messages tab reflects the change
+  // without waiting for the server round-trip.
+  const un = String(username || '').toLowerCase();
+  if (!closedDMs.some(c => c.toLowerCase() === un)) closedDMs.push(un);
+  // Remove the closed conversation from the visible list right away.
+  dmConversations = dmConversations.filter(c => !(c.user && c.user.username.toLowerCase() === un));
+  renderMessagesList();
+  updateDMNavBadge();
+  // Professional, clear confirmation with the reopen hint.
+  toast('Conversation closed. Reopen it anytime by right-clicking the Messages tab.', 'info');
   // Fire network request in background (non-blocking)
   fetch(API_BASE + '/api/dms/close/' + encodeURIComponent(username), { method: 'POST' }).then(() => {
     loadDMConversations();
@@ -10098,10 +10147,13 @@ document.querySelector('.sidebar-nav-btn[data-view="dms"]').addEventListener('co
   if (!closedDMs.length) { toast('There are no closed conversations to reopen.', ''); return; }
   const items = closedDMs.map(un => ({
     label: 'Reopen @' + un, icon: 'dm', action: async () => {
+      // Optimistic: remove from closedDMs locally so the list updates instantly.
+      closedDMs = closedDMs.filter(c => c.toLowerCase() !== un.toLowerCase());
       toast('Conversation has been reopened.', 'success');
       fetch(API_BASE + '/api/dms/reopen/' + encodeURIComponent(un), { method: 'POST' }).then(() => {
         loadDMConversations();
       }).catch(() => {});
+      openDM(un);
     }
   }));
   showContextMenu(e.clientX, e.clientY, items);
@@ -10804,9 +10856,21 @@ function renderGroupSettings() {
   // Icon — render the STAGED icon if changed, otherwise the saved icon.
   const iconEl = $('group-settings-icon');
   const stagedIcon = groupSettingsStaged.iconChanged ? groupSettingsStaged.icon : (g.icon || null);
-  if (stagedIcon) { iconEl.innerHTML = '<img src="' + stagedIcon + '" style="width:100%; height:100%; object-fit:cover;">'; }
-  else { iconEl.textContent = getInitials(g.name || 'G'); iconEl.style.background = 'linear-gradient(135deg,#6366f1,#4f46e5)'; }
+  if (stagedIcon) {
+    // Clear any leftover gradient background so transparent GIFs/PNGs show cleanly,
+    // and render the image so animated GIFs play in the preview.
+    iconEl.style.background = 'var(--bg-medium)';
+    iconEl.textContent = '';
+    iconEl.innerHTML = '<img src="' + stagedIcon + '" style="width:100%; height:100%; object-fit:cover; display:block;">';
+  } else {
+    iconEl.innerHTML = '';
+    iconEl.textContent = getInitials(g.name || 'G');
+    iconEl.style.background = 'linear-gradient(135deg,#6366f1,#4f46e5)';
+  }
   $('group-settings-icon-btn').style.display = isOwner ? 'flex' : 'none';
+  // Show the GIF-support hint only for the owner (who can change the icon).
+  const iconHint = $('group-icon-hint');
+  if (iconHint) iconHint.style.display = isOwner ? 'block' : 'none';
   // Name — render the STAGED name (or saved name if nothing staged).
   $('group-settings-name').value = groupSettingsStaged.name || g.name || '';
   $('group-settings-name').readOnly = !isOwner;
@@ -10900,7 +10964,7 @@ $('group-settings-icon-input').addEventListener('change', async (e) => {
   groupSettingsStaged.iconChanged = true;
   groupSettingsStaged.pendingIconFile = file; // held until Save
   renderGroupSettings();
-  toast('New group icon staged. Click Save to apply it.', 'success');
+  toast(file.type === 'image/gif' ? 'Animated GIF staged. Click Save to apply it.' : 'New group icon staged. Click Save to apply it.', 'success');
   e.target.value = '';
 });
 
@@ -12259,7 +12323,7 @@ async function uploadProfileImage(file, type) {
     const res = await fetch(API_BASE + '/api/profile', { method: 'POST', body: formData });
     const data = await res.json();
     if (!res.ok) { toast(data.error || 'Upload failed. Please try again.', 'error'); return; }
-    toast(type === 'avatar' ? 'Profile picture has been updated.' : 'Banner has been updated.', 'success');
+    toast(type === 'avatar' ? 'Profile picture has been updated.' : 'Banner has been updated.', 'confirm');
     if (type === 'avatar') { currentUser.avatar = data.avatar; pendingAvatarRemoval = false; }
     else { currentUser.banner = data.banner; pendingBannerRemoval = false; }
     updateProfilePanel(); updateSidebarSelf();
@@ -12495,7 +12559,7 @@ function closeSearchMsgPanel() {
   if (!panel.classList.contains('open') || panel.classList.contains('closing')) return;
   panel.classList.add('closing');
   panel.classList.remove('open');
-  setTimeout(() => { panel.classList.remove('closing'); }, 270);
+  setTimeout(() => { panel.classList.remove('closing'); }, 310);
 }
 $('search-msg-close').addEventListener('click', closeSearchMsgPanel);
 document.querySelectorAll('.search-msg-scope button').forEach(btn => {
@@ -12622,6 +12686,19 @@ function loadMembersBgState() {
 function saveMembersBgState() {
   localStorage.setItem('hellobye_members_bg', JSON.stringify(membersBgState));
   applyMembersBg();
+}
+/* Visually revert the members-list background to the default (no image) WITHOUT
+   deleting the saved state from localStorage. Called on logout so the background
+   disappears for the logged-out / auth screen, but the user's saved background is
+   preserved and restored when they sign back in (restoreMembersBg). */
+function revertMembersBg() {
+  membersBgState = { url: null, scale: 100, color: '#0a0b0d', opacity: 0 };
+  applyMembersBg();
+}
+/* Reload the saved members-list background from localStorage and re-apply it.
+   Called after login so a returning user gets their background back. */
+function restoreMembersBg() {
+  loadMembersBgState();
 }
 function applyMembersBg() {
   const sidebar = document.querySelector('.sidebar');
@@ -13019,7 +13096,7 @@ $('password-save').addEventListener('click', async () => {
 });
 
 // ---------- Preferences: Notifications, Sounds, Compact Mode, Group Add ----------
-function savePreferences() {
+function savePreferences(feedback) {
   const payload = {
     notificationsEnabled: $('notif-toggle').checked,
     messageSounds: $('sound-toggle').checked,
@@ -13036,7 +13113,7 @@ function savePreferences() {
       // Apply compact mode class (CSS targets #chat-app.compact)
       const app = document.getElementById('chat-app');
       if (app) app.classList.toggle('compact', payload.compactMode);
-      toast('Your preferences have been saved.', 'success');
+      toast(feedback || 'Your preferences have been saved.', 'success');
     } else { toast(data.error || 'Unable to save your changes. Please try again.', 'error'); }
   }).catch(() => toast('Unable to save your changes. Please try again.', 'error'));
 }
@@ -13048,15 +13125,23 @@ if ($('notif-toggle')) $('notif-toggle').addEventListener('change', async (e) =>
       e.target.checked = false;
       // Still persist notificationsEnabled=false so the server state matches.
       currentUser.notificationsEnabled = false;
-      savePreferences();
+      savePreferences('Desktop notifications are disabled. Permission was not granted.');
       return;
     }
+    savePreferences('Desktop notifications are now enabled.');
+  } else {
+    savePreferences('Desktop notifications are now disabled.');
   }
-  savePreferences();
 });
-if ($('sound-toggle')) $('sound-toggle').addEventListener('change', savePreferences);
-if ($('compact-toggle')) $('compact-toggle').addEventListener('change', savePreferences);
-if ($('group-add-toggle')) $('group-add-toggle').addEventListener('change', savePreferences);
+if ($('sound-toggle')) $('sound-toggle').addEventListener('change', (e) => {
+  savePreferences(e.target.checked ? 'Message notification sounds are now enabled.' : 'Message notification sounds are now disabled.');
+});
+if ($('compact-toggle')) $('compact-toggle').addEventListener('change', (e) => {
+  savePreferences(e.target.checked ? 'Compact message mode is now enabled.' : 'Compact message mode is now disabled.');
+});
+if ($('group-add-toggle')) $('group-add-toggle').addEventListener('change', (e) => {
+  savePreferences(e.target.checked ? 'Others can now add you to group chats.' : 'Others can no longer add you to group chats.');
+});
 
 // ---------- Delete Account ----------
 $('delete-account-btn').addEventListener('click', () => {
@@ -14676,6 +14761,8 @@ function applyClientSettings() {
   initAccentPresets();
   initProfileAccentPresets();
   applyProfileColor();
+  // Restore the saved members-list background for this user (re-applied after login).
+  if (typeof restoreMembersBg === 'function') restoreMembersBg();
 }
 
 // Visually revert ALL client settings to default WITHOUT deleting from localStorage.
@@ -14683,6 +14770,9 @@ function applyClientSettings() {
 // restored automatically the next time the user signs in (applyClientSettings runs
 // in initChat with currentUser set, so keys resolve to that user's saved data).
 function clearClientSettings() {
+  // Visually revert the members-list background to default (saved data stays in
+  // localStorage and is restored on next sign-in via restoreMembersBg).
+  if (typeof revertMembersBg === 'function') revertMembersBg();
   const chatMain = document.querySelector('.chat-main');
   if (chatMain) {
     const layer = document.getElementById('custom-bg-layer');
