@@ -1,12 +1,13 @@
-# Round 46 — Profile username size, rename desc + owner rename, online icon swap, empty chat icon removal
+# Round 47 Todo
 
 ## Tasks
-- [x] 1. Make username bigger when viewing other users' profiles (profile-view-handle font-size)
-- [x] 2. Simplify the Rename User panel description text (small/simple yet professional)
-- [x] 3. Allow @lore (owner) to be renamed in the admin Rename panel (remove owner block in server + client)
-- [x] 4. Replace the green online status icon with the uploaded Online.png (rounded square)
-- [x] 5. Remove the message icon from "No messages yet" empty state (keep text only)
-- [x] 6. Syntax-verify JS (node --check)
-- [x] 7. Boot-test server (HTTP 200)
-- [ ] 8. Commit + push to GitHub master
-- [ ] 9. Verify Render auto-deploy + live URL matches
+- [x] Task 1: Image zoom to click point (transform-origin based on mouse coords, not centered)
+- [x] Task 2: Hide @hi's Signup Password in admin Account Information
+- [x] Task 3: Rename "Account Info" admin subtab → "Account Information"
+- [x] Task 4: Add/verify typing indicators in DMs and group chats
+- [x] Task 5: Remove trusted_user role from Assign Badge / Icon
+- [x] Task 6: Fix image/profile picture/banner/GIF loading delay on re-entry (preloading/prefetch)
+- [x] Task 7: Syntax-verify JS (node --check)
+- [x] Task 8: Boot-test server (HTTP 200)
+- [ ] Task 9: Commit + push to GitHub master
+- [ ] Task 10: Verify Render auto-deploy + live URL matches

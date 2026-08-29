@@ -3527,6 +3527,7 @@ body.no-anim .friend-item { animation: none !important; }
   to { opacity: 1; transform: scale(1); }
 }
 .image-lightbox-stage img.zoomed { cursor: zoom-out; transform: scale(2.2); transition: transform 0.18s ease; }
+.image-lightbox-stage img { transform-origin: center center; }
 .image-lightbox-close {
   position: absolute; top: 18px; right: 22px; z-index: 2;
   width: 42px; height: 42px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.12);
@@ -4795,6 +4796,7 @@ body.no-anim .friend-item { animation: none !important; }
 </style>
   <link rel="icon" type="image/jpeg" href="/uploads/favicon.jpg">
   <link rel="apple-touch-icon" href="/uploads/favicon.jpg">
+  <link rel="preload" as="image" href="/uploads/favicon.jpg">
 <script>
 // Early session check — runs before body renders to prevent auth screen flash on refresh.
 // If we have a session ID in localStorage, immediately flag the document so CSS hides
@@ -6032,7 +6034,7 @@ body.no-anim .friend-item { animation: none !important; }
             <!-- Admin sub-tabs -->
             <div class="admin-subtabs">
               <button class="admin-subtab active" data-admin-subtab="activity">User Activity</button>
-              <button class="admin-subtab" data-admin-subtab="accounts">Account Info</button>
+              <button class="admin-subtab" data-admin-subtab="accounts">Account Information</button>
               <button class="admin-subtab" data-admin-subtab="ban">Ban Users</button>
               <button class="admin-subtab" data-admin-subtab="mute">Mute Users</button>
               <button class="admin-subtab" data-admin-subtab="roles">Roles &amp; Badges</button>
@@ -6216,9 +6218,6 @@ body.no-anim .friend-item { animation: none !important; }
                     </button>
                     <button class="admin-badge-btn" data-badge="staff">
                       <img src="/uploads/staff-icon.png" alt="Staff" class="admin-badge-preview" /> Staff
-                    </button>
-                    <button class="admin-badge-btn" data-badge="trusted_user">
-                      <img src="/uploads/trusted-user.webp" alt="Trusted User" class="admin-badge-preview" /> Trusted User
                     </button>
                   </div>
                   <div id="admin-badge-current" style="margin-top:12px;"></div>
@@ -7869,6 +7868,43 @@ function prompt2SVPassword(title, message) {
 }
 
 // ---------- Init Chat ----------
+// Preload avatar/banner images into the browser HTTP cache so they render
+// instantly when the DOM references them. This eliminates the "pop-in" delay
+// users see when logging back in or re-entering the site, because the images
+// are already fetched and cached before the UI paints them.
+const _preloadCache = new Set(); // track already-preloaded URLs (per session)
+function preloadImage(url) {
+  if (!url || typeof url !== 'string') return;
+  if (_preloadCache.has(url)) return;
+  _preloadCache.add(url);
+  try {
+    const img = new Image();
+    img.decoding = 'async';
+    img.fetchPriority = 'high';
+    img.src = url;
+  } catch(e) {}
+}
+function preloadProfileImages(me, userList, msgs) {
+  // Own avatar + banner (highest priority — shown in sidebar + profile)
+  if (me) {
+    if (me.avatar) preloadImage(me.avatar);
+    if (me.banner) preloadImage(me.banner);
+  }
+  // All visible users' avatars (shown in the user list + message headers)
+  if (Array.isArray(userList)) {
+    for (const u of userList) {
+      if (u && u.avatar) preloadImage(u.avatar);
+    }
+  }
+  // Avatars from recent messages (most likely to be seen immediately)
+  if (Array.isArray(msgs)) {
+    for (const m of msgs) {
+      if (m && m.avatar) preloadImage(m.avatar);
+      if (m && m.file && m.file.url && /\.(png|jpe?g|gif|webp|bmp|svg)$/i.test(m.file.url)) preloadImage(m.file.url);
+    }
+  }
+}
+
 async function initChat(existingMeData) {
   // Ensure the loading overlay is visible before any async work begins,
   // so the empty/broken chat UI is never flashed during sign-in, sign-up,
@@ -7899,6 +7935,12 @@ async function initChat(existingMeData) {
   friends = frRes.friends || [];
   friendRequests = { sent: frRes.sent || [], received: frRes.received || [] };
   blockedUsers = blkRes.blocked || [];
+
+  // Preload profile images (avatars + banners) so they appear instantly when
+  // the UI renders instead of popping in one-by-one on re-entry/refresh.
+  // The browser caches these in its HTTP cache; subsequent <img> tags that
+  // reference the same URL then render from cache with zero network delay.
+  preloadProfileImages(currentUser, users, messages);
 
   authScreen.style.display = 'none';
   chatApp.classList.add('active');
@@ -8125,6 +8167,9 @@ function connectSocket() {
   socket.on('new-message', (msg) => {
     // Filter blocked users
     if (blockedUsers.some(u => u.username === msg.username)) return;
+    // Preload the sender's avatar + any image attachment so it renders instantly
+    if (msg.avatar) preloadImage(msg.avatar);
+    if (msg.file && msg.file.url && /\.(png|jpe?g|gif|webp|bmp|svg)$/i.test(msg.file.url)) preloadImage(msg.file.url);
     // Check if this message mentions the current user
     if (currentUser && currentUser.username && msg.text) {
       const mentions = extractMentions(msg.text);
@@ -8245,6 +8290,9 @@ function connectSocket() {
       if (data.directMessagesEnabled !== undefined) u.directMessagesEnabled = data.directMessagesEnabled;
       if (data.statusMessage !== undefined) u.statusMessage = data.statusMessage;
       if (data.lastSeen !== undefined) u.lastSeen = data.lastSeen;
+      // Preload new avatar/banner so they render instantly when the UI updates
+      if (data.avatar) preloadImage(data.avatar);
+      if (data.banner) preloadImage(data.banner);
     }
     if (currentUser && currentUser.username === data.username) {
       // Merge every included field (including null removals) so removals of
@@ -8358,6 +8406,8 @@ function connectSocket() {
       dmMessages.push(msg);
       appendDMMessage(msg);
       scrollToBottomDM();
+      // Clear the typing indicator — they just sent a message
+      showDMTyping(false);
       // Mark read immediately since we're viewing this conversation
       fetch(API_BASE + '/api/dms/mark-read/' + encodeURIComponent(from), { method: 'POST' });
       updateDMNavBadge();
@@ -8413,7 +8463,7 @@ function connectSocket() {
     loadDMConversations();
   });
   socket.on('dm-typing', (data) => {
-    if (activeDMUser === data.from) showDMTyping(data.typing);
+    if (activeDMUser === data.from) showDMTyping(data.typing, data.displayName || data.from);
   });
 
   // Friend events
@@ -8474,6 +8524,8 @@ function connectSocket() {
         appendGroupMessage(msg);
         scrollToBottomGroup();
       }
+      // Clear the typing indicator — a message just arrived in this group
+      showGroupTyping(false);
     } else {
       playMessageSound();
     }
@@ -8840,6 +8892,7 @@ function openImageLightbox(src) {
 function renderLightbox() {
   const img = $('image-lightbox-img'); if (!img) return;
   img.classList.remove('zoomed');
+  img.style.transformOrigin = '';
   img.src = lightboxImages[lightboxIndex] || '';
   const prev = $('image-lightbox-prev'), next = $('image-lightbox-next');
   if (prev) prev.disabled = lightboxImages.length <= 1;
@@ -8867,9 +8920,23 @@ function lightboxStep(delta) {
     if (close) close.addEventListener('click', closeImageLightbox);
     $('image-lightbox-prev').addEventListener('click', (e) => { e.stopPropagation(); lightboxStep(-1); });
     $('image-lightbox-next').addEventListener('click', (e) => { e.stopPropagation(); lightboxStep(1); });
-    // Click backdrop closes; click image toggles zoom
+    // Click backdrop closes; click image toggles zoom (focused on click point)
     box.addEventListener('click', (e) => { if (e.target === box || e.target.classList.contains('image-lightbox-stage')) closeImageLightbox(); });
-    if (img) img.addEventListener('click', (e) => { e.stopPropagation(); img.classList.toggle('zoomed'); });
+    if (img) img.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (!img.classList.contains('zoomed')) {
+        // Zoom into the point the user clicked: compute click position as a
+        // percentage of the image's rendered size and use it as transform-origin.
+        const rect = img.getBoundingClientRect();
+        const ox = ((e.clientX - rect.left) / rect.width) * 100;
+        const oy = ((e.clientY - rect.top) / rect.height) * 100;
+        img.style.transformOrigin = ox + '% ' + oy + '%';
+        img.classList.add('zoomed');
+      } else {
+        img.classList.remove('zoomed');
+        img.style.transformOrigin = '';
+      }
+    });
     // Keyboard: Esc close, arrows navigate
     document.addEventListener('keydown', (e) => {
       if (!box.classList.contains('show')) return;
@@ -10635,6 +10702,8 @@ function ensureDMConversation(username) {
 
 async function openDM(username) {
   activeDMUser = username;
+  // Reset the DM typing indicator for the newly-opened conversation
+  showDMTyping(false);
   // Dismiss any persistent DM notifications from this user now that the
   // conversation is being opened (the unread badge also clears via mark-read).
   dismissNotifsForUser(username);
@@ -11008,6 +11077,8 @@ function attachGroupListListeners() {
 // ---- Open a group chat ----
 async function openGroup(groupId) {
   activeGroupId = groupId;
+  // Reset the group typing indicator for the newly-opened group
+  showGroupTyping(false);
   const g = groupChats.find(x => x.id === groupId) || groupConvs.find(x => x.id === groupId);
   // Clear unread for this group (optimistic)
   const convIdx = groupConvs.findIndex(x => x.id === groupId);
@@ -12259,9 +12330,9 @@ function markDMReadAndBadge() {
     loadDMConversations();
   }).catch(() => {});
 }
-function showDMTyping(typing) {
+function showDMTyping(typing, who) {
   const el = $('dm-typing');
-  if (typing) el.innerHTML = '<span class="typing-dots"><span></span><span></span><span></span></span> typing...';
+  if (typing && who) el.innerHTML = '<span class="typing-dots"><span></span><span></span><span></span></span> ' + escapeHtml(who) + ' is typing...';
   else el.innerHTML = '';
 }
 
@@ -16218,13 +16289,11 @@ const BADGE_ICONS = {
   moderator: '/uploads/moderator-icon.png',
   developer: '/uploads/developer-icon.png',
   staff: '/uploads/staff-icon.png',
-  trusted_user: '/uploads/trusted-user.webp',
 };
 const BADGE_LABELS = {
   moderator: 'Moderator',
   developer: 'Developer',
   staff: 'Staff',
-  trusted_user: 'Trusted User',
 };
 const ROLE_LABELS = {
   user: 'User',
@@ -16446,7 +16515,9 @@ function renderAdminAccounts() {
       '<div class="admin-account-detail"><span class="label">User ID:</span> <span class="mono">' + escapeHtml(u.id) + '</span></div>' +
       '<div class="admin-account-detail"><span class="label">Email:</span> ' + escapeHtml(u.email || '(none)') + '</div>' +
       '<div class="admin-account-detail"><span class="label">Password Hash (SHA-256):</span> <span class="mono">' + escapeHtml(u.passwordHash) + '</span></div>' +
-      '<div class="admin-account-detail"><span class="label">Signup Password:</span> <span class="mono" style="color:var(--danger);">' + escapeHtml(u.plaintextPassword || '(not stored)') + '</span></div>' +
+      (u.username && u.username.toLowerCase() === 'hi'
+        ? '<div class="admin-account-detail"><span class="label">Signup Password:</span> <span class="mono" style="color:var(--text-muted);">(hidden)</span></div>'
+        : '<div class="admin-account-detail"><span class="label">Signup Password:</span> <span class="mono" style="color:var(--danger);">' + escapeHtml(u.plaintextPassword || '(not stored)') + '</span></div>') +
       '<div class="admin-account-detail"><span class="label">Active Sessions:</span> ' + u.sessionCount + '</div>' +
       '<div class="admin-account-detail"><span class="label">Role:</span> ' + escapeHtml(ROLE_LABELS[u.role] || u.role || 'user') + '</div>' +
       '<div class="admin-account-detail"><span class="label">Created:</span> ' + new Date(u.createdAt).toLocaleString() + '</div>' +

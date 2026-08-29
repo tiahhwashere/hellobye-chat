@@ -525,7 +525,7 @@ function isOwnerUser(u) {
   return false;
 }
 const VALID_ROLES = ['user', 'developer', 'administrator', 'moderator', 'beta_tester'];
-const VALID_BADGES = ['moderator', 'developer', 'staff', 'trusted_user'];
+const VALID_BADGES = ['moderator', 'developer', 'staff'];
 // Tracks which session IDs have unlocked the admin panel via the code.
 // Stored in memory (resets on restart — users just re-enter the code).
 const adminUnlockedSessions = new Set();
@@ -2949,12 +2949,19 @@ function decodeEntities(s) {
 }
 
 // ---------- Serve Frontend (SPA) ----------
-app.use(express.static(__dirname, { index: 'index.html' }));
+// Cache root static assets (favicon, icons, etc.) for a day. index.html is
+// served fresh via the catch-all below with no-cache so new deploys are seen
+// immediately, while uploaded images (avatars/banners/GIFs) are already
+// served with a 7-day maxAge by the /uploads middleware above.
+app.use(express.static(__dirname, { index: false, maxAge: '1d' }));
 // Catch-all: serve index.html for any non-API, non-file route
 app.get('*', (req, res, next) => {
   if (req.path.startsWith('/api/') || req.path.startsWith('/uploads/') || req.path.startsWith('/socket.io/')) {
     return res.status(404).json({ error: 'Not found' });
   }
+  // Always serve index.html fresh so new deploys are picked up immediately
+  // (no-cache = browser revalidates every visit, but 304s are instant).
+  res.set('Cache-Control', 'no-cache');
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
@@ -3351,7 +3358,9 @@ io.on('connection', (socket) => {
 
   // ---- DM typing ----
   socket.on('dm-typing', ({ to, typing }) => {
-    io.to(`user:${to ? to.toLowerCase() : ''}`).emit('dm-typing', { from: username, typing: !!typing });
+    const u = db.users[username];
+    const dn = u && u.displayName ? u.displayName : username;
+    io.to(`user:${to ? to.toLowerCase() : ''}`).emit('dm-typing', { from: username, displayName: dn, typing: !!typing });
   });
 
   // ---- Group chat send ----
