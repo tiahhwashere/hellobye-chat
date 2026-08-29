@@ -34,6 +34,6 @@
 - [x] Ensure close/open conversation right-click dropdown options work (not broken)
 
 ## 10. Deploy
-- [ ] Commit and push to GitHub
-- [ ] Deploy/update on Render
-- [ ] Verify at https://hellobye-chat.onrender.com/
+- [x] Commit and push to GitHub (commit 2924e25 pushed to master)
+- [x] Deploy/update on Render (autoDeploy triggered, deploy dep-da9f9b3n live)
+- [x] Verify at https://hellobye-chat.onrender.com/ (HTTP 200, Round 31 code confirmed)
