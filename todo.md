@@ -32,5 +32,5 @@
 - [x] Syntax check both files (PASS)
 - [x] Confirm image zoom + admin UI are reverted (back to Round 22 look)
 - [x] Confirm group chat is intact
-- [ ] Commit & push
-- [ ] Verify Render deploy
+- [x] Commit & push (e4697da)
+- [x] Verify Render deploy (LIVE, confirmed group elements + API on live site)
