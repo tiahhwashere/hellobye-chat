@@ -1,45 +1,25 @@
-# Round 27 Todo
+# Hellobye Chat — Feature Update Round 28
 
-## 1. Confirmation UI for "Leave this group chat?" (replace native confirm())
-- [x] Build a custom modal confirmation UI (generic-confirm-modal + showGenericConfirm)
-- [x] Replace the native confirm() in the Leave group button handler
-- [x] Use the same confirmation UI for right-click leave (members) and delete (owner)
+## Backend (server.js)
+- [x] 1. Add account-disable system: new fields (disabled, disabledAt, scheduledDeletionAt, originalProfile snapshot) + `/api/settings/disable-account` endpoint (logs user out, resets profile to "deleted user" + default pic)
+- [x] 2. Login flow: detect disabled accounts -> return `accountDisabled` flag so frontend shows reactivation UI; add `/api/account/reactivate` endpoint
+- [x] 3. Add 30-day auto-purge: prune disabled accounts past deadline on load + periodic check
+- [x] 4. `/api/user/:username` -> return 404 "User not found" for disabled accounts (profile hidden)
+- [x] 5. `publicUser`/`fullUser`/`emitUsersList`/`broadcastProfile` -> exclude/skip disabled users
+- [x] 6. Group chat name: enforce 10 char limit in create + settings endpoints (slice 10)
+- [x] 7. Remove music-player backend: delete `/api/settings/music-link` + `/api/validate-music-link` endpoints (keep data intact, just stop serving)
+- [x] 8. Group create: enforce max 10 members (already done) — verify
 
-## 2. Fix "Add" button in Group Settings (blown out of proportion)
-- [x] Fixed: added width:auto, proper padding, margin-top:0, min-width:0 on input
+## Frontend (index.html)
+- [x] 9. Remove Music Player system fully (HTML section, CSS, JS MusicPlayer object, wiring, restore code, script tags)
+- [x] 10. Group settings: unsaved-changes detection on icon upload + name change; show "You have unsaved changes" UI with Save/Discard; Discard reverts icon+name to saved state
+- [x] 11. Group name input: set maxlength=10 + enforce 10 char limit client-side
+- [x] 12. Group chat member cap: enforce max 10 (UI guard on add) — verify count display shows /10
+- [x] 13. Profile picture zoom: clicking user's profile picture in profile-view modal zooms the image
+- [x] 14. Danger Zone: add "Disable Account" option card + modal (password confirm) -> calls disable endpoint -> logs out
+- [x] 15. Login reactivation UI: when server returns accountDisabled, show reactivation prompt modal ("Reinstate your account?") with Reactivate / Leave disabled buttons
+- [x] 16. Disabled-user profile click -> notification "User not found"
 
-## 3. Change group chat member limit from 50 to 10
-- [x] Updated server.js group-add endpoint (50 -> 10)
-- [x] Added member limit check in group-create endpoint (max 10)
-- [x] Added client-side limit in group create modal (max 9 additional)
-- [x] Updated member count display to show "(N / 10)"
-
-## 4. Fix "Clear" button on admin panel (blown out of proportion)
-- [x] Fixed: added width:auto, margin-top:0 to the Clear button
-
-## 5. Group chat image upload — show to all members
-- [x] Backend already broadcasts group-updated to all members on icon upload
-- [x] Frontend group-updated listener updates header + sidebar for all members
-- [x] Added explicit updateGroupHeader + loadGroupChats after owner upload
-
-## 6. Owner: change Leave button to Delete Group button with confirmation
-- [x] renderGroupSettings shows "Delete Group" for owner, "Leave Group" for members
-- [x] Added confirmation modal for delete with full warning text
-- [x] Backend: added /api/groups/:id/delete endpoint that removes everyone
-
-## 7. Owner: group name change — display for everyone
-- [x] Backend already broadcasts group-updated on rename to all members
-- [x] Frontend listener updates group name in header + sidebar for all
-
-## 8. Right-click context menu on group chat (sidebar)
-- [x] Members: right-click -> "Leave Group" with confirmation UI
-- [x] Owner: right-click -> "Delete Group" with confirmation UI
-- [x] Added "Open Group Chat" and "Group Settings" options too
-
-## 9. Kick button in group settings — add a confirmation UI
-- [x] Replaced native confirm() with showGenericConfirm modal for kick
-- [x] Fixed kick button styling (proper padding, border-radius, white-space)
-
-## 10. Deploy & verify
-- [x] Commit, push, verify Render deploy (commit 7904635, live)
-- [x] Test all features on live site (all present in served HTML)
+## Deploy
+- [ ] 17. Commit + push to GitHub
+- [ ] 18. Trigger Render deploy & verify live site

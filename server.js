@@ -327,6 +327,11 @@ function saveDB() {
 }
 setInterval(saveDB, 15000); // periodic save
 
+// On startup + every hour: purge any disabled accounts whose 30-day grace
+// period has elapsed. This enforces the automatic deletion after 30 days.
+purgeExpiredDisabledAccounts();
+setInterval(purgeExpiredDisabledAccounts, 60 * 60 * 1000); // hourly check
+
 // On startup: purge any chat messages / DMs that were soft-deleted but never
 // got permanently removed (e.g. the server restarted/spun down before the
 // 2-minute cleanup window elapsed). This prevents stuck
@@ -526,6 +531,67 @@ const VALID_BADGES = ['moderator', 'developer', 'staff', 'trusted_user'];
 const adminUnlockedSessions = new Set();
 const WELCOME_TITLE_COOLDOWN = 20000; // 20 seconds in ms
 
+// ---------- Account Disable / Reactivation system ----------
+// When a user disables their account we:
+//   1) log them out (kill all sessions),
+//   2) snapshot their profile into `disabledProfile` so it can be restored,
+//   3) reset their visible profile to the default picture + "deleted user" name,
+//   4) schedule automatic permanent deletion after DISABLE_GRACE_MS (30 days).
+// They have until the deadline to log back in & reinstate. After that, the
+// account (and its data) is purged automatically.
+const DISABLE_GRACE_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
+const DISABLED_DISPLAY_NAME = 'deleted user';
+const DEFAULT_AVATAR_URL = '/uploads/favicon.jpg'; // default profile picture
+
+// Return true if the account is currently in a disabled (grace-period) state.
+function isAccountDisabled(u) {
+  return !!(u && u.disabled);
+}
+
+// Purge any disabled accounts whose 30-day grace period has elapsed.
+// Called on startup and periodically. Removes the user + related data but
+// NEVER touches other users' data beyond cleaning up references to the purged
+// user (friend lists, blocks, DM threads, group memberships, messages stay).
+function purgeExpiredDisabledAccounts() {
+  if (!db || !db.users) return 0;
+  const now = Date.now();
+  let purged = 0;
+  for (const un of Object.keys(db.users)) {
+    const u = db.users[un];
+    if (u && u.disabled && u.scheduledDeletionAt && now >= u.scheduledDeletionAt) {
+      // Permanently delete the account (same cleanup as delete-account).
+      delete db.users[un];
+      if (db.friends) { delete db.friends[un]; }
+      if (db.blocked) { delete db.blocked[un]; }
+      if (db.dms) { delete db.dms[un]; }
+      if (db.friends) {
+        for (const fr of Object.values(db.friends)) {
+          if (fr) { fr.friends = (fr.friends||[]).filter(x => x !== un); fr.sent = (fr.sent||[]).filter(x => x !== un); fr.received = (fr.received||[]).filter(x => x !== un); }
+        }
+      }
+      if (db.blocked) {
+        for (const otherUn of Object.keys(db.blocked)) { db.blocked[otherUn] = (db.blocked[otherUn]||[]).filter(x => x !== un); }
+      }
+      if (db.dms) {
+        for (const convos of Object.values(db.dms)) { if (convos) delete convos[un]; }
+      }
+      if (Array.isArray(db.groupChats)) {
+        for (const g of db.groupChats) {
+          if (Array.isArray(g.members)) g.members = g.members.filter(m => m !== un);
+          if (g.owner === un) g.owner = (g.members && g.members[0]) || null;
+        }
+      }
+      if (db.pending2SV) {
+        for (const tok of Object.keys(db.pending2SV)) { if (db.pending2SV[tok] && db.pending2SV[tok].username === un) delete db.pending2SV[tok]; }
+      }
+      purged++;
+      console.log('[disable] Auto-purged expired disabled account @' + un + ' (30-day grace period elapsed).');
+    }
+  }
+  if (purged > 0) saveDB();
+  return purged;
+}
+
 // ---------- Startup: ensure the owner (@lore) is never banned or muted ----------
 // If a previous deploy (before owner protection existed) left @lore banned or
 // muted, clear it now on every startup. This also protects against any edge
@@ -605,6 +671,39 @@ setInterval(() => {
 
 function publicUser(u) {
   if (!u) return null;
+  // Disabled accounts present as a generic "deleted user" placeholder so
+  // their real profile (avatar, bio, etc.) is hidden while in the grace
+  // period. The username is preserved so DMs/groups still resolve, but the
+  // visible identity is reset.
+  if (isAccountDisabled(u)) {
+    return {
+      username: u.username,
+      displayName: DISABLED_DISPLAY_NAME,
+      avatar: DEFAULT_AVATAR_URL,
+      banner: null,
+      bio: '',
+      status: 'offline',
+      pronouns: '',
+      location: '',
+      website: '',
+      panelColor: null,
+      hideLastSeen: true,
+      lastSeen: u.lastSeen || nowISO(),
+      showOnlineStatus: false,
+      friendRequestsEnabled: false,
+      directMessagesEnabled: false,
+      createdAt: u.createdAt || nowISO(),
+      id: u.id || null,
+      role: 'user',
+      badges: [],
+      banned: false,
+      banReason: null,
+      bannedUntil: 0,
+      mutedUntil: 0,
+      isOwner: false,
+      disabled: true,
+    };
+  }
   return {
     username: u.username,
     displayName: u.displayName || u.username,
@@ -630,6 +729,7 @@ function publicUser(u) {
     bannedUntil: u.bannedUntil || 0,
     mutedUntil: (u.mutedUntil && Date.now() < u.mutedUntil) ? u.mutedUntil : 0,
     isOwner: isOwnerUser(u),
+    disabled: false,
   };
 }
 function fullUser(u) {
@@ -657,6 +757,11 @@ function fullUser(u) {
   // 2-Step Verification status (do NOT expose the actual code here)
   pub.twoFactorEnabled = !!u.twoFactorEnabled;
   pub.twoFactorCodeGenerated = u.twoFactorCodeGenerated || 0;
+  // Account disable / reactivation status
+  pub.disabled = !!u.disabled;
+  if (u.disabled && u.scheduledDeletionAt) {
+    pub.scheduledDeletionAt = u.scheduledDeletionAt;
+  }
   return pub;
 }
 function getSession(req) {
@@ -840,6 +945,19 @@ app.post('/api/login', (req, res) => {
   const user = db.users[un];
   if (!user || user.password !== hashPass(String(password))) {
     return res.status(401).json({ error: 'Invalid username or password' });
+  }
+  // ---------- Disabled account (grace period) check ----------
+  // If the account is disabled, do NOT log the user in. Instead return an
+  // accountDisabled response (with the deletion deadline) so the frontend
+  // can prompt them to reinstate their account. They must confirm before a
+  // session is created.
+  if (isAccountDisabled(user)) {
+    return res.status(200).json({
+      accountDisabled: true,
+      username: un,
+      scheduledDeletionAt: user.scheduledDeletionAt || 0,
+      message: 'This account is disabled. Would you like to reinstate it?',
+    });
   }
   // Check ban status. If the ban has a temporary expiry (bannedUntil > 0) and
   // it has already passed, lift the ban automatically so the user can log in.
@@ -1070,6 +1188,11 @@ app.get('/api/users', authMiddleware, (req, res) => {
 app.get('/api/user/:username', authMiddleware, (req, res) => {
   const u = db.users[req.params.username.toLowerCase()];
   if (!u) return res.status(404).json({ error: 'User not found' });
+  // Disabled accounts present as "User not found" to other viewers — their
+  // real profile is hidden during the grace period.
+  if (isAccountDisabled(u) && req.user.username !== u.username) {
+    return res.status(404).json({ error: 'User not found' });
+  }
   const me = req.user;
   const myFriends = db.friends[me.username] || { friends: [], sent: [], received: [] };
   res.json({
@@ -1526,7 +1649,7 @@ function findGroup(id) {
 // Create a group chat. The creator becomes the owner and is automatically a member.
 app.post('/api/groups/create', authMiddleware, (req, res) => {
   const { name, members } = req.body || {};
-  const groupName = String(name || '').trim().slice(0, 60);
+  const groupName = String(name || '').trim().slice(0, 10);
   if (!groupName) return res.status(400).json({ error: 'Group name is required' });
   let memberList = Array.isArray(members) ? members.map(m => String(m).toLowerCase().trim()).filter(Boolean) : [];
   // The owner is always a member
@@ -1587,7 +1710,7 @@ app.post('/api/groups/:id/settings', authMiddleware, (req, res) => {
   if (!g) return res.status(404).json({ error: 'Group not found' });
   if (g.owner !== req.user.username) return res.status(403).json({ error: 'Only the group owner can change settings' });
   const { name } = req.body || {};
-  const newName = String(name || '').trim().slice(0, 60);
+  const newName = String(name || '').trim().slice(0, 10);
   if (!newName) return res.status(400).json({ error: 'Group name is required' });
   g.name = newName;
   saveDB();
@@ -1911,100 +2034,6 @@ app.post('/api/settings/preferences', authMiddleware, (req, res) => {
   res.json({ success: true });
 });
 
-// Save / clear the user's music link (Spotify, SoundCloud, YouTube, etc.)
-app.post('/api/settings/music-link', authMiddleware, (req, res) => {
-  const { musicLink } = req.body || {};
-  if (typeof musicLink !== 'string') return res.status(400).json({ error: 'Invalid music link' });
-  const trimmed = musicLink.trim();
-  if (trimmed && trimmed.length > 500) return res.status(400).json({ error: 'Music link is too long' });
-  req.user.musicLink = trimmed || '';
-  saveDB();
-  res.json({ success: true, musicLink: req.user.musicLink });
-});
-
-// Validate a music link server-side via oEmbed (bypasses browser CORS).
-// Returns { valid, title, artist, artwork, provider, isPlaylist }.
-function fetchOEmbedJson(url, maxRedirects) {
-  maxRedirects = maxRedirects || 5;
-  return new Promise((resolve) => {
-    try {
-      const u = new URL(url);
-      const proto = u.protocol === 'https:' ? require('https') : require('http');
-      const r = proto.get(u, { headers: { 'User-Agent': 'hellobye-chat/1.0', 'Accept': 'application/json, text/html, */*' } }, (resp) => {
-        if (resp.statusCode >= 300 && resp.statusCode < 400 && resp.headers.location && maxRedirects > 0) {
-          return fetchOEmbedJson(resp.headers.location, maxRedirects - 1).then(resolve);
-        }
-        if (resp.statusCode !== 200) { resolve(null); return; }
-        let chunks = '';
-        resp.on('data', (c) => { chunks += c; });
-        resp.on('end', () => {
-          let parsed = null;
-          try { parsed = chunks ? JSON.parse(chunks) : null; } catch (e) { parsed = null; }
-          resolve(parsed);
-        });
-      });
-      r.on('error', () => resolve(null));
-      r.setTimeout(8000, () => { r.destroy(); resolve(null); });
-    } catch (e) { resolve(null); }
-  });
-}
-
-app.post('/api/validate-music-link', authMiddleware, async (req, res) => {
-  const { url } = req.body || {};
-  if (typeof url !== 'string' || !url.trim()) return res.json({ valid: false });
-  const raw = url.trim();
-  const u = raw.toLowerCase();
-  if (!/^https?:\/\//.test(u)) return res.json({ valid: false, error: 'Invalid URL format' });
-
-  let provider = null;
-  if (u.includes('spotify.com') || u.includes('spotify.link')) provider = 'spotify';
-  else if (u.includes('soundcloud.com')) provider = 'soundcloud';
-  else if (u.includes('youtube.com') || u.includes('youtu.be') || u.includes('music.youtube.com')) provider = 'youtube';
-  else if (u.includes('music.apple.com') || u.includes('apple.music')) provider = 'apple';
-  else if (u.includes('deezer.com')) provider = 'deezer';
-  if (!provider) return res.json({ valid: false, error: 'Unsupported platform' });
-
-  // Detect playlist
-  let isPlaylist = false;
-  if (provider === 'spotify') isPlaylist = /\/(playlist|album|show)\//.test(u);
-  else if (provider === 'soundcloud') isPlaylist = /\/sets\//.test(u) || /\/playlists\//.test(u);
-  else if (provider === 'youtube') isPlaylist = u.includes('list=') || /\/playlist\?/.test(u);
-  else if (provider === 'deezer') isPlaylist = /\/playlist\//.test(u) || /\/album\//.test(u);
-  else if (provider === 'apple') isPlaylist = /\/playlist\//.test(u) || /\/album\//.test(u);
-
-  const result = { valid: false, provider, isPlaylist, title: null, artist: null, artwork: null };
-
-  try {
-    if (provider === 'spotify') {
-      const d = await fetchOEmbedJson('https://open.spotify.com/oembed?url=' + encodeURIComponent(raw));
-      if (d && d.title) { result.valid = true; result.title = d.title; result.artist = d.provider_name || ''; result.artwork = d.thumbnail_url || null; }
-    } else if (provider === 'soundcloud') {
-      const d = await fetchOEmbedJson('https://soundcloud.com/oembed?format=json&url=' + encodeURIComponent(raw));
-      if (d && d.title) { result.valid = true; result.title = d.title; result.artist = d.author_name || ''; result.artwork = d.thumbnail_url || null; }
-    } else if (provider === 'youtube') {
-      let videoId = null;
-      if (raw.includes('youtu.be/')) videoId = raw.split('youtu.be/')[1].split(/[?&#]/)[0];
-      else { const m = raw.match(/[?&]v=([a-zA-Z0-9_-]+)/); if (m) videoId = m[1]; }
-      if (videoId) {
-        const d = await fetchOEmbedJson('https://www.youtube.com/oembed?url=' + encodeURIComponent('https://www.youtube.com/watch?v=' + videoId) + '&format=json');
-        if (d && d.title) { result.valid = true; result.title = d.title; result.artist = d.author_name || ''; result.artwork = d.thumbnail_url || null; }
-      }
-      if (!result.valid && u.includes('list=')) {
-        // Playlist link without a specific video — accept as valid
-        result.valid = true; result.title = 'YouTube Playlist';
-      }
-    } else if (provider === 'deezer') {
-      const d = await fetchOEmbedJson('https://api.deezer.com/oembed?url=' + encodeURIComponent(raw) + '&format=json');
-      if (d && d.title) { result.valid = true; result.title = d.title; result.artist = d.author_name || ''; result.artwork = d.thumbnail_url || d.thumbnail || null; }
-    } else if (provider === 'apple') {
-      const d = await fetchOEmbedJson('https://music.apple.com/oembed?url=' + encodeURIComponent(raw));
-      if (d && d.title) { result.valid = true; result.title = d.title; result.artist = d.author_name || ''; result.artwork = d.thumbnail_url || null; }
-    }
-  } catch (e) { /* validation failed */ }
-
-  res.json(result);
-});
-
 app.post('/api/settings/delete-account', authMiddleware, (req, res) => {
   // The owner account (@lore) cannot be deleted — this protects the primary
   // admin account from accidental or malicious removal.
@@ -2041,6 +2070,122 @@ app.post('/api/settings/delete-account', authMiddleware, (req, res) => {
   // Notify any open admin panels that the account list changed (account
   // deleted) so the Account Credentials & Sessions list updates in real time.
   try { if (typeof io !== 'undefined' && io && io.emit) io.emit('admin-data-changed', { reason: 'delete-account', username: un }); } catch (e) {}
+  res.json({ success: true });
+});
+
+// ---------- Disable Account (grace-period deactivation) ----------
+// Different from permanent deletion: the user is logged out, their visible
+// profile is reset to "deleted user" + the default picture, and the account
+// enters a 30-day grace period. Logging back in prompts them to reinstate.
+// If they don't reinstate within 30 days, the account is auto-purged.
+app.post('/api/settings/disable-account', authMiddleware, (req, res) => {
+  // The owner account cannot be disabled — protects the primary admin.
+  if (isOwnerUser(req.user)) return res.status(403).json({ error: 'This account cannot be disabled' });
+  const { password } = req.body || {};
+  if (req.user.password !== hashPass(String(password || ''))) return res.status(401).json({ error: 'Password is incorrect' });
+  const un = req.user.username;
+  const u = req.user;
+  // Snapshot the user's real profile so it can be restored on reactivation.
+  // We store the fields that get reset to the placeholder below.
+  u.disabledProfile = {
+    displayName: u.displayName,
+    avatar: u.avatar,
+    banner: u.banner,
+    bio: u.bio,
+    pronouns: u.pronouns,
+    location: u.location,
+    website: u.website,
+    panelColor: u.panelColor,
+    status: u.status,
+    showOnlineStatus: u.showOnlineStatus,
+    hideLastSeen: u.hideLastSeen,
+    friendRequestsEnabled: u.friendRequestsEnabled,
+    directMessagesEnabled: u.directMessagesEnabled,
+    badges: (u.badges || []).slice(),
+    role: u.role,
+  };
+  // Mark the account disabled + schedule deletion 30 days out.
+  u.disabled = true;
+  u.disabledAt = Date.now();
+  u.scheduledDeletionAt = Date.now() + DISABLE_GRACE_MS;
+  // Reset the visible profile to the placeholder identity.
+  u.displayName = DISABLED_DISPLAY_NAME;
+  u.avatar = DEFAULT_AVATAR_URL;
+  u.banner = null;
+  u.bio = '';
+  u.pronouns = '';
+  u.location = '';
+  u.website = '';
+  u.panelColor = null;
+  u.status = 'offline';
+  u.showOnlineStatus = false;
+  u.friendRequestsEnabled = false;
+  u.directMessagesEnabled = false;
+  // Kill all sessions for this user (log them out everywhere).
+  for (const [sid, sUn] of Object.entries(db.sessions)) { if (sUn === un) delete db.sessions[sid]; }
+  saveDB();
+  // Broadcast the placeholder profile so other clients update immediately.
+  broadcastProfile(un);
+  emitUsersList();
+  // Notify admin panels.
+  try { if (typeof io !== 'undefined' && io && io.emit) io.emit('admin-data-changed', { reason: 'disable-account', username: un }); } catch (e) {}
+  res.json({ success: true, scheduledDeletionAt: u.scheduledDeletionAt });
+});
+
+// ---------- Reactivate a disabled account ----------
+// Called from the login reactivation prompt. Restores the user's real profile
+// from the snapshot, clears the disabled flag, and creates a fresh session.
+app.post('/api/account/reactivate', (req, res) => {
+  const { username, password } = req.body || {};
+  if (!username || !password) return res.status(400).json({ error: 'Username and password required' });
+  const un = String(username).toLowerCase().trim();
+  const user = db.users[un];
+  if (!user || user.password !== hashPass(String(password))) {
+    return res.status(401).json({ error: 'Invalid username or password' });
+  }
+  if (!isAccountDisabled(user)) {
+    // Not disabled — treat like a normal login error to avoid leaking state.
+    return res.status(400).json({ error: 'This account is not disabled' });
+  }
+  // Restore the real profile from the snapshot (if present).
+  const snap = user.disabledProfile || {};
+  user.displayName = snap.displayName || user.username;
+  user.avatar = (snap.avatar !== undefined ? snap.avatar : null);
+  user.banner = (snap.banner !== undefined ? snap.banner : null);
+  user.bio = snap.bio || '';
+  user.pronouns = snap.pronouns || '';
+  user.location = snap.location || '';
+  user.website = snap.website || '';
+  user.panelColor = snap.panelColor || null;
+  user.status = 'online';
+  user.showOnlineStatus = (snap.showOnlineStatus !== undefined ? snap.showOnlineStatus : true);
+  user.hideLastSeen = !!snap.hideLastSeen;
+  user.friendRequestsEnabled = (snap.friendRequestsEnabled !== undefined ? snap.friendRequestsEnabled : true);
+  user.directMessagesEnabled = (snap.directMessagesEnabled !== undefined ? snap.directMessagesEnabled : true);
+  user.badges = snap.badges || [];
+  user.role = snap.role || 'user';
+  // Clear the disabled state + snapshot.
+  user.disabled = false;
+  user.disabledAt = 0;
+  user.scheduledDeletionAt = 0;
+  delete user.disabledProfile;
+  user.lastSeen = nowISO();
+  // Create a fresh session.
+  const sid = genId();
+  db.sessions[sid] = un;
+  saveDB();
+  broadcastProfile(un);
+  emitUsersList();
+  try { if (typeof io !== 'undefined' && io && io.emit) io.emit('admin-data-changed', { reason: 'reactivate-account', username: un }); } catch (e) {}
+  res.json({ sessionId: sid, user: fullUser(user) });
+});
+
+// ---------- Decline reactivation (stay disabled) ----------
+// Lets the user explicitly close the reactivation prompt without reinstating.
+// No session is created; the account remains disabled and will be purged after
+// the grace period. (This is purely a UI affordance — it does nothing server-
+// side beyond acknowledging the choice.)
+app.post('/api/account/decline-reactivation', (req, res) => {
   res.json({ success: true });
 });
 
@@ -2687,6 +2832,30 @@ app.get('*', (req, res, next) => {
 function broadcastProfile(username) {
   const u = db.users[username];
   if (!u) return;
+  // For disabled accounts, emit a minimal "deleted user" profile update so
+  // other clients see the placeholder identity instead of the real one.
+  if (isAccountDisabled(u)) {
+    io.emit('profile-updated', {
+      username: u.username,
+      status: 'offline',
+      avatar: DEFAULT_AVATAR_URL,
+      banner: null,
+      bio: '',
+      displayName: DISABLED_DISPLAY_NAME,
+      hideLastSeen: true,
+      lastSeen: u.lastSeen,
+      pronouns: '',
+      panelColor: null,
+      showOnlineStatus: false,
+      friendRequestsEnabled: false,
+      directMessagesEnabled: false,
+      role: 'user',
+      badges: [],
+      banned: false,
+      disabled: true,
+    });
+    return;
+  }
   io.emit('profile-updated', {
     username: u.username,
     status: u.status || 'online',
@@ -2704,6 +2873,7 @@ function broadcastProfile(username) {
     role: u.role || 'user',
     badges: u.badges || [],
     banned: !!u.banned,
+    disabled: false,
   });
 }
 
@@ -2716,11 +2886,11 @@ function emitUsersList() {
     for (const m of (role.members || [])) customRoleUsernames.add(m);
   }
   const list = Object.values(db.users)
-    .filter(u => connectedUsers.has(u.username) && (u.showOnlineStatus !== false || customRoleUsernames.has(u.username)) && !u.banned)
+    .filter(u => !isAccountDisabled(u) && connectedUsers.has(u.username) && (u.showOnlineStatus !== false || customRoleUsernames.has(u.username)) && !u.banned)
     .map(u => publicUser(u));
   // Also include offline users with their last seen
   const offline = Object.values(db.users)
-    .filter(u => !connectedUsers.has(u.username) && !u.banned)
+    .filter(u => !isAccountDisabled(u) && !connectedUsers.has(u.username) && !u.banned)
     .map(u => { const pu = publicUser(u); pu.status = 'offline'; return pu; });
   io.emit('users-list', [...list, ...offline]);
   // Also emit custom roles so the member sidebar can render custom role groups

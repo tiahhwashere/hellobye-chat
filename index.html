@@ -1934,6 +1934,9 @@ body.no-anim .friend-item { animation: none !important; }
 #delete-account-modal { z-index: 360; }
 #block-modal { z-index: 350; }
 #unfriend-modal { z-index: 350; }
+#group-unsaved-modal { z-index: 360; }
+#disable-account-modal { z-index: 360; }
+#reactivate-modal { z-index: 370; }
 .modal-overlay.show { display: flex; animation: fadeIn 0.15s ease; }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 .modal {
@@ -2767,296 +2770,6 @@ body.no-anim .friend-item { animation: none !important; }
 .setting-hint { font-size: 12px; color: var(--text-muted); margin-bottom: 10px; line-height: 1.5; }
 .setting-hint span { color: var(--text-secondary); }
 
-/* ===================== MUSIC PLAYER ===================== */
-.music-link-input-row {
-  display: flex; gap: 8px; align-items: stretch; margin-bottom: 12px;
-}
-.music-link-input {
-  flex: 1; min-width: 0; padding: 10px 14px;
-  background: var(--bg-medium); border: 1px solid var(--border-light);
-  border-radius: var(--radius-sm); color: var(--text-primary); font-size: 13px;
-  font-family: inherit; transition: var(--transition);
-}
-.music-link-input::placeholder { color: var(--text-muted); }
-.music-link-input:focus {
-  outline: none; border-color: var(--accent);
-  box-shadow: 0 0 0 3px var(--accent-glow);
-}
-.music-load-btn {
-  width: auto; padding: 10px 22px; margin-top: 0; flex-shrink: 0;
-  font-size: 13px; font-weight: 600; letter-spacing: 0.3px;
-}
-.music-clear-link-btn {
-  flex-shrink: 0; padding: 10px 18px; margin-top: 0;
-  font-size: 13px; font-weight: 600; letter-spacing: 0.3px;
-  background: transparent; color: var(--text-muted);
-  border: 1px solid var(--border); border-radius: var(--radius-sm);
-  cursor: pointer; transition: var(--transition);
-}
-.music-clear-link-btn:hover {
-  color: var(--danger); border-color: rgba(255,90,90,0.35);
-  background: rgba(255,90,90,0.06);
-}
-
-/* Platform pills */
-.music-platform-pills {
-  display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px;
-}
-.music-pill {
-  display: inline-flex; align-items: center; gap: 5px;
-  padding: 4px 10px; font-size: 11px; font-weight: 600;
-  color: var(--text-muted); background: var(--bg-medium);
-  border: 1px solid var(--border); border-radius: 20px;
-  transition: var(--transition); cursor: default; user-select: none;
-}
-.music-pill svg { width: 12px; height: 12px; flex-shrink: 0; }
-.music-pill[data-platform="spotify"] svg { color: #1db954; }
-.music-pill[data-platform="soundcloud"] svg { color: #ff5500; }
-.music-pill[data-platform="youtube"] svg { color: #ff0000; }
-.music-pill[data-platform="apple"] svg { color: #fc3c44; }
-.music-pill[data-platform="deezer"] svg { color: #a238ff; }
-
-/* Empty state */
-.music-empty-state {
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  padding: 24px 20px; text-align: center;
-  background: var(--bg-medium); border: 1px dashed var(--border-light);
-  border-radius: var(--radius); transition: var(--transition);
-}
-.music-empty-icon {
-  width: 44px; height: 44px; margin-bottom: 10px;
-  display: flex; align-items: center; justify-content: center;
-  color: var(--text-muted); background: var(--bg-light);
-  border-radius: 50%; transition: var(--transition);
-}
-.music-empty-icon svg { width: 22px; height: 22px; }
-.music-empty-title { font-size: 13px; font-weight: 600; color: var(--text-secondary); margin-bottom: 3px; }
-.music-empty-sub { font-size: 11.5px; color: var(--text-muted); line-height: 1.5; }
-
-/* ===== Player card — professional, clean, non-cartoony ===== */
-.music-player-card {
-  position: relative; display: flex; flex-direction: column; overflow: hidden;
-  background: var(--bg-medium);
-  border: 1px solid var(--border-light); border-radius: var(--radius);
-  box-shadow: 0 2px 12px rgba(0,0,0,0.18);
-}
-
-/* Artwork + info row: artwork on left, info on right */
-.music-player-artwork {
-  width: 72px; height: 72px; flex-shrink: 0;
-  background-size: cover; background-position: center; background-color: var(--bg-darker);
-  border-radius: 8px; position: relative; transition: var(--transition);
-  margin: 14px 0 0 16px;
-}
-.music-artwork-placeholder {
-  width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
-  color: var(--text-muted);
-}
-.music-artwork-placeholder svg { width: 32px; height: 32px; }
-
-/* Top row: artwork + metadata side by side */
-.music-player-top {
-  display: flex; gap: 12px; padding: 0 16px;
-  align-items: flex-start;
-}
-.music-player-meta {
-  flex: 1; min-width: 0; padding-top: 14px; display: flex; flex-direction: column; gap: 2px;
-}
-.music-meta-line {
-  display: flex; align-items: center; gap: 7px; margin-bottom: 3px;
-}
-.music-provider-badge {
-  display: inline-flex; align-items: center; gap: 4px;
-  font-size: 9.5px; font-weight: 700; letter-spacing: 0.4px;
-  text-transform: uppercase; padding: 2px 7px; border-radius: 8px;
-  background: var(--bg-light); color: var(--text-secondary);
-  border: 1px solid var(--border);
-}
-.music-now-playing {
-  font-size: 9.5px; font-weight: 600; letter-spacing: 0.4px;
-  text-transform: uppercase; color: var(--text-muted);
-  display: inline-flex; align-items: center; gap: 5px;
-}
-.music-now-playing::before {
-  content: ''; width: 5px; height: 5px; border-radius: 50%;
-  background: var(--success); animation: music-pulse 1.8s ease-in-out infinite;
-}
-.music-playlist-badge {
-  display: inline-flex; align-items: center; gap: 4px;
-  font-size: 9.5px; font-weight: 700; letter-spacing: 0.4px;
-  text-transform: uppercase; padding: 2px 7px; border-radius: 8px;
-  background: rgba(255,170,0,0.10); color: #ffaa00;
-  border: 1px solid rgba(255,170,0,0.20);
-}
-.music-playlist-badge::before {
-  content: ''; width: 0; height: 0; border-left: 3px solid transparent;
-  border-right: 3px solid transparent; border-top: 4px solid currentColor;
-}
-@keyframes music-pulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.3; transform: scale(0.7); }
-}
-.music-track-title {
-  font-size: 14px; font-weight: 700; color: var(--text-primary);
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  line-height: 1.3;
-}
-.music-track-artist {
-  font-size: 12px; color: var(--text-secondary);
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  line-height: 1.3;
-}
-
-/* Hidden embed container — iframe is invisible but still functional for audio.
-   The user controls playback through our custom UI, never sees the platform embed. */
-.music-player-embed {
-  position: fixed; left: -9999px; top: -9999px;
-  width: 1px; height: 1px; opacity: 0; pointer-events: none;
-  overflow: hidden; border: 0;
-}
-.music-player-embed iframe {
-  border: 0; display: block; width: 300px; height: 200px;
-}
-.music-player-embed.embed-loading {
-  position: fixed; left: -9999px; top: -9999px;
-}
-
-/* Progress bar */
-.music-player-progress {
-  display: flex; align-items: center; gap: 10px;
-  padding: 14px 16px 0;
-}
-.music-time {
-  font-size: 10px; font-weight: 600; color: var(--text-muted);
-  font-variant-numeric: tabular-nums; min-width: 32px; text-align: center;
-}
-.music-progress-bar {
-  flex: 1; height: 4px; background: var(--bg-darker);
-  border-radius: 3px; position: relative; cursor: pointer;
-  transition: height 0.15s ease; contain: layout style;
-}
-.music-progress-bar:hover { height: 6px; }
-.music-progress-fill {
-  height: 100%; width: 0%; border-radius: 3px;
-  background: var(--accent); position: relative;
-}
-.music-progress-handle {
-  position: absolute; top: 50%; left: 0%; transform: translate(-50%, -50%);
-  width: 10px; height: 10px; border-radius: 50%; background: #fff;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.4); opacity: 0;
-  transition: opacity 0.15s ease; pointer-events: none;
-}
-.music-progress-bar:hover .music-progress-handle { opacity: 1; }
-
-/* Controls */
-.music-player-controls {
-  display: flex; align-items: center; gap: 6px;
-  padding: 10px 16px 14px;
-}
-.music-ctrl-btn {
-  display: flex; align-items: center; justify-content: center;
-  width: 34px; height: 34px; flex-shrink: 0; border: none;
-  background: transparent; color: var(--text-secondary);
-  border-radius: 50%; cursor: pointer; transition: var(--transition);
-  position: relative;
-}
-.music-ctrl-btn svg { width: 18px; height: 18px; }
-.music-ctrl-btn:hover:not(:disabled) {
-  background: var(--bg-light); color: var(--text-primary);
-}
-.music-ctrl-btn:active:not(:disabled) { transform: scale(0.92); }
-.music-ctrl-btn:disabled { opacity: 0.3; cursor: not-allowed; }
-.music-ctrl-btn.active {
-  background: var(--accent-glow); color: var(--accent);
-}
-.music-ctrl-btn.small { width: 30px; height: 30px; }
-.music-ctrl-btn.small svg { width: 16px; height: 16px; }
-
-/* Play button — clean, solid accent */
-.music-play-btn {
-  width: 42px; height: 42px;
-  background: var(--accent); color: var(--accent-text);
-  box-shadow: 0 2px 8px rgba(74,158,255,0.30);
-}
-.music-play-btn:hover:not(:disabled) {
-  background: var(--accent-hover); color: var(--accent-text);
-  box-shadow: 0 3px 12px rgba(74,158,255,0.40);
-}
-.music-play-btn svg { width: 20px; height: 20px; }
-
-/* Volume group */
-.music-volume-group {
-  display: flex; align-items: center; gap: 4px; margin-left: 2px;
-}
-.music-volume-slider {
-  -webkit-appearance: none; appearance: none;
-  width: 64px; height: 4px; background: var(--bg-darker);
-  border-radius: 2px; cursor: pointer; outline: none;
-}
-.music-volume-slider::-webkit-slider-thumb {
-  -webkit-appearance: none; appearance: none;
-  width: 11px; height: 11px; border-radius: 50%;
-  background: var(--accent); cursor: pointer;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.3); transition: var(--transition);
-}
-.music-volume-slider::-webkit-slider-thumb:hover { transform: scale(1.2); }
-.music-volume-slider::-moz-range-thumb {
-  width: 11px; height: 11px; border-radius: 50%; border: none;
-  background: var(--accent); cursor: pointer;
-}
-.music-spacer { flex: 1; }
-
-/* Clear button */
-.music-clear-btn {
-  position: absolute; top: 8px; right: 8px; z-index: 5;
-  width: 24px; height: 24px; flex-shrink: 0; border: none;
-  display: flex; align-items: center; justify-content: center;
-  background: transparent; color: var(--text-muted);
-  border-radius: 50%; cursor: pointer; transition: var(--transition);
-}
-.music-clear-btn svg { width: 14px; height: 14px; }
-.music-clear-btn:hover {
-  background: var(--bg-light); color: var(--danger);
-}
-
-/* Loading text for embed (hidden, but exists for state) */
-.music-embed-loading-text { display: none; }
-
-/* Mini embed for Apple Music & Deezer — these platforms have no JS control
-   API, so the embed must be visible for the user to press play inside it.
-   Styled as a compact, professional mini-player below the custom controls. */
-.music-player-embed.embed-mini {
-  position: relative; left: auto; top: auto;
-  width: 100%; height: auto; opacity: 1; pointer-events: auto;
-  margin: 0 0 14px 0; border-radius: var(--radius-sm);
-  overflow: hidden; border: 1px solid var(--border);
-  background: var(--bg-darker);
-}
-.music-player-embed.embed-mini iframe {
-  border: 0; display: block; width: 100%;
-}
-
-/* Native mini-player (Apple Music / Deezer) — inserted inside the card */
-.music-native-mini {
-  margin: 0 16px 14px; border-radius: var(--radius-sm); overflow: hidden;
-  border: 1px solid var(--border); background: var(--bg-darker);
-}
-.music-native-label {
-  font-size: 10px; font-weight: 600; letter-spacing: 0.4px;
-  text-transform: uppercase; color: var(--text-muted);
-  padding: 7px 10px 5px; background: var(--bg-medium);
-  border-bottom: 1px solid var(--border);
-}
-.music-native-mini iframe { border: 0; display: block; }
-
-/* Responsive */
-@media (max-width: 540px) {
-  .music-player-artwork { width: 60px; height: 60px; margin: 12px 0 0 14px; }
-  .music-player-top { padding: 0 14px; }
-  .music-track-title { font-size: 13px; }
-  .music-volume-group { display: none; }
-  .music-load-btn { padding: 10px 16px; }
-}
 
 /* ============================================
    Customization section — Background & Theme
@@ -5018,11 +4731,11 @@ body.no-anim .friend-item { animation: none !important; }
       <h3 style="margin-bottom:4px;">Create a Group Chat</h3>
       <p style="color:var(--text-muted); font-size:12.5px; margin-bottom:16px; line-height:1.5;">Pick a name and add members. Anyone you add will be able to see and send messages in this group.</p>
       <div style="margin-bottom:14px;">
-        <label style="display:block; font-size:12px; color:var(--text-muted); margin-bottom:6px; font-weight:600;">Group name</label>
-        <input type="text" id="group-create-name" class="admin-input" placeholder="Enter a group chat name" maxlength="60" style="width:100%;" />
+        <label style="display:block; font-size:12px; color:var(--text-muted); margin-bottom:6px; font-weight:600;">Group name <span style="font-weight:400; font-size:11px;">(max 10 characters)</span></label>
+        <input type="text" id="group-create-name" class="admin-input" placeholder="Enter a group chat name" maxlength="10" style="width:100%;" />
       </div>
       <div style="margin-bottom:8px;">
-        <label style="display:block; font-size:12px; color:var(--text-muted); margin-bottom:6px; font-weight:600;">Add members</label>
+        <label style="display:block; font-size:12px; color:var(--text-muted); margin-bottom:6px; font-weight:600;">Add members <span style="font-weight:400; font-size:11px;">(max 10 total, including you)</span></label>
         <input type="text" id="group-create-search" class="admin-input" placeholder="Search members by name or ID to add" style="width:100%; margin-bottom:10px;" />
         <div id="group-create-selected" style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px; min-height:6px;"></div>
         <div id="group-create-results" class="admin-ban-results" style="max-height:240px; overflow-y:auto;"></div>
@@ -5046,8 +4759,8 @@ body.no-anim .friend-item { animation: none !important; }
           <input type="file" id="group-settings-icon-input" accept="image/*" hidden />
         </div>
         <div style="flex:1;">
-          <label style="display:block; font-size:12px; color:var(--text-muted); margin-bottom:6px; font-weight:600;">Group name</label>
-          <input type="text" id="group-settings-name" class="admin-input" placeholder="Group name" maxlength="60" style="width:100%;" />
+          <label style="display:block; font-size:12px; color:var(--text-muted); margin-bottom:6px; font-weight:600;">Group name <span style="font-weight:400; font-size:11px;">(max 10 characters)</span></label>
+          <input type="text" id="group-settings-name" class="admin-input" placeholder="Group name" maxlength="10" style="width:100%;" />
         </div>
       </div>
       <div style="margin-bottom:10px;">
@@ -5066,6 +4779,18 @@ body.no-anim .friend-item { animation: none !important; }
         <div style="flex:1;"></div>
         <button class="modal-btn" id="group-settings-cancel">Close</button>
         <button class="modal-btn" id="group-settings-save" style="background:linear-gradient(135deg,#6366f1,#4f46e5); color:#fff;">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== GROUP UNSAVED CHANGES MODAL ===================== -->
+  <div class="modal-overlay" id="group-unsaved-modal">
+    <div class="modal small">
+      <h3>You have unsaved changes</h3>
+      <p id="group-unsaved-modal-text">You have unsaved group changes. Would you like to save them now?</p>
+      <div class="modal-actions">
+        <button class="modal-btn" id="group-unsaved-discard">Discard</button>
+        <button class="modal-btn primary" id="group-unsaved-save">Save Now</button>
       </div>
     </div>
   </div>
@@ -5094,6 +4819,35 @@ body.no-anim .friend-item { animation: none !important; }
       <div class="modal-actions">
         <button class="modal-btn" id="delete-account-cancel">Cancel</button>
         <button class="modal-btn danger" id="delete-account-confirm">Delete Permanently</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="disable-account-modal">
+    <div class="modal small">
+      <div class="modal-icon danger">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+      </div>
+      <h3>Disable your account?</h3>
+      <p>Your profile will be hidden and displayed as "deleted user" to others. You can reinstate your account within 30 days by logging back in. After 30 days, your account will be permanently deleted. Enter your password to confirm.</p>
+      <input type="password" class="form-input" id="disable-account-password" placeholder="Enter your password to confirm" style="margin-bottom:16px;">
+      <div class="modal-actions">
+        <button class="modal-btn" id="disable-account-cancel">Cancel</button>
+        <button class="modal-btn danger" id="disable-account-confirm">Disable Account</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="reactivate-modal">
+    <div class="modal small">
+      <div class="modal-icon" style="background:rgba(111,181,255,0.12);color:#6fb5ff;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+      </div>
+      <h3>Reinstate your account?</h3>
+      <p id="reactivate-modal-text">Your account is currently disabled and scheduled for deletion. Would you like to reinstate it now? Your profile, friends, and settings will be restored.</p>
+      <div class="modal-actions">
+        <button class="modal-btn" id="reactivate-decline">Leave Disabled</button>
+        <button class="modal-btn primary" id="reactivate-confirm">Reinstate Account</button>
       </div>
     </div>
   </div>
@@ -5507,90 +5261,6 @@ body.no-anim .friend-item { animation: none !important; }
             <p class="setting-hint" style="margin-top:8px;">Compact mode reduces spacing between messages for a denser view.</p>
           </div>
 
-          <div class="profile-section">
-            <div class="profile-section-title">Music Player</div>
-            <p class="setting-hint" style="margin-top:0;margin-bottom:14px;">Paste a music link (Spotify, YouTube, SoundCloud, Apple Music, or Deezer) to load a player here.</p>
-            <div class="music-link-input-row">
-              <input type="text" id="music-link-input" class="music-link-input" placeholder="Paste a Spotify, SoundCloud, YouTube, Apple Music, or Deezer link…" autocomplete="off" spellcheck="false">
-              <button class="setting-save-btn no-checkmark music-load-btn" id="music-load-btn" type="button">Load</button>
-              <button class="music-clear-link-btn" id="music-clear-link-btn" type="button" title="Clear the link and remove the saved track">Clear</button>
-            </div>
-            <div class="music-platform-pills" id="music-platform-pills">
-              <span class="music-pill" data-platform="spotify"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm4.6 14.4c-.2.3-.5.4-.8.2-2.2-1.3-5-1.6-8.2-.9-.3.1-.6-.1-.7-.4-.1-.3.1-.6.4-.7 3.6-.8 6.6-.5 9 1 .3.2.4.6.3.8zm1.2-2.7c-.2.3-.6.5-1 .3-2.5-1.5-6.3-2-9.3-1-.4.1-.8-.1-1-.5-.1-.4.1-.8.5-1 3.4-1 7.6-.5 10.5 1.3.4.2.5.7.3.9zm.1-2.8C15.3 9.2 9.5 9 6.7 9.9c-.5.2-1-.1-1.2-.6-.2-.5.1-1 .6-1.2 3.3-1 9.7-.8 13.4 1.4.5.3.6.9.4 1.3-.2.4-.8.6-1.2.4z"/></svg>Spotify</span>
-              <span class="music-pill" data-platform="soundcloud"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M1.5 13.5c-.3 0-.5.2-.5.5v4c0 .3.2.5.5.5s.5-.2.5-.5v-4c0-.3-.2-.5-.5-.5zm2-1.5c-.3 0-.5.2-.5.5v6c0 .3.2.5.5.5s.5-.2.5-.5v-6c0-.3-.2-.5-.5-.5zm2-1c-.3 0-.5.2-.5.5v7c0 .3.2.5.5.5s.5-.2.5-.5v-7c0-.3-.2-.5-.5-.5zm2-1.5c-.3 0-.5.2-.5.5v9c0 .3.2.5.5.5s.5-.2.5-.5v-9c0-.3-.2-.5-.5-.5zm2-1c-.3 0-.5.2-.5.5v10c0 .3.2.5.5.5s.5-.2.5-.5v-10c0-.3-.2-.5-.5-.5zm2 .2c-.3 0-.5.2-.5.5v9.8c0 .3.2.5.5.5s.5-.2.5-.5v-9.8c0-.3-.2-.5-.5-.5zM21 11c-.6 0-1.2.2-1.7.5-.3-2.4-2.3-4.3-4.8-4.3-.6 0-1.1.1-1.6.3-.2.1-.2.1-.2.3v9.2c0 .2.1.3.3.3H21c1.7 0 3-1.3 3-3s-1.3-3-3-3z"/></svg>SoundCloud</span>
-              <span class="music-pill" data-platform="youtube"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M23.5 6.2c-.3-1-1-1.8-2-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.5.6c-1 .3-1.8 1.1-2 2.1C0 8.2 0 12 0 12s0 3.8.5 5.8c.3 1 1 1.8 2 2.1 2 .6 9.5.6 9.5.6s7.5 0 9.5-.6c1-.3 1.8-1.1 2-2.1.5-2 .5-5.8.5-5.8s0-3.8-.5-5.8zM9.5 15.5v-7l6.5 3.5-6.5 3.5z"/></svg>YouTube</span>
-              <span class="music-pill" data-platform="apple"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.05 12.04c-.03-2.7 2.2-3.99 2.3-4.06-1.25-1.83-3.2-2.08-3.89-2.11-1.66-.17-3.24.97-4.08.97-.84 0-2.14-.95-3.52-.92-1.82.03-3.5 1.05-4.43 2.69-1.89 3.27-.48 8.12 1.36 10.78.9 1.31 1.97 2.78 3.38 2.73 1.36-.06 1.87-.88 3.51-.88 1.64 0 2.1.88 3.53.85 1.46-.03 2.38-1.33 3.27-2.65 1.03-1.52 1.46-2.99 1.48-3.07-.03-.01-2.84-1.09-2.87-4.33zM14.34 4.5c.75-.91 1.26-2.17 1.12-3.43-1.08.04-2.39.72-3.17 1.62-.69.8-1.3 2.08-1.14 3.31 1.2.09 2.44-.61 3.19-1.5z"/></svg>Apple Music</span>
-              <span class="music-pill" data-platform="deezer"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.8 7.2h5.2v2.4h-5.2V7.2zm0 3.2h5.2v2.4h-5.2v-2.4zm0 3.2h5.2V16h-5.2v-2.4zm-6.3-6.4h5.2v2.4h-5.2V7.2zm0 3.2h5.2v2.4h-5.2v-2.4zm0 3.2h5.2V16h-5.2v-2.4zM6.3 7.2h5.2v2.4H6.3V7.2zm0 3.2h5.2v2.4H6.3v-2.4zm0 3.2h5.2V16H6.3v-2.4zM1 13.6h5.2V16H1v-2.4z"/></svg>Deezer</span>
-            </div>
-
-            <!-- Music Player Card -->
-            <div class="music-player-card" id="music-player-card" style="display:none;">
-              <div class="music-player-top">
-                <div class="music-player-artwork" id="music-artwork">
-                  <div class="music-artwork-placeholder">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
-                  </div>
-                </div>
-                <div class="music-player-meta">
-                  <div class="music-meta-line">
-                    <span class="music-provider-badge" id="music-provider-badge">Spotify</span>
-                    <span class="music-now-playing">Now Playing</span>
-                    <span class="music-playlist-badge" id="music-playlist-badge" style="display:none;">Playlist</span>
-                  </div>
-                  <h5 class="music-track-title" id="music-track-title">Loading track…</h5>
-                  <p class="music-track-artist" id="music-track-artist"></p>
-                </div>
-              </div>
-              <div class="music-player-progress">
-                <span class="music-time" id="music-time-current">0:00</span>
-                <div class="music-progress-bar" id="music-progress-bar">
-                  <div class="music-progress-fill" id="music-progress-fill"></div>
-                  <div class="music-progress-handle" id="music-progress-handle"></div>
-                </div>
-                <span class="music-time" id="music-time-total">0:00</span>
-              </div>
-              <div class="music-player-controls">
-                <button class="music-ctrl-btn" id="music-prev-btn" title="Restart" disabled>
-                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6V6zm3.5 6l8.5 6V6l-8.5 6z"/></svg>
-                </button>
-                <button class="music-ctrl-btn music-play-btn" id="music-play-btn" title="Play">
-                  <svg class="icon-play" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-                  <svg class="icon-pause" viewBox="0 0 24 24" fill="currentColor" style="display:none;"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
-                </button>
-                <button class="music-ctrl-btn" id="music-next-btn" title="Skip 10s" disabled>
-                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
-                </button>
-                <div class="music-volume-group">
-                  <button class="music-ctrl-btn small" id="music-mute-btn" title="Mute">
-                    <svg class="icon-vol-high" viewBox="0 0 24 24" fill="currentColor"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/><path d="M14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
-                    <svg class="icon-vol-mute" viewBox="0 0 24 24" fill="currentColor" style="display:none;"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/></svg>
-                  </button>
-                  <input type="range" class="music-volume-slider" id="music-volume-slider" min="0" max="100" value="80">
-                </div>
-                <div class="music-spacer"></div>
-                <button class="music-ctrl-btn" id="music-loop-btn" title="Loop">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
-                </button>
-              </div>
-              <button class="music-clear-btn" id="music-clear-btn" title="Remove track">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-              </button>
-            </div>
-
-            <!-- Hidden embed container — iframe is invisible, audio-only.
-                 The user controls playback through the custom UI above. -->
-            <div class="music-player-embed" id="music-embed-container"></div>
-
-            <!-- Empty state -->
-            <div class="music-empty-state" id="music-empty-state">
-              <div class="music-empty-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
-              </div>
-              <p class="music-empty-title">No track loaded</p>
-              <p class="music-empty-sub">Paste a music link above and hit Load to start playing.</p>
-            </div>
-            <p class="setting-hint" style="margin-top:10px;">Your music link is saved to your account and remembered across sessions.</p>
-          </div>
         </section>
 
         <!-- TAB: BACKGROUND & THEME -->
@@ -5769,6 +5439,13 @@ body.no-anim .friend-item { animation: none !important; }
                 <p>Permanently delete your account and all associated data. This cannot be undone.</p>
               </div>
               <button class="setting-save-btn no-checkmark danger-btn" id="delete-account-btn">Delete Account</button>
+            </div>
+            <div class="danger-zone-card">
+              <div class="danger-zone-text">
+                <div class="danger-zone-title">Disable Account</div>
+                <p>Temporarily disable your account. Your profile will be hidden and shown as "deleted user". You have 30 days to reinstate it before it is permanently deleted.</p>
+              </div>
+              <button class="setting-save-btn no-checkmark danger-btn" id="disable-account-btn">Disable Account</button>
             </div>
           </div>
         </section>
@@ -7138,6 +6815,12 @@ $('signin-form').addEventListener('submit', async (e) => {
       if (res.status === 429 && data.cooldown) {
         startAuthCooldown('signin', data.cooldown, btn, 'Sign In');
       }
+      return;
+    }
+    // ---------- Disabled account: show reactivation prompt ----------
+    if (data.accountDisabled) {
+      btn.disabled = false; btn.textContent = 'Sign In';
+      showReactivatePrompt(username, password, data.scheduledDeletionAt);
       return;
     }
     // Check if 2-Step Verification is required
@@ -8581,6 +8264,17 @@ function lightboxStep(delta) {
     });
   });
 })();
+
+// ---------- Profile Avatar Zoom (single-image lightbox) ----------
+function openProfileAvatarLightbox(src) {
+  const box = $('image-lightbox'); if (!box) return;
+  lightboxImages = [src];
+  lightboxIndex = 0;
+  renderLightbox();
+  box.classList.add('show');
+  box.setAttribute('aria-hidden', 'false');
+  document.body.style.overflow = 'hidden';
+}
 
 function updateMessageAvatars(username, avatar) {
   document.querySelectorAll('.message-avatar[data-username="' + username + '"]').forEach(el => {
@@ -10446,7 +10140,7 @@ function renderGroupCreateSelected() {
 
 // ---- Create modal: confirm → POST /api/groups/create ----
 $('group-create-confirm').addEventListener('click', async () => {
-  let name = $('group-create-name').value.trim();
+  let name = $('group-create-name').value.trim().slice(0, 10);
   if (!name) { toast('Please enter a group chat name.', 'error'); $('group-create-name').focus(); return; }
   if (!groupCreateSelected.length) { toast('Please add at least one member to the group.', 'error'); return; }
   $('group-create-confirm').disabled = true;
@@ -11016,6 +10710,13 @@ function showGroupTyping(typing, who) {
 }
 
 // ---- Group settings modal ----
+// Group settings now stage icon + name changes locally. The owner must click
+// "Save" to persist them. If they try to close with staged (unsaved) changes,
+// the "You have unsaved changes" modal appears with Save / Discard. Discard
+// reverts both the staged icon preview and the name field to the saved state.
+let groupSettingsStaged = { icon: null, iconChanged: false, name: '' }; // staged edits
+let pendingGroupSettingsClose = null; // navigation callback for the unsaved modal
+
 $('group-settings-btn').addEventListener('click', () => {
   if (!activeGroupId) return;
   openGroupSettings(activeGroupId);
@@ -11026,6 +10727,8 @@ async function openGroupSettings(groupId) {
     const data = await res.json();
     if (data.error) { toast(data.error, 'error'); return; }
     groupSettingsCache = data.group;
+    // Reset staged edits to match the saved state.
+    groupSettingsStaged = { icon: data.group.icon || null, iconChanged: false, name: data.group.name || '' };
     renderGroupSettings();
     $('group-settings-modal').classList.add('show');
   } catch(e) { toast('Failed to load group settings.', 'error'); }
@@ -11034,16 +10737,17 @@ function renderGroupSettings() {
   const g = groupSettingsCache;
   if (!g) return;
   const isOwner = currentUser && g.owner === currentUser.username;
-  // Icon
+  // Icon — render the STAGED icon if changed, otherwise the saved icon.
   const iconEl = $('group-settings-icon');
-  if (g.icon) { iconEl.innerHTML = '<img src="' + g.icon + '" style="width:100%; height:100%; object-fit:cover;">'; }
+  const stagedIcon = groupSettingsStaged.iconChanged ? groupSettingsStaged.icon : (g.icon || null);
+  if (stagedIcon) { iconEl.innerHTML = '<img src="' + stagedIcon + '" style="width:100%; height:100%; object-fit:cover;">'; }
   else { iconEl.textContent = getInitials(g.name || 'G'); iconEl.style.background = 'linear-gradient(135deg,#6366f1,#4f46e5)'; }
   $('group-settings-icon-btn').style.display = isOwner ? 'flex' : 'none';
-  // Name
-  $('group-settings-name').value = g.name || '';
+  // Name — render the STAGED name (or saved name if nothing staged).
+  $('group-settings-name').value = groupSettingsStaged.name || g.name || '';
   $('group-settings-name').readOnly = !isOwner;
   // Subtitle
-  $('group-settings-subtitle').textContent = isOwner ? 'You are the owner. You can change the icon, rename the group, and manage members.' : 'You are a member. Only the owner can change group settings.';
+  $('group-settings-subtitle').textContent = isOwner ? 'You are the owner. You can change the icon, rename the group, and manage members. Click Save to apply changes.' : 'You are a member. Only the owner can change group settings.';
   // Members
   const membersWrap = $('group-settings-members');
   $('group-settings-member-count').textContent = '(' + ((g.members && g.members.length) || 0) + ' / 10)';
@@ -11074,6 +10778,8 @@ function renderGroupSettings() {
         if (data.error) { toast(data.error, 'error'); return; }
         toast('@' + un + ' has been kicked from the group.', 'success');
         groupSettingsCache = data.group;
+        // Kicking is an immediate action — reset staged to the new saved state.
+        groupSettingsStaged = { icon: data.group.icon || null, iconChanged: false, name: data.group.name || '' };
         renderGroupSettings();
       } catch(e) { toast('Failed to kick member.', 'error'); }
     });
@@ -11091,55 +10797,142 @@ function renderGroupSettings() {
   }
   leaveBtn.style.display = '';
 }
-$('group-settings-cancel').addEventListener('click', () => $('group-settings-modal').classList.remove('show'));
-$('group-settings-modal').addEventListener('click', (e) => { if (e.target === $('group-settings-modal')) $('group-settings-modal').classList.remove('show'); });
 
-// ---- Group icon upload (owner) ----
+// Returns true if there are staged (unsaved) icon/name changes for the owner.
+function groupSettingsIsDirty() {
+  if (!groupSettingsCache) return false;
+  const isOwner = currentUser && groupSettingsCache.owner === currentUser.username;
+  if (!isOwner) return false;
+  if (groupSettingsStaged.iconChanged) return true;
+  const stagedName = (groupSettingsStaged.name || '').trim();
+  const savedName = (groupSettingsCache.name || '').trim();
+  if (stagedName && stagedName !== savedName) return true;
+  return false;
+}
+
+// Close the group settings modal, guarding against unsaved changes. If dirty,
+// show the unsaved-changes modal; otherwise close immediately.
+function closeGroupSettingsModal() {
+  if (groupSettingsIsDirty()) {
+    pendingGroupSettingsClose = () => { $('group-settings-modal').classList.remove('show'); };
+    $('group-unsaved-modal').classList.add('show');
+    return;
+  }
+  $('group-settings-modal').classList.remove('show');
+}
+
+$('group-settings-cancel').addEventListener('click', () => closeGroupSettingsModal());
+$('group-settings-modal').addEventListener('click', (e) => { if (e.target === $('group-settings-modal')) closeGroupSettingsModal(); });
+
+// ---- Group icon upload (owner) — STAGED, not saved until "Save" ----
 $('group-settings-icon-btn').addEventListener('click', () => $('group-settings-icon-input').click());
 $('group-settings-icon-input').addEventListener('change', async (e) => {
   const file = e.target.files[0];
   if (!file || !groupSettingsCache) return;
-  const fd = new FormData();
-  fd.append('image', file);
-  toast('Uploading group icon...', 'success');
-  try {
-    const res = await fetch(API_BASE + '/api/groups/' + encodeURIComponent(groupSettingsCache.id) + '/icon', { method: 'POST', body: fd });
-    const data = await res.json();
-    if (data.error) { toast(data.error, 'error'); return; }
-    toast('Group icon updated!', 'success');
-    groupSettingsCache = data.group;
-    renderGroupSettings();
-    // Update the header + sidebar immediately (socket group-updated also fires for all members)
-    if (activeGroupId === groupSettingsCache.id) updateGroupHeader(data.group);
-    await loadGroupChats();
-    renderMessagesList();
-  } catch(e) { toast('Failed to upload icon.', 'error'); }
+  // Preview the chosen image locally (object URL) so the user sees it before
+  // saving. Nothing is sent to the server yet.
+  const previewUrl = URL.createObjectURL(file);
+  groupSettingsStaged.icon = previewUrl;
+  groupSettingsStaged.iconChanged = true;
+  groupSettingsStaged.pendingIconFile = file; // held until Save
+  renderGroupSettings();
+  toast('New group icon staged. Click Save to apply it.', 'success');
   e.target.value = '';
 });
 
-// ---- Save group name (owner) ----
-$('group-settings-save').addEventListener('click', async () => {
-  if (!groupSettingsCache) { $('group-settings-modal').classList.remove('show'); return; }
-  const newName = $('group-settings-name').value.trim();
+// Track name edits as staged changes (live, as the owner types).
+if ($('group-settings-name')) {
+  $('group-settings-name').addEventListener('input', () => {
+    if (!groupSettingsCache) return;
+    const isOwner = currentUser && groupSettingsCache.owner === currentUser.username;
+    if (!isOwner) return;
+    groupSettingsStaged.name = $('group-settings-name').value;
+  });
+}
+
+// Persist staged icon + name changes to the server. Called by the Save button
+// and by the unsaved-changes modal's "Save Now" action. Returns true on success.
+async function saveGroupSettingsNow() {
+  if (!groupSettingsCache) return false;
   const isOwner = currentUser && groupSettingsCache.owner === currentUser.username;
-  if (isOwner && newName && newName !== groupSettingsCache.name) {
+  if (!isOwner) { $('group-settings-modal').classList.remove('show'); return true; }
+  let ok = true;
+  // 1) Save icon if it was changed (upload the staged file).
+  if (groupSettingsStaged.iconChanged && groupSettingsStaged.pendingIconFile) {
+    const fd = new FormData();
+    fd.append('image', groupSettingsStaged.pendingIconFile);
+    try {
+      const res = await fetch(API_BASE + '/api/groups/' + encodeURIComponent(groupSettingsCache.id) + '/icon', { method: 'POST', body: fd });
+      const data = await res.json();
+      if (data.error) { toast(data.error, 'error'); ok = false; }
+      else { groupSettingsCache = data.group; }
+    } catch(e) { toast('Failed to upload icon.', 'error'); ok = false; }
+  }
+  // 2) Save name if it was changed.
+  const newName = ($('group-settings-name').value || '').trim().slice(0, 10);
+  if (ok && newName && newName !== (groupSettingsCache.name || '')) {
     try {
       const res = await fetch(API_BASE + '/api/groups/' + encodeURIComponent(groupSettingsCache.id) + '/settings', {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: newName })
       });
       const data = await res.json();
-      if (data.error) { toast(data.error, 'error'); return; }
-      toast('Group name updated!', 'success');
-      groupSettingsCache = data.group;
-    } catch(e) { toast('Failed to update name.', 'error'); }
+      if (data.error) { toast(data.error, 'error'); ok = false; }
+      else { toast('Group settings saved!', 'success'); groupSettingsCache = data.group; }
+    } catch(e) { toast('Failed to update name.', 'error'); ok = false; }
   }
-  $('group-settings-modal').classList.remove('show');
-  await loadGroupChats();
-  if (activeGroupId) {
-    const g = groupChats.find(x => x.id === activeGroupId);
-    if (g) updateGroupHeader(g);
+  if (ok) {
+    // Reset staged state to the newly-saved state and clean up the preview URL.
+    if (groupSettingsStaged.icon && groupSettingsStaged.iconChanged) { try { URL.revokeObjectURL(groupSettingsStaged.icon); } catch(e){} }
+    groupSettingsStaged = { icon: groupSettingsCache.icon || null, iconChanged: false, name: groupSettingsCache.name || '', pendingIconFile: null };
+    renderGroupSettings();
+    // Refresh header + sidebar.
+    if (activeGroupId === groupSettingsCache.id) {
+      const g = groupChats.find(x => x.id === activeGroupId);
+      if (g) updateGroupHeader(g);
+    }
+    await loadGroupChats();
+    renderMessagesList();
   }
+  return ok;
+}
+
+// ---- Save group settings (owner) — the Save button ----
+$('group-settings-save').addEventListener('click', async () => {
+  if (!groupSettingsCache) { $('group-settings-modal').classList.remove('show'); return; }
+  const isOwner = currentUser && groupSettingsCache.owner === currentUser.username;
+  if (!isOwner) { $('group-settings-modal').classList.remove('show'); return; }
+  if (!groupSettingsIsDirty()) { $('group-settings-modal').classList.remove('show'); return; }
+  const btn = $('group-settings-save');
+  const prevText = btn.textContent;
+  btn.disabled = true; btn.textContent = 'Saving…';
+  const ok = await saveGroupSettingsNow();
+  btn.disabled = false; btn.textContent = prevText;
+  if (ok) $('group-settings-modal').classList.remove('show');
 });
+
+// ---- Group unsaved-changes modal wiring ----
+$('group-unsaved-save').addEventListener('click', async () => {
+  $('group-unsaved-modal').classList.remove('show');
+  const btn = $('group-unsaved-save');
+  const prevText = btn.textContent;
+  btn.disabled = true; btn.textContent = 'Saving…';
+  const ok = await saveGroupSettingsNow();
+  btn.disabled = false; btn.textContent = prevText;
+  if (ok && pendingGroupSettingsClose) { pendingGroupSettingsClose(); pendingGroupSettingsClose = null; }
+});
+$('group-unsaved-discard').addEventListener('click', () => {
+  $('group-unsaved-modal').classList.remove('show');
+  // Discard: revert staged icon + name back to the saved state.
+  if (groupSettingsStaged.icon && groupSettingsStaged.iconChanged) { try { URL.revokeObjectURL(groupSettingsStaged.icon); } catch(e){} }
+  if (groupSettingsCache) {
+    groupSettingsStaged = { icon: groupSettingsCache.icon || null, iconChanged: false, name: groupSettingsCache.name || '', pendingIconFile: null };
+  } else {
+    groupSettingsStaged = { icon: null, iconChanged: false, name: '', pendingIconFile: null };
+  }
+  renderGroupSettings();
+  if (pendingGroupSettingsClose) { pendingGroupSettingsClose(); pendingGroupSettingsClose = null; }
+});
+$('group-unsaved-modal').addEventListener('click', (e) => { if (e.target === $('group-unsaved-modal')) $('group-unsaved-modal').classList.remove('show'); });
 
 // ---- Add member (owner) ----
 $('group-settings-add-input').addEventListener('keydown', (e) => {
@@ -13016,13 +12809,6 @@ function updateSettingsPanel() {
   if ($('sound-toggle')) $('sound-toggle').checked = currentUser.messageSounds !== false;
   if ($('compact-toggle')) $('compact-toggle').checked = !!currentUser.compactMode;
   if ($('group-add-toggle')) $('group-add-toggle').checked = currentUser.allowGroupAdd !== false;
-  // Music link — restore saved track
-  if ($('music-link-input') && currentUser.musicLink) {
-    if ($('music-link-input').value !== currentUser.musicLink) {
-      $('music-link-input').value = currentUser.musicLink;
-      loadMusicLink(currentUser.musicLink, true);
-    }
-  }
   // Cooldown
   const changedAt = currentUser.usernameChangedAt || 0;
   if (changedAt) {
@@ -13193,662 +12979,6 @@ if ($('sound-toggle')) $('sound-toggle').addEventListener('change', savePreferen
 if ($('compact-toggle')) $('compact-toggle').addEventListener('change', savePreferences);
 if ($('group-add-toggle')) $('group-add-toggle').addEventListener('change', savePreferences);
 
-// ---------- Music Player ----------
-/*
- * Supports: Spotify, SoundCloud, YouTube, Apple Music, Deezer.
- * Each platform is played via its official embed iframe (the playback engine).
- * Metadata (title, artist, artwork) is fetched via oEmbed endpoints where
- * available (Spotify, SoundCloud, YouTube, Deezer all expose CORS-friendly
- * oEmbed). Apple Music links are parsed for track IDs and metadata is pulled
- * from the public Apple Music embed page.
- */
-const MusicPlayer = {
-  state: {
-    provider: null,
-    link: null,
-    embedUrl: null,
-    isPlaying: false,
-    isLooping: false,
-    volume: 80,
-    muted: false,
-    duration: 0,
-    currentTime: 0,
-    progressTimer: null,
-    iframe: null,
-    isPlaylist: false,
-    playlistIndex: 0,
-    playlistTracks: [],
-    validated: false,
-  },
-  // Platform controller instances
-  spotifyController: null,
-  scWidget: null,
-  ytPlayer: null,
-  _spotifyApiLoaded: false,
-  _ytApiLoaded: false,
-  _pendingLoad: null,  // stores { provider, url, embedUrl, info } while waiting for API
-
-  // ---------- Link detection ----------
-  detectProvider(url) {
-    if (!url) return null;
-    const u = url.toLowerCase().trim();
-    if (!/^https?:\/\//.test(u)) return null;
-    if (u.includes('spotify.com') || u.includes('open.spotify.com') || u.includes('spotify.link')) return 'spotify';
-    if (u.includes('soundcloud.com')) return 'soundcloud';
-    if (u.includes('youtube.com') || u.includes('youtu.be') || u.includes('music.youtube.com')) return 'youtube';
-    if (u.includes('music.apple.com') || u.includes('apple.music')) return 'apple';
-    if (u.includes('deezer.com')) return 'deezer';
-    return null;
-  },
-
-  // ---------- Detect if a link is a playlist ----------
-  detectPlaylist(provider, url) {
-    const u = url.toLowerCase();
-    if (provider === 'spotify') return /\/(playlist|album|show)\//.test(u);
-    if (provider === 'soundcloud') return /\/sets\//.test(u) || /\/playlists\//.test(u);
-    if (provider === 'youtube') return u.includes('list=') || /\/playlist\?/.test(u);
-    if (provider === 'deezer') return /\/playlist\//.test(u) || /\/album\//.test(u);
-    if (provider === 'apple') return /\/playlist\//.test(u) || /\/album\//.test(u);
-    return false;
-  },
-
-  // ---------- Build embed URL per platform ----------
-  buildEmbed(provider, url) {
-    try {
-      if (provider === 'spotify') {
-        if (url.includes('/track/')) { const id = url.match(/\/track\/([a-zA-Z0-9]+)/); if (id) return 'https://open.spotify.com/embed/track/' + id[1] + '?utm_source=generator&theme=dark'; }
-        if (url.includes('/album/')) { const id = url.match(/\/album\/([a-zA-Z0-9]+)/); if (id) return 'https://open.spotify.com/embed/album/' + id[1] + '?utm_source=generator&theme=dark'; }
-        if (url.includes('/playlist/')) { const id = url.match(/\/playlist\/([a-zA-Z0-9]+)/); if (id) return 'https://open.spotify.com/embed/playlist/' + id[1] + '?utm_source=generator&theme=dark'; }
-        if (url.includes('/episode/')) { const id = url.match(/\/episode\/([a-zA-Z0-9]+)/); if (id) return 'https://open.spotify.com/embed/episode/' + id[1] + '?utm_source=generator&theme=dark'; }
-        if (url.includes('/show/')) { const id = url.match(/\/show\/([a-zA-Z0-9]+)/); if (id) return 'https://open.spotify.com/embed/show/' + id[1] + '?utm_source=generator&theme=dark'; }
-        if (url.includes('/artist/')) { const id = url.match(/\/artist\/([a-zA-Z0-9]+)/); if (id) return 'https://open.spotify.com/embed/artist/' + id[1] + '?utm_source=generator&theme=dark'; }
-        return null;
-      }
-      if (provider === 'soundcloud') {
-        return 'https://w.soundcloud.com/player/?url=' + encodeURIComponent(url) +
-               '&auto_play=false&buying=false&sharing=false&download=false&' +
-               'show_artwork=true&show_playcount=false&show_user=true&hide_related=true&' +
-               'visual=false&callback=true';
-      }
-      if (provider === 'youtube') {
-        let videoId = null, listId = null;
-        if (url.includes('youtu.be/')) videoId = url.split('youtu.be/')[1].split(/[?&#]/)[0];
-        else if (url.includes('v=')) { const m = url.match(/[?&]v=([a-zA-Z0-9_-]+)/); if (m) videoId = m[1]; }
-        else if (url.includes('/embed/')) videoId = url.split('/embed/')[1].split(/[?&#]/)[0];
-        const lm = url.match(/[?&]list=([a-zA-Z0-9_-]+)/);
-        if (lm) listId = lm[1];
-        if (videoId) {
-          let e = 'https://www.youtube.com/embed/' + videoId + '?enablejsapi=1&playsinline=1&rel=0&modestbranding=1';
-          if (listId) e += '&list=' + listId;
-          return e;
-        }
-        if (listId) return 'https://www.youtube.com/embed/videoseries?list=' + listId + '&enablejsapi=1&playsinline=1&rel=0&modestbranding=1';
-        return null;
-      }
-      if (provider === 'apple') {
-        const m = url.match(/music\.apple\.com\/([^?]+)/);
-        if (m) return 'https://embed.music.apple.com/' + m[1];
-        return null;
-      }
-      if (provider === 'deezer') {
-        const m = url.match(/deezer\.com\/(track|album|playlist)\/(\d+)/);
-        if (m) return 'https://widget.deezer.com/widget/auto/' + m[1] + '-' + m[2] + '?tracklist=true&autoplay=false';
-        return null;
-      }
-    } catch(e) { console.warn('Music embed build error:', e); }
-    return null;
-  },
-
-  // ---------- Validate + fetch metadata via server-side oEmbed proxy ----------
-  async validateAndFetch(provider, url) {
-    try {
-      const r = await fetch(API_BASE + '/api/validate-music-link', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url })
-      });
-      if (r.ok) {
-        const d = await r.json();
-        return { valid: !!d.valid, title: d.title || null, artist: d.artist || null, artwork: d.artwork || null, isPlaylist: !!d.isPlaylist };
-      }
-    } catch (e) { console.warn('Music validate error (server proxy):', e); }
-    return { valid: false, title: null, artist: null, artwork: null, isPlaylist: this.detectPlaylist(provider, url), proxyFailed: true };
-  },
-
-  // ---------- Load a track ----------
-  async load(url, silent) {
-    const provider = this.detectProvider(url);
-    if (!provider) {
-      if (!silent) toast('That does not look like a valid music link. Please paste a full URL from Spotify, SoundCloud, YouTube, Apple Music, or Deezer.', 'error');
-      return false;
-    }
-    const embedUrl = this.buildEmbed(provider, url);
-    if (!embedUrl) {
-      if (!silent) toast('Could not read that ' + provider + ' link. Make sure you copied the complete URL from the address bar.', 'error');
-      return false;
-    }
-
-    // Reset state
-    this.stopProgress();
-    this.spotifyController = null;
-    this.scWidget = null;
-    this.ytPlayer = null;
-    const oldMini = $('music-player-card').querySelector('.music-native-mini');
-    if (oldMini) oldMini.remove();
-    this.state = {
-      provider, link: url, embedUrl,
-      isPlaying: false, isLooping: false,
-      volume: this.state.volume || 80,
-      muted: false, duration: 0, currentTime: 0,
-      progressTimer: null, iframe: null,
-      isPlaylist: false, playlistIndex: 0, playlistTracks: [],
-      validated: false,
-    };
-
-    // Show card
-    $('music-player-card').style.display = 'flex';
-    $('music-empty-state').style.display = 'none';
-    $('music-provider-badge').textContent = provider === 'apple' ? 'Apple Music' :
-      provider === 'youtube' ? 'YouTube' : provider.charAt(0).toUpperCase() + provider.slice(1);
-    $('music-track-title').textContent = 'Validating link…';
-    $('music-track-artist').textContent = '';
-    $('music-artwork').style.backgroundImage = '';
-    $('music-artwork').querySelector('.music-artwork-placeholder').style.display = 'flex';
-    $('music-playlist-badge').style.display = 'none';
-    $('music-progress-fill').style.width = '0%';
-    $('music-progress-handle').style.left = '0%';
-    $('music-time-current').textContent = '0:00';
-    $('music-time-total').textContent = '0:00';
-    this.setPlayIcon(false);
-    $('music-loop-btn').classList.remove('active');
-    $('music-volume-slider').value = this.state.volume;
-    $('music-prev-btn').disabled = true;
-    $('music-next-btn').disabled = true;
-
-    // ---- Validate the link via the server-side oEmbed proxy ----
-    const info = await this.validateAndFetch(provider, url);
-    if (!info.valid && !info.proxyFailed) {
-      $('music-player-card').style.display = 'none';
-      $('music-empty-state').style.display = 'flex';
-      if (!silent) toast('That link could not be verified. It may be invalid, private, or region-locked. Try a different link.', 'error');
-      return false;
-    }
-
-    this.state.validated = true;
-    this.state.isPlaylist = info.isPlaylist;
-
-    // Update metadata
-    $('music-track-title').textContent = info.title || 'Track loaded';
-    $('music-track-artist').textContent = info.artist || '';
-    if (info.artwork) {
-      $('music-artwork').style.backgroundImage = "url('" + info.artwork + "')";
-      $('music-artwork').querySelector('.music-artwork-placeholder').style.display = 'none';
-    }
-    if (info.isPlaylist) $('music-playlist-badge').style.display = 'inline-flex';
-
-    // ---- Inject the HIDDEN embed iframe and wire up platform controls ----
-    this.injectEmbed(provider, embedUrl);
-
-    $('music-prev-btn').disabled = false;
-    $('music-next-btn').disabled = false;
-
-    if (!silent) {
-      if (info.isPlaylist) toast('Playlist loaded. Press play to start — songs will play in order.', 'success');
-      else toast('Track loaded. Press play to start listening.', 'success');
-    }
-    return true;
-  },
-
-  // ---------- Inject hidden iframe + wire up platform-specific API ----------
-  injectEmbed(provider, embedUrl) {
-    const container = $('music-embed-container');
-    container.innerHTML = '';
-    container.className = 'music-player-embed embed-' + provider;
-
-    if (provider === 'spotify') {
-      // Use the official Spotify iFrame API: createController replaces a
-      // placeholder element with the embed and gives us an EmbedController
-      // for programmatic play/pause/seek control.
-      this._loadSpotifyApi((IFrameAPI) => {
-        if (!IFrameAPI) {
-          // Fallback: inject a plain iframe if the API fails to load
-          const iframe = document.createElement('iframe');
-          iframe.src = embedUrl;
-          iframe.allow = 'autoplay; encrypted-media; fullscreen; picture-in-picture';
-          iframe.setAttribute('frameborder', '0');
-          iframe.setAttribute('allowtransparency', 'true');
-          container.appendChild(iframe);
-          this.state.iframe = iframe;
-          return;
-        }
-        const placeholder = document.createElement('div');
-        container.appendChild(placeholder);
-        const options = { uri: this._spotifyUriFromUrl(embedUrl), width: 300, height: 200 };
-        IFrameAPI.createController(placeholder, options, (EmbedController) => {
-          this.spotifyController = EmbedController;
-          this.state.iframe = container.querySelector('iframe');
-          EmbedController.addListener('playback_update', (e) => {
-            const d = (e && e.data) || {};
-            if (d.duration) this.state.duration = d.duration / 1000;
-            if (d.position != null) this.state.currentTime = d.position / 1000;
-            this.state.isPlaying = !d.isPaused;
-            this.setPlayIcon(this.state.isPlaying);
-            if (this.state.isPlaying) this.startProgress(); else this.stopProgress();
-            this.updateProgressVisual();
-          });
-        });
-      });
-    } else if (provider === 'soundcloud') {
-      const iframe = document.createElement('iframe');
-      iframe.src = embedUrl;
-      iframe.allow = 'autoplay; encrypted-media';
-      iframe.setAttribute('frameborder', '0');
-      container.appendChild(iframe);
-      this.state.iframe = iframe;
-      this._setupSoundCloud(iframe);
-    } else if (provider === 'youtube') {
-      // YouTube: use IFrame API to create a player in a div (not an iframe
-      // directly — the API creates and manages the iframe for us).
-      this._loadYouTubeApi(() => {
-        const playerDiv = document.createElement('div');
-        playerDiv.id = 'music-yt-player';
-        container.appendChild(playerDiv);
-        this._createYTPlayer(playerDiv.id);
-      });
-    } else if (provider === 'apple' || provider === 'deezer') {
-      // Apple Music & Deezer have no JS control API, so the user must
-      // interact with the platform's native embed to play. We insert a
-      // compact, styled mini-player inside the card (below the controls)
-      // so it looks integrated and professional.
-      const card = $('music-player-card');
-      // Remove any existing mini-player
-      const existingMini = card.querySelector('.music-native-mini');
-      if (existingMini) existingMini.remove();
-      const miniWrap = document.createElement('div');
-      miniWrap.className = 'music-native-mini';
-      const label = document.createElement('div');
-      label.className = 'music-native-label';
-      label.textContent = provider === 'apple' ? 'Apple Music player' : 'Deezer player';
-      miniWrap.appendChild(label);
-      const iframe = document.createElement('iframe');
-      iframe.src = embedUrl;
-      iframe.allow = 'autoplay; encrypted-media; fullscreen; picture-in-picture';
-      iframe.setAttribute('frameborder', '0');
-      iframe.setAttribute('allowtransparency', 'true');
-      iframe.style.width = '100%';
-      iframe.style.height = provider === 'deezer' ? '120px' : '140px';
-      miniWrap.appendChild(iframe);
-      card.appendChild(miniWrap);
-      this.state.iframe = iframe;
-    }
-  },
-
-  // ---------- Convert embed URL to Spotify URI ----------
-  _spotifyUriFromUrl(embedUrl) {
-    // embedUrl like https://open.spotify.com/embed/track/ID?...
-    const m = embedUrl.match(/\/embed\/(track|album|playlist|episode|show|artist)\/([a-zA-Z0-9]+)/);
-    if (m) return 'spotify:' + m[1] + ':' + m[2];
-    return embedUrl;
-  },
-
-  // ---------- Load Spotify iFrame API ----------
-  _loadSpotifyApi(callback) {
-    // If already loaded, callback immediately with the API object
-    if (this._spotifyApiLoaded && window._spotifyIframeApi) { callback(window._spotifyIframeApi); return; }
-    // Set up the global callback that Spotify's script calls when ready.
-    // Store pending callbacks so multiple loads don't conflict.
-    if (!window._spotifyApiCallbacks) window._spotifyApiCallbacks = [];
-    window._spotifyApiCallbacks.push(callback);
-    window.onSpotifyIframeApiReady = (IFrameAPI) => {
-      window._spotifyIframeApi = IFrameAPI;
-      this._spotifyApiLoaded = true;
-      const cbs = window._spotifyApiCallbacks;
-      window._spotifyApiCallbacks = [];
-      cbs.forEach(cb => { try { cb(IFrameAPI); } catch(e) { console.warn('Spotify API callback error:', e); } });
-    };
-    if (!document.querySelector('script[src*="spotify.com/embed/iframe-api"]')) {
-      const s = document.createElement('script');
-      s.src = 'https://open.spotify.com/embed/iframe-api/v1';
-      s.async = true;
-      document.head.appendChild(s);
-    }
-  },
-
-  // ---------- Load YouTube IFrame API ----------
-  _loadYouTubeApi(callback) {
-    // If already loaded, callback immediately
-    if (this._ytApiLoaded && window.YT && window.YT.Player) { callback(); return; }
-    // Queue the callback so multiple loads don't conflict
-    if (!window._ytApiCallbacks) window._ytApiCallbacks = [];
-    window._ytApiCallbacks.push(callback);
-    window.onYouTubeIframeAPIReady = () => {
-      this._ytApiLoaded = true;
-      const cbs = window._ytApiCallbacks;
-      window._ytApiCallbacks = [];
-      cbs.forEach(cb => { try { cb(); } catch(e) { console.warn('YT API callback error:', e); } });
-    };
-    if (!document.querySelector('script[src*="youtube.com/iframe_api"]')) {
-      const s = document.createElement('script');
-      s.src = 'https://www.youtube.com/iframe_api';
-      s.async = true;
-      document.head.appendChild(s);
-    } else if (window.YT && window.YT.Player) {
-      // Script already loaded and ready
-      this._ytApiLoaded = true;
-      const cbs = window._ytApiCallbacks; window._ytApiCallbacks = [];
-      cbs.forEach(cb => { try { cb(); } catch(e) {} });
-    }
-  },
-
-  // ---------- Setup SoundCloud Widget ----------
-  _setupSoundCloud(iframe) {
-    const self = this;
-    const tryInit = () => {
-      if (!window.SC || !window.SC.Widget) { setTimeout(tryInit, 300); return; }
-      const widget = SC.Widget(iframe);
-      self.scWidget = widget;
-      widget.bind(SC.Widget.Events.READY, () => {
-        widget.setVolume(self.state.volume / 100);
-        widget.getSounds(tracks => {
-          if (tracks && tracks.length > 1) {
-            self.state.isPlaylist = true;
-            self.state.playlistTracks = tracks;
-            $('music-playlist-badge').style.display = 'inline-flex';
-          }
-        });
-      });
-      widget.bind(SC.Widget.Events.PLAY, () => { self.state.isPlaying = true; self.setPlayIcon(true); self.startProgress(); });
-      widget.bind(SC.Widget.Events.PAUSE, () => { self.state.isPlaying = false; self.setPlayIcon(false); self.stopProgress(); });
-      widget.bind(SC.Widget.Events.FINISH, () => {
-        if (self.state.isLooping) { widget.seekTo(0); widget.play(); }
-        else if (self.state.isPlaylist) {
-          const idx = self.state.playlistIndex + 1;
-          if (self.state.playlistTracks.length > 0 && idx < self.state.playlistTracks.length) {
-            self.state.playlistIndex = idx; widget.skip(idx); widget.play();
-          } else { self.state.isPlaying = false; self.setPlayIcon(false); self.stopProgress(); }
-        } else { self.state.isPlaying = false; self.setPlayIcon(false); self.stopProgress(); }
-      });
-    };
-    tryInit();
-  },
-
-  // ---------- Create YouTube Player ----------
-  _createYTPlayer(divId) {
-    const self = this;
-    const embedUrl = self.state.embedUrl || '';
-    const m = embedUrl.match(/\/(?:embed|videoseries)\/([a-zA-Z0-9_-]+)/);
-    const videoId = m ? m[1] : null;
-    if (!videoId) return;
-    const lm = (self.state.link || '').match(/[?&]list=([a-zA-Z0-9_-]+)/);
-    const playerVars = { autoplay: 0, controls: 0, rel: 0, modestbranding: 1, playsinline: 1, disablekb: 1, fs: 0 };
-    if (lm) { playerVars.listType = 'playlist'; playerVars.list = lm[1]; }
-    self.ytPlayer = new YT.Player(divId, {
-      videoId: videoId === 'videoseries' ? null : videoId,
-      playerVars: playerVars,
-      events: {
-        onReady: (e) => {
-          e.target.setVolume(self.state.volume);
-          self.state.duration = e.target.getDuration() || 0;
-          $('music-time-total').textContent = self.formatTime(self.state.duration);
-          self.state.iframe = $('music-embed-container').querySelector('iframe');
-        },
-        onStateChange: (e) => {
-          if (e.data === YT.PlayerState.PLAYING) { self.state.isPlaying = true; self.setPlayIcon(true); self.state.duration = e.target.getDuration() || 0; $('music-time-total').textContent = self.formatTime(self.state.duration); self.startProgress(); }
-          else if (e.data === YT.PlayerState.PAUSED) { self.state.isPlaying = false; self.setPlayIcon(false); self.stopProgress(); }
-          else if (e.data === YT.PlayerState.ENDED) {
-            if (self.state.isLooping) { e.target.seekTo(0); e.target.playVideo(); }
-            else if (self.state.isPlaylist) {
-              if (e.target.nextVideo) e.target.nextVideo();
-              else { self.state.isPlaying = false; self.setPlayIcon(false); self.stopProgress(); }
-            }
-            else { self.state.isPlaying = false; self.setPlayIcon(false); self.stopProgress(); }
-          }
-        }
-      }
-    });
-  },
-
-  // ---------- Controls ----------
-  togglePlay() {
-    const s = this.state;
-    if (!s.validated) return;
-    if (s.provider === 'spotify' && this.spotifyController) {
-      this.spotifyController.togglePlay();
-    } else if (s.provider === 'soundcloud' && this.scWidget) {
-      this.scWidget.toggle();
-    } else if (s.provider === 'youtube' && this.ytPlayer) {
-      if (s.isPlaying) this.ytPlayer.pauseVideo();
-      else this.ytPlayer.playVideo();
-    } else if (s.provider === 'apple' || s.provider === 'deezer') {
-      // No JS API for these platforms. The embed must be interacted with
-      // directly. Show a toast guiding the user.
-      toast('Use the ' + (s.provider === 'apple' ? 'Apple Music' : 'Deezer') + ' player controls below to play this track.', 'info');
-    } else {
-      // API not ready yet — retry shortly
-      toast('Player is still loading, try again in a moment.', 'info');
-    }
-  },
-
-  toggleLoop() {
-    this.state.isLooping = !this.state.isLooping;
-    $('music-loop-btn').classList.toggle('active', this.state.isLooping);
-    if (this.state.isLooping) toast('Loop enabled — the current track will repeat.', 'success');
-    else toast('Loop disabled.', 'success');
-    if (this.state.provider === 'youtube' && this.ytPlayer && this.ytPlayer.setLoop) {
-      this.ytPlayer.setLoop(this.state.isLooping);
-    }
-  },
-
-  restart() {
-    const s = this.state;
-    s._lastPct = -1; s.currentTime = 0;
-    if (s.provider === 'spotify' && this.spotifyController) { this.spotifyController.seek(0); }
-    else if (s.provider === 'soundcloud' && this.scWidget) { this.scWidget.seekTo(0); }
-    else if (s.provider === 'youtube' && this.ytPlayer) { this.ytPlayer.seekTo(0, true); }
-    this.updateProgressVisual();
-  },
-
-  skip10() {
-    const s = this.state;
-    const target = (s.currentTime || 0) + 10;
-    if (s.provider === 'spotify' && this.spotifyController) { this.spotifyController.seek(target); }
-    else if (s.provider === 'soundcloud' && this.scWidget) { this.scWidget.seekTo(target * 1000); }
-    else if (s.provider === 'youtube' && this.ytPlayer) { this.ytPlayer.seekTo(target, true); }
-    else { s.currentTime = target; this.updateProgressVisual(); }
-  },
-
-  setVolume(vol) {
-    this.state.volume = vol;
-    const s = this.state;
-    const pct = vol / 100;
-    if (s.provider === 'soundcloud' && this.scWidget) { this.scWidget.setVolume(pct); }
-    else if (s.provider === 'youtube' && this.ytPlayer && this.ytPlayer.setVolume) { this.ytPlayer.setVolume(vol); }
-    // Spotify iFrame API doesn't expose setVolume — controlled by browser
-  },
-
-  toggleMute() {
-    this.state.muted = !this.state.muted;
-    const s = this.state;
-    $('music-mute-btn').querySelector('.icon-vol-high').style.display = s.muted ? 'none' : 'block';
-    $('music-mute-btn').querySelector('.icon-vol-mute').style.display = s.muted ? 'block' : 'none';
-    if (s.provider === 'soundcloud' && this.scWidget) { this.scWidget.setVolume(s.muted ? 0 : s.volume / 100); }
-    else if (s.provider === 'youtube' && this.ytPlayer) { if (s.muted) this.ytPlayer.mute(); else this.ytPlayer.unMute(); }
-  },
-
-  // ---------- Progress tracking (optimised for low overhead) ----------
-  startProgress() {
-    this.stopProgress();
-    // Spotify is fully event-driven via playback_update — no interval needed.
-    if (this.state.provider === 'spotify') return;
-    const self = this;
-    this.state.progressTimer = setInterval(() => { self.tickProgress(); }, 1000);
-  },
-  stopProgress() {
-    if (this.state.progressTimer) { clearInterval(this.state.progressTimer); this.state.progressTimer = null; }
-  },
-  tickProgress() {
-    const s = this.state;
-    if (s.provider === 'soundcloud' && this.scWidget) {
-      // Single async call — duration is cached after the first fetch so we
-      // avoid a nested double-callback on every tick.
-      this.scWidget.getPosition(p => {
-        s.currentTime = p / 1000;
-        if (!s.duration) {
-          this.scWidget.getDuration(d => { s.duration = d / 1000; this.updateProgressVisual(); });
-        } else {
-          this.updateProgressVisual();
-        }
-      });
-    } else if (s.provider === 'youtube' && this.ytPlayer && this.ytPlayer.getCurrentTime) {
-      s.currentTime = this.ytPlayer.getCurrentTime();
-      if (!s.duration) s.duration = this.ytPlayer.getDuration() || 0;
-      this.updateProgressVisual();
-    }
-    // Spotify: no tick — playback_update event handles everything
-  },
-  updateProgressVisual() {
-    const s = this.state;
-    const pct = s.duration ? Math.min(100, (s.currentTime / s.duration) * 100) : 0;
-    const pctRounded = Math.round(pct);
-    // Skip redundant DOM writes when nothing changed (reduces reflow/repaint)
-    if (s._lastPct === pctRounded) return;
-    s._lastPct = pctRounded;
-    const fill = $('music-progress-fill');
-    const handle = $('music-progress-handle');
-    if (fill) fill.style.width = pct + '%';
-    if (handle) handle.style.left = pct + '%';
-    $('music-time-current').textContent = this.formatTime(s.currentTime);
-    if (s.duration) $('music-time-total').textContent = this.formatTime(s.duration);
-  },
-  seekToPct(pct) {
-    const s = this.state;
-    if (!s.duration) return;
-    const target = (pct / 100) * s.duration;
-    s.currentTime = target;
-    s._lastPct = -1; // force visual update
-    if (s.provider === 'spotify' && this.spotifyController) { this.spotifyController.seek(target); }
-    else if (s.provider === 'soundcloud' && this.scWidget) { this.scWidget.seekTo(target * 1000); }
-    else if (s.provider === 'youtube' && this.ytPlayer) { this.ytPlayer.seekTo(target, true); }
-    this.updateProgressVisual();
-  },
-
-  // ---------- Helpers ----------
-  formatTime(sec) {
-    if (!sec || isNaN(sec)) return '0:00';
-    sec = Math.floor(sec);
-    const m = Math.floor(sec / 60);
-    const s = sec % 60;
-    return m + ':' + (s < 10 ? '0' : '') + s;
-  },
-  setPlayIcon(playing) {
-    const playIcon = $('music-play-btn').querySelector('.icon-play');
-    const pauseIcon = $('music-play-btn').querySelector('.icon-pause');
-    if (playIcon && pauseIcon) {
-      playIcon.style.display = playing ? 'none' : 'block';
-      pauseIcon.style.display = playing ? 'block' : 'none';
-      $('music-play-btn').title = playing ? 'Pause' : 'Play';
-    }
-  },
-  clear() {
-    this.stopProgress();
-    const vol = this.state.volume || 80;
-    this.state = { provider: null, link: null, embedUrl: null, isPlaying: false, isLooping: false, volume: vol, muted: false, duration: 0, currentTime: 0, progressTimer: null, iframe: null, isPlaylist: false, playlistIndex: 0, playlistTracks: [], validated: false };
-    $('music-embed-container').innerHTML = '';
-    $('music-embed-container').className = 'music-player-embed';
-    $('music-player-card').style.display = 'none';
-    $('music-empty-state').style.display = 'flex';
-    $('music-link-input').value = '';
-    $('music-playlist-badge').style.display = 'none';
-    this.ytPlayer = null; this.scWidget = null; this.spotifyController = null;
-    const mini = $('music-player-card').querySelector('.music-native-mini');
-    if (mini) mini.remove();
-  }
-};
-
-// ---------- Load SoundCloud Widget API ----------
-(function loadSCWidget() {
-  if (window.SC) return;
-  const s = document.createElement('script');
-  s.src = 'https://w.soundcloud.com/player/api.js';
-  s.async = true;
-  document.head.appendChild(s);
-})();
-
-// ---------- Music Player wiring ----------
-function loadMusicLink(url, silent) {
-  return MusicPlayer.load(url, silent);
-}
-
-// Load button
-if ($('music-load-btn')) $('music-load-btn').addEventListener('click', async () => {
-  const url = $('music-link-input').value.trim();
-  if (!url) { toast('Paste a music link first.', 'error'); return; }
-  const ok = await MusicPlayer.load(url, false);
-  if (ok) saveMusicLink(url);
-});
-
-// Enter key on input
-if ($('music-link-input')) $('music-link-input').addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') { e.preventDefault(); $('music-load-btn').click(); }
-});
-
-// Play / Pause
-if ($('music-play-btn')) $('music-play-btn').addEventListener('click', () => MusicPlayer.togglePlay());
-
-// Loop
-if ($('music-loop-btn')) $('music-loop-btn').addEventListener('click', () => MusicPlayer.toggleLoop());
-
-// Restart (prev btn)
-if ($('music-prev-btn')) $('music-prev-btn').addEventListener('click', () => MusicPlayer.restart());
-
-// Skip 10s (next btn)
-if ($('music-next-btn')) $('music-next-btn').addEventListener('click', () => MusicPlayer.skip10());
-
-// Volume
-if ($('music-volume-slider')) $('music-volume-slider').addEventListener('input', (e) => {
-  MusicPlayer.setVolume(parseInt(e.target.value, 10));
-});
-
-// Mute
-if ($('music-mute-btn')) $('music-mute-btn').addEventListener('click', () => MusicPlayer.toggleMute());
-
-// Progress bar seek
-if ($('music-progress-bar')) {
-  $('music-progress-bar').addEventListener('click', (e) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const pct = ((e.clientX - rect.left) / rect.width) * 100;
-    MusicPlayer.seekToPct(pct);
-  });
-}
-
-// Clear button (X icon on the player card)
-if ($('music-clear-btn')) $('music-clear-btn').addEventListener('click', () => {
-  MusicPlayer.clear();
-  saveMusicLink('');
-  toast('Track removed from your player.', 'success');
-});
-
-// Clear link button (next to Load) — clears input, player, and saved link
-if ($('music-clear-link-btn')) $('music-clear-link-btn').addEventListener('click', () => {
-  $('music-link-input').value = '';
-  MusicPlayer.clear();
-  saveMusicLink('');
-  toast('Link cleared and removed from your account.', 'success');
-});
-
-// Save music link to server
-function saveMusicLink(url) {
-  fetch(API_BASE + '/api/settings/music-link', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ musicLink: url })
-  }).then(r => r.json()).then(data => {
-    if (data.success) {
-      currentUser.musicLink = url || '';
-    }
-  }).catch(() => {});
-}
-
 // ---------- Delete Account ----------
 $('delete-account-btn').addEventListener('click', () => {
   // The owner account (@lore) cannot be deleted
@@ -13888,6 +13018,104 @@ $('delete-account-confirm').addEventListener('click', async () => {
   } catch(e) {
     toast('Unable to delete the account. Please try again.', 'error');
     btn.disabled = false; btn.textContent = 'Delete Permanently';
+  }
+});
+
+// ---------- Disable Account ----------
+$('disable-account-btn').addEventListener('click', () => {
+  // The owner account cannot be disabled
+  if (currentUser && (currentUser.isOwner || currentUser.username === 'lore')) {
+    toast('The owner account cannot be disabled.', 'error');
+    return;
+  }
+  $('disable-account-modal').classList.add('show');
+});
+$('disable-account-cancel').addEventListener('click', () => {
+  $('disable-account-modal').classList.remove('show');
+  if ($('disable-account-password')) $('disable-account-password').value = '';
+});
+$('disable-account-modal').addEventListener('click', (e) => { if (e.target === $('disable-account-modal')) { $('disable-account-modal').classList.remove('show'); } });
+$('disable-account-confirm').addEventListener('click', async () => {
+  const pw = $('disable-account-password') ? $('disable-account-password').value : '';
+  if (!pw) { toast('Enter your password to confirm.', 'error'); return; }
+  const btn = $('disable-account-confirm');
+  btn.disabled = true; btn.textContent = 'Disabling...';
+  try {
+    const res = await fetch(API_BASE + '/api/settings/disable-account', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password: pw }) });
+    const data = await res.json();
+    if (res.ok) {
+      toast('Your account has been disabled. You have 30 days to reinstate it.', 'success');
+      $('disable-account-modal').classList.remove('show');
+      // Log the user out
+      localStorage.removeItem('hellobye_sid');
+      sessionSocketId = null;
+      clearClientSettings();
+      if (socket) socket.disconnect();
+      btn.disabled = false; btn.textContent = 'Disable Account';
+      if ($('disable-account-password')) $('disable-account-password').value = '';
+      showAuth();
+    } else {
+      toast(data.error || 'Unable to disable the account. Please try again.', 'error');
+      btn.disabled = false; btn.textContent = 'Disable Account';
+    }
+  } catch(e) {
+    toast('Unable to disable the account. Please try again.', 'error');
+    btn.disabled = false; btn.textContent = 'Disable Account';
+  }
+});
+
+// ---------- Reactivate Account (login reactivation prompt) ----------
+let reactivateCredentials = null;
+function showReactivatePrompt(username, password, scheduledDeletionAt) {
+  reactivateCredentials = { username, password };
+  const txt = $('reactivate-modal-text');
+  if (txt && scheduledDeletionAt) {
+    const days = Math.max(0, Math.ceil((scheduledDeletionAt - Date.now()) / (24 * 60 * 60 * 1000)));
+    txt.textContent = 'Your account is currently disabled and will be permanently deleted in ' + days + ' day' + (days === 1 ? '' : 's') + '. Would you like to reinstate it now? Your profile, friends, and settings will be restored.';
+  }
+  $('reactivate-modal').classList.add('show');
+}
+$('reactivate-decline').addEventListener('click', async () => {
+  $('reactivate-modal').classList.remove('show');
+  // Tell the server the user chose to stay disabled (UI affordance only).
+  if (reactivateCredentials) {
+    try {
+      await fetch(API_BASE + '/api/account/decline-reactivation', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: reactivateCredentials.username })
+      });
+    } catch (e) {}
+  }
+  reactivateCredentials = null;
+  toast('Your account remains disabled.', 'info');
+});
+$('reactivate-modal').addEventListener('click', (e) => { if (e.target === $('reactivate-modal')) { $('reactivate-modal').classList.remove('show'); reactivateCredentials = null; } });
+$('reactivate-confirm').addEventListener('click', async () => {
+  if (!reactivateCredentials) { $('reactivate-modal').classList.remove('show'); return; }
+  const btn = $('reactivate-confirm');
+  btn.disabled = true; btn.textContent = 'Reinstating...';
+  try {
+    const res = await fetch(API_BASE + '/api/account/reactivate', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: reactivateCredentials.username, password: reactivateCredentials.password })
+    });
+    const data = await res.json();
+    if (res.ok && data.sessionId) {
+      toast('Welcome back! Your account has been reinstated.', 'success');
+      $('reactivate-modal').classList.remove('show');
+      reactivateCredentials = null;
+      sessionSocketId = data.sessionId;
+      localStorage.setItem('hellobye_sid', data.sessionId);
+      document.documentElement.classList.add('has-session');
+      initChat({ user: data.user, sessionId: data.sessionId });
+      btn.disabled = false; btn.textContent = 'Reinstate Account';
+    } else {
+      toast(data.error || 'Unable to reinstate the account. Please try again.', 'error');
+      btn.disabled = false; btn.textContent = 'Reinstate Account';
+    }
+  } catch (e) {
+    toast('Unable to reinstate the account. Please try again.', 'error');
+    btn.disabled = false; btn.textContent = 'Reinstate Account';
   }
 });
 
@@ -14151,10 +13379,19 @@ function renderProfileView(data) {
   } else {
     bannerEl.innerHTML = '<div class="profile-view-banner-placeholder">No banner set</div>';
   }
-  // Avatar
+  // Avatar (click to zoom if a real picture is set)
   const av = $('pv-avatar');
-  if (u.avatar) { av.innerHTML = '<img src="' + u.avatar + '">'; }
-  else { av.innerHTML = '<span>' + getInitials(u.username) + '</span>'; }
+  if (u.avatar) {
+    av.innerHTML = '<img src="' + u.avatar + '">';
+    av.style.cursor = 'zoom-in';
+    av.title = 'Click to zoom';
+    av.onclick = () => openProfileAvatarLightbox(u.avatar);
+  } else {
+    av.innerHTML = '<span>' + getInitials(u.username) + '</span>';
+    av.style.cursor = 'default';
+    av.title = '';
+    av.onclick = null;
+  }
   av.setAttribute('data-avatar-user', u.username);
   // Name
   $('pv-displayname').textContent = u.displayName || u.username;
