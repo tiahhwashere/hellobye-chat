@@ -442,6 +442,17 @@ body.loading-session #chat-app.active::after { content: none; }
 .chat-input-area {
   position: relative;
 }
+/* The bg layer inside the chat bars must span the FULL width of the bar
+   (which is the 1fr chat-main column), NOT the 300px sidebar width.
+   Using left:0;right:0; width:auto overrides the fixed .members-bg-layer
+   width so the image covers the entire header / input area edge-to-edge. */
+.chat-header > .members-bg-layer,
+.chat-input-area > .members-bg-layer {
+  left: 0;
+  right: 0;
+  width: auto;
+  max-width: none;
+}
 /* Make the two bars transparent so the background layer shows through; the
    original solid colors are dropped in favor of a readable scrim + the image. */
 .chat-header.members-bg-on,
@@ -3608,13 +3619,13 @@ body.no-anim .friend-item { animation: none !important; }
 /* Tablet — slightly smaller sidebar */
 @media (max-width: 900px) {
   #chat-app.active { grid-template-columns: 260px 1fr; }
-  .members-bg-layer { width: 260px; }
+  .sidebar > .members-bg-layer { width: 260px; }
 }
 
 /* Mobile — sidebar becomes overlay, chat takes full width */
 @media (max-width: 768px) {
   #chat-app.active { grid-template-columns: 1fr; }
-  .members-bg-layer { width: 280px; max-width: 85vw; }
+  .sidebar > .members-bg-layer { width: 280px; max-width: 85vw; }
   .sidebar {
     display: none; position: fixed; top: 0; left: 0; bottom: 0;
     width: 280px; max-width: 85vw; z-index: 150;
