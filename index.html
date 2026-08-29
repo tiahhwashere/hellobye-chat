@@ -3888,6 +3888,204 @@ body.no-anim .friend-item { animation: none !important; }
 .sidebar-footer-status.dnd { color: var(--dnd); }
 .sidebar-footer-status.offline { color: var(--text-muted); }
 
+/* ============================================
+   MINI PROFILE SETTINGS POPOVER
+   Compact dropdown anchored to the sidebar footer.
+   ============================================ */
+.mini-profile-popover {
+  position: fixed;
+  bottom: 64px;
+  left: 14px;
+  width: 300px;
+  max-height: min(70vh, 560px);
+  background: var(--bg-dark);
+  border: 1px solid var(--border-light);
+  border-radius: 14px;
+  box-shadow: 0 16px 48px rgba(0,0,0,0.55), 0 2px 8px rgba(0,0,0,0.3);
+  z-index: 9000;
+  display: flex;
+  flex-direction: column;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(12px) scale(0.96);
+  transform-origin: bottom left;
+  transition: opacity 0.2s ease, transform 0.2s cubic-bezier(0.4,0,0.2,1), visibility 0.2s;
+  pointer-events: none;
+  overflow: hidden;
+}
+.mini-profile-popover.show {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+/* Small arrow pointing down at the sidebar footer */
+.mini-profile-arrow {
+  position: absolute;
+  bottom: -7px;
+  left: 24px;
+  width: 14px;
+  height: 14px;
+  background: var(--bg-dark);
+  border-right: 1px solid var(--border-light);
+  border-bottom: 1px solid var(--border-light);
+  transform: rotate(45deg);
+  z-index: 0;
+}
+.mini-profile-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--bg-lighter) transparent;
+}
+.mini-profile-scroll::-webkit-scrollbar { width: 6px; }
+.mini-profile-scroll::-webkit-scrollbar-track { background: transparent; }
+.mini-profile-scroll::-webkit-scrollbar-thumb { background: var(--bg-lighter); border-radius: 3px; }
+
+/* Header: avatar + identity */
+.mini-profile-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 14px;
+  margin-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+}
+.mini-profile-avatar-wrap { position: relative; flex-shrink: 0; }
+.mini-profile-avatar {
+  width: 48px; height: 48px; border-radius: 50%;
+  background: var(--accent); color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; font-weight: 700; overflow: hidden;
+  border: 2px solid var(--bg-dark);
+  box-shadow: 0 0 0 2px var(--accent-dim);
+}
+.mini-profile-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.mini-profile-avatar-wrap .status-dot {
+  position: absolute; bottom: 0; right: 0;
+  width: 14px; height: 14px; border-radius: 50%;
+  border: 2.5px solid var(--bg-dark);
+  background-size: contain; background-repeat: no-repeat; background-position: center;
+}
+.mini-profile-avatar-wrap .status-dot.online { background-image: url('online.png'); }
+.mini-profile-avatar-wrap .status-dot.idle { background-image: url('idle.png'); }
+.mini-profile-avatar-wrap .status-dot.dnd { background-image: url('dnd.png'); }
+.mini-profile-avatar-wrap .status-dot.offline { background-image: url('offline.png'); }
+.mini-profile-identity { flex: 1; min-width: 0; }
+.mini-profile-name {
+  font-size: 15px; font-weight: 600; color: var(--text-primary);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.mini-profile-name .sender-displayname { font-weight: 700; }
+.mini-profile-statustext {
+  font-size: 12px; color: var(--text-muted); margin-top: 1px;
+}
+.mini-profile-statustext.online { color: var(--online); }
+.mini-profile-statustext.idle { color: var(--idle); }
+.mini-profile-statustext.dnd { color: var(--dnd); }
+.mini-profile-statustext.offline { color: var(--text-muted); }
+
+/* Sections */
+.mini-profile-section {
+  padding: 12px 0;
+  border-top: 1px solid var(--border);
+}
+.mini-profile-section:first-of-type { border-top: none; padding-top: 10px; }
+.mini-profile-section-title {
+  font-size: 10px; font-weight: 700; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 8px;
+}
+
+/* Status options — compact 2-col grid */
+.mini-status-options { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.mini-status-options .status-option {
+  padding: 7px 10px; gap: 7px;
+}
+.mini-status-options .status-option-label { font-size: 12px; }
+.mini-status-options .status-option-dot { width: 14px; height: 14px; }
+
+/* Compact bio textarea */
+.mini-bio {
+  min-height: 64px; padding: 9px 12px; font-size: 12px; line-height: 1.5;
+}
+.mini-input { padding: 8px 12px; font-size: 12px; }
+
+/* Compact toggle rows */
+.mini-toggle-row { padding: 5px 0; font-size: 12px; }
+
+/* Compact accent row */
+.mini-accent-row {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 8px;
+}
+.mini-accent-row .accent-swatch-large {
+  width: 34px; height: 34px; padding: 0; border: none;
+  border-radius: 8px; cursor: pointer; background: none;
+}
+.mini-accent-row .accent-swatch-large::-webkit-color-swatch-wrapper { padding: 0; }
+.mini-accent-row .accent-swatch-large::-webkit-color-swatch { border: 2px solid var(--border-light); border-radius: 8px; }
+.mini-accent-hex {
+  flex: 1; font-size: 12px; font-family: 'SF Mono', 'Monaco', monospace;
+  color: var(--text-secondary); font-weight: 500;
+}
+.mini-accent-revert {
+  padding: 5px 10px; font-size: 11px; font-weight: 600;
+  background: var(--bg-darker); border: 1px solid var(--border);
+  border-radius: 6px; color: var(--text-secondary); cursor: pointer;
+  transition: var(--transition);
+}
+.mini-accent-revert:hover { background: var(--bg-light); color: var(--text-primary); }
+.mini-accent-presets { gap: 7px; }
+.mini-accent-presets .accent-preset { width: 22px; height: 22px; }
+
+/* Footer */
+.mini-profile-footer {
+  padding: 10px 16px;
+  border-top: 1px solid var(--border);
+  background: var(--bg-darker);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.mini-dirty-indicator { font-size: 11px; gap: 4px; }
+.mini-dirty-indicator svg { width: 13px; height: 13px; }
+.mini-profile-footer-btns { display: flex; gap: 8px; }
+.mini-open-full-btn {
+  padding: 7px 12px; font-size: 12px; font-weight: 600;
+  background: transparent; border: 1px solid var(--border-light);
+  border-radius: 7px; color: var(--text-secondary); cursor: pointer;
+  transition: var(--transition); white-space: nowrap;
+}
+.mini-open-full-btn:hover { background: var(--bg-light); color: var(--text-primary); border-color: var(--text-muted); }
+.mini-save-btn {
+  padding: 7px 16px; font-size: 12px; font-weight: 600;
+  background: var(--accent); border: none; border-radius: 7px;
+  color: var(--accent-text); cursor: pointer; transition: var(--transition);
+  white-space: nowrap; display: inline-flex; align-items: center; gap: 6px;
+}
+.mini-save-btn:hover { background: var(--accent-hover); }
+.mini-save-btn.saving { opacity: 0.7; pointer-events: none; }
+.mini-save-btn.saved { background: var(--success); }
+.mini-save-btn:disabled { opacity: 0.6; pointer-events: none; }
+
+/* Collapsed sidebar: shift popover so it still looks good */
+#chat-app.active.sidebar-collapsed .mini-profile-popover {
+  left: 78px;
+  bottom: 70px;
+}
+#chat-app.active.sidebar-collapsed .mini-profile-popover .mini-profile-arrow { left: 18px; }
+
+/* Mobile: anchor to bottom-left, full safe width */
+@media (max-width: 768px) {
+  .mini-profile-popover {
+    left: 10px; right: 10px; width: auto; bottom: 72px;
+    max-height: 65vh;
+  }
+  .mini-profile-popover .mini-profile-arrow { left: 28px; }
+}
+
 /* ---------- Chat Header ---------- */
 .chat-header {
   border-bottom: 1px solid var(--border);
@@ -4637,6 +4835,99 @@ body.no-anim .friend-item { animation: none !important; }
         </div>
       </div>
     </aside>
+
+    <!-- Mini Profile Settings popover (anchored to sidebar footer) -->
+    <div class="mini-profile-popover" id="mini-profile-popover">
+      <div class="mini-profile-arrow"></div>
+      <div class="mini-profile-scroll" id="mini-profile-scroll">
+        <!-- Header: avatar + identity -->
+        <div class="mini-profile-header">
+          <div class="mini-profile-avatar-wrap">
+            <div class="mini-profile-avatar" id="mini-profile-avatar">U</div>
+            <div class="status-dot online" id="mini-profile-status-dot"></div>
+          </div>
+          <div class="mini-profile-identity">
+            <div class="mini-profile-name" id="mini-profile-name">@username</div>
+            <div class="mini-profile-statustext" id="mini-profile-statustext">Online</div>
+          </div>
+        </div>
+
+        <!-- Status options -->
+        <div class="mini-profile-section">
+          <div class="mini-profile-section-title">Status</div>
+          <div class="mini-status-options" id="mini-status-options">
+            <div class="status-option" data-status="online">
+              <div class="status-option-dot online"></div>
+              <div class="status-option-label">Online</div>
+            </div>
+            <div class="status-option" data-status="idle">
+              <div class="status-option-dot idle"></div>
+              <div class="status-option-label">Idle</div>
+            </div>
+            <div class="status-option" data-status="dnd">
+              <div class="status-option-dot dnd"></div>
+              <div class="status-option-label">Do Not Disturb</div>
+            </div>
+            <div class="status-option" data-status="offline">
+              <div class="status-option-dot offline"></div>
+              <div class="status-option-label">Offline</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- About Me -->
+        <div class="mini-profile-section">
+          <div class="mini-profile-section-title">About Me</div>
+          <textarea class="bio-textarea mini-bio" id="mini-bio-input" placeholder="Write a short bio..." maxlength="500"></textarea>
+          <div class="bio-counter"><span id="mini-bio-count">0</span> / 500</div>
+        </div>
+
+        <!-- Pronouns -->
+        <div class="mini-profile-section">
+          <div class="mini-profile-section-title">Pronouns</div>
+          <input type="text" class="form-input mini-input" id="mini-pronouns-input" placeholder="Enter your pronouns" maxlength="20">
+        </div>
+
+        <!-- Privacy -->
+        <div class="mini-profile-section">
+          <div class="mini-profile-section-title">Privacy</div>
+          <label class="toggle-row mini-toggle-row">
+            <span>Hide last online</span>
+            <span class="toggle-switch">
+              <input type="checkbox" id="mini-hide-lastseen-toggle">
+              <span class="toggle-slider"></span>
+            </span>
+          </label>
+          <label class="toggle-row mini-toggle-row">
+            <span>Show online status</span>
+            <span class="toggle-switch">
+              <input type="checkbox" id="mini-show-online-toggle">
+              <span class="toggle-slider"></span>
+            </span>
+          </label>
+        </div>
+
+        <!-- Panel Theme Color (compact) -->
+        <div class="mini-profile-section">
+          <div class="mini-profile-section-title">Panel Theme Color</div>
+          <div class="mini-accent-row">
+            <input type="color" id="mini-accent-picker" value="#4a9eff" class="accent-swatch-large" title="Pick a custom color">
+            <span class="mini-accent-hex" id="mini-accent-hex">#4a9eff</span>
+            <button class="mini-accent-revert" id="mini-accent-revert">Reset</button>
+          </div>
+          <div class="accent-preset-row mini-accent-presets" id="mini-accent-presets"></div>
+        </div>
+      </div>
+
+      <!-- Footer: dirty indicator + save + open full profile -->
+      <div class="mini-profile-footer">
+        <span class="profile-dirty-indicator mini-dirty-indicator" id="mini-dirty-indicator"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg> Unsaved</span>
+        <div class="mini-profile-footer-btns">
+          <button class="mini-open-full-btn" id="mini-open-full-btn">Open Full Profile</button>
+          <button class="mini-save-btn" id="mini-save-btn"><span class="save-spinner"></span><span class="save-btn-text">Save</span></button>
+        </div>
+      </div>
+    </div>
 
     <!-- Main Chat -->
     <main class="chat-main">
@@ -12023,6 +12314,291 @@ function openSettingsPanel() {
   updateSettingsPanel();
   $('settings-panel').classList.add('show');
 }
+
+// ============================================================
+// MINI PROFILE SETTINGS POPOVER
+// A compact dropdown that mirrors the full Profile Settings panel,
+// anchored above the sidebar footer. Shares the same dirty-tracking
+// and save logic as the full panel so changes stay in sync.
+// ============================================================
+let miniProfileDirty = false;
+
+// Populate the mini popover fields from currentUser (mirrors updateProfilePanel)
+function updateMiniProfile() {
+  if (!currentUser) return;
+  const u = users.find(x => x.username === currentUser.username) || currentUser;
+  // Avatar
+  const av = $('mini-profile-avatar');
+  if (u.avatar) { av.innerHTML = '<img src="' + u.avatar + '" alt="' + u.username + '">'; }
+  else { av.innerHTML = getInitials(u.username); }
+  // Status dot
+  $('mini-profile-status-dot').className = 'status-dot ' + (u.status || 'online');
+  // Name + status text
+  $('mini-profile-name').innerHTML = (u.displayName ? '<span class="sender-displayname">' + escapeHtml(u.displayName) + ' </span>' : '') + '<span class="profile-username-handle">@</span>' + escapeHtml(u.username);
+  $('mini-profile-statustext').textContent = getStatusText(u.status || 'online');
+  $('mini-profile-statustext').className = 'mini-profile-statustext ' + (u.status || 'online');
+  // Bio
+  $('mini-bio-input').value = u.bio || '';
+  $('mini-bio-count').textContent = (u.bio || '').length;
+  // Pronouns
+  $('mini-pronouns-input').value = u.pronouns || '';
+  // Privacy toggles
+  $('mini-hide-lastseen-toggle').checked = !!u.hideLastSeen;
+  $('mini-show-online-toggle').checked = u.showOnlineStatus !== false;
+  // Accent color
+  const color = getProfileColor();
+  const picker = $('mini-accent-picker');
+  if (picker) picker.value = color || '#4a9eff';
+  const hexEl = $('mini-accent-hex');
+  if (hexEl) hexEl.textContent = color || '#4a9eff';
+  // Status options active state
+  const curStatus = u.status || 'online';
+  document.querySelectorAll('#mini-status-options .status-option').forEach(opt => {
+    opt.classList.toggle('active', opt.dataset.status === curStatus);
+  });
+  // Accent presets active state
+  document.querySelectorAll('#mini-accent-presets .accent-preset').forEach(p => {
+    p.classList.toggle('active', p.dataset.color === (color || ''));
+  });
+  // Reset dirty
+  miniProfileDirty = false;
+  updateMiniDirtyIndicator();
+}
+
+function updateMiniDirtyIndicator() {
+  const ind = $('mini-dirty-indicator');
+  if (!ind) return;
+  if (miniProfileDirty) ind.classList.add('show');
+  else ind.classList.remove('show');
+}
+function markMiniProfileDirty() { miniProfileDirty = true; updateMiniDirtyIndicator(); }
+function clearMiniProfileDirty() { miniProfileDirty = false; updateMiniDirtyIndicator(); }
+
+// Build the accent preset swatches in the mini popover
+function initMiniAccentPresets() {
+  const container = $('mini-accent-presets');
+  if (!container) return;
+  container.innerHTML = '';
+  profileAccentPresets.forEach(color => {
+    const el = document.createElement('div');
+    el.className = 'accent-preset';
+    el.style.background = color;
+    el.dataset.color = color;
+    el.title = color;
+    el.addEventListener('click', () => {
+      saveProfileColor(color);
+      applyProfileColor();
+      syncProfileColorToServer(color);
+      const picker = $('mini-accent-picker');
+      if (picker) picker.value = color;
+      const hexEl = $('mini-accent-hex');
+      if (hexEl) hexEl.textContent = color;
+      document.querySelectorAll('#mini-accent-presets .accent-preset').forEach(p => {
+        p.classList.toggle('active', p.dataset.color === color);
+      });
+      toast('Profile panel color has been updated.', 'success');
+    });
+    container.appendChild(el);
+  });
+}
+
+// Open / close / toggle the mini popover
+function openMiniProfile() {
+  if (!currentUser) return;
+  // If the full profile/settings panel is open, close it first to avoid overlap
+  $('profile-panel').classList.remove('show');
+  $('settings-panel').classList.remove('show');
+  updateMiniProfile();
+  captureSavedProfileImages();
+  $('mini-profile-popover').classList.add('show');
+}
+function closeMiniProfile() {
+  $('mini-profile-popover').classList.remove('show');
+}
+function toggleMiniProfile() {
+  const pop = $('mini-profile-popover');
+  if (pop.classList.contains('show')) {
+    // Closing — guard against unsaved changes
+    if (miniProfileDirty) {
+      // Reuse the existing unsaved-modal flow
+      pendingNavigation = closeMiniProfile;
+      $('unsaved-modal').classList.add('show');
+      return;
+    }
+    closeMiniProfile();
+  } else {
+    // Opening — if the full profile panel is dirty, guard first
+    if (checkDirtyBeforeAction(openMiniProfile)) return;
+    openMiniProfile();
+  }
+}
+
+// Save from the mini popover — reads the mini fields, POSTs to the server,
+// then syncs currentUser + clears dirty. Mirrors saveProfileNow but reads
+// from mini-* element IDs instead of the full-panel IDs.
+async function saveMiniProfile(silent) {
+  if (!currentUser) return false;
+  const bio = $('mini-bio-input').value.trim();
+  const hideLastSeen = $('mini-hide-lastseen-toggle').checked;
+  const pronouns = $('mini-pronouns-input').value.trim();
+  const showOnlineStatus = $('mini-show-online-toggle').checked;
+  const panelColor = getProfileColor() || null;
+  const btn = $('mini-save-btn');
+  if (btn) { btn.disabled = true; btn.classList.add('saving'); }
+  const txtEl = btn ? btn.querySelector('.save-btn-text') : null;
+  if (txtEl) txtEl.textContent = 'Saving…';
+  try {
+    const res = await fetch(API_BASE + '/api/profile', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ bio, hideLastSeen, pronouns, showOnlineStatus, panelColor })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      if (pendingBannerRemoval) {
+        try { await fetch(API_BASE + '/api/profile/remove-image', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'banner' }) }); } catch (e) {}
+        pendingBannerRemoval = false;
+      }
+      if (pendingAvatarRemoval) {
+        try { await fetch(API_BASE + '/api/profile/remove-image', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'avatar' }) }); } catch (e) {}
+        pendingAvatarRemoval = false;
+      }
+      if (!silent) toast('Profile has been saved successfully.', 'success');
+      currentUser.bio = bio;
+      currentUser.hideLastSeen = hideLastSeen;
+      currentUser.pronouns = pronouns;
+      currentUser.showOnlineStatus = showOnlineStatus;
+      currentUser.panelColor = panelColor;
+      const uIdx = users.findIndex(x => x.username === currentUser.username);
+      if (uIdx >= 0) {
+        users[uIdx].bio = bio; users[uIdx].pronouns = pronouns;
+        users[uIdx].showOnlineStatus = showOnlineStatus; users[uIdx].panelColor = panelColor;
+      }
+      clearMiniProfileDirty();
+      clearProfileDirty();
+      captureSavedProfileImages();
+      if (btn) { btn.classList.remove('saving'); btn.classList.add('saved'); }
+      if (txtEl) txtEl.textContent = 'Saved!';
+      if (btn) btn.disabled = false;
+      setTimeout(() => { if (btn) btn.classList.remove('saved'); if (txtEl) txtEl.textContent = 'Save'; }, 1500);
+      return true;
+    } else {
+      toast(data.error || 'Unable to update your profile. Please try again.', 'error');
+    }
+  } catch (err) {
+    toast('Unable to update your profile. Please try again.', 'error');
+  }
+  if (btn) { btn.classList.remove('saving'); if (txtEl) txtEl.textContent = 'Save'; btn.disabled = false; }
+  return false;
+}
+
+// Wire up all the mini popover event listeners (called once on DOM ready)
+function initMiniProfileListeners() {
+  // Bio input → dirty + counter
+  const bioInput = $('mini-bio-input');
+  if (bioInput) bioInput.addEventListener('input', (e) => {
+    $('mini-bio-count').textContent = e.target.value.length;
+    markMiniProfileDirty();
+  });
+  // Pronouns → dirty
+  const pronInput = $('mini-pronouns-input');
+  if (pronInput) pronInput.addEventListener('input', markMiniProfileDirty);
+  // Privacy toggles → dirty
+  const hideToggle = $('mini-hide-lastseen-toggle');
+  if (hideToggle) hideToggle.addEventListener('change', markMiniProfileDirty);
+  const showToggle = $('mini-show-online-toggle');
+  if (showToggle) showToggle.addEventListener('change', markMiniProfileDirty);
+  // Status options → immediate status change (same as full panel)
+  document.querySelectorAll('#mini-status-options .status-option').forEach(opt => {
+    opt.addEventListener('click', () => {
+      const status = opt.dataset.status;
+      document.querySelectorAll('#mini-status-options .status-option').forEach(o => o.classList.remove('active'));
+      opt.classList.add('active');
+      if (currentUser) {
+        currentUser.status = status;
+        const me = users.find(u => u.username === currentUser.username);
+        if (me) me.status = status;
+        updateSidebarSelf();
+        if (typeof renderUserList === 'function') renderUserList();
+        if (activeDMUser === currentUser.username && typeof updateDMHeader === 'function') updateDMHeader();
+      }
+      socket.emit('set-status', status);
+      // Update mini popover header status display
+      $('mini-profile-status-dot').className = 'status-dot ' + status;
+      $('mini-profile-statustext').textContent = getStatusText(status);
+      $('mini-profile-statustext').className = 'mini-profile-statustext ' + status;
+      toast('Your status has been set to ' + getStatusText(status) + '.', 'success');
+    });
+  });
+  // Accent color picker
+  const picker = $('mini-accent-picker');
+  if (picker) picker.addEventListener('input', (e) => {
+    saveProfileColor(e.target.value);
+    applyProfileColor();
+    syncProfileColorToServer(e.target.value);
+    const hexEl = $('mini-accent-hex');
+    if (hexEl) hexEl.textContent = e.target.value;
+    document.querySelectorAll('#mini-accent-presets .accent-preset').forEach(p => {
+      p.classList.toggle('active', p.dataset.color === e.target.value);
+    });
+  });
+  // Accent reset
+  const revertBtn = $('mini-accent-revert');
+  if (revertBtn) revertBtn.addEventListener('click', () => {
+    saveProfileColor(null);
+    applyProfileColor();
+    syncProfileColorToServer(null);
+    if (picker) picker.value = '#4a9eff';
+    const hexEl = $('mini-accent-hex');
+    if (hexEl) hexEl.textContent = '#4a9eff';
+    document.querySelectorAll('#mini-accent-presets .accent-preset').forEach(p => p.classList.remove('active'));
+    toast('Profile panel color has been reverted to the default.', 'success');
+  });
+  // Save button
+  const saveBtn = $('mini-save-btn');
+  if (saveBtn) saveBtn.addEventListener('click', () => saveMiniProfile(false));
+  // Open Full Profile button — closes mini, opens the full panel
+  const fullBtn = $('mini-open-full-btn');
+  if (fullBtn) fullBtn.addEventListener('click', () => {
+    // Sync mini fields into the full panel before opening so edits aren't lost
+    if ($('bio-input')) $('bio-input').value = $('mini-bio-input').value;
+    if ($('bio-count')) $('bio-count').textContent = $('mini-bio-input').value.length;
+    if ($('pronouns-input')) $('pronouns-input').value = $('mini-pronouns-input').value;
+    if ($('hide-lastseen-toggle')) $('hide-lastseen-toggle').checked = $('mini-hide-lastseen-toggle').checked;
+    if ($('show-online-toggle')) $('show-online-toggle').checked = $('mini-show-online-toggle').checked;
+    // Carry dirty state to the full panel
+    if (miniProfileDirty) markProfileDirty();
+    closeMiniProfile();
+    openProfilePanel();
+  });
+  // Click outside to close (only when the mini popover is open)
+  document.addEventListener('click', (e) => {
+    const pop = $('mini-profile-popover');
+    if (!pop || !pop.classList.contains('show')) return;
+    // If the click is inside the popover or the sidebar footer, ignore
+    if (pop.contains(e.target) || $('sidebar-footer').contains(e.target)) return;
+    // Guard unsaved changes
+    if (miniProfileDirty) {
+      pendingNavigation = closeMiniProfile;
+      $('unsaved-modal').classList.add('show');
+      return;
+    }
+    closeMiniProfile();
+  });
+  // Escape closes mini popover
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && $('mini-profile-popover').classList.contains('show')) {
+      if (miniProfileDirty) {
+        pendingNavigation = closeMiniProfile;
+        $('unsaved-modal').classList.add('show');
+        return;
+      }
+      closeMiniProfile();
+    }
+  });
+  // Build accent presets
+  initMiniAccentPresets();
+}
+
 $('profile-btn').addEventListener('click', () => {
   if (checkDirtyBeforeAction(openProfilePanel)) return;
   openProfilePanel();
@@ -12038,10 +12614,12 @@ $('profile-panel').addEventListener('click', (e) => {
     $('profile-panel').classList.remove('show');
   }
 });
-// Click on sidebar footer (user name/avatar in bottom-left) opens Profile Settings
-$('sidebar-footer').addEventListener('click', () => {
-  if (checkDirtyBeforeAction(openProfilePanel)) return;
-  openProfilePanel();
+// Click on sidebar footer (user name/avatar in bottom-left) toggles the
+// mini Profile Settings popover — a compact dropdown anchored right above
+// the footer that mirrors the full Profile Settings panel.
+$('sidebar-footer').addEventListener('click', (e) => {
+  e.stopPropagation();
+  toggleMiniProfile();
 });
 // ESC key closes Profile Settings (respects unsaved-changes guard)
 document.addEventListener('keydown', (e) => {
@@ -14865,6 +15443,7 @@ function applyClientSettings() {
   updateBgPreview();
   initAccentPresets();
   initProfileAccentPresets();
+  initMiniProfileListeners();
   applyProfileColor();
   // Restore the saved members-list background for this user (re-applied after login).
   if (typeof restoreMembersBg === 'function') restoreMembersBg();
