@@ -320,12 +320,37 @@ if (!db.groupChats) db.groupChats = []; // [{ id, name, owner, icon, members:[us
   }
 })();
 
-function saveDB() {
+// Debounced save: instead of writing synchronously on every state change
+// (which blocks the event loop — a major source of lag when messages or
+// status changes arrive in bursts), we mark the DB "dirty" and flush to
+// disk at most once per ~500ms. The periodic 15s interval is a safety net
+// so data is never lost even if no further changes arrive.
+let dbDirty = false;
+let dbSaveTimer = null;
+const DB_SAVE_DEBOUNCE_MS = 500;
+
+function flushDBSync() {
+  dbDirty = false;
+  if (dbSaveTimer) { clearTimeout(dbSaveTimer); dbSaveTimer = null; }
   try { fs.writeFileSync(DB_FILE, JSON.stringify(db)); } catch (e) { console.error('DB save error', e); }
   // Mirror to external backup so data survives the next deploy/restart.
   scheduleRemoteBackup();
 }
-setInterval(saveDB, 15000); // periodic save
+
+function saveDB() {
+  dbDirty = true;
+  if (dbSaveTimer) clearTimeout(dbSaveTimer);
+  dbSaveTimer = setTimeout(flushDBSync, DB_SAVE_DEBOUNCE_MS);
+}
+
+// Force an immediate synchronous save (used at shutdown / critical moments).
+function saveDBNow() { flushDBSync(); }
+
+setInterval(() => { if (dbDirty) flushDBSync(); }, 15000); // periodic safety-net save
+
+// Flush pending writes on shutdown so no data is lost.
+process.on('SIGTERM', () => { if (dbDirty) flushDBSync(); process.exit(0); });
+process.on('SIGINT', () => { if (dbDirty) flushDBSync(); process.exit(0); });
 
 // On startup + every hour: purge any disabled accounts whose 30-day grace
 // period has elapsed. This enforces the automatic deletion after 30 days.
@@ -672,8 +697,10 @@ setInterval(() => {
 // Apply "Hide profile from others" privacy to an already-built public user
 // object. When the target user has hideProfile enabled, every viewer EXCEPT
 // the user themselves sees only their visual identity (avatar, banner,
-// username, display name, status dot). Sensitive details — bio, status
-// message, pronouns, location, website, and last-seen text — are stripped.
+// username, display name, status dot) plus their status message. Sensitive
+// details — bio, pronouns, location, website, and last-seen text — are
+// stripped. The status message is intentionally kept: it's a lightweight
+// presence indicator (the dream-bubble beside the name), not private info.
 //
 // IMPORTANT: this works for EVERY user, not just the panel owner. There is no
 // owner/admin bypass; "hide profile from others" means exactly that.
@@ -687,7 +714,11 @@ function applyProfileHiding(pub, u, viewerUsername) {
     return pub;
   }
   pub.bio = '';
-  pub.statusMessage = '';
+  // Keep the status message visible — it's a lightweight presence indicator
+  // (shown as the dream-bubble beside the display name), not a sensitive
+  // profile detail. Hiding a profile protects bio/pronouns/location/website/
+  // last-seen, but the status message stays so other members still see what
+  // someone is up to right now.
   pub.pronouns = '';
   pub.location = '';
   pub.website = '';
@@ -966,7 +997,7 @@ app.post('/api/register', (req, res) => {
   db.dms[un] = {}; // { otherUsername: [messages] }
   const sid = genId();
   db.sessions[sid] = un;
-  saveDB();
+  saveDBNow(); // immediate save for new account creation (critical)
   // Notify any open admin panels that the account list changed (new signup)
   // so the Account Credentials & Sessions list refreshes in real time.
   try { if (typeof io !== 'undefined' && io && io.emit) io.emit('admin-data-changed', { reason: 'register', username: un }); } catch (e) {}
@@ -1236,10 +1267,12 @@ app.get('/api/user/:username', authMiddleware, (req, res) => {
   const isMe = (me.username === u.username);
   // "Hide profile from others" works for EVERY user: when the viewed user has
   // hideProfile enabled, every viewer EXCEPT the user themselves sees only the
-  // visual identity (avatar/banner/username/status dot) — bio, status message,
-  // pronouns, location, website and last-seen text are stripped, with a
-  // profileHidden flag so the client can show a "this profile is private"
-  // notice. There is NO owner/admin bypass; hiding means hidden from everyone.
+  // visual identity (avatar/banner/username/status dot) plus the status
+  // message bubble — bio, pronouns, location, website and last-seen text are
+  // stripped, with a profileHidden flag so the client can show a "this
+  // profile is private" notice. The status message stays visible as a
+  // presence indicator. There is NO owner/admin bypass; hiding means hidden
+  // from everyone.
   const profileHidden = !!u.hideProfile && !isMe;
   const viewUser = publicUser(u, me.username);
   res.json({
@@ -3064,10 +3097,11 @@ function broadcastProfile(username) {
     hideProfile: !!u.hideProfile,
   };
   // "Hide profile from others": every OTHER viewer receives a redacted
-  // payload (sensitive details stripped) when hideProfile is on. The user
-  // themselves always receives their own full profile via their private
-  // room so their local state (bio editor, etc.) stays accurate. There is
-  // no owner/admin bypass — hiding means hidden from all other viewers.
+  // payload (sensitive details stripped; status message kept as a presence
+  // indicator) when hideProfile is on. The user themselves always receives
+  // their own full profile via their private room so their local state (bio
+  // editor, etc.) stays accurate. There is no owner/admin bypass — hiding
+  // means hidden from all other viewers.
   if (u.hideProfile) {
     // Full profile to the user themselves (their own sockets).
     io.to(`user:${u.username}`).emit('profile-updated', fullPayload);
@@ -3076,6 +3110,19 @@ function broadcastProfile(username) {
   } else {
     io.emit('profile-updated', fullPayload);
   }
+}
+
+// Debounced users-list broadcast: when several users connect/disconnect or
+// change status in quick succession (common in active chats), we batch the
+// emit instead of rebuilding + broadcasting the full list on every single
+// event. The debounce window is short (80ms) so changes still feel instant.
+let emitUsersListTimer = null;
+function emitUsersListDebounced() {
+  if (emitUsersListTimer) return;
+  emitUsersListTimer = setTimeout(() => {
+    emitUsersListTimer = null;
+    emitUsersList();
+  }, 80);
 }
 
 function emitUsersList() {
@@ -3161,7 +3208,7 @@ io.on('connection', (socket) => {
   }
   user.lastSeen = nowISO();
   broadcastProfile(username);
-  emitUsersList();
+  emitUsersListDebounced();
 
   // Send current welcome title to the newly connected client
   socket.emit('welcome-title-changed', { title: db.welcomeTitle || 'welcome - to the safe place' });
@@ -3552,7 +3599,7 @@ io.on('connection', (socket) => {
     user.lastSeen = nowISO();
     saveDB();
     broadcastProfile(username);
-    emitUsersList();
+    emitUsersListDebounced();
   });
 
   // ---- Typing (public) ----
@@ -3585,7 +3632,7 @@ io.on('connection', (socket) => {
         user.lastSeen = nowISO();
         saveDB();
         broadcastProfile(username);
-        emitUsersList();
+        emitUsersListDebounced();
       }
     }
     socketToUser.delete(socket.id);

@@ -5683,7 +5683,7 @@ body.no-anim .friend-item { animation: none !important; }
           </span>
         </label>
         <label class="toggle-row">
-          <span>Hide profile from others<br><small style="color:var(--text-muted);font-size:11px;font-weight:400;">When on, other members only see your profile picture, banner, and username. Your bio, status, and additional details are kept private. The site owner can always view your full profile.</small></span>
+          <span>Hide profile from others<br><small style="color:var(--text-muted);font-size:11px;font-weight:400;">When on, other members only see your profile picture, banner, username, and status message. Your bio, pronouns, location, and additional details are kept private.</small></span>
           <span class="toggle-switch">
             <input type="checkbox" id="hide-profile-toggle">
             <span class="toggle-slider"></span>
@@ -8296,7 +8296,28 @@ function connectSocket() {
   socket.on('message-edited', (data) => {
     const msg = messages.find(m => m.id === data.id);
     if (msg) { msg.text = data.text; msg.edited = data.edited; msg.editedAt = data.editedAt; }
-    renderMessages();
+    // Incremental update: patch just the edited message's text + meta tag
+    // instead of re-rendering the entire message list (which clears and
+    // rebuilds every DOM node — a major source of lag in long chats).
+    const group = document.querySelector('.message-group[data-message-id="' + CSS.escape(data.id) + '"]');
+    if (group) {
+      const textSpan = group.querySelector('.message-text');
+      if (textSpan && msg) {
+        textSpan.innerHTML = highlightMentions(linkifyAndEmbed(escapeHtml(msg.text)));
+        attachMentionEvents(textSpan);
+        textSpan.querySelectorAll('.link-embed').forEach(el => fetchEmbed(el.dataset.url, el));
+      }
+      const meta = group.querySelector('.message-meta');
+      if (meta && msg && msg.edited) {
+        if (!meta.querySelector('.message-edited-tag')) {
+          const t = document.createElement('span');
+          t.className = 'message-edited-tag'; t.textContent = '(edited)';
+          meta.appendChild(t);
+        }
+      }
+    } else {
+      renderMessages(); // fallback if element not found
+    }
   });
   // ---- Reply highlight: when someone replies to MY message, highlight it ----
   socket.on('replied-to', (data) => {
@@ -8329,13 +8350,33 @@ function connectSocket() {
   socket.on('message-deleted', (data) => {
     const msg = messages.find(m => m.id === data.id);
     if (msg) { msg.deleted = true; msg.deletedAt = data.deletedAt; msg.text = ''; msg.file = null; }
-    renderMessages();
+    // Incremental update: mark just the deleted message instead of
+    // re-rendering the entire list.
+    const group = document.querySelector('.message-group[data-message-id="' + CSS.escape(data.id) + '"]');
+    if (group) {
+      const bubble = group.querySelector('.message-bubble');
+      if (bubble) {
+        bubble.classList.add('deleted');
+        bubble.innerHTML = 'This message was deleted';
+      }
+      const meta = group.querySelector('.message-meta');
+      if (meta) meta.remove();
+    } else {
+      renderMessages(); // fallback
+    }
   });
   socket.on('message-removed', (data) => {
     const idx = messages.findIndex(m => m.id === data.id);
-    if (idx >= 0) { messages.splice(idx, 1); renderMessages(); }
+    if (idx >= 0) { messages.splice(idx, 1); }
+    // Incremental: just remove the one DOM node.
+    const group = document.querySelector('.message-group[data-message-id="' + CSS.escape(data.id) + '"]');
+    if (group) {
+      group.remove();
+    } else {
+      renderMessages(); // fallback
+    }
   });
-  socket.on('users-list', (list) => { users = list; renderUserList(); });
+  socket.on('users-list', (list) => { users = list; renderUserListDebounced(); });
   // Welcome title changed by admin — update the chat header in real-time
   socket.on('welcome-title-changed', (data) => {
     if (data && data.title) {
@@ -8346,7 +8387,7 @@ function connectSocket() {
   // Custom roles updated — re-render the member sidebar to show custom role groups
   socket.on('custom-roles', (roles) => {
     customRoles = roles || [];
-    renderUserList();
+    renderUserListDebounced();
   });
   socket.on('profile-updated', (data) => {
     const u = users.find(x => x.username === data.username);
@@ -8399,7 +8440,7 @@ function connectSocket() {
       updateSettingsPanel();
       updateSidebarSelf();
     }
-    renderUserList();
+    renderUserListDebounced();
     updateMessageAvatars(data.username, data.avatar);
     // If DM open with this user, update header + re-evaluate the DM-disabled state
     if (activeDMUser === data.username) { updateDMHeader(); applyDMDisabledState(); }
@@ -8414,11 +8455,13 @@ function connectSocket() {
         updateProfileViewDMButton(pvUser);
         // Respect profile hiding: if the viewed user has hideProfile on and
         // the current viewer is not that user themselves, only update the DM
-        // button — don't reveal the status message bubble or last-seen text.
-        // This applies to EVERYONE (including the panel owner); "hide profile
-        // from others" means hidden from all other viewers with no bypass.
+        // button and the status message bubble — don't reveal last-seen text
+        // or other sensitive details. The status message stays visible as a
+        // presence indicator. This applies to EVERYONE (including the panel
+        // owner); "hide profile from others" means hidden from all other
+        // viewers with no bypass.
         const pvHidden = !!pvUser.hideProfile && currentUser && currentUser.username !== pvUser.username;
-        if (!pvHidden) {
+        {
           // Live-update the display name + inline status message bubble beside it
           const showPvNameSm = pvUser.statusMessage && (pvUser.status === 'online' || pvUser.status === 'idle' || pvUser.status === 'dnd');
           const pvSmIcon = '<span class="sm-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></span>';
@@ -8426,8 +8469,8 @@ function connectSocket() {
             ? '<span class="status-msg-bubble pv-name-sm ' + pvUser.status + '">' + pvSmIcon + '<span class="sm-text">' + escapeHtml(pvUser.statusMessage) + '</span></span>'
             : '';
           if ($('pv-displayname')) $('pv-displayname').innerHTML = escapeHtml(pvUser.displayName || pvUser.username) + pvNameSm;
-          // Live-update status text + status message bubble
-          const st = pvUser.status === 'offline' ? (pvUser.hideLastSeen ? 'Offline' : 'Last seen ' + getRelativeLastSeen(pvUser.lastSeen)) : getStatusText(pvUser.status);
+          // Live-update status text (but hide last-seen for hidden profiles)
+          const st = pvUser.status === 'offline' ? (pvHidden || pvUser.hideLastSeen ? 'Offline' : 'Last seen ' + getRelativeLastSeen(pvUser.lastSeen)) : getStatusText(pvUser.status);
           if ($('pv-status')) $('pv-status').innerHTML = '<span class="status-dot ' + pvUser.status + '"></span> ' + escapeHtml(st);
         }
       }
@@ -10239,6 +10282,18 @@ if ($('sidebar-toggle-btn')) $('sidebar-toggle-btn').addEventListener('click', (
 })();
 
 // ---------- User List ----------
+// Debounced render: when several profile-updated / users-list events arrive
+// in quick succession (common in active chats), we batch the re-render
+// instead of rebuilding the entire member sidebar on every single event.
+let _renderUserListTimer = null;
+function renderUserListDebounced() {
+  if (_renderUserListTimer) return;
+  _renderUserListTimer = setTimeout(() => {
+    _renderUserListTimer = null;
+    renderUserList();
+  }, 60);
+}
+
 function renderUserList() {
   // Build a set of usernames that belong to any custom role
   const customRoleUsernames = new Set();
@@ -14726,8 +14781,10 @@ function renderProfileView(data) {
     av.onclick = null;
   }
   av.setAttribute('data-avatar-user', u.username);
-  // Name — with optional status message bubble beside the display name
-  const showPvNameSm = !isHidden && u.statusMessage && (u.status === 'online' || u.status === 'idle' || u.status === 'dnd');
+  // Name — with optional status message bubble beside the display name.
+  // The status message is shown even for hidden profiles: it's a lightweight
+  // presence indicator (the dream-bubble), not a sensitive profile detail.
+  const showPvNameSm = u.statusMessage && (u.status === 'online' || u.status === 'idle' || u.status === 'dnd');
   const pvSmIcon = '<span class="sm-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></span>';
   const pvNameSm = showPvNameSm
     ? '<span class="status-msg-bubble pv-name-sm ' + u.status + '">' + pvSmIcon + '<span class="sm-text">' + escapeHtml(u.statusMessage) + '</span></span>'
@@ -14773,7 +14830,7 @@ function renderProfileView(data) {
     $('pv-bio').innerHTML = '<div class="pv-hidden-notice">' +
       '<svg class="pv-hidden-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>' +
       '<div class="pv-hidden-title">This Profile is Private</div>' +
-      '<div class="pv-hidden-sub">This member has chosen to keep their profile details private. Only their profile picture, banner, and username are visible.</div>' +
+      '<div class="pv-hidden-sub">This member has chosen to keep their profile details private. Only their profile picture, banner, username, and status message are visible.</div>' +
       '</div>';
   } else {
     $('pv-bio').innerHTML = u.bio ? linkifyBio(u.bio) : 'No bio set.';
