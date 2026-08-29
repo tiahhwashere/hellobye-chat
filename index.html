@@ -327,8 +327,14 @@ body.loading-session #chat-app.active::after { content: none; }
               border-right-width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
               transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
-/* Inner content of the sidebar fades + slides slightly during collapse for a polished feel */
-#chat-app.active .sidebar > * {
+/* Inner content of the sidebar fades + slides slightly during collapse for a polished feel.
+   NOTE: we only target the actual content children (header/nav/search/views/footer),
+   never the .members-bg-layer, so the background never flashes on toggle. */
+#chat-app.active .sidebar > .sidebar-header,
+#chat-app.active .sidebar > .sidebar-nav,
+#chat-app.active .sidebar > .sidebar-search,
+#chat-app.active .sidebar > .sidebar-view,
+#chat-app.active .sidebar > .sidebar-footer {
   transition: opacity 0.2s ease, transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 /* The persistent members-list background layer must NOT fade/slide with the
@@ -342,12 +348,18 @@ body.loading-session #chat-app.active::after { content: none; }
   opacity: 1 !important;
   transform: none !important;
 }
+/* When collapsed, shrink the sidebar to 0 width (clipped by overflow:hidden)
+   and fade out ONLY the inner content — never the sidebar itself, because
+   setting opacity:0 on .sidebar would also hide the persistent bg layer
+   (a child's opacity cannot exceed its parent's). */
 #chat-app.active.sidebar-collapsed .sidebar {
-  opacity: 0;
-  transform: translateX(-12px);
   pointer-events: none;
 }
-#chat-app.active.sidebar-collapsed .sidebar > * {
+#chat-app.active.sidebar-collapsed .sidebar > .sidebar-header,
+#chat-app.active.sidebar-collapsed .sidebar > .sidebar-nav,
+#chat-app.active.sidebar-collapsed .sidebar > .sidebar-search,
+#chat-app.active.sidebar-collapsed .sidebar > .sidebar-view,
+#chat-app.active.sidebar-collapsed .sidebar > .sidebar-footer {
   opacity: 0;
   transform: translateX(-20px);
 }
@@ -3262,10 +3274,11 @@ body.no-anim .friend-item { animation: none !important; }
   background: var(--bg-lighter); color: var(--text-secondary);
   display: flex; align-items: center; justify-content: center;
   font-size: 16px; font-weight: 600; overflow: hidden; flex-shrink: 0;
+  cursor: pointer;
 }
 .dm-header-avatar img { width: 100%; height: 100%; object-fit: cover; }
 .dm-header-info { flex: 1; min-width: 0; }
-.dm-header-name { font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dm-header-name { font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
 .dm-header-status { font-size: 12px; color: var(--text-muted); }
 .dm-header-status.online { color: var(--online); }
 .dm-header-status.idle { color: var(--idle); }
@@ -3546,6 +3559,21 @@ body.no-anim .friend-item { animation: none !important; }
   .sidebar.mobile-show { display: flex; animation: slideInLeft 0.2s ease; }
   @keyframes slideInLeft { from { transform: translateX(-100%); } to { transform: translateX(0); } }
   .mobile-menu-btn { display: flex; }
+
+  /* On mobile the PC collapse button (chevron) is meaningless and can overlap
+     the overlay sidebar awkwardly — hide it entirely on small screens. */
+  .sidebar-toggle-btn { display: none !important; }
+
+  /* On mobile the sidebar is an overlay that should always show full content,
+     regardless of whether the PC sidebar-collapsed state was persisted to
+     localStorage. Neutralise every collapsed effect so the overlay is usable. */
+  #chat-app.active.sidebar-collapsed .sidebar { width: 280px; max-width: 85vw; border-right: 1px solid var(--border); pointer-events: auto; }
+  #chat-app.active.sidebar-collapsed .sidebar.mobile-show { width: 280px; max-width: 85vw; }
+  #chat-app.active.sidebar-collapsed .sidebar > .sidebar-header,
+  #chat-app.active.sidebar-collapsed .sidebar > .sidebar-nav,
+  #chat-app.active.sidebar-collapsed .sidebar > .sidebar-search,
+  #chat-app.active.sidebar-collapsed .sidebar > .sidebar-view,
+  #chat-app.active.sidebar-collapsed .sidebar > .sidebar-footer { opacity: 1; transform: none; pointer-events: auto; }
 
   .chat-header { padding: 12px 14px; }
   .chat-header-info { gap: 8px; }
@@ -7624,7 +7652,15 @@ function appendMessage(msg, silent) {
       e.preventDefault();
       e.stopPropagation();
       const items = [{ label: 'Reply to message', icon: 'reply', action: () => startReply(msg) }];
-      if (!isOwn) items.push({ label: 'View Profile', icon: 'user', action: () => openProfileView(msg.username) });
+      if (!isOwn) {
+        items.push({ label: 'View Profile', icon: 'user', action: () => openProfileView(msg.username) });
+        items.push({ label: 'DM user', icon: 'dm', action: () => {
+          const target = users.find(x => x.username === msg.username);
+          const otherOff = target && target.directMessagesEnabled === false;
+          if (otherOff) { toast('@' + msg.username + ' has disabled direct messages and is not accepting private messages.', 'error'); return; }
+          openDM(msg.username);
+        } });
+      }
       showContextMenu(e.clientX, e.clientY, items);
     });
   }
@@ -7643,7 +7679,15 @@ function appendMessage(msg, silent) {
       e.preventDefault();
       e.stopPropagation();
       const items = [{ label: 'Reply to message', icon: 'reply', action: () => startReply(msg) }];
-      if (!isOwn) items.push({ label: 'View Profile', icon: 'user', action: () => openProfileView(msg.username) });
+      if (!isOwn) {
+        items.push({ label: 'View Profile', icon: 'user', action: () => openProfileView(msg.username) });
+        items.push({ label: 'DM user', icon: 'dm', action: () => {
+          const target = users.find(x => x.username === msg.username);
+          const otherOff = target && target.directMessagesEnabled === false;
+          if (otherOff) { toast('@' + msg.username + ' has disabled direct messages and is not accepting private messages.', 'error'); return; }
+          openDM(msg.username);
+        } });
+      }
       showContextMenu(e.clientX, e.clientY, items);
     });
     wrap.appendChild(sender);
@@ -7714,7 +7758,13 @@ function appendMessage(msg, silent) {
   } else if (!isOwn && !msg.deleted) {
     // For other users' messages, add reply context menu on bubble too
     const otherCtxItems = [
-      { label: 'Reply to message', icon: 'reply', action: () => startReply(msg) }
+      { label: 'Reply to message', icon: 'reply', action: () => startReply(msg) },
+      { label: 'DM user', icon: 'dm', action: () => {
+        const target = users.find(x => x.username === msg.username);
+        const otherOff = target && target.directMessagesEnabled === false;
+        if (otherOff) { toast('@' + msg.username + ' has disabled direct messages and is not accepting private messages.', 'error'); return; }
+        openDM(msg.username);
+      } }
     ];
     if (msg.file) otherCtxItems.push({ label: 'Download ' + (msg.file.name || 'file'), icon: 'download', action: () => downloadFile(msg.file) });
     bubble.addEventListener('contextmenu', (e) => {
@@ -9490,6 +9540,14 @@ function closeDMOverlay() {
 }
 $('dm-back').addEventListener('click', closeDMOverlay);
 $('dm-close-btn').addEventListener('click', closeDMOverlay);
+// Clicking the DM header avatar opens the other user's profile view
+$('dm-header-avatar').addEventListener('click', () => {
+  if (activeDMUser) openProfileView(activeDMUser);
+});
+// Also allow clicking the DM header name to open the profile
+$('dm-header-name').addEventListener('click', () => {
+  if (activeDMUser) openProfileView(activeDMUser);
+});
 
 async function closeDM(username) {
   // Optimistic: show toast and update UI immediately

@@ -1,19 +1,11 @@
-# Round 17 Todo
+# Round 18 Todo
 
 ## Sub-tasks
-- [x] 1. Remove checkmark emoji/icon from Save Changes button on Profile Settings
-- [x] 2. Fix XSS vulnerability in linkifyAndEmbed (escape cleanUrl in href/data-url)
-- [x] 3. Fix SSRF vulnerability in /api/embed (block private/internal IPs)
-- [x] 4. Fix renderEmbed single-quote escaping in url('...')
-- [x] 5. Add user-ID search to /api/search-messages endpoint
-- [x] 6. Redesign Search Messages UI to be very well-made + professional placeholder
-- [x] 7. Refine chatroom/DM message layout (less cartoony, better UI/system)
-- [x] 8. Verify/fix mobile support for all new changes
-- [x] 9. Syntax-check all script blocks (index.html + server.js)
-- [x] 10. Commit + push to GitHub master
-- [x] 11. Verify Render auto-deploy goes live
-- [x] 12. Verify site online (no data wipe) + edits grep-confirmed live
-
-## Extra security fixes done
-- [x] Path-traversal guard on /uploads static handler
-- [x] Security headers: X-Content-Type-Options, Referrer-Policy, Permissions-Policy
+- [x] 1. Fix sidebar on mobile (DONE — hid PC toggle btn on mobile, neutralized sidebar-collapsed effects in mobile media query so overlay always shows full content)
+- [x] 2. Fix sidebar on PC: toggling the button makes members-list background image flash back to normal for a split second (DONE — CSS fix: only fade content children, never .sidebar itself)
+- [x] 3. In chatroom: right-click any user → add a "DM user" option to the context dropdown (DONE — added to avatar, sender name, and other-user bubble context menus)
+- [x] 4. In user DMs: clicking user's profile picture shows their profile (DONE — added click handler on dm-header-avatar and dm-header-name to openProfileView(activeDMUser), added cursor:pointer styling)
+- [x] 5. Syntax-check all script blocks (index.html + server.js) — DONE, all pass
+- [ ] 6. Commit + push to GitHub master
+- [ ] 7. Verify Render auto-deploy goes live
+- [ ] 8. Verify site online (no data wipe) + edits grep-confirmed live
