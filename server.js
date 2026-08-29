@@ -3108,14 +3108,26 @@ function getConnectedUserSockets(username) {
 }
 
 // ---------- Socket.io ----------
-io.on('connection', (socket) => {
+// Auth middleware: reject sockets that don't present a valid session BEFORE
+// the connection is established. Calling next(new Error(...)) makes the
+// client's built-in 'connect_error' event fire automatically with the error
+// message. This replaces a previous manual `socket.emit('connect_error', ...)`,
+// which is ILLEGAL in Socket.IO v4 ('connect_error' is a reserved event name)
+// and threw an uncaught exception that crashed the whole server whenever a
+// socket connected without auth (e.g. bots / port scanners / health probes) —
+// causing the service to exit with code 1 and crash-loop.
+io.use((socket, next) => {
   const sid = socket.handshake.auth && socket.handshake.auth.sessionId;
-  if (!sid || !db.sessions[sid]) {
-    socket.emit('connect_error', new Error('Not authenticated'));
-    socket.disconnect();
-    return;
+  if (!sid || !db.sessions[sid] || !db.users[db.sessions[sid]]) {
+    return next(new Error('Not authenticated'));
   }
-  const username = db.sessions[sid];
+  socket.__authUsername = db.sessions[sid];
+  next();
+});
+
+io.on('connection', (socket) => {
+  const username = socket.__authUsername;
+  if (!username) { socket.disconnect(); return; }
   const user = db.users[username];
   if (!user) { socket.disconnect(); return; }
 
