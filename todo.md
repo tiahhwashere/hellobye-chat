@@ -1,14 +1,19 @@
-# Round 14 — Show "You have unsaved changes" when profile picture/banner is changed but not saved
+# Round 17 Todo
 
-## Implementation
-- [x] Mark `profileDirty = true` after a successful avatar upload (in `uploadProfileImage` success path) so the unsaved-changes guard fires on navigation
-- [x] Mark `profileDirty = true` after a successful banner upload (same function — covers both types)
-- [x] Mark `profileDirty = true` after avatar remove (remove button handler)
-- [x] Mark `profileDirty = true` after banner remove (remove button handler)
-- [x] Ensure the unsaved-modal "Save" path (saveProfileNow) still clears profileDirty so the flow works end-to-end
+## Sub-tasks
+- [x] 1. Remove checkmark emoji/icon from Save Changes button on Profile Settings
+- [x] 2. Fix XSS vulnerability in linkifyAndEmbed (escape cleanUrl in href/data-url)
+- [x] 3. Fix SSRF vulnerability in /api/embed (block private/internal IPs)
+- [x] 4. Fix renderEmbed single-quote escaping in url('...')
+- [x] 5. Add user-ID search to /api/search-messages endpoint
+- [x] 6. Redesign Search Messages UI to be very well-made + professional placeholder
+- [x] 7. Refine chatroom/DM message layout (less cartoony, better UI/system)
+- [x] 8. Verify/fix mobile support for all new changes
+- [x] 9. Syntax-check all script blocks (index.html + server.js)
+- [ ] 10. Commit + push to GitHub master
+- [ ] 11. Verify Render auto-deploy goes live
+- [ ] 12. Verify site online (no data wipe) + edits grep-confirmed live
 
-## Deploy
-- [x] Syntax-check index.html (script blocks, 0 errors)
-- [ ] Commit + push to GitHub master
-- [ ] Render auto-deploy goes live
-- [ ] Verify site online (no data wipe) + edits grep-confirmed live
+## Extra security fixes done
+- [x] Path-traversal guard on /uploads static handler
+- [x] Security headers: X-Content-Type-Options, Referrer-Policy, Permissions-Policy

@@ -385,6 +385,39 @@ function genId() { return crypto.randomUUID(); }
 function hashPass(pw) { return crypto.createHash('sha256').update(pw).digest('hex'); }
 function nowISO() { return new Date().toISOString(); }
 
+// SSRF guard: returns true if the hostname is a private, loopback, link-local,
+// or otherwise internal address that should never be fetched server-side.
+// Covers IPv4 private ranges, IPv6 loopback/Ula, and common internal hostnames.
+function isPrivateOrBlockedHost(hostname) {
+  if (!hostname) return true;
+  const h = hostname.toLowerCase().replace(/^\[|\]$/g, ''); // strip IPv6 brackets
+  if (h === 'localhost' || h.endsWith('.localhost') || h === '0.0.0.0' || h === '::' || h === '::1') return true;
+  if (h.endsWith('.local') || h.endsWith('.internal')) return true;
+  // IPv4 numeric checks
+  const v4 = h.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
+  if (v4) {
+    const [a, b] = [parseInt(v4[1], 10), parseInt(v4[2], 10)];
+    if (a === 10) return true;                         // 10.0.0.0/8
+    if (a === 127) return true;                        // 127.0.0.0/8  loopback
+    if (a === 0) return true;                          // 0.0.0.0/8
+    if (a === 169 && b === 254) return true;           // 169.254.0.0/16  link-local + cloud metadata
+    if (a === 172 && b >= 16 && b <= 31) return true;  // 172.16.0.0/12
+    if (a === 192 && b === 168) return true;           // 192.168.0.0/16
+    if (a === 100 && b >= 64 && b <= 127) return true; // 100.64.0.0/10  CGNAT
+    if (a >= 224) return true;                         // 224.0.0.0/4+ multicast/reserved
+  }
+  // IPv6 checks (expanded)
+  const v6 = h.split(':');
+  if (v6.length >= 2 && !v4) {
+    const first = v6[0].toLowerCase();
+    if (first === '::1' || h === '::1') return true;   // loopback
+    if (first === 'fe80') return true;                 // link-local fe80::/10
+    if (first === 'fc' || first === 'fd' || /^(fc|fd)[0-9a-f]{0,2}$/.test(first)) return true; // ULA fc00::/7
+    if (first === '') return true;                     // ::  unspecified / loopback-ish
+  }
+  return false;
+}
+
 // ---------- 2-Step Verification (2SV) helpers ----------
 // Generate a random 24-character alphanumeric code (uppercase letters + digits).
 // This is the "recovery code" the user must enter at login when 2SV is enabled.
@@ -632,6 +665,13 @@ app.use((req, res, next) => {
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Content-Type, X-Session-Id, Authorization');
   res.header('Access-Control-Allow-Credentials', 'true');
+  // Security headers (safe, non-breaking for this SPA):
+  //  - nosniff: prevent MIME-type sniffing on uploaded files / responses.
+  //  - Referrer-Policy: only send origin (not full URL) to other sites.
+  //  - Permissions-Policy: deny access to sensitive device APIs.
+  res.header('X-Content-Type-Options', 'nosniff');
+  res.header('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.header('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), payment=()');
   if (req.method === 'OPTIONS') return res.sendStatus(200);
   next();
 });
@@ -648,7 +688,17 @@ app.use('/uploads', async (req, res, next) => {
   // Extract the clean filename (strip query string used for cache-busting).
   const filename = decodeURIComponent(req.path.split('/').pop());
   if (!filename || filename === '/') return res.status(404).end();
+  // Path-traversal guard: reject any filename containing path separators or
+  // parent-dir sequences.  A request like /uploads/..%2F..%2Fetc%2Fpasswd
+  // decodes to ../../etc/passwd which would escape UPLOAD_DIR via path.join.
+  if (filename.includes('/') || filename.includes('\\') || filename.includes('..')) {
+    return res.status(400).end();
+  }
   const localPath = path.join(UPLOAD_DIR, filename);
+  // Defence-in-depth: confirm the resolved path is still inside UPLOAD_DIR.
+  if (!localPath.startsWith(UPLOAD_DIR + path.sep) && localPath !== UPLOAD_DIR) {
+    return res.status(400).end();
+  }
   // Fast path: file exists locally — serve it with static-like headers.
   if (fs.existsSync(localPath)) {
     return express.static(UPLOAD_DIR, { maxAge: '7d' })(req, res, next);
@@ -924,18 +974,35 @@ app.get('/api/messages', authMiddleware, (req, res) => {
 // Supports keyword search and @username filtering.
 app.get('/api/search-messages', authMiddleware, (req, res) => {
   try {
-    const q = String(req.query.q || '').trim().toLowerCase();
+    const rawQ = String(req.query.q || '').trim();
+    const q = rawQ.toLowerCase();
     const scope = String(req.query.scope || 'chat'); // 'chat' | 'dms'
     const results = [];
     if (!q) return res.json({ results: [] });
+    // Resolve a user-ID query to a username so messages (which store
+    // username, not userId) can be matched.  Users may paste a user's
+    // unique id (a UUID) to find all their messages.
+    const idMatchUser = rawQ.length >= 8
+      ? Object.values(db.users).find(u => u.id && u.id.toLowerCase() === q)
+      : null;
+    // The username to match when the query is an @mention or a user id.
+    const usernameQuery = q.replace(/^@/, '');
+    const resolvedUsername = idMatchUser ? idMatchUser.username.toLowerCase() : null;
     if (scope === 'chat' || scope === 'all') {
       // Search public messages (last 1000), exclude deleted
       db.messages.slice(-1000).forEach(m => {
         if (m.deleted) return;
-        if (m.username && m.username.toLowerCase() === q.replace(/^@/, '')) {
+        // Match by @username
+        if (m.username && m.username.toLowerCase() === usernameQuery) {
           results.push({ type: 'chat', id: m.id, username: m.username, displayName: m.displayName, text: m.text, timestamp: m.timestamp, file: m.file ? { name: m.file.name } : null });
           return;
         }
+        // Match by resolved user ID (query was a user id -> username)
+        if (resolvedUsername && m.username && m.username.toLowerCase() === resolvedUsername) {
+          results.push({ type: 'chat', id: m.id, username: m.username, displayName: m.displayName, text: m.text, timestamp: m.timestamp, file: m.file ? { name: m.file.name } : null, matchedById: true });
+          return;
+        }
+        // Match by keyword in message text
         if (m.text && m.text.toLowerCase().includes(q)) {
           results.push({ type: 'chat', id: m.id, username: m.username, displayName: m.displayName, text: m.text, timestamp: m.timestamp, file: m.file ? { name: m.file.name } : null });
         }
@@ -946,8 +1013,12 @@ app.get('/api/search-messages', authMiddleware, (req, res) => {
       Object.entries(myDMs).forEach(([otherUser, msgs]) => {
         (msgs || []).slice(-500).forEach(m => {
           if (m.deleted) return;
-          if (m.from && m.from.toLowerCase() === q.replace(/^@/, '')) {
+          if (m.from && m.from.toLowerCase() === usernameQuery) {
             results.push({ type: 'dm', id: m.id, username: m.from, displayName: m.displayName, withUser: otherUser, text: m.text, timestamp: m.timestamp, file: m.file ? { name: m.file.name } : null });
+            return;
+          }
+          if (resolvedUsername && m.from && m.from.toLowerCase() === resolvedUsername) {
+            results.push({ type: 'dm', id: m.id, username: m.from, displayName: m.displayName, withUser: otherUser, text: m.text, timestamp: m.timestamp, file: m.file ? { name: m.file.name } : null, matchedById: true });
             return;
           }
           if (m.text && m.text.toLowerCase().includes(q)) {
@@ -2262,6 +2333,12 @@ app.get('/api/embed', authMiddleware, async (req, res) => {
   let parsed;
   try { parsed = new URL(url); } catch (e) { return res.status(400).json({ error: 'Invalid URL' }); }
   if (!/^https?:$/.test(parsed.protocol)) return res.status(400).json({ error: 'Only http(s) URLs' });
+  // SSRF guard: block requests to private/loopback/link-local/internal hosts.
+  // This prevents the embed endpoint from being abused to reach cloud metadata
+  // endpoints (169.254.169.254), localhost services, or internal network hosts.
+  if (isPrivateOrBlockedHost(parsed.hostname)) {
+    return res.status(400).json({ error: 'URLs pointing to private or internal hosts are not allowed' });
+  }
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 8000);

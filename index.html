@@ -678,7 +678,7 @@ body.loading-session #chat-app.active::after { content: none; }
 .empty-state p { font-size: 13px; }
 
 .message-group {
-  display: flex; gap: 12px; max-width: 92%;
+  display: flex; gap: 11px; max-width: 92%;
   animation: msgIn 0.24s cubic-bezier(0.16,1,0.3,1);
   padding: 2px 0;
 }
@@ -699,11 +699,11 @@ body.no-anim .friend-item { animation: none !important; }
   display: flex; align-items: center; justify-content: center;
   font-size: 16px; font-weight: 600; flex-shrink: 0; overflow: hidden;
   border: 1px solid var(--border);
-  box-shadow: 0 1px 3px rgba(0,0,0,0.18);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.12);
 }
 .message-avatar img { width: 100%; height: 100%; object-fit: cover; image-rendering: -webkit-optimize-contrast; }
 .message-avatar.clickable, .message-sender.clickable { cursor: pointer; transition: var(--transition); }
-.message-avatar.clickable:hover { opacity: 0.88; transform: scale(1.06); }
+.message-avatar.clickable:hover { opacity: 0.9; transform: scale(1.04); }
 .message-sender.clickable:hover { color: var(--accent); }
 
 .message-bubble-wrap { min-width: 0; display: flex; flex-direction: column; }
@@ -711,27 +711,26 @@ body.no-anim .friend-item { animation: none !important; }
 
 .message-sender {
   font-size: 13px; font-weight: 500; color: var(--text-secondary);
-  margin-bottom: 5px; padding: 0 4px;
+  margin-bottom: 5px; padding: 0 2px;
   display: flex; align-items: center; gap: 6px;
 }
-.sender-displayname { color: var(--text-primary); font-weight: 600; font-size: 15px; }
-.sender-handle { color: var(--text-primary); font-size: 13.5px; opacity: 0.78; font-weight: 500; }
+.sender-displayname { color: var(--text-primary); font-weight: 600; font-size: 14.5px; }
+.sender-handle { color: var(--text-primary); font-size: 13px; opacity: 0.7; font-weight: 500; }
 
 .message-bubble {
-  background: var(--bg-medium); padding: 13px 18px;
-  border-radius: 14px 14px 14px 4px;
-  font-size: 16.5px; line-height: 1.55; word-break: break-word; position: relative;
+  background: var(--bg-medium); padding: 11px 15px;
+  border-radius: 16px;
+  font-size: 16px; line-height: 1.5; word-break: break-word; position: relative;
   max-width: 100%;
   border: 1px solid var(--border);
   transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
 }
-.message-bubble:hover { border-color: var(--border-light); box-shadow: 0 3px 14px rgba(0,0,0,0.16); }
+.message-bubble:hover { border-color: var(--border-light); box-shadow: 0 2px 10px rgba(0,0,0,0.14); }
 .message-group.own .message-bubble {
   background: var(--accent-dim); color: #fff;
-  border-radius: 14px 14px 4px 14px;
-  border-color: rgba(74,158,255,0.2);
+  border-color: rgba(74,158,255,0.18);
 }
-.message-group.own .message-bubble:hover { border-color: rgba(74,158,255,0.38); box-shadow: 0 3px 16px rgba(74,158,255,0.16); }
+.message-group.own .message-bubble:hover { border-color: rgba(74,158,255,0.34); box-shadow: 0 2px 12px rgba(74,158,255,0.14); }
 /* Media-only bubbles: no text means no need for a colored chat background.
    This removes the accent/blue box around images, videos & GIFs so media
    sits cleanly on the chat surface with a subtle border instead. */
@@ -1172,8 +1171,8 @@ body.no-anim .friend-item { animation: none !important; }
 .msg-action-btn.danger:hover { background: var(--danger); color: #fff; border-color: var(--danger); }
 
 .message-meta {
-  font-size: 12px; color: var(--text-muted);
-  margin-top: 4px; padding: 0 4px;
+  font-size: 11.5px; color: var(--text-muted);
+  margin-top: 4px; padding: 0 2px;
   display: flex; gap: 6px; align-items: center;
 }
 .message-edited-tag { font-style: italic; opacity: 0.7; font-size: 10.5px; }
@@ -1265,8 +1264,7 @@ body.no-anim .friend-item { animation: none !important; }
   border-radius: 8px;
 }
 .reply-quote:hover {
-  background: rgba(74,158,255,0.12);
-  transform: translateX(2px);
+  background: rgba(74,158,255,0.1);
 }
 
 /* ---- Message search panel ---- */
@@ -1283,59 +1281,60 @@ body.no-anim .friend-item { animation: none !important; }
 @keyframes slideInRight { from { transform: translateX(100%); opacity: 0.4; } to { transform: translateX(0); opacity: 1; } }
 @keyframes slideOutRight { from { transform: translateX(0); opacity: 1; } to { transform: translateX(100%); opacity: 0; } }
 .search-msg-header {
-  padding: 18px 20px 14px; border-bottom: 1px solid var(--border);
-  display: flex; align-items: center; gap: 10px; flex-shrink: 0;
-  background: linear-gradient(180deg, rgba(74,158,255,0.05) 0%, transparent 100%);
+  padding: 20px 22px 16px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 12px; flex-shrink: 0;
+  background: linear-gradient(180deg, rgba(74,158,255,0.06) 0%, transparent 100%);
 }
 .search-msg-header h3 {
-  font-size: 15.5px; font-weight: 700; color: var(--text-primary);
-  display: flex; align-items: center; gap: 9px; margin: 0; flex: 1;
-  letter-spacing: -0.1px;
+  font-size: 16px; font-weight: 700; color: var(--text-primary);
+  display: flex; align-items: center; gap: 10px; margin: 0; flex: 1;
+  letter-spacing: -0.2px;
 }
-.search-msg-header h3 svg { width: 19px; height: 19px; color: var(--accent); }
+.search-msg-header h3 svg { width: 20px; height: 20px; color: var(--accent); }
 .search-msg-close {
-  width: 32px; height: 32px; border-radius: 9px; border: 1px solid var(--border);
+  width: 34px; height: 34px; border-radius: 10px; border: 1px solid var(--border);
   background: var(--bg-medium); color: var(--text-muted);
   cursor: pointer; display: flex; align-items: center; justify-content: center;
   transition: var(--transition); flex-shrink: 0;
 }
 .search-msg-close:hover { background: var(--bg-light); color: var(--text-primary); border-color: var(--border-light); transform: rotate(90deg); }
 .search-msg-input-wrap {
-  padding: 14px 20px 12px; flex-shrink: 0;
+  padding: 16px 22px 10px; flex-shrink: 0;
   display: flex; gap: 0; align-items: center; position: relative;
 }
 .search-msg-input-wrap::before {
-  content: ''; position: absolute; left: 36px; top: 50%; transform: translateY(-50%);
-  width: 16px; height: 16px;
+  content: ''; position: absolute; left: 38px; top: 50%; transform: translateY(-50%);
+  width: 17px; height: 17px;
   background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23646b76' stroke-width='2'><circle cx='11' cy='11' r='8'/><line x1='21' y1='21' x2='16.65' y2='16.65'/></svg>") center/contain no-repeat;
   pointer-events: none; opacity: 0.85;
   transition: opacity 0.2s ease;
 }
 .search-msg-input-wrap:focus-within::before { opacity: 1; }
 .search-msg-input {
-  flex: 1; padding: 12px 14px 12px 40px; border-radius: 11px;
+  flex: 1; padding: 13px 16px 13px 42px; border-radius: 12px;
   background: var(--bg-medium); border: 1px solid var(--border);
-  color: var(--text-primary); font-size: 14px; outline: none;
+  color: var(--text-primary); font-size: 14.5px; outline: none;
   transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
 }
 .search-msg-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(74,158,255,0.16); background: var(--bg-dark); }
 .search-msg-input::placeholder { color: var(--text-muted); }
+/* Search scope toggle — clean segmented control */
 .search-msg-scope {
-  display: flex; gap: 6px; padding: 0 20px 12px; flex-shrink: 0;
+  display: flex; gap: 4px; padding: 4px 22px 12px; flex-shrink: 0;
 }
 .search-msg-scope button {
-  padding: 7px 15px; border-radius: 8px; border: 1px solid var(--border);
-  background: var(--bg-medium); color: var(--text-secondary);
-  font-size: 12px; font-weight: 600; cursor: pointer; transition: var(--transition);
-  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 16px; border-radius: 9px; border: 1px solid transparent;
+  background: transparent; color: var(--text-secondary);
+  font-size: 12.5px; font-weight: 600; cursor: pointer; transition: var(--transition);
+  display: inline-flex; align-items: center; gap: 6px; letter-spacing: 0.1px;
 }
-.search-msg-scope button:hover { border-color: var(--border-light); color: var(--text-primary); }
+.search-msg-scope button:hover { color: var(--text-primary); background: var(--bg-medium); }
 .search-msg-scope button.active {
   background: var(--accent); color: #fff; border-color: var(--accent);
   box-shadow: 0 2px 10px rgba(74,158,255,0.25);
 }
 .search-msg-results {
-  flex: 1; overflow-y: auto; padding: 10px 14px 18px;
+  flex: 1; overflow-y: auto; padding: 8px 16px 20px;
   scrollbar-width: thin; scrollbar-color: var(--border) transparent;
 }
 .search-msg-results::-webkit-scrollbar { width: 6px; }
@@ -1343,21 +1342,24 @@ body.no-anim .friend-item { animation: none !important; }
 .search-msg-results::-webkit-scrollbar-thumb:hover { background: var(--border-light); }
 .search-msg-count {
   font-size: 11.5px; font-weight: 600; color: var(--text-muted);
-  padding: 2px 4px 10px; letter-spacing: 0.2px;
+  padding: 4px 6px 12px; letter-spacing: 0.2px;
+  display: flex; align-items: center; gap: 6px;
 }
 .search-msg-count strong { color: var(--text-secondary); font-weight: 700; }
 .search-msg-empty {
+  text-align: center; padding: 64px 28px; color: var(--text-muted);
+  font-size: 13px; line-height: 1.75;
+}
+.search-msg-empty svg { width: 44px; height: 44px; margin: 0 auto 16px; opacity: 0.32; display: block; }
+.search-msg-empty .empty-title { font-size: 14px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px; display: block; }
+.search-msg-empty .empty-sub { font-size: 12.5px; color: var(--text-muted); }
+/* Loading spinner for search */
+.search-msg-loading {
   text-align: center; padding: 56px 24px; color: var(--text-muted);
   font-size: 13px; line-height: 1.7;
 }
-.search-msg-empty svg { width: 40px; height: 40px; margin: 0 auto 14px; opacity: 0.35; display: block; }
-/* Loading spinner for search */
-.search-msg-loading {
-  text-align: center; padding: 48px 24px; color: var(--text-muted);
-  font-size: 13px; line-height: 1.7;
-}
 .search-msg-loading .search-spinner {
-  width: 30px; height: 30px; margin: 0 auto 16px;
+  width: 32px; height: 32px; margin: 0 auto 18px;
   border: 3px solid var(--border);
   border-top-color: var(--accent);
   border-radius: 50%;
@@ -1365,30 +1367,35 @@ body.no-anim .friend-item { animation: none !important; }
 }
 @keyframes searchSpin { to { transform: rotate(360deg); } }
 .search-result-item {
-  padding: 13px 15px; margin-bottom: 10px; border-radius: 11px;
+  padding: 14px 16px; margin-bottom: 8px; border-radius: 12px;
   background: var(--bg-dark); border: 1px solid var(--border);
   cursor: pointer; transition: background 0.18s ease, border-color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
   animation: searchResultIn 0.28s cubic-bezier(0.16,1,0.3,1) both;
 }
 @keyframes searchResultIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 .search-result-item:hover {
-  background: var(--bg-medium); border-color: var(--accent);
-  transform: translateY(-2px); box-shadow: 0 8px 22px rgba(0,0,0,0.24);
+  background: var(--bg-medium); border-color: rgba(74,158,255,0.4);
+  transform: translateY(-1px); box-shadow: 0 6px 18px rgba(0,0,0,0.22);
 }
 .search-result-head {
-  display: flex; align-items: center; gap: 9px; margin-bottom: 6px;
+  display: flex; align-items: center; gap: 10px; margin-bottom: 7px;
 }
 .search-result-avatar {
-  width: 24px; height: 24px; border-radius: 50%; flex-shrink: 0;
+  width: 26px; height: 26px; border-radius: 50%; flex-shrink: 0;
   background: var(--bg-lighter); display: flex; align-items: center; justify-content: center;
   font-size: 10px; font-weight: 700; color: var(--text-secondary); overflow: hidden;
   border: 1px solid var(--border);
 }
 .search-result-avatar img { width: 100%; height: 100%; object-fit: cover; }
 .search-result-name { font-size: 13px; font-weight: 600; color: var(--text-primary); }
-.search-result-time { font-size: 11px; color: var(--text-muted); margin-left: auto; font-variant-numeric: tabular-nums; }
+.search-result-badge {
+  font-size: 10px; font-weight: 700; color: var(--accent);
+  background: rgba(74,158,255,0.12); border: 1px solid rgba(74,158,255,0.22);
+  padding: 1px 7px; border-radius: 5px; letter-spacing: 0.3px; text-transform: uppercase;
+}
+.search-result-time { font-size: 11px; color: var(--text-muted); margin-left: auto; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .search-result-text {
-  font-size: 13.5px; color: var(--text-secondary); line-height: 1.5;
+  font-size: 13.5px; color: var(--text-secondary); line-height: 1.55;
   overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
   word-break: break-word;
 }
@@ -1396,7 +1403,8 @@ body.no-anim .friend-item { animation: none !important; }
   background: rgba(250,204,21,0.22); color: #facc15; padding: 0 3px; border-radius: 3px; font-weight: 600;
 }
 .search-result-jump {
-  margin-top: 9px; font-size: 11.5px; font-weight: 600; color: var(--accent);
+  margin-top: 10px; padding-top: 9px; border-top: 1px solid var(--border);
+  font-size: 11.5px; font-weight: 600; color: var(--accent);
   display: flex; align-items: center; gap: 5px;
 }
 .search-result-jump svg { width: 13px; height: 13px; }
@@ -1553,12 +1561,6 @@ body.no-anim .friend-item { animation: none !important; }
   border-top-color: #fff; border-radius: 50%; animation: spin 0.6s linear infinite;
 }
 .profile-save-btn.saving .save-spinner { display: inline-block; }
-.profile-save-btn .save-check {
-  display: none; width: 16px; height: 16px;
-}
-.profile-save-btn.saved .save-check { display: inline-block; }
-.profile-save-btn.saved .save-btn-text { display: none; }
-.profile-save-btn.saved .save-spinner { display: none; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
 /* ---- Professional notifications (task l) ---- */
@@ -3701,8 +3703,8 @@ body.no-anim .friend-item { animation: none !important; }
   .message-sender { font-size: 14px; margin-bottom: 5px; }
   .sender-displayname { font-size: 16.5px; }
   .sender-handle { font-size: 14.5px; }
-  .message-bubble { font-size: 17.5px; line-height: 1.6; padding: 15px 20px; border-radius: 16px 16px 16px 5px; }
-  .message-group.own .message-bubble { border-radius: 16px 16px 5px 16px; }
+  .message-bubble { font-size: 17.5px; line-height: 1.6; padding: 15px 20px; border-radius: 18px; }
+  .message-group.own .message-bubble { border-radius: 18px; }
   .message-meta { font-size: 12.5px; }
   .message-actions { gap: 6px; margin-top: 8px; }
   .msg-action-btn { padding: 5px 12px; font-size: 12px; }
@@ -4330,14 +4332,17 @@ body.no-anim .friend-item { animation: none !important; }
 @media (max-width: 768px) {
   /* Search panel: full width on mobile */
   #search-msg-panel { width: 100vw; }
-  .search-msg-header { padding: 14px 14px 10px; }
-  .search-msg-input-wrap { padding: 10px 14px; }
-  .search-msg-input { font-size: 16px; padding: 11px 14px; } /* prevent iOS zoom */
-  .search-msg-scope { padding: 0 14px 8px; }
-  .search-msg-scope button { padding: 6px 14px; font-size: 12px; }
-  .search-msg-results { padding: 6px 10px 14px; }
-  .search-result-item { padding: 10px 12px; }
+  .search-msg-header { padding: 16px 16px 12px; }
+  .search-msg-input-wrap { padding: 12px 16px 8px; }
+  .search-msg-input-wrap::before { left: 32px; }
+  .search-msg-input { font-size: 16px; padding: 12px 14px 12px 38px; } /* 16px prevents iOS zoom */
+  .search-msg-scope { padding: 4px 16px 10px; }
+  .search-msg-scope button { padding: 7px 14px; font-size: 12px; }
+  .search-msg-results { padding: 6px 12px 16px; }
+  .search-result-item { padding: 11px 13px; margin-bottom: 7px; }
   .search-result-text { font-size: 12.5px; -webkit-line-clamp: 4; }
+  .search-msg-empty { padding: 48px 22px; }
+  .search-result-jump { margin-top: 8px; padding-top: 8px; }
 
   /* Members bg modal: full width with padding */
   #members-bg-modal { padding: 12px; }
@@ -4354,8 +4359,8 @@ body.no-anim .friend-item { animation: none !important; }
   .in-app-notif-text { font-size: 12px; }
 
   /* Message bubbles: slightly less padding on mobile for readability */
-  .message-bubble { padding: 10px 14px; font-size: 14px; }
-  .message-group { max-width: 96%; gap: 10px; }
+  .message-bubble { padding: 10px 14px; font-size: 14px; border-radius: 14px; }
+  .message-group { max-width: 96%; gap: 9px; }
   .message-avatar { width: 34px; height: 34px; }
 
   /* Message actions always visible on touch (no hover) */
@@ -4778,7 +4783,7 @@ body.no-anim .friend-item { animation: none !important; }
       </button>
     </div>
     <div class="search-msg-input-wrap">
-      <input type="text" class="search-msg-input" id="search-msg-input" placeholder="Search messages by keyword or @username" autocomplete="off">
+      <input type="text" class="search-msg-input" id="search-msg-input" placeholder="Search by keyword, @username, or user ID" autocomplete="off">
     </div>
     <div class="search-msg-scope">
       <button type="button" class="active" data-scope="chat">Public Chat</button>
@@ -4787,7 +4792,8 @@ body.no-anim .friend-item { animation: none !important; }
     <div class="search-msg-results" id="search-msg-results">
       <div class="search-msg-empty">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        Type to search through messages.<br>Click any result to jump straight to it.
+        <span class="empty-title">Search messages</span>
+        <span class="empty-sub">Find messages by keyword, @username, or user ID.<br>Click any result to jump to it.</span>
       </div>
     </div>
   </div>
@@ -4986,7 +4992,7 @@ body.no-anim .friend-item { animation: none !important; }
     </div>
     <div class="profile-v2-footer">
       <span class="profile-dirty-indicator" id="profile-dirty-indicator"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg> Unsaved changes</span>
-      <button class="profile-save-btn" id="bio-save-btn"><span class="save-spinner"></span><svg class="save-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg><span class="save-btn-text">Save Changes</span></button>
+      <button class="profile-save-btn no-checkmark" id="bio-save-btn"><span class="save-spinner"></span><span class="save-btn-text">Save Changes</span></button>
     </div>
     </div>
   </div>
@@ -6304,6 +6310,13 @@ function escapeHtml(text) {
   div.textContent = text;
   return div.innerHTML;
 }
+// Escape for use inside single-quoted HTML/CSS attribute contexts such as
+// style="background-image:url('...')". escapeHtml alone does NOT escape the
+// single quote, so a URL containing ' could break out of the url('...') wrapper
+// and inject CSS. This variant also escapes ' and ( ) to be safe.
+function escapeAttr(text) {
+  return escapeHtml(text).replace(/'/g, '&#39;').replace(/"/g, '&quot;');
+}
 
 // Highlight @username mentions in already-escaped HTML text.
 // Wraps each valid @mention in a clickable span. Mentions of the current
@@ -6414,8 +6427,12 @@ function linkifyAndEmbed(html) {
   return html.replace(urlRegex, (url) => {
     const cleanUrl = url.replace(/[.,;:!?)]+$/, '');
     const trailing = url.slice(cleanUrl.length);
-    return '<a href="' + cleanUrl + '" target="_blank" rel="noopener noreferrer" class="inline-link">' + escapeHtml(cleanUrl) + '</a>' +
-      '<div class="link-embed" data-url="' + cleanUrl + '"><div class="link-embed-loading">Loading preview...</div></div>' + trailing;
+    // Escape the URL for use inside HTML attributes (href, data-url) to
+    // prevent attribute-injection XSS — a URL containing " or < could
+    // otherwise break out of the attribute and inject markup/script.
+    const safeUrl = escapeHtml(cleanUrl);
+    return '<a href="' + safeUrl + '" target="_blank" rel="noopener noreferrer" class="inline-link">' + escapeHtml(cleanUrl) + '</a>' +
+      '<div class="link-embed" data-url="' + safeUrl + '"><div class="link-embed-loading">Loading preview...</div></div>' + trailing;
   });
 }
 
@@ -6445,7 +6462,7 @@ function renderEmbed(data, el) {
   const largeImg = hasImg && !data.isImage; // direct image links stay compact
   let html = '<a href="' + escapeHtml(url) + '" target="_blank" rel="noopener noreferrer" class="link-embed-card">';
   if (hasImg && !largeImg) {
-    html += '<div class="link-embed-image" style="background-image:url(\'' + escapeHtml(data.image) + '\')"></div>';
+    html += '<div class="link-embed-image" style="background-image:url(\'' + escapeAttr(data.image) + '\')"></div>';
   }
   html += '<div class="link-embed-content">';
   // Site name + favicon
@@ -6468,7 +6485,7 @@ function renderEmbed(data, el) {
   // Large image on top (after the card markup, but we need it inside the <a>).
   if (largeImg) {
     html = '<a href="' + escapeHtml(url) + '" target="_blank" rel="noopener noreferrer" class="link-embed-card" style="flex-direction:column;">' +
-      '<div class="link-embed-image large" style="background-image:url(\'' + escapeHtml(data.image) + '\')"></div>' +
+      '<div class="link-embed-image large" style="background-image:url(\'' + escapeAttr(data.image) + '\')"></div>' +
       '<div class="link-embed-content">' +
       (data.siteName ? '<div class="link-embed-site">' + (data.favicon ? '<img src="' + escapeHtml(data.favicon) + '" alt="" onerror="this.style.display=\'none\'" />' : '') + escapeHtml(data.siteName) + '</div>' : '') +
       (data.title ? '<div class="link-embed-title">' + escapeHtml(data.title) + '</div>' : '') +
@@ -10718,12 +10735,12 @@ async function saveProfileNow(silent) {
       // After a save, the current avatar/banner are the new saved baseline,
       // so future Discards revert to THIS state (not the pre-edit one).
       captureSavedProfileImages();
-      // Show "Saved" success state with check icon for 1.5s
+      // Show "Saved" success state (text only, no checkmark icon) for 1.5s
       btn.classList.remove('saving');
       btn.classList.add('saved');
-      if (txtEl) txtEl.textContent = 'Save Changes';
+      if (txtEl) txtEl.textContent = 'Saved!';
       btn.disabled = false;
-      setTimeout(() => { btn.classList.remove('saved'); }, 1500);
+      setTimeout(() => { btn.classList.remove('saved'); if (txtEl) txtEl.textContent = 'Save Changes'; }, 1500);
       return true;
     } else { toast(data.error || 'Unable to update your profile. Please try again.', 'error'); }
   } catch (err) { toast('Unable to update your profile. Please try again.', 'error'); }
@@ -10821,7 +10838,7 @@ $('search-msg-input').addEventListener('input', () => {
   clearTimeout(searchMsgTimer);
   const val = $('search-msg-input').value.trim();
   if (!val) {
-    $('search-msg-results').innerHTML = '<div class="search-msg-empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>Type to search through messages.<br>Click any result to jump straight to it.</div>';
+    $('search-msg-results').innerHTML = '<div class="search-msg-empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><span class="empty-title">Search messages</span><span class="empty-sub">Find messages by keyword, @username, or user ID.<br>Click any result to jump to it.</span></div>';
     return;
   }
   searchMsgTimer = setTimeout(() => runMessageSearch(), 250);
@@ -10850,14 +10867,14 @@ function highlightSearchTerm(text, term) {
 function renderSearchResults(results, q) {
   const container = $('search-msg-results');
   if (!results.length) {
-    container.innerHTML = '<div class="search-msg-empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>No messages found for "' + escapeHtml(q) + '"</div>';
+    container.innerHTML = '<div class="search-msg-empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><span class="empty-title">No results</span><span class="empty-sub">No messages found for &ldquo;' + escapeHtml(q) + '&rdquo;.</span></div>';
     return;
   }
-  const countLabel = results.length + (results.length === 1 ? ' result' : ' results');
-  container.innerHTML = '<div class="search-msg-count">' + escapeHtml(countLabel) + ' for &ldquo;' + escapeHtml(q) + '&rdquo;</div>' + results.map((r, i) => {
+  container.innerHTML = '<div class="search-msg-count"><strong>' + escapeHtml(String(results.length)) + '</strong> ' + escapeHtml(results.length === 1 ? 'result' : 'results') + ' for &ldquo;' + escapeHtml(q) + '&rdquo;</div>' + results.map((r, i) => {
     const user = users.find(u => u.username === r.username);
     const avatarInner = (user && user.avatar) ? '<img src="' + user.avatar + '">' : getInitials(r.username);
     const nameDisplay = r.displayName ? escapeHtml(r.displayName) : '@' + escapeHtml(r.username);
+    const idBadge = r.matchedById ? '<span class="search-result-badge">User ID</span>' : '';
     const textPreview = r.text ? highlightSearchTerm(r.text.slice(0, 300), q.replace(/^@/, '')) : (r.file ? '📎 ' + escapeHtml(r.file.name) : '');
     const typeLabel = r.type === 'dm' ? 'DM with @' + escapeHtml(r.withUser) : 'Public Chat';
     const delay = Math.min(i * 35, 280);
@@ -10865,7 +10882,8 @@ function renderSearchResults(results, q) {
       '<div class="search-result-head">' +
         '<div class="search-result-avatar">' + avatarInner + '</div>' +
         '<span class="search-result-name">' + nameDisplay + '</span>' +
-        '<span class="search-result-time">' + escapeHtml(typeLabel) + ' · ' + formatTime(r.timestamp) + '</span>' +
+        idBadge +
+        '<span class="search-result-time">' + typeLabel + ' · ' + formatTime(r.timestamp) + '</span>' +
       '</div>' +
       '<div class="search-result-text">' + textPreview + '</div>' +
       '<div class="search-result-jump"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>Jump to message</div>' +
