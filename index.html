@@ -15419,6 +15419,32 @@ function applyProfileColor() {
         el.style.setProperty('border-color', 'rgba(255,255,255,0.2)', 'important');
       });
 
+      // Placeholders — can't be set via inline styles, so inject a scoped
+      // <style> element that makes all placeholders semi-transparent white
+      // so they blend with the colored panel background.
+      let phStyle = modal.querySelector('.panel-theme-placeholder-style');
+      if (!phStyle) {
+        phStyle = document.createElement('style');
+        phStyle.className = 'panel-theme-placeholder-style';
+        modal.appendChild(phStyle);
+      }
+      phStyle.textContent = '#profile-panel input::placeholder, #profile-panel textarea::placeholder { color: rgba(255,255,255,0.5) !important; }';
+
+      // Banner/avatar edit & remove buttons — give them a dark translucent
+      // background + white border so they blend with the colored panel.
+      modal.querySelectorAll('.profile-banner-edit, .profile-banner-remove, .profile-avatar-edit, .profile-avatar-remove').forEach(el => {
+        el.style.setProperty('background', 'rgba(0,0,0,0.25)', 'important');
+        el.style.setProperty('border-color', 'rgba(255,255,255,0.2)', 'important');
+      });
+
+      // Accent buttons (Save, Update, etc.) — use the chosen color for the
+      // glow box-shadow so it blends naturally with the panel color.
+      const { r: ar, g: ag, b: ab } = hexToRgb(color);
+      const glowShadow = '0 2px 8px rgba(' + ar + ', ' + ag + ', ' + ab + ', 0.3)';
+      modal.querySelectorAll('.profile-save-btn, .setting-save-btn').forEach(el => {
+        el.style.setProperty('box-shadow', glowShadow, 'important');
+      });
+
       // The color picker swatch keeps its checkered background — don't
       // override it, just make its border lighter.
       const pickerSwatch = modal.querySelector('.accent-swatch-large');
@@ -15517,6 +15543,18 @@ function applyProfileColor() {
         el.style.removeProperty('background');
         el.style.removeProperty('color');
         el.style.removeProperty('border-color');
+      });
+      // Remove the injected placeholder style element.
+      const oldPhStyle = modal.querySelector('.panel-theme-placeholder-style');
+      if (oldPhStyle) oldPhStyle.remove();
+      // Reset banner/avatar button backgrounds.
+      modal.querySelectorAll('.profile-banner-edit, .profile-banner-remove, .profile-avatar-edit, .profile-avatar-remove').forEach(el => {
+        el.style.removeProperty('background');
+        el.style.removeProperty('border-color');
+      });
+      // Reset accent button box-shadows.
+      modal.querySelectorAll('.profile-save-btn, .setting-save-btn').forEach(el => {
+        el.style.removeProperty('box-shadow');
       });
       const pickerSwatch = modal.querySelector('.accent-swatch-large');
       if (pickerSwatch) pickerSwatch.style.removeProperty('border-color');
@@ -15636,6 +15674,24 @@ function applyMiniProfileColor() {
       el.style.setProperty('border-color', 'rgba(255,255,255,0.2)', 'important');
     });
 
+    // Placeholders — inject a scoped <style> so placeholders become
+    // semi-transparent white and blend with the colored popover background.
+    let miniPhStyle = pop.querySelector('.panel-theme-placeholder-style');
+    if (!miniPhStyle) {
+      miniPhStyle = document.createElement('style');
+      miniPhStyle.className = 'panel-theme-placeholder-style';
+      pop.appendChild(miniPhStyle);
+    }
+    miniPhStyle.textContent = '#mini-profile-popover input::placeholder, #mini-profile-popover textarea::placeholder { color: rgba(255,255,255,0.5) !important; }';
+
+    // The Save button — use the chosen color for its glow box-shadow.
+    const { r: mr, g: mg, b: mb } = hexToRgb(color);
+    const miniGlow = '0 2px 8px rgba(' + mr + ', ' + mg + ', ' + mb + ', 0.3)';
+    const miniSaveBtn = pop.querySelector('.mini-save-btn');
+    if (miniSaveBtn) {
+      miniSaveBtn.style.setProperty('box-shadow', miniGlow, 'important');
+    }
+
     // The color picker swatch border — lighter.
     const pickerSwatch = pop.querySelector('.accent-swatch-large');
     if (pickerSwatch) {
@@ -15738,6 +15794,12 @@ function applyMiniProfileColor() {
       el.style.removeProperty('color');
       el.style.removeProperty('border-color');
     });
+    // Remove the injected placeholder style element.
+    const oldMiniPhStyle = pop.querySelector('.panel-theme-placeholder-style');
+    if (oldMiniPhStyle) oldMiniPhStyle.remove();
+    // Reset Save button box-shadow.
+    const oldMiniSaveBtn = pop.querySelector('.mini-save-btn');
+    if (oldMiniSaveBtn) oldMiniSaveBtn.style.removeProperty('box-shadow');
     const pickerSwatch = pop.querySelector('.accent-swatch-large');
     if (pickerSwatch) pickerSwatch.style.removeProperty('border-color');
     const footer = pop.querySelector('.mini-profile-footer');
