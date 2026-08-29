@@ -8049,6 +8049,117 @@ function connectSocket() {
       $('dm-blocked-banner').style.display = 'none';
     }
   });
+
+  // ============================================================
+  // GROUP CHAT SOCKET EVENT LISTENERS (moved inside connectSocket)
+  // ============================================================
+  socket.on('group-message', (data) => {
+    const msg = data.message;
+    const gid = data.groupId || (msg && msg.groupId);
+    // Update sidebar preview + unread
+    const convIdx = groupConvs.findIndex(g => g.id === gid);
+    if (convIdx >= 0) {
+      groupConvs[convIdx].lastMessage = msg;
+      if (activeGroupId !== gid) groupConvs[convIdx].unread = (groupConvs[convIdx].unread || 0) + 1;
+      else groupConvs[convIdx].unread = 0;
+      renderMessagesList();
+    } else {
+      // Group not in our local list yet — reload
+      loadGroupChats();
+    }
+    // Check mentions
+    if (currentUser && currentUser.username && msg.text) {
+      const mentions = extractMentions(msg.text);
+      if (mentions.includes(currentUser.username.toLowerCase())) msg.pingedForMe = true;
+    }
+    if (activeGroupId === gid) {
+      groupMessages.push(msg);
+      appendGroupMessage(msg);
+      scrollToBottomGroup();
+    } else {
+      playMessageSound();
+    }
+  });
+
+  socket.on('group-updated', (data) => {
+    const g = data.group;
+    if (!g) return;
+    // Update groupChats cache
+    const idx = groupChats.findIndex(x => x.id === g.id);
+    if (idx >= 0) groupChats[idx] = g;
+    else groupChats.push(g);
+    // Update groupConvs
+    const cIdx = groupConvs.findIndex(x => x.id === g.id);
+    if (cIdx >= 0) {
+      groupConvs[cIdx].name = g.name;
+      groupConvs[cIdx].icon = g.icon;
+      groupConvs[cIdx].owner = g.owner;
+      groupConvs[cIdx].members = g.members;
+    } else {
+      groupConvs.push({ id: g.id, name: g.name, owner: g.owner, icon: g.icon, members: g.members, createdAt: g.createdAt, lastMessage: null, unread: 0 });
+    }
+    renderMessagesList();
+    // If this group is currently open, update header
+    if (activeGroupId === g.id) updateGroupHeader(g);
+    // If settings modal is open for this group, refresh it
+    if (groupSettingsCache && groupSettingsCache.id === g.id) {
+      groupSettingsCache = g;
+      renderGroupSettings();
+    }
+  });
+
+  socket.on('group-removed', (data) => {
+    const gid = data.groupId || data.id;
+    // We were removed or left
+    groupChats = groupChats.filter(g => g.id !== gid);
+    groupConvs = groupConvs.filter(g => g.id !== gid);
+    if (activeGroupId === gid) {
+      closeGroupOverlay();
+      toast('You were removed from the group chat.', '');
+    }
+    if (groupSettingsCache && groupSettingsCache.id === gid) {
+      $('group-settings-modal').classList.remove('show');
+    }
+    renderMessagesList();
+  });
+
+  socket.on('group-edited', (data) => {
+    if (activeGroupId === data.groupId || activeGroupId === (data.group && data.group.id)) {
+      const m = groupMessages.find(x => x.id === data.id);
+      if (m) { m.text = data.text; m.edited = data.edited; m.editedAt = data.editedAt; }
+      renderGroupMessages();
+    }
+    // Update preview
+    const cIdx = groupConvs.findIndex(g => g.id === (data.groupId || (data.group && data.group.id)));
+    if (cIdx >= 0 && groupConvs[cIdx].lastMessage && groupConvs[cIdx].lastMessage.id === data.id) {
+      groupConvs[cIdx].lastMessage.text = data.text;
+      renderMessagesList();
+    }
+  });
+
+  socket.on('group-deleted', (data) => {
+    if (activeGroupId === data.groupId || activeGroupId === (data.group && data.group.id)) {
+      const m = groupMessages.find(x => x.id === data.id);
+      if (m) { m.deleted = true; m.text = ''; m.file = null; }
+      renderGroupMessages();
+    }
+    const cIdx = groupConvs.findIndex(g => g.id === (data.groupId || (data.group && data.group.id)));
+    if (cIdx >= 0 && groupConvs[cIdx].lastMessage && groupConvs[cIdx].lastMessage.id === data.id) {
+      groupConvs[cIdx].lastMessage.deleted = true;
+      groupConvs[cIdx].lastMessage.text = '';
+      renderMessagesList();
+    }
+  });
+
+  socket.on('group-typing', (data) => {
+    if (activeGroupId === data.groupId && data.typing) {
+      const who = data.displayName || data.from || 'Someone';
+      showGroupTyping(true, who);
+    } else if (activeGroupId === data.groupId && !data.typing) {
+      showGroupTyping(false);
+    }
+  });
+
 }
 
 function getCookie(name) {
@@ -10846,116 +10957,6 @@ $('group-settings-leave-btn').addEventListener('click', async () => {
     await loadGroupChats();
     renderMessagesList();
   } catch(e) { toast('Failed to leave group.', 'error'); }
-});
-
-// ============================================================
-// GROUP CHAT SOCKET EVENT LISTENERS
-// ============================================================
-socket.on('group-message', (data) => {
-  const msg = data.message;
-  const gid = data.groupId || (msg && msg.groupId);
-  // Update sidebar preview + unread
-  const convIdx = groupConvs.findIndex(g => g.id === gid);
-  if (convIdx >= 0) {
-    groupConvs[convIdx].lastMessage = msg;
-    if (activeGroupId !== gid) groupConvs[convIdx].unread = (groupConvs[convIdx].unread || 0) + 1;
-    else groupConvs[convIdx].unread = 0;
-    renderMessagesList();
-  } else {
-    // Group not in our local list yet — reload
-    loadGroupChats();
-  }
-  // Check mentions
-  if (currentUser && currentUser.username && msg.text) {
-    const mentions = extractMentions(msg.text);
-    if (mentions.includes(currentUser.username.toLowerCase())) msg.pingedForMe = true;
-  }
-  if (activeGroupId === gid) {
-    groupMessages.push(msg);
-    appendGroupMessage(msg);
-    scrollToBottomGroup();
-  } else {
-    playMessageSound();
-  }
-});
-
-socket.on('group-updated', (data) => {
-  const g = data.group;
-  if (!g) return;
-  // Update groupChats cache
-  const idx = groupChats.findIndex(x => x.id === g.id);
-  if (idx >= 0) groupChats[idx] = g;
-  else groupChats.push(g);
-  // Update groupConvs
-  const cIdx = groupConvs.findIndex(x => x.id === g.id);
-  if (cIdx >= 0) {
-    groupConvs[cIdx].name = g.name;
-    groupConvs[cIdx].icon = g.icon;
-    groupConvs[cIdx].owner = g.owner;
-    groupConvs[cIdx].members = g.members;
-  } else {
-    groupConvs.push({ id: g.id, name: g.name, owner: g.owner, icon: g.icon, members: g.members, createdAt: g.createdAt, lastMessage: null, unread: 0 });
-  }
-  renderMessagesList();
-  // If this group is currently open, update header
-  if (activeGroupId === g.id) updateGroupHeader(g);
-  // If settings modal is open for this group, refresh it
-  if (groupSettingsCache && groupSettingsCache.id === g.id) {
-    groupSettingsCache = g;
-    renderGroupSettings();
-  }
-});
-
-socket.on('group-removed', (data) => {
-  const gid = data.groupId || data.id;
-  // We were removed or left
-  groupChats = groupChats.filter(g => g.id !== gid);
-  groupConvs = groupConvs.filter(g => g.id !== gid);
-  if (activeGroupId === gid) {
-    closeGroupOverlay();
-    toast('You were removed from the group chat.', '');
-  }
-  if (groupSettingsCache && groupSettingsCache.id === gid) {
-    $('group-settings-modal').classList.remove('show');
-  }
-  renderMessagesList();
-});
-
-socket.on('group-edited', (data) => {
-  if (activeGroupId === data.groupId || activeGroupId === (data.group && data.group.id)) {
-    const m = groupMessages.find(x => x.id === data.id);
-    if (m) { m.text = data.text; m.edited = data.edited; m.editedAt = data.editedAt; }
-    renderGroupMessages();
-  }
-  // Update preview
-  const cIdx = groupConvs.findIndex(g => g.id === (data.groupId || (data.group && data.group.id)));
-  if (cIdx >= 0 && groupConvs[cIdx].lastMessage && groupConvs[cIdx].lastMessage.id === data.id) {
-    groupConvs[cIdx].lastMessage.text = data.text;
-    renderMessagesList();
-  }
-});
-
-socket.on('group-deleted', (data) => {
-  if (activeGroupId === data.groupId || activeGroupId === (data.group && data.group.id)) {
-    const m = groupMessages.find(x => x.id === data.id);
-    if (m) { m.deleted = true; m.text = ''; m.file = null; }
-    renderGroupMessages();
-  }
-  const cIdx = groupConvs.findIndex(g => g.id === (data.groupId || (data.group && data.group.id)));
-  if (cIdx >= 0 && groupConvs[cIdx].lastMessage && groupConvs[cIdx].lastMessage.id === data.id) {
-    groupConvs[cIdx].lastMessage.deleted = true;
-    groupConvs[cIdx].lastMessage.text = '';
-    renderMessagesList();
-  }
-});
-
-socket.on('group-typing', (data) => {
-  if (activeGroupId === data.groupId && data.typing) {
-    const who = data.displayName || data.from || 'Someone';
-    showGroupTyping(true, who);
-  } else if (activeGroupId === data.groupId && !data.typing) {
-    showGroupTyping(false);
-  }
 });
 
 function renderDMMessages() {
