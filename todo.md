@@ -1,36 +1,38 @@
-# Round 24 — Revert UI, keep only group chat
+# Round 24 (Redo) — Revert image zoom + admin overhaul, keep group chat + ALL prior features
 
-## Task 1: Capture the group chat code from current Round 23 state
-- [x] Extract all group chat server.js additions (publicGroup, findGroup, 8 endpoints, 4 socket handlers, cleanup, migration, defaultDB groupChats)
-- [x] Extract all group chat index.html additions (plus button, create modal, settings modal, group overlay HTML, CSS, all JS)
+## Problem
+The first attempt reverted to Round 22 base, which lost Round 23's working state.
+The user reported the whole site broke (usernames, backgrounds, etc. not showing).
+Fix: start from the complete working Round 23 state, then surgically remove ONLY
+the image-zoom and admin-overhaul changes, keeping group chat + everything else.
 
-## Task 2: Reset both files to Round 22 (commit 964fdc0) — reverts image zoom + admin UI overhaul
-- [x] git checkout 964fdc0 -- index.html server.js
+## Task 1: Restore complete Round 23 working state (e53c4be)
+- [x] git checkout e53c4be -- index.html server.js (full working state restored)
 
-## Task 3: Re-apply ONLY group chat server.js changes onto Round 22 server.js
-- [x] Add db.groupChats to defaultDB + migration guard
-- [x] Add publicGroup() + findGroup() helpers
-- [x] Add all 8 group API endpoints
-- [x] Add 4 group socket handlers
-- [x] Add group message purge to cleanup
-- [x] Add group username migration
-- [x] Syntax check server.js (PASS)
+## Task 2: Revert ONLY the image-zoom feature (back to Round 22 lightbox)
+- [x] Revert .image-lightbox-stage CSS (zoom inner img, not the stage box)
+- [x] Revert renderLightbox() JS (img.classList, not stage.classList)
+- [x] Revert attachLightboxHandlers() JS (click img to zoom, remove +/- keyboard)
 
-## Task 4: Re-apply ONLY group chat index.html changes onto Round 22 index.html
-- [x] Add group-create-plus-btn CSS + HTML
-- [x] Add group chip CSS
-- [x] Add group-create-modal HTML
-- [x] Add group-settings-modal HTML
-- [x] Add group-overlay HTML
-- [x] Add all group chat JS (state, create modal, load+render, openGroup, messages, send, socket listeners, settings, reply/edit/delete)
-- [x] Add delete modal pendingDeleteGroup handling
-- [x] Add renderDMList() -> renderMessagesList() delegation
-- [x] Add loadGroupChats() calls (startup + switchSidebarView dms case)
-- [x] JS parse check (PASS), server boot test (PASS)
+## Task 3: Revert ONLY the admin UI overhaul (back to Round 22 admin styling)
+- [x] Replace entire admin CSS block with Round 22 version
+- [x] Revert admin-broadcast-preview inline style
+- [x] Revert admin whitelist paragraph inline style
+- [x] Revert 10 admin description paragraph styles
+- [x] Revert custom role card render (admin-custom-role-item, not -card)
+- [x] Revert Live preview label style
 
-## Task 5: Verify + Deploy
-- [x] Syntax check both files (PASS)
-- [x] Confirm image zoom + admin UI are reverted (back to Round 22 look)
-- [x] Confirm group chat is intact
-- [x] Commit & push (e4697da)
-- [x] Verify Render deploy (LIVE, confirmed group elements + API on live site)
+## Task 4: Confirm group chat is intact (untouched from Round 23)
+- [x] All group HTML elements present (modals, overlay, plus button)
+- [x] All group JS functions present
+- [x] All group server endpoints + socket handlers present
+
+## Task 5: Verify no other features were lost
+- [x] Diff vs Round 22 confirms ONLY group chat added + image-zoom/admin reverted
+- [x] Background images, usernames, profiles, avatars all present
+- [x] server.js syntax OK, JS parse OK, boot test OK
+
+## Task 6: Deploy
+- [x] Commit ec55a51 + push
+- [x] Render deploy LIVE
+- [x] Live site verified: group chat present, image-zoom/admin reverted, core features intact
