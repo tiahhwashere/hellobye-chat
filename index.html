@@ -10539,6 +10539,12 @@ async function uploadProfileImage(file, type) {
     toast(type === 'avatar' ? 'Profile picture has been updated.' : 'Banner has been updated.', 'success');
     if (type === 'avatar') currentUser.avatar = data.avatar;
     else currentUser.banner = data.banner;
+    // Mark the profile as having unsaved changes so the "You have unsaved
+    // changes" guard fires if the user navigates away (closes Profile Settings,
+    // opens Account Settings, logs out, etc.) without clicking Save Settings.
+    // The image itself is already persisted server-side, but this keeps the
+    // unsaved-changes UX consistent with every other profile edit.
+    markProfileDirty();
     updateProfilePanel(); updateSidebarSelf();
   } catch (err) { toast('Upload failed. Please try again.', 'error'); }
   finally {
@@ -10565,6 +10571,9 @@ $('avatar-remove-btn').addEventListener('click', async () => {
   updateSidebarSelf();
   if (typeof renderUserList === 'function') renderUserList();
   if (typeof updateMessageAvatars === 'function') updateMessageAvatars(currentUser.username, null);
+  // Mark profile dirty so the unsaved-changes guard fires on navigation,
+  // consistent with changing the profile picture.
+  markProfileDirty();
   toast('Profile picture has been removed.', 'success');
 });
 $('banner-remove-btn').addEventListener('click', async () => {
@@ -10577,6 +10586,9 @@ $('banner-remove-btn').addEventListener('click', async () => {
   updateProfilePanel();
   updateSidebarSelf();
   if (typeof renderUserList === 'function') renderUserList();
+  // Mark profile dirty so the unsaved-changes guard fires on navigation,
+  // consistent with changing the banner.
+  markProfileDirty();
   toast('Banner has been removed.', 'success');
 });
 
