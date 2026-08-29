@@ -638,6 +638,7 @@ function fullUser(u) {
   pub.compactMode = !!u.compactMode;
   pub.notificationsEnabled = u.notificationsEnabled !== false;
   pub.messageSounds = u.messageSounds !== false;
+  pub.allowGroupAdd = u.allowGroupAdd !== false;
   pub.theme = u.theme || 'dark';
   pub.preferences = u.preferences || {};
   pub.musicLink = u.musicLink || '';
@@ -815,6 +816,7 @@ app.post('/api/register', (req, res) => {
     compactMode: false,
     notificationsEnabled: true,
     messageSounds: true,
+    allowGroupAdd: true,
     theme: 'dark',
     preferences: {},
   };
@@ -1534,6 +1536,13 @@ app.post('/api/groups/create', authMiddleware, (req, res) => {
   for (const m of memberList) {
     if (!db.users[m]) return res.status(400).json({ error: 'User @' + m + ' does not exist' });
   }
+  // Respect each member's privacy setting (owner is always allowed)
+  for (const m of memberList) {
+    if (m === owner) continue;
+    if (db.users[m].allowGroupAdd === false) {
+      return res.status(403).json({ error: '@' + m + ' does not allow being added to group chats. You can ask them to enable it in their settings.' });
+    }
+  }
   // Deduplicate
   memberList = [...new Set(memberList)];
   const group = {
@@ -1635,6 +1644,10 @@ app.post('/api/groups/:id/add', authMiddleware, (req, res) => {
   if (!db.users[target]) return res.status(400).json({ error: 'User @' + target + ' does not exist' });
   if ((g.members || []).includes(target)) return res.status(400).json({ error: 'That user is already in this group' });
   if ((g.members || []).length >= 50) return res.status(400).json({ error: 'Group is full (max 50 members)' });
+  // Respect the target user's privacy setting: only add them if they allow it.
+  if (db.users[target].allowGroupAdd === false) {
+    return res.status(403).json({ error: '@' + target + ' does not allow being added to group chats. You can ask them to enable it in their settings.' });
+  }
   g.members = (g.members || []).concat(target);
   saveDB();
   io.to('user:' + target).emit('group-updated', { group: publicGroup(g) });
@@ -1877,6 +1890,7 @@ app.post('/api/settings/preferences', authMiddleware, (req, res) => {
   if (p.notificationsEnabled !== undefined) req.user.notificationsEnabled = !!p.notificationsEnabled;
   if (p.messageSounds !== undefined) req.user.messageSounds = !!p.messageSounds;
   if (p.compactMode !== undefined) req.user.compactMode = !!p.compactMode;
+  if (p.allowGroupAdd !== undefined) req.user.allowGroupAdd = !!p.allowGroupAdd;
   if (p.theme) req.user.theme = p.theme;
   req.user.preferences = p;
   saveDB();

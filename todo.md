@@ -1,32 +1,22 @@
-# Round 25 Todo — Fix "Unable to load this profile" + ALL broken settings/UIs/features/backgrounds
+# Round 26 Todo
 
-## Root Cause Analysis
-- [x] Investigate "Unable to load this profile" error on live site
-- [x] Discover JS crash: `TypeError: Cannot read properties of null (reading 'on')` at line 10854
-- [x] Identify root cause: 6 group socket listeners at TOP LEVEL of script, but `socket` is null until `connectSocket()` runs after login
-- [x] Confirm this crash broke ALL features (profiles, settings, backgrounds, UIs) by stopping JS execution at parse-time
+## 1. Fix flash of broken UI on signin/signup/refresh
+- [x] Investigate what causes the broken UI flash (chat-app visible before initChat finishes loading data)
+- [x] Fix CSS/JS so only the correct UI shows (loading overlay covers chat grid until data ready)
+- [ ] Verify on live site
 
-## Fixes Applied
-- [x] Move 6 group socket listeners (group-message, group-updated, group-removed, group-edited, group-deleted, group-typing) from top-level INTO `connectSocket()` function
-- [x] Verify JS syntax passes (node --check)
-- [x] Verify server.js syntax + boot test
-- [x] Fix duplicate group messages: add dedup check (by message ID) in group-message listener
-- [x] Fix duplicate group messages: add dedup check in doSendGroup ack callback
-- [x] Fix duplicate group messages: add dedup check in sendGroupWithFile ack callback
+## 2. Add file upload dropdown to group chat (matching DMs + chatroom)
+- [x] Find the existing upload dropdown UI in DMs/chatroom
+- [x] Replicate the same dropdown for group chat input (group-attach-dropdown with GIF + Image/Video)
+- [x] Wire up the group chat upload to use the dropdown (toggle, close-on-outside-click, reposition on scroll/resize)
+- [ ] Verify on live site
 
-## Deploy & Verify
-- [x] Commit and push all fixes (commits 741e961, f8a94bf, b77a73b)
-- [x] Verify Render deploys go live
-- [x] Test live site: no JS errors, all functions defined (connectSocket, openProfileView, renderMessages, init, sendGroupMessage)
-- [x] Test login/registration: works, full chat UI renders with user list
-- [x] Test profile view: "Unable to load this profile" error GONE — profile modal shows avatar, name, badges, ID, bio, pronouns, member since
-- [x] Test settings panel: works — banner, profile pic, status, about me, privacy, pronouns, panel theme color
-- [x] Test background feature: works — upload/URL/clear, image scale, color overlay, apply
-- [x] Test group chat: creation works, member search/add works, messaging works, no duplicate messages
-- [x] Test DMs/Messages view: works — empty state, group chat listed
+## 3. Add "Allow being added to group chats" toggle in Notifications & Appearance
+- [x] Find the Notifications & Appearance settings section
+- [x] Add a toggle option for group chat invites (group-add-toggle)
+- [x] Add backend support (user setting allowGroupAdd + enforcement in group-create and group-add endpoints)
+- [ ] Verify on live site
 
-## Summary
-Root cause was a single bug: group chat socket listeners at the top level of the script
-crashed because `socket` was null. This cascading crash broke every feature. Moving the
-listeners inside connectSocket() fixed everything. Also fixed a duplicate message issue
-in group chat as a bonus.
+## 4. Deploy & verify all
+- [ ] Commit, push, verify Render deploy
+- [ ] Test all 3 features on live site

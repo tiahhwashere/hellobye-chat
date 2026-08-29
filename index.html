@@ -288,6 +288,27 @@ html.has-session #chat-app { display: grid; } /* show chat grid immediately */
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
+/* Full-screen loading overlay shown inside #chat-app while data loads
+   during sign-in, sign-up, and page refresh. Prevents the "broken/empty
+   UI flash" by covering the chat grid until all data has been fetched and
+   rendered. */
+#chat-loading-overlay {
+  position: absolute; inset: 0; z-index: 9999;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  background: #0a0b0d; gap: 18px;
+  opacity: 1; transition: opacity 0.2s ease;
+}
+#chat-loading-overlay.hidden { opacity: 0; pointer-events: none; }
+#chat-loading-overlay .chat-loading-spinner {
+  width: 44px; height: 44px; border: 3px solid rgba(255,255,255,0.08);
+  border-top-color: var(--accent); border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+#chat-loading-overlay .chat-loading-text {
+  color: var(--text-secondary); font-size: 14px; letter-spacing: 0.4px;
+  font-weight: 500;
+}
+
 .btn-primary {
   width: 100%; padding: 13px; margin-top: 6px;
   background: var(--accent); color: var(--accent-text);
@@ -4727,6 +4748,12 @@ body.no-anim .friend-item { animation: none !important; }
 
   <!-- ===================== CHAT APP ===================== -->
   <div id="chat-app">
+    <!-- Loading overlay: covers the chat grid until initChat() finishes
+         loading all data, preventing the empty/broken UI flash. -->
+    <div id="chat-loading-overlay">
+      <div class="chat-loading-spinner"></div>
+      <div class="chat-loading-text">Loading…</div>
+    </div>
     <!-- Sidebar -->
     <div class="mobile-sidebar-backdrop" id="mobile-sidebar-backdrop"></div>
     <aside class="sidebar" id="sidebar">
@@ -5445,6 +5472,18 @@ body.no-anim .friend-item { animation: none !important; }
           </div>
 
           <div class="profile-section">
+            <div class="profile-section-title">Group Chats</div>
+            <label class="toggle-row">
+              <span>Allow others to add me to group chats</span>
+              <span class="toggle-switch">
+                <input type="checkbox" id="group-add-toggle">
+                <span class="toggle-slider"></span>
+              </span>
+            </label>
+            <p class="setting-hint" style="margin-top:8px;">When enabled, other users can add you to group chats. When disabled, you won't be added to groups by others.</p>
+          </div>
+
+          <div class="profile-section">
             <div class="profile-section-title">Appearance</div>
             <label class="toggle-row">
               <span>Compact message mode</span>
@@ -6154,10 +6193,23 @@ body.no-anim .friend-item { animation: none !important; }
           <button class="reply-preview-cancel" id="group-reply-cancel">&times;</button>
         </div>
         <div class="chat-input-wrap">
-          <button class="attach-btn" id="group-attach-btn" title="Attach image (max 115MB)">
+          <button class="attach-btn" id="group-attach-btn" title="Attach file (max 115MB)">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
           </button>
-          <input type="file" id="group-file-input" accept="image/*,video/*" hidden>
+          <input type="file" id="group-file-input" hidden multiple>
+          <input type="file" id="group-gif-file-input" accept="image/gif,video/*" hidden multiple>
+          <div class="attach-dropdown" id="group-attach-dropdown">
+            <div class="attach-dropdown-item" id="group-attach-gif-btn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><text x="7" y="15" font-size="7" font-weight="bold" fill="currentColor" stroke="none">GIF</text></svg>
+              <span class="attach-dropdown-label">Send a GIF / Video</span>
+              <span class="attach-dropdown-hint">From your device (max 115MB)</span>
+            </div>
+            <div class="attach-dropdown-item" id="group-attach-file-btn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+              <span class="attach-dropdown-label">Send Image/Video</span>
+              <span class="attach-dropdown-hint">From your device (max 115MB)</span>
+            </div>
+          </div>
           <textarea class="chat-textarea" id="group-input" placeholder="Type a message to the group" rows="1"></textarea>
           <button class="send-btn" id="group-send-btn" disabled>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
@@ -7528,6 +7580,10 @@ function prompt2SVPassword(title, message) {
 
 // ---------- Init Chat ----------
 async function initChat(existingMeData) {
+  // Ensure the loading overlay is visible before any async work begins,
+  // so the empty/broken chat UI is never flashed during sign-in, sign-up,
+  // or page refresh.
+  ensureLoadingOverlay();
   let meData = existingMeData;
   if (!meData) {
     const meRes = await fetch(API_BASE + '/api/me');
@@ -7579,6 +7635,14 @@ async function initChat(existingMeData) {
   initAdminTab(); // Pre-show admin nav tab if user is admin (owner or whitelisted)
   initAdminEventListeners(); // Wire up all admin panel button event listeners
 
+  // Hide the loading overlay now that all data has been fetched and rendered.
+  // This prevents the empty/broken UI flash during sign-in, sign-up, and refresh.
+  const overlay = document.getElementById('chat-loading-overlay');
+  if (overlay) {
+    overlay.classList.add('hidden');
+    setTimeout(() => { if (overlay) overlay.remove(); }, 250);
+  }
+
   // Re-enable entrance animations after the initial render has painted.
   // We wait two animation frames so the browser commits the no-anim render
   // before removing the class — this ensures messages/lists appeared instantly
@@ -7600,6 +7664,26 @@ function showAuth() {
   const sb = $('signin-btn'); if (sb) { sb.disabled = false; sb.textContent = 'Sign In'; }
   const rb = $('signup-btn'); if (rb) { rb.disabled = false; rb.textContent = 'Create Account'; }
   if (socket) { socket.disconnect(); socket = null; }
+  // Remove any lingering loading overlay so it's fresh for next login.
+  const ov = document.getElementById('chat-loading-overlay');
+  if (ov) ov.remove();
+}
+
+// Ensure the chat loading overlay exists inside #chat-app so that the
+// empty/broken UI is hidden while initChat() fetches and renders data.
+// Called before every initChat() invocation (login, signup, refresh).
+function ensureLoadingOverlay() {
+  let overlay = document.getElementById('chat-loading-overlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'chat-loading-overlay';
+    overlay.innerHTML = '<div class="chat-loading-spinner"></div><div class="chat-loading-text">Loading…</div>';
+    const app = document.getElementById('chat-app');
+    if (app) app.insertBefore(overlay, app.firstChild);
+  }
+  overlay.classList.remove('hidden');
+  overlay.style.removeProperty('display');
+  return overlay;
 }
 
 // Show a full-screen "You have been banned" overlay, then let the user
@@ -9199,6 +9283,9 @@ $('attach-btn').addEventListener('click', (e) => {
   // Close DM dropdown if open
   $('dm-attach-dropdown').classList.remove('show');
   $('dm-attach-btn').classList.remove('active');
+  // Close group dropdown if open
+  const gdd0 = $('group-attach-dropdown');
+  if (gdd0) { gdd0.classList.remove('show'); $('group-attach-btn').classList.remove('active'); }
   if (isOpen) { dd.classList.remove('show'); $('attach-btn').classList.remove('active'); }
   else { dd.classList.add('show'); $('attach-btn').classList.add('active'); positionAttachDropdown(dd, $('attach-btn')); }
 });
@@ -9257,11 +9344,17 @@ document.addEventListener('click', (e) => {
     $('dm-attach-dropdown').classList.remove('show');
     $('dm-attach-btn').classList.remove('active');
   }
+  if (!e.target.closest('#group-attach-btn') && !e.target.closest('#group-attach-dropdown')) {
+    const gdd = $('group-attach-dropdown');
+    if (gdd) { gdd.classList.remove('show'); $('group-attach-btn').classList.remove('active'); }
+  }
 });
 // Reposition open attach dropdowns on resize/scroll
 window.addEventListener('resize', () => {
   if ($('attach-dropdown').classList.contains('show')) positionAttachDropdown($('attach-dropdown'), $('attach-btn'));
   if ($('dm-attach-dropdown').classList.contains('show')) positionAttachDropdown($('dm-attach-dropdown'), $('dm-attach-btn'));
+  const gdd = $('group-attach-dropdown');
+  if (gdd && gdd.classList.contains('show')) positionAttachDropdown(gdd, $('group-attach-btn'));
   /* Re-apply the members-list background so its height-anchored sizing tracks
      the sidebar's new height after a browser zoom or viewport change. */
   if (typeof applyMembersBg === 'function') applyMembersBg();
@@ -9270,6 +9363,8 @@ window.addEventListener('orientationchange', () => { setTimeout(() => { if (type
 window.addEventListener('scroll', () => {
   if ($('attach-dropdown').classList.contains('show')) positionAttachDropdown($('attach-dropdown'), $('attach-btn'));
   if ($('dm-attach-dropdown').classList.contains('show')) positionAttachDropdown($('dm-attach-dropdown'), $('dm-attach-btn'));
+  const gdd = $('group-attach-dropdown');
+  if (gdd && gdd.classList.contains('show')) positionAttachDropdown(gdd, $('group-attach-btn'));
 }, true);
 const MAX_FILES = 5;
 fileInput.addEventListener('change', (e) => {
@@ -10793,27 +10888,62 @@ function updateGroupConvPreview(groupId, msg) {
 }
 
 // ---- Group file attach ----
-$('group-attach-btn').addEventListener('click', () => $('group-file-input').click());
-$('group-file-input').addEventListener('change', (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
-  pendingGroupFile = file;
-  pendingGroupFiles = [];
-  // Show a simple toast since the group overlay doesn't have its own preview bar
-  const ext = (file.name.split('.').pop() || 'FILE').slice(0, 4).toUpperCase();
-  const mt = file.type || '';
-  let label = ext;
+$('group-attach-btn').addEventListener('click', (e) => {
+  e.stopPropagation();
+  if (recordSpamClick()) return;
+  const dd = $('group-attach-dropdown');
+  const isOpen = dd.classList.contains('show');
+  // Close chat & DM dropdowns if open
+  $('attach-dropdown').classList.remove('show');
+  $('attach-btn').classList.remove('active');
+  $('dm-attach-dropdown').classList.remove('show');
+  $('dm-attach-btn').classList.remove('active');
+  if (isOpen) { dd.classList.remove('show'); $('group-attach-btn').classList.remove('active'); }
+  else { dd.classList.add('show'); $('group-attach-btn').classList.add('active'); positionAttachDropdown(dd, $('group-attach-btn')); }
+});
+$('group-attach-gif-btn').addEventListener('click', () => {
+  $('group-attach-dropdown').classList.remove('show');
+  $('group-attach-btn').classList.remove('active');
+  $('group-gif-file-input').click();
+});
+$('group-attach-file-btn').addEventListener('click', () => {
+  $('group-attach-dropdown').classList.remove('show');
+  $('group-attach-btn').classList.remove('active');
+  $('group-file-input').click();
+});
+const groupFileInput = $('group-file-input');
+function handleGroupFileSelect(e, inputEl) {
+  const files = Array.from(e.target.files || []);
+  if (files.length === 0) return;
+  if (files.length > MAX_FILES) {
+    toast('You can only upload up to ' + MAX_FILES + ' files at a time. Only the first ' + MAX_FILES + ' will be sent.', 'error');
+  }
+  const selected = files.slice(0, MAX_FILES);
+  for (const f of selected) {
+    if (f.size > 115 * 1024 * 1024) { toast('File "' + f.name + '" exceeds 115MB limit', 'error'); inputEl.value = ''; return; }
+  }
+  pendingGroupFile = selected[0];
+  pendingGroupFiles = selected.length > 1 ? selected.slice(1) : [];
+  const mt = selected[0].type || '';
+  let label = 'FILE';
   if (mt.startsWith('image/')) label = 'IMG';
   else if (mt.startsWith('video/')) label = 'VID';
   else if (mt.startsWith('audio/')) label = 'AUD';
-  toast(label + ' attached: ' + file.name + ' — type a caption and press send.', 'success');
+  let msg = label + ' attached: ' + selected[0].name;
+  if (pendingGroupFiles.length > 0) msg += ' (+' + pendingGroupFiles.length + ' more)';
+  toast(msg + ' \u2014 type a caption and press send.', 'success');
   updateGroupSend();
   $('group-input').focus();
-});
+  inputEl.value = '';
+}
+groupFileInput.addEventListener('change', (e) => handleGroupFileSelect(e, groupFileInput));
+const groupGifFileInput = $('group-gif-file-input');
+if (groupGifFileInput) groupGifFileInput.addEventListener('change', (e) => handleGroupFileSelect(e, groupGifFileInput));
 function clearGroupPendingFile() {
   pendingGroupFile = null;
   pendingGroupFiles = [];
   if ($('group-file-input')) $('group-file-input').value = '';
+  if ($('group-gif-file-input')) $('group-gif-file-input').value = '';
   updateGroupSend();
 }
 
@@ -11297,6 +11427,9 @@ $('dm-attach-btn').addEventListener('click', (e) => {
   // Close chat dropdown if open
   $('attach-dropdown').classList.remove('show');
   $('attach-btn').classList.remove('active');
+  // Close group dropdown if open
+  const gdd1 = $('group-attach-dropdown');
+  if (gdd1) { gdd1.classList.remove('show'); $('group-attach-btn').classList.remove('active'); }
   if (isOpen) { dd.classList.remove('show'); $('dm-attach-btn').classList.remove('active'); }
   else { dd.classList.add('show'); $('dm-attach-btn').classList.add('active'); positionAttachDropdown(dd, $('dm-attach-btn')); }
 });
@@ -12742,6 +12875,7 @@ function updateSettingsPanel() {
   if ($('notif-toggle')) $('notif-toggle').checked = currentUser.notificationsEnabled !== false;
   if ($('sound-toggle')) $('sound-toggle').checked = currentUser.messageSounds !== false;
   if ($('compact-toggle')) $('compact-toggle').checked = !!currentUser.compactMode;
+  if ($('group-add-toggle')) $('group-add-toggle').checked = currentUser.allowGroupAdd !== false;
   // Music link — restore saved track
   if ($('music-link-input') && currentUser.musicLink) {
     if ($('music-link-input').value !== currentUser.musicLink) {
@@ -12879,12 +13013,13 @@ $('password-save').addEventListener('click', async () => {
   btn.disabled = false; btn.classList.remove('saving'); btn.textContent = 'Reset Password';
 });
 
-// ---------- Preferences: Notifications, Sounds, Compact Mode ----------
+// ---------- Preferences: Notifications, Sounds, Compact Mode, Group Add ----------
 function savePreferences() {
   const payload = {
     notificationsEnabled: $('notif-toggle').checked,
     messageSounds: $('sound-toggle').checked,
     compactMode: $('compact-toggle').checked,
+    allowGroupAdd: $('group-add-toggle') ? $('group-add-toggle').checked : true,
     theme: currentUser.theme || 'dark'
   };
   fetch(API_BASE + '/api/settings/preferences', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }).then(r => r.json()).then(data => {
@@ -12892,6 +13027,7 @@ function savePreferences() {
       currentUser.notificationsEnabled = payload.notificationsEnabled;
       currentUser.messageSounds = payload.messageSounds;
       currentUser.compactMode = payload.compactMode;
+      currentUser.allowGroupAdd = payload.allowGroupAdd;
       // Apply compact mode class (CSS targets #chat-app.compact)
       const app = document.getElementById('chat-app');
       if (app) app.classList.toggle('compact', payload.compactMode);
@@ -12915,6 +13051,7 @@ if ($('notif-toggle')) $('notif-toggle').addEventListener('change', async (e) =>
 });
 if ($('sound-toggle')) $('sound-toggle').addEventListener('change', savePreferences);
 if ($('compact-toggle')) $('compact-toggle').addEventListener('change', savePreferences);
+if ($('group-add-toggle')) $('group-add-toggle').addEventListener('change', savePreferences);
 
 // ---------- Music Player ----------
 /*
@@ -16324,6 +16461,7 @@ function init() {
   }
   // We have a session ID — the early head script already hid auth via CSS
   // (html.has-session). Activate the chat app grid so it becomes visible.
+  ensureLoadingOverlay();
   chatApp.classList.add('active');
   // Show a loading overlay on the chat area until data loads
   document.body.classList.add('loading-session');
