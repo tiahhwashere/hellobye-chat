@@ -6,6 +6,6 @@
 - [x] Make the mini profile popover wider (300px → 340px)
 
 ## 2. Deploy
-- [ ] Commit and push to GitHub
-- [ ] Verify Render auto-deploy goes live
-- [ ] Verify at https://hellobye-chat.onrender.com/
+- [x] Commit and push to GitHub (ed37271)
+- [x] Render auto-deploy live (dep-da9fqi6k1f9s73cc0bu0)
+- [x] Verify at https://hellobye-chat.onrender.com/ (HTTP 200, all markers confirmed)
