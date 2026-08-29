@@ -18,6 +18,6 @@
 - [x] When "Close conversation" is clicked, also remove it from the Messages tab.
 
 ## 6. Deploy
-- [ ] Commit and push to GitHub
-- [ ] Deploy/update on Render (autoDeploy)
-- [ ] Verify at https://hellobye-chat.onrender.com/
+- [x] Commit and push to GitHub (commit ddb377a pushed to master)
+- [x] Deploy/update on Render (autoDeploy triggered, deploy dep-da9fhnbl live)
+- [x] Verify at https://hellobye-chat.onrender.com/ (HTTP 200, Round 32 code confirmed)
