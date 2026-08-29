@@ -2407,10 +2407,6 @@ app.post('/api/admin/rename-user', authMiddleware, adminMiddleware, (req, res) =
   if (newUn.length > 32) return res.status(400).json({ error: 'Username cannot exceed 32 characters' });
   if (newUn === oldUn) return res.status(400).json({ error: 'New username is the same as the current one' });
   if (db.users[newUn]) return res.status(409).json({ error: 'That username is already taken' });
-  // Prevent renaming the owner unless the acting admin IS the owner.
-  if (isOwnerUser(target) && !isOwnerUser(req.user)) {
-    return res.status(403).json({ error: 'Only the owner can rename the owner account' });
-  }
 
   // ---- Migrate user data ----
   const user = db.users[oldUn];

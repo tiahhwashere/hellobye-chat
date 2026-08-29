@@ -622,7 +622,7 @@ body.loading-session #chat-app.active::after { content: none; }
   border: 2px solid var(--bg-darker);
   background-size: contain; background-repeat: no-repeat; background-position: center;
 }
-.status-dot.online { background-image: url('online.png'); }
+.status-dot.online { background-image: url('online.png'); border-radius: 4px; }
 .status-dot.idle { background-image: url('idle.png'); }
 .status-dot.dnd { background-image: url('dnd.png'); }
 .status-dot.offline { background-image: url('offline.png'); }
@@ -2774,7 +2774,7 @@ body.no-anim .friend-item { animation: none !important; }
 .status-option:hover { background: var(--bg-light); border-color: var(--border-light); }
 .status-option.active { border-color: var(--accent); background: var(--accent-glow); }
 .status-option-dot { width: 16px; height: 16px; border-radius: 50%; flex-shrink: 0; background-size: contain; background-repeat: no-repeat; background-position: center; }
-.status-option-dot.online { background-image: url('online.png'); }
+.status-option-dot.online { background-image: url('online.png'); border-radius: 4px; }
 .status-option-dot.idle { background-image: url('idle.png'); }
 .status-option-dot.dnd { background-image: url('dnd.png'); }
 .status-option-dot.offline { background-image: url('offline.png'); }
@@ -3148,7 +3148,7 @@ body.no-anim .friend-item { animation: none !important; }
 }
 .profile-view-info { padding: 14px 0 20px; text-align: left; flex: 1 1 auto; min-width: 0; }
 .profile-view-info h3 { font-size: 19px; font-weight: 600; margin-bottom: 3px; }
-.profile-view-handle { font-size: 14px; color: var(--accent); margin-bottom: 4px; }
+.profile-view-handle { font-size: 17px; color: var(--accent); margin-bottom: 4px; font-weight: 600; }
 .profile-view-id { font-size: 11px; color: var(--text-muted); font-family: monospace; margin-bottom: 10px; display: flex; align-items: center; justify-content: flex-start; gap: 6px; position: relative; }
 .pv-id-text { }
 .pv-copy-id-btn { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 4px; background: var(--bg-medium); color: var(--text-muted); border: 1px solid var(--border-light); cursor: pointer; transition: var(--transition); padding: 0; }
@@ -4012,7 +4012,7 @@ body.no-anim .friend-item { animation: none !important; }
   border: 2.5px solid var(--bg-dark);
   background-size: contain; background-repeat: no-repeat; background-position: center;
 }
-.mini-profile-avatar-wrap .status-dot.online { background-image: url('online.png'); }
+.mini-profile-avatar-wrap .status-dot.online { background-image: url('online.png'); border-radius: 4px; }
 .mini-profile-avatar-wrap .status-dot.idle { background-image: url('idle.png'); }
 .mini-profile-avatar-wrap .status-dot.dnd { background-image: url('dnd.png'); }
 .mini-profile-avatar-wrap .status-dot.offline { background-image: url('offline.png'); }
@@ -4767,7 +4767,7 @@ body.no-anim .friend-item { animation: none !important; }
   .profile-view-modal { max-width: calc(100vw - 12px); max-height: 92vh; }
   .profile-view-header { padding: 14px 16px; }
   .profile-view-name { font-size: 18px; }
-  .profile-view-handle { font-size: 13px; }
+  .profile-view-handle { font-size: 15px; }
   .profile-view-tabs { gap: 0; }
   .profile-view-tab { padding: 10px 12px; font-size: 13px; }
 }
@@ -5149,9 +5149,6 @@ body.no-anim .friend-item { animation: none !important; }
 
       <div class="messages-container" id="messages">
         <div class="empty-state" id="empty-state">
-          <div class="empty-state-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="40" height="40"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-          </div>
           <h3>No messages yet</h3>
           <p>Be the first to start the conversation.</p>
         </div>
@@ -6234,7 +6231,7 @@ body.no-anim .friend-item { animation: none !important; }
             <div class="admin-subpane" data-admin-subpane="rename">
               <div class="profile-section">
                 <div class="profile-section-title">Rename a User</div>
-                <p style="color:var(--text-muted); font-size:12px; margin-bottom:12px; line-height:1.55;">Change any user's <strong>username</strong> (their @handle / login name). As an admin you can bypass the normal 3–20 character limit — you may use 1–32 characters (letters, numbers, and underscores only). All of the user's data (friends, DMs, group chats, messages, roles, whitelist, etc.) is automatically migrated to the new username. The user will be reloaded automatically.</p>
+                <p style="color:var(--text-muted); font-size:12px; margin-bottom:12px; line-height:1.55;">Change a user's <strong>@username</strong> (their login handle). Admins can bypass the standard 3–20 character limit — 1 to 32 characters, letters, numbers, and underscores only. All associated data migrates automatically, and the user is reloaded instantly.</p>
                 <div class="admin-ban-search-row">
                   <input type="text" id="admin-rename-search" class="admin-input" placeholder="Search by username or ID" autocomplete="off" />
                   <button class="setting-save-btn no-checkmark" id="admin-rename-search-btn">Search</button>
@@ -8574,7 +8571,7 @@ function renderMessages() {
   const hasMessages = messages.length > 0;
   container.innerHTML = '';
   if (!hasMessages) {
-    container.innerHTML = '<div class="empty-state" id="empty-state"><div class="empty-state-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="40" height="40"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div><h3>No messages yet</h3><p>Be the first to start the conversation.</p></div>';
+    container.innerHTML = '<div class="empty-state" id="empty-state"><h3>No messages yet</h3><p>Be the first to start the conversation.</p></div>';
     return;
   }
   messages.forEach(msg => appendMessage(msg, true));
@@ -16763,23 +16760,15 @@ function adminSelectRenameUser(cacheKey) {
     $('admin-rename-new').value = '';
     const renameBtn = $('admin-rename-confirm-btn');
     if (renameBtn) {
-      if (isOwnerUserFE(user)) {
-        renameBtn.disabled = true;
-        renameBtn.textContent = 'Owner Cannot Be Renamed';
-        renameBtn.style.opacity = '0.55';
-        renameBtn.style.cursor = 'not-allowed';
-      } else {
-        renameBtn.disabled = false;
-        renameBtn.textContent = 'Rename User';
-        renameBtn.style.opacity = '';
-        renameBtn.style.cursor = '';
-      }
+      renameBtn.disabled = false;
+      renameBtn.textContent = 'Rename User';
+      renameBtn.style.opacity = '';
+      renameBtn.style.cursor = '';
     }
   }
 }
 async function adminRenameUser() {
   if (!adminRenameTarget) return;
-  if (isOwnerUserFE(adminRenameTarget)) { toast('The owner (@lore) cannot be renamed.', 'error'); return; }
   const newUsername = $('admin-rename-new').value.trim().toLowerCase();
   if (!newUsername) { toast('Please enter a new username.', 'error'); return; }
   if (newUsername.length < 1 || newUsername.length > 32) { toast('Username must be between 1 and 32 characters.', 'error'); return; }
