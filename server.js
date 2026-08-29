@@ -1545,6 +1545,7 @@ app.post('/api/groups/create', authMiddleware, (req, res) => {
   }
   // Deduplicate
   memberList = [...new Set(memberList)];
+  if (memberList.length > 10) return res.status(400).json({ error: 'A group chat can have at most 10 members (including you).' });
   const group = {
     id: genId(),
     name: groupName,
@@ -1643,7 +1644,7 @@ app.post('/api/groups/:id/add', authMiddleware, (req, res) => {
   if (!target) return res.status(400).json({ error: 'Username required' });
   if (!db.users[target]) return res.status(400).json({ error: 'User @' + target + ' does not exist' });
   if ((g.members || []).includes(target)) return res.status(400).json({ error: 'That user is already in this group' });
-  if ((g.members || []).length >= 50) return res.status(400).json({ error: 'Group is full (max 50 members)' });
+  if ((g.members || []).length >= 10) return res.status(400).json({ error: 'Group is full (max 10 members)' });
   // Respect the target user's privacy setting: only add them if they allow it.
   if (db.users[target].allowGroupAdd === false) {
     return res.status(403).json({ error: '@' + target + ' does not allow being added to group chats. You can ask them to enable it in their settings.' });
@@ -1676,6 +1677,19 @@ app.post('/api/groups/:id/leave', authMiddleware, (req, res) => {
   if (db.groupChats.includes(g)) {
     for (const m of (g.members || [])) io.to('user:' + m).emit('group-updated', { group: publicGroup(g) });
   }
+  res.json({ success: true });
+});
+
+// Owner: delete the group entirely (removes everyone)
+app.post('/api/groups/:id/delete', authMiddleware, (req, res) => {
+  const g = findGroup(req.params.id);
+  if (!g) return res.status(404).json({ error: 'Group not found' });
+  if (g.owner !== req.user.username) return res.status(403).json({ error: 'Only the group owner can delete the group' });
+  const members = (g.members || []).slice();
+  db.groupChats = (db.groupChats || []).filter(x => x.id !== g.id);
+  saveDB();
+  // Notify every former member (including the owner) that the group is gone
+  for (const m of members) io.to('user:' + m).emit('group-removed', { id: g.id });
   res.json({ success: true });
 });
 

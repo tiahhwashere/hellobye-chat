@@ -5056,9 +5056,9 @@ body.no-anim .friend-item { animation: none !important; }
       </div>
       <div id="group-settings-add-row" style="display:none; margin-top:14px;">
         <label style="display:block; font-size:12px; color:var(--text-muted); margin-bottom:6px; font-weight:600;">Add a member</label>
-        <div style="display:flex; gap:8px;">
-          <input type="text" id="group-settings-add-input" class="admin-input" placeholder="Enter a username" style="flex:1;" />
-          <button class="setting-save-btn no-checkmark" id="group-settings-add-btn" style="flex-shrink:0;">Add</button>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <input type="text" id="group-settings-add-input" class="admin-input" placeholder="Enter a username" style="flex:1; min-width:0;" />
+          <button class="setting-save-btn no-checkmark" id="group-settings-add-btn" style="flex-shrink:0; width:auto; padding:9px 18px; margin-top:0; font-size:12.5px;">Add</button>
         </div>
       </div>
       <div class="modal-actions" style="margin-top:18px; flex-wrap:wrap;">
@@ -5066,6 +5066,18 @@ body.no-anim .friend-item { animation: none !important; }
         <div style="flex:1;"></div>
         <button class="modal-btn" id="group-settings-cancel">Close</button>
         <button class="modal-btn" id="group-settings-save" style="background:linear-gradient(135deg,#6366f1,#4f46e5); color:#fff;">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== GENERIC CONFIRMATION MODAL ===================== -->
+  <div class="modal-overlay" id="generic-confirm-modal">
+    <div class="modal small">
+      <h3 id="generic-confirm-title">Are you sure?</h3>
+      <p id="generic-confirm-body" style="line-height:1.55;">This action cannot be undone.</p>
+      <div class="modal-actions">
+        <button class="modal-btn" id="generic-confirm-cancel">Cancel</button>
+        <button class="modal-btn danger" id="generic-confirm-ok">Confirm</button>
       </div>
     </div>
   </div>
@@ -5825,7 +5837,7 @@ body.no-anim .friend-item { animation: none !important; }
               <div class="profile-section">
                 <div class="profile-section-title" style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
                   <span>Recent Admin Activity</span>
-                  <button class="setting-save-btn no-checkmark" id="admin-clear-activity-btn" style="font-size:11px; padding:5px 12px; flex-shrink:0;">Clear</button>
+                  <button class="setting-save-btn no-checkmark" id="admin-clear-activity-btn" style="font-size:11px; padding:5px 12px; flex-shrink:0; width:auto; margin-top:0;">Clear</button>
                 </div>
                 <div id="admin-activity-list" class="admin-activity-list">
                   <p style="color:var(--text-muted); padding:12px 0;">Loading activity log...</p>
@@ -10404,7 +10416,10 @@ $('group-create-search').addEventListener('input', () => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
       const un = btn.dataset.add;
-      if (!groupCreateSelected.includes(un)) groupCreateSelected.push(un);
+      if (groupCreateSelected.includes(un)) return;
+      // The owner counts as 1 member, so allow up to 9 additional members (10 total)
+      if (groupCreateSelected.length >= 9) { toast('A group chat can have at most 10 members (including you).', 'error'); return; }
+      groupCreateSelected.push(un);
       renderGroupCreateSelected();
       $('group-create-search').value = '';
       $('group-create-search').dispatchEvent(new Event('input'));
@@ -10532,9 +10547,55 @@ function attachGroupListListeners() {
     item.addEventListener('click', () => openGroup(item.dataset.groupId));
     item.addEventListener('contextmenu', (e) => {
       e.preventDefault();
-      showContextMenu(e.clientX, e.clientY, [
-        { label: 'Open Group Chat', icon: 'dm', action: () => openGroup(item.dataset.groupId) }
-      ]);
+      const gid = item.dataset.groupId;
+      const g = groupConvs.find(x => x.id === gid) || groupChats.find(x => x.id === gid);
+      const isOwner = g && currentUser && g.owner === currentUser.username;
+      const items = [
+        { label: 'Open Group Chat', icon: 'dm', action: () => openGroup(gid) },
+        { label: 'Group Settings', icon: 'edit', action: () => { openGroup(gid); setTimeout(() => { if (activeGroupId) openGroupSettings(activeGroupId); }, 300); } }
+      ];
+      if (isOwner) {
+        items.push({ label: 'Delete Group', icon: 'delete', danger: true, action: async () => {
+          if (!g) return;
+          const confirmed = await showGenericConfirm({
+            title: 'Delete this group chat?',
+            body: 'This will permanently delete "' + (g.name || 'this group') + '" and remove all ' + ((g.members || []).length) + ' member(s). All messages will be lost. This action cannot be undone.',
+            confirmText: 'Delete Group',
+            danger: true
+          });
+          if (!confirmed) return;
+          try {
+            const res = await fetch(API_BASE + '/api/groups/' + encodeURIComponent(gid) + '/delete', { method: 'POST' });
+            const data = await res.json();
+            if (data.error) { toast(data.error, 'error'); return; }
+            toast('Group chat deleted.', 'success');
+            closeGroupOverlay();
+            await loadGroupChats();
+            renderMessagesList();
+          } catch(e) { toast('Failed to delete group.', 'error'); }
+        }});
+      } else {
+        items.push({ label: 'Leave Group', icon: 'close', danger: true, action: async () => {
+          if (!g) return;
+          const confirmed = await showGenericConfirm({
+            title: 'Leave this group chat?',
+            body: 'You will no longer receive messages from "' + (g.name || 'this group') + '". You can be re-added by the owner later.',
+            confirmText: 'Leave Group',
+            danger: true
+          });
+          if (!confirmed) return;
+          try {
+            const res = await fetch(API_BASE + '/api/groups/' + encodeURIComponent(gid) + '/leave', { method: 'POST' });
+            const data = await res.json();
+            if (data.error) { toast(data.error, 'error'); return; }
+            toast('You have left the group.', 'success');
+            closeGroupOverlay();
+            await loadGroupChats();
+            renderMessagesList();
+          } catch(e) { toast('Failed to leave group.', 'error'); }
+        }});
+      }
+      showContextMenu(e.clientX, e.clientY, items);
     });
   });
 }
@@ -10985,20 +11046,26 @@ function renderGroupSettings() {
   $('group-settings-subtitle').textContent = isOwner ? 'You are the owner. You can change the icon, rename the group, and manage members.' : 'You are a member. Only the owner can change group settings.';
   // Members
   const membersWrap = $('group-settings-members');
-  $('group-settings-member-count').textContent = '(' + ((g.members && g.members.length) || 0) + ')';
+  $('group-settings-member-count').textContent = '(' + ((g.members && g.members.length) || 0) + ' / 10)';
   membersWrap.innerHTML = (g.members || []).map(m => {
     const av = m.avatar ? '<img src="' + m.avatar + '">' : getInitials(m.username);
     const dn = m.displayName ? '<span class="user-displayname">' + escapeHtml(m.displayName) + ' </span>' : '';
     const ownerTag = (m.username === g.owner) ? '<span style="font-size:10px; color:#818cf8; font-weight:600; margin-left:6px;">OWNER</span>' : '';
     const canKick = isOwner && m.username !== g.owner && m.username !== currentUser.username;
-    const kickBtn = canKick ? '<button class="mini-btn" style="background:rgba(239,68,68,0.15); color:#fca5a5; border:1px solid rgba(239,68,68,0.3); margin-left:auto;" data-kick="' + escapeHtml(m.username) + '">Kick</button>' : '';
+    const kickBtn = canKick ? '<button class="mini-btn" style="background:rgba(239,68,68,0.12); color:#fca5a5; border:1px solid rgba(239,68,68,0.25); margin-left:auto; padding:5px 14px; font-size:11px; font-weight:600; border-radius:6px; cursor:pointer; white-space:nowrap;" data-kick="' + escapeHtml(m.username) + '">Kick</button>' : '';
     return '<div class="user-item friend-item" style="padding:8px 10px;"><div class="user-avatar-wrap"><div class="user-avatar" style="width:34px; height:34px; font-size:13px;">' + av + '</div></div><div class="user-info"><div class="user-name">' + dn + '<span class="user-handle">@' + escapeHtml(m.username) + '</span>' + ownerTag + '</div></div>' + kickBtn + '</div>';
   }).join('');
   membersWrap.querySelectorAll('[data-kick]').forEach(btn => {
     btn.addEventListener('click', async (e) => {
       e.stopPropagation();
       const un = btn.dataset.kick;
-      if (!confirm('Kick @' + un + ' from this group?')) return;
+      const confirmed = await showGenericConfirm({
+        title: 'Kick @' + un + '?',
+        body: 'This will remove @' + un + ' from the group. They can be re-added later.',
+        confirmText: 'Kick Member',
+        danger: true
+      });
+      if (!confirmed) return;
       try {
         const res = await fetch(API_BASE + '/api/groups/' + encodeURIComponent(g.id) + '/kick', {
           method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: un })
@@ -11013,8 +11080,16 @@ function renderGroupSettings() {
   });
   // Add member row (owner only)
   $('group-settings-add-row').style.display = isOwner ? 'block' : 'none';
-  // Leave button — always visible (even owner can leave)
-  $('group-settings-leave-btn').style.display = '';
+  // Leave / Delete button: owner sees "Delete Group", members see "Leave Group"
+  const leaveBtn = $('group-settings-leave-btn');
+  if (isOwner) {
+    leaveBtn.textContent = 'Delete Group';
+    leaveBtn.dataset.action = 'delete';
+  } else {
+    leaveBtn.textContent = 'Leave Group';
+    leaveBtn.dataset.action = 'leave';
+  }
+  leaveBtn.style.display = '';
 }
 $('group-settings-cancel').addEventListener('click', () => $('group-settings-modal').classList.remove('show'));
 $('group-settings-modal').addEventListener('click', (e) => { if (e.target === $('group-settings-modal')) $('group-settings-modal').classList.remove('show'); });
@@ -11034,6 +11109,10 @@ $('group-settings-icon-input').addEventListener('change', async (e) => {
     toast('Group icon updated!', 'success');
     groupSettingsCache = data.group;
     renderGroupSettings();
+    // Update the header + sidebar immediately (socket group-updated also fires for all members)
+    if (activeGroupId === groupSettingsCache.id) updateGroupHeader(data.group);
+    await loadGroupChats();
+    renderMessagesList();
   } catch(e) { toast('Failed to upload icon.', 'error'); }
   e.target.value = '';
 });
@@ -11086,17 +11165,46 @@ $('group-settings-add-btn').addEventListener('click', async () => {
 // ---- Leave group ----
 $('group-settings-leave-btn').addEventListener('click', async () => {
   if (!groupSettingsCache) return;
-  if (!confirm('Leave this group chat? You will no longer receive messages from it.')) return;
-  try {
-    const res = await fetch(API_BASE + '/api/groups/' + encodeURIComponent(groupSettingsCache.id) + '/leave', { method: 'POST' });
-    const data = await res.json();
-    if (data.error) { toast(data.error, 'error'); return; }
-    toast('You have left the group.', 'success');
-    $('group-settings-modal').classList.remove('show');
-    closeGroupOverlay();
-    await loadGroupChats();
-    renderMessagesList();
-  } catch(e) { toast('Failed to leave group.', 'error'); }
+  const action = $('group-settings-leave-btn').dataset.action || 'leave';
+  if (action === 'delete') {
+    // Owner deleting the group — removes everyone
+    const confirmed = await showGenericConfirm({
+      title: 'Delete this group chat?',
+      body: 'This will permanently delete "' + groupSettingsCache.name + '" and remove all ' + ((groupSettingsCache.members || []).length) + ' member(s). All messages will be lost. This action cannot be undone.',
+      confirmText: 'Delete Group',
+      danger: true
+    });
+    if (!confirmed) return;
+    try {
+      const res = await fetch(API_BASE + '/api/groups/' + encodeURIComponent(groupSettingsCache.id) + '/delete', { method: 'POST' });
+      const data = await res.json();
+      if (data.error) { toast(data.error, 'error'); return; }
+      toast('Group chat deleted.', 'success');
+      $('group-settings-modal').classList.remove('show');
+      closeGroupOverlay();
+      await loadGroupChats();
+      renderMessagesList();
+    } catch(e) { toast('Failed to delete group.', 'error'); }
+  } else {
+    // Member leaving the group
+    const confirmed = await showGenericConfirm({
+      title: 'Leave this group chat?',
+      body: 'You will no longer receive messages from "' + groupSettingsCache.name + '". You can be re-added by the owner later.',
+      confirmText: 'Leave Group',
+      danger: true
+    });
+    if (!confirmed) return;
+    try {
+      const res = await fetch(API_BASE + '/api/groups/' + encodeURIComponent(groupSettingsCache.id) + '/leave', { method: 'POST' });
+      const data = await res.json();
+      if (data.error) { toast(data.error, 'error'); return; }
+      toast('You have left the group.', 'success');
+      $('group-settings-modal').classList.remove('show');
+      closeGroupOverlay();
+      await loadGroupChats();
+      renderMessagesList();
+    } catch(e) { toast('Failed to leave group.', 'error'); }
+  }
 });
 
 function renderDMMessages() {
@@ -11732,6 +11840,38 @@ function showContextMenu(x, y, items) {
 function hideContextMenu() { ctxMenu.style.display = 'none'; }
 document.addEventListener('click', hideContextMenu);
 document.addEventListener('scroll', hideContextMenu, true);
+
+/* ---------- Generic confirmation modal (replaces native confirm()) ----------
+ * Usage: showGenericConfirm({ title, body, confirmText, cancelText, danger })
+ * Returns a Promise<boolean> — resolves true on confirm, false on cancel. */
+function showGenericConfirm(opts) {
+  opts = opts || {};
+  const modal = $('generic-confirm-modal');
+  const titleEl = $('generic-confirm-title');
+  const bodyEl = $('generic-confirm-body');
+  const okBtn = $('generic-confirm-ok');
+  const cancelBtn = $('generic-confirm-cancel');
+  titleEl.textContent = opts.title || 'Are you sure?';
+  bodyEl.textContent = opts.body || 'This action cannot be undone.';
+  okBtn.textContent = opts.confirmText || 'Confirm';
+  cancelBtn.textContent = opts.cancelText || 'Cancel';
+  okBtn.className = 'modal-btn' + (opts.danger !== false ? ' danger' : ' primary');
+  modal.classList.add('show');
+  return new Promise(resolve => {
+    const cleanup = () => {
+      okBtn.removeEventListener('click', onOk);
+      cancelBtn.removeEventListener('click', onCancel);
+      modal.removeEventListener('click', onOverlay);
+    };
+    const close = val => { cleanup(); modal.classList.remove('show'); resolve(val); };
+    const onOk = () => close(true);
+    const onCancel = () => close(false);
+    const onOverlay = e => { if (e.target === modal) close(false); };
+    okBtn.addEventListener('click', onOk);
+    cancelBtn.addEventListener('click', onCancel);
+    modal.addEventListener('click', onOverlay);
+  });
+}
 
 // ---------- Reply System ----------
 function startReply(msg) {
