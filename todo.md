@@ -9,5 +9,5 @@
   - Removed dead `startDMCooldown` function + `dmCooldownEnds`/`dmCooldownTimer` vars + DM cooldown indicator HTML + CSS
   - Fixed `startGroupCooldown` to handle sub-second (0.3s) cooldowns with `setTimeout` + universal clear (clearTimeout+clearInterval) to avoid timer-type mismatch
   - Updated admin panel cooldown-exempt description (DMs no longer have a cooldown; chatroom=3s, group=0.3s)
-- [ ] 5. Commit + push to GitHub
-- [ ] 6. Verify Render deploy + live site
+- [x] 5. Commit + push to GitHub (commit e4d5f82)
+- [x] 6. Verify Render deploy + live site (deploy dep-da9dv5oae00c73aj6n50 status=live, all changes verified on https://hellobye-chat.onrender.com/)
