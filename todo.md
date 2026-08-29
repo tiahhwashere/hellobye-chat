@@ -8,8 +8,8 @@
 - [x] Update second mobile breakpoint (line ~4589) — asymmetric border-radius
 - [x] Update touch-device hover override (line ~4610) — background change
 - [x] Verify compact mode override (line ~3785 — no border-radius, inherits correctly)
-- [ ] Syntax-verify all `<script>` blocks
-- [ ] Boot-test server (HTTP 200)
-- [ ] Commit and push to GitHub
-- [ ] Verify Render auto-deploy goes live
-- [ ] Verify at https://hellobye-chat.onrender.com/
+- [x] Syntax-verify all `<script>` blocks
+- [x] Boot-test server (HTTP 200)
+- [x] Commit and push to GitHub (4d15f56f)
+- [x] Verify Render auto-deploy goes live
+- [x] Verify at https://hellobye-chat.onrender.com/ (HTTP 200)
