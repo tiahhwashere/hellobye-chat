@@ -2429,7 +2429,8 @@ body.loading-session #chat-app.active::after {
   background: var(--bg-darker);
   display: flex;
   justify-content: flex-end;
-  gap: 10px;
+  align-items: center;
+  gap: 12px;
 }
 .profile-v2-footer .profile-save-btn {
   width: auto;
@@ -2439,6 +2440,24 @@ body.loading-session #chat-app.active::after {
   font-size: 14px;
   border-radius: var(--radius-sm);
 }
+/* Unsaved-changes indicator pill — shows whenever profileDirty is true */
+.profile-dirty-indicator {
+  display: none;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--warning);
+  background: rgba(212,160,23,0.10);
+  border: 1px solid rgba(212,160,23,0.25);
+  padding: 6px 12px;
+  border-radius: 20px;
+  white-space: nowrap;
+  animation: dirtyIn 0.22s cubic-bezier(0.16,1,0.3,1);
+}
+.profile-dirty-indicator.show { display: inline-flex; }
+.profile-dirty-indicator svg { flex-shrink: 0; }
+@keyframes dirtyIn { from { opacity: 0; transform: scale(0.92); } to { opacity: 1; transform: scale(1); } }
 
 @media (max-width: 520px) {
   .profile-modal-v2 { max-height: 92vh; }
@@ -4964,6 +4983,7 @@ body.loading-session #chat-app.active::after {
 
     </div>
     <div class="profile-v2-footer">
+      <span class="profile-dirty-indicator" id="profile-dirty-indicator"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg> Unsaved changes</span>
       <button class="profile-save-btn" id="bio-save-btn"><span class="save-spinner"></span><svg class="save-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg><span class="save-btn-text">Save Changes</span></button>
     </div>
     </div>
@@ -10285,11 +10305,22 @@ function updateProfilePanel() {
   if ($('direct-messages-toggle')) $('direct-messages-toggle').checked = u.directMessagesEnabled !== false;
   currentStatus = u.status || 'online';
   document.querySelectorAll('.status-option').forEach(opt => opt.classList.toggle('active', opt.dataset.status === currentStatus));
-  profileDirty = false;
+  // Reset dirty state since we just synced the panel to the saved profile.
+  // Use clearProfileDirty() so the visual indicator hides too.
+  clearProfileDirty();
 }
 
 // Dirty tracking for profile
-function markProfileDirty() { profileDirty = true; }
+function markProfileDirty() { profileDirty = true; updateProfileDirtyIndicator(); }
+function clearProfileDirty() { profileDirty = false; updateProfileDirtyIndicator(); }
+// Visual indicator so users can SEE they have unsaved changes (a subtle
+// "Unsaved changes" pill near the Save button) — not just the modal on exit.
+function updateProfileDirtyIndicator() {
+  const indicator = $('profile-dirty-indicator');
+  if (!indicator) return;
+  if (profileDirty) indicator.classList.add('show');
+  else indicator.classList.remove('show');
+}
 $('bio-input').addEventListener('input', (e) => { $('bio-count').textContent = e.target.value.length; markProfileDirty(); });
 $('hide-lastseen-toggle').addEventListener('change', markProfileDirty);
 if ($('pronouns-input')) $('pronouns-input').addEventListener('input', markProfileDirty);
@@ -10539,13 +10570,16 @@ async function uploadProfileImage(file, type) {
     toast(type === 'avatar' ? 'Profile picture has been updated.' : 'Banner has been updated.', 'success');
     if (type === 'avatar') currentUser.avatar = data.avatar;
     else currentUser.banner = data.banner;
+    updateProfilePanel(); updateSidebarSelf();
     // Mark the profile as having unsaved changes so the "You have unsaved
     // changes" guard fires if the user navigates away (closes Profile Settings,
     // opens Account Settings, logs out, etc.) without clicking Save Settings.
+    // IMPORTANT: this must come AFTER updateProfilePanel(), which resets
+    // profileDirty = false when it syncs the panel UI to the saved state.
     // The image itself is already persisted server-side, but this keeps the
     // unsaved-changes UX consistent with every other profile edit.
     markProfileDirty();
-    updateProfilePanel(); updateSidebarSelf();
+    updateProfileDirtyIndicator();
   } catch (err) { toast('Upload failed. Please try again.', 'error'); }
   finally {
     // Always restore to 'Apply' (not prevText) — the click handler sets the
@@ -10574,6 +10608,7 @@ $('avatar-remove-btn').addEventListener('click', async () => {
   // Mark profile dirty so the unsaved-changes guard fires on navigation,
   // consistent with changing the profile picture.
   markProfileDirty();
+  updateProfileDirtyIndicator();
   toast('Profile picture has been removed.', 'success');
 });
 $('banner-remove-btn').addEventListener('click', async () => {
@@ -10589,6 +10624,7 @@ $('banner-remove-btn').addEventListener('click', async () => {
   // Mark profile dirty so the unsaved-changes guard fires on navigation,
   // consistent with changing the banner.
   markProfileDirty();
+  updateProfileDirtyIndicator();
   toast('Banner has been removed.', 'success');
 });
 
@@ -10650,7 +10686,8 @@ async function saveProfileNow(silent) {
       // Update in users array
       const uIdx = users.findIndex(x => x.username === currentUser.username);
       if (uIdx >= 0) { users[uIdx].bio = bio; users[uIdx].pronouns = pronouns; users[uIdx].showOnlineStatus = showOnlineStatus; users[uIdx].panelColor = panelColor; users[uIdx].friendRequestsEnabled = friendRequestsEnabled; users[uIdx].directMessagesEnabled = directMessagesEnabled; }
-      profileDirty = false;
+      // Profile saved successfully — clear dirty flag + hide indicator.
+      clearProfileDirty();
       // Show "Saved" success state with check icon for 1.5s
       btn.classList.remove('saving');
       btn.classList.add('saved');
@@ -11962,7 +11999,8 @@ let currentProfileViewUser = null;
 
 async function openProfileView(username) {
   if (username === currentUser.username) {
-    // Open own profile settings instead
+    // Open own profile settings instead — respect unsaved-changes guard
+    if (checkDirtyBeforeAction(() => { updateProfilePanel(); $('profile-panel').classList.add('show'); })) return;
     updateProfilePanel();
     $('profile-panel').classList.add('show');
     return;
@@ -12261,7 +12299,7 @@ function renderProfileView(data) {
   if (data.isMe) {
     const b = document.createElement('button');
     b.className = 'modal-btn primary'; b.textContent = 'Edit My Profile';
-    b.onclick = () => { closeProfileView(); $('profile-panel').classList.add('show'); updateProfilePanel(); };
+    b.onclick = () => { if (checkDirtyBeforeAction(() => { closeProfileView(); updateProfilePanel(); $('profile-panel').classList.add('show'); })) return; };
     actions.appendChild(b);
   } else {
     // DM button \u2014 disabled with a tooltip when either user has DMs turned off.
