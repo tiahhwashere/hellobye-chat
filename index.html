@@ -1502,7 +1502,7 @@ body.no-anim .friend-item { animation: none !important; }
   display: none; flex-direction: column;
 }
 #search-msg-panel.open { display: flex; animation: searchPanelIn 0.38s cubic-bezier(0.22,1,0.36,1); }
-#search-msg-panel.closing { animation: searchPanelOut 0.3s cubic-bezier(0.55,0,0.68,0) forwards; }
+#search-msg-panel.closing { display: flex; animation: searchPanelOut 0.3s cubic-bezier(0.55,0,0.68,0) forwards; }
 /* Revamped open/close: a refined slide-in with a gentle scale + opacity ramp and
    a soft accent glow that fades in, then a swift slide-out. Modern and smooth. */
 @keyframes searchPanelIn {
@@ -5683,7 +5683,7 @@ body.no-anim .friend-item { animation: none !important; }
           </span>
         </label>
         <label class="toggle-row">
-          <span>Hide profile from others<br><small style="color:var(--text-muted);font-size:11px;font-weight:400;">When on, other members only see your profile picture, banner, username, and status message. Your bio, pronouns, location, and additional details are kept private.</small></span>
+          <span>Hide profile from others<br><small style="color:var(--text-muted);font-size:11px;font-weight:400;">Others can only see your picture, banner, username, and status message. Your bio and personal details stay private.</small></span>
           <span class="toggle-switch">
             <input type="checkbox" id="hide-profile-toggle">
             <span class="toggle-slider"></span>
@@ -14830,7 +14830,7 @@ function renderProfileView(data) {
     $('pv-bio').innerHTML = '<div class="pv-hidden-notice">' +
       '<svg class="pv-hidden-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>' +
       '<div class="pv-hidden-title">This Profile is Private</div>' +
-      '<div class="pv-hidden-sub">This member has chosen to keep their profile details private. Only their profile picture, banner, username, and status message are visible.</div>' +
+      '<div class="pv-hidden-sub">This member keeps their profile details private. Only their picture, banner, username, and status message are visible.</div>' +
       '</div>';
   } else {
     $('pv-bio').innerHTML = u.bio ? linkifyBio(u.bio) : 'No bio set.';
