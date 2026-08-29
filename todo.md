@@ -1,9 +1,9 @@
-# Round 39 — Bigger Bubble + Beside Display Name
+# Round 40 — Revert inline bubble beside display name
 
 ## Tasks
-- [x] 1. Make status message bubble a tiny bit bigger (font, padding, icon)
-- [x] 2. Add inline status message bubble beside display name in userListItemHTML (keep existing below-status bubble)
-- [x] 3. Add CSS for the inline name-beside bubble variant
+- [x] 1. Revert userListItemHTML: remove inline bubble, keep only full bubble below status text
+- [x] 2. Revert .user-name CSS back to original white-space: nowrap
+- [x] 3. Remove .status-msg-inline CSS block
 - [x] 4. Syntax-verify all script blocks
 - [x] 5. Boot-test server (HTTP 200)
 - [ ] 6. Commit + push to GitHub
