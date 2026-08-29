@@ -2901,6 +2901,7 @@ const connectedUsers = new Map(); // username -> Set(socketIds)
 const socketToUser = new Map(); // socketId -> username
 const lastMessageTime = {}; // username -> timestamp (cooldown)
 const lastDMTime = {}; // username:other -> timestamp
+const lastGroupTime = {}; // username:groupId -> timestamp (group chat cooldown)
 
 function getConnectedUserSockets(username) {
   return connectedUsers.get(username) || new Set();
@@ -3094,14 +3095,18 @@ io.on('connection', (socket) => {
         if (typeof ack === 'function') ack({ error: '@' + recipientRecord.username + ' has disabled direct messages and is not accepting private messages at this time.', recipientDmDisabled: true });
         return;
       }
-      const key = username + ':' + target;
-      const last = lastDMTime[key] || 0;
-      if (Date.now() - last < 3000) {
-        const cooldown = Math.ceil((3000 - (Date.now() - last)) / 1000);
-        if (typeof ack === 'function') ack({ error: 'Please wait ' + cooldown + 's', cooldown });
-        return;
+      // 3-second DM cooldown (skip if user is exempt via admin panel)
+      const dmExempt = (db.cooldownExempt || []).includes(username);
+      if (!dmExempt) {
+        const key = username + ':' + target;
+        const last = lastDMTime[key] || 0;
+        if (Date.now() - last < 3000) {
+          const cooldown = Math.ceil((3000 - (Date.now() - last)) / 1000);
+          if (typeof ack === 'function') ack({ error: 'Please wait ' + cooldown + 's', cooldown });
+          return;
+        }
+        lastDMTime[key] = Date.now();
       }
-      lastDMTime[key] = Date.now();
       const msg = {
         id: genId(),
         from: username,
@@ -3235,6 +3240,18 @@ io.on('connection', (socket) => {
       const g = findGroup(groupId);
       if (!g) { if (typeof ack === 'function') ack({ error: 'Group not found' }); return; }
       if (!(g.members || []).includes(username)) { if (typeof ack === 'function') ack({ error: 'You are not a member of this group' }); return; }
+      // 3-second group chat cooldown (skip if user is exempt via admin panel)
+      const groupExempt = (db.cooldownExempt || []).includes(username);
+      if (!groupExempt) {
+        const gkey = username + ':' + groupId;
+        const glast = lastGroupTime[gkey] || 0;
+        if (Date.now() - glast < 3000) {
+          const cooldown = Math.ceil((3000 - (Date.now() - glast)) / 1000);
+          if (typeof ack === 'function') ack({ error: 'Please wait ' + cooldown + 's before sending another message', cooldown });
+          return;
+        }
+        lastGroupTime[gkey] = Date.now();
+      }
       if (!Array.isArray(g.messages)) g.messages = [];
       const msg = {
         id: genId(),
