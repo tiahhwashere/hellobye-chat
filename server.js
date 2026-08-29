@@ -254,6 +254,10 @@ async function pushRemoteBackup() {
 // Synchronous-ish startup: try remote first, fall back to local file.
 let db = loadDBLocal();
 if (db && db.__backupSha) { remoteSha = db.__backupSha; delete db.__backupSha; }
+
+// Display name change cooldown — users must wait 5 seconds between changes
+const displayNameCooldowns = new Map();
+const DISPLAY_NAME_COOLDOWN_MS = 5000;
 // Ensure new fields exist on existing DB
 if (!db.welcomeTitle) db.welcomeTitle = 'welcome - to the safe place';
 if (!db.welcomeTitleLastChanged) db.welcomeTitleLastChanged = 0;
@@ -1484,7 +1488,16 @@ app.post('/api/dms/reopen/:username', authMiddleware, (req, res) => {
 app.post('/api/settings/display-name', authMiddleware, (req, res) => {
   const { displayName } = req.body || {};
   if (!displayName || !String(displayName).trim()) return res.status(400).json({ error: 'Display name required' });
+  // Enforce 5-second cooldown between display name changes
+  const now = Date.now();
+  const lastChange = displayNameCooldowns.get(req.user.username) || 0;
+  const remaining = DISPLAY_NAME_COOLDOWN_MS - (now - lastChange);
+  if (remaining > 0) {
+    const secs = Math.ceil(remaining / 1000);
+    return res.status(429).json({ error: 'Please wait ' + secs + ' second' + (secs > 1 ? 's' : '') + ' before changing your display name again.', cooldown: secs });
+  }
   req.user.displayName = String(displayName).trim().slice(0, 50);
+  displayNameCooldowns.set(req.user.username, now);
   saveDB();
   broadcastProfile(req.user.username);
   res.json({ success: true, displayName: req.user.displayName });

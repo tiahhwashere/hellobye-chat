@@ -399,8 +399,9 @@ body.loading-session #chat-app.active::after { content: none; }
    so tab switches and sidebar toggles never flash/re-render it. */
 .members-bg-layer {
   position: absolute;
-  left: 0; right: 0;
+  left: 0;
   top: 0; bottom: 0;
+  width: 300px;
   pointer-events: none;
   z-index: 0;
   background-position: center;
@@ -900,6 +901,55 @@ body.no-anim .friend-item { animation: none !important; }
 }
 .message-group.own .inline-link { color: #cce4ff; }
 
+/* Mention hover tooltip — floating mini profile card */
+.mention-tooltip {
+  position: fixed;
+  z-index: 9000;
+  background: rgba(18, 20, 24, 0.92);
+  backdrop-filter: blur(18px) saturate(1.5);
+  -webkit-backdrop-filter: blur(18px) saturate(1.5);
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+  padding: 12px 14px;
+  display: none;
+  min-width: 220px;
+  max-width: 280px;
+  pointer-events: none;
+  animation: mentionTooltipIn 0.14s ease;
+}
+@keyframes mentionTooltipIn {
+  from { opacity: 0; transform: translateY(4px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.mention-tooltip.show { display: flex; align-items: center; gap: 11px; }
+.mention-tooltip-avatar {
+  width: 42px; height: 42px; border-radius: 50%;
+  background: var(--bg-darker); flex-shrink: 0; overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px; font-weight: 700; color: var(--text-secondary);
+  position: relative; border: 2px solid var(--border-light);
+}
+.mention-tooltip-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+.mention-tooltip-status {
+  position: absolute; bottom: -1px; right: -1px;
+  width: 11px; height: 11px; border-radius: 50%;
+  border: 2px solid rgba(18,20,24,0.92); background: var(--text-muted);
+}
+.mention-tooltip-status.online { background: #22c55e; }
+.mention-tooltip-status.idle { background: #facc15; }
+.mention-tooltip-status.dnd { background: #ef4444; }
+.mention-tooltip-status.offline { background: #6b7280; }
+.mention-tooltip-info { flex: 1; min-width: 0; }
+.mention-tooltip-name {
+  font-size: 14px; font-weight: 700; color: var(--text-primary);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.3;
+}
+.mention-tooltip-handle {
+  font-size: 11px; color: var(--text-muted);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
 /* ===================== 2-Step Verification UI ===================== */
 /* 2SV verification overlay on login screen — professional, focused security card */
 .twosv-overlay {
@@ -1235,18 +1285,34 @@ body.no-anim .friend-item { animation: none !important; }
 .reply-preview-text { font-size: 13px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .reply-preview-cancel { flex-shrink: 0; width: 24px; height: 24px; border-radius: 50%; font-size: 18px; color: var(--text-muted); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: var(--transition); background: none; border: none; }
 .reply-preview-cancel:hover { background: var(--bg-dark); color: var(--text-primary); }
+.reply-preview-avatar { width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0; overflow: hidden; background: var(--bg-dark); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: var(--text-secondary); }
+.reply-preview-avatar img { width: 100%; height: 100%; object-fit: cover; }
 
-/* Reply quote in messages */
+/* Reply quote in messages — rich, with avatar + jump icon */
 .reply-quote {
-  display: flex; align-items: flex-start; gap: 6px;
-  padding: 6px 10px; margin-bottom: 6px;
-  background: rgba(0,0,0,0.2); border-radius: var(--radius-xs);
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 12px; margin-bottom: 6px;
+  background: rgba(74,158,255,0.06); border-radius: 8px;
   border-left: 2px solid var(--accent); font-size: 12px;
-  cursor: pointer; transition: var(--transition);
+  cursor: pointer; transition: background 0.15s ease, transform 0.15s ease;
+  max-width: 100%; overflow: hidden;
 }
-.reply-quote:hover { background: rgba(0,0,0,0.35); }
+.reply-quote:hover { background: rgba(74,158,255,0.12); transform: translateX(2px); }
+.reply-quote-avatar {
+  width: 20px; height: 20px; border-radius: 50%; flex-shrink: 0;
+  background: var(--bg-darker); overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 9px; font-weight: 700; color: var(--text-muted);
+}
+.reply-quote-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+.reply-quote-content { flex: 1; min-width: 0; display: flex; align-items: center; gap: 5px; overflow: hidden; }
 .reply-quote-sender { font-weight: 600; color: var(--accent); flex-shrink: 0; }
-.reply-quote-text { color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 240px; }
+.reply-quote-text { color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.reply-quote-jump {
+  flex-shrink: 0; width: 16px; height: 16px; display: flex; align-items: center; justify-content: center;
+  color: var(--text-muted); opacity: 0; transition: opacity 0.15s ease, color 0.15s ease;
+}
+.reply-quote:hover .reply-quote-jump { opacity: 1; color: var(--accent); }
 
 /* ---- Replied-to message highlight (task b) ---- */
 /* When someone replies to YOUR message, your original message gets a soft
@@ -1268,16 +1334,6 @@ body.no-anim .friend-item { animation: none !important; }
   background: var(--accent); opacity: 0.5;
 }
 .message-group { position: relative; }
-
-/* ---- Reply quote v2: richer, with hover lift ---- */
-.reply-quote {
-  background: rgba(74,158,255,0.06);
-  border-left: 2px solid var(--accent);
-  border-radius: 8px;
-}
-.reply-quote:hover {
-  background: rgba(74,158,255,0.1);
-}
 
 /* ---- Message search panel ---- */
 #search-msg-panel {
@@ -1578,18 +1634,19 @@ body.no-anim .friend-item { animation: none !important; }
 /* ---- Professional notifications (task l) ---- */
 .in-app-notif {
   pointer-events: auto; width: 100%;
-  padding: 12px 14px; margin-bottom: 10px; border-radius: 12px;
-  background: var(--bg-light); border: 1px solid var(--border-light);
-  box-shadow: 0 8px 28px rgba(0,0,0,0.35);
-  display: flex; align-items: flex-start; gap: 11px;
+  padding: 14px 16px; margin-bottom: 10px; border-radius: 14px;
+  background: rgba(18, 20, 24, 0.82); border: 1px solid rgba(255,255,255,0.08);
+  box-shadow: 0 10px 40px rgba(0,0,0,0.45);
+  display: flex; align-items: flex-start; gap: 12px;
   animation: notifIn 0.35s cubic-bezier(0.16,1,0.3,1);
   cursor: pointer; position: relative; overflow: hidden;
-  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(20px) saturate(1.6); -webkit-backdrop-filter: blur(20px) saturate(1.6);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
 @keyframes notifIn { from { opacity: 0; transform: translateY(16px) scale(0.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
-.in-app-notif:hover { border-color: var(--accent); transform: translateY(-1px); box-shadow: 0 10px 32px rgba(0,0,0,0.4); }
+.in-app-notif:hover { border-color: rgba(74,158,255,0.3); transform: translateY(-2px); box-shadow: 0 14px 48px rgba(0,0,0,0.55); }
 .in-app-notif-avatar {
-  width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0; overflow: hidden;
+  width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0; overflow: hidden;
   background: var(--bg-medium); display: flex; align-items: center; justify-content: center;
   font-size: 14px; font-weight: 700; color: var(--text-secondary);
 }
@@ -1601,18 +1658,21 @@ body.no-anim .friend-item { animation: none !important; }
 .in-app-notif-badge {
   position: absolute; top: 0; left: 0; width: 3px; height: 100%;
 }
-.in-app-notif.mention .in-app-notif-badge { background: var(--success); }
-.in-app-notif.message .in-app-notif-badge { background: var(--accent); }
-.in-app-notif.dm .in-app-notif-badge { background: #a855f7; }
-.in-app-notif.reply .in-app-notif-badge { background: #facc15; }
-.in-app-notif.system .in-app-notif-badge { background: var(--text-muted); }
+.in-app-notif.mention .in-app-notif-badge { background: linear-gradient(180deg, var(--success), #4ade80); }
+.in-app-notif.message .in-app-notif-badge { background: linear-gradient(180deg, var(--accent), #93c5fd); }
+.in-app-notif.dm .in-app-notif-badge { background: linear-gradient(180deg, #a855f7, #c084fc); }
+.in-app-notif.reply .in-app-notif-badge { background: linear-gradient(180deg, #facc15, #fde047); }
+.in-app-notif.system .in-app-notif-badge { background: linear-gradient(180deg, var(--text-muted), #9ca3af); }
 .in-app-notif-icon {
-  width: 32px; height: 32px; border-radius: 8px; flex-shrink: 0;
+  width: 34px; height: 34px; border-radius: 10px; flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
 }
-.in-app-notif.mention .in-app-notif-icon { background: rgba(34,197,94,0.15); color: var(--success); }
-.in-app-notif.message .in-app-notif-icon { background: rgba(74,158,255,0.15); color: var(--accent); }
-.in-app-notif.dm .in-app-notif-icon { background: rgba(168,85,247,0.15); color: #a855f7; }
+.in-app-notif.mention .in-app-notif-icon { background: rgba(34,197,94,0.14); color: var(--success); }
+.in-app-notif.message .in-app-notif-icon { background: rgba(74,158,255,0.14); color: var(--accent); }
+.in-app-notif.dm .in-app-notif-icon { background: rgba(168,85,247,0.14); color: #a855f7; }
+.in-app-notif.reply .in-app-notif-icon { background: rgba(250,204,21,0.14); color: #facc15; }
+.in-app-notif.fade-out { animation: notifOut 0.3s ease forwards; }
+@keyframes notifOut { from { opacity: 1; transform: translateY(0) scale(1); } to { opacity: 0; transform: translateX(40px) scale(0.95); } }
 /* Persistent (DM) notifications stay until clicked — add a subtle live dot */
 .in-app-notif.persist { border-color: rgba(168,85,247,0.35); }
 .in-app-notif.persist .in-app-notif-badge { animation: notifPulse 1.8s ease-in-out infinite; }
@@ -1628,7 +1688,6 @@ body.no-anim .friend-item { animation: none !important; }
 }
 .in-app-notif.persist.show-count .in-app-notif-dm-count { display: inline-flex; }
 .in-app-notif.persist.show-count .toast-close { right: 54px; }
-.in-app-notif.reply .in-app-notif-icon { background: rgba(250,204,21,0.15); color: #facc15; }
 .in-app-notif-icon svg { width: 17px; height: 17px; }
 .file-attachment-preview {
   display: none; align-items: center; gap: 10px;
@@ -3451,34 +3510,36 @@ body.no-anim .friend-item { animation: none !important; }
 }
 .toast {
   pointer-events: auto;
-  padding: 13px 18px 13px 16px; background: var(--bg-light); border: 1px solid var(--border-light);
-  border-radius: 12px; color: var(--text-primary); font-size: 13px; font-weight: 500;
-  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35); animation: toastIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  padding: 13px 18px 13px 16px; background: rgba(18, 20, 24, 0.82); border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 14px; color: var(--text-primary); font-size: 13px; font-weight: 500;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.45); animation: toastIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
   display: flex; align-items: center; gap: 11px; width: 100%; box-sizing: border-box;
-  position: relative; overflow: hidden; cursor: pointer; backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  position: relative; overflow: hidden; cursor: pointer;
+  backdrop-filter: blur(20px) saturate(1.6); -webkit-backdrop-filter: blur(20px) saturate(1.6);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
-.toast-icon { flex-shrink: 0; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; }
-.toast-icon svg { width: 20px; height: 20px; }
+.toast:hover { transform: translateY(-2px); box-shadow: 0 14px 48px rgba(0, 0, 0, 0.55); }
+.toast-icon { flex-shrink: 0; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 8px; }
+.toast-icon svg { width: 18px; height: 18px; }
 .toast-msg { flex: 1; min-width: 0; line-height: 1.4; }
-.toast-close { flex-shrink: 0; opacity: 0.5; font-size: 16px; line-height: 1; padding: 2px 4px; border-radius: 4px; transition: opacity 0.15s; }
+.toast-close { flex-shrink: 0; opacity: 0.5; font-size: 16px; line-height: 1; padding: 2px 4px; border-radius: 4px; transition: opacity 0.15s; background: none; border: none; color: var(--text-muted); cursor: pointer; }
 .toast-close:hover { opacity: 1; }
 .toast-progress {
-  position: absolute; bottom: 0; left: 0; height: 3px; border-radius: 0 0 0 12px;
+  position: absolute; bottom: 0; left: 0; height: 3px; border-radius: 0 0 0 14px;
   animation: toastProgress 4s linear forwards;
 }
 .toast.success { border-left: 3px solid var(--success); }
-.toast.success .toast-icon { color: var(--success); }
-.toast.success .toast-progress { background: var(--success); }
+.toast.success .toast-icon { color: var(--success); background: rgba(34,197,94,0.12); }
+.toast.success .toast-progress { background: linear-gradient(90deg, var(--success), #4ade80); }
 .toast.error { border-left: 3px solid var(--danger); }
-.toast.error .toast-icon { color: var(--danger); }
-.toast.error .toast-progress { background: var(--danger); }
+.toast.error .toast-icon { color: var(--danger); background: rgba(239,68,68,0.12); }
+.toast.error .toast-progress { background: linear-gradient(90deg, var(--danger), #f87171); }
 .toast.info { border-left: 3px solid var(--accent); }
-.toast.info .toast-icon { color: var(--accent); }
-.toast.info .toast-progress { background: var(--accent); }
+.toast.info .toast-icon { color: var(--accent); background: rgba(74,158,255,0.12); }
+.toast.info .toast-progress { background: linear-gradient(90deg, var(--accent), #93c5fd); }
 .toast.warning { border-left: 3px solid #f0ad4e; }
-.toast.warning .toast-icon { color: #f0ad4e; }
-.toast.warning .toast-progress { background: #f0ad4e; }
+.toast.warning .toast-icon { color: #f0ad4e; background: rgba(240,173,78,0.12); }
+.toast.warning .toast-progress { background: linear-gradient(90deg, #f0ad4e, #fbbf24); }
 .toast.fade-out { animation: toastOut 0.3s ease forwards; }
 @keyframes toastIn { from { opacity: 0; transform: translateY(20px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
 @keyframes toastOut { from { opacity: 1; transform: translateY(0) scale(1); } to { opacity: 0; transform: translateY(20px) scale(0.95); } }
@@ -3494,23 +3555,24 @@ body.no-anim .friend-item { animation: none !important; }
   pointer-events: auto;
   width: 100%; box-sizing: border-box;
   padding: 14px 18px 14px 16px;
-  background: var(--bg-medium);
-  border: 1px solid var(--border-light);
+  background: rgba(18, 20, 24, 0.82);
+  border: 1px solid rgba(255,255,255,0.08);
   border-left: 3px solid var(--accent);
-  border-radius: 10px;
+  border-radius: 14px;
   color: var(--text-primary);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.45);
   display: flex; gap: 12px; align-items: flex-start;
   animation: alertIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  backdrop-filter: blur(20px) saturate(1.6); -webkit-backdrop-filter: blur(20px) saturate(1.6);
 }
-.system-alert.fade-out { animation: alertFadeOut 1.5s ease forwards; }
+.system-alert.fade-out { animation: alertFadeOut 0.4s ease forwards; }
 @keyframes alertIn {
-  from { opacity: 0; transform: translateY(-16px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: translateY(-16px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
 }
 @keyframes alertFadeOut {
-  from { opacity: 1; transform: translateY(0); }
-  to   { opacity: 0; transform: translateY(-12px); }
+  from { opacity: 1; transform: translateY(0) scale(1); }
+  to   { opacity: 0; transform: translateY(-16px) scale(0.97); }
 }
 .system-alert-body { flex: 1; min-width: 0; }
 .system-alert-label {
@@ -3546,11 +3608,13 @@ body.no-anim .friend-item { animation: none !important; }
 /* Tablet — slightly smaller sidebar */
 @media (max-width: 900px) {
   #chat-app.active { grid-template-columns: 260px 1fr; }
+  .members-bg-layer { width: 260px; }
 }
 
 /* Mobile — sidebar becomes overlay, chat takes full width */
 @media (max-width: 768px) {
   #chat-app.active { grid-template-columns: 1fr; }
+  .members-bg-layer { width: 280px; max-width: 85vw; }
   .sidebar {
     display: none; position: fixed; top: 0; left: 0; bottom: 0;
     width: 280px; max-width: 85vw; z-index: 150;
@@ -4681,6 +4745,7 @@ body.no-anim .friend-item { animation: none !important; }
       <div class="chat-input-area">
         <div class="reply-preview" id="reply-preview" style="display:none;">
           <div class="reply-preview-bar"></div>
+          <div class="reply-preview-avatar" id="reply-preview-avatar"></div>
           <div class="reply-preview-content">
             <div class="reply-preview-label">Replying to <span id="reply-preview-name"></span></div>
             <div class="reply-preview-text" id="reply-preview-text"></div>
@@ -4801,6 +4866,15 @@ body.no-anim .friend-item { animation: none !important; }
 
   <!-- ===================== CONTEXT MENU ===================== -->
   <div class="context-menu" id="context-menu"></div>
+
+  <!-- ===================== MENTION HOVER TOOLTIP ===================== -->
+  <div class="mention-tooltip" id="mention-tooltip">
+    <div class="mention-tooltip-avatar" id="mention-tooltip-avatar"></div>
+    <div class="mention-tooltip-info">
+      <div class="mention-tooltip-name" id="mention-tooltip-name"></div>
+      <div class="mention-tooltip-handle" id="mention-tooltip-handle"></div>
+    </div>
+  </div>
 
   <!-- ===================== MESSAGE SEARCH PANEL ===================== -->
   <div id="search-msg-panel">
@@ -5457,7 +5531,7 @@ body.no-anim .friend-item { animation: none !important; }
         <section class="settings-v2-pane" data-settings-pane="admin">
           <div class="settings-v2-pane-head">
             <h4>Administrator Panel</h4>
-            <p>Manage users, roles, badges, bans and whitelist access. <span style="font-size:11px; color:var(--text-muted);">Owner: <strong style="color:var(--text-secondary);">@lore</strong></span></p>
+            <p>Manage users, roles, badges, bans &amp; whitelist. <span style="font-size:11px; color:var(--text-muted);">Owner: <strong style="color:var(--text-secondary);">@lore</strong></span></p>
           </div>
           <div id="admin-access-denied" style="display:none; text-align:center; padding:40px 20px;">
                         <h3 style="color:var(--accent); margin-bottom:8px;">Admin Code Required</h3>
@@ -5799,6 +5873,7 @@ body.no-anim .friend-item { animation: none !important; }
       <div class="dm-input-area">
         <div class="reply-preview" id="dm-reply-preview" style="display:none;">
           <div class="reply-preview-bar"></div>
+          <div class="reply-preview-avatar" id="dm-reply-preview-avatar"></div>
           <div class="reply-preview-content">
             <div class="reply-preview-label">Replying to <span id="dm-reply-preview-name"></span></div>
             <div class="reply-preview-text" id="dm-reply-preview-text"></div>
@@ -6332,6 +6407,34 @@ function playMessageSound() {
   } catch(e) {}
 }
 
+// Distinct two-tone "ping" sound for when the current user is mentioned.
+// Higher and more attention-grabbing than the regular message sound.
+function playPingSound() {
+  if (!currentUser || currentUser.messageSounds === false) return;
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const now = audioCtx.currentTime;
+    // First tone — quick high chirp
+    const osc1 = audioCtx.createOscillator();
+    const gain1 = audioCtx.createGain();
+    osc1.connect(gain1); gain1.connect(audioCtx.destination);
+    osc1.frequency.value = 1046; // C6
+    osc1.type = 'sine';
+    gain1.gain.setValueAtTime(0.10, now);
+    gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+    osc1.start(now); osc1.stop(now + 0.12);
+    // Second tone — slightly higher, delayed
+    const osc2 = audioCtx.createOscillator();
+    const gain2 = audioCtx.createGain();
+    osc2.connect(gain2); gain2.connect(audioCtx.destination);
+    osc2.frequency.value = 1318; // E6
+    osc2.type = 'sine';
+    gain2.gain.setValueAtTime(0.08, now + 0.08);
+    gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
+    osc2.start(now + 0.08); osc2.stop(now + 0.28);
+  } catch(e) {}
+}
+
 // ---------- Helpers ----------
 function escapeHtml(text) {
   const div = document.createElement('div');
@@ -6372,6 +6475,66 @@ function extractMentions(text) {
     if (atIdx >= 0) set.add(m.slice(atIdx + 1).toLowerCase());
   });
   return Array.from(set);
+}
+
+// ---------- Mention hover tooltip ----------
+let mentionTooltipTimer = null;
+function showMentionTooltip(username, anchorEl) {
+  const u = users.find(x => x.username.toLowerCase() === username.toLowerCase());
+  if (!u) return; // only show for known users
+  const tip = $('mention-tooltip');
+  const avEl = $('mention-tooltip-avatar');
+  // Build avatar
+  avEl.innerHTML = '';
+  if (u.avatar) {
+    const img = document.createElement('img');
+    img.src = u.avatar; img.alt = u.username;
+    avEl.appendChild(img);
+  } else {
+    avEl.textContent = getInitials(u.username);
+  }
+  // Status dot
+  const status = document.createElement('span');
+  status.className = 'mention-tooltip-status ' + (u.status || 'offline');
+  avEl.appendChild(status);
+  // Name + handle
+  $('mention-tooltip-name').textContent = u.displayName || u.username;
+  $('mention-tooltip-handle').textContent = '@' + u.username;
+  // Position above the anchor element
+  const rect = anchorEl.getBoundingClientRect();
+  tip.classList.add('show');
+  const tipRect = tip.getBoundingClientRect();
+  let left = rect.left + rect.width / 2 - tipRect.width / 2;
+  let top = rect.top - tipRect.height - 8;
+  // Clamp to viewport
+  if (left < 8) left = 8;
+  if (left + tipRect.width > window.innerWidth - 8) left = window.innerWidth - 8 - tipRect.width;
+  if (top < 8) top = rect.bottom + 8; // flip below if no room above
+  tip.style.left = left + 'px';
+  tip.style.top = top + 'px';
+}
+function hideMentionTooltip() {
+  $('mention-tooltip').classList.remove('show');
+}
+// Attach click + hover tooltip events to all mention spans within a container
+function attachMentionEvents(container) {
+  container.querySelectorAll('.mention-highlight').forEach(el => {
+    if (el.dataset.mentionWired) return; // avoid double-binding
+    el.dataset.mentionWired = '1';
+    const uname = el.getAttribute('data-mention');
+    el.addEventListener('click', (ev) => {
+      ev.stopPropagation();
+      if (uname) openProfileView(uname);
+    });
+    el.addEventListener('mouseenter', () => {
+      clearTimeout(mentionTooltipTimer);
+      mentionTooltipTimer = setTimeout(() => showMentionTooltip(uname, el), 350);
+    });
+    el.addEventListener('mouseleave', () => {
+      clearTimeout(mentionTooltipTimer);
+      hideMentionTooltip();
+    });
+  });
 }
 // Render bio text with clickable links. URLs (http/https/www) become <a> tags
 // that open in a new tab (NOT embedded previews). Everything else is escaped.
@@ -7318,7 +7481,7 @@ function connectSocket() {
     appendMessage(msg);
     hideEmptyState();
     scrollToBottom();
-    playMessageSound();
+    if (msg.pingedForMe) playPingSound(); else playMessageSound();
     // Desktop notification when not focused
     if (msg.username !== currentUser.username) {
       const user = users.find(u => u.username === msg.username);
@@ -7337,6 +7500,7 @@ function connectSocket() {
     const isChatFocused = document.hasFocus() && document.getElementById('chat-page') && document.getElementById('chat-page').classList.contains('active');
     if (!isChatFocused || (data.from !== (currentUser && currentUser.username))) {
       showInAppNotification({ title: name + ' mentioned you', text: data.text, avatar: user && user.avatar, type: 'mention', username: data.from, onClick: () => switchSidebarView('public') });
+      playPingSound();
     }
     // Mark the message so it gets the pinged highlight when rendered
     if (data.messageId) {
@@ -7654,7 +7818,7 @@ function appendMessage(msg, silent) {
       const items = [{ label: 'Reply to message', icon: 'reply', action: () => startReply(msg) }];
       if (!isOwn) {
         items.push({ label: 'View Profile', icon: 'user', action: () => openProfileView(msg.username) });
-        items.push({ label: 'DM user', icon: 'dm', action: () => {
+        items.push({ label: 'Send Message', icon: 'dm', action: () => {
           const target = users.find(x => x.username === msg.username);
           const otherOff = target && target.directMessagesEnabled === false;
           if (otherOff) { toast('@' + msg.username + ' has disabled direct messages and is not accepting private messages.', 'error'); return; }
@@ -7681,7 +7845,7 @@ function appendMessage(msg, silent) {
       const items = [{ label: 'Reply to message', icon: 'reply', action: () => startReply(msg) }];
       if (!isOwn) {
         items.push({ label: 'View Profile', icon: 'user', action: () => openProfileView(msg.username) });
-        items.push({ label: 'DM user', icon: 'dm', action: () => {
+        items.push({ label: 'Send Message', icon: 'dm', action: () => {
           const target = users.find(x => x.username === msg.username);
           const otherOff = target && target.directMessagesEnabled === false;
           if (otherOff) { toast('@' + msg.username + ' has disabled direct messages and is not accepting private messages.', 'error'); return; }
@@ -7711,10 +7875,8 @@ function appendMessage(msg, silent) {
       bubble.appendChild(textSpan);
       // Add pinged class if this message mentions the current user
       if (msg.pingedForMe) bubble.classList.add('pinged-msg');
-      // Make mention spans clickable to open profile
-      textSpan.querySelectorAll('.mention-highlight').forEach(el => {
-        el.addEventListener('click', () => { const u = el.getAttribute('data-mention'); if (u) openProfileView(u); });
-      });
+      // Make mention spans clickable to open profile + hover tooltip
+      attachMentionEvents(textSpan);
       // Embed links
       textSpan.querySelectorAll('.link-embed').forEach(el => fetchEmbed(el.dataset.url, el));
     }
@@ -7759,7 +7921,7 @@ function appendMessage(msg, silent) {
     // For other users' messages, add reply context menu on bubble too
     const otherCtxItems = [
       { label: 'Reply to message', icon: 'reply', action: () => startReply(msg) },
-      { label: 'DM user', icon: 'dm', action: () => {
+      { label: 'Send Message', icon: 'dm', action: () => {
         const target = users.find(x => x.username === msg.username);
         const otherOff = target && target.directMessagesEnabled === false;
         if (otherOff) { toast('@' + msg.username + ' has disabled direct messages and is not accepting private messages.', 'error'); return; }
@@ -7957,6 +8119,11 @@ chatInput.addEventListener('input', () => {
 });
 chatInput.addEventListener('keydown', (e) => {
   if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); if (recordSpamClick()) return; sendMessage(); }
+  // Escape cancels an active reply (only if mention dropdown is closed)
+  if (e.key === 'Escape' && replyingTo && (!chatMentionDropdown || !chatMentionDropdown.classList.contains('show'))) {
+    e.preventDefault();
+    cancelReply();
+  }
 });
 sendBtn.addEventListener('click', () => {
   if (recordSpamClick()) return;
@@ -9605,9 +9772,7 @@ function appendDMMessage(msg, silent) {
       textSpan.innerHTML = highlightMentions(linkifyAndEmbed(escapeHtml(msg.text)));
       bubble.appendChild(textSpan);
       if (msg.pingedForMe) bubble.classList.add('pinged-msg');
-      textSpan.querySelectorAll('.mention-highlight').forEach(el => {
-        el.addEventListener('click', () => { const u = el.getAttribute('data-mention'); if (u) openProfileView(u); });
-      });
+      attachMentionEvents(textSpan);
       textSpan.querySelectorAll('.link-embed').forEach(el => fetchEmbed(el.dataset.url, el));
     }
     if (msg.file) bubble.appendChild(createFileElement(msg.file));
@@ -9726,6 +9891,11 @@ dmInputEl.addEventListener('input', () => {
 });
 dmInputEl.addEventListener('keydown', (e) => {
   if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); if (recordSpamClick()) return; sendDM(); }
+  // Escape cancels an active DM reply (only if mention dropdown is closed)
+  if (e.key === 'Escape' && replyingToDM && (!dmMentionDropdown || !dmMentionDropdown.classList.contains('show'))) {
+    e.preventDefault();
+    cancelDMReply();
+  }
 });
 dmSendBtn.addEventListener('click', () => {
   if (recordSpamClick()) return;
@@ -10204,6 +10374,13 @@ function startReply(msg) {
   const preview = $('reply-preview');
   $('reply-preview-name').textContent = replyingTo.displayName ? replyingTo.displayName : '@' + replyingTo.username;
   $('reply-preview-text').textContent = replyingTo.text || '';
+  // Populate the reply preview avatar
+  const avEl = $('reply-preview-avatar');
+  if (avEl) {
+    const replyUser = users.find(u => u.username === msg.username) || {};
+    if (replyUser.avatar) avEl.innerHTML = '<img src="' + replyUser.avatar + '">';
+    else avEl.textContent = getInitials(msg.username);
+  }
   preview.style.display = 'flex';
   chatInput.focus();
 }
@@ -10215,11 +10392,19 @@ function startDMReply(msg) {
   replyingToDM = {
     id: msg.id,
     username: msg.from,
+    displayName: msg.displayName || (users.find(u => u.username === msg.from) || {}).displayName || '',
     text: msg.text || (msg.file ? '[File attachment]' : '')
   };
   const preview = $('dm-reply-preview');
-  $('dm-reply-preview-name').textContent = '@' + replyingToDM.username;
+  $('dm-reply-preview-name').textContent = replyingToDM.displayName ? replyingToDM.displayName : '@' + replyingToDM.username;
   $('dm-reply-preview-text').textContent = replyingToDM.text || '';
+  // Populate the DM reply preview avatar
+  const avEl = $('dm-reply-preview-avatar');
+  if (avEl) {
+    const replyUser = users.find(u => u.username === msg.from) || {};
+    if (replyUser.avatar) avEl.innerHTML = '<img src="' + replyUser.avatar + '">';
+    else avEl.textContent = getInitials(msg.from);
+  }
   preview.style.display = 'flex';
   dmInputEl.focus();
 }
@@ -10233,14 +10418,34 @@ function createReplyQuote(reply) {
   if (!reply) return null;
   const quote = document.createElement('div');
   quote.className = 'reply-quote';
+  // Build avatar (image if the user has one, otherwise initials)
+  const replyUser = users.find(u => u.username === reply.username) || {};
+  const avatarDiv = document.createElement('div');
+  avatarDiv.className = 'reply-quote-avatar';
+  if (replyUser.avatar) {
+    const avatarImg = document.createElement('img');
+    avatarImg.src = replyUser.avatar; avatarImg.alt = reply.username;
+    avatarDiv.appendChild(avatarImg);
+  } else {
+    avatarDiv.textContent = getInitials(reply.username);
+  }
+  const contentDiv = document.createElement('div');
+  contentDiv.className = 'reply-quote-content';
   const sender = document.createElement('span');
   sender.className = 'reply-quote-sender';
   sender.textContent = (reply.displayName ? reply.displayName : '@' + reply.username) + ':';
   const text = document.createElement('span');
   text.className = 'reply-quote-text';
   text.textContent = reply.text || '';
-  quote.appendChild(sender);
-  quote.appendChild(text);
+  contentDiv.appendChild(sender);
+  contentDiv.appendChild(text);
+  // Jump-to-message icon
+  const jumpIcon = document.createElement('span');
+  jumpIcon.className = 'reply-quote-jump';
+  jumpIcon.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg>';
+  quote.appendChild(avatarDiv);
+  quote.appendChild(contentDiv);
+  quote.appendChild(jumpIcon);
   // Scroll to original message on click
   if (reply.id) {
     quote.addEventListener('click', () => {
@@ -11326,10 +11531,51 @@ $('displayname-save').addEventListener('click', async () => {
   try {
     const res = await fetch(API_BASE + '/api/settings/display-name', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ displayName: dn }) });
     const data = await res.json();
-    if (res.ok) { toast('Display name has been updated.', 'success'); currentUser.displayName = dn; updateSidebarSelf(); }
-    else toast(data.error || 'Unable to complete the request. Please try again.', 'error');
-  } catch(e) { toast('Unable to complete the request. Please try again.', 'error'); }
-  btn.disabled = false; btn.classList.remove('saving'); btn.textContent = 'Update Display Name';
+    if (res.ok) {
+      toast('Display name has been updated.', 'success');
+      currentUser.displayName = dn; updateSidebarSelf();
+      // Start the 5-second cooldown countdown on the button
+      let cooldown = 5;
+      btn.disabled = true;
+      btn.textContent = 'Wait ' + cooldown + 's';
+      const cooldownInterval = setInterval(() => {
+        cooldown--;
+        if (cooldown <= 0) {
+          clearInterval(cooldownInterval);
+          btn.disabled = false;
+          btn.classList.remove('saving');
+          btn.textContent = 'Update Display Name';
+        } else {
+          btn.textContent = 'Wait ' + cooldown + 's';
+        }
+      }, 1000);
+    } else {
+      // Handle cooldown rejection (HTTP 429) — show remaining seconds
+      if (res.status === 429 && data.cooldown) {
+        let cooldown = data.cooldown;
+        btn.disabled = true;
+        btn.textContent = 'Wait ' + cooldown + 's';
+        const cooldownInterval = setInterval(() => {
+          cooldown--;
+          if (cooldown <= 0) {
+            clearInterval(cooldownInterval);
+            btn.disabled = false;
+            btn.classList.remove('saving');
+            btn.textContent = 'Update Display Name';
+          } else {
+            btn.textContent = 'Wait ' + cooldown + 's';
+          }
+        }, 1000);
+        toast(data.error || 'Please wait before changing your display name again.', 'warning');
+      } else {
+        btn.disabled = false; btn.classList.remove('saving'); btn.textContent = 'Update Display Name';
+        toast(data.error || 'Unable to complete the request. Please try again.', 'error');
+      }
+    }
+  } catch(e) {
+    btn.disabled = false; btn.classList.remove('saving'); btn.textContent = 'Update Display Name';
+    toast('Unable to complete the request. Please try again.', 'error');
+  }
 });
 $('username-save').addEventListener('click', async () => {
   const newUn = $('new-username-input').value.trim().toLowerCase();
