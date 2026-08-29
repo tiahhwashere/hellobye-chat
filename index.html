@@ -3361,56 +3361,54 @@ body.no-anim .friend-item { animation: none !important; }
 }
 .toast {
   pointer-events: auto;
-  padding: 13px 18px 13px 16px; background: rgba(18, 20, 24, 0.88); border: 1px solid rgba(255,255,255,0.07);
-  border-radius: 12px; color: var(--text-primary); font-size: 13px; font-weight: 500; letter-spacing: 0.1px;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5); animation: toastIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  display: flex; align-items: center; gap: 11px; width: 100%; box-sizing: border-box;
+  padding: 11px 15px 11px 14px; background: var(--bg-dark); border: 1px solid var(--border);
+  border-radius: 8px; color: var(--text-primary); font-size: 13px; font-weight: 500; letter-spacing: 0;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4); animation: toastIn 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex; align-items: center; gap: 10px; width: 100%; box-sizing: border-box;
   position: relative; overflow: hidden; cursor: pointer;
-  backdrop-filter: blur(24px) saturate(1.4); -webkit-backdrop-filter: blur(24px) saturate(1.4);
-  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  transition: border-color 0.15s ease;
 }
-.toast:hover { transform: translateY(-1px); box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6); }
-.toast-icon { flex-shrink: 0; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; border-radius: 7px; }
-.toast-icon svg { width: 16px; height: 16px; stroke-width: 2.2; }
-.toast-msg { flex: 1; min-width: 0; line-height: 1.45; }
-.toast-close { flex-shrink: 0; opacity: 0.45; font-size: 15px; line-height: 1; padding: 2px 4px; border-radius: 4px; transition: opacity 0.15s; background: none; border: none; color: var(--text-muted); cursor: pointer; }
+.toast:hover { border-color: var(--border-light); }
+.toast-icon { flex-shrink: 0; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; border-radius: 5px; }
+.toast-icon svg { width: 14px; height: 14px; stroke-width: 2.2; }
+.toast-msg { flex: 1; min-width: 0; line-height: 1.4; }
+.toast-close { flex-shrink: 0; opacity: 0.4; font-size: 14px; line-height: 1; padding: 2px 4px; border-radius: 4px; transition: opacity 0.15s; background: none; border: none; color: var(--text-muted); cursor: pointer; }
 .toast-close:hover { opacity: 1; }
 .toast-progress {
   position: absolute; bottom: 0; left: 0; height: 2px; border-radius: 0;
   animation: toastProgress 4s linear forwards;
 }
 .toast.success { border-left: 3px solid var(--success); }
-.toast.success .toast-icon { color: var(--success); background: rgba(59,165,93,0.14); }
-.toast.success .toast-progress { background: var(--success); opacity: 0.7; }
+.toast.success .toast-icon { color: var(--success); background: rgba(59,165,93,0.12); }
+.toast.success .toast-progress { background: var(--success); opacity: 0.5; }
 .toast.error { border-left: 3px solid var(--danger); }
-.toast.error .toast-icon { color: var(--danger); background: rgba(216,58,58,0.14); }
-.toast.error .toast-progress { background: var(--danger); opacity: 0.7; }
+.toast.error .toast-icon { color: var(--danger); background: rgba(216,58,58,0.12); }
+.toast.error .toast-progress { background: var(--danger); opacity: 0.5; }
 .toast.info { border-left: 3px solid var(--accent); }
-.toast.info .toast-icon { color: var(--accent); background: rgba(74,158,255,0.14); }
-.toast.info .toast-progress { background: var(--accent); opacity: 0.7; }
+.toast.info .toast-icon { color: var(--accent); background: rgba(74,158,255,0.12); }
+.toast.info .toast-progress { background: var(--accent); opacity: 0.5; }
 .toast.warning { border-left: 3px solid #d4a017; }
-.toast.warning .toast-icon { color: #d4a017; background: rgba(212,160,23,0.14); }
-.toast.warning .toast-progress { background: #d4a017; opacity: 0.7; }
+.toast.warning .toast-icon { color: #d4a017; background: rgba(212,160,23,0.12); }
+.toast.warning .toast-progress { background: #d4a017; opacity: 0.5; }
 /* Premium confirmation toast — used for profile picture / banner updates.
    A more refined, professional confirmation card (not cartoony): subtle
    gradient accent bar, larger refined icon badge, slightly wider. */
 .toast.confirm {
-  border: 1px solid rgba(59,165,93,0.22); border-left: 3px solid var(--success);
-  background: linear-gradient(90deg, rgba(59,165,93,0.10), rgba(18,20,24,0.92) 30%);
-  border-radius: 12px; padding: 14px 18px;
-  box-shadow: 0 10px 36px rgba(0,0,0,0.55), 0 0 0 1px rgba(59,165,93,0.04) inset;
+  border: 1px solid rgba(59,165,93,0.18); border-left: 3px solid var(--success);
+  background: linear-gradient(90deg, rgba(59,165,93,0.08), var(--bg-dark) 40%);
+  border-radius: 8px; padding: 12px 16px;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.45);
 }
 .toast.confirm .toast-icon {
-  width: 30px; height: 30px; border-radius: 9px;
-  color: var(--success); background: rgba(59,165,93,0.16);
-  box-shadow: 0 0 0 4px rgba(59,165,93,0.06);
+  width: 26px; height: 26px; border-radius: 7px;
+  color: var(--success); background: rgba(59,165,93,0.14);
 }
-.toast.confirm .toast-icon svg { width: 17px; height: 17px; stroke-width: 2.4; }
-.toast.confirm .toast-msg { font-weight: 600; font-size: 13.5px; letter-spacing: 0.12px; }
-.toast.confirm .toast-progress { background: var(--success); opacity: 0.55; height: 2px; }
-.toast.fade-out { animation: toastOut 0.3s ease forwards; }
-@keyframes toastIn { from { opacity: 0; transform: translateY(20px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
-@keyframes toastOut { from { opacity: 1; transform: translateY(0) scale(1); } to { opacity: 0; transform: translateY(20px) scale(0.95); } }
+.toast.confirm .toast-icon svg { width: 15px; height: 15px; stroke-width: 2.4; }
+.toast.confirm .toast-msg { font-weight: 600; font-size: 13px; }
+.toast.confirm .toast-progress { background: var(--success); opacity: 0.4; height: 2px; }
+.toast.fade-out { animation: toastOut 0.25s ease forwards; }
+@keyframes toastIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes toastOut { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(12px); } }
 @keyframes toastProgress { from { width: 100%; } to { width: 0%; } }
 
 /* ===== System Broadcast Alert (top-center, 5s then fade) ===== */
@@ -3940,11 +3938,12 @@ body.no-anim .friend-item { animation: none !important; }
   overflow-y: auto;
   padding: 16px;
   scrollbar-width: thin;
-  scrollbar-color: var(--bg-lighter) transparent;
+  scrollbar-color: #000 transparent;
 }
 .mini-profile-scroll::-webkit-scrollbar { width: 6px; }
 .mini-profile-scroll::-webkit-scrollbar-track { background: transparent; }
-.mini-profile-scroll::-webkit-scrollbar-thumb { background: var(--bg-lighter); border-radius: 3px; }
+.mini-profile-scroll::-webkit-scrollbar-thumb { background: #000; border-radius: 3px; }
+.mini-profile-scroll::-webkit-scrollbar-thumb:hover { background: #000; }
 
 /* Header: avatar + identity */
 .mini-profile-header {
@@ -12418,6 +12417,15 @@ function openMiniProfile() {
   // Apply the saved panel theme color to the entire mini popover.
   applyMiniProfileColor();
   captureSavedProfileImages();
+  // Restore the saved About Me textarea height (persisted across sessions).
+  const savedH = getMiniBioHeight();
+  if (savedH) {
+    const bioEl = $('mini-bio-input');
+    if (bioEl) bioEl.style.height = savedH + 'px';
+  }
+  // Arm the resize saver AFTER restoring, so the ResizeObserver's initial
+  // callback doesn't overwrite the saved height with the default.
+  if (typeof window._armBioResize === 'function') window._armBioResize();
   $('mini-profile-popover').classList.add('show');
 }
 function closeMiniProfile() {
@@ -12503,10 +12511,32 @@ async function saveMiniProfile(silent) {
 function initMiniProfileListeners() {
   // Bio input → dirty + counter
   const bioInput = $('mini-bio-input');
-  if (bioInput) bioInput.addEventListener('input', (e) => {
-    $('mini-bio-count').textContent = e.target.value.length;
-    markMiniProfileDirty();
-  });
+  if (bioInput) {
+    bioInput.addEventListener('input', (e) => {
+      $('mini-bio-count').textContent = e.target.value.length;
+      markMiniProfileDirty();
+    });
+    // Auto-save the textarea height when the user resizes it.
+    // We use a combination of mouseup/touchend (end of drag-resize) and a
+    // ResizeObserver (catches any height change from any cause). Both save
+    // immediately (no debounce) so the size is never lost.
+    // A flag prevents the ResizeObserver's initial callback from overwriting
+    // the saved value before openMiniProfile has a chance to restore it.
+    let bioResizeReady = false;
+    function saveBioH() {
+      if (!bioResizeReady) return;
+      saveMiniBioHeight(bioInput.offsetHeight);
+    }
+    document.addEventListener('mouseup', saveBioH);
+    document.addEventListener('touchend', saveBioH);
+    bioInput.addEventListener('blur', saveBioH);
+    if (typeof ResizeObserver !== 'undefined') {
+      const ro = new ResizeObserver(() => saveBioH());
+      ro.observe(bioInput);
+    }
+    // Expose the flag so openMiniProfile can arm it after restoring the height.
+    window._armBioResize = function() { bioResizeReady = true; };
+  }
   // Pronouns → dirty
   const pronInput = $('mini-pronouns-input');
   if (pronInput) pronInput.addEventListener('input', markMiniProfileDirty);
@@ -14422,6 +14452,23 @@ function settingsUser() {
 function bgKey() { return 'hellobye_bg_' + settingsUser(); }
 function colorKey() { return 'hellobye_color_' + settingsUser(); }
 function profileColorKey() { return 'hellobye_profile_color_' + settingsUser(); }
+function miniBioHeightKey() { return 'hellobye_mini_bio_height_' + settingsUser(); }
+
+// Save / restore the mini profile About Me textarea height so the user's
+// preferred size persists across logout, refresh, and re-login. Saved
+// immediately (no debounce) so it's never lost.
+function saveMiniBioHeight(px) {
+  try {
+    if (px && px > 0) localStorage.setItem(miniBioHeightKey(), String(Math.round(px)));
+    else localStorage.removeItem(miniBioHeightKey());
+  } catch(e) { /* non-fatal */ }
+}
+function getMiniBioHeight() {
+  try {
+    const v = parseInt(localStorage.getItem(miniBioHeightKey()), 10);
+    return (v && v > 0) ? v : null;
+  } catch(e) { return null; }
+}
 
 // Legacy keys for migration (old single-user keys)
 const LEGACY_BG = 'hellobye_bg_settings';

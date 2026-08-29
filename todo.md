@@ -1,15 +1,11 @@
-# Round 35: Revamp Message Bubble Chat UI
+# Round 36: Toast UI Polish + Mini Profile Scroll + Bio Size Persistence
 
 ## Tasks
-- [x] Revamp core message bubble CSS (bubble, avatar, sender, meta, actions, reply-quote, link-embed, file-embed, mention-highlight, replied-to-me)
-- [x] Update large-screen media query override (line ~3735)
-- [x] Update mid-range breakpoint (line ~3614 — no border-radius, inherits correctly)
-- [x] Update mobile breakpoint (line ~4277) — asymmetric border-radius
-- [x] Update second mobile breakpoint (line ~4589) — asymmetric border-radius
-- [x] Update touch-device hover override (line ~4610) — background change
-- [x] Verify compact mode override (line ~3785 — no border-radius, inherits correctly)
-- [x] Syntax-verify all `<script>` blocks
-- [x] Boot-test server (HTTP 200)
-- [x] Commit and push to GitHub (4d15f56f)
-- [x] Verify Render auto-deploy goes live
-- [x] Verify at https://hellobye-chat.onrender.com/ (HTTP 200)
+- [ ] 1. Restyle toast UI to be more simple/professional (affects Conversation closed, Direct messages off, Friend requests on/off, and all toasts)
+- [ ] 2. Make mini profile scrollbar all black
+- [ ] 3. Auto-save About Me textarea size — persist to localStorage per-user, restore on open, survive logout/refresh/relogin, no delay
+- [ ] 4. Syntax-verify all `<script>` blocks
+- [ ] 5. Boot-test server (HTTP 200)
+- [ ] 6. Commit and push to GitHub
+- [ ] 7. Verify Render auto-deploy goes live
+- [ ] 8. Verify at https://hellobye-chat.onrender.com/
