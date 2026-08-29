@@ -15289,6 +15289,38 @@ function darken(hex, amt) {
   const { r, g, b } = hexToRgb(hex);
   return rgbToHex(r * (1 - amt), g * (1 - amt), b * (1 - amt));
 }
+// Returns the relative luminance (0..1) of a hex color.
+function luminance(hex) {
+  const { r, g, b } = hexToRgb(hex);
+  return (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+}
+// Returns a readable text color (dark or white) for a given background hex.
+// Used so that light Panel Theme Colors (e.g. yellow, light blue) get dark
+// text while dark colors get white text — making the blend readable across
+// every possible color the user can pick.
+function readableText(bgHex) {
+  return luminance(bgHex) > 0.6 ? '#1a1a2e' : '#ffffff';
+}
+// Returns a translucent overlay color derived from the chosen Panel Theme
+// Color so inner cards / inputs / buttons BLEND with the panel instead of
+// looking like generic dark boxes. For dark panel colors we lighten toward
+// white; for light panel colors we darken toward black. The alpha keeps
+// the panel color showing through.
+function blendOverlay(hex, alpha) {
+  const { r, g, b } = hexToRgb(hex);
+  const lum = luminance(hex);
+  // Dark panel -> tint toward white (lighter); Light panel -> tint toward black (darker).
+  const tr = lum > 0.6 ? Math.round(r * (1 - alpha)) : Math.round(r + (255 - r) * alpha);
+  const tg = lum > 0.6 ? Math.round(g * (1 - alpha)) : Math.round(g + (255 - g) * alpha);
+  const tb = lum > 0.6 ? Math.round(b * (1 - alpha)) : Math.round(b + (255 - b) * alpha);
+  return 'rgba(' + tr + ', ' + tg + ', ' + tb + ', ' + (0.85) + ')';
+}
+// Returns a semi-transparent placeholder color that blends with the panel
+// theme color — darker than the readable text so placeholders stay muted.
+function placeholderColor(hex) {
+  const lum = luminance(hex);
+  return lum > 0.6 ? 'rgba(26,26,46,0.45)' : 'rgba(255,255,255,0.5)';
+}
 function applyColorSettings() {
   const s = getColorSettings();
   const accent = (s && s.accent) ? s.accent : defaultAccent;
@@ -15372,6 +15404,10 @@ function applyProfileColor() {
     '.profile-avatar-edit', '.profile-avatar-remove'
   ].join(', ');
 
+  // Compute luminance-aware text color ONCE so light Panel Theme Colors
+  // (yellow, light blue, etc.) get dark text while dark colors get white.
+  const txt = color ? readableText(color) : '#ffffff';
+
   if (color) {
     // Set accent CSS variables on the panel scope.
     panel.style.setProperty('--accent', color);
@@ -15380,8 +15416,8 @@ function applyProfileColor() {
     panel.style.setProperty('--accent-light', lighten(color, 0.3));
     const { r, g, b } = hexToRgb(color);
     panel.style.setProperty('--accent-glow', 'rgba(' + r + ', ' + g + ', ' + b + ', 0.12)');
-    // Always use white text on the colored background (not luminance-based).
-    panel.style.setProperty('--accent-text', '#ffffff');
+    // Luminance-aware text color so the blend is readable for every color.
+    panel.style.setProperty('--accent-text', txt);
 
     if (modal) {
       // Remove any previously-created accent bar (no longer needed).
@@ -15391,50 +15427,59 @@ function applyProfileColor() {
       modal.style.setProperty('background', color, 'important');
       modal.style.setProperty('border-color', color, 'important');
 
-      // Force ALL text inside the modal to white.
+      // Force ALL text inside the modal to the readable (luminance-aware) color.
       modal.querySelectorAll(textSelector).forEach(el => {
-        el.style.setProperty('color', '#ffffff', 'important');
+        el.style.setProperty('color', txt, 'important');
       });
 
-      // Keep clickable bio links blue (if any <a> tags exist in the panel).
+      // Keep clickable bio links a contrasting blue (if any <a> tags).
       modal.querySelectorAll('a').forEach(el => {
         el.style.setProperty('color', '#6fb5ff', 'important');
       });
 
-      // Inner cards / sections get a semi-transparent dark overlay so
-      // they remain distinguishable from the colored background while
-      // text stays white.
+      // Inner cards / sections get a TINTED overlay derived from the chosen
+      // color so they BLEND with the panel instead of generic dark boxes.
+      const cardBg = blendOverlay(color, 0.18);
+      const cardBorder = luminance(color) > 0.6
+        ? 'rgba(0,0,0,0.12)'
+        : 'rgba(255,255,255,0.18)';
       modal.querySelectorAll(
         '.profile-v2-header-card, .accent-section-card, .accent-preview-strip, .status-option'
       ).forEach(el => {
-        el.style.setProperty('background', 'rgba(0,0,0,0.22)', 'important');
-        el.style.setProperty('border-color', 'rgba(255,255,255,0.18)', 'important');
+        el.style.setProperty('background', cardBg, 'important');
+        el.style.setProperty('border-color', cardBorder, 'important');
       });
 
-      // Inputs and textareas keep a dark translucent background so they
-      // remain usable (white text on dark input field).
+      // Inputs and textareas get a tinted background that blends with the
+      // panel color, with readable text and a subtle matching border.
+      const inputBg = blendOverlay(color, 0.22);
+      const inputBorder = luminance(color) > 0.6
+        ? 'rgba(0,0,0,0.15)'
+        : 'rgba(255,255,255,0.22)';
       modal.querySelectorAll('input[type="text"], input[type="password"], textarea, select').forEach(el => {
-        el.style.setProperty('background', 'rgba(0,0,0,0.3)', 'important');
-        el.style.setProperty('color', '#ffffff', 'important');
-        el.style.setProperty('border-color', 'rgba(255,255,255,0.2)', 'important');
+        el.style.setProperty('background', inputBg, 'important');
+        el.style.setProperty('color', txt, 'important');
+        el.style.setProperty('border-color', inputBorder, 'important');
       });
 
-      // Placeholders — can't be set via inline styles, so inject a scoped
-      // <style> element that makes all placeholders semi-transparent white
-      // so they blend with the colored panel background.
+      // Placeholders — inject a scoped <style> so placeholders blend with
+      // the panel color (muted version of the readable text color).
       let phStyle = modal.querySelector('.panel-theme-placeholder-style');
       if (!phStyle) {
         phStyle = document.createElement('style');
         phStyle.className = 'panel-theme-placeholder-style';
         modal.appendChild(phStyle);
       }
-      phStyle.textContent = '#profile-panel input::placeholder, #profile-panel textarea::placeholder { color: rgba(255,255,255,0.5) !important; }';
+      const phCol = placeholderColor(color);
+      phStyle.textContent = '#profile-panel input::placeholder, #profile-panel textarea::placeholder { color: ' + phCol + ' !important; }';
 
-      // Banner/avatar edit & remove buttons — give them a dark translucent
-      // background + white border so they blend with the colored panel.
+      // Banner/avatar edit & remove buttons — tinted background that blends
+      // with the panel color, with readable text + matching border.
+      const btnBg = blendOverlay(color, 0.2);
       modal.querySelectorAll('.profile-banner-edit, .profile-banner-remove, .profile-avatar-edit, .profile-avatar-remove').forEach(el => {
-        el.style.setProperty('background', 'rgba(0,0,0,0.25)', 'important');
-        el.style.setProperty('border-color', 'rgba(255,255,255,0.2)', 'important');
+        el.style.setProperty('background', btnBg, 'important');
+        el.style.setProperty('border-color', inputBorder, 'important');
+        el.style.setProperty('color', txt, 'important');
       });
 
       // Accent buttons (Save, Update, etc.) — use the chosen color for the
@@ -15445,69 +15490,69 @@ function applyProfileColor() {
         el.style.setProperty('box-shadow', glowShadow, 'important');
       });
 
-      // The color picker swatch keeps its checkered background — don't
-      // override it, just make its border lighter.
+      // The color picker swatch keeps its checkered background — just make
+      // its border a subtle contrast that blends with the panel.
       const pickerSwatch = modal.querySelector('.accent-swatch-large');
       if (pickerSwatch) {
-        pickerSwatch.style.setProperty('border-color', 'rgba(255,255,255,0.3)', 'important');
+        pickerSwatch.style.setProperty('border-color', luminance(color) > 0.6 ? 'rgba(0,0,0,0.25)' : 'rgba(255,255,255,0.3)', 'important');
       }
 
-      // The X close button stays visible with white color.
+      // The X close button stays visible with the readable color.
       const closeBtn = modal.querySelector('.slide-panel-close');
       if (closeBtn) {
-        closeBtn.style.setProperty('color', '#ffffff', 'important');
+        closeBtn.style.setProperty('color', txt, 'important');
       }
 
       // The header and footer bars get a slightly darker shade of the
-      // chosen color for visual separation.
+      // chosen color for visual separation (blends, not a dark box).
       const header = modal.querySelector('.slide-panel-header');
       if (header) {
         header.style.setProperty('background', darken(color, 0.18), 'important');
-        header.style.setProperty('border-color', 'rgba(255,255,255,0.1)', 'important');
+        header.style.setProperty('border-color', luminance(color) > 0.6 ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.1)', 'important');
       }
       const footer = modal.querySelector('.profile-v2-footer');
       if (footer) {
         footer.style.setProperty('background', darken(color, 0.18), 'important');
-        footer.style.setProperty('border-color', 'rgba(255,255,255,0.1)', 'important');
+        footer.style.setProperty('border-color', luminance(color) > 0.6 ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.1)', 'important');
       }
 
-      // The banner placeholder text stays white.
+      // The banner placeholder text stays readable with a tinted bg.
       const bannerPlaceholder = modal.querySelector('.profile-banner-placeholder');
       if (bannerPlaceholder) {
-        bannerPlaceholder.style.setProperty('color', '#ffffff', 'important');
-        bannerPlaceholder.style.setProperty('background', 'rgba(0,0,0,0.25)', 'important');
+        bannerPlaceholder.style.setProperty('color', txt, 'important');
+        bannerPlaceholder.style.setProperty('background', btnBg, 'important');
       }
 
-      // Toggle slider track stays visible.
+      // Toggle slider track stays visible (tinted toward contrast).
       modal.querySelectorAll('.toggle-slider').forEach(el => {
-        el.style.setProperty('background', 'rgba(0,0,0,0.3)', 'important');
+        el.style.setProperty('background', luminance(color) > 0.6 ? 'rgba(0,0,0,0.22)' : 'rgba(0,0,0,0.3)', 'important');
       });
 
-      // Bio counter stays white.
+      // Bio counter stays a muted readable color.
       const bioCounter = modal.querySelector('.bio-counter');
       if (bioCounter) {
-        bioCounter.style.setProperty('color', 'rgba(255,255,255,0.7)', 'important');
+        bioCounter.style.setProperty('color', luminance(color) > 0.6 ? 'rgba(26,26,46,0.6)' : 'rgba(255,255,255,0.7)', 'important');
       }
 
-      // Profile user ID (muted) stays a lighter white.
+      // Profile user ID (muted) stays a muted readable color.
       const userId = modal.querySelector('.profile-userid');
       if (userId) {
-        userId.style.setProperty('color', 'rgba(255,255,255,0.6)', 'important');
+        userId.style.setProperty('color', luminance(color) > 0.6 ? 'rgba(26,26,46,0.55)' : 'rgba(255,255,255,0.6)', 'important');
       }
 
-      // Setting hints stay a lighter white.
+      // Setting hints stay a muted readable color.
       modal.querySelectorAll('.setting-hint').forEach(el => {
-        el.style.setProperty('color', 'rgba(255,255,255,0.65)', 'important');
+        el.style.setProperty('color', luminance(color) > 0.6 ? 'rgba(26,26,46,0.6)' : 'rgba(255,255,255,0.65)', 'important');
       });
 
-      // Custom bg label (Quick Colors label) stays a lighter white.
+      // Custom bg label (Quick Colors label) stays a muted readable color.
       modal.querySelectorAll('.custom-bg-label').forEach(el => {
-        el.style.setProperty('color', 'rgba(255,255,255,0.7)', 'important');
+        el.style.setProperty('color', luminance(color) > 0.6 ? 'rgba(26,26,46,0.65)' : 'rgba(255,255,255,0.7)', 'important');
       });
 
-      // Accent current label stays a lighter white.
+      // Accent current label stays a muted readable color.
       modal.querySelectorAll('.accent-current-label').forEach(el => {
-        el.style.setProperty('color', 'rgba(255,255,255,0.6)', 'important');
+        el.style.setProperty('color', luminance(color) > 0.6 ? 'rgba(26,26,46,0.55)' : 'rgba(255,255,255,0.6)', 'important');
       });
     }
 
@@ -15629,6 +15674,9 @@ function applyMiniProfileColor() {
     '.mini-accent-revert', '.mini-dirty-indicator'
   ].join(', ');
 
+  // Luminance-aware readable text color so the blend works for every color.
+  const mtxt = color ? readableText(color) : '#ffffff';
+
   if (color) {
     // Set accent CSS variables on the popover scope so toggles,
     // active status options, etc. use the chosen color.
@@ -15638,15 +15686,15 @@ function applyMiniProfileColor() {
     pop.style.setProperty('--accent-light', lighten(color, 0.3));
     const { r, g, b } = hexToRgb(color);
     pop.style.setProperty('--accent-glow', 'rgba(' + r + ', ' + g + ', ' + b + ', 0.15)');
-    pop.style.setProperty('--accent-text', '#ffffff');
+    pop.style.setProperty('--accent-text', mtxt);
 
     // Fill the entire popover background with the chosen color.
     pop.style.setProperty('background', color, 'important');
     pop.style.setProperty('border-color', color, 'important');
 
-    // Force ALL text inside the popover to white.
+    // Force ALL text inside the popover to the readable color.
     pop.querySelectorAll(textSelector).forEach(el => {
-      el.style.setProperty('color', '#ffffff', 'important');
+      el.style.setProperty('color', mtxt, 'important');
     });
 
     // Keep clickable links blue (if any).
@@ -15654,35 +15702,39 @@ function applyMiniProfileColor() {
       el.style.setProperty('color', '#6fb5ff', 'important');
     });
 
-    // Inner cards / sections get a semi-transparent dark overlay so
-    // they remain distinguishable from the colored background while
-    // text stays white. Also the status options.
+    // Inner cards / sections get a TINTED overlay derived from the chosen
+    // color so they BLEND with the popover instead of generic dark boxes.
+    const cardBg = blendOverlay(color, 0.16);
+    const cardBorder = luminance(color) > 0.6 ? 'rgba(0,0,0,0.12)' : 'rgba(255,255,255,0.15)';
     pop.querySelectorAll('.mini-profile-header, .mini-profile-section, .status-option').forEach(el => {
-      el.style.setProperty('background', 'rgba(0,0,0,0.18)', 'important');
-      el.style.setProperty('border-color', 'rgba(255,255,255,0.15)', 'important');
+      el.style.setProperty('background', cardBg, 'important');
+      el.style.setProperty('border-color', cardBorder, 'important');
     });
 
     // The scroll area itself stays the color background (no extra bg).
     const scroll = pop.querySelector('.mini-profile-scroll');
     if (scroll) scroll.style.setProperty('background', 'transparent', 'important');
 
-    // Inputs and textareas keep a dark translucent background so they
-    // remain usable (white text on dark input field).
+    // Inputs and textareas get a tinted background that blends with the
+    // panel color, with readable text + subtle matching border.
+    const inputBg = blendOverlay(color, 0.22);
+    const inputBorder = luminance(color) > 0.6 ? 'rgba(0,0,0,0.15)' : 'rgba(255,255,255,0.2)';
     pop.querySelectorAll('input[type="text"], textarea, select').forEach(el => {
-      el.style.setProperty('background', 'rgba(0,0,0,0.3)', 'important');
-      el.style.setProperty('color', '#ffffff', 'important');
-      el.style.setProperty('border-color', 'rgba(255,255,255,0.2)', 'important');
+      el.style.setProperty('background', inputBg, 'important');
+      el.style.setProperty('color', mtxt, 'important');
+      el.style.setProperty('border-color', inputBorder, 'important');
     });
 
-    // Placeholders — inject a scoped <style> so placeholders become
-    // semi-transparent white and blend with the colored popover background.
+    // Placeholders — inject a scoped <style> so placeholders blend with
+    // the popover color (muted version of the readable text color).
     let miniPhStyle = pop.querySelector('.panel-theme-placeholder-style');
     if (!miniPhStyle) {
       miniPhStyle = document.createElement('style');
       miniPhStyle.className = 'panel-theme-placeholder-style';
       pop.appendChild(miniPhStyle);
     }
-    miniPhStyle.textContent = '#mini-profile-popover input::placeholder, #mini-profile-popover textarea::placeholder { color: rgba(255,255,255,0.5) !important; }';
+    const miniPhCol = placeholderColor(color);
+    miniPhStyle.textContent = '#mini-profile-popover input::placeholder, #mini-profile-popover textarea::placeholder { color: ' + miniPhCol + ' !important; }';
 
     // The Save button — use the chosen color for its glow box-shadow.
     const { r: mr, g: mg, b: mb } = hexToRgb(color);
@@ -15692,63 +15744,64 @@ function applyMiniProfileColor() {
       miniSaveBtn.style.setProperty('box-shadow', miniGlow, 'important');
     }
 
-    // The color picker swatch border — lighter.
+    // The color picker swatch border — subtle contrast that blends.
     const pickerSwatch = pop.querySelector('.accent-swatch-large');
     if (pickerSwatch) {
-      pickerSwatch.style.setProperty('border-color', 'rgba(255,255,255,0.3)', 'important');
+      pickerSwatch.style.setProperty('border-color', luminance(color) > 0.6 ? 'rgba(0,0,0,0.25)' : 'rgba(255,255,255,0.3)', 'important');
     }
 
     // The footer bar gets a slightly darker shade of the chosen color.
     const footer = pop.querySelector('.mini-profile-footer');
     if (footer) {
       footer.style.setProperty('background', darken(color, 0.18), 'important');
-      footer.style.setProperty('border-color', 'rgba(255,255,255,0.1)', 'important');
+      footer.style.setProperty('border-color', luminance(color) > 0.6 ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.1)', 'important');
     }
 
-    // The header area gets a subtle dark overlay for separation.
+    // The header area gets a subtle border for separation.
     const header = pop.querySelector('.mini-profile-header');
     if (header) {
-      header.style.setProperty('border-color', 'rgba(255,255,255,0.12)', 'important');
+      header.style.setProperty('border-color', luminance(color) > 0.6 ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.12)', 'important');
     }
 
-    // Toggle slider track stays visible (dark).
+    // Toggle slider track stays visible (tinted toward contrast).
     pop.querySelectorAll('.toggle-slider').forEach(el => {
-      el.style.setProperty('background', 'rgba(0,0,0,0.3)', 'important');
+      el.style.setProperty('background', luminance(color) > 0.6 ? 'rgba(0,0,0,0.22)' : 'rgba(0,0,0,0.3)', 'important');
     });
 
-    // Bio counter stays a lighter white.
+    // Bio counter stays a muted readable color.
     pop.querySelectorAll('.bio-counter').forEach(el => {
-      el.style.setProperty('color', 'rgba(255,255,255,0.7)', 'important');
+      el.style.setProperty('color', luminance(color) > 0.6 ? 'rgba(26,26,46,0.6)' : 'rgba(255,255,255,0.7)', 'important');
     });
 
-    // Section titles stay a lighter white.
+    // Section titles stay a muted readable color.
     pop.querySelectorAll('.mini-profile-section-title').forEach(el => {
-      el.style.setProperty('color', 'rgba(255,255,255,0.65)', 'important');
+      el.style.setProperty('color', luminance(color) > 0.6 ? 'rgba(26,26,46,0.65)' : 'rgba(255,255,255,0.65)', 'important');
     });
 
-    // Status text stays a lighter white (overrides the status-color CSS).
+    // Status text stays a muted readable color (overrides status-color CSS).
     pop.querySelectorAll('.mini-profile-statustext').forEach(el => {
-      el.style.setProperty('color', 'rgba(255,255,255,0.8)', 'important');
+      el.style.setProperty('color', luminance(color) > 0.6 ? 'rgba(26,26,46,0.8)' : 'rgba(255,255,255,0.8)', 'important');
     });
 
-    // "Open Full Profile" button — dark translucent for contrast.
+    // "Open Full Profile" button — tinted background that blends with panel.
+    const btnBg = blendOverlay(color, 0.2);
     const fullBtn = pop.querySelector('.mini-open-full-btn');
     if (fullBtn) {
-      fullBtn.style.setProperty('background', 'rgba(0,0,0,0.25)', 'important');
-      fullBtn.style.setProperty('border-color', 'rgba(255,255,255,0.2)', 'important');
-      fullBtn.style.setProperty('color', '#ffffff', 'important');
+      fullBtn.style.setProperty('background', btnBg, 'important');
+      fullBtn.style.setProperty('border-color', inputBorder, 'important');
+      fullBtn.style.setProperty('color', mtxt, 'important');
     }
 
-    // "Reset" accent button — dark translucent.
+    // "Reset" accent button — tinted background that blends.
     pop.querySelectorAll('.mini-accent-revert').forEach(el => {
-      el.style.setProperty('background', 'rgba(0,0,0,0.25)', 'important');
-      el.style.setProperty('border-color', 'rgba(255,255,255,0.15)', 'important');
-      el.style.setProperty('color', 'rgba(255,255,255,0.8)', 'important');
+      el.style.setProperty('background', btnBg, 'important');
+      el.style.setProperty('border-color', luminance(color) > 0.6 ? 'rgba(0,0,0,0.15)' : 'rgba(255,255,255,0.15)', 'important');
+      el.style.setProperty('color', luminance(color) > 0.6 ? 'rgba(26,26,46,0.8)' : 'rgba(255,255,255,0.8)', 'important');
     });
 
-    // Accent preset swatches get a subtle ring.
+    // Accent preset swatches get a subtle ring that blends.
     pop.querySelectorAll('#mini-accent-presets .accent-preset').forEach(el => {
-      el.style.setProperty('border-color', 'rgba(255,255,255,0.25)', 'important');
+      el.style.setProperty('border-color', luminance(color) > 0.6 ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.25)', 'important');
     });
 
     // The arrow gets the same color.
@@ -15761,10 +15814,10 @@ function applyMiniProfileColor() {
     // Status option dots — keep their icon backgrounds intact (they use
     // background-image url, not background-color), so no override needed.
 
-    // Dirty indicator — amber stays amber for visibility, but text white.
+    // Dirty indicator — amber stays amber for visibility, but text readable.
     const dirtyInd = pop.querySelector('.mini-dirty-indicator');
     if (dirtyInd) {
-      dirtyInd.style.setProperty('color', '#ffffff', 'important');
+      dirtyInd.style.setProperty('color', mtxt, 'important');
     }
   } else {
     // Reset everything to defaults — remove all inline styles we applied.
