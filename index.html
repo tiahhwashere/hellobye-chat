@@ -8073,9 +8073,13 @@ function connectSocket() {
       if (mentions.includes(currentUser.username.toLowerCase())) msg.pingedForMe = true;
     }
     if (activeGroupId === gid) {
-      groupMessages.push(msg);
-      appendGroupMessage(msg);
-      scrollToBottomGroup();
+      // Dedup: skip if we already have this message (e.g. added via the
+      // group-send ack callback before the broadcast arrived).
+      if (!groupMessages.some(m => m.id === msg.id)) {
+        groupMessages.push(msg);
+        appendGroupMessage(msg);
+        scrollToBottomGroup();
+      }
     } else {
       playMessageSound();
     }
