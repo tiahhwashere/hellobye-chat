@@ -1908,6 +1908,13 @@ app.get('/api/admin/data', authMiddleware, adminMiddleware, (req, res) => {
   });
 });
 
+// Clear the admin activity log
+app.post('/api/admin/clear-activity', authMiddleware, adminMiddleware, (req, res) => {
+  db.adminActivity = [];
+  saveDB();
+  res.json({ success: true });
+});
+
 // Ban a user
 app.post('/api/admin/ban', authMiddleware, adminMiddleware, (req, res) => {
   const { username, reason, durationMs } = req.body || {};

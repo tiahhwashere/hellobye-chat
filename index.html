@@ -702,7 +702,7 @@ body.loading-session #chat-app.active::after { content: none; }
 .empty-state p { font-size: 13px; }
 
 .message-group {
-  display: flex; gap: 11px; max-width: 92%;
+  display: flex; gap: 11px; max-width: 94%;
   animation: msgIn 0.24s cubic-bezier(0.16,1,0.3,1);
   padding: 2px 0;
 }
@@ -742,9 +742,9 @@ body.no-anim .friend-item { animation: none !important; }
 .sender-handle { color: var(--text-secondary); font-size: 12.5px; opacity: 0.65; font-weight: 500; }
 
 .message-bubble {
-  background: var(--bg-medium); padding: 10px 14px;
+  background: var(--bg-medium); padding: 11px 16px;
   border-radius: 16px 16px 16px 4px;
-  font-size: 15px; line-height: 1.5; word-break: break-word; position: relative;
+  font-size: 15.5px; line-height: 1.55; word-break: break-word; position: relative;
   max-width: 100%;
   border: 1px solid var(--border);
   transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
@@ -765,7 +765,7 @@ body.no-anim .friend-item { animation: none !important; }
   background: transparent; border: 1px dashed var(--border-light);
   color: var(--text-muted); font-style: italic; font-size: 13px;
 }
-.message-bubble.dm-bubble { max-width: 680px; }
+.message-bubble.dm-bubble { max-width: 740px; }
 
 .message-text { display: inline; }
 .inline-link { color: inherit; text-decoration: underline; }
@@ -1366,9 +1366,9 @@ body.no-anim .friend-item { animation: none !important; }
   box-shadow: -16px 0 48px rgba(0,0,0,0.45);
   display: none; flex-direction: column;
 }
-#search-msg-panel.open { display: flex; animation: slideInRight 0.26s cubic-bezier(0.16,1,0.3,1); }
-#search-msg-panel.closing { animation: slideOutRight 0.22s cubic-bezier(0.4,0,1,1) forwards; }
-@keyframes slideInRight { from { transform: translateX(100%); opacity: 0.4; } to { transform: translateX(0); opacity: 1; } }
+#search-msg-panel.open { display: flex; animation: slideInRight 0.34s cubic-bezier(0.22,1,0.36,1); }
+#search-msg-panel.closing { animation: slideOutRight 0.26s cubic-bezier(0.4,0,0.6,1) forwards; }
+@keyframes slideInRight { from { transform: translateX(100%) scale(0.98); opacity: 0; } 60% { opacity: 1; } to { transform: translateX(0) scale(1); opacity: 1; } }
 @keyframes slideOutRight { from { transform: translateX(0); opacity: 1; } to { transform: translateX(100%); opacity: 0; } }
 .search-msg-header {
   padding: 20px 22px 16px; border-bottom: 1px solid var(--border);
@@ -1894,6 +1894,7 @@ body.no-anim .friend-item { animation: none !important; }
 #admin-delete-msg-modal { z-index: 360; }
 #delete-account-modal { z-index: 360; }
 #block-modal { z-index: 350; }
+#unfriend-modal { z-index: 350; }
 .modal-overlay.show { display: flex; animation: fadeIn 0.15s ease; }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 .modal {
@@ -2066,7 +2067,7 @@ body.no-anim .friend-item { animation: none !important; }
 .admin-subtab.active { background: rgba(99,102,241,0.15); color: #818cf8; border-color: rgba(99,102,241,0.3); }
 .admin-subpane { display: none; padding-top: 4px; }
 .admin-subpane.active { display: block; }
-.admin-subpane .profile-section + .profile-section { margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border); }
+.admin-subpane .profile-section + .profile-section { margin-top: 28px; padding-top: 28px; border-top: 1px solid var(--border); }
 .admin-subpane .profile-section-title { display: flex; align-items: center; gap: 8px; }
 .admin-subpane .profile-section-title::before {
   content: ''; display: inline-block; width: 4px; height: 18px; border-radius: 2px;
@@ -2081,8 +2082,8 @@ body.no-anim .friend-item { animation: none !important; }
 .admin-input:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.12); }
 .admin-textarea {
   width: 100%; background: var(--bg-dark); border: 1px solid var(--border); color: var(--text-primary);
-  padding: 10px 14px; border-radius: 8px; font-size: 13px; outline: none; resize: vertical; transition: var(--transition);
-  font-family: inherit;
+  padding: 12px 16px; border-radius: 10px; font-size: 13px; outline: none; resize: vertical; transition: var(--transition);
+  font-family: inherit; line-height: 1.55;
 }
 .admin-textarea:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.12); }
 .admin-select {
@@ -2097,10 +2098,10 @@ body.no-anim .friend-item { animation: none !important; }
 .admin-ban-search-row { display: flex; gap: 8px; margin-bottom: 12px; }
 .admin-role-select-row { display: flex; gap: 8px; align-items: center; }
 
-.admin-ban-results { display: flex; flex-direction: column; gap: 6px; }
+.admin-ban-results { display: flex; flex-direction: column; gap: 8px; }
 .admin-search-result {
-  display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: var(--bg-medium);
-  border-radius: 8px; cursor: pointer; transition: var(--transition); border: 1px solid transparent;
+  display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: var(--bg-medium);
+  border-radius: 10px; cursor: pointer; transition: var(--transition); border: 1px solid transparent;
 }
 .admin-search-result:hover { border-color: #6366f1; background: var(--bg-light); }
 .admin-search-result-avatar {
@@ -2113,16 +2114,16 @@ body.no-anim .friend-item { animation: none !important; }
 .admin-search-result-meta { font-size: 11px; color: var(--text-muted); }
 
 .admin-ban-target-info {
-  padding: 12px; background: var(--bg-medium); border-radius: 8px; margin-bottom: 12px;
-  display: flex; align-items: center; gap: 10px;
+  padding: 14px; background: var(--bg-medium); border-radius: 10px; margin-bottom: 14px;
+  display: flex; align-items: center; gap: 12px;
 }
 .admin-ban-target-info .at-name { font-weight: 600; font-size: 14px; color: var(--text-primary); }
 .admin-ban-target-info .at-meta { font-size: 11px; color: var(--text-muted); }
 
-.admin-user-grid { display: grid; grid-template-columns: 1fr; gap: 6px; }
+.admin-user-grid { display: grid; grid-template-columns: 1fr; gap: 8px; }
 .admin-user-card {
-  display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: var(--bg-medium);
-  border-radius: 8px; border: 1px solid var(--border);
+  display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: var(--bg-medium);
+  border-radius: 10px; border: 1px solid var(--border);
 }
 .admin-user-card-avatar {
   width: 28px; height: 28px; border-radius: 50%; background: var(--accent); color: var(--accent-text);
@@ -2139,40 +2140,41 @@ body.no-anim .friend-item { animation: none !important; }
 .admin-user-card-status.offline { background: rgba(107,114,128,0.15); color: #6b7280; }
 .admin-user-card-status.banned { background: rgba(239,68,68,0.2); color: #ef4444; }
 
-.admin-activity-list { display: flex; flex-direction: column; gap: 4px; max-height: 300px; overflow-y: auto; }
+.admin-activity-list { display: flex; flex-direction: column; gap: 8px; max-height: 340px; overflow-y: auto; padding: 2px; }
 .admin-activity-item {
-  padding: 8px 12px; background: var(--bg-medium); border-radius: 6px; font-size: 12px;
-  display: flex; align-items: center; gap: 8px; border-left: 3px solid #6366f1;
+  padding: 10px 14px; background: var(--bg-medium); border-radius: 8px; font-size: 12px;
+  display: flex; align-items: center; gap: 10px; border-left: 3px solid #6366f1;
+  line-height: 1.45;
 }
 .admin-activity-item .aa-action { font-weight: 600; color: #818cf8; text-transform: capitalize; }
 .admin-activity-item .aa-detail { color: var(--text-secondary); flex: 1; }
 .admin-activity-item .aa-time { color: var(--text-muted); font-size: 10px; white-space: nowrap; }
 
-.admin-accounts-list { display: flex; flex-direction: column; gap: 6px; }
+.admin-accounts-list { display: flex; flex-direction: column; gap: 10px; }
 .admin-account-row {
-  padding: 12px; background: var(--bg-medium); border-radius: 8px; border: 1px solid var(--border);
+  padding: 16px; background: var(--bg-medium); border-radius: 10px; border: 1px solid var(--border);
 }
-.admin-account-row-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.admin-account-row-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
 .admin-account-row-name { font-weight: 600; font-size: 13px; color: var(--text-primary); }
 .admin-account-row-id { font-size: 10px; color: var(--text-muted); }
-.admin-account-detail { font-size: 11px; color: var(--text-secondary); margin: 2px 0; word-break: break-all; }
+.admin-account-detail { font-size: 11px; color: var(--text-secondary); margin: 4px 0; word-break: break-all; line-height: 1.5; }
 .admin-account-detail .label { color: var(--text-muted); font-weight: 500; }
 .admin-account-detail .mono { font-family: 'Courier New', monospace; color: var(--accent); }
 
-.admin-banned-list { display: flex; flex-direction: column; gap: 6px; }
+.admin-banned-list { display: flex; flex-direction: column; gap: 10px; }
 .admin-banned-item {
-  display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: rgba(239,68,68,0.08);
-  border-radius: 8px; border: 1px solid rgba(239,68,68,0.2);
+  display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: rgba(239,68,68,0.08);
+  border-radius: 10px; border: 1px solid rgba(239,68,68,0.2);
 }
 .admin-banned-item-info { flex: 1; }
 .admin-banned-item-name { font-weight: 600; font-size: 13px; color: var(--text-primary); }
 .admin-banned-item-reason { font-size: 11px; color: var(--text-muted); }
 
 /* Admin message moderation list */
-.admin-msg-list { display: flex; flex-direction: column; gap: 6px; max-height: 460px; overflow-y: auto; }
+.admin-msg-list { display: flex; flex-direction: column; gap: 8px; max-height: 460px; overflow-y: auto; }
 .admin-msg-item {
-  display: flex; gap: 10px; padding: 8px 10px; background: var(--bg-medium);
-  border: 1px solid var(--border); border-radius: 8px; align-items: flex-start;
+  display: flex; gap: 12px; padding: 10px 12px; background: var(--bg-medium);
+  border: 1px solid var(--border); border-radius: 10px; align-items: flex-start;
 }
 .admin-msg-item .am-avatar {
   width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0; overflow: hidden;
@@ -3383,7 +3385,7 @@ body.no-anim .friend-item { animation: none !important; }
   display: flex; flex-direction: column; gap: 8px;
   min-height: 0; -webkit-overflow-scrolling: touch; overscroll-behavior: contain;
 }
-.dm-messages .message-group { max-width: 88%; }
+.dm-messages .message-group { max-width: 90%; }
 .dm-typing { padding: 2px 20px 6px; font-size: 12px; color: var(--text-muted); font-style: italic; min-height: 18px; flex-shrink: 0; }
 .dm-input-area { padding: 12px 18px 16px; border-top: 1px solid var(--border); background: var(--bg-darker); flex-shrink: 0; }
 .dm-blocked-banner {
@@ -3788,7 +3790,7 @@ body.no-anim .friend-item { animation: none !important; }
 
   .message-avatar { width: 32px; height: 32px; font-size: 13px; }
   .message-sender { font-size: 12px; }
-  .message-bubble { font-size: 13px; padding: 8px 12px; }
+  .message-bubble { font-size: 13.5px; padding: 9px 13px; }
 
   .chat-textarea { font-size: 16px; } /* prevent iOS zoom */
   .form-input { font-size: 16px; } /* prevent iOS zoom */
@@ -3892,12 +3894,12 @@ body.no-anim .friend-item { animation: none !important; }
 @media (min-width: 1100px) {
   /* --- Chatroom messages --- */
   .messages-container { padding: 28px 36px; gap: 6px; }
-  .message-group { gap: 14px; max-width: 88%; }
+  .message-group { gap: 14px; max-width: 90%; }
   .message-avatar { width: 52px; height: 52px; font-size: 19px; }
   .message-sender { font-size: 14px; margin-bottom: 5px; }
   .sender-displayname { font-size: 16.5px; }
   .sender-handle { font-size: 14.5px; }
-  .message-bubble { font-size: 17.5px; line-height: 1.6; padding: 15px 20px; border-radius: 18px; }
+  .message-bubble { font-size: 18px; line-height: 1.6; padding: 15px 22px; border-radius: 18px; }
   .message-group.own .message-bubble { border-radius: 18px; }
   .message-meta { font-size: 12.5px; }
   .message-actions { gap: 6px; margin-top: 8px; }
@@ -3912,9 +3914,9 @@ body.no-anim .friend-item { animation: none !important; }
   .dm-header-status { font-size: 13px; }
   .dm-back { width: 40px; height: 40px; }
   .dm-messages { padding: 30px 32px; gap: 8px; }
-  .dm-messages .message-group { max-width: 80%; }
+  .dm-messages .message-group { max-width: 82%; }
   .dm-input-area { padding: 16px 24px 20px; }
-  .message-bubble.dm-bubble { max-width: 720px; }
+  .message-bubble.dm-bubble { max-width: 780px; }
 
   /* --- Sidebar user-list & DM-list avatars --- */
   .user-item { gap: 13px; padding: 10px; }
@@ -3948,7 +3950,7 @@ body.no-anim .friend-item { animation: none !important; }
 #chat-app.compact .message-group { animation: none; }
 #chat-app.compact .message-avatar { width: 28px; height: 28px; font-size: 12px; }
 #chat-app.compact .message-sender { margin-bottom: 1px; }
-#chat-app.compact .message-bubble { padding: 7px 12px; font-size: 13px; }
+#chat-app.compact .message-bubble { padding: 8px 13px; font-size: 13.5px; }
 #chat-app.compact .message-meta { margin-top: 1px; }
 
 /* ============================================
@@ -4241,7 +4243,7 @@ body.no-anim .friend-item { animation: none !important; }
   /* Message bubbles: compact */
   .message-avatar { width: 30px; height: 30px; font-size: 12px; }
   .message-sender { font-size: 12px; }
-  .message-bubble { font-size: 14px; padding: 8px 12px; border-radius: 14px; }
+  .message-bubble { font-size: 14.5px; padding: 9px 13px; border-radius: 14px; }
   .message-meta { font-size: 10px; }
   
   /* Input area: compact, prevent iOS zoom */
@@ -4946,6 +4948,18 @@ body.no-anim .friend-item { animation: none !important; }
       <div class="modal-actions">
         <button class="modal-btn" id="block-cancel">Cancel</button>
         <button class="modal-btn danger" id="block-confirm">Block User</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== UNFRIEND CONFIRM MODAL ===================== -->
+  <div class="modal-overlay" id="unfriend-modal">
+    <div class="modal small">
+      <h3>Remove <span id="unfriend-modal-username"></span>?</h3>
+      <p>They'll be removed from your friends list. You can send them a new friend request anytime if you change your mind.</p>
+      <div class="modal-actions">
+        <button class="modal-btn" id="unfriend-cancel">Cancel</button>
+        <button class="modal-btn danger" id="unfriend-confirm">Remove Friend</button>
       </div>
     </div>
   </div>
@@ -5691,7 +5705,10 @@ body.no-anim .friend-item { animation: none !important; }
                 </div>
               </div>
               <div class="profile-section">
-                <div class="profile-section-title">Recent Admin Activity</div>
+                <div class="profile-section-title" style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
+                  <span>Recent Admin Activity</span>
+                  <button class="setting-save-btn no-checkmark" id="admin-clear-activity-btn" style="font-size:11px; padding:5px 12px; flex-shrink:0;">Clear</button>
+                </div>
                 <div id="admin-activity-list" class="admin-activity-list">
                   <p style="color:var(--text-muted); padding:12px 0;">Loading activity log...</p>
                 </div>
@@ -6338,6 +6355,7 @@ let savedProfileImages = { avatar: null, banner: null };
 // saveProfileNow() to actually delete the banner server-side on save, and
 // tells Discard (via the existing revert-image logic) to restore it.
 let pendingBannerRemoval = false;
+let pendingAvatarRemoval = false;
 
 // ---------- DOM ----------
 const $ = (id) => document.getElementById(id);
@@ -9432,9 +9450,26 @@ function attachUserListListeners() {
           openDM(un);
         } },
       ];
+      // Open / Close Conversation (DM) — context-aware based on closedDMs state
+      const targetForDM = users.find(x => x.username === un);
+      const otherOff = targetForDM && targetForDM.directMessagesEnabled === false;
+      if (!otherOff) {
+        const isClosed = closedDMs.some(c => c.toLowerCase() === un.toLowerCase());
+        if (isClosed) {
+          items.push({ label: 'Open Conversation', icon: 'dm', action: () => {
+            toast('Conversation has been reopened.', 'success');
+            fetch(API_BASE + '/api/dms/reopen/' + encodeURIComponent(un), { method: 'POST' }).then(() => {
+              loadDMConversations();
+            }).catch(() => {});
+            openDM(un);
+          } });
+        } else {
+          items.push({ label: 'Close Conversation', icon: 'close', action: () => closeDM(un) });
+        }
+      }
       // Friend-related action is context-aware
       if (isFriend) {
-        items.push({ label: 'Unfriend', icon: 'friend', danger: true, action: () => removeFriend(un) });
+        items.push({ label: 'Unfriend', icon: 'friend', danger: true, action: () => promptRemoveFriend(un) });
       } else if (requestSent) {
         items.push({ label: 'Cancel Friend Request', icon: 'friend', action: () => cancelFriendRequest(un) });
       } else {
@@ -9538,7 +9573,7 @@ function attachFriendListeners() {
         { label: 'Copy User ID', icon: 'user', action: () => copyUserIdToClipboard(un, un) },
       ];
       if (isFriend) {
-        items.push({ label: 'Unfriend', icon: 'friend', danger: true, action: () => removeFriend(un) });
+        items.push({ label: 'Unfriend', icon: 'friend', danger: true, action: () => promptRemoveFriend(un) });
         items.push({ label: 'Block', icon: 'block', danger: true, action: () => promptBlockUser(un) });
       } else if (isOutgoing) {
         items.push({ label: 'Cancel Friend Request', icon: 'friend', action: () => cancelFriendRequest(un) });
@@ -9644,6 +9679,21 @@ async function cancelFriendRequest(username) {
     loadFriends();
   }).catch(() => {});
 }
+let pendingRemoveFriend = null;
+function promptRemoveFriend(username) {
+  pendingRemoveFriend = username;
+  $('unfriend-modal-username').textContent = '@' + username;
+  $('unfriend-modal').classList.add('show');
+}
+$('unfriend-cancel').addEventListener('click', () => { pendingRemoveFriend = null; $('unfriend-modal').classList.remove('show'); });
+$('unfriend-modal').addEventListener('click', (e) => { if (e.target === $('unfriend-modal')) { pendingRemoveFriend = null; $('unfriend-modal').classList.remove('show'); } });
+$('unfriend-confirm').addEventListener('click', async () => {
+  if (!pendingRemoveFriend) return;
+  const username = pendingRemoveFriend;
+  pendingRemoveFriend = null;
+  $('unfriend-modal').classList.remove('show');
+  await removeFriend(username);
+});
 async function removeFriend(username) {
   // Optimistic UI
   friends = friends.filter(f => f.username !== username);
@@ -10837,6 +10887,7 @@ function captureSavedProfileImages() {
   savedProfileImages = { avatar: currentUser.avatar || null, banner: currentUser.banner || null };
   // Opening the panel / finishing a save means no pending removal anymore.
   pendingBannerRemoval = false;
+  pendingAvatarRemoval = false;
 }
 // Visual indicator so users can SEE they have unsaved changes (a subtle
 // "Unsaved changes" pill near the Save button) — not just the modal on exit.
@@ -11093,7 +11144,7 @@ async function uploadProfileImage(file, type) {
     const data = await res.json();
     if (!res.ok) { toast(data.error || 'Upload failed. Please try again.', 'error'); return; }
     toast(type === 'avatar' ? 'Profile picture has been updated.' : 'Banner has been updated.', 'success');
-    if (type === 'avatar') currentUser.avatar = data.avatar;
+    if (type === 'avatar') { currentUser.avatar = data.avatar; pendingAvatarRemoval = false; }
     else { currentUser.banner = data.banner; pendingBannerRemoval = false; }
     updateProfilePanel(); updateSidebarSelf();
     // Mark the profile as having unsaved changes so the "You have unsaved
@@ -11118,12 +11169,14 @@ async function uploadProfileImage(file, type) {
 // disappears immediately without needing a refresh or re-visiting the
 // profile. The server broadcast will keep other clients in sync.
 $('avatar-remove-btn').addEventListener('click', async () => {
-  try {
-    await fetch(API_BASE + '/api/profile/remove-image', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'avatar' }) });
-  } catch (e) {}
+  // LOCAL-ONLY PREVIEW: do NOT delete the avatar server-side yet. We just
+  // hide it locally and mark the profile dirty so the "You have unsaved
+  // changes" indicator appears. The actual deletion is committed only when
+  // the user clicks Save Changes (saveProfileNow). If they navigate away
+  // without saving and choose Discard, the existing revert-image logic
+  // restores the avatar from the savedProfileImages snapshot.
+  pendingAvatarRemoval = true;
   currentUser.avatar = null;
-  // Keep the shared users[] entry in sync so the member sidebar & open
-  // profile views also drop the avatar instantly.
   const me = users.find(x => x.username === currentUser.username);
   if (me) me.avatar = null;
   updateProfilePanel();
@@ -11134,7 +11187,7 @@ $('avatar-remove-btn').addEventListener('click', async () => {
   // consistent with changing the profile picture.
   markProfileDirty();
   updateProfileDirtyIndicator();
-  toast('Profile picture has been removed.', 'success');
+  toast('Profile picture removed. Click Save Changes to apply.', 'info');
 });
 $('banner-remove-btn').addEventListener('click', async () => {
   // LOCAL-ONLY PREVIEW: do NOT delete the banner server-side yet. We just
@@ -11210,6 +11263,13 @@ async function saveProfileNow(silent) {
           await fetch(API_BASE + '/api/profile/remove-image', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'banner' }) });
         } catch (e) {}
         pendingBannerRemoval = false;
+      }
+      // Commit a pending avatar removal (same local-only-then-save pattern).
+      if (pendingAvatarRemoval) {
+        try {
+          await fetch(API_BASE + '/api/profile/remove-image', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'avatar' }) });
+        } catch (e) {}
+        pendingAvatarRemoval = false;
       }
       if (!silent) toast('Profile has been saved successfully.', 'success');
       currentUser.bio = bio;
@@ -11290,6 +11350,10 @@ $('unsaved-discard').addEventListener('click', async () => {
   // Clear dirty (images reverted + text fields will be re-synced by the
   // navigation target calling updateProfilePanel, or we do it here).
   clearProfileDirty();
+  // Reset pending-removal flags so a future Save doesn't re-delete images
+  // that were already reverted by the Discard above.
+  pendingBannerRemoval = false;
+  pendingAvatarRemoval = false;
   $('unsaved-modal').classList.remove('show');
   if (pendingNavigation) { pendingNavigation(); pendingNavigation = null; }
 });
@@ -11315,7 +11379,7 @@ function closeSearchMsgPanel() {
   if (!panel.classList.contains('open') || panel.classList.contains('closing')) return;
   panel.classList.add('closing');
   panel.classList.remove('open');
-  setTimeout(() => { panel.classList.remove('closing'); }, 230);
+  setTimeout(() => { panel.classList.remove('closing'); }, 270);
 }
 $('search-msg-close').addEventListener('click', closeSearchMsgPanel);
 document.querySelectorAll('.search-msg-scope button').forEach(btn => {
@@ -12939,7 +13003,7 @@ function renderProfileView(data) {
     if (data.isFriend) {
       const fb = document.createElement('button');
       fb.className = 'modal-btn danger'; fb.textContent = 'Remove Friend';
-      fb.onclick = () => { removeFriend(u.username); closeProfileView(); };
+      fb.onclick = () => { promptRemoveFriend(u.username); };
       actions.appendChild(fb);
     } else if (data.outgoingRequest) {
       const fb = document.createElement('button');
@@ -15103,6 +15167,29 @@ function initAdminEventListeners() {
   // Ban confirm
   const banConfirmBtn = $('admin-ban-confirm-btn');
   if (banConfirmBtn) banConfirmBtn.addEventListener('click', adminBanUser);
+  // Clear admin activity log
+  const clearActivityBtn = $('admin-clear-activity-btn');
+  if (clearActivityBtn) {
+    clearActivityBtn.addEventListener('click', async () => {
+      clearActivityBtn.disabled = true;
+      const prev = clearActivityBtn.textContent;
+      clearActivityBtn.textContent = 'Clearing…';
+      try {
+        const res = await fetch(API_BASE + '/api/admin/clear-activity', { method: 'POST', headers: getAuthHeaders() });
+        if (res.ok) {
+          if (adminData) adminData.activity = [];
+          renderAdminActivity();
+          toast('Admin activity log has been cleared.', 'success');
+        } else {
+          toast('Unable to clear the activity log. Please try again.', 'error');
+        }
+      } catch (e) {
+        toast('Unable to clear the activity log. Please try again.', 'error');
+      }
+      clearActivityBtn.disabled = false;
+      clearActivityBtn.textContent = prev;
+    });
+  }
   // Mute search
   const muteSearchBtn = $('admin-mute-search-btn');
   if (muteSearchBtn) {
