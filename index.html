@@ -643,23 +643,23 @@ body.loading-session #chat-app.active::after { content: none; }
 
 /* Status Message bubble — shown on member list items & profile view */
 .status-msg-bubble {
-  display: inline-flex; align-items: center; gap: 4px;
+  display: inline-flex; align-items: center; gap: 5px;
   max-width: 100%;
-  font-size: 10.5px; font-weight: 500; line-height: 1.2;
+  font-size: 12.5px; font-weight: 500; line-height: 1.3;
   color: var(--text-secondary);
   background: var(--bg-medium);
   border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 2px 7px;
-  margin-top: 3px;
+  border-radius: 10px;
+  padding: 4px 10px;
+  margin-top: 4px;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   transition: var(--transition);
 }
-.status-msg-bubble .sm-icon { flex-shrink: 0; width: 9px; height: 9px; opacity: 0.7; }
+.status-msg-bubble .sm-icon { flex-shrink: 0; width: 13px; height: 13px; opacity: 0.75; }
 .status-msg-bubble .sm-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.status-msg-bubble.online { border-color: rgba(59,165,93,0.35); color: var(--online); }
-.status-msg-bubble.idle { border-color: rgba(212,160,23,0.35); color: var(--idle); }
-.status-msg-bubble.dnd { border-color: rgba(216,58,58,0.35); color: var(--dnd); }
+.status-msg-bubble.online { border-color: rgba(59,165,93,0.4); color: var(--online); }
+.status-msg-bubble.idle { border-color: rgba(212,160,23,0.4); color: var(--idle); }
+.status-msg-bubble.dnd { border-color: rgba(216,58,58,0.4); color: var(--dnd); }
 
 /* Mini-profile status message input */
 .mini-statusmsg-input { font-size: 13px; }
@@ -667,11 +667,12 @@ body.loading-session #chat-app.active::after { content: none; }
   font-size: 10.5px; color: var(--text-muted); margin-top: 5px; line-height: 1.3;
 }
 
-/* Profile view status message bubble (slightly larger) */
+/* Profile view status message bubble (even bigger for the modal) */
 .profile-view-status-msg { margin-bottom: 14px; }
 .profile-view-status-msg .status-msg-bubble {
-  font-size: 12px; padding: 3px 9px; border-radius: 9px;
+  font-size: 14px; font-weight: 600; padding: 6px 13px; border-radius: 12px; gap: 6px;
 }
+.profile-view-status-msg .status-msg-bubble .sm-icon { width: 16px; height: 16px; }
 
 .friend-item .user-info { display: flex; flex-direction: column; }
 .friend-actions { display: flex; gap: 5px; margin-top: 4px; }
@@ -5451,6 +5452,13 @@ body.no-anim .friend-item { animation: none !important; }
       </div>
 
       <div class="profile-section">
+        <div class="profile-section-title">Status Message</div>
+        <input type="text" class="form-input" id="statusmsg-input" placeholder="Set a custom status message..." maxlength="25" autocomplete="off">
+        <div class="bio-counter"><span id="statusmsg-count">0</span> / 25</div>
+        <p class="setting-hint">Shown to others as a bubble when you're Online, Idle, or Do Not Disturb. Removed when you go offline.</p>
+      </div>
+
+      <div class="profile-section">
         <div class="profile-section-title">Privacy</div>
         <label class="toggle-row">
           <span>Hide last online timestamp</span>
@@ -8106,10 +8114,22 @@ function connectSocket() {
     // Live-update the profile view modal if it's open showing this user,
     // so the DM button (Send Message vs Direct Messages Disabled) reflects
     // the new DM preference immediately without closing/reopening.
+    // Also live-update the status text + status message bubble so going
+    // offline/online reflects instantly in the open profile view.
     if (currentProfileViewUser === data.username && $('profile-view-modal').classList.contains('show')) {
       const pvUser = getUserByUsername(data.username);
       if (pvUser) {
         updateProfileViewDMButton(pvUser);
+        // Live-update status text + status message bubble
+        const st = pvUser.status === 'offline' ? (pvUser.hideLastSeen ? 'Offline' : 'Last seen ' + getRelativeLastSeen(pvUser.lastSeen)) : getStatusText(pvUser.status);
+        if ($('pv-status')) $('pv-status').innerHTML = '<span class="status-dot ' + pvUser.status + '"></span> ' + escapeHtml(st);
+        const pvSm = $('pv-statusmsg');
+        if (pvSm) {
+          const showPvSm = pvUser.statusMessage && (pvUser.status === 'online' || pvUser.status === 'idle' || pvUser.status === 'dnd');
+          pvSm.innerHTML = showPvSm
+            ? '<div class="status-msg-bubble ' + pvUser.status + '"><svg class="sm-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg><span class="sm-text">' + escapeHtml(pvUser.statusMessage) + '</span></div>'
+            : '';
+        }
       }
     }
   });
@@ -12783,6 +12803,7 @@ function updateProfilePanel() {
   $('hide-lastseen-toggle').checked = !!u.hideLastSeen;
   // New profile settings fields
   if ($('pronouns-input')) $('pronouns-input').value = u.pronouns || '';
+  if ($('statusmsg-input')) { $('statusmsg-input').value = u.statusMessage || ''; $('statusmsg-count').textContent = (u.statusMessage || '').length; }
   if ($('show-online-toggle')) $('show-online-toggle').checked = u.showOnlineStatus !== false;
   if ($('friend-requests-toggle')) $('friend-requests-toggle').checked = u.friendRequestsEnabled !== false;
   if ($('direct-messages-toggle')) $('direct-messages-toggle').checked = u.directMessagesEnabled !== false;
@@ -12832,6 +12853,7 @@ function updateProfileDirtyIndicator() {
 $('bio-input').addEventListener('input', (e) => { $('bio-count').textContent = e.target.value.length; markProfileDirty(); });
 $('hide-lastseen-toggle').addEventListener('change', markProfileDirty);
 if ($('pronouns-input')) $('pronouns-input').addEventListener('input', markProfileDirty);
+if ($('statusmsg-input')) $('statusmsg-input').addEventListener('input', (e) => { $('statusmsg-count').textContent = e.target.value.length; markProfileDirty(); });
 if ($('show-online-toggle')) $('show-online-toggle').addEventListener('change', markProfileDirty);
 if ($('friend-requests-toggle')) $('friend-requests-toggle').addEventListener('change', function() {
   markProfileDirty();
@@ -13177,6 +13199,7 @@ async function saveProfileNow(silent) {
   const bio = $('bio-input').value.trim();
   const hideLastSeen = $('hide-lastseen-toggle').checked;
   const pronouns = $('pronouns-input') ? $('pronouns-input').value.trim() : '';
+  const statusMessage = $('statusmsg-input') ? $('statusmsg-input').value.trim() : '';
   const showOnlineStatus = $('show-online-toggle') ? $('show-online-toggle').checked : true;
   const friendRequestsEnabled = $('friend-requests-toggle') ? $('friend-requests-toggle').checked : true;
   const directMessagesEnabled = $('direct-messages-toggle') ? $('direct-messages-toggle').checked : true;
@@ -13188,7 +13211,7 @@ async function saveProfileNow(silent) {
   const txtEl = btn.querySelector('.save-btn-text');
   if (txtEl) txtEl.textContent = 'Saving…';
   try {
-    const res = await fetch(API_BASE + '/api/profile', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ bio, hideLastSeen, pronouns, showOnlineStatus, panelColor, friendRequestsEnabled, directMessagesEnabled }) });
+    const res = await fetch(API_BASE + '/api/profile', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ bio, hideLastSeen, pronouns, statusMessage, showOnlineStatus, panelColor, friendRequestsEnabled, directMessagesEnabled }) });
     const data = await res.json();
     if (res.ok) {
       // Commit a pending banner removal (the user clicked Remove but hadn't
@@ -13210,13 +13233,14 @@ async function saveProfileNow(silent) {
       currentUser.bio = bio;
       currentUser.hideLastSeen = hideLastSeen;
       currentUser.pronouns = pronouns;
+      currentUser.statusMessage = statusMessage;
       currentUser.showOnlineStatus = showOnlineStatus;
       currentUser.friendRequestsEnabled = friendRequestsEnabled;
       currentUser.directMessagesEnabled = directMessagesEnabled;
       currentUser.panelColor = panelColor;
       // Update in users array
       const uIdx = users.findIndex(x => x.username === currentUser.username);
-      if (uIdx >= 0) { users[uIdx].bio = bio; users[uIdx].pronouns = pronouns; users[uIdx].showOnlineStatus = showOnlineStatus; users[uIdx].panelColor = panelColor; users[uIdx].friendRequestsEnabled = friendRequestsEnabled; users[uIdx].directMessagesEnabled = directMessagesEnabled; }
+      if (uIdx >= 0) { users[uIdx].bio = bio; users[uIdx].pronouns = pronouns; users[uIdx].statusMessage = statusMessage; users[uIdx].showOnlineStatus = showOnlineStatus; users[uIdx].panelColor = panelColor; users[uIdx].friendRequestsEnabled = friendRequestsEnabled; users[uIdx].directMessagesEnabled = directMessagesEnabled; }
       // Profile saved successfully — clear dirty flag + hide indicator.
       clearProfileDirty();
       // After a save, the current avatar/banner are the new saved baseline,
