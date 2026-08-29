@@ -166,7 +166,7 @@ async function fetchBackupFile(filename) {
 }
 
 function defaultDB() {
-  return { users: {}, messages: [], sessions: {}, dms: {}, friends: {}, blocked: {}, lastRegTime: {} };
+  return { users: {}, messages: [], sessions: {}, dms: {}, friends: {}, blocked: {}, lastRegTime: {}, groupChats: [] };
 }
 
 function loadDBLocal() {
@@ -263,6 +263,7 @@ if (!db.welcomeTitle) db.welcomeTitle = 'welcome - to the safe place';
 if (!db.welcomeTitleLastChanged) db.welcomeTitleLastChanged = 0;
 if (!db.customRoles) db.customRoles = []; // [{ id, name, color, members: [username,...] }]
 if (!db.cooldownExempt) db.cooldownExempt = []; // [username, ...] — users exempt from chat cooldown
+if (!db.groupChats) db.groupChats = []; // [{ id, name, owner, icon, members:[username], messages:[], createdAt }]
 
 // Attempt remote restore asynchronously. If remote has data (especially users),
 // it takes precedence over the (possibly empty/repo-seeded) local file. This is
@@ -366,6 +367,21 @@ function purgeExpiredDeletedMessages(emitRemovals) {
         });
         if (kept.length !== before) convos[other] = kept;
       }
+    }
+  }
+  // Purge expired soft-deleted group chat messages.
+  if (Array.isArray(db.groupChats)) {
+    const now = Date.now();
+    for (const g of db.groupChats) {
+      if (!Array.isArray(g.messages)) continue;
+      const before = g.messages.length;
+      const kept = g.messages.filter(m => {
+        if (!m.deleted) return true;
+        const age = m.deletedAt ? (now - new Date(m.deletedAt).getTime()) : Infinity;
+        if (age >= DELETE_WINDOW_MS) { purged++; return false; }
+        return true;
+      });
+      if (kept.length !== before) g.messages = kept;
     }
   }
   if (purged > 0) {
@@ -1487,6 +1503,169 @@ app.post('/api/dms/reopen/:username', authMiddleware, (req, res) => {
   res.json({ success: true });
 });
 
+// ---------- Group Chats ----------
+// db.groupChats = [{ id, name, owner, icon, members:[username], messages:[msg], createdAt }]
+// Group message shape: { id, from, username, text, file, files, reply, timestamp, edited, editedAt, deleted, deletedAt, displayName }
+function publicGroup(g) {
+  if (!g) return null;
+  return {
+    id: g.id,
+    name: g.name,
+    owner: g.owner,
+    icon: g.icon || null,
+    members: (g.members || []).map(un => publicUser(db.users[un])).filter(Boolean),
+    createdAt: g.createdAt,
+  };
+}
+function findGroup(id) {
+  return (db.groupChats || []).find(g => g.id === id);
+}
+
+// Create a group chat. The creator becomes the owner and is automatically a member.
+app.post('/api/groups/create', authMiddleware, (req, res) => {
+  const { name, members } = req.body || {};
+  const groupName = String(name || '').trim().slice(0, 60);
+  if (!groupName) return res.status(400).json({ error: 'Group name is required' });
+  let memberList = Array.isArray(members) ? members.map(m => String(m).toLowerCase().trim()).filter(Boolean) : [];
+  // The owner is always a member
+  const owner = req.user.username;
+  if (!memberList.includes(owner)) memberList.unshift(owner);
+  // Validate that every member exists
+  for (const m of memberList) {
+    if (!db.users[m]) return res.status(400).json({ error: 'User @' + m + ' does not exist' });
+  }
+  // Deduplicate
+  memberList = [...new Set(memberList)];
+  const group = {
+    id: genId(),
+    name: groupName,
+    owner,
+    icon: null,
+    members: memberList,
+    messages: [],
+    createdAt: nowISO(),
+  };
+  if (!db.groupChats) db.groupChats = [];
+  db.groupChats.push(group);
+  saveDB();
+  // Notify all members (other than the creator who gets the response) in real time
+  for (const m of memberList) {
+    if (m === owner) continue;
+    io.to('user:' + m).emit('group-updated', { group: publicGroup(group) });
+  }
+  res.json({ success: true, group: publicGroup(group) });
+});
+
+// List all groups the current user is a member of
+app.get('/api/groups', authMiddleware, (req, res) => {
+  const me = req.user.username;
+  const groups = (db.groupChats || []).filter(g => (g.members || []).includes(me));
+  res.json({ groups: groups.map(publicGroup) });
+});
+
+// Get a single group's messages + metadata
+app.get('/api/groups/:id', authMiddleware, (req, res) => {
+  const g = findGroup(req.params.id);
+  if (!g) return res.status(404).json({ error: 'Group not found' });
+  if (!(g.members || []).includes(req.user.username)) return res.status(403).json({ error: 'You are not a member of this group' });
+  res.json({ group: publicGroup(g), messages: (g.messages || []).slice(-1000) });
+});
+
+// Owner: rename the group
+app.post('/api/groups/:id/settings', authMiddleware, (req, res) => {
+  const g = findGroup(req.params.id);
+  if (!g) return res.status(404).json({ error: 'Group not found' });
+  if (g.owner !== req.user.username) return res.status(403).json({ error: 'Only the group owner can change settings' });
+  const { name } = req.body || {};
+  const newName = String(name || '').trim().slice(0, 60);
+  if (!newName) return res.status(400).json({ error: 'Group name is required' });
+  g.name = newName;
+  saveDB();
+  for (const m of (g.members || [])) io.to('user:' + m).emit('group-updated', { group: publicGroup(g) });
+  res.json({ success: true, group: publicGroup(g) });
+});
+
+// Owner: upload / change group icon
+app.post('/api/groups/:id/icon', authMiddleware, avatarUpload.single('image'), async (req, res) => {
+  const g = findGroup(req.params.id);
+  if (!g) return res.status(404).json({ error: 'Group not found' });
+  if (g.owner !== req.user.username) return res.status(403).json({ error: 'Only the group owner can change the group icon' });
+  if (!req.file) return res.status(400).json({ error: 'No image uploaded' });
+  try {
+    const enhanceOpts = { maxStatic: 512, maxAnimated: 480, skipAnimated: true };
+    try { await enhanceWithTimeout(path.join(UPLOAD_DIR, req.file.filename), enhanceOpts, 8000); }
+    catch (e) { console.error('[group-icon] enhance error:', e.message); }
+    const cacheBust = '?t=' + Date.now();
+    const fileUrl = '/uploads/' + req.file.filename + cacheBust;
+    g.icon = fileUrl;
+    saveDB();
+    backupUploadFile(req.file.filename);
+    for (const m of (g.members || [])) io.to('user:' + m).emit('group-updated', { group: publicGroup(g) });
+    res.json({ success: true, icon: fileUrl, group: publicGroup(g) });
+  } catch (e) {
+    console.error('group icon upload error', e);
+    res.status(500).json({ error: 'Failed to upload group icon' });
+  }
+});
+
+// Owner: kick a member
+app.post('/api/groups/:id/kick', authMiddleware, (req, res) => {
+  const g = findGroup(req.params.id);
+  if (!g) return res.status(404).json({ error: 'Group not found' });
+  if (g.owner !== req.user.username) return res.status(403).json({ error: 'Only the group owner can kick members' });
+  const target = String((req.body || {}).username || '').toLowerCase().trim();
+  if (!target) return res.status(400).json({ error: 'Username required' });
+  if (target === g.owner) return res.status(400).json({ error: 'You cannot kick the group owner' });
+  if (!(g.members || []).includes(target)) return res.status(400).json({ error: 'That user is not in this group' });
+  g.members = (g.members || []).filter(m => m !== target);
+  saveDB();
+  // Notify the kicked user + remaining members
+  io.to('user:' + target).emit('group-removed', { id: g.id });
+  for (const m of (g.members || [])) io.to('user:' + m).emit('group-updated', { group: publicGroup(g) });
+  res.json({ success: true, group: publicGroup(g) });
+});
+
+// Owner: add a member
+app.post('/api/groups/:id/add', authMiddleware, (req, res) => {
+  const g = findGroup(req.params.id);
+  if (!g) return res.status(404).json({ error: 'Group not found' });
+  if (g.owner !== req.user.username) return res.status(403).json({ error: 'Only the group owner can add members' });
+  const target = String((req.body || {}).username || '').toLowerCase().trim();
+  if (!target) return res.status(400).json({ error: 'Username required' });
+  if (!db.users[target]) return res.status(400).json({ error: 'User @' + target + ' does not exist' });
+  if ((g.members || []).includes(target)) return res.status(400).json({ error: 'That user is already in this group' });
+  if ((g.members || []).length >= 50) return res.status(400).json({ error: 'Group is full (max 50 members)' });
+  g.members = (g.members || []).concat(target);
+  saveDB();
+  io.to('user:' + target).emit('group-updated', { group: publicGroup(g) });
+  for (const m of (g.members || [])) io.to('user:' + m).emit('group-updated', { group: publicGroup(g) });
+  res.json({ success: true, group: publicGroup(g) });
+});
+
+// Member: leave the group (owner leaving transfers/deletes)
+app.post('/api/groups/:id/leave', authMiddleware, (req, res) => {
+  const g = findGroup(req.params.id);
+  if (!g) return res.status(404).json({ error: 'Group not found' });
+  const me = req.user.username;
+  if (!(g.members || []).includes(me)) return res.status(400).json({ error: 'You are not in this group' });
+  g.members = (g.members || []).filter(m => m !== me);
+  if (g.owner === me) {
+    if (g.members.length === 0) {
+      // No members left — delete the group entirely
+      db.groupChats = (db.groupChats || []).filter(x => x.id !== g.id);
+    } else {
+      // Transfer ownership to the next member
+      g.owner = g.members[0];
+    }
+  }
+  saveDB();
+  io.to('user:' + me).emit('group-removed', { id: g.id });
+  if (db.groupChats.includes(g)) {
+    for (const m of (g.members || [])) io.to('user:' + m).emit('group-updated', { group: publicGroup(g) });
+  }
+  res.json({ success: true });
+});
+
 // ---------- Settings ----------
 app.post('/api/settings/display-name', authMiddleware, (req, res) => {
   const { displayName } = req.body || {};
@@ -1541,6 +1720,14 @@ app.post('/api/settings/username', authMiddleware, (req, res) => {
   for (const [un, convos] of Object.entries(db.dms)) {
     if (un === newUn) continue;
     if (convos[oldUn]) { convos[newUn] = convos[oldUn]; delete convos[oldUn]; }
+  }
+  // Migrate group chats (owner + members + message usernames)
+  if (Array.isArray(db.groupChats)) {
+    for (const g of db.groupChats) {
+      if (g.owner === oldUn) g.owner = newUn;
+      if (Array.isArray(g.members)) g.members = g.members.map(m => m === oldUn ? newUn : m);
+      if (Array.isArray(g.messages)) g.messages.forEach(m => { if (m.username === oldUn) m.username = newUn; if (m.from === oldUn) m.from = newUn; });
+    }
   }
   // Update message usernames
   db.messages.forEach(m => { if (m.username === oldUn) m.username = newUn; });
@@ -2842,6 +3029,90 @@ io.on('connection', (socket) => {
   // ---- DM typing ----
   socket.on('dm-typing', ({ to, typing }) => {
     io.to(`user:${to ? to.toLowerCase() : ''}`).emit('dm-typing', { from: username, typing: !!typing });
+  });
+
+  // ---- Group chat send ----
+  socket.on('group-send', ({ groupId, text, file, files, reply }, ack) => {
+    try {
+      const g = findGroup(groupId);
+      if (!g) { if (typeof ack === 'function') ack({ error: 'Group not found' }); return; }
+      if (!(g.members || []).includes(username)) { if (typeof ack === 'function') ack({ error: 'You are not a member of this group' }); return; }
+      if (!Array.isArray(g.messages)) g.messages = [];
+      const msg = {
+        id: genId(),
+        from: username,
+        username,
+        text: String(text || '').slice(0, 5000),
+        file: file || null,
+        files: Array.isArray(files) ? files.slice(0, 5) : null,
+        reply: reply || null,
+        timestamp: nowISO(),
+        edited: false,
+        editedAt: null,
+        deleted: false,
+        deletedAt: null,
+        displayName: user.displayName,
+      };
+      g.messages.push(msg);
+      if (g.messages.length > 2000) g.messages = g.messages.slice(-2000);
+      saveDB();
+      // Emit to every member of the group (including the sender, so their own
+      // message appears instantly without a refetch).
+      for (const m of (g.members || [])) io.to('user:' + m).emit('group-message', { groupId: g.id, message: msg });
+      if (typeof ack === 'function') ack({ success: true, message: msg });
+    } catch (e) {
+      console.error('group-send error', e);
+      if (typeof ack === 'function') ack({ error: 'Failed to send group message' });
+    }
+  });
+
+  // ---- Group chat edit ----
+  socket.on('group-edit', ({ groupId, id, text }, ack) => {
+    try {
+      const g = findGroup(groupId);
+      if (!g) { if (typeof ack === 'function') ack({ error: 'Group not found' }); return; }
+      const m = (g.messages || []).find(x => x.id === id && x.username === username);
+      if (!m) { if (typeof ack === 'function') ack({ error: 'Message not found' }); return; }
+      m.text = String(text || '').slice(0, 5000);
+      m.edited = true;
+      m.editedAt = nowISO();
+      saveDB();
+      for (const mem of (g.members || [])) io.to('user:' + mem).emit('group-edited', { groupId: g.id, id: m.id, from: username, text: m.text, edited: true, editedAt: m.editedAt });
+      if (typeof ack === 'function') ack({ success: true });
+    } catch (e) {
+      if (typeof ack === 'function') ack({ error: 'Failed' });
+    }
+  });
+
+  // ---- Group chat delete ----
+  socket.on('group-delete', ({ groupId, id }, ack) => {
+    try {
+      const g = findGroup(groupId);
+      if (!g) { if (typeof ack === 'function') ack({ error: 'Group not found' }); return; }
+      const m = (g.messages || []).find(x => x.id === id && x.username === username);
+      if (!m) { if (typeof ack === 'function') ack({ error: 'Message not found' }); return; }
+      m.deleted = true;
+      m.deletedAt = nowISO();
+      m.text = '';
+      m.file = null;
+      saveDB();
+      for (const mem of (g.members || [])) io.to('user:' + mem).emit('group-deleted', { groupId: g.id, id: m.id, from: username, deletedAt: m.deletedAt });
+      if (typeof ack === 'function') ack({ success: true });
+    } catch (e) {
+      if (typeof ack === 'function') ack({ error: 'Failed' });
+    }
+  });
+
+  // ---- Group chat typing ----
+  socket.on('group-typing', ({ groupId, typing }) => {
+    const g = findGroup(groupId);
+    if (!g) return;
+    const u = db.users[username];
+    const dn = u && u.displayName ? u.displayName : username;
+    for (const mem of (g.members || [])) {
+      if (mem === username) continue;
+      io.to('user:' + mem).emit('group-typing', { groupId: g.id, from: username, displayName: dn, typing: !!typing });
+    }
   });
 
   // ---- Set status ----

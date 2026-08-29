@@ -540,14 +540,32 @@ body.loading-session #chat-app.active::after { content: none; }
   animation: navIconPop 0.32s cubic-bezier(0.34,1.56,0.64,1);
 }
 
-.sidebar-search { padding: 10px 12px; }
+.sidebar-search { padding: 10px 12px; display: flex; gap: 8px; align-items: center; }
 .sidebar-search input {
-  width: 100%; padding: 8px 12px;
+  flex: 1; width: 100%; padding: 8px 12px;
   background: var(--bg-dark); border: 1px solid var(--border);
   border-radius: var(--radius-sm); color: var(--text-primary); font-size: 13px;
 }
 .sidebar-search input:focus { outline: none; border-color: var(--border-light); }
 .sidebar-search input::placeholder { color: var(--text-muted); }
+.group-create-plus-btn {
+  flex-shrink: 0; width: 38px; height: 38px; border-radius: 9px; border: 1px solid var(--border);
+  background: linear-gradient(135deg, rgba(99,102,241,0.18), rgba(99,102,241,0.08)); color: #a5b4fc;
+  display: flex; align-items: center; justify-content: center; cursor: pointer; transition: var(--transition);
+}
+.group-create-plus-btn svg { width: 20px; height: 20px; }
+.group-create-plus-btn:hover { background: linear-gradient(135deg, rgba(99,102,241,0.32), rgba(99,102,241,0.18)); border-color: rgba(99,102,241,0.45); color: #c7d2fe; transform: scale(1.06); }
+
+/* Group chat member chips (create modal) */
+.group-chip {
+  display: inline-flex; align-items: center; gap: 4px; padding: 5px 10px; border-radius: 16px;
+  background: linear-gradient(135deg, rgba(99,102,241,0.22), rgba(99,102,241,0.12));
+  border: 1px solid rgba(99,102,241,0.35); color: #c7d2fe; font-size: 12.5px; font-weight: 600;
+  cursor: default; user-select: none;
+}
+.group-chip-x { cursor: pointer; font-size: 15px; line-height: 1; color: #a5b4fc; padding: 0 0 0 2px; }
+.group-chip-x:hover { color: #fca5a5; }
+.group-item .status-dot { background: #6366f1 !important; }
 
 .sidebar-view { flex: 1; overflow-y: auto; display: none; }
 .sidebar-view.active { display: block; animation: sidebarViewIn 0.26s cubic-bezier(0.16,1,0.3,1); }
@@ -2055,166 +2073,213 @@ body.no-anim .friend-item { animation: none !important; }
 
 /* ===== Admin Panel ===== */
 .admin-subtabs {
-  display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 16px;
-  border-bottom: 1px solid var(--border); padding-bottom: 8px;
+  display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 20px;
+  border-bottom: 1px solid var(--border); padding-bottom: 10px;
 }
 .admin-subtab {
   background: transparent; border: 1px solid transparent; color: var(--text-secondary);
-  padding: 8px 14px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 500;
-  transition: var(--transition);
+  padding: 9px 16px; border-radius: 9px; cursor: pointer; font-size: 12.5px; font-weight: 600;
+  transition: var(--transition); letter-spacing: 0.2px;
 }
 .admin-subtab:hover { background: var(--bg-medium); color: var(--text-primary); }
-.admin-subtab.active { background: rgba(99,102,241,0.15); color: #818cf8; border-color: rgba(99,102,241,0.3); }
-.admin-subpane { display: none; padding-top: 4px; }
-.admin-subpane.active { display: block; }
-.admin-subpane .profile-section + .profile-section { margin-top: 28px; padding-top: 28px; border-top: 1px solid var(--border); }
-.admin-subpane .profile-section-title { display: flex; align-items: center; gap: 8px; }
+.admin-subtab.active {
+  background: linear-gradient(135deg, rgba(99,102,241,0.20), rgba(99,102,241,0.10));
+  color: #a5b4fc; border-color: rgba(99,102,241,0.35);
+  box-shadow: 0 2px 8px rgba(99,102,241,0.18);
+}
+.admin-subpane { display: none; padding-top: 6px; }
+.admin-subpane.active { display: block; animation: adminPaneIn 0.22s cubic-bezier(0.16,1,0.3,1); }
+@keyframes adminPaneIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.admin-subpane .profile-section + .profile-section { margin-top: 32px; padding-top: 32px; border-top: 1px solid var(--border); }
+.admin-subpane .profile-section-title {
+  display: flex; align-items: center; gap: 10px; font-size: 14.5px; font-weight: 700;
+  color: var(--text-primary); margin-bottom: 2px; letter-spacing: 0.1px;
+}
 .admin-subpane .profile-section-title::before {
-  content: ''; display: inline-block; width: 4px; height: 18px; border-radius: 2px;
-  background: #6366f1; flex-shrink: 0;
+  content: ''; display: inline-block; width: 4px; height: 20px; border-radius: 2px;
+  background: linear-gradient(180deg, #818cf8, #6366f1); flex-shrink: 0;
+}
+.admin-subpane .profile-section > p {
+  color: var(--text-muted); font-size: 12.5px; line-height: 1.6; margin-bottom: 14px;
 }
 
 .admin-input {
   flex: 1; background: var(--bg-dark); border: 1px solid var(--border); color: var(--text-primary);
-  padding: 10px 14px; border-radius: 8px; font-size: 13px; outline: none; transition: var(--transition);
+  padding: 11px 15px; border-radius: 10px; font-size: 13.5px; outline: none; transition: var(--transition);
 }
 .admin-input:hover { border-color: var(--text-muted); }
-.admin-input:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.12); }
+.admin-input:focus { border-color: #818cf8; box-shadow: 0 0 0 3px rgba(99,102,241,0.14); }
 .admin-textarea {
   width: 100%; background: var(--bg-dark); border: 1px solid var(--border); color: var(--text-primary);
-  padding: 12px 16px; border-radius: 10px; font-size: 13px; outline: none; resize: vertical; transition: var(--transition);
-  font-family: inherit; line-height: 1.55;
+  padding: 13px 17px; border-radius: 11px; font-size: 13.5px; outline: none; resize: vertical; transition: var(--transition);
+  font-family: inherit; line-height: 1.6;
 }
-.admin-textarea:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.12); }
+.admin-textarea:focus { border-color: #818cf8; box-shadow: 0 0 0 3px rgba(99,102,241,0.14); }
 .admin-select {
   background: var(--bg-dark); border: 1px solid var(--border); color: var(--text-primary);
-  padding: 10px 36px 10px 14px; border-radius: 8px; font-size: 13px; outline: none; cursor: pointer;
+  padding: 11px 38px 11px 15px; border-radius: 10px; font-size: 13.5px; outline: none; cursor: pointer;
   appearance: none; -webkit-appearance: none; -moz-appearance: none; transition: var(--transition);
   background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
-  background-repeat: no-repeat; background-position: right 12px center;
+  background-repeat: no-repeat; background-position: right 14px center;
 }
 .admin-select:hover { border-color: var(--text-muted); }
-.admin-select:focus { border-color: #6366f1; }
-.admin-ban-search-row { display: flex; gap: 8px; margin-bottom: 12px; }
-.admin-role-select-row { display: flex; gap: 8px; align-items: center; }
+.admin-select:focus { border-color: #818cf8; box-shadow: 0 0 0 3px rgba(99,102,241,0.14); }
+.admin-ban-search-row { display: flex; gap: 10px; margin-bottom: 14px; }
+.admin-role-select-row { display: flex; gap: 10px; align-items: center; }
 
-.admin-ban-results { display: flex; flex-direction: column; gap: 8px; }
+.admin-ban-results { display: flex; flex-direction: column; gap: 10px; }
 .admin-search-result {
-  display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: var(--bg-medium);
-  border-radius: 10px; cursor: pointer; transition: var(--transition); border: 1px solid transparent;
+  display: flex; align-items: center; gap: 14px; padding: 14px 16px;
+  background: linear-gradient(135deg, var(--bg-medium), var(--bg-darker));
+  border-radius: 12px; cursor: pointer; transition: var(--transition); border: 1px solid var(--border);
 }
-.admin-search-result:hover { border-color: #6366f1; background: var(--bg-light); }
+.admin-search-result:hover { border-color: #818cf8; background: var(--bg-light); transform: translateY(-1px); box-shadow: 0 4px 16px rgba(0,0,0,0.25); }
 .admin-search-result-avatar {
-  width: 32px; height: 32px; border-radius: 50%; background: var(--accent); color: var(--accent-text);
-  display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 13px; flex-shrink: 0; overflow: hidden;
+  width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #6366f1, #4f46e5); color: #fff;
+  display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; flex-shrink: 0; overflow: hidden;
+  box-shadow: 0 2px 8px rgba(99,102,241,0.25);
 }
 .admin-search-result-avatar img { width: 100%; height: 100%; object-fit: cover; }
 .admin-search-result-info { flex: 1; min-width: 0; }
-.admin-search-result-name { font-weight: 600; font-size: 13px; color: var(--text-primary); }
-.admin-search-result-meta { font-size: 11px; color: var(--text-muted); }
+.admin-search-result-name { font-weight: 700; font-size: 13.5px; color: var(--text-primary); }
+.admin-search-result-meta { font-size: 11.5px; color: var(--text-muted); margin-top: 2px; }
 
 .admin-ban-target-info {
-  padding: 14px; background: var(--bg-medium); border-radius: 10px; margin-bottom: 14px;
-  display: flex; align-items: center; gap: 12px;
+  padding: 16px 18px; background: linear-gradient(135deg, var(--bg-medium), var(--bg-darker));
+  border-radius: 12px; margin-bottom: 16px;
+  display: flex; align-items: center; gap: 14px; border: 1px solid var(--border);
 }
-.admin-ban-target-info .at-name { font-weight: 600; font-size: 14px; color: var(--text-primary); }
-.admin-ban-target-info .at-meta { font-size: 11px; color: var(--text-muted); }
+.admin-ban-target-info .at-name { font-weight: 700; font-size: 14.5px; color: var(--text-primary); }
+.admin-ban-target-info .at-meta { font-size: 11.5px; color: var(--text-muted); margin-top: 2px; }
 
-.admin-user-grid { display: grid; grid-template-columns: 1fr; gap: 8px; }
+.admin-user-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
 .admin-user-card {
-  display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: var(--bg-medium);
-  border-radius: 10px; border: 1px solid var(--border);
+  display: flex; align-items: center; gap: 14px; padding: 14px 16px;
+  background: linear-gradient(135deg, var(--bg-medium), var(--bg-darker));
+  border-radius: 12px; border: 1px solid var(--border); transition: var(--transition);
 }
+.admin-user-card:hover { border-color: var(--border-light); transform: translateY(-1px); }
 .admin-user-card-avatar {
-  width: 28px; height: 28px; border-radius: 50%; background: var(--accent); color: var(--accent-text);
-  display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 11px; flex-shrink: 0; overflow: hidden;
+  width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, #6366f1, #4f46e5); color: #fff;
+  display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px; flex-shrink: 0; overflow: hidden;
+  box-shadow: 0 2px 8px rgba(99,102,241,0.22);
 }
 .admin-user-card-avatar img { width: 100%; height: 100%; object-fit: cover; }
 .admin-user-card-info { flex: 1; min-width: 0; }
-.admin-user-card-name { font-weight: 600; font-size: 12px; color: var(--text-primary); }
-.admin-user-card-meta { font-size: 10px; color: var(--text-muted); display: flex; gap: 8px; flex-wrap: wrap; }
-.admin-user-card-status { font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: 600; }
-.admin-user-card-status.online { background: rgba(34,197,94,0.15); color: #22c55e; }
-.admin-user-card-status.idle { background: rgba(234,179,8,0.15); color: #eab308; }
-.admin-user-card-status.dnd { background: rgba(239,68,68,0.15); color: #ef4444; }
-.admin-user-card-status.offline { background: rgba(107,114,128,0.15); color: #6b7280; }
-.admin-user-card-status.banned { background: rgba(239,68,68,0.2); color: #ef4444; }
+.admin-user-card-name { font-weight: 700; font-size: 13px; color: var(--text-primary); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.admin-user-card-meta { font-size: 10.5px; color: var(--text-muted); display: flex; gap: 10px; flex-wrap: wrap; margin-top: 4px; }
+.admin-user-card-status { font-size: 10px; padding: 2px 8px; border-radius: 5px; font-weight: 700; letter-spacing: 0.3px; }
+.admin-user-card-status.online { background: rgba(34,197,94,0.18); color: #4ade80; }
+.admin-user-card-status.idle { background: rgba(234,179,8,0.18); color: #facc15; }
+.admin-user-card-status.dnd { background: rgba(239,68,68,0.18); color: #f87171; }
+.admin-user-card-status.offline { background: rgba(107,114,128,0.18); color: #9ca3af; }
+.admin-user-card-status.banned { background: rgba(239,68,68,0.22); color: #f87171; }
 
-.admin-activity-list { display: flex; flex-direction: column; gap: 8px; max-height: 340px; overflow-y: auto; padding: 2px; }
+.admin-activity-list { display: flex; flex-direction: column; gap: 10px; max-height: 360px; overflow-y: auto; padding: 4px; }
+.admin-activity-list::-webkit-scrollbar { width: 6px; }
+.admin-activity-list::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 3px; }
 .admin-activity-item {
-  padding: 10px 14px; background: var(--bg-medium); border-radius: 8px; font-size: 12px;
-  display: flex; align-items: center; gap: 10px; border-left: 3px solid #6366f1;
-  line-height: 1.45;
+  padding: 12px 16px; background: linear-gradient(135deg, var(--bg-medium), var(--bg-darker));
+  border-radius: 10px; font-size: 12.5px;
+  display: flex; align-items: center; gap: 12px; border-left: 3px solid #818cf8;
+  border-top: 1px solid var(--border); border-right: 1px solid var(--border); border-bottom: 1px solid var(--border);
+  line-height: 1.5; transition: var(--transition);
 }
-.admin-activity-item .aa-action { font-weight: 600; color: #818cf8; text-transform: capitalize; }
+.admin-activity-item:hover { border-left-color: #a5b4fc; transform: translateX(2px); }
+.admin-activity-item .aa-action {
+  font-weight: 700; color: #a5b4fc; text-transform: capitalize; font-size: 11px;
+  padding: 3px 9px; background: rgba(99,102,241,0.14); border-radius: 5px; white-space: nowrap; flex-shrink: 0;
+}
 .admin-activity-item .aa-detail { color: var(--text-secondary); flex: 1; }
-.admin-activity-item .aa-time { color: var(--text-muted); font-size: 10px; white-space: nowrap; }
+.admin-activity-item .aa-time { color: var(--text-muted); font-size: 10.5px; white-space: nowrap; flex-shrink: 0; }
 
-.admin-accounts-list { display: flex; flex-direction: column; gap: 10px; }
+.admin-accounts-list { display: flex; flex-direction: column; gap: 12px; }
 .admin-account-row {
-  padding: 16px; background: var(--bg-medium); border-radius: 10px; border: 1px solid var(--border);
+  padding: 18px 20px; background: linear-gradient(135deg, var(--bg-medium), var(--bg-darker));
+  border-radius: 13px; border: 1px solid var(--border); transition: var(--transition);
 }
-.admin-account-row-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
-.admin-account-row-name { font-weight: 600; font-size: 13px; color: var(--text-primary); }
-.admin-account-row-id { font-size: 10px; color: var(--text-muted); }
-.admin-account-detail { font-size: 11px; color: var(--text-secondary); margin: 4px 0; word-break: break-all; line-height: 1.5; }
-.admin-account-detail .label { color: var(--text-muted); font-weight: 500; }
-.admin-account-detail .mono { font-family: 'Courier New', monospace; color: var(--accent); }
+.admin-account-row:hover { border-color: var(--border-light); }
+.admin-account-row-header { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+.admin-account-row-name { font-weight: 700; font-size: 14px; color: var(--text-primary); }
+.admin-account-row-id { font-size: 10.5px; color: var(--text-muted); }
+.admin-account-detail { font-size: 11.5px; color: var(--text-secondary); margin: 6px 0; word-break: break-all; line-height: 1.6; }
+.admin-account-detail .label { color: var(--text-muted); font-weight: 600; }
+.admin-account-detail .mono { font-family: 'Courier New', monospace; color: #818cf8; font-size: 11px; }
 
 .admin-banned-list { display: flex; flex-direction: column; gap: 10px; }
 .admin-banned-item {
-  display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: rgba(239,68,68,0.08);
-  border-radius: 10px; border: 1px solid rgba(239,68,68,0.2);
+  display: flex; align-items: center; gap: 14px; padding: 14px 16px;
+  background: linear-gradient(135deg, rgba(239,68,68,0.10), rgba(239,68,68,0.04));
+  border-radius: 12px; border: 1px solid rgba(239,68,68,0.22); transition: var(--transition);
 }
+.admin-banned-item:hover { border-color: rgba(239,68,68,0.35); }
 .admin-banned-item-info { flex: 1; }
-.admin-banned-item-name { font-weight: 600; font-size: 13px; color: var(--text-primary); }
-.admin-banned-item-reason { font-size: 11px; color: var(--text-muted); }
+.admin-banned-item-name { font-weight: 700; font-size: 13.5px; color: var(--text-primary); }
+.admin-banned-item-reason { font-size: 11.5px; color: var(--text-muted); margin-top: 3px; line-height: 1.5; }
 
 /* Admin message moderation list */
-.admin-msg-list { display: flex; flex-direction: column; gap: 8px; max-height: 460px; overflow-y: auto; }
+.admin-msg-list { display: flex; flex-direction: column; gap: 10px; max-height: 480px; overflow-y: auto; padding: 4px; }
+.admin-msg-list::-webkit-scrollbar { width: 6px; }
+.admin-msg-list::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 3px; }
 .admin-msg-item {
-  display: flex; gap: 12px; padding: 10px 12px; background: var(--bg-medium);
-  border: 1px solid var(--border); border-radius: 10px; align-items: flex-start;
+  display: flex; gap: 14px; padding: 13px 15px;
+  background: linear-gradient(135deg, var(--bg-medium), var(--bg-darker));
+  border: 1px solid var(--border); border-radius: 12px; align-items: flex-start; transition: var(--transition);
 }
+.admin-msg-item:hover { border-color: var(--border-light); }
 .admin-msg-item .am-avatar {
-  width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0; overflow: hidden;
-  background: var(--bg-lighter); display: flex; align-items: center; justify-content: center;
-  font-size: 11px; font-weight: 700; color: var(--text-secondary);
+  width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0; overflow: hidden;
+  background: linear-gradient(135deg, #6366f1, #4f46e5); display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700; color: #fff;
 }
 .admin-msg-item .am-avatar img { width: 100%; height: 100%; object-fit: cover; }
 .admin-msg-item .am-body { flex: 1; min-width: 0; }
-.admin-msg-item .am-head { display: flex; gap: 6px; align-items: baseline; margin-bottom: 2px; }
-.admin-msg-item .am-name { font-weight: 600; font-size: 12px; color: var(--text-primary); }
+.admin-msg-item .am-head { display: flex; gap: 8px; align-items: baseline; margin-bottom: 3px; }
+.admin-msg-item .am-name { font-weight: 700; font-size: 12.5px; color: var(--text-primary); }
 .admin-msg-item .am-handle { font-size: 11px; color: var(--text-muted); }
-.admin-msg-item .am-time { font-size: 10px; color: var(--text-muted); margin-left: auto; white-space: nowrap; }
-.admin-msg-item .am-text { font-size: 12px; color: var(--text-secondary); word-break: break-word; line-height: 1.35; }
-.admin-msg-item .am-file { font-size: 10px; color: var(--accent); margin-top: 2px; }
+.admin-msg-item .am-time { font-size: 10.5px; color: var(--text-muted); margin-left: auto; white-space: nowrap; }
+.admin-msg-item .am-text { font-size: 12.5px; color: var(--text-secondary); word-break: break-word; line-height: 1.45; }
+.admin-msg-item .am-file { font-size: 10.5px; color: #818cf8; margin-top: 3px; }
 .admin-msg-item .am-del {
-  flex-shrink: 0; padding: 4px 10px; font-size: 11px; border-radius: 6px;
+  flex-shrink: 0; padding: 6px 12px; font-size: 11px; border-radius: 7px;
   background: rgba(239,68,68,0.15); color: var(--danger); border: 1px solid rgba(239,68,68,0.3);
-  cursor: pointer; font-weight: 600;
+  cursor: pointer; font-weight: 700; transition: var(--transition); align-self: center;
 }
-.admin-msg-item .am-del:hover { background: var(--danger); color: #fff; }
-.admin-msg-empty { color: var(--text-muted); font-size: 12px; padding: 16px 0; text-align: center; }
+.admin-msg-item .am-del:hover { background: var(--danger); color: #fff; box-shadow: 0 2px 10px rgba(239,68,68,0.35); }
+.admin-msg-empty { color: var(--text-muted); font-size: 13px; padding: 24px 0; text-align: center; }
 
-.admin-badge-buttons { display: flex; gap: 10px; flex-wrap: wrap; }
+.admin-badge-buttons { display: flex; gap: 12px; flex-wrap: wrap; }
 .admin-badge-btn {
-  display: flex; align-items: center; gap: 8px; padding: 10px 14px; background: var(--bg-medium);
-  border: 1px solid var(--border); border-radius: 8px; cursor: pointer; color: var(--text-primary);
-  font-size: 13px; font-weight: 500; transition: var(--transition);
+  display: flex; align-items: center; gap: 9px; padding: 12px 16px;
+  background: linear-gradient(135deg, var(--bg-medium), var(--bg-darker));
+  border: 1px solid var(--border); border-radius: 11px; cursor: pointer; color: var(--text-primary);
+  font-size: 13px; font-weight: 600; transition: var(--transition);
 }
-.admin-badge-btn:hover { border-color: #6366f1; background: var(--bg-light); }
-.admin-badge-btn.active { border-color: #6366f1; background: rgba(99,102,241,0.12); }
+.admin-badge-btn:hover { border-color: #818cf8; background: var(--bg-light); transform: translateY(-1px); }
+.admin-badge-btn.active { border-color: #818cf8; background: rgba(99,102,241,0.14); box-shadow: 0 2px 12px rgba(99,102,241,0.2); }
 .admin-badge-btn.remove { border-color: var(--danger); color: var(--danger); }
-.admin-badge-preview { width: 20px; height: 20px; border-radius: 4px; object-fit: cover; }
+.admin-badge-preview { width: 22px; height: 22px; border-radius: 5px; object-fit: cover; }
 
-.admin-whitelist-list { display: flex; flex-direction: column; gap: 6px; }
+.admin-whitelist-list { display: flex; flex-direction: column; gap: 8px; }
 .admin-whitelist-item {
-  display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: var(--bg-medium);
-  border-radius: 8px; border: 1px solid var(--border);
+  display: flex; align-items: center; gap: 12px; padding: 12px 15px;
+  background: linear-gradient(135deg, var(--bg-medium), var(--bg-darker));
+  border-radius: 11px; border: 1px solid var(--border); transition: var(--transition);
 }
-.admin-whitelist-item-name { flex: 1; font-weight: 600; font-size: 13px; color: var(--text-primary); }
-.admin-whitelist-item .owner-badge { font-size: 10px; padding: 2px 8px; background: rgba(234,179,8,0.15); color: #eab308; border-radius: 4px; font-weight: 600; }
+.admin-whitelist-item:hover { border-color: var(--border-light); }
+.admin-whitelist-item-name { flex: 1; font-weight: 700; font-size: 13.5px; color: var(--text-primary); }
+.admin-whitelist-item .owner-badge { font-size: 10px; padding: 3px 9px; background: rgba(234,179,8,0.18); color: #facc15; border-radius: 5px; font-weight: 700; letter-spacing: 0.3px; }
+
+/* Admin custom roles */
+.admin-custom-role-card {
+  padding: 16px 18px; background: linear-gradient(135deg, var(--bg-medium), var(--bg-darker));
+  border-radius: 13px; border: 1px solid var(--border); margin-bottom: 12px; transition: var(--transition);
+}
+.admin-custom-role-card:hover { border-color: var(--border-light); }
+.admin-custom-role-name { font-weight: 700; font-size: 14px; display: flex; align-items: center; gap: 10px; }
+
+/* Admin buttons polish */
+.admin-subpane .setting-save-btn { font-weight: 600; }
 
 /* ===== Username Badges / Role Tags ===== */
 .user-badge-icon {
@@ -3651,21 +3716,27 @@ body.no-anim .friend-item { animation: none !important; }
 .image-lightbox.show { display: flex; }
 @keyframes lightboxIn { from { opacity: 0; } to { opacity: 1; } }
 .image-lightbox-stage {
-  position: relative; max-width: 92vw; max-height: 86vh;
+  position: relative; max-width: 80vw; max-height: 82vh;
   display: flex; align-items: center; justify-content: center;
-  border-radius: 8px; overflow: hidden;
+  border-radius: 12px; overflow: hidden; padding: 10px;
+  background: rgba(18, 20, 24, 0.55); border: 1px solid rgba(255,255,255,0.08);
+  box-shadow: 0 24px 80px rgba(0,0,0,0.65);
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: zoom-in;
+  animation: lightboxZoom 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.image-lightbox-stage.zoomed {
+  cursor: zoom-out; transform: scale(1.7);
+  box-shadow: 0 30px 100px rgba(0,0,0,0.75);
 }
 .image-lightbox-stage img {
-  max-width: 92vw; max-height: 86vh; object-fit: contain;
-  border-radius: 6px; box-shadow: 0 20px 70px rgba(0,0,0,0.6);
-  animation: lightboxZoom 0.24s cubic-bezier(0.16, 1, 0.3, 1);
-  cursor: zoom-in;
+  max-width: 78vw; max-height: 80vh; object-fit: contain;
+  border-radius: 8px; pointer-events: none;
 }
 @keyframes lightboxZoom {
-  from { opacity: 0; transform: scale(0.92); }
+  from { opacity: 0; transform: scale(0.9); }
   to { opacity: 1; transform: scale(1); }
 }
-.image-lightbox-stage img.zoomed { cursor: zoom-out; transform: scale(2.2); transition: transform 0.18s ease; }
 .image-lightbox-close {
   position: absolute; top: 18px; right: 22px; z-index: 2;
   width: 42px; height: 42px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.12);
@@ -4743,6 +4814,9 @@ body.no-anim .friend-item { animation: none !important; }
 
       <div class="sidebar-search">
         <input type="text" id="user-search" placeholder="Search members by name or ID">
+        <button class="group-create-plus-btn" id="group-create-plus-btn" title="Create a group chat">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </button>
       </div>
 
       <!-- Public user list -->
@@ -4960,6 +5034,64 @@ body.no-anim .friend-item { animation: none !important; }
       <div class="modal-actions">
         <button class="modal-btn" id="unfriend-cancel">Cancel</button>
         <button class="modal-btn danger" id="unfriend-confirm">Remove Friend</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== GROUP CHAT CREATION MODAL ===================== -->
+  <div class="modal-overlay" id="group-create-modal">
+    <div class="modal" style="max-width:480px;">
+      <h3 style="margin-bottom:4px;">Create a Group Chat</h3>
+      <p style="color:var(--text-muted); font-size:12.5px; margin-bottom:16px; line-height:1.5;">Pick a name and add members. Anyone you add will be able to see and send messages in this group.</p>
+      <div style="margin-bottom:14px;">
+        <label style="display:block; font-size:12px; color:var(--text-muted); margin-bottom:6px; font-weight:600;">Group name</label>
+        <input type="text" id="group-create-name" class="admin-input" placeholder="Enter a group chat name" maxlength="60" style="width:100%;" />
+      </div>
+      <div style="margin-bottom:8px;">
+        <label style="display:block; font-size:12px; color:var(--text-muted); margin-bottom:6px; font-weight:600;">Add members</label>
+        <input type="text" id="group-create-search" class="admin-input" placeholder="Search members by name or ID to add" style="width:100%; margin-bottom:10px;" />
+        <div id="group-create-selected" style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px; min-height:6px;"></div>
+        <div id="group-create-results" class="admin-ban-results" style="max-height:240px; overflow-y:auto;"></div>
+      </div>
+      <div class="modal-actions" style="margin-top:18px;">
+        <button class="modal-btn" id="group-create-cancel">Cancel</button>
+        <button class="modal-btn" id="group-create-confirm" style="background:linear-gradient(135deg,#6366f1,#4f46e5); color:#fff;">Create Group</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== GROUP CHAT SETTINGS MODAL ===================== -->
+  <div class="modal-overlay" id="group-settings-modal">
+    <div class="modal" style="max-width:480px;">
+      <h3 style="margin-bottom:4px;">Group Settings</h3>
+      <p id="group-settings-subtitle" style="color:var(--text-muted); font-size:12.5px; margin-bottom:16px; line-height:1.5;"></p>
+      <div style="display:flex; align-items:center; gap:14px; margin-bottom:18px;">
+        <div id="group-settings-icon-wrap" style="position:relative; flex-shrink:0;">
+          <div id="group-settings-icon" style="width:56px; height:56px; border-radius:50%; background:linear-gradient(135deg,#6366f1,#4f46e5); display:flex; align-items:center; justify-content:center; font-size:22px; font-weight:700; color:#fff; overflow:hidden;">G</div>
+          <button id="group-settings-icon-btn" title="Change group icon" style="position:absolute; bottom:-2px; right:-2px; width:22px; height:22px; border-radius:50%; border:2px solid var(--bg-darkest); background:var(--accent); color:#fff; display:none; align-items:center; justify-content:center; cursor:pointer; font-size:14px; line-height:1;">+</button>
+          <input type="file" id="group-settings-icon-input" accept="image/*" hidden />
+        </div>
+        <div style="flex:1;">
+          <label style="display:block; font-size:12px; color:var(--text-muted); margin-bottom:6px; font-weight:600;">Group name</label>
+          <input type="text" id="group-settings-name" class="admin-input" placeholder="Group name" maxlength="60" style="width:100%;" />
+        </div>
+      </div>
+      <div style="margin-bottom:10px;">
+        <label style="display:block; font-size:12px; color:var(--text-muted); margin-bottom:8px; font-weight:600;">Members <span id="group-settings-member-count" style="color:var(--text-muted); font-weight:500;"></span></label>
+        <div id="group-settings-members" style="display:flex; flex-direction:column; gap:8px; max-height:220px; overflow-y:auto;"></div>
+      </div>
+      <div id="group-settings-add-row" style="display:none; margin-top:14px;">
+        <label style="display:block; font-size:12px; color:var(--text-muted); margin-bottom:6px; font-weight:600;">Add a member</label>
+        <div style="display:flex; gap:8px;">
+          <input type="text" id="group-settings-add-input" class="admin-input" placeholder="Enter a username" style="flex:1;" />
+          <button class="setting-save-btn no-checkmark" id="group-settings-add-btn" style="flex-shrink:0;">Add</button>
+        </div>
+      </div>
+      <div class="modal-actions" style="margin-top:18px; flex-wrap:wrap;">
+        <button class="modal-btn danger" id="group-settings-leave-btn">Leave Group</button>
+        <div style="flex:1;"></div>
+        <button class="modal-btn" id="group-settings-cancel">Close</button>
+        <button class="modal-btn" id="group-settings-save" style="background:linear-gradient(135deg,#6366f1,#4f46e5); color:#fff;">Save</button>
       </div>
     </div>
   </div>
@@ -5677,7 +5809,7 @@ body.no-anim .friend-item { animation: none !important; }
             <div class="admin-subpane active" data-admin-subpane="activity">
               <div class="profile-section">
                 <div class="profile-section-title">Change Welcome Title</div>
-                <p style="color:var(--text-muted); font-size:12px; margin-bottom:12px;">Change the text shown in the chatroom header (currently "welcome - to the safe place"). A 20-second cooldown applies between changes.</p>
+                <p style="color:var(--text-muted); font-size:12.5px; margin-bottom:14px; line-height:1.6;">Change the text shown in the chatroom header (currently "welcome - to the safe place"). A 20-second cooldown applies between changes.</p>
                 <div style="display:flex; gap:8px; align-items:center; margin-bottom:8px;">
                   <input type="text" id="admin-welcome-title-input" class="admin-input" placeholder="Enter the new welcome title" maxlength="100" style="flex:1;" />
                   <button class="setting-save-btn no-checkmark" id="admin-welcome-title-btn">Update Title</button>
@@ -5690,7 +5822,7 @@ body.no-anim .friend-item { animation: none !important; }
               </div>
               <div class="profile-section">
                 <div class="profile-section-title">Disable Chat Cooldown for User</div>
-                <p style="color:var(--text-muted); font-size:12px; margin-bottom:12px;">Select a user to exempt them from the 3-second chat message cooldown. They will be able to send messages without waiting.</p>
+                <p style="color:var(--text-muted); font-size:12.5px; margin-bottom:14px; line-height:1.6;">Select a user to exempt them from the 3-second chat message cooldown. They will be able to send messages without waiting.</p>
                 <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:12px;">
                   <select id="admin-cooldown-exempt-select" class="admin-input" style="flex:1; min-width:200px; padding:8px 10px;">
                     <option value="">— Select a user —</option>
@@ -5725,7 +5857,7 @@ body.no-anim .friend-item { animation: none !important; }
             <div class="admin-subpane" data-admin-subpane="accounts">
               <div class="profile-section">
                 <div class="profile-section-title">Account Credentials &amp; Sessions</div>
-                <p style="color:var(--text-muted); font-size:12px; margin-bottom:12px;">View password hashes and active session counts for all accounts.</p>
+                <p style="color:var(--text-muted); font-size:12.5px; margin-bottom:14px; line-height:1.6;">View password hashes and active session counts for all accounts.</p>
                 <div id="admin-accounts-list" class="admin-accounts-list">
                   <p style="color:var(--text-muted); padding:12px 0;">Loading accounts...</p>
                 </div>
@@ -5736,7 +5868,7 @@ body.no-anim .friend-item { animation: none !important; }
             <div class="admin-subpane" data-admin-subpane="ban">
               <div class="profile-section">
                 <div class="profile-section-title">Ban a User</div>
-                <p style="color:var(--text-muted); font-size:12px; margin-bottom:12px;">Search for a user by username or ID, then ban them with a reason. Choose a duration from permanent to 14 days.</p>
+                <p style="color:var(--text-muted); font-size:12.5px; margin-bottom:14px; line-height:1.6;">Search for a user by username or ID, then ban them with a reason. Choose a duration from permanent to 14 days.</p>
                 <div class="admin-ban-search-row">
                   <input type="text" id="admin-ban-search" class="admin-input" placeholder="Search by username or ID" />
                   <button class="setting-save-btn no-checkmark" id="admin-ban-search-btn">Search</button>
@@ -5772,7 +5904,7 @@ body.no-anim .friend-item { animation: none !important; }
             <div class="admin-subpane" data-admin-subpane="mute">
               <div class="profile-section">
                 <div class="profile-section-title">Mute a User</div>
-                <p style="color:var(--text-muted); font-size:12px; margin-bottom:12px;">Mute a user to prevent them from sending messages in public chat. Muted users can still use DMs. Duration can be anywhere from 1 minute to 14 days.</p>
+                <p style="color:var(--text-muted); font-size:12.5px; margin-bottom:14px; line-height:1.6;">Mute a user to prevent them from sending messages in public chat. Muted users can still use DMs. Duration can be anywhere from 1 minute to 14 days.</p>
                 <div class="admin-ban-search-row">
                   <input type="text" id="admin-mute-search" class="admin-input" placeholder="Search by username or ID" />
                   <button class="setting-save-btn no-checkmark" id="admin-mute-search-btn">Search</button>
@@ -5813,7 +5945,7 @@ body.no-anim .friend-item { animation: none !important; }
             <div class="admin-subpane" data-admin-subpane="roles">
               <div class="profile-section">
                 <div class="profile-section-title">Assign Role</div>
-                <p style="color:var(--text-muted); font-size:12px; margin-bottom:12px;">Give a user a role tag that appears next to their username in chat and DMs.</p>
+                <p style="color:var(--text-muted); font-size:12.5px; margin-bottom:14px; line-height:1.6;">Give a user a role tag that appears next to their username in chat and DMs.</p>
                 <div class="admin-ban-search-row">
                   <input type="text" id="admin-role-search" class="admin-input" placeholder="Search by username or ID" />
                   <button class="setting-save-btn no-checkmark" id="admin-role-search-btn">Search</button>
@@ -5835,7 +5967,7 @@ body.no-anim .friend-item { animation: none !important; }
               </div>
               <div class="profile-section">
                 <div class="profile-section-title">Assign Badge / Icon</div>
-                <p style="color:var(--text-muted); font-size:12px; margin-bottom:12px;">Add an icon badge next to a user's username. Icons appear at the same size as the username text.</p>
+                <p style="color:var(--text-muted); font-size:12.5px; margin-bottom:14px; line-height:1.6;">Add an icon badge next to a user's username. Icons appear at the same size as the username text.</p>
                 <div id="admin-badge-form" style="display:none; margin-top:8px;">
                   <div class="admin-badge-buttons">
                     <button class="admin-badge-btn" data-badge="moderator">
@@ -5861,7 +5993,7 @@ body.no-anim .friend-item { animation: none !important; }
             <div class="admin-subpane" data-admin-subpane="messages">
               <div class="profile-section">
                 <div class="profile-section-title">Moderate Chat Messages</div>
-                <p style="color:var(--text-muted); font-size:12px; margin-bottom:12px;">View and instantly delete any user's message from the chat. Deleted messages are removed for everyone immediately.</p>
+                <p style="color:var(--text-muted); font-size:12.5px; margin-bottom:14px; line-height:1.6;">View and instantly delete any user's message from the chat. Deleted messages are removed for everyone immediately.</p>
                 <div style="display:flex; gap:8px; margin-bottom:12px; align-items:center;">
                   <input type="text" id="admin-msg-search" class="admin-input" placeholder="Filter by username or message text" style="flex:1;" />
                   <button class="setting-save-btn no-checkmark" id="admin-msg-refresh-btn">Refresh</button>
@@ -5879,14 +6011,14 @@ body.no-anim .friend-item { animation: none !important; }
             <div class="admin-subpane" data-admin-subpane="broadcast">
               <div class="profile-section">
                 <div class="profile-section-title">Broadcast System Alert</div>
-                <p style="color:var(--text-muted); font-size:12px; margin-bottom:14px; line-height:1.55;">Send a one-time announcement to every connected user. It appears as a brief alert at the top of their screen and is not posted in chat.</p>
+                <p style="color:var(--text-muted); font-size:12.5px; margin-bottom:14px; line-height:1.6;">Send a one-time announcement to every connected user. It appears as a brief alert at the top of their screen and is not posted in chat.</p>
                 <textarea id="admin-broadcast-text" class="admin-textarea" placeholder="Type your announcement (maximum 500 characters)" rows="3" maxlength="500"></textarea>
                 <div style="display:flex; gap:10px; align-items:center; margin-top:12px;">
                   <button class="setting-save-btn no-checkmark" id="admin-broadcast-send-btn">Send Alert to Everyone</button>
                   <span id="admin-broadcast-count" style="color:var(--text-muted); font-size:11px;">0 / 500</span>
                 </div>
-                <p style="color:var(--text-muted); font-size:11px; margin-top:14px;">Live preview</p>
-                <div id="admin-broadcast-preview" style="margin-top:8px;"></div>
+                <p style="color:var(--text-muted); font-size:11.5px; margin-top:14px; font-weight:600;">Live preview</p>
+                <div id="admin-broadcast-preview" style="margin-top:10px; padding:16px; background:linear-gradient(135deg, var(--bg-medium), var(--bg-darker)); border-radius:12px; border:1px solid var(--border);"></div>
               </div>
             </div>
 
@@ -5894,7 +6026,7 @@ body.no-anim .friend-item { animation: none !important; }
             <div class="admin-subpane" data-admin-subpane="whitelist">
               <div class="profile-section">
                 <div class="profile-section-title">Admin Whitelist</div>
-                <p style="color:var(--text-muted); font-size:12px; margin-bottom:12px;">Users on this list can access the Administrator panel. The owner, <strong style="color:var(--text-secondary);">@lore</strong>, always has access.</p>
+                <p style="color:var(--text-muted); font-size:12.5px; margin-bottom:14px; line-height:1.6;">Users on this list can access the Administrator panel. The owner, <strong style="color:var(--text-secondary);">@lore</strong>, always has access.</p>
                 <div class="admin-ban-search-row">
                   <input type="text" id="admin-whitelist-input" class="admin-input" placeholder="Enter a username to add" />
                   <button class="setting-save-btn no-checkmark" id="admin-whitelist-add-btn">Add to Whitelist</button>
@@ -5909,7 +6041,7 @@ body.no-anim .friend-item { animation: none !important; }
             <div class="admin-subpane" data-admin-subpane="customroles">
               <div class="profile-section">
                 <div class="profile-section-title">Create Custom Member Role</div>
-                <p style="color:var(--text-muted); font-size:12px; margin-bottom:12px;">Create custom roles that appear as labeled groups in the chatroom member sidebar. Each role can hold up to 30 members.</p>
+                <p style="color:var(--text-muted); font-size:12.5px; margin-bottom:14px; line-height:1.6;">Create custom roles that appear as labeled groups in the chatroom member sidebar. Each role can hold up to 30 members.</p>
                 <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:12px;">
                   <input type="text" id="admin-custom-role-name" class="admin-input" placeholder="Enter a role name" maxlength="30" style="flex:1; min-width:180px;" />
                   <input type="color" id="admin-custom-role-color" value="#818cf8" style="width:40px; height:38px; border:1px solid var(--border-light); border-radius:var(--radius-sm); background:var(--bg-medium); cursor:pointer;" title="Role color" />
@@ -6028,6 +6160,59 @@ body.no-anim .friend-item { animation: none !important; }
           </div>
           <textarea class="chat-textarea" id="dm-input" placeholder="Type a private message" rows="1"></textarea>
           <button class="send-btn" id="dm-send-btn" disabled>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== GROUP CHAT CONVERSATION VIEW ===================== -->
+  <div class="dm-overlay" id="group-overlay">
+    <div class="dm-panel">
+      <div class="dm-header">
+        <button class="dm-back" id="group-back">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <div class="dm-header-avatar" id="group-header-avatar">G</div>
+        <div class="dm-header-info">
+          <div class="dm-header-name" id="group-header-name"></div>
+          <div class="dm-header-status" id="group-header-status"></div>
+        </div>
+        <button class="icon-btn" id="group-settings-btn" title="Group settings">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        </button>
+        <button class="icon-btn" id="group-close-btn" title="Close conversation">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="dm-messages" id="group-messages">
+        <div class="empty-state" id="group-empty-state">
+          <div class="empty-state-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="40" height="40"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </div>
+          <h3>Start the group conversation</h3>
+          <p>Send the first message to get this group chat going.</p>
+        </div>
+      </div>
+      <div class="dm-typing" id="group-typing"></div>
+      <div class="dm-input-area">
+        <div class="reply-preview" id="group-reply-preview" style="display:none;">
+          <div class="reply-preview-bar"></div>
+          <div class="reply-preview-avatar" id="group-reply-preview-avatar"></div>
+          <div class="reply-preview-content">
+            <div class="reply-preview-label">Replying to <span id="group-reply-preview-name"></span></div>
+            <div class="reply-preview-text" id="group-reply-preview-text"></div>
+          </div>
+          <button class="reply-preview-cancel" id="group-reply-cancel">&times;</button>
+        </div>
+        <div class="chat-input-wrap">
+          <button class="attach-btn" id="group-attach-btn" title="Attach image (max 115MB)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+          </button>
+          <input type="file" id="group-file-input" accept="image/*,video/*" hidden>
+          <textarea class="chat-textarea" id="group-input" placeholder="Type a message to the group" rows="1"></textarea>
+          <button class="send-btn" id="group-send-btn" disabled>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
           </button>
         </div>
@@ -7443,6 +7628,7 @@ async function initChat(existingMeData) {
 
   connectSocket();
   loadDMConversations();
+  loadGroupChats();
   initAdminTab(); // Pre-show admin nav tab if user is admin (owner or whitelisted)
   initAdminEventListeners(); // Wire up all admin panel button event listeners
 
@@ -8197,7 +8383,8 @@ function openImageLightbox(src) {
 }
 function renderLightbox() {
   const img = $('image-lightbox-img'); if (!img) return;
-  img.classList.remove('zoomed');
+  const stage = $('image-lightbox-stage');
+  if (stage) stage.classList.remove('zoomed');
   img.src = lightboxImages[lightboxIndex] || '';
   const prev = $('image-lightbox-prev'), next = $('image-lightbox-next');
   if (prev) prev.disabled = lightboxImages.length <= 1;
@@ -8220,20 +8407,22 @@ function lightboxStep(delta) {
   function ready(fn) { if (document.readyState !== 'loading') fn(); else document.addEventListener('DOMContentLoaded', fn); }
   ready(() => {
     const box = $('image-lightbox'); if (!box) return;
-    const img = $('image-lightbox-img');
+    const stage = $('image-lightbox-stage');
     const close = $('image-lightbox-close');
     if (close) close.addEventListener('click', closeImageLightbox);
     $('image-lightbox-prev').addEventListener('click', (e) => { e.stopPropagation(); lightboxStep(-1); });
     $('image-lightbox-next').addEventListener('click', (e) => { e.stopPropagation(); lightboxStep(1); });
-    // Click backdrop closes; click image toggles zoom
-    box.addEventListener('click', (e) => { if (e.target === box || e.target.classList.contains('image-lightbox-stage')) closeImageLightbox(); });
-    if (img) img.addEventListener('click', (e) => { e.stopPropagation(); img.classList.toggle('zoomed'); });
-    // Keyboard: Esc close, arrows navigate
+    // Click backdrop closes; click the stage/box toggles zoom on the WHOLE box
+    box.addEventListener('click', (e) => { if (e.target === box) closeImageLightbox(); });
+    if (stage) stage.addEventListener('click', (e) => { e.stopPropagation(); stage.classList.toggle('zoomed'); });
+    // Keyboard: Esc close, arrows navigate, +/- zoom the whole box
     document.addEventListener('keydown', (e) => {
       if (!box.classList.contains('show')) return;
       if (e.key === 'Escape') { e.preventDefault(); closeImageLightbox(); }
       else if (e.key === 'ArrowLeft') { e.preventDefault(); lightboxStep(-1); }
       else if (e.key === 'ArrowRight') { e.preventDefault(); lightboxStep(1); }
+      else if (e.key === '+' || e.key === '=') { if (stage) { e.preventDefault(); stage.classList.add('zoomed'); } }
+      else if (e.key === '-' || e.key === '_') { if (stage) { e.preventDefault(); stage.classList.remove('zoomed'); } }
     });
   });
 })();
@@ -8299,6 +8488,7 @@ function dismissDeleteModal() {
   $('delete-msg-modal').classList.remove('show');
   pendingDeleteMsgId = null;
   pendingDeleteDM = null;
+  pendingDeleteGroup = null;
 }
 function executeDeleteModal() {
   if (pendingDeleteMsgId) {
@@ -8313,6 +8503,12 @@ function executeDeleteModal() {
       else toast('Message deleted successfully.', 'success');
     });
     pendingDeleteDM = null;
+  } else if (pendingDeleteGroup) {
+    socket.emit('group-delete', { id: pendingDeleteGroup, groupId: activeGroupId }, (res) => {
+      if (res && res.error) toast(res.error, 'error');
+      else toast('Message deleted successfully.', 'success');
+    });
+    pendingDeleteGroup = null;
   }
   $('delete-msg-modal').classList.remove('show');
 }
@@ -9118,7 +9314,7 @@ function switchSidebarView(view) {
   });
   document.querySelectorAll('.sidebar-view').forEach(v => v.classList.remove('active'));
   if (view === 'public') $('view-public').classList.add('active');
-  else if (view === 'dms') { $('view-dms').classList.add('active'); loadDMConversations(); }
+  else if (view === 'dms') { $('view-dms').classList.add('active'); loadDMConversations(); loadGroupChats(); }
   else if (view === 'friends') { $('view-friends').classList.add('active'); loadFriends(); }
   else if (view === 'blocked') { $('view-blocked').classList.add('active'); loadBlockedUsers(); }
   // Sync the hellobye header subtitle with the active tab name
@@ -9844,7 +10040,7 @@ async function loadDMConversations() {
     }
     dmConversations = merged;
     closedDMs = data.closed || [];
-    renderDMList();
+    renderMessagesList();
     updateDMNavBadge();
   } catch(e) {}
 }
@@ -9855,13 +10051,8 @@ function updateDMNavBadge() {
   else badge.style.display = 'none';
 }
 function renderDMList() {
-  const list = $('dm-list');
-  if (!dmConversations.length) {
-    list.innerHTML = '<div class="sidebar-empty"><p>No conversations yet.</p><p class="muted">Start a DM by clicking a member profile.</p></div>';
-    return;
-  }
-  list.innerHTML = dmConversations.map(c => dmListItemHTML(c)).join('');
-  attachDMListListeners();
+  // Delegate to the combined renderer so groups appear alongside DMs
+  renderMessagesList();
 }
 function dmListItemHTML(c) {
   const u = c.user;
@@ -9996,6 +10187,831 @@ document.querySelector('.sidebar-nav-btn[data-view="dms"]').addEventListener('co
     }
   }));
   showContextMenu(e.clientX, e.clientY, items);
+});
+
+// ============================================================
+// GROUP CHAT SYSTEM — Frontend logic
+// Mirrors the DM overlay pattern. Groups appear in the Messages
+// tab list alongside DM conversations. Owners can change the
+// icon, rename, kick, and add members.
+// ============================================================
+let groupChats = [];          // array of group metadata (id, name, owner, icon, members, ...)
+let activeGroupId = null;     // currently open group id
+let groupMessages = [];       // messages of the active group
+let groupConvs = [];          // lightweight list for sidebar rendering { ...group, lastMessage, unread }
+let groupTypingTimeout = null;
+let isGroupTyping = false;
+let replyingToGroup = null;   // { id, username, displayName, text }
+let editingGroupMsgId = null;
+let pendingGroupFile = null;
+let pendingGroupFiles = [];
+let groupCreateSelected = []; // array of usernames selected in create modal
+let groupSettingsCache = null; // full group object currently open in settings modal
+
+// ---- Plus button → open create modal ----
+$('group-create-plus-btn').addEventListener('click', () => {
+  groupCreateSelected = [];
+  $('group-create-name').value = '';
+  $('group-create-search').value = '';
+  $('group-create-selected').innerHTML = '';
+  $('group-create-results').innerHTML = '';
+  $('group-create-confirm').disabled = false;
+  $('group-create-modal').classList.add('show');
+  setTimeout(() => $('group-create-name').focus(), 50);
+});
+$('group-create-cancel').addEventListener('click', () => {
+  $('group-create-modal').classList.remove('show');
+});
+$('group-create-modal').addEventListener('click', (e) => {
+  if (e.target === $('group-create-modal')) $('group-create-modal').classList.remove('show');
+});
+
+// ---- Create modal: search members ----
+$('group-create-search').addEventListener('input', () => {
+  const q = $('group-create-search').value.trim().toLowerCase();
+  const results = $('group-create-results');
+  let candidates = users.filter(u => {
+    if (currentUser && u.username === currentUser.username) return false;
+    if (groupCreateSelected.includes(u.username)) return false;
+    if (!q) return true;
+    return (u.username || '').toLowerCase().includes(q) ||
+           (u.displayName || '').toLowerCase().includes(q);
+  }).slice(0, 40);
+  if (!candidates.length) {
+    results.innerHTML = '<div style="padding:14px; text-align:center; color:var(--text-muted); font-size:13px;">No members found.</div>';
+    return;
+  }
+  results.innerHTML = candidates.map(u => {
+    const av = u.avatar ? '<img src="' + u.avatar + '">' : getInitials(u.username);
+    const dn = u.displayName ? '<span class="user-displayname">' + escapeHtml(u.displayName) + ' </span>' : '';
+    return '<div class="user-item friend-item" data-un="' + escapeHtml(u.username) + '"><div class="user-avatar-wrap"><div class="user-avatar">' + av + '</div><div class="status-dot ' + (u.status || 'offline') + '"></div></div><div class="user-info"><div class="user-name">' + dn + '<span class="user-handle">@' + escapeHtml(u.username) + '</span></div></div><button class="mini-btn primary" data-add="' + escapeHtml(u.username) + '">Add</button></div>';
+  }).join('');
+  results.querySelectorAll('[data-add]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const un = btn.dataset.add;
+      if (!groupCreateSelected.includes(un)) groupCreateSelected.push(un);
+      renderGroupCreateSelected();
+      $('group-create-search').value = '';
+      $('group-create-search').dispatchEvent(new Event('input'));
+      $('group-create-search').focus();
+    });
+  });
+});
+function renderGroupCreateSelected() {
+  const wrap = $('group-create-selected');
+  if (!groupCreateSelected.length) { wrap.innerHTML = ''; return; }
+  wrap.innerHTML = groupCreateSelected.map(un => {
+    const u = users.find(x => x.username === un) || { username: un };
+    const dn = u.displayName || un;
+    return '<span class="group-chip" data-un="' + escapeHtml(un) + '">' + escapeHtml(dn) + ' <span class="group-chip-x" data-remove="' + escapeHtml(un) + '">&times;</span></span>';
+  }).join('');
+  wrap.querySelectorAll('[data-remove]').forEach(x => {
+    x.addEventListener('click', () => {
+      groupCreateSelected = groupCreateSelected.filter(v => v !== x.dataset.remove);
+      renderGroupCreateSelected();
+      $('group-create-search').dispatchEvent(new Event('input'));
+    });
+  });
+}
+
+// ---- Create modal: confirm → POST /api/groups/create ----
+$('group-create-confirm').addEventListener('click', async () => {
+  let name = $('group-create-name').value.trim();
+  if (!name) { toast('Please enter a group chat name.', 'error'); $('group-create-name').focus(); return; }
+  if (!groupCreateSelected.length) { toast('Please add at least one member to the group.', 'error'); return; }
+  $('group-create-confirm').disabled = true;
+  $('group-create-confirm').textContent = 'Creating...';
+  try {
+    const res = await fetch(API_BASE + '/api/groups/create', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, members: groupCreateSelected })
+    });
+    const data = await res.json();
+    if (data.error) { toast(data.error, 'error'); $('group-create-confirm').disabled = false; $('group-create-confirm').textContent = 'Create Group'; return; }
+    toast('Group chat "' + escapeHtml(name) + '" created!', 'success');
+    $('group-create-modal').classList.remove('show');
+    $('group-create-confirm').disabled = false;
+    $('group-create-confirm').textContent = 'Create Group';
+    await loadGroupChats();
+    if (data.group && data.group.id) openGroup(data.group.id);
+  } catch(e) {
+    toast('Failed to create group. Please try again.', 'error');
+    $('group-create-confirm').disabled = false;
+    $('group-create-confirm').textContent = 'Create Group';
+  }
+});
+
+// ---- Load groups from server ----
+async function loadGroupChats() {
+  try {
+    const res = await fetch(API_BASE + '/api/groups');
+    const data = await res.json();
+    const serverGroups = data.groups || [];
+    // Merge unread + lastMessage from existing groupConvs (optimistic)
+    groupChats = serverGroups;
+    groupConvs = serverGroups.map(g => {
+      const prev = groupConvs.find(x => x.id === g.id);
+      return {
+        id: g.id,
+        name: g.name,
+        owner: g.owner,
+        icon: g.icon,
+        members: g.members,
+        createdAt: g.createdAt,
+        lastMessage: prev ? prev.lastMessage : null,
+        unread: prev ? (prev.unread || 0) : 0
+      };
+    });
+    renderMessagesList();
+  } catch(e) {}
+}
+
+// ---- Render combined list (DMs + Groups) in the messages tab ----
+function renderMessagesList() {
+  const list = $('dm-list');
+  // Build combined array: groups first (if any), then DMs, or merge by last activity
+  const hasDMs = dmConversations.length > 0;
+  const hasGroups = groupConvs.length > 0;
+  if (!hasDMs && !hasGroups) {
+    list.innerHTML = '<div class="sidebar-empty"><p>No conversations yet.</p><p class="muted">Start a DM by clicking a member profile, or tap + to create a group chat.</p></div>';
+    return;
+  }
+  // Combine and sort by last activity timestamp
+  let combined = [];
+  dmConversations.forEach(c => {
+    const ts = c.lastMessage ? new Date(c.lastMessage.timestamp).getTime() : (c.user && c.user.lastSeen ? new Date(c.user.lastSeen).getTime() : 0);
+    combined.push({ type: 'dm', key: c.user.username, ts, data: c });
+  });
+  groupConvs.forEach(g => {
+    const ts = g.lastMessage ? new Date(g.lastMessage.timestamp).getTime() : (g.createdAt ? new Date(g.createdAt).getTime() : 0);
+    combined.push({ type: 'group', key: g.id, ts, data: g });
+  });
+  combined.sort((a, b) => b.ts - a.ts);
+  list.innerHTML = combined.map(item => {
+    if (item.type === 'dm') return dmListItemHTML(item.data);
+    return groupListItemHTML(item.data);
+  }).join('');
+  attachDMListListeners();
+  attachGroupListListeners();
+  updateDMNavBadge();
+}
+
+function groupListItemHTML(g) {
+  const iconInner = g.icon ? '<img src="' + g.icon + '">' : getInitials(g.name || 'G');
+  const memberCount = (g.members && g.members.length) || 0;
+  let lastMsgText = 'Tap to start chatting';
+  if (g.lastMessage) {
+    if (g.lastMessage.deleted) lastMsgText = 'Message deleted';
+    else {
+      const prefix = g.lastMessage.from === currentUser.username ? 'You: ' : ((g.lastMessage.displayName || g.lastMessage.username ? '@' + (g.lastMessage.displayName || g.lastMessage.username) + ': ' : ''));
+      lastMsgText = prefix + (g.lastMessage.text || (g.lastMessage.file ? '[file]' : ''));
+    }
+  }
+  const badge = g.unread > 0 ? '<span class="dm-unread-badge">' + g.unread + '</span>' : '';
+  return '<div class="user-item dm-item group-item" data-group-id="' + escapeHtml(g.id) + '"><div class="user-avatar-wrap"><div class="user-avatar">' + iconInner + '</div><div class="status-dot" style="background:#6366f1;"></div></div><div class="user-info"><div class="user-name"><span class="user-displayname">' + escapeHtml(g.name) + ' </span><span class="user-handle" style="font-size:11px;">' + memberCount + ' members</span></div><div class="dm-preview">' + escapeHtml(lastMsgText.slice(0, 45)) + '</div></div>' + badge + '</div>';
+}
+
+function attachGroupListListeners() {
+  document.querySelectorAll('#dm-list .group-item').forEach(item => {
+    item.addEventListener('click', () => openGroup(item.dataset.groupId));
+    item.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+      showContextMenu(e.clientX, e.clientY, [
+        { label: 'Open Group Chat', icon: 'dm', action: () => openGroup(item.dataset.groupId) }
+      ]);
+    });
+  });
+}
+
+// ---- Open a group chat ----
+async function openGroup(groupId) {
+  activeGroupId = groupId;
+  const g = groupChats.find(x => x.id === groupId) || groupConvs.find(x => x.id === groupId);
+  // Clear unread for this group (optimistic)
+  const convIdx = groupConvs.findIndex(x => x.id === groupId);
+  if (convIdx >= 0 && groupConvs[convIdx].unread) {
+    groupConvs[convIdx].unread = 0;
+    renderMessagesList();
+  }
+  // Close DM overlay if open
+  $('dm-overlay').classList.remove('show');
+  activeDMUser = null;
+  $('group-overlay').classList.add('show');
+  updateGroupHeader(g);
+  groupMessages = [];
+  renderGroupMessages();
+  $('group-input').focus();
+  // Load messages
+  try {
+    const res = await fetch(API_BASE + '/api/groups/' + encodeURIComponent(groupId));
+    const data = await res.json();
+    if (data.error) { toast(data.error, 'error'); return; }
+    // Update group metadata from server (members may have changed)
+    if (data.group) {
+      const idx = groupChats.findIndex(x => x.id === groupId);
+      if (idx >= 0) groupChats[idx] = data.group;
+      updateGroupHeader(data.group);
+    }
+    groupMessages = data.messages || [];
+    renderGroupMessages();
+    scrollToBottomGroup();
+  } catch(e) { groupMessages = []; renderGroupMessages(); }
+}
+
+function updateGroupHeader(g) {
+  if (!g) return;
+  const av = $('group-header-avatar');
+  if (g.icon) av.innerHTML = '<img src="' + g.icon + '">';
+  else av.textContent = getInitials(g.name || 'G');
+  $('group-header-name').textContent = g.name || 'Group Chat';
+  const mc = (g.members && g.members.length) || 0;
+  const names = (g.members || []).slice(0, 5).map(m => m.displayName || '@' + m.username).join(', ');
+  $('group-header-status').textContent = mc + ' members' + (names ? ' - ' + names : (mc > 5 ? ' +more' : ''));
+}
+
+function closeGroupOverlay() {
+  $('group-overlay').classList.remove('show');
+  activeGroupId = null;
+  groupMessages = [];
+  replyingToGroup = null;
+  editingGroupMsgId = null;
+}
+$('group-back').addEventListener('click', closeGroupOverlay);
+$('group-close-btn').addEventListener('click', closeGroupOverlay);
+
+// ---- Render group messages ----
+function renderGroupMessages() {
+  const container = $('group-messages');
+  const has = groupMessages.length > 0;
+  container.innerHTML = '';
+  if (!has) {
+    container.innerHTML = '<div class="empty-state" id="group-empty-state"><div class="empty-state-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="40" height="40"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div><h3>Start the group conversation</h3><p>Send the first message to get this group chat going.</p></div>';
+    return;
+  }
+  groupMessages.forEach(m => appendGroupMessage(m, true));
+  scrollToBottomGroup();
+}
+
+// ---- Append a single group message (reuses DM bubble pattern but adds avatar + sender name for others) ----
+function appendGroupMessage(msg, silent) {
+  const container = $('group-messages');
+  const isOwn = currentUser && msg.from === currentUser.username;
+  const user = getUserByUsername(msg.from);
+  const group = document.createElement('div');
+  group.className = 'message-group' + (isOwn ? ' own' : '');
+  group.dataset.groupMsgId = msg.id;
+
+  // For other users' messages, show an avatar + name (like public chat)
+  if (!isOwn) {
+    const avatarDiv = document.createElement('div');
+    avatarDiv.className = 'message-avatar clickable';
+    avatarDiv.dataset.username = msg.from;
+    avatarDiv.setAttribute('data-avatar-user', msg.from);
+    if (user.avatar) {
+      const img = document.createElement('img');
+      img.src = user.avatar; img.alt = msg.from;
+      avatarDiv.appendChild(img);
+    } else {
+      avatarDiv.textContent = getInitials(msg.from);
+    }
+    avatarDiv.addEventListener('click', () => openProfileView(msg.from));
+    group.appendChild(avatarDiv);
+  }
+
+  const wrap = document.createElement('div');
+  wrap.className = 'message-bubble-wrap';
+
+  // Sender name for others
+  if (!isOwn) {
+    const nameDiv = document.createElement('div');
+    nameDiv.className = 'message-sender';
+    nameDiv.innerHTML = (user.displayName ? '<span class="user-displayname">' + escapeHtml(user.displayName) + ' </span>' : '') + '<span class="user-handle">@' + escapeHtml(msg.from) + '</span>' + buildUserBadges(user);
+    nameDiv.style.cursor = 'pointer';
+    nameDiv.addEventListener('click', () => openProfileView(msg.from));
+    wrap.appendChild(nameDiv);
+  }
+
+  const bubble = document.createElement('div');
+  bubble.className = 'message-bubble dm-bubble' + (msg.deleted ? ' deleted' : '');
+  if (msg.deleted) {
+    bubble.textContent = 'This message was deleted';
+  } else {
+    if (msg.reply) {
+      const quote = createReplyQuote(msg.reply);
+      if (quote) bubble.appendChild(quote);
+    }
+    if (msg.text) {
+      const textSpan = document.createElement('span');
+      textSpan.className = 'message-text';
+      textSpan.innerHTML = highlightMentions(linkifyAndEmbed(escapeHtml(msg.text)));
+      bubble.appendChild(textSpan);
+      if (msg.pingedForMe) bubble.classList.add('pinged-msg');
+      attachMentionEvents(textSpan);
+      textSpan.querySelectorAll('.link-embed').forEach(el => fetchEmbed(el.dataset.url, el));
+    }
+    if (msg.file) bubble.appendChild(createFileElement(msg.file));
+    if (msg.files && Array.isArray(msg.files) && msg.files.length > 0) {
+      msg.files.forEach(f => { if (f) bubble.appendChild(createFileElement(f)); });
+    }
+    const hasMedia = !!(msg.file || (msg.files && msg.files.length));
+    if (hasMedia && !msg.text && !msg.reply) bubble.classList.add('media-only');
+  }
+  // Context menu + action buttons
+  if (isOwn && !msg.deleted) {
+    const ctxItems = [
+      { label: 'Reply to message', icon: 'reply', action: () => startGroupReply(msg) },
+      { label: 'Edit Message', icon: 'edit', action: () => startEditGroup(msg.id, bubble) },
+      { label: 'Delete Message', icon: 'delete', danger: true, action: () => confirmDeleteGroup(msg.id) }
+    ];
+    if (msg.file) ctxItems.splice(1, 0, { label: 'Download ' + (msg.file.name || 'file'), icon: 'download', action: () => downloadFile(msg.file) });
+    bubble.addEventListener('contextmenu', (e) => { e.preventDefault(); showContextMenu(e.clientX, e.clientY, ctxItems); });
+    const actions = document.createElement('div');
+    actions.className = 'message-actions';
+    const replyBtn = document.createElement('button'); replyBtn.className = 'msg-action-btn'; replyBtn.textContent = 'Reply'; replyBtn.onclick = (ev) => { ev.stopPropagation(); startGroupReply(msg); };
+    const editBtn = document.createElement('button'); editBtn.className = 'msg-action-btn'; editBtn.textContent = 'Edit'; editBtn.onclick = (ev) => { ev.stopPropagation(); startEditGroup(msg.id, bubble); };
+    const delBtn = document.createElement('button'); delBtn.className = 'msg-action-btn danger'; delBtn.textContent = 'Delete'; delBtn.onclick = (ev) => { ev.stopPropagation(); confirmDeleteGroup(msg.id); };
+    actions.appendChild(replyBtn); actions.appendChild(editBtn); actions.appendChild(delBtn);
+    bubble.appendChild(actions);
+  } else if (!isOwn && !msg.deleted) {
+    const ctxItems = [{ label: 'Reply to message', icon: 'reply', action: () => startGroupReply(msg) }];
+    if (msg.file) ctxItems.push({ label: 'Download ' + (msg.file.name || 'file'), icon: 'download', action: () => downloadFile(msg.file) });
+    bubble.addEventListener('contextmenu', (e) => { e.preventDefault(); showContextMenu(e.clientX, e.clientY, ctxItems); });
+    const actions = document.createElement('div');
+    actions.className = 'message-actions';
+    const replyBtn = document.createElement('button'); replyBtn.className = 'msg-action-btn'; replyBtn.textContent = 'Reply'; replyBtn.onclick = (ev) => { ev.stopPropagation(); startGroupReply(msg); };
+    actions.appendChild(replyBtn);
+    bubble.appendChild(actions);
+  }
+  wrap.appendChild(bubble);
+  if (!msg.deleted) {
+    const meta = document.createElement('div');
+    meta.className = 'message-meta';
+    const t = document.createElement('span'); t.textContent = formatTime(msg.timestamp);
+    meta.appendChild(t);
+    if (msg.edited) { const e2 = document.createElement('span'); e2.className = 'message-edited-tag'; e2.textContent = '(edited)'; meta.appendChild(e2); }
+    wrap.appendChild(meta);
+  }
+  group.appendChild(wrap);
+  container.appendChild(group);
+}
+
+function scrollToBottomGroup() {
+  const c = $('group-messages');
+  if (!c) return;
+  requestAnimationFrame(() => { c.scrollTop = c.scrollHeight; });
+  setTimeout(() => { c.scrollTop = c.scrollHeight; }, 50);
+}
+
+// ---- Group reply ----
+function startGroupReply(msg) {
+  replyingToGroup = {
+    id: msg.id,
+    username: msg.from,
+    displayName: msg.displayName || (users.find(u => u.username === msg.from) || {}).displayName || '',
+    text: msg.text || (msg.file ? '[File attachment]' : '')
+  };
+  const preview = $('group-reply-preview');
+  $('group-reply-preview-name').textContent = replyingToGroup.displayName ? replyingToGroup.displayName : '@' + replyingToGroup.username;
+  $('group-reply-preview-text').textContent = replyingToGroup.text || '';
+  const avEl = $('group-reply-preview-avatar');
+  const replyUser = users.find(u => u.username === msg.from) || {};
+  if (replyUser.avatar) avEl.innerHTML = '<img src="' + replyUser.avatar + '">';
+  else avEl.textContent = getInitials(msg.from);
+  preview.style.display = 'flex';
+  $('group-input').focus();
+}
+function cancelGroupReply() {
+  replyingToGroup = null;
+  $('group-reply-preview').style.display = 'none';
+}
+$('group-reply-cancel').addEventListener('click', cancelGroupReply);
+
+// ---- Group edit ----
+function startEditGroup(msgId, bubble) {
+  const msg = groupMessages.find(m => m.id === msgId);
+  if (!msg) return;
+  editingGroupMsgId = msgId;
+  const textEl = bubble.querySelector('.message-text');
+  if (!textEl) return;
+  const wrap = document.createElement('div');
+  wrap.className = 'edit-input-wrap';
+  const input = document.createElement('input');
+  input.className = 'edit-input'; input.value = msg.text;
+  const confirm = document.createElement('button'); confirm.className = 'edit-confirm'; confirm.textContent = 'Save';
+  const cancel = document.createElement('button'); cancel.className = 'edit-cancel'; cancel.textContent = 'Cancel';
+  const doSave = () => {
+    const newText = input.value.trim();
+    if (newText && newText !== msg.text) {
+      socket.emit('group-edit', { id: msgId, groupId: activeGroupId, text: newText }, (res) => { if (res && res.error) toast(res.error, 'error'); });
+    }
+    editingGroupMsgId = null; renderGroupMessages();
+  };
+  const doCancel = () => { editingGroupMsgId = null; renderGroupMessages(); };
+  confirm.onclick = doSave; cancel.onclick = doCancel;
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); doSave(); }
+    else if (e.key === 'Escape') { e.preventDefault(); doCancel(); }
+  });
+  wrap.appendChild(input); wrap.appendChild(confirm); wrap.appendChild(cancel);
+  textEl.replaceWith(wrap);
+  input.focus(); input.select();
+}
+
+// ---- Group delete ----
+function confirmDeleteGroup(msgId) {
+  pendingDeleteGroup = msgId;
+  pendingDeleteMsgId = null;
+  pendingDeleteDM = null;
+  $('delete-msg-modal').classList.add('show');
+}
+let pendingDeleteGroup = null;
+
+// ---- Group send input ----
+const groupInputEl = $('group-input');
+const groupSendBtn = $('group-send-btn');
+function updateGroupSend() { groupSendBtn.disabled = !groupInputEl.value.trim() && !pendingGroupFile; }
+groupInputEl.addEventListener('input', () => {
+  updateGroupSend();
+  groupInputEl.style.height = 'auto';
+  groupInputEl.style.height = Math.min(groupInputEl.scrollHeight, 120) + 'px';
+  if (!isGroupTyping && groupInputEl.value.trim() && activeGroupId) { isGroupTyping = true; socket.emit('group-typing', { groupId: activeGroupId, typing: true }); }
+  clearTimeout(groupTypingTimeout);
+  groupTypingTimeout = setTimeout(() => { isGroupTyping = false; if (activeGroupId) socket.emit('group-typing', { groupId: activeGroupId, typing: false }); }, 1500);
+});
+groupInputEl.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); if (recordSpamClick()) return; sendGroupMessage(); }
+  if (e.key === 'Escape' && replyingToGroup) { e.preventDefault(); cancelGroupReply(); }
+});
+groupSendBtn.addEventListener('click', () => { if (recordSpamClick()) return; sendGroupMessage(); });
+
+function sendGroupMessage() {
+  const text = groupInputEl.value.trim();
+  if (!text && !pendingGroupFile) return;
+  if (pendingGroupFile) {
+    openMediaSendModal({
+      file: pendingGroupFile,
+      context: 'dm',
+      initialCaption: text,
+      onConfirm: (caption) => {
+        groupInputEl.value = ''; groupInputEl.style.height = 'auto'; updateGroupSend();
+        doSendGroup(caption);
+      }
+    });
+    return;
+  }
+  doSendGroup(text);
+}
+
+function doSendGroup(text) {
+  if (!text && !pendingGroupFile) return;
+  if (pendingGroupFile) { sendGroupWithFile(text); return; }
+  socket.emit('group-send', { groupId: activeGroupId, text, reply: replyingToGroup }, (res) => {
+    if (res && res.error) { toast(res.error, 'error'); return; }
+    if (res && res.message) {
+      groupMessages.push(res.message);
+      appendGroupMessage(res.message);
+      scrollToBottomGroup();
+      // Update sidebar preview
+      updateGroupConvPreview(activeGroupId, res.message);
+    }
+  });
+  groupInputEl.value = ''; groupInputEl.style.height = 'auto';
+  updateGroupSend();
+  isGroupTyping = false; socket.emit('group-typing', { groupId: activeGroupId, typing: false });
+  cancelGroupReply();
+}
+
+async function sendGroupWithFile(text) {
+  const file = pendingGroupFile;
+  const bar = $('dm-file-preview-bar'); // reuse the DM progress bar element
+  groupSendBtn.disabled = true;
+  if (bar) { bar.classList.remove('uploading'); bar.style.width = '0%'; }
+  try {
+    const data = await uploadFileWithProgress(file, bar);
+    const fileData = data.file;
+    let extraFileData = [];
+    if (pendingGroupFiles.length > 0) {
+      for (const f of pendingGroupFiles) {
+        try { const d2 = await uploadFileWithProgress(f, bar); extraFileData.push(d2.file); }
+        catch (err) { toast('Upload failed for file "' + f.name + '".', 'error'); break; }
+      }
+    }
+    let allFiles = null;
+    if (fileData && extraFileData.length > 0) allFiles = [fileData, ...extraFileData].slice(0, 5);
+    else if (extraFileData.length > 0) allFiles = extraFileData.slice(0, 5);
+    socket.emit('group-send', { groupId: activeGroupId, text, file: fileData, files: allFiles, reply: replyingToGroup }, (res) => {
+      if (res && res.error) { toast(res.error, 'error'); return; }
+      if (res && res.message) {
+        groupMessages.push(res.message);
+        appendGroupMessage(res.message);
+        scrollToBottomGroup();
+        updateGroupConvPreview(activeGroupId, res.message);
+      }
+    });
+  } catch(err) { toast((err && err.error) || 'File upload failed.', 'error'); }
+  clearGroupPendingFile();
+  groupInputEl.value = ''; groupInputEl.style.height = 'auto';
+  updateGroupSend();
+  groupSendBtn.disabled = false;
+  isGroupTyping = false; socket.emit('group-typing', { groupId: activeGroupId, typing: false });
+  cancelGroupReply();
+}
+
+function updateGroupConvPreview(groupId, msg) {
+  const idx = groupConvs.findIndex(g => g.id === groupId);
+  if (idx >= 0) {
+    groupConvs[idx].lastMessage = msg;
+    renderMessagesList();
+  }
+}
+
+// ---- Group file attach ----
+$('group-attach-btn').addEventListener('click', () => $('group-file-input').click());
+$('group-file-input').addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  pendingGroupFile = file;
+  pendingGroupFiles = [];
+  // Show a simple toast since the group overlay doesn't have its own preview bar
+  const ext = (file.name.split('.').pop() || 'FILE').slice(0, 4).toUpperCase();
+  const mt = file.type || '';
+  let label = ext;
+  if (mt.startsWith('image/')) label = 'IMG';
+  else if (mt.startsWith('video/')) label = 'VID';
+  else if (mt.startsWith('audio/')) label = 'AUD';
+  toast(label + ' attached: ' + file.name + ' — type a caption and press send.', 'success');
+  updateGroupSend();
+  $('group-input').focus();
+});
+function clearGroupPendingFile() {
+  pendingGroupFile = null;
+  pendingGroupFiles = [];
+  if ($('group-file-input')) $('group-file-input').value = '';
+  updateGroupSend();
+}
+
+// ---- Group typing indicator ----
+function showGroupTyping(typing, who) {
+  const el = $('group-typing');
+  if (typing && who) el.innerHTML = '<span class="typing-dots"><span></span><span></span><span></span></span> ' + escapeHtml(who) + ' is typing...';
+  else el.innerHTML = '';
+}
+
+// ---- Group settings modal ----
+$('group-settings-btn').addEventListener('click', () => {
+  if (!activeGroupId) return;
+  openGroupSettings(activeGroupId);
+});
+async function openGroupSettings(groupId) {
+  try {
+    const res = await fetch(API_BASE + '/api/groups/' + encodeURIComponent(groupId));
+    const data = await res.json();
+    if (data.error) { toast(data.error, 'error'); return; }
+    groupSettingsCache = data.group;
+    renderGroupSettings();
+    $('group-settings-modal').classList.add('show');
+  } catch(e) { toast('Failed to load group settings.', 'error'); }
+}
+function renderGroupSettings() {
+  const g = groupSettingsCache;
+  if (!g) return;
+  const isOwner = currentUser && g.owner === currentUser.username;
+  // Icon
+  const iconEl = $('group-settings-icon');
+  if (g.icon) { iconEl.innerHTML = '<img src="' + g.icon + '" style="width:100%; height:100%; object-fit:cover;">'; }
+  else { iconEl.textContent = getInitials(g.name || 'G'); iconEl.style.background = 'linear-gradient(135deg,#6366f1,#4f46e5)'; }
+  $('group-settings-icon-btn').style.display = isOwner ? 'flex' : 'none';
+  // Name
+  $('group-settings-name').value = g.name || '';
+  $('group-settings-name').readOnly = !isOwner;
+  // Subtitle
+  $('group-settings-subtitle').textContent = isOwner ? 'You are the owner. You can change the icon, rename the group, and manage members.' : 'You are a member. Only the owner can change group settings.';
+  // Members
+  const membersWrap = $('group-settings-members');
+  $('group-settings-member-count').textContent = '(' + ((g.members && g.members.length) || 0) + ')';
+  membersWrap.innerHTML = (g.members || []).map(m => {
+    const av = m.avatar ? '<img src="' + m.avatar + '">' : getInitials(m.username);
+    const dn = m.displayName ? '<span class="user-displayname">' + escapeHtml(m.displayName) + ' </span>' : '';
+    const ownerTag = (m.username === g.owner) ? '<span style="font-size:10px; color:#818cf8; font-weight:600; margin-left:6px;">OWNER</span>' : '';
+    const canKick = isOwner && m.username !== g.owner && m.username !== currentUser.username;
+    const kickBtn = canKick ? '<button class="mini-btn" style="background:rgba(239,68,68,0.15); color:#fca5a5; border:1px solid rgba(239,68,68,0.3); margin-left:auto;" data-kick="' + escapeHtml(m.username) + '">Kick</button>' : '';
+    return '<div class="user-item friend-item" style="padding:8px 10px;"><div class="user-avatar-wrap"><div class="user-avatar" style="width:34px; height:34px; font-size:13px;">' + av + '</div></div><div class="user-info"><div class="user-name">' + dn + '<span class="user-handle">@' + escapeHtml(m.username) + '</span>' + ownerTag + '</div></div>' + kickBtn + '</div>';
+  }).join('');
+  membersWrap.querySelectorAll('[data-kick]').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const un = btn.dataset.kick;
+      if (!confirm('Kick @' + un + ' from this group?')) return;
+      try {
+        const res = await fetch(API_BASE + '/api/groups/' + encodeURIComponent(g.id) + '/kick', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: un })
+        });
+        const data = await res.json();
+        if (data.error) { toast(data.error, 'error'); return; }
+        toast('@' + un + ' has been kicked from the group.', 'success');
+        groupSettingsCache = data.group;
+        renderGroupSettings();
+      } catch(e) { toast('Failed to kick member.', 'error'); }
+    });
+  });
+  // Add member row (owner only)
+  $('group-settings-add-row').style.display = isOwner ? 'block' : 'none';
+  // Leave button — always visible (even owner can leave)
+  $('group-settings-leave-btn').style.display = '';
+}
+$('group-settings-cancel').addEventListener('click', () => $('group-settings-modal').classList.remove('show'));
+$('group-settings-modal').addEventListener('click', (e) => { if (e.target === $('group-settings-modal')) $('group-settings-modal').classList.remove('show'); });
+
+// ---- Group icon upload (owner) ----
+$('group-settings-icon-btn').addEventListener('click', () => $('group-settings-icon-input').click());
+$('group-settings-icon-input').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (!file || !groupSettingsCache) return;
+  const fd = new FormData();
+  fd.append('image', file);
+  toast('Uploading group icon...', 'success');
+  try {
+    const res = await fetch(API_BASE + '/api/groups/' + encodeURIComponent(groupSettingsCache.id) + '/icon', { method: 'POST', body: fd });
+    const data = await res.json();
+    if (data.error) { toast(data.error, 'error'); return; }
+    toast('Group icon updated!', 'success');
+    groupSettingsCache = data.group;
+    renderGroupSettings();
+  } catch(e) { toast('Failed to upload icon.', 'error'); }
+  e.target.value = '';
+});
+
+// ---- Save group name (owner) ----
+$('group-settings-save').addEventListener('click', async () => {
+  if (!groupSettingsCache) { $('group-settings-modal').classList.remove('show'); return; }
+  const newName = $('group-settings-name').value.trim();
+  const isOwner = currentUser && groupSettingsCache.owner === currentUser.username;
+  if (isOwner && newName && newName !== groupSettingsCache.name) {
+    try {
+      const res = await fetch(API_BASE + '/api/groups/' + encodeURIComponent(groupSettingsCache.id) + '/settings', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: newName })
+      });
+      const data = await res.json();
+      if (data.error) { toast(data.error, 'error'); return; }
+      toast('Group name updated!', 'success');
+      groupSettingsCache = data.group;
+    } catch(e) { toast('Failed to update name.', 'error'); }
+  }
+  $('group-settings-modal').classList.remove('show');
+  await loadGroupChats();
+  if (activeGroupId) {
+    const g = groupChats.find(x => x.id === activeGroupId);
+    if (g) updateGroupHeader(g);
+  }
+});
+
+// ---- Add member (owner) ----
+$('group-settings-add-input').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') { e.preventDefault(); $('group-settings-add-btn').click(); }
+});
+$('group-settings-add-btn').addEventListener('click', async () => {
+  if (!groupSettingsCache) return;
+  const un = $('group-settings-add-input').value.trim();
+  if (!un) return;
+  try {
+    const res = await fetch(API_BASE + '/api/groups/' + encodeURIComponent(groupSettingsCache.id) + '/add', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: un })
+    });
+    const data = await res.json();
+    if (data.error) { toast(data.error, 'error'); return; }
+    toast('@' + un + ' has been added to the group!', 'success');
+    $('group-settings-add-input').value = '';
+    groupSettingsCache = data.group;
+    renderGroupSettings();
+  } catch(e) { toast('Failed to add member.', 'error'); }
+});
+
+// ---- Leave group ----
+$('group-settings-leave-btn').addEventListener('click', async () => {
+  if (!groupSettingsCache) return;
+  if (!confirm('Leave this group chat? You will no longer receive messages from it.')) return;
+  try {
+    const res = await fetch(API_BASE + '/api/groups/' + encodeURIComponent(groupSettingsCache.id) + '/leave', { method: 'POST' });
+    const data = await res.json();
+    if (data.error) { toast(data.error, 'error'); return; }
+    toast('You have left the group.', 'success');
+    $('group-settings-modal').classList.remove('show');
+    closeGroupOverlay();
+    await loadGroupChats();
+    renderMessagesList();
+  } catch(e) { toast('Failed to leave group.', 'error'); }
+});
+
+// ============================================================
+// GROUP CHAT SOCKET EVENT LISTENERS
+// ============================================================
+socket.on('group-message', (data) => {
+  const msg = data.message;
+  const gid = data.groupId || (msg && msg.groupId);
+  // Update sidebar preview + unread
+  const convIdx = groupConvs.findIndex(g => g.id === gid);
+  if (convIdx >= 0) {
+    groupConvs[convIdx].lastMessage = msg;
+    if (activeGroupId !== gid) groupConvs[convIdx].unread = (groupConvs[convIdx].unread || 0) + 1;
+    else groupConvs[convIdx].unread = 0;
+    renderMessagesList();
+  } else {
+    // Group not in our local list yet — reload
+    loadGroupChats();
+  }
+  // Check mentions
+  if (currentUser && currentUser.username && msg.text) {
+    const mentions = extractMentions(msg.text);
+    if (mentions.includes(currentUser.username.toLowerCase())) msg.pingedForMe = true;
+  }
+  if (activeGroupId === gid) {
+    groupMessages.push(msg);
+    appendGroupMessage(msg);
+    scrollToBottomGroup();
+  } else {
+    playMessageSound();
+  }
+});
+
+socket.on('group-updated', (data) => {
+  const g = data.group;
+  if (!g) return;
+  // Update groupChats cache
+  const idx = groupChats.findIndex(x => x.id === g.id);
+  if (idx >= 0) groupChats[idx] = g;
+  else groupChats.push(g);
+  // Update groupConvs
+  const cIdx = groupConvs.findIndex(x => x.id === g.id);
+  if (cIdx >= 0) {
+    groupConvs[cIdx].name = g.name;
+    groupConvs[cIdx].icon = g.icon;
+    groupConvs[cIdx].owner = g.owner;
+    groupConvs[cIdx].members = g.members;
+  } else {
+    groupConvs.push({ id: g.id, name: g.name, owner: g.owner, icon: g.icon, members: g.members, createdAt: g.createdAt, lastMessage: null, unread: 0 });
+  }
+  renderMessagesList();
+  // If this group is currently open, update header
+  if (activeGroupId === g.id) updateGroupHeader(g);
+  // If settings modal is open for this group, refresh it
+  if (groupSettingsCache && groupSettingsCache.id === g.id) {
+    groupSettingsCache = g;
+    renderGroupSettings();
+  }
+});
+
+socket.on('group-removed', (data) => {
+  const gid = data.groupId || data.id;
+  // We were removed or left
+  groupChats = groupChats.filter(g => g.id !== gid);
+  groupConvs = groupConvs.filter(g => g.id !== gid);
+  if (activeGroupId === gid) {
+    closeGroupOverlay();
+    toast('You were removed from the group chat.', '');
+  }
+  if (groupSettingsCache && groupSettingsCache.id === gid) {
+    $('group-settings-modal').classList.remove('show');
+  }
+  renderMessagesList();
+});
+
+socket.on('group-edited', (data) => {
+  if (activeGroupId === data.groupId || activeGroupId === (data.group && data.group.id)) {
+    const m = groupMessages.find(x => x.id === data.id);
+    if (m) { m.text = data.text; m.edited = data.edited; m.editedAt = data.editedAt; }
+    renderGroupMessages();
+  }
+  // Update preview
+  const cIdx = groupConvs.findIndex(g => g.id === (data.groupId || (data.group && data.group.id)));
+  if (cIdx >= 0 && groupConvs[cIdx].lastMessage && groupConvs[cIdx].lastMessage.id === data.id) {
+    groupConvs[cIdx].lastMessage.text = data.text;
+    renderMessagesList();
+  }
+});
+
+socket.on('group-deleted', (data) => {
+  if (activeGroupId === data.groupId || activeGroupId === (data.group && data.group.id)) {
+    const m = groupMessages.find(x => x.id === data.id);
+    if (m) { m.deleted = true; m.text = ''; m.file = null; }
+    renderGroupMessages();
+  }
+  const cIdx = groupConvs.findIndex(g => g.id === (data.groupId || (data.group && data.group.id)));
+  if (cIdx >= 0 && groupConvs[cIdx].lastMessage && groupConvs[cIdx].lastMessage.id === data.id) {
+    groupConvs[cIdx].lastMessage.deleted = true;
+    groupConvs[cIdx].lastMessage.text = '';
+    renderMessagesList();
+  }
+});
+
+socket.on('group-typing', (data) => {
+  if (activeGroupId === data.groupId && data.typing) {
+    const who = data.displayName || data.from || 'Someone';
+    showGroupTyping(true, who);
+  } else if (activeGroupId === data.groupId && !data.typing) {
+    showGroupTyping(false);
+  }
 });
 
 function renderDMMessages() {
@@ -15026,18 +16042,18 @@ function renderAdminCustomRoles() {
         return '<span style="display:inline-flex; align-items:center; gap:4px; padding:3px 8px; background:var(--bg-medium); border-radius:var(--radius-sm); font-size:11px;">@' + escapeHtml(m) +
           ' <button onclick="adminRemoveCustomRoleMember(&apos;' + escapeHtml(role.id) + '&apos;, &apos;' + escapeHtml(m) + '&apos;)" style="background:none; border:none; color:var(--danger); cursor:pointer; font-size:13px; padding:0; line-height:1;">&times;</button></span>';
       }).join('') + '</div>' : '<p style="color:var(--text-muted); font-size:11px; margin-top:8px;">No members in this role yet.</p>';
-    return '<div class="admin-custom-role-item" style="padding:14px; background:var(--bg-medium); border-radius:var(--radius); border:1px solid var(--border-light); margin-bottom:12px;">' +
+    return '<div class="admin-custom-role-card">' +
       '<div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">' +
         '<div style="display:flex; align-items:center; gap:8px;">' +
           '<span style="width:12px; height:12px; border-radius:50%; background:' + escapeHtml(role.color || '#818cf8') + '; display:inline-block;"></span>' +
-          '<span style="font-size:14px; font-weight:600; color:' + escapeHtml(role.color || '#818cf8') + ';">' + escapeHtml(role.name) + '</span>' +
-          '<span style="font-size:11px; color:var(--text-muted);">' + members.length + '/30 members</span>' +
+          '<span style="font-size:14.5px; font-weight:700; color:' + escapeHtml(role.color || '#818cf8') + ';">' + escapeHtml(role.name) + '</span>' +
+          '<span style="font-size:11px; color:var(--text-muted); padding:2px 8px; background:var(--bg-dark); border-radius:5px;">' + members.length + '/30 members</span>' +
         '</div>' +
         '<button class="setting-save-btn no-checkmark danger-btn" style="padding:4px 10px; font-size:11px;" onclick="adminRemoveCustomRole(&apos;' + escapeHtml(role.id) + '&apos;)">Delete Role</button>' +
       '</div>' +
       '<div style="display:flex; gap:8px; align-items:center; margin-top:8px;">' +
-        '<input type="text" class="admin-input" placeholder="Add a username to this role" style="flex:1; font-size:12px;" id="custom-role-add-input-' + escapeHtml(role.id) + '" />' +
-        '<button class="setting-save-btn no-checkmark" style="padding:6px 12px; font-size:11px;" onclick="adminAddCustomRoleMember(&apos;' + escapeHtml(role.id) + '&apos;)">Add</button>' +
+        '<input type="text" class="admin-input" placeholder="Add a username to this role" style="flex:1; font-size:12.5px;" id="custom-role-add-input-' + escapeHtml(role.id) + '" />' +
+        '<button class="setting-save-btn no-checkmark" style="padding:7px 14px; font-size:11.5px;" onclick="adminAddCustomRoleMember(&apos;' + escapeHtml(role.id) + '&apos;)">Add</button>' +
       '</div>' +
       memberListHtml +
     '</div>';

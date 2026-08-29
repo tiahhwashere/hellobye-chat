@@ -1,33 +1,42 @@
-# Round 22 — Admin spacing, avatar unsaved-guard, search anim, clear activity, unfriend confirm, conversation context menu, bigger messages
+# Round 23 — Todo
 
-## Tasks
+## Task 1: Image zoom — zoom the whole square box, not just the inner image
+- [x] Modify `openImageLightbox` / `#image-lightbox` CSS & JS so clicking to zoom scales the whole stage container (the square box), not just the inner `<img>`. Also make the image bigger by default.
 
-### A. Administrator Panel — more spacing (ban reason, logs, systems)
-- [x] 1. Add spacing/padding to admin sections, ban form, account rows, activity items
+## Task 2: Administrator Panel — make ALL the UIs look way better
+- [x] Comprehensive visual overhaul of all admin subtabs (activity, accounts, ban, mute, roles, messages, broadcast, whitelist, customroles): cards, headers, inputs, lists, spacing, polish.
 
-### B. Profile picture removal — unsaved-changes guard (like banner)
-- [x] 2. avatar-remove-btn: local-only preview, pendingAvatarRemoval flag, markProfileDirty
-- [x] 3. saveProfileNow: commit pending avatar removal on Save
-- [x] 4. captureSavedProfileImages + uploadProfileImage: reset pendingAvatarRemoval
-- [x] 5. Discard reverts avatar via existing revert-image logic
+## Task 3: Group chat system (major feature)
+### Server (server.js)
+- [x] Add `db.groupChats` array to defaultDB + migration guard
+- [x] POST `/api/groups/create` — create group (owner, name, members, icon)
+- [x] GET `/api/groups` — list groups the user is a member of
+- [x] GET `/api/groups/:id` — get one group's messages + metadata
+- [x] Socket `group-send` — send group message; emit `group-message` to members
+- [x] POST `/api/groups/:id/settings` — owner: change name
+- [x] POST `/api/groups/:id/icon` — owner: upload icon
+- [x] POST `/api/groups/:id/kick` — owner: kick a member
+- [x] POST `/api/groups/:id/add` — owner: add a member
+- [x] POST `/api/groups/:id/leave` — member leaves group
+- [x] Socket.io events: `group-message`, `group-updated`, `group-member-changed` (group-edited, group-deleted, group-typing, group-removed)
+- [x] Purge expired deleted group messages in cleanup
+- [x] Username migration for group chats
 
-### C. Search Messages UI — better slide animation
-- [x] 6. Improve slideIn/slideOut animation (smoother, more polished)
+### Frontend (index.html)
+- [x] Add plus (+) button under search members in messages tab (HTML+CSS)
+- [x] Group chat creation modal (search/add members, name, create) (HTML)
+- [x] Group chat view (reuse DM overlay pattern) showing all members + messages (HTML)
+- [x] Group chat settings panel: owner can change icon, name, kick, add members (HTML)
+- [x] JS: plus button → open create modal
+- [x] JS: create modal logic (search, select, create group)
+- [x] JS: load groups + render in DM list alongside DMs
+- [x] JS: openGroup, renderGroupMessages, appendGroupMessage
+- [x] JS: send group message (socket group-send) + file attach
+- [x] JS: group socket event listeners (group-message, group-updated, etc.)
+- [x] JS: group settings modal (icon, name, kick, add, leave)
+- [x] JS: group reply, edit, delete context menus
 
-### D. Recent Admin Activity — Clear button
-- [x] 7. server.js: POST /api/admin/clear-activity endpoint
-- [x] 8. index.html: add Clear button + handler, re-render after clear
-
-### E. Remove Friend — confirmation button
-- [x] 9. removeFriend: wrap in confirm modal before unfriending
-
-### F. Chatroom members list context menu — Open/Close Conversation
-- [x] 10. Add Open/Close Conversation options to members list right-click menu
-
-### G. Message box — bigger text + wider/longer bubble
-- [x] 11. Increase message-bubble font-size, max-width, padding for chatroom + DMs
-
-### H. Deploy
-- [x] 12. Syntax-check index.html + server.js
-- [ ] 13. Commit + push (Render autoDeploy)
-- [ ] 14. Verify live + no data wipe
+## Task 4: Deploy
+- [ ] Syntax check both files
+- [ ] Commit & push to GitHub
+- [ ] Verify Render deploy
