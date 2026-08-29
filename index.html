@@ -781,24 +781,24 @@ body.no-anim .friend-item { animation: none !important; }
 .sender-handle { color: var(--text-secondary); font-size: 12.5px; opacity: 0.65; font-weight: 500; }
 
 .message-bubble {
-  background: var(--bg-medium); padding: 11px 16px;
-  border-radius: 16px 16px 16px 4px;
+  background: var(--bg-medium); padding: 10px 15px;
+  border-radius: 14px 14px 14px 4px;
   font-size: 16.5px; line-height: 1.55; word-break: break-word; position: relative;
   max-width: 100%;
-  border: 1px solid var(--border);
+  border: 1px solid rgba(255,255,255,0.05);
   transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
 }
-.message-bubble:hover { border-color: var(--border-light); box-shadow: 0 2px 12px rgba(0,0,0,0.16); }
+.message-bubble:hover { border-color: rgba(255,255,255,0.10); box-shadow: 0 1px 8px rgba(0,0,0,0.14); }
 .message-group.own .message-bubble {
   background: var(--accent-dim); color: #fff;
-  border-color: rgba(74,158,255,0.18);
-  border-radius: 16px 16px 4px 16px;
+  border-color: rgba(74,158,255,0.14);
+  border-radius: 14px 14px 4px 14px;
 }
-.message-group.own .message-bubble:hover { border-color: rgba(74,158,255,0.34); box-shadow: 0 2px 14px rgba(74,158,255,0.16); }
+.message-group.own .message-bubble:hover { border-color: rgba(74,158,255,0.28); box-shadow: 0 1px 10px rgba(74,158,255,0.14); }
 /* Media-only bubbles: no text means no need for a colored chat background.
    This removes the accent/blue box around images, videos & GIFs so media
    sits cleanly on the chat surface with a subtle border instead. */
-.message-bubble.media-only { background: transparent !important; padding: 2px 0; border-radius: 14px; }
+.message-bubble.media-only { background: transparent !important; padding: 2px 0; border-radius: 13px; }
 .message-group.own .message-bubble.media-only { background: transparent !important; color: var(--text-primary); }
 .message-bubble.deleted {
   background: transparent; border: 1px dashed var(--border-light);
@@ -1163,16 +1163,16 @@ body.no-anim .friend-item { animation: none !important; }
 .twosv-actions .setting-save-btn { width: auto; margin-top: 0; }
 .twosv-actions .setting-save-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
-/* Link Embeds */
+/* Link Embeds — clean, compact, modern */
 .link-embed {
-  margin-top: 8px; border: 1px solid var(--border);
-  border-radius: 10px; overflow: hidden;
+  margin-top: 8px; border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 12px; overflow: hidden;
   max-width: 600px; background: var(--bg-darker);
-  transition: border-color 0.15s ease, background 0.15s ease;
+  transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
 }
-.link-embed:hover { border-color: var(--border-light); background: var(--bg-dark); }
-.message-group.own .link-embed { background: rgba(0,0,0,0.18); border-color: rgba(255,255,255,0.12); }
-.message-group.own .link-embed:hover { background: rgba(0,0,0,0.25); border-color: rgba(255,255,255,0.22); }
+.link-embed:hover { border-color: rgba(255,255,255,0.12); background: var(--bg-dark); box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
+.message-group.own .link-embed { background: rgba(0,0,0,0.16); border-color: rgba(255,255,255,0.10); }
+.message-group.own .link-embed:hover { background: rgba(0,0,0,0.24); border-color: rgba(255,255,255,0.18); }
 .link-embed-loading { padding: 10px 14px; font-size: 12px; color: var(--text-muted); }
 .link-embed-fallback { padding: 10px 14px; font-size: 12px; }
 .link-embed-fallback a { color: var(--accent); word-break: break-all; }
@@ -1218,50 +1218,50 @@ body.no-anim .friend-item { animation: none !important; }
   background: var(--accent-dim); color: #fff; text-transform: uppercase; letter-spacing: 0.3px;
 }
 
-/* Message file attachments */
+/* Message file attachments — modern, clean framing (not cartoony) */
 .message-file { margin-top: 8px; }
 .message-bubble.media-only .message-file:first-child { margin-top: 0; }
 .message-file img {
-  max-width: 360px; max-height: 360px; border-radius: 10px; display: block; cursor: pointer;
-  object-fit: cover; image-rendering: -webkit-optimize-contrast; image-rendering: crisp-edges;
-  border: 1px solid rgba(255,255,255,0.08);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+  max-width: 360px; max-height: 360px; border-radius: 12px; display: block; cursor: pointer;
+  object-fit: cover; image-rendering: -webkit-optimize-contrast;
+  border: 1px solid rgba(255,255,255,0.06);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.22);
 }
-.message-file img:hover { border-color: rgba(255,255,255,0.16); box-shadow: 0 3px 12px rgba(0,0,0,0.4); }
+.message-file img:hover { border-color: rgba(255,255,255,0.12); box-shadow: 0 4px 18px rgba(0,0,0,0.34); transform: translateY(-1px); }
 /* 4K/HD enhancement: images are upscaled + sharpened on the server; this
    subtle display filter adds a final crispness/contrast pop when rendered. */
 .message-file img.hd-enhanced { filter: contrast(1.04) saturate(1.06) sharpen(1); }
 .message-file video {
-  max-width: 380px; max-height: 360px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.08);
-  box-shadow: 0 1px 3px rgba(0,0,0,0.3); background: #000;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  max-width: 380px; max-height: 360px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.06);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.22); background: #000;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
 }
-.message-file video:hover { border-color: rgba(255,255,255,0.16); box-shadow: 0 3px 12px rgba(0,0,0,0.4); }
+.message-file video:hover { border-color: rgba(255,255,255,0.12); box-shadow: 0 4px 18px rgba(0,0,0,0.34); transform: translateY(-1px); }
 /* HD enhancement filter for inline videos (server can't transcode video, so
    we apply a light sharpen/contrast/saturate pass at display time). */
 .message-file video.hd-enhanced { filter: contrast(1.05) saturate(1.08) brightness(1.02); }
-.message-file audio { width: 320px; border-radius: 10px; }
+.message-file audio { width: 320px; border-radius: 12px; }
 .message-file-attachment {
   display: flex; align-items: center; gap: 12px;
-  padding: 12px 14px; background: var(--bg-darker);
-  border: 1px solid var(--border); border-radius: 10px;
+  padding: 11px 13px; background: var(--bg-darker);
+  border: 1px solid rgba(255,255,255,0.06); border-radius: 12px;
   text-decoration: none; color: var(--text-primary);
-  transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+  transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
   max-width: 360px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.16);
 }
-.message-group.own .message-file-attachment { background: rgba(0,0,0,0.15); border-color: rgba(255,255,255,0.15); }
-.message-file-attachment:hover { border-color: var(--accent); background: var(--bg-dark); box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
-.message-group.own .message-file-attachment:hover { background: rgba(0,0,0,0.22); }
+.message-group.own .message-file-attachment { background: rgba(0,0,0,0.12); border-color: rgba(255,255,255,0.10); }
+.message-file-attachment:hover { border-color: var(--accent); background: var(--bg-dark); box-shadow: 0 2px 10px rgba(0,0,0,0.26); transform: translateY(-1px); }
+.message-group.own .message-file-attachment:hover { background: rgba(0,0,0,0.20); }
 .file-icon {
-  width: 42px; height: 42px; border-radius: 10px;
+  width: 40px; height: 40px; border-radius: 10px;
   background: var(--accent-dim); color: #fff;
   display: flex; align-items: center; justify-content: center;
   font-size: 10px; font-weight: 700; flex-shrink: 0;
   letter-spacing: 0.3px;
 }
-.message-group.own .file-icon { background: rgba(255,255,255,0.2); }
+.message-group.own .file-icon { background: rgba(255,255,255,0.18); }
 .file-info { flex: 1; min-width: 0; }
 .file-name { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text-primary); }
 .file-size { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
@@ -1353,7 +1353,7 @@ body.no-anim .friend-item { animation: none !important; }
 .reply-quote {
   display: flex; align-items: center; gap: 8px;
   padding: 7px 12px; margin-bottom: 6px;
-  background: rgba(74,158,255,0.06); border-radius: 8px;
+  background: rgba(74,158,255,0.06); border-radius: 10px;
   border-left: 2px solid var(--accent); font-size: 12px;
   cursor: pointer; transition: background 0.15s ease, transform 0.15s ease;
   max-width: 100%; overflow: hidden;
@@ -1424,6 +1424,13 @@ body.no-anim .friend-item { animation: none !important; }
 #search-msg-panel.open .search-msg-scope { animation: searchFadeUp 0.42s cubic-bezier(0.22,1,0.36,1) both; animation-delay: 0.12s; }
 #search-msg-panel.open .search-msg-results { animation: searchFadeUp 0.42s cubic-bezier(0.22,1,0.36,1) both; animation-delay: 0.16s; }
 @keyframes searchFadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+/* On close (X button / Escape / jump): inner content fades out gracefully in
+   sync with the panel slide-out so the whole panel dissolves, not just slides. */
+#search-msg-panel.closing .search-msg-header { animation: searchFadeOut 0.3s cubic-bezier(0.55,0,0.68,0) both; }
+#search-msg-panel.closing .search-msg-input-wrap { animation: searchFadeOut 0.3s cubic-bezier(0.55,0,0.68,0) both; animation-delay: 0.02s; }
+#search-msg-panel.closing .search-msg-scope { animation: searchFadeOut 0.3s cubic-bezier(0.55,0,0.68,0) both; animation-delay: 0.04s; }
+#search-msg-panel.closing .search-msg-results { animation: searchFadeOut 0.3s cubic-bezier(0.55,0,0.68,0) both; animation-delay: 0.06s; }
+@keyframes searchFadeOut { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(-8px); } }
 .search-msg-header {
   padding: 20px 22px 16px; border-bottom: 1px solid var(--border);
   display: flex; align-items: center; gap: 12px; flex-shrink: 0;
@@ -1642,6 +1649,33 @@ body.no-anim .friend-item { animation: none !important; }
 }
 .members-bg-color-row input[type=color]:hover { border-color: var(--border-light); transform: scale(1.05); }
 .members-bg-color-row input[type=range] { flex: 1; accent-color: var(--accent); height: 5px; cursor: pointer; }
+
+/* Unsaved-changes banner inside the Members List Background modal. Appears
+   whenever the draft differs from the currently-applied background. */
+.members-bg-unsaved {
+  display: none; align-items: center; gap: 9px;
+  margin-top: 12px; padding: 11px 14px;
+  background: rgba(216,158,58,0.10);
+  border: 1px solid rgba(216,158,58,0.32);
+  border-radius: 11px;
+  animation: cardIn 0.2s cubic-bezier(0.16,1,0.3,1);
+}
+.members-bg-unsaved.show { display: flex; }
+.members-bg-unsaved svg { color: #d89e3a; flex-shrink: 0; }
+.members-bg-unsaved span {
+  flex: 1; font-size: 12.5px; font-weight: 600; color: #e8b454;
+  letter-spacing: 0.1px;
+}
+.members-bg-discard-btn {
+  flex-shrink: 0; padding: 6px 14px; font-size: 12px; font-weight: 600;
+  background: rgba(255,255,255,0.06); color: var(--text-secondary);
+  border: 1px solid var(--border-light); border-radius: 8px;
+  cursor: pointer; transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  letter-spacing: 0.2px;
+}
+.members-bg-discard-btn:hover {
+  background: rgba(216,58,58,0.14); color: #ff7a7a; border-color: rgba(216,58,58,0.4);
+}
 
 /* ---- URL input sub-modal (polished) ---- */
 .members-bg-url-modal {
@@ -4965,6 +4999,13 @@ body.no-anim .friend-item { animation: none !important; }
           </div>
         </div>
         <button class="setting-save-btn no-checkmark" id="members-bg-save" style="width:100%;margin-top:6px;">Apply Background</button>
+        <!-- Unsaved-changes banner: shown when the draft differs from the
+             currently-applied background. Discard reverts the draft. -->
+        <div class="members-bg-unsaved" id="members-bg-unsaved">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <span>You have unsaved changes</span>
+          <button class="members-bg-discard-btn" id="members-bg-discard">Discard</button>
+        </div>
       </div>
     </div>
   </div>
@@ -6426,13 +6467,18 @@ function dismissNotifsForUser(username) {
     setTimeout(() => el.remove(), 300);
   });
 }
+/* Request browser notification permission. This is an internal helper called
+   by the notif-toggle handler, which itself shows the user-facing toast via
+   savePreferences(). To avoid a DOUBLE notification (helper toast + handler
+   toast), this function stays silent on the "already granted" path and only
+   surfaces errors (unsupported / denied). The success toast is owned by the
+   toggle handler so the user sees exactly one confirmation. */
 function requestNotificationPermission() {
   if (!('Notification' in window)) { toast('Desktop notifications are not supported in this browser.', 'error'); return Promise.resolve(false); }
-  if (Notification.permission === 'granted') { toast('Notifications are already enabled.', 'success'); return Promise.resolve(true); }
+  if (Notification.permission === 'granted') { return Promise.resolve(true); }
   if (Notification.permission === 'denied') { toast('Notification permission was denied. You can enable it in your browser settings.', 'error'); return Promise.resolve(false); }
   return Notification.requestPermission().then(permission => {
     if (permission === 'granted') {
-      toast('Desktop notifications have been enabled.', 'success');
       return true;
     } else {
       toast('Notification permission was denied. You can enable it in your browser settings.', 'error');
@@ -9590,6 +9636,7 @@ function attachUserListListeners() {
           const target = users.find(x => x.username === un);
           const otherOff = target && target.directMessagesEnabled === false;
           if (otherOff) { toast('@' + un + ' has disabled direct messages and is not accepting private messages.', 'error'); return; }
+          ensureDMConversation(un);
           openDM(un);
         } },
       ];
@@ -9606,6 +9653,8 @@ function attachUserListListeners() {
             fetch(API_BASE + '/api/dms/reopen/' + encodeURIComponent(un), { method: 'POST' }).then(() => {
               loadDMConversations();
             }).catch(() => {});
+            // Optimistically add the conversation to the Messages tab right away.
+            ensureDMConversation(un);
             openDM(un);
           } });
         } else {
@@ -10036,6 +10085,23 @@ function attachDMListListeners() {
     });
   });
 }
+/* Optimistically ensure a DM conversation appears in the Messages tab list.
+   Called when the user clicks "Open Conversation" from the Members tab (or
+   reopens a closed one) so the conversation shows up in the Messages tab
+   instantly, without waiting for the server's loadDMConversations() refresh.
+   If the conversation already exists it is left alone (the server refresh will
+   fill in the real lastMessage / unread). */
+function ensureDMConversation(username) {
+  if (!username) return;
+  const un = String(username);
+  const existingIdx = dmConversations.findIndex(c => c.user && c.user.username === un);
+  if (existingIdx >= 0) return; // already listed
+  const u = (users.find(x => x.username === un) || { username: un, avatar: null, status: 'offline', displayName: '' });
+  dmConversations.unshift({ user: u, lastMessage: null, unread: 0 });
+  renderMessagesList();
+  updateDMNavBadge();
+}
+
 async function openDM(username) {
   activeDMUser = username;
   // Dismiss any persistent DM notifications from this user now that the
@@ -10134,6 +10200,8 @@ async function closeDM(username) {
   dmConversations = dmConversations.filter(c => !(c.user && c.user.username.toLowerCase() === un));
   renderMessagesList();
   updateDMNavBadge();
+  // If the user is currently viewing this conversation in the overlay, close it.
+  if (activeDMUser && activeDMUser.toLowerCase() === un) closeDMOverlay();
   // Professional, clear confirmation with the reopen hint.
   toast('Conversation closed. Reopen it anytime by right-clicking the Messages tab.', 'info');
   // Fire network request in background (non-blocking)
@@ -10153,6 +10221,8 @@ document.querySelector('.sidebar-nav-btn[data-view="dms"]').addEventListener('co
       fetch(API_BASE + '/api/dms/reopen/' + encodeURIComponent(un), { method: 'POST' }).then(() => {
         loadDMConversations();
       }).catch(() => {});
+      // Optimistically add the conversation back to the Messages tab right away.
+      ensureDMConversation(un);
       openDM(un);
     }
   }));
@@ -12672,6 +12742,29 @@ document.addEventListener('keydown', (e) => {
 
 // ---------- Members List Background Modal (task m) ----------
 let membersBgState = { url: null, scale: 100, color: '#0a0b0d', opacity: 0 };
+/* Snapshot of the background that is currently APPLIED to the sidebar (i.e.
+   the last saved state). The draft (membersBgState) is what the user is editing
+   in the modal. When they diverge, the "unsaved changes" banner appears; the
+   Discard button reverts the draft back to this snapshot. */
+let appliedMembersBgState = { url: null, scale: 100, color: '#0a0b0d', opacity: 0 };
+function cloneMembersBgState(s) { return { url: s.url, scale: s.scale, color: s.color, opacity: s.opacity }; }
+function membersBgStatesEqual(a, b) {
+  return a.url === b.url && a.scale === b.scale && a.color === b.color && a.opacity === b.opacity;
+}
+/* Show/hide the unsaved-changes banner based on draft vs applied. */
+function checkMembersBgDirty() {
+  const banner = $('members-bg-unsaved');
+  if (!banner) return;
+  const dirty = !membersBgStatesEqual(membersBgState, appliedMembersBgState);
+  banner.classList.toggle('show', dirty);
+}
+/* Revert the draft back to the last-applied background and refresh the preview. */
+function discardMembersBg() {
+  membersBgState = cloneMembersBgState(appliedMembersBgState);
+  updateMembersBgPreview();
+  checkMembersBgDirty();
+  toast('Changes discarded.', 'info');
+}
 function loadMembersBgState() {
   try {
     const saved = JSON.parse(localStorage.getItem('hellobye_members_bg') || 'null');
@@ -12681,11 +12774,14 @@ function loadMembersBgState() {
      always fills the full sidebar height (top-to-bottom). */
   if (typeof membersBgState.scale !== 'number' || isNaN(membersBgState.scale)) membersBgState.scale = 100;
   membersBgState.scale = Math.max(100, Math.min(300, membersBgState.scale));
+  appliedMembersBgState = cloneMembersBgState(membersBgState);
   applyMembersBg();
 }
 function saveMembersBgState() {
   localStorage.setItem('hellobye_members_bg', JSON.stringify(membersBgState));
   applyMembersBg();
+  appliedMembersBgState = cloneMembersBgState(membersBgState);
+  checkMembersBgDirty();
 }
 /* Visually revert the members-list background to the default (no image) WITHOUT
    deleting the saved state from localStorage. Called on logout so the background
@@ -12693,6 +12789,7 @@ function saveMembersBgState() {
    preserved and restored when they sign back in (restoreMembersBg). */
 function revertMembersBg() {
   membersBgState = { url: null, scale: 100, color: '#0a0b0d', opacity: 0 };
+  appliedMembersBgState = cloneMembersBgState(membersBgState);
   applyMembersBg();
 }
 /* Reload the saved members-list background from localStorage and re-apply it.
@@ -12798,8 +12895,11 @@ function applyMembersBg() {
   btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg><span>Background</span>';
   blockedBtn.insertAdjacentElement('afterend', btn);
   btn.addEventListener('click', () => {
-    // Refresh preview from current state
+    // Sync the applied snapshot to whatever is currently saved, then refresh
+    // the preview and dirty banner (so reopening shows a clean state).
+    appliedMembersBgState = cloneMembersBgState(membersBgState);
     updateMembersBgPreview();
+    checkMembersBgDirty();
     $('members-bg-modal').classList.add('open');
     btn.classList.add('is-open');
   });
@@ -12838,22 +12938,25 @@ $('members-bg-scale').addEventListener('input', (e) => {
   membersBgState.scale = parseInt(e.target.value);
   $('members-bg-scale-val').textContent = membersBgState.scale + '%';
   updateMembersBgPreview();
+  checkMembersBgDirty();
 });
 $('members-bg-color').addEventListener('input', (e) => {
   membersBgState.color = e.target.value;
   updateMembersBgPreview();
+  checkMembersBgDirty();
 });
 $('members-bg-opacity').addEventListener('input', (e) => {
   membersBgState.opacity = parseInt(e.target.value);
   $('members-bg-opacity-val').textContent = membersBgState.opacity + '%';
   updateMembersBgPreview();
+  checkMembersBgDirty();
 });
 $('members-bg-file').addEventListener('change', (e) => {
   const file = e.target.files[0];
   if (!file) return;
   if (file.size > 8 * 1024 * 1024) { toast('Image must be under 8MB', 'error'); return; }
   const reader = new FileReader();
-  reader.onload = () => { membersBgState.url = reader.result; updateMembersBgPreview(); };
+  reader.onload = () => { membersBgState.url = reader.result; updateMembersBgPreview(); checkMembersBgDirty(); };
   reader.readAsDataURL(file);
 });
 // ---- URL sub-modal (replaces native prompt) ----
@@ -12873,7 +12976,7 @@ $('members-bg-file').addEventListener('change', (e) => {
   function confirm() {
     const url = (input.value || '').trim();
     if (!url) { toast('Please enter a URL', 'error'); input.focus(); return; }
-    membersBgState.url = url; updateMembersBgPreview(); close();
+    membersBgState.url = url; updateMembersBgPreview(); checkMembersBgDirty(); close();
   }
   $('members-bg-url-confirm').addEventListener('click', confirm);
   input.addEventListener('keydown', (e) => {
@@ -12884,7 +12987,9 @@ $('members-bg-file').addEventListener('change', (e) => {
 $('members-bg-clear-btn').addEventListener('click', () => {
   membersBgState = { url: null, scale: 100, color: '#0a0b0d', opacity: 0 };
   updateMembersBgPreview();
+  checkMembersBgDirty();
 });
+$('members-bg-discard').addEventListener('click', discardMembersBg);
 $('members-bg-save').addEventListener('click', () => {
   saveMembersBgState();
   closeMembersBgModal();
