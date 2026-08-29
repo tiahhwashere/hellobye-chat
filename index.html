@@ -12693,7 +12693,7 @@ function updateProfilePanel() {
   if ($('friend-requests-toggle')) $('friend-requests-toggle').checked = u.friendRequestsEnabled !== false;
   if ($('direct-messages-toggle')) $('direct-messages-toggle').checked = u.directMessagesEnabled !== false;
   currentStatus = u.status || 'online';
-  document.querySelectorAll('.status-option').forEach(opt => opt.classList.toggle('active', opt.dataset.status === currentStatus));
+  document.querySelectorAll('#profile-panel .status-option').forEach(opt => opt.classList.toggle('active', opt.dataset.status === currentStatus));
   // Owner account protection: the owner (@lore) cannot disable their own account.
   // Visually disable the button (greyed out, not clickable) instead of just toast-on-click.
   const disableBtn = $('disable-account-btn');
@@ -13048,10 +13048,13 @@ $('banner-remove-btn').addEventListener('click', async () => {
 });
 
 // ---------- Status Change ----------
-document.querySelectorAll('.status-option').forEach(opt => {
+// Scoped to #profile-panel so the mini popover's status options (which have
+// their own listener in initMiniProfileListeners) don't get a SECOND listener
+// here — that caused the double-toast bug when changing status.
+document.querySelectorAll('#profile-panel .status-option').forEach(opt => {
   opt.addEventListener('click', () => {
     const status = opt.dataset.status;
-    document.querySelectorAll('.status-option').forEach(o => o.classList.remove('active'));
+    document.querySelectorAll('#profile-panel .status-option').forEach(o => o.classList.remove('active'));
     opt.classList.add('active');
     currentStatus = status;
     // Optimistic local update so the user sees the change INSTANTLY in the
