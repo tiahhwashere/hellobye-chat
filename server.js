@@ -703,6 +703,7 @@ function publicUser(u) {
       mutedUntil: 0,
       isOwner: false,
       disabled: true,
+      hideProfile: !!u.hideProfile,
     };
   }
   return {
@@ -732,6 +733,7 @@ function publicUser(u) {
     mutedUntil: (u.mutedUntil && Date.now() < u.mutedUntil) ? u.mutedUntil : 0,
     isOwner: isOwnerUser(u),
     disabled: false,
+    hideProfile: !!u.hideProfile,
   };
 }
 function fullUser(u) {
@@ -1197,12 +1199,35 @@ app.get('/api/user/:username', authMiddleware, (req, res) => {
   }
   const me = req.user;
   const myFriends = db.friends[me.username] || { friends: [], sent: [], received: [] };
+  const isMe = (me.username === u.username);
+  // Profile hiding: when the viewed user has hideProfile enabled, only the
+  // owner (@lore) and the user themselves see the full profile. Everyone else
+  // gets the banner/avatar/gif (visual identity) but their bio, status,
+  // pronouns, and extra details are stripped, with a profileHidden flag so
+  // the client can show a professional "this profile is hidden" notice.
+  const viewerIsOwner = isOwnerUser(me);
+  const profileHidden = !!u.hideProfile && !isMe && !viewerIsOwner;
+  let viewUser = publicUser(u);
+  if (profileHidden) {
+    viewUser = {
+      ...viewUser,
+      bio: '',
+      statusMessage: '',
+      pronouns: '',
+      location: '',
+      website: '',
+      // Keep the status dot (online/offline) but hide the "last seen" text
+      hideLastSeen: true,
+      profileHidden: true,
+    };
+  }
   res.json({
-    user: publicUser(u),
-    isMe: (me.username === u.username),
+    user: viewUser,
+    isMe,
     isFriend: myFriends.friends.includes(u.username),
     outgoingRequest: myFriends.sent.includes(u.username),
     incomingRequest: myFriends.received.includes(u.username),
+    profileHidden,
   });
 });
 
@@ -1253,13 +1278,14 @@ app.post('/api/profile', authMiddleware, avatarUpload.single('image'), async (re
     return res.json({ success: true, avatar: u.avatar, banner: u.banner });
   }
   // JSON profile update
-  const { bio, hideLastSeen, pronouns, showOnlineStatus, panelColor, friendRequestsEnabled, directMessagesEnabled, statusMessage } = req.body || {};
+  const { bio, hideLastSeen, pronouns, showOnlineStatus, panelColor, friendRequestsEnabled, directMessagesEnabled, statusMessage, hideProfile } = req.body || {};
   if (bio !== undefined) u.bio = String(bio).slice(0, 500);
   if (hideLastSeen !== undefined) u.hideLastSeen = !!hideLastSeen;
   if (pronouns !== undefined) u.pronouns = String(pronouns).slice(0, 50);
   if (showOnlineStatus !== undefined) u.showOnlineStatus = showOnlineStatus !== false;
   if (friendRequestsEnabled !== undefined) u.friendRequestsEnabled = friendRequestsEnabled !== false;
   if (directMessagesEnabled !== undefined) u.directMessagesEnabled = directMessagesEnabled !== false;
+  if (hideProfile !== undefined) u.hideProfile = hideProfile !== false;
   // Status Message — short custom message (max 25 chars) shown to others when
   // the user's presence is Online, Idle, or Do Not Disturb. Empty string clears it.
   if (statusMessage !== undefined) {
@@ -3013,6 +3039,7 @@ function broadcastProfile(username) {
     badges: u.badges || [],
     banned: !!u.banned,
     disabled: false,
+    hideProfile: !!u.hideProfile,
   });
 }
 
