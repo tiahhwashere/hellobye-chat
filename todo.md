@@ -41,5 +41,5 @@
 - [x] Fixed kick button styling (proper padding, border-radius, white-space)
 
 ## 10. Deploy & verify
-- [ ] Commit, push, verify Render deploy
-- [ ] Test all features on live site
+- [x] Commit, push, verify Render deploy (commit 7904635, live)
+- [x] Test all features on live site (all present in served HTML)
