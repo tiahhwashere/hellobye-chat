@@ -3031,7 +3031,7 @@ io.on('connection', (socket) => {
     io.to(`user:${to ? to.toLowerCase() : ''}`).emit('dm-typing', { from: username, typing: !!typing });
   });
 
-  // ---- Group chat: send message ----
+  // ---- Group chat send ----
   socket.on('group-send', ({ groupId, text, file, files, reply }, ack) => {
     try {
       const g = findGroup(groupId);
@@ -3066,7 +3066,7 @@ io.on('connection', (socket) => {
     }
   });
 
-  // ---- Group chat: edit message ----
+  // ---- Group chat edit ----
   socket.on('group-edit', ({ groupId, id, text }, ack) => {
     try {
       const g = findGroup(groupId);
@@ -3084,7 +3084,7 @@ io.on('connection', (socket) => {
     }
   });
 
-  // ---- Group chat: delete message ----
+  // ---- Group chat delete ----
   socket.on('group-delete', ({ groupId, id }, ack) => {
     try {
       const g = findGroup(groupId);
@@ -3103,7 +3103,7 @@ io.on('connection', (socket) => {
     }
   });
 
-  // ---- Group chat: typing ----
+  // ---- Group chat typing ----
   socket.on('group-typing', ({ groupId, typing }) => {
     const g = findGroup(groupId);
     if (!g) return;

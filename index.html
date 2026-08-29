@@ -540,9 +540,9 @@ body.loading-session #chat-app.active::after { content: none; }
   animation: navIconPop 0.32s cubic-bezier(0.34,1.56,0.64,1);
 }
 
-.sidebar-search { padding: 10px 12px; }
+.sidebar-search { padding: 10px 12px; display: flex; gap: 8px; align-items: center; }
 .sidebar-search input {
-  width: 100%; padding: 8px 12px;
+  flex: 1; width: 100%; padding: 8px 12px;
   background: var(--bg-dark); border: 1px solid var(--border);
   border-radius: var(--radius-sm); color: var(--text-primary); font-size: 13px;
 }
@@ -5042,7 +5042,6 @@ body.no-anim .friend-item { animation: none !important; }
       </div>
     </div>
   </div>
-
 
   <!-- ===================== DELETE ACCOUNT MODAL ===================== -->
   <div class="modal-overlay" id="delete-account-modal">
@@ -10133,7 +10132,6 @@ document.querySelector('.sidebar-nav-btn[data-view="dms"]').addEventListener('co
   }));
   showContextMenu(e.clientX, e.clientY, items);
 });
-
 
 // ============================================================
 // GROUP CHAT SYSTEM — Frontend logic
