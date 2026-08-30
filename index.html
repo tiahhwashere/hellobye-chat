@@ -1266,11 +1266,44 @@ body.no-anim .friend-item { animation: none !important; }
 .twosv-actions .setting-save-btn { width: auto; margin-top: 0; }
 .twosv-actions .setting-save-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
+/* Reset Name modal — preview of old -> new random handle */
+.reset-name-preview {
+  background: var(--bg-darkest); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 16px; margin-bottom: 4px;
+}
+.reset-name-arrow {
+  display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+}
+.reset-name-old, .reset-name-new {
+  display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 120px;
+}
+.reset-name-label {
+  font-size: 9px; font-weight: 800; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: 0.8px;
+}
+.reset-name-handle {
+  font-size: 14px; font-weight: 700; color: var(--text-primary);
+  font-family: 'SF Mono', 'Monaco', 'Cascadia Code', monospace;
+  letter-spacing: 0.3px; word-break: break-all;
+}
+.reset-name-handle.random { color: var(--accent); }
+.reset-name-arrow-icon {
+  width: 24px; height: 24px; color: var(--text-muted); flex-shrink: 0;
+}
+.reset-name-shuffle {
+  display: inline-flex; align-items: center; gap: 6px;
+  margin-top: 14px; padding: 7px 13px; font-size: 11px; font-weight: 700;
+  background: var(--bg-medium); border: 1px solid var(--border); color: var(--text-secondary);
+  border-radius: var(--radius-sm); cursor: pointer; transition: var(--transition);
+}
+.reset-name-shuffle svg { width: 13px; height: 13px; }
+.reset-name-shuffle:hover { background: var(--bg-hover); color: var(--text-primary); border-color: var(--accent); }
+
 /* Link Embeds — bigger, richer, more detailed */
 .link-embed {
   margin-top: 10px; border: 1px solid var(--border);
   border-radius: 12px; overflow: hidden;
-  max-width: 680px; background: var(--bg-darker);
+  max-width: 860px; background: var(--bg-darker);
   transition: border-color 0.15s ease, background 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
   box-shadow: 0 1px 3px rgba(0,0,0,0.18);
 }
@@ -1280,54 +1313,54 @@ body.no-anim .friend-item { animation: none !important; }
 }
 .message-group.own .link-embed { background: rgba(0,0,0,0.14); border-color: rgba(255,255,255,0.08); }
 .message-group.own .link-embed:hover { background: rgba(0,0,0,0.22); border-color: rgba(255,255,255,0.14); }
-.link-embed-loading { padding: 12px 16px; font-size: 13px; color: var(--text-muted); }
-.link-embed-fallback { padding: 12px 16px; font-size: 13px; }
+.link-embed-loading { padding: 14px 18px; font-size: 14px; color: var(--text-muted); }
+.link-embed-fallback { padding: 14px 18px; font-size: 14px; }
 .link-embed-fallback a { color: var(--accent); word-break: break-all; }
 .link-embed-card {
   display: flex; text-decoration: none; color: inherit;
 }
 .link-embed-image {
-  width: 150px; min-height: 110px; flex-shrink: 0;
+  width: 210px; min-height: 140px; flex-shrink: 0;
   background-size: cover; background-position: center;
   background-color: var(--bg-dark);
   image-rendering: -webkit-optimize-contrast;
 }
 .link-embed-image.large {
-  width: 100%; min-height: 200px; max-height: 300px; order: -1;
+  width: 100%; min-height: 260px; max-height: 380px; order: -1;
 }
 .link-embed-content {
-  padding: 14px 18px; min-width: 0; flex: 1;
+  padding: 16px 22px; min-width: 0; flex: 1;
 }
 .link-embed-site {
-  font-size: 11px; color: var(--text-muted);
-  text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 6px;
+  font-size: 12px; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 7px;
   display: flex; align-items: center; gap: 6px;
   font-weight: 600;
 }
-.link-embed-site img { width: 16px; height: 16px; border-radius: 4px; flex-shrink: 0; }
+.link-embed-site img { width: 18px; height: 18px; border-radius: 4px; flex-shrink: 0; }
 .link-embed-title {
-  font-size: 15px; font-weight: 700; color: var(--text-primary);
-  margin-bottom: 6px; line-height: 1.35;
+  font-size: 17px; font-weight: 700; color: var(--text-primary);
+  margin-bottom: 7px; line-height: 1.35;
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
 }
 .link-embed-card:hover .link-embed-title { color: var(--accent); }
 .link-embed-desc {
-  font-size: 12.5px; color: var(--text-secondary); line-height: 1.5;
+  font-size: 13.5px; color: var(--text-secondary); line-height: 1.5;
   display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden;
 }
 .link-embed-meta {
-  margin-top: 8px; font-size: 11px; color: var(--text-muted);
-  display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
-  padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.05);
+  margin-top: 10px; font-size: 12px; color: var(--text-muted);
+  display: flex; flex-wrap: wrap; gap: 12px; align-items: center;
+  padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.05);
 }
 .link-embed-author { color: var(--text-secondary); font-weight: 500; }
-.link-embed-url { color: var(--accent); word-break: break-all; opacity: 0.85; font-size: 10.5px; }
+.link-embed-url { color: var(--accent); word-break: break-all; opacity: 0.85; font-size: 11.5px; }
 .link-embed-type-badge {
-  font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 5px;
+  font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 5px;
   background: var(--accent-dim); color: #fff; text-transform: uppercase; letter-spacing: 0.4px;
 }
 .link-embed-readtime {
-  font-size: 10px; color: var(--text-muted); display: inline-flex; align-items: center; gap: 4px;
+  font-size: 11px; color: var(--text-muted); display: inline-flex; align-items: center; gap: 4px;
   font-weight: 500;
 }
 .link-embed-readtime::before { content: ''; width: 9px; height: 9px; border-radius: 50%; background: var(--text-muted); opacity: 0.5; flex-shrink: 0; }
@@ -4939,12 +4972,12 @@ body.no-anim .friend-item { animation: none !important; }
   .file-size { font-size: 10px; }
 
   .link-embed { max-width: 100%; }
-  .link-embed-image { width: 110px; min-height: 88px; }
-  .link-embed-image.large { min-height: 160px; max-height: 200px; }
-  .link-embed-content { padding: 11px 13px; }
-  .link-embed-title { font-size: 13px; }
-  .link-embed-desc { font-size: 11px; -webkit-line-clamp: 3; }
-  .link-embed-meta { font-size: 10px; gap: 7px; }
+  .link-embed-image { width: 140px; min-height: 100px; }
+  .link-embed-image.large { min-height: 180px; max-height: 230px; }
+  .link-embed-content { padding: 12px 14px; }
+  .link-embed-title { font-size: 14px; }
+  .link-embed-desc { font-size: 12px; -webkit-line-clamp: 3; }
+  .link-embed-meta { font-size: 10.5px; gap: 8px; }
 
   /* Profile view modal banner — scale down on mobile but keep taller ratio */
   .profile-view-banner { height: 200px; }
@@ -5875,6 +5908,42 @@ body.no-anim .friend-item { animation: none !important; }
     </div>
   </div>
 
+  <!-- ===================== ADMIN RESET NAME MODAL ===================== -->
+  <div class="modal-overlay" id="reset-name-modal">
+    <div class="modal" style="max-width:440px; text-align:left;">
+      <div class="modal-icon" style="background:rgba(239,68,68,0.12); color:#ef4444; margin-bottom:14px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+      </div>
+      <h3 style="display:flex; align-items:center; gap:8px;">Reset Username</h3>
+      <p style="color:var(--text-secondary); font-size:13px; line-height:1.55; margin-bottom:16px;">
+        This will reset <strong id="reset-name-target" style="color:var(--text-primary);"></strong>'s username to a random
+        <code style="background:var(--bg-darkest); padding:2px 7px; border-radius:5px; font-family:'SF Mono',monospace; font-size:12px; color:var(--accent);">reset_user_XXXXXXX</code>
+        handle. <span style="color:#ef4444; font-weight:700;">This cannot be undone.</span>
+      </p>
+      <div class="reset-name-preview" id="reset-name-preview">
+        <div class="reset-name-arrow">
+          <div class="reset-name-old">
+            <span class="reset-name-label">Current</span>
+            <span class="reset-name-handle" id="reset-name-old-handle">@username</span>
+          </div>
+          <svg class="reset-name-arrow-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          <div class="reset-name-new">
+            <span class="reset-name-label">New</span>
+            <span class="reset-name-handle random" id="reset-name-new-handle">@reset_user_XXXXXXX</span>
+          </div>
+        </div>
+        <button type="button" class="reset-name-shuffle" id="reset-name-shuffle" title="Generate a different random handle">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/></svg>
+          Shuffle
+        </button>
+      </div>
+      <div class="modal-actions" style="margin-top:22px;">
+        <button class="modal-btn" id="reset-name-cancel">Cancel</button>
+        <button class="modal-btn danger" id="reset-name-confirm">Reset Username</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ===================== DELETE ACCOUNT MODAL ===================== -->
   <div class="modal-overlay" id="delete-account-modal">
     <div class="modal small">
@@ -6298,7 +6367,7 @@ body.no-anim .friend-item { animation: none !important; }
               <div class="identity-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
               <div class="identity-card-title">Username</div>
             </div>
-            <p class="identity-card-hint">This is your @name — how people find you on here. <span class="id-hint-note" id="username-cooldown-text"></span></p>
+            <p class="identity-card-hint">Your @name — what everyone calls you on here. <span class="id-hint-note" id="username-cooldown-text"></span></p>
             <div class="identity-field">
               <input type="text" class="form-input" id="new-username-input" placeholder="Enter your new username" spellcheck="false">
             </div>
@@ -14937,11 +15006,11 @@ function updateSettingsPanel() {
       $('username-cooldown-text').textContent = 'Try again in ' + hrs + ' hour(s).';
       $('username-save').disabled = true;
     } else {
-      $('username-cooldown-text').textContent = 'You can change it now.';
+      $('username-cooldown-text').textContent = 'You can change it.';
       $('username-save').disabled = false;
     }
   } else {
-    $('username-cooldown-text').textContent = 'You can change it now.';
+    $('username-cooldown-text').textContent = 'You can change it.';
     $('username-save').disabled = false;
   }
   // Disable Delete Account for the owner (@lore) — the owner account is
@@ -18597,30 +18666,66 @@ async function adminRenameUser() {
   } catch (e) { toast('A network error occurred. Please try again.', 'error'); }
 }
 
+// Client-side preview handle generator (matches the server's reset_user_XXXXXXX
+// format). The actual handle is always generated server-side — this is just a
+// visual preview the admin can shuffle before confirming.
+function previewResetHandle() {
+  const num = Math.floor(1000000 + Math.random() * 9000000);
+  return '@reset_user_' + num;
+}
+function openResetNameModal(target, onConfirm) {
+  const modal = $('reset-name-modal');
+  $('reset-name-target').textContent = '@' + target.username;
+  $('reset-name-old-handle').textContent = '@' + target.username;
+  const newEl = $('reset-name-new-handle');
+  newEl.textContent = previewResetHandle();
+  const shuffleBtn = $('reset-name-shuffle');
+  const confirmBtn = $('reset-name-confirm');
+  const cancelBtn = $('reset-name-cancel');
+  confirmBtn.textContent = 'Reset Username';
+  confirmBtn.disabled = false;
+  modal.classList.add('show');
+  const onShuffle = () => { newEl.textContent = previewResetHandle(); };
+  const cleanup = () => {
+    shuffleBtn.removeEventListener('click', onShuffle);
+    confirmBtn.removeEventListener('click', onConfirmClick);
+    cancelBtn.removeEventListener('click', onCancel);
+    modal.removeEventListener('click', onOverlay);
+  };
+  const close = () => { cleanup(); modal.classList.remove('show'); };
+  const onConfirmClick = () => { cleanup(); modal.classList.remove('show'); onConfirm(); };
+  const onCancel = () => close();
+  const onOverlay = e => { if (e.target === modal) close(); };
+  shuffleBtn.addEventListener('click', onShuffle);
+  confirmBtn.addEventListener('click', onConfirmClick);
+  cancelBtn.addEventListener('click', onCancel);
+  modal.addEventListener('click', onOverlay);
+}
 async function adminResetName() {
   if (!adminRenameTarget) return;
   const target = adminRenameTarget;
-  // Confirm before resetting — this changes the user's handle to a random one.
-  const ok = confirm('Reset ' + target.username + "'s username to a random reset_user_XXXXXXX handle? This cannot be undone.");
-  if (!ok) return;
-  const btn = $('admin-rename-reset-btn');
-  if (btn) { btn.disabled = true; btn.textContent = 'Resetting...'; }
-  try {
-    const res = await fetch(API_BASE + '/api/admin/reset-name', {
-      method: 'POST', headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username: target.username }),
-    });
-    const data = await res.json();
-    if (data.success) {
-      toast('Username has been reset to @' + escapeHtml(data.newUsername) + '.', 'success');
-      $('admin-rename-form').style.display = 'none';
-      adminRenameTarget = null;
-      $('admin-rename-search').value = '';
-      $('admin-rename-results').innerHTML = '';
-      loadAdminData();
-    } else { toast(data.error || 'Unable to reset this user\'s name. Please try again.', 'error'); }
-  } catch (e) { toast('A network error occurred. Please try again.', 'error'); }
-  if (btn) { btn.disabled = false; btn.textContent = 'Reset Name'; }
+  openResetNameModal(target, async () => {
+    const btn = $('admin-rename-reset-btn');
+    if (btn) { btn.disabled = true; btn.textContent = 'Resetting...'; }
+    const confirmBtn = $('reset-name-confirm');
+    try {
+      const res = await fetch(API_BASE + '/api/admin/reset-name', {
+        method: 'POST', headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: target.username }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        toast('Username has been reset to @' + escapeHtml(data.newUsername) + '.', 'success');
+        $('admin-rename-form').style.display = 'none';
+        adminRenameTarget = null;
+        $('admin-rename-search').value = '';
+        $('admin-rename-results').innerHTML = '';
+        loadAdminData();
+      } else { toast(data.error || 'Unable to reset this user\'s name. Please try again.', 'error'); }
+    } catch (e) { toast('A network error occurred. Please try again.', 'error'); }
+    if (btn) { btn.disabled = false; btn.textContent = 'Reset Name'; }
+    if (confirmBtn) { confirmBtn.disabled = false; confirmBtn.textContent = 'Reset Username'; }
+  });
 }
 
 async function adminSetRole() {
