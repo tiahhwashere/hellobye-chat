@@ -36,7 +36,7 @@
 # Round 5i — Enter shortcut for media-send-modal + wider non-cartoony media embeds
 
 ## Tasks
-- [ ] 1. Add broader Enter-to-send on media-send-modal (keydown listener on the modal overlay so Enter sends even if the caption textarea isn't focused; keep Shift+Enter for newlines in caption)
-- [ ] 2. Make media embeds wider (images: 360px→480px, videos: 380px→500px, audio: 320px→400px, file-attachment: 360px→480px) and redesign with non-cartoony, professional look (subtle borders, refined shadows, cleaner radius)
-- [ ] 3. Update mobile responsive overrides to match the wider embeds
-- [ ] 4. Syntax check, commit, push, wait for Render auto-deploy, verify live
+- [x] 1. Add broader Enter-to-send on media-send-modal (keydown listener on the modal overlay so Enter sends even if the caption textarea isn't focused; keep Shift+Enter for newlines in caption)
+- [x] 2. Make media embeds wider (images: 360px→480px, videos: 380px→500px, audio: 320px→400px, file-attachment: 360px→480px) and redesign with non-cartoony, professional look (subtle borders, refined shadows, cleaner radius)
+- [x] 3. Update mobile responsive overrides to match the wider embeds
+- [x] 4. Syntax check, commit, push, wait for Render auto-deploy, verify live
