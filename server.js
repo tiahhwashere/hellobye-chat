@@ -2276,14 +2276,23 @@ app.post('/api/account/decline-reactivation', (req, res) => {
 });
 
 // ---------- Admin Middleware & Endpoints ----------
-// Admin access is granted when EITHER:
+// Admin access is granted when ANY of the following are true:
 //   (a) the user is the owner (UUID or username === 'lore'), OR
-//   (b) the user's session has unlocked the panel by entering ADMIN_UNLOCK_CODE.
-// Every logged-in user can SEE the admin tab; clicking it prompts for the code.
+//   (b) the user's session has unlocked the panel by entering ADMIN_UNLOCK_CODE, OR
+//   (c) the user is on the admin whitelist (db.adminWhitelist), OR
+//   (d) the user has an elevated role ('administrator' / 'moderator').
+// Every logged-in user can SEE the admin tab. Whitelisted / admin-role users
+// get in directly without the code; everyone else is prompted for the code.
 function isAdmin(user, sid) {
   if (!user) return false;
   if (isOwnerUser(user)) return true;
   if (sid && adminUnlockedSessions.has(sid)) return true;
+  // Whitelisted users bypass the code gate.
+  const un = String(user.username || '').toLowerCase().trim();
+  if (un && db.adminWhitelist && db.adminWhitelist.includes(un)) return true;
+  // Users with an elevated role bypass the code gate.
+  const role = String(user.role || '').toLowerCase().trim();
+  if (role === 'administrator' || role === 'moderator') return true;
   return false;
 }
 function adminMiddleware(req, res, next) {
