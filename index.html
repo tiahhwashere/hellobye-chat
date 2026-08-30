@@ -6447,9 +6447,6 @@ body.no-anim .friend-item { animation: none !important; }
       </div>
       <div class="dm-messages" id="dm-messages">
         <div class="empty-state" id="dm-empty-state">
-          <div class="empty-state-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="40" height="40"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-          </div>
           <h3>Start the conversation</h3>
           <p>Send your first message to begin this private conversation.</p>
         </div>
@@ -6498,7 +6495,7 @@ body.no-anim .friend-item { animation: none !important; }
               <span class="attach-dropdown-hint">From your device (max 115MB)</span>
             </div>
           </div>
-          <textarea class="chat-textarea" id="dm-input" placeholder="Type a private message" rows="1"></textarea>
+          <textarea class="chat-textarea" id="dm-input" placeholder="Message @user" rows="1"></textarea>
           <button class="send-btn" id="dm-send-btn" disabled>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
           </button>
@@ -7737,7 +7734,7 @@ function render2SVStatus(data) {
       }
     };
     updateCountdown();
-    twosvCountdownTimer = setInterval(updateCountdown, 60000);
+    twosvCountdownTimer = setInterval(updateCountdown, 5000);
   } else {
     toggle.checked = false;
     details.style.display = 'none';
@@ -7877,9 +7874,18 @@ $('twosv-regenerate-btn').addEventListener('click', async () => {
       if (res.status === 429) update2SVStatus();
       return;
     }
+    // Show the new code immediately
     show2SVCode(data.code, data.generatedAt);
     update2SVStatus();
-    toast('A new recovery code has been generated. The previous code is no longer valid.', 'success');
+    // Require the user to verify the new code to confirm they saved it
+    const verified = await prompt2SVCodeVerify(data.code);
+    if (verified) {
+      toast('New recovery code verified and saved. The previous code is no longer valid.', 'success');
+    } else {
+      // User cancelled or couldn't verify — the new code is still active (old
+      // one is already invalidated server-side). Warn them to save it.
+      toast('Your new recovery code is active but was not verified. Please save it in a secure location — you will need it to sign in.', 'warning');
+    }
   } catch (err) {
     toast('A network error occurred. Please try again.', 'error');
   }
@@ -7945,6 +7951,69 @@ function prompt2SVPassword(title, message) {
       if (e.key === 'Escape') close(null);
     });
     modal.addEventListener('click', (e) => { if (e.target === modal) close(null); });
+  });
+}
+
+// Prompt the user to re-enter their newly-generated recovery code to confirm
+// they have saved it. Displays the code for reference and asks them to type it
+// back. Returns true if the entered code matches, false if they cancel, and
+// null is never returned (cancellation counts as not-verified = false).
+function prompt2SVCodeVerify(newCode) {
+  return new Promise((resolve) => {
+    const normalize = (s) => String(s || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+    const target = normalize(newCode);
+    // Format the code in groups of 4 for readability
+    const formatted = (newCode || '').replace(/(.{4})/g, '$1 ').trim();
+    const modal = document.createElement('div');
+    modal.className = 'modal-overlay';
+    modal.style.zIndex = '10002';
+    modal.innerHTML = '<div class="modal" style="max-width:440px;padding:28px;">' +
+      '<h3 style="margin:0 0 8px;font-size:18px;color:var(--text-primary);">Verify Your New Code</h3>' +
+      '<p style="margin:0 0 14px;font-size:13px;color:var(--text-muted);line-height:1.5;">Save this code in a secure location, then type it below to confirm. You will need it every time you sign in.</p>' +
+      '<div style="margin-bottom:16px;padding:14px 16px;background:var(--bg-darker);border:1px solid var(--border);border-radius:10px;text-align:center;">' +
+        '<div style="font-size:11px;color:var(--text-muted);margin-bottom:6px;letter-spacing:0.5px;">YOUR NEW RECOVERY CODE</div>' +
+        '<div style="font-size:18px;font-weight:700;color:var(--accent);letter-spacing:2px;font-family:monospace;word-break:break-all;">' + escapeHtml(formatted) + '</div>' +
+      '</div>' +
+      '<div class="twosv-error" id="twosv-verify-error" style="margin-bottom:12px;"></div>' +
+      '<div class="twosv-input-wrap" style="margin-bottom:18px;">' +
+        '<input type="text" class="twosv-code-input" id="twosv-verify-input" placeholder="Type your new code to confirm" maxlength="30" autocomplete="off" spellcheck="false" inputmode="text" style="width:100%;">' +
+      '</div>' +
+      '<div style="display:flex;gap:8px;justify-content:flex-end;">' +
+        '<button class="setting-save-btn no-checkmark" id="twosv-verify-skip" style="width:auto;margin-top:0;">Skip</button>' +
+        '<button class="btn-primary" id="twosv-verify-confirm" style="width:auto;padding:10px 20px;">Verify Code</button>' +
+      '</div>' +
+    '</div>';
+    document.body.appendChild(modal);
+    setTimeout(() => modal.classList.add('show'), 10);
+    const codeInput = modal.querySelector('#twosv-verify-input');
+    const errorEl = modal.querySelector('#twosv-verify-error');
+    codeInput.focus();
+
+    function close(result) {
+      modal.classList.remove('show');
+      setTimeout(() => modal.remove(), 200);
+      resolve(result);
+    }
+    function showError(msg) {
+      errorEl.textContent = msg;
+      errorEl.classList.add('show');
+      codeInput.focus();
+      // Shake animation
+      const wrap = modal.querySelector('.twosv-input-wrap');
+      if (wrap) { wrap.style.animation = 'none'; void wrap.offsetWidth; wrap.style.animation = 'twosv-shake 0.4s'; }
+    }
+    modal.querySelector('#twosv-verify-skip').addEventListener('click', () => close(false));
+    modal.querySelector('#twosv-verify-confirm').addEventListener('click', () => {
+      const entered = normalize(codeInput.value);
+      if (!entered) { showError('Please enter your new recovery code.'); return; }
+      if (entered !== target) { showError('The code does not match. Please check and try again.'); return; }
+      close(true);
+    });
+    codeInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); modal.querySelector('#twosv-verify-confirm').click(); }
+      if (e.key === 'Escape') close(false);
+    });
+    modal.addEventListener('click', (e) => { if (e.target === modal) close(false); });
   });
 }
 
@@ -10920,11 +10989,16 @@ function updateDMHeader() {
   const st = u.status === 'offline' ? (u.hideLastSeen ? 'Offline' : 'Last seen ' + getRelativeLastSeen(u.lastSeen)) : getStatusText(u.status);
   $('dm-header-status').textContent = st;
   $('dm-header-status').className = 'dm-header-status ' + (u.status || 'offline');
+  // Update the DM input placeholder to show who you're messaging
+  const dmInput = $('dm-input');
+  if (dmInput) dmInput.placeholder = 'Message @' + u.username;
 }
 function closeDMOverlay() {
   $('dm-overlay').classList.remove('show');
   activeDMUser = null;
   dmMessages = [];
+  const dmInput = $('dm-input');
+  if (dmInput) dmInput.placeholder = 'Message @user';
 }
 $('dm-back').addEventListener('click', closeDMOverlay);
 $('dm-close-btn').addEventListener('click', closeDMOverlay);
@@ -11952,7 +12026,7 @@ function renderDMMessages() {
   const has = dmMessages.length > 0;
   container.innerHTML = '';
   if (!has) {
-    container.innerHTML = '<div class="empty-state" id="dm-empty-state"><div class="empty-state-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="40" height="40"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div><h3>Start the conversation</h3><p>Send your first message to begin this private conversation.</p></div>';
+    container.innerHTML = '<div class="empty-state" id="dm-empty-state"><h3>Start the conversation</h3><p>Send your first message to begin this private conversation.</p></div>';
     return;
   }
   dmMessages.forEach(m => appendDMMessage(m, true));

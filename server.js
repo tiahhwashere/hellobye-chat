@@ -1052,9 +1052,11 @@ app.post('/api/login', (req, res) => {
   // prompt. Otherwise, return a 2SV-required response with a pending token
   // that the client uses to submit the verification code.
   if (user.twoFactorEnabled) {
-    // Auto-regenerate the code if it's older than 48 hours.
-    refresh2SVCode(user);
-    saveDB();
+    // The recovery code is NOT auto-regenerated at login. The user controls
+    // when a new code is issued via the "Regenerate Code" button (available
+    // after the 48-hour cooldown). The current code remains valid until the
+    // user manually regenerates it, so they can always sign in with the code
+    // they have saved.
 
     // Check trusted device cookie
     let trustedToken = null;
@@ -2065,26 +2067,23 @@ app.post('/api/settings/2sv/view-code', authMiddleware, (req, res) => {
   if (!req.user.twoFactorEnabled) {
     return res.status(400).json({ error: '2-Step Verification is not enabled' });
   }
-  // Auto-regenerate if older than 48 hours
-  const oldCode = req.user.twoFactorCode;
-  const code = refresh2SVCode(req.user);
-  const wasRegenerated = code !== oldCode;
-  saveDB();
+  // Return the current code without auto-regenerating. The user can use the
+  // "Regenerate Code" button (unblocked after 48h) to issue a new one.
   res.json({
     success: true,
     code: req.user.twoFactorCode,
     generatedAt: req.user.twoFactorCodeGenerated,
-    regenerated: wasRegenerated,
+    regenerated: false,
   });
 });
 
 // Get 2SV status (no password required, just session auth).
 app.get('/api/settings/2sv/status', authMiddleware, (req, res) => {
-  // Auto-regenerate if the code is older than 48 hours (silent refresh)
-  if (req.user.twoFactorEnabled) {
-    refresh2SVCode(req.user);
-    saveDB();
-  }
+  // Note: we intentionally do NOT auto-regenerate here. The code is only
+  // regenerated when the user manually clicks "Regenerate Code" (after the
+  // 48-hour cooldown expires) or at login time (refresh2SVCode). This lets the
+  // "Regenerate Code" button actually unblock once 48 hours have passed,
+  // giving the user control over when a new code is issued.
   res.json({
     enabled: !!req.user.twoFactorEnabled,
     generatedAt: req.user.twoFactorCodeGenerated || 0,
