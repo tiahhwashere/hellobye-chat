@@ -3922,54 +3922,58 @@ body.no-anim .friend-item { animation: none !important; }
    ============================================ */
 .toast-container {
   position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
-  z-index: 10500; display: flex; flex-direction: column-reverse; gap: 10px; align-items: center;
-  width: min(420px, 92vw); pointer-events: none;
+  z-index: 10500; display: flex; flex-direction: column-reverse; gap: 8px; align-items: center;
+  width: min(440px, 92vw); pointer-events: none;
 }
 .toast {
   pointer-events: auto;
-  padding: 11px 15px 11px 14px; background: var(--bg-dark); border: 1px solid var(--border);
-  border-radius: 8px; color: var(--text-primary); font-size: 13px; font-weight: 500; letter-spacing: 0;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4); animation: toastIn 0.22s cubic-bezier(0.16, 1, 0.3, 1);
-  display: flex; align-items: center; gap: 10px; width: 100%; box-sizing: border-box;
+  padding: 13px 16px 13px 15px;
+  background: rgba(20, 20, 24, 0.92);
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px; color: var(--text-primary); font-size: 13px; font-weight: 500; letter-spacing: 0.01em;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 2px 8px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  animation: toastIn 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex; align-items: center; gap: 11px; width: 100%; box-sizing: border-box;
   position: relative; overflow: hidden; cursor: pointer;
-  transition: border-color 0.15s ease;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }
-.toast:hover { border-color: var(--border-light); }
-.toast-icon { flex-shrink: 0; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; border-radius: 5px; }
-.toast-icon svg { width: 14px; height: 14px; stroke-width: 2.2; }
-.toast-msg { flex: 1; min-width: 0; line-height: 1.4; }
-.toast-close { flex-shrink: 0; opacity: 0.4; font-size: 14px; line-height: 1; padding: 2px 4px; border-radius: 4px; transition: opacity 0.15s; background: none; border: none; color: var(--text-muted); cursor: pointer; }
-.toast-close:hover { opacity: 1; }
+.toast:hover {
+  transform: translateY(-1px);
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 10px 36px rgba(0, 0, 0, 0.55), 0 3px 10px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+.toast-icon { flex-shrink: 0; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; border-radius: 6px; }
+.toast-icon svg { width: 13px; height: 13px; stroke-width: 2.4; }
+.toast-msg { flex: 1; min-width: 0; line-height: 1.42; }
+.toast-close { flex-shrink: 0; opacity: 0.35; font-size: 15px; line-height: 1; padding: 3px 5px; border-radius: 5px; transition: opacity 0.15s, background 0.15s; background: none; border: none; color: var(--text-muted); cursor: pointer; }
+.toast-close:hover { opacity: 0.8; background: rgba(255, 255, 255, 0.05); }
 .toast-progress {
   position: absolute; bottom: 0; left: 0; height: 2px; border-radius: 0;
   animation: toastProgress 4s linear forwards;
 }
+/* Success/confirm toasts: no icon (green checkmark removed), accent bar only */
 .toast.success { border-left: 3px solid var(--success); }
-.toast.success .toast-icon { color: var(--success); background: rgba(59,165,93,0.12); }
-.toast.success .toast-progress { background: var(--success); opacity: 0.5; }
+.toast.success .toast-progress { background: var(--success); opacity: 0.45; }
 .toast.error { border-left: 3px solid var(--danger); }
-.toast.error .toast-icon { color: var(--danger); background: rgba(216,58,58,0.12); }
-.toast.error .toast-progress { background: var(--danger); opacity: 0.5; }
+.toast.error .toast-icon { color: var(--danger); background: rgba(216,58,58,0.1); }
+.toast.error .toast-progress { background: var(--danger); opacity: 0.45; }
 .toast.info { border-left: 3px solid var(--accent); }
-.toast.info .toast-icon { color: var(--accent); background: rgba(74,158,255,0.12); }
-.toast.info .toast-progress { background: var(--accent); opacity: 0.5; }
+.toast.info .toast-icon { color: var(--accent); background: rgba(74,158,255,0.1); }
+.toast.info .toast-progress { background: var(--accent); opacity: 0.45; }
 .toast.warning { border-left: 3px solid #d4a017; }
-.toast.warning .toast-icon { color: #d4a017; background: rgba(212,160,23,0.12); }
-.toast.warning .toast-progress { background: #d4a017; opacity: 0.5; }
+.toast.warning .toast-icon { color: #d4a017; background: rgba(212,160,23,0.1); }
+.toast.warning .toast-progress { background: #d4a017; opacity: 0.45; }
 /* Premium confirmation toast — used for profile picture / banner updates.
    A more refined, professional confirmation card (not cartoony): subtle
    gradient accent bar, larger refined icon badge, slightly wider. */
 .toast.confirm {
-  border: 1px solid rgba(59,165,93,0.18); border-left: 3px solid var(--success);
-  background: linear-gradient(90deg, rgba(59,165,93,0.08), var(--bg-dark) 40%);
-  border-radius: 8px; padding: 12px 16px;
-  box-shadow: 0 6px 24px rgba(0,0,0,0.45);
+  border: 1px solid rgba(59,165,93,0.15); border-left: 3px solid var(--success);
+  background: rgba(20, 20, 24, 0.92);
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  border-radius: 10px; padding: 13px 16px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5), 0 2px 8px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.04);
 }
-.toast.confirm .toast-icon {
-  width: 26px; height: 26px; border-radius: 7px;
-  color: var(--success); background: rgba(59,165,93,0.14);
-}
-.toast.confirm .toast-icon svg { width: 15px; height: 15px; stroke-width: 2.4; }
 .toast.confirm .toast-msg { font-weight: 600; font-size: 13px; }
 .toast.confirm .toast-progress { background: var(--success); opacity: 0.4; height: 2px; }
 .toast.fade-out { animation: toastOut 0.25s ease forwards; }
@@ -5750,7 +5754,7 @@ body.no-anim .friend-item { animation: none !important; }
           <button class="remove-attachment" id="remove-attachment">&times;</button>
         </div>
         <div class="chat-input-wrap">
-          <button class="attach-btn" id="attach-btn" title="Attach file (max 115MB)">
+          <button class="attach-btn" id="attach-btn" title="Attach file (max 150MB)">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
           </button>
           <input type="file" id="file-input" hidden multiple>
@@ -5759,12 +5763,12 @@ body.no-anim .friend-item { animation: none !important; }
             <div class="attach-dropdown-item" id="attach-gif-btn">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><text x="7" y="15" font-size="7" font-weight="bold" fill="currentColor" stroke="none">GIF</text></svg>
               <span class="attach-dropdown-label">Send a GIF / Video</span>
-              <span class="attach-dropdown-hint">From your device (max 115MB)</span>
+              <span class="attach-dropdown-hint">From your device (max 150MB)</span>
             </div>
             <div class="attach-dropdown-item" id="attach-file-btn">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
               <span class="attach-dropdown-label">Send Image/Video</span>
-              <span class="attach-dropdown-hint">From your device (max 115MB)</span>
+              <span class="attach-dropdown-hint">From your device (max 150MB)</span>
             </div>
           </div>
           <textarea class="chat-textarea" id="chat-input" placeholder="Message" rows="1"></textarea>
@@ -7096,7 +7100,7 @@ body.no-anim .friend-item { animation: none !important; }
           <button class="remove-attachment" id="dm-remove-attachment">&times;</button>
         </div>
         <div class="chat-input-wrap">
-          <button class="attach-btn" id="dm-attach-btn" title="Attach file (max 115MB)">
+          <button class="attach-btn" id="dm-attach-btn" title="Attach file (max 150MB)">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
           </button>
           <input type="file" id="dm-file-input" hidden multiple>
@@ -7105,12 +7109,12 @@ body.no-anim .friend-item { animation: none !important; }
             <div class="attach-dropdown-item" id="dm-attach-gif-btn">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><text x="7" y="15" font-size="7" font-weight="bold" fill="currentColor" stroke="none">GIF</text></svg>
               <span class="attach-dropdown-label">Send a GIF / Video</span>
-              <span class="attach-dropdown-hint">From your device (max 115MB)</span>
+              <span class="attach-dropdown-hint">From your device (max 150MB)</span>
             </div>
             <div class="attach-dropdown-item" id="dm-attach-file-btn">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
               <span class="attach-dropdown-label">Send Image/Video</span>
-              <span class="attach-dropdown-hint">From your device (max 115MB)</span>
+              <span class="attach-dropdown-hint">From your device (max 150MB)</span>
             </div>
           </div>
           <textarea class="chat-textarea" id="dm-input" placeholder="Message @user" rows="1"></textarea>
@@ -7166,7 +7170,7 @@ body.no-anim .friend-item { animation: none !important; }
           <button class="reply-preview-cancel" id="group-reply-cancel">&times;</button>
         </div>
         <div class="chat-input-wrap">
-          <button class="attach-btn" id="group-attach-btn" title="Attach file (max 115MB)">
+          <button class="attach-btn" id="group-attach-btn" title="Attach file (max 150MB)">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
           </button>
           <input type="file" id="group-file-input" hidden multiple>
@@ -7175,12 +7179,12 @@ body.no-anim .friend-item { animation: none !important; }
             <div class="attach-dropdown-item" id="group-attach-gif-btn">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><text x="7" y="15" font-size="7" font-weight="bold" fill="currentColor" stroke="none">GIF</text></svg>
               <span class="attach-dropdown-label">Send a GIF / Video</span>
-              <span class="attach-dropdown-hint">From your device (max 115MB)</span>
+              <span class="attach-dropdown-hint">From your device (max 150MB)</span>
             </div>
             <div class="attach-dropdown-item" id="group-attach-file-btn">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
               <span class="attach-dropdown-label">Send Image/Video</span>
-              <span class="attach-dropdown-hint">From your device (max 115MB)</span>
+              <span class="attach-dropdown-hint">From your device (max 150MB)</span>
             </div>
           </div>
           <textarea class="chat-textarea" id="group-input" placeholder="Message the group" rows="1"></textarea>
@@ -7524,17 +7528,18 @@ function toast(msg, type = '') {
   const container = $('toast-container');
   const el = document.createElement('div');
   el.className = 'toast ' + type;
-  // Icons for each toast type
+  // Icons for each toast type (success/confirm have no icon — green checkmark removed)
   const icons = {
-    success: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>',
-    confirm: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>',
+    success: '',
+    confirm: '',
     error: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>',
     info: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>',
     warning: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
-    '': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>',
+    '': '',
   };
+  const iconHtml = icons[type] || icons[''];
   el.innerHTML =
-    '<span class="toast-icon">' + (icons[type] || icons['']) + '</span>' +
+    (iconHtml ? '<span class="toast-icon">' + iconHtml + '</span>' : '') +
     '<span class="toast-msg">' + escapeHtml(String(msg)) + '</span>' +
     '<span class="toast-close">&times;</span>' +
     '<span class="toast-progress"></span>';
@@ -10609,7 +10614,7 @@ gifFileInput.addEventListener('change', (e) => {
   }
   const selected = files.slice(0, MAX_FILES);
   for (const f of selected) {
-    if (f.size > 115 * 1024 * 1024) { toast('File "' + f.name + '" exceeds 115MB limit', 'error'); gifFileInput.value = ''; return; }
+    if (f.size > 150 * 1024 * 1024) { toast('File "' + f.name + '" exceeds 150MB limit', 'error'); gifFileInput.value = ''; return; }
   }
   if (selected.length === 1) {
     pendingFile = selected[0];
@@ -10676,7 +10681,7 @@ fileInput.addEventListener('change', (e) => {
   const selected = files.slice(0, MAX_FILES);
   // Validate size for all selected files
   for (const f of selected) {
-    if (f.size > 115 * 1024 * 1024) { toast('File "' + f.name + '" exceeds 115MB limit', 'error'); fileInput.value = ''; return; }
+    if (f.size > 150 * 1024 * 1024) { toast('File "' + f.name + '" exceeds 150MB limit', 'error'); fileInput.value = ''; return; }
   }
   if (selected.length === 1) {
     // Single file — use the existing pendingFile flow
@@ -12358,7 +12363,7 @@ function handleGroupFileSelect(e, inputEl) {
   }
   const selected = files.slice(0, MAX_FILES);
   for (const f of selected) {
-    if (f.size > 115 * 1024 * 1024) { toast('File "' + f.name + '" exceeds 115MB limit', 'error'); inputEl.value = ''; return; }
+    if (f.size > 150 * 1024 * 1024) { toast('File "' + f.name + '" exceeds 150MB limit', 'error'); inputEl.value = ''; return; }
   }
   pendingGroupFile = selected[0];
   pendingGroupFiles = selected.length > 1 ? selected.slice(1) : [];
@@ -13049,7 +13054,7 @@ dmFileInput.addEventListener('change', (e) => {
   }
   const selected = files.slice(0, MAX_FILES);
   for (const f of selected) {
-    if (f.size > 115 * 1024 * 1024) { toast('File "' + f.name + '" exceeds 115MB limit', 'error'); dmFileInput.value = ''; return; }
+    if (f.size > 150 * 1024 * 1024) { toast('File "' + f.name + '" exceeds 150MB limit', 'error'); dmFileInput.value = ''; return; }
   }
   if (selected.length === 1) {
     pendingDMFile = selected[0];
@@ -13083,7 +13088,7 @@ if (dmGifFileInput) dmGifFileInput.addEventListener('change', (e) => {
   }
   const selected = files.slice(0, MAX_FILES);
   for (const f of selected) {
-    if (f.size > 115 * 1024 * 1024) { toast('File "' + f.name + '" exceeds 115MB limit', 'error'); dmGifFileInput.value = ''; return; }
+    if (f.size > 150 * 1024 * 1024) { toast('File "' + f.name + '" exceeds 150MB limit', 'error'); dmGifFileInput.value = ''; return; }
   }
   if (selected.length === 1) {
     pendingDMFile = selected[0];

@@ -22,3 +22,12 @@
 - [x] 1. Revert Round 5f (Members list right-click Open/Close Conversation change) — commit 4fadbc0
 - [x] 2. Fix DMs not working for @lore: ensure owner directMessagesEnabled is always true at startup (added to ensureOwnerClean in server.js)
 - [x] 3. Syntax check, commit, push, wait for Render auto-deploy, verify live
+
+
+# Round 5h — Change 115MB to 150MB limit + redesign toast UI + remove green checkmark icons
+
+## Tasks
+- [x] 1. Change all 115MB file size limits to 150MB (index.html: 6 attach button titles/hints + 5 JS size checks; server.js: multer limit + error message + comment)
+- [x] 2. Redesign toast UI to be more advanced/polished (CSS + JS)
+- [x] 3. Remove green checkmark SVG icons from success/confirm toasts
+- [x] 4. Syntax check, commit, push, wait for Render auto-deploy, verify live
