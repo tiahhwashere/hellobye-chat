@@ -10,7 +10,7 @@
 # Round 5e — Instant Block→Unblock swap + hide blocked users’ messages
 
 ## Tasks
-- [ ] 1a. Add refreshProfileViewActions(username) inside blockUser after the optimistic blockedUsers.push block so the profile button swaps to Unblock instantly
-- [ ] 1b. Change the block-confirm modal handler from closeProfileView() to refreshProfileViewActions(username) so the profile view stays open and the button swaps instantly
-- [ ] 2. Add blocked-user filtering to renderMessages (msg.username), renderDMMessages (m.from), and renderGroupMessages (m.from); add isUserBlocked(username) helper
-- [ ] 3. Syntax check, commit, push, wait for Render auto-deploy, verify live, confirm no data wiped
+- [x] 1a. Add refreshProfileViewActions(username) inside blockUser after the optimistic blockedUsers.push block so the profile button swaps to Unblock instantly
+- [x] 1b. Change the block-confirm modal handler from closeProfileView() to refreshProfileViewActions(username) so the profile view stays open and the button swaps instantly
+- [x] 2. Add blocked-user filtering to renderMessages (msg.username), renderDMMessages (m.from), and renderGroupMessages (m.from); add isUserBlocked(username) helper
+- [x] 3. Syntax check, commit, push, wait for Render auto-deploy, verify live, confirm no data wiped
