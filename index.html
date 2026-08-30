@@ -661,12 +661,13 @@ body.loading-session #chat-app.active::after { content: none; }
   position: relative; z-index: 2; flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
   width: 26px; height: 26px; border-radius: 50%;
-  background: var(--bg-lighter);
+  background: radial-gradient(circle at 35% 30%, rgba(255,255,255,0.12), var(--bg-lighter) 70%);
   border: 1.5px solid var(--border-light);
   color: var(--text-secondary); opacity: 1;
+  box-shadow: inset 0 1px 2px rgba(255,255,255,0.06), 0 1px 3px rgba(0,0,0,0.25);
   transition: transform 0.18s ease, box-shadow 0.18s ease;
 }
-.status-msg-bubble .sm-icon svg { width: 13px; height: 13px; }
+.status-msg-bubble .sm-icon svg { width: 15px; height: 15px; }
 /* The bubble body — overlaps the orb's right edge. Left side has a large
    border-radius so it curves INTO the orb, creating one continuous shape. */
 .status-msg-bubble .sm-text {
@@ -684,24 +685,27 @@ body.loading-session #chat-app.active::after { content: none; }
 }
 /* ONLINE — green */
 .status-msg-bubble.online .sm-icon {
-  background: rgba(59,165,93,0.18); border-color: rgba(59,165,93,0.55);
-  color: var(--online); box-shadow: 0 0 7px rgba(59,165,93,0.22);
+  background: radial-gradient(circle at 35% 30%, rgba(120,220,150,0.35), rgba(59,165,93,0.18) 70%);
+  border-color: rgba(59,165,93,0.55);
+  color: var(--online); box-shadow: 0 0 8px rgba(59,165,93,0.3), inset 0 1px 2px rgba(255,255,255,0.12);
 }
 .status-msg-bubble.online .sm-text {
   background: rgba(59,165,93,0.08); border-color: rgba(59,165,93,0.3); color: #84cca0;
 }
 /* IDLE — gold */
 .status-msg-bubble.idle .sm-icon {
-  background: rgba(212,160,23,0.18); border-color: rgba(212,160,23,0.55);
-  color: var(--idle); box-shadow: 0 0 7px rgba(212,160,23,0.22);
+  background: radial-gradient(circle at 35% 30%, rgba(240,200,90,0.35), rgba(212,160,23,0.18) 70%);
+  border-color: rgba(212,160,23,0.55);
+  color: var(--idle); box-shadow: 0 0 8px rgba(212,160,23,0.3), inset 0 1px 2px rgba(255,255,255,0.12);
 }
 .status-msg-bubble.idle .sm-text {
   background: rgba(212,160,23,0.08); border-color: rgba(212,160,23,0.3); color: #e3bd56;
 }
 /* DND — red */
 .status-msg-bubble.dnd .sm-icon {
-  background: rgba(216,58,58,0.18); border-color: rgba(216,58,58,0.55);
-  color: var(--dnd); box-shadow: 0 0 7px rgba(216,58,58,0.22);
+  background: radial-gradient(circle at 35% 30%, rgba(240,100,100,0.35), rgba(216,58,58,0.18) 70%);
+  border-color: rgba(216,58,58,0.55);
+  color: var(--dnd); box-shadow: 0 0 8px rgba(216,58,58,0.3), inset 0 1px 2px rgba(255,255,255,0.12);
 }
 .status-msg-bubble.dnd .sm-text {
   background: rgba(216,58,58,0.08); border-color: rgba(216,58,58,0.3); color: #e27878;
@@ -727,7 +731,7 @@ body.loading-session #chat-app.active::after { content: none; }
   max-width: 100%;
 }
 .status-msg-bubble.pv-name-sm .sm-icon { width: 30px; height: 30px; }
-.status-msg-bubble.pv-name-sm .sm-icon svg { width: 15px; height: 15px; }
+.status-msg-bubble.pv-name-sm .sm-icon svg { width: 17px; height: 17px; }
 .status-msg-bubble.pv-name-sm .sm-text {
   margin-left: -12px;
   padding: 6px 15px 6px 20px;
@@ -883,7 +887,7 @@ body.no-anim .friend-item { animation: none !important; }
 .message-bubble {
   background: var(--bg-medium); padding: 10px 14px;
   border-radius: 12px;
-  font-size: 15px; line-height: 1.5; word-break: break-word; position: relative;
+  font-size: 16.5px; line-height: 1.5; word-break: break-word; position: relative;
   max-width: 100%;
   border: 1px solid var(--border);
   transition: border-color 0.15s ease, background 0.15s ease, transform 0.12s ease;
@@ -1262,60 +1266,71 @@ body.no-anim .friend-item { animation: none !important; }
 .twosv-actions .setting-save-btn { width: auto; margin-top: 0; }
 .twosv-actions .setting-save-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
-/* Link Embeds — clean, compact, modern */
+/* Link Embeds — bigger, richer, more detailed */
 .link-embed {
-  margin-top: 8px; border: 1px solid var(--border);
-  border-radius: 8px; overflow: hidden;
-  max-width: 600px; background: var(--bg-darker);
-  transition: border-color 0.15s ease, background 0.15s ease;
+  margin-top: 10px; border: 1px solid var(--border);
+  border-radius: 12px; overflow: hidden;
+  max-width: 680px; background: var(--bg-darker);
+  transition: border-color 0.15s ease, background 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.18);
 }
-.link-embed:hover { border-color: var(--border-light); background: var(--bg-dark); }
+.link-embed:hover {
+  border-color: var(--border-light); background: var(--bg-dark);
+  transform: translateY(-1px); box-shadow: 0 4px 14px rgba(0,0,0,0.28);
+}
 .message-group.own .link-embed { background: rgba(0,0,0,0.14); border-color: rgba(255,255,255,0.08); }
 .message-group.own .link-embed:hover { background: rgba(0,0,0,0.22); border-color: rgba(255,255,255,0.14); }
-.link-embed-loading { padding: 10px 14px; font-size: 12px; color: var(--text-muted); }
-.link-embed-fallback { padding: 10px 14px; font-size: 12px; }
+.link-embed-loading { padding: 12px 16px; font-size: 13px; color: var(--text-muted); }
+.link-embed-fallback { padding: 12px 16px; font-size: 13px; }
 .link-embed-fallback a { color: var(--accent); word-break: break-all; }
 .link-embed-card {
   display: flex; text-decoration: none; color: inherit;
 }
 .link-embed-image {
-  width: 120px; min-height: 88px; flex-shrink: 0;
+  width: 150px; min-height: 110px; flex-shrink: 0;
   background-size: cover; background-position: center;
   background-color: var(--bg-dark);
   image-rendering: -webkit-optimize-contrast;
 }
 .link-embed-image.large {
-  width: 100%; min-height: 160px; max-height: 240px; order: -1;
+  width: 100%; min-height: 200px; max-height: 300px; order: -1;
 }
 .link-embed-content {
-  padding: 11px 14px; min-width: 0; flex: 1;
+  padding: 14px 18px; min-width: 0; flex: 1;
 }
 .link-embed-site {
-  font-size: 10px; color: var(--text-muted);
-  text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;
-  display: flex; align-items: center; gap: 5px;
+  font-size: 11px; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 6px;
+  display: flex; align-items: center; gap: 6px;
+  font-weight: 600;
 }
-.link-embed-site img { width: 14px; height: 14px; border-radius: 3px; flex-shrink: 0; }
+.link-embed-site img { width: 16px; height: 16px; border-radius: 4px; flex-shrink: 0; }
 .link-embed-title {
-  font-size: 13px; font-weight: 600; color: var(--text-primary);
-  margin-bottom: 4px; line-height: 1.35;
+  font-size: 15px; font-weight: 700; color: var(--text-primary);
+  margin-bottom: 6px; line-height: 1.35;
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
 }
 .link-embed-card:hover .link-embed-title { color: var(--accent); }
 .link-embed-desc {
-  font-size: 11px; color: var(--text-secondary); line-height: 1.45;
-  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+  font-size: 12.5px; color: var(--text-secondary); line-height: 1.5;
+  display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden;
 }
 .link-embed-meta {
-  margin-top: 6px; font-size: 10px; color: var(--text-muted);
-  display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+  margin-top: 8px; font-size: 11px; color: var(--text-muted);
+  display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+  padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.05);
 }
-.link-embed-author { color: var(--text-secondary); }
-.link-embed-url { color: var(--accent); word-break: break-all; opacity: 0.8; }
+.link-embed-author { color: var(--text-secondary); font-weight: 500; }
+.link-embed-url { color: var(--accent); word-break: break-all; opacity: 0.85; font-size: 10.5px; }
 .link-embed-type-badge {
-  font-size: 9px; font-weight: 600; padding: 2px 7px; border-radius: 4px;
-  background: var(--accent-dim); color: #fff; text-transform: uppercase; letter-spacing: 0.3px;
+  font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 5px;
+  background: var(--accent-dim); color: #fff; text-transform: uppercase; letter-spacing: 0.4px;
 }
+.link-embed-readtime {
+  font-size: 10px; color: var(--text-muted); display: inline-flex; align-items: center; gap: 4px;
+  font-weight: 500;
+}
+.link-embed-readtime::before { content: ''; width: 9px; height: 9px; border-radius: 50%; background: var(--text-muted); opacity: 0.5; flex-shrink: 0; }
 
 /* Message file attachments — modern, clean card style (not cartoony) */
 .message-file { margin-top: 8px; }
@@ -3211,58 +3226,92 @@ body.no-anim .friend-item { animation: none !important; }
 
 /* ── Wheel panel (reuses existing ColorWheel canvas) ── */
 .cw-wrap {
-  display: flex; flex-direction: column; align-items: center; gap: 12px;
+  display: flex; flex-direction: column; align-items: center; gap: 14px;
   width: 100%; margin: 0;
+  padding: 16px 14px 14px;
+  border-radius: 16px;
+  background: linear-gradient(160deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01) 60%, rgba(0,0,0,0.12));
+  border: 1px solid rgba(255,255,255,0.06);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.05);
 }
-.cw-wrap.mini { gap: 10px; }
+.cw-wrap.mini { gap: 11px; padding: 11px 10px 10px; border-radius: 13px; }
 .cw-canvas {
-  display: block; width: 200px; height: 200px; max-width: 100%;
+  display: block; width: 220px; height: 220px; max-width: 100%;
   cursor: crosshair; border-radius: 50%;
-  background: var(--bg-darkest);
+  background: radial-gradient(circle at 50% 45%, rgba(255,255,255,0.06), transparent 70%), var(--bg-darkest);
   touch-action: none; -webkit-user-select: none; user-select: none;
-  filter: drop-shadow(0 2px 8px rgba(0,0,0,0.3));
-  transition: filter 0.2s ease;
+  filter: drop-shadow(0 4px 14px rgba(0,0,0,0.45)) drop-shadow(0 0 1px rgba(255,255,255,0.08));
+  transition: filter 0.25s cubic-bezier(0.4,0,0.2,1), transform 0.25s cubic-bezier(0.4,0,0.2,1);
+  will-change: filter;
 }
-.cw-canvas:hover { filter: drop-shadow(0 3px 12px rgba(0,0,0,0.4)); }
-.cw-wrap.mini .cw-canvas { width: 168px; height: 168px; filter: drop-shadow(0 2px 6px rgba(0,0,0,0.25)); }
+.cw-canvas:hover {
+  filter: drop-shadow(0 6px 22px rgba(0,0,0,0.55)) drop-shadow(0 0 2px rgba(255,255,255,0.12));
+  transform: scale(1.015);
+}
+.cw-canvas:active { transform: scale(0.992); }
+.cw-wrap.mini .cw-canvas {
+  width: 180px; height: 180px;
+  filter: drop-shadow(0 3px 10px rgba(0,0,0,0.32)) drop-shadow(0 0 1px rgba(255,255,255,0.06));
+}
+.cw-wrap.mini .cw-canvas:hover {
+  filter: drop-shadow(0 4px 16px rgba(0,0,0,0.42)) drop-shadow(0 0 2px rgba(255,255,255,0.1));
+  transform: scale(1.012);
+}
 .cw-row {
-  display: flex; align-items: center; gap: 10px; width: 100%;
+  display: flex; align-items: center; gap: 12px; width: 100%;
   justify-content: center; flex-wrap: wrap;
 }
 .cw-value-slider {
   -webkit-appearance: none; appearance: none;
-  width: 160px; height: 10px; border-radius: 6px; outline: none;
-  background: linear-gradient(to right, #000, #fff);
-  cursor: pointer; border: 1px solid var(--border);
-  box-shadow: inset 0 1px 3px rgba(0,0,0,0.4);
+  width: 180px; height: 12px; border-radius: 8px; outline: none;
+  background: linear-gradient(to right, #000 0%, #555 50%, #fff 100%);
+  cursor: pointer; border: 1px solid rgba(255,255,255,0.08);
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.04);
+  transition: box-shadow 0.2s ease;
 }
-.cw-wrap.mini .cw-value-slider { width: 120px; height: 9px; }
+.cw-value-slider:hover { box-shadow: inset 0 2px 4px rgba(0,0,0,0.5), 0 0 0 2px rgba(255,255,255,0.05), 0 1px 0 rgba(255,255,255,0.04); }
+.cw-wrap.mini .cw-value-slider { width: 130px; height: 10px; }
 .cw-value-slider::-webkit-slider-thumb {
   -webkit-appearance: none; appearance: none;
-  width: 16px; height: 16px; border-radius: 50%;
-  background: #fff; border: 2px solid rgba(0,0,0,0.55);
-  box-shadow: 0 1px 4px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.15); cursor: pointer;
-  transition: transform 0.12s ease;
+  width: 20px; height: 20px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #fff, #e0e0e0);
+  border: 2px solid rgba(0,0,0,0.5);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.55), 0 0 0 2px rgba(255,255,255,0.18), inset 0 1px 1px rgba(255,255,255,0.7);
+  cursor: pointer;
+  transition: transform 0.15s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.15s ease;
 }
-.cw-value-slider::-webkit-slider-thumb:hover { transform: scale(1.15); }
+.cw-value-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.22);
+  box-shadow: 0 3px 10px rgba(0,0,0,0.6), 0 0 0 3px rgba(255,255,255,0.25), inset 0 1px 1px rgba(255,255,255,0.8);
+}
+.cw-value-slider::-webkit-slider-thumb:active { transform: scale(1.08); }
 .cw-value-slider::-moz-range-thumb {
-  width: 16px; height: 16px; border-radius: 50%;
-  background: #fff; border: 2px solid rgba(0,0,0,0.55);
-  box-shadow: 0 1px 4px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.15); cursor: pointer;
+  width: 20px; height: 20px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #fff, #e0e0e0);
+  border: 2px solid rgba(0,0,0,0.5);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.55), 0 0 0 2px rgba(255,255,255,0.18), inset 0 1px 1px rgba(255,255,255,0.7);
+  cursor: pointer;
 }
 .cw-hex-input {
-  width: 92px; padding: 6px 8px; font-size: 12px; font-weight: 600;
+  width: 104px; padding: 7px 10px; font-size: 13px; font-weight: 700;
   font-family: 'SF Mono', 'Monaco', 'Cascadia Code', monospace;
-  text-align: center; text-transform: uppercase;
-  background: var(--bg-dark); color: var(--text-primary);
-  border: 1px solid var(--border); border-radius: 7px; outline: none;
+  text-align: center; text-transform: uppercase; letter-spacing: 0.5px;
+  background: linear-gradient(180deg, var(--bg-darkest), var(--bg-dark));
+  color: var(--text-primary);
+  border: 1px solid rgba(255,255,255,0.08); border-radius: 9px; outline: none;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.35), 0 1px 0 rgba(255,255,255,0.03);
   transition: var(--transition);
 }
-.cw-hex-input:focus { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-glow); }
-.cw-wrap.mini .cw-hex-input { width: 80px; padding: 5px 7px; font-size: 11px; }
+.cw-hex-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-glow), inset 0 1px 3px rgba(0,0,0,0.35);
+  background: linear-gradient(180deg, var(--bg-dark), var(--bg-darkest));
+}
+.cw-wrap.mini .cw-hex-input { width: 88px; padding: 6px 8px; font-size: 12px; }
 .cw-label {
-  font-size: 10px; font-weight: 700; text-transform: uppercase;
-  letter-spacing: 0.6px; color: var(--text-muted);
+  font-size: 10px; font-weight: 800; text-transform: uppercase;
+  letter-spacing: 0.8px; color: var(--text-muted);
+  text-shadow: 0 1px 2px rgba(0,0,0,0.3);
 }
 
 /* ── Swatches panel: curated palette grid ── */
@@ -3541,26 +3590,28 @@ body.no-anim .friend-item { animation: none !important; }
 .image-scale-modal h3 { font-size: 18px; margin-bottom: 4px; font-weight: 700; letter-spacing: -0.2px; }
 /* ── Revamped preview: bigger, fills the modal width, modern dark stage ── */
 .image-scale-preview {
-  margin: 16px 0 14px; display: flex; justify-content: center; align-items: center;
+  margin: 16px 0 14px; display: flex; justify-content: stretch; align-items: stretch;
   background:
     linear-gradient(135deg, rgba(255,255,255,0.02), rgba(0,0,0,0.25)),
     var(--bg-darkest);
   border: 1px solid var(--border);
-  border-radius: var(--radius); padding: 22px;
+  border-radius: var(--radius); padding: 0;
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
+  overflow: hidden;
+  position: relative;
 }
 .image-scale-frame {
-  position: relative; overflow: hidden; border-radius: var(--radius-sm);
+  position: relative; overflow: hidden; border-radius: 0;
   background:
     repeating-conic-gradient(rgba(255,255,255,0.04) 0% 25%, transparent 0% 50%) 50% / 22px 22px,
     var(--bg-medium);
-  border: 2px solid var(--border);
+  border: none;
   box-shadow: 0 6px 22px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.04) inset;
-  /* Bigger frames that fill the modal UI */
-  width: 100%; max-width: 520px;
+  /* Frame fills the entire preview box interior */
+  width: 100%; max-width: 100%; min-height: 0;
 }
-.image-scale-frame.avatar { aspect-ratio: 1 / 1; max-width: 360px; }
-.image-scale-frame.banner  { aspect-ratio: 19 / 8; max-width: 520px; }
+.image-scale-frame.avatar { aspect-ratio: 1 / 1; max-width: 100%; }
+.image-scale-frame.banner  { aspect-ratio: 19 / 8; max-width: 100%; }
 .image-scale-frame img {
   width: 100%; height: 100%; object-fit: cover;
   transform-origin: center; transition: transform 0.08s ease-out;
@@ -3568,7 +3619,7 @@ body.no-anim .friend-item { animation: none !important; }
 }
 .image-scale-frame img:active,
 .image-scale-frame.dragging img { cursor: grabbing; transition: none; }
-.image-scale-frame.dragging { border-color: var(--accent); box-shadow: 0 6px 22px rgba(0,0,0,0.4), 0 0 0 2px var(--accent-glow); }
+.image-scale-frame.dragging { box-shadow: 0 6px 22px rgba(0,0,0,0.4), 0 0 0 2px var(--accent-glow); }
 
 /* ── Revamped controls: cleaner grouped cards with better range styling ── */
 .image-scale-controls {
@@ -3685,7 +3736,7 @@ body.no-anim .friend-item { animation: none !important; }
    CONTEXT MENU
    ============================================ */
 .context-menu {
-  position: fixed; display: none; z-index: 300;
+  position: fixed; display: none; z-index: 9500;
   background: var(--bg-light); border: 1px solid var(--border-light);
   border-radius: var(--radius-sm); box-shadow: var(--shadow-lg);
   padding: 5px; min-width: 180px;
@@ -3715,7 +3766,7 @@ body.no-anim .friend-item { animation: none !important; }
    ============================================ */
 .toast-container {
   position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
-  z-index: 400; display: flex; flex-direction: column-reverse; gap: 10px; align-items: center;
+  z-index: 10500; display: flex; flex-direction: column-reverse; gap: 10px; align-items: center;
   width: min(420px, 92vw); pointer-events: none;
 }
 .toast {
@@ -3773,7 +3824,7 @@ body.no-anim .friend-item { animation: none !important; }
 /* ===== System Broadcast Alert (top-center, 5s then fade) ===== */
 .system-alert-container {
   position: fixed; top: 24px; left: 50%; transform: translateX(-50%);
-  z-index: 600; display: flex; flex-direction: column; gap: 10px; align-items: center;
+  z-index: 10600; display: flex; flex-direction: column; gap: 10px; align-items: center;
   width: min(520px, 92vw); pointer-events: none;
 }
 .system-alert {
@@ -3970,7 +4021,7 @@ body.no-anim .friend-item { animation: none !important; }
 
   .message-avatar { width: 32px; height: 32px; font-size: 13px; }
   .message-sender { font-size: 12px; }
-  .message-bubble { font-size: 15px; padding: 9px 13px; }
+  .message-bubble { font-size: 16px; padding: 9px 13px; }
 
   .chat-textarea { font-size: 16px; } /* prevent iOS zoom */
   .form-input { font-size: 16px; } /* prevent iOS zoom */
@@ -4091,7 +4142,7 @@ body.no-anim .friend-item { animation: none !important; }
   .message-sender { font-size: 14px; margin-bottom: 5px; }
   .sender-displayname { font-size: 16.5px; }
   .sender-handle { font-size: 14.5px; }
-  .message-bubble { font-size: 18px; line-height: 1.55; padding: 12px 18px; border-radius: 14px; }
+  .message-bubble { font-size: 19.5px; line-height: 1.55; padding: 12px 18px; border-radius: 14px; }
   .message-group.own .message-bubble { border-radius: 14px; }
   .message-meta { font-size: 12px; }
   .message-actions { gap: 6px; margin-top: 8px; }
@@ -4142,7 +4193,7 @@ body.no-anim .friend-item { animation: none !important; }
 #chat-app.compact .message-group { animation: none; }
 #chat-app.compact .message-avatar { width: 28px; height: 28px; font-size: 12px; }
 #chat-app.compact .message-sender { margin-bottom: 1px; }
-#chat-app.compact .message-bubble { padding: 8px 13px; font-size: 15px; }
+#chat-app.compact .message-bubble { padding: 8px 13px; font-size: 16px; }
 #chat-app.compact .message-meta { margin-top: 1px; }
 
 /* ============================================
@@ -4613,7 +4664,7 @@ body.no-anim .friend-item { animation: none !important; }
   /* Message bubbles: compact */
   .message-avatar { width: 30px; height: 30px; font-size: 12px; }
   .message-sender { font-size: 12px; }
-  .message-bubble { font-size: 15.5px; padding: 9px 13px; border-radius: 12px; }
+  .message-bubble { font-size: 16.5px; padding: 9px 13px; border-radius: 12px; }
   .message-group.own .message-bubble { border-radius: 12px; }
   .message-meta { font-size: 10px; }
   
@@ -4788,12 +4839,12 @@ body.no-anim .friend-item { animation: none !important; }
   .file-size { font-size: 10px; }
 
   .link-embed { max-width: 100%; }
-  .link-embed-image { width: 90px; min-height: 72px; }
-  .link-embed-image.large { min-height: 140px; max-height: 180px; }
-  .link-embed-content { padding: 9px 11px; }
-  .link-embed-title { font-size: 12px; }
-  .link-embed-desc { font-size: 10px; -webkit-line-clamp: 2; }
-  .link-embed-meta { font-size: 9px; gap: 6px; }
+  .link-embed-image { width: 110px; min-height: 88px; }
+  .link-embed-image.large { min-height: 160px; max-height: 200px; }
+  .link-embed-content { padding: 11px 13px; }
+  .link-embed-title { font-size: 13px; }
+  .link-embed-desc { font-size: 11px; -webkit-line-clamp: 3; }
+  .link-embed-meta { font-size: 10px; gap: 7px; }
 
   /* Profile view modal banner — scale down on mobile but keep taller ratio */
   .profile-view-banner { height: 200px; }
@@ -4811,10 +4862,10 @@ body.no-anim .friend-item { animation: none !important; }
   .message-file img { max-width: 200px; max-height: 200px; }
   .message-file video { max-width: 220px; max-height: 200px; }
   .message-file-attachment { max-width: 240px; padding: 8px 10px; }
-  .link-embed-image { width: 80px; min-height: 64px; }
-  .link-embed-image.large { min-height: 120px; max-height: 160px; }
-  .link-embed-title { font-size: 11px; }
-  .link-embed-desc { display: none; } /* hide description on very small screens */
+  .link-embed-image { width: 96px; min-height: 76px; }
+  .link-embed-image.large { min-height: 130px; max-height: 170px; }
+  .link-embed-title { font-size: 12px; }
+  .link-embed-desc { font-size: 10.5px; -webkit-line-clamp: 2; } /* compact on very small screens */
   .profile-view-banner { height: 160px; }
   .profile-view-avatar { width: 92px; height: 92px; margin: -46px 0 0; font-size: 36px; border: none; }
   .profile-view-main { padding: 0 14px; gap: 12px; }
@@ -4936,7 +4987,7 @@ body.no-anim .friend-item { animation: none !important; }
   .in-app-notif-text { font-size: 12px; }
 
   /* Message bubbles: slightly less padding on mobile for readability */
-  .message-bubble { padding: 10px 14px; font-size: 15px; border-radius: 12px; }
+  .message-bubble { padding: 10px 14px; font-size: 16px; border-radius: 12px; }
   .message-group.own .message-bubble { border-radius: 12px; }
   .message-group { max-width: 96%; gap: 9px; }
   .message-avatar { width: 34px; height: 34px; }
@@ -5427,7 +5478,7 @@ body.no-anim .friend-item { animation: none !important; }
             <!-- Panel: Wheel -->
             <div class="cs-panel active" id="mini-panel-wheel">
               <div class="cw-wrap mini" id="mini-color-wheel-wrap">
-                <canvas class="cw-canvas" id="mini-color-wheel" width="336" height="336"></canvas>
+                <canvas class="cw-canvas" id="mini-color-wheel" width="400" height="400"></canvas>
                 <div class="cw-row">
                   <span class="cw-label">Brightness</span>
                   <input type="range" class="cw-value-slider" id="mini-cw-value" min="0" max="100" value="100">
@@ -6031,7 +6082,7 @@ body.no-anim .friend-item { animation: none !important; }
           <!-- Panel: Wheel -->
           <div class="cs-panel active" id="profile-panel-wheel">
             <div class="cw-wrap" id="profile-color-wheel-wrap">
-              <canvas class="cw-canvas" id="profile-color-wheel" width="400" height="400"></canvas>
+              <canvas class="cw-canvas" id="profile-color-wheel" width="480" height="480"></canvas>
               <div class="cw-row">
                 <span class="cw-label">Brightness</span>
                 <input type="range" class="cw-value-slider" id="profile-cw-value" min="0" max="100" value="100">
@@ -6966,7 +7017,7 @@ body.no-anim .friend-item { animation: none !important; }
   <div class="modal-overlay" id="image-scale-modal">
     <div class="modal image-scale-modal">
       <h3 id="image-scale-title">Adjust Image</h3>
-      <p class="setting-hint">Drag the image to reposition it — the Position sliders update as you drag. Use the controls to scale, rotate and flip. Click Apply when satisfied.</p>
+      <p class="setting-hint">Drag the image to reposition it — the Position sliders update as you drag. Scroll the mouse wheel to zoom in/out. Use the controls to scale, rotate and flip. Click Apply when satisfied.</p>
       <div class="image-scale-preview" id="image-scale-preview">
         <div class="image-scale-frame" id="image-scale-frame">
           <img id="image-scale-img" style="display:none;">
@@ -7275,6 +7326,13 @@ function toast(msg, type = '') {
     '<span class="toast-msg">' + escapeHtml(String(msg)) + '</span>' +
     '<span class="toast-close">&times;</span>' +
     '<span class="toast-progress"></span>';
+  // Prevent notification overlap/stacking: cap visible toasts at 4.
+  const existingToasts = container.querySelectorAll('.toast:not(.fade-out), .in-app-notif:not(.fade-out)');
+  while (existingToasts.length >= 4) {
+    const oldest = existingToasts[existingToasts.length - 1];
+    if (oldest) { oldest.classList.add('fade-out'); setTimeout(() => oldest.remove(), 300); }
+    existingToasts.length--;
+  }
   container.appendChild(el);
   // Click anywhere on the toast to dismiss it
   let dismissTimer = null, progressTimer = null;
@@ -7377,6 +7435,13 @@ function showInAppNotification(opts) {
   // Store in history (keep last 50)
   notifHistory.unshift({ title: opts.title, text: opts.text, type, avatar: opts.avatar, time: new Date().toISOString(), username: opts.username });
   if (notifHistory.length > 50) notifHistory = notifHistory.slice(0, 50);
+  // Prevent notification overlap/stacking: cap visible notifications at 4.
+  const existingNotifs = container.querySelectorAll('.in-app-notif:not(.fade-out), .toast:not(.fade-out)');
+  while (existingNotifs.length >= 4) {
+    const oldest = existingNotifs[existingNotifs.length - 1];
+    if (oldest) { oldest.classList.add('fade-out'); setTimeout(() => oldest.remove(), 300); }
+    existingNotifs.length--;
+  }
   let dismissTimer = null;
   function dismiss() {
     if (el.classList.contains('fade-out')) return;
@@ -7698,14 +7763,19 @@ function renderEmbed(data, el) {
     html += '<div class="link-embed-site">' + fav + escapeHtml(data.siteName) + '</div>';
   }
   if (data.title) html += '<div class="link-embed-title">' + escapeHtml(data.title) + '</div>';
-  if (data.description) html += '<div class="link-embed-desc">' + escapeHtml(data.description.slice(0, 220)) + '</div>';
-  // Meta row: type badge, author, full URL
+  if (data.description) html += '<div class="link-embed-desc">' + escapeHtml(data.description.slice(0, 300)) + '</div>';
+  // Meta row: type badge, author, read-time, full URL
   let meta = '';
   if (data.isImage) meta += '<span class="link-embed-type-badge">Image</span>';
   else if (data.isVideo) meta += '<span class="link-embed-type-badge">Video</span>';
   else if (data.isAudio) meta += '<span class="link-embed-type-badge">Audio</span>';
   if (data.author) meta += '<span class="link-embed-author">by ' + escapeHtml(data.author) + '</span>';
   if (data.contentType && !data.isImage && !data.isVideo && !data.isAudio) meta += '<span class="link-embed-author">' + escapeHtml(data.contentType) + '</span>';
+  if (data.description && !data.isImage && !data.isVideo && !data.isAudio) {
+    const wc = data.description.trim().split(/\s+/).length;
+    const mins = Math.max(1, Math.round(wc / 200));
+    meta += '<span class="link-embed-readtime">' + mins + ' min read</span>';
+  }
   if (url) meta += '<span class="link-embed-url">' + escapeHtml(url.length > 60 ? url.slice(0, 57) + '…' : url) + '</span>';
   if (meta) html += '<div class="link-embed-meta">' + meta + '</div>';
   html += '</div></a>';
@@ -7716,8 +7786,8 @@ function renderEmbed(data, el) {
       '<div class="link-embed-content">' +
       (data.siteName ? '<div class="link-embed-site">' + (data.favicon ? '<img src="' + escapeHtml(data.favicon) + '" alt="" onerror="this.style.display=\'none\'" />' : '') + escapeHtml(data.siteName) + '</div>' : '') +
       (data.title ? '<div class="link-embed-title">' + escapeHtml(data.title) + '</div>' : '') +
-      (data.description ? '<div class="link-embed-desc">' + escapeHtml(data.description.slice(0, 220)) + '</div>' : '') +
-      '<div class="link-embed-meta">' + (data.author ? '<span class="link-embed-author">by ' + escapeHtml(data.author) + '</span>' : '') + '<span class="link-embed-url">' + escapeHtml(url.length > 60 ? url.slice(0, 57) + '…' : url) + '</span></div>' +
+      (data.description ? '<div class="link-embed-desc">' + escapeHtml(data.description.slice(0, 300)) + '</div>' : '') +
+      '<div class="link-embed-meta">' + (data.author ? '<span class="link-embed-author">by ' + escapeHtml(data.author) + '</span>' : '') + (data.description && !data.isImage && !data.isVideo && !data.isAudio ? (function(){ const wc2 = data.description.trim().split(/\s+/).length; const m2 = Math.max(1, Math.round(wc2/200)); return '<span class="link-embed-readtime">' + m2 + ' min read</span>'; })() : '') + '<span class="link-embed-url">' + escapeHtml(url.length > 60 ? url.slice(0, 57) + '…' : url) + '</span></div>' +
       '</div></a>';
   }
   el.innerHTML = html;
@@ -8888,7 +8958,7 @@ function connectSocket() {
         {
           // Live-update the display name + inline status message bubble beside it
           const showPvNameSm = pvUser.statusMessage && (pvUser.status === 'online' || pvUser.status === 'idle' || pvUser.status === 'dnd');
-          const pvSmIcon = '<span class="sm-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></span>';
+          const pvSmIcon = '<span class="sm-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><path d="M12 3.5c-1.4 0-2.7.5-3.7 1.4-.3-.1-.7-.1-1-.1-2.2 0-4 1.7-4 3.9 0 .6.1 1.1.4 1.6-.7.7-1.2 1.7-1.2 2.8 0 2.2 1.8 4 4 4 .4 0 .8-.1 1.2-.2.8 1 2 1.7 3.3 1.7 1.2 0 2.3-.5 3.1-1.4.5.2 1 .3 1.6.3 2.5 0 4.5-2 4.5-4.5 0-1.3-.5-2.4-1.3-3.3.4-.6.6-1.3.6-2.1 0-2.2-1.8-4-4-4-.3 0-.6 0-.9.1C14.6 4 13.4 3.5 12 3.5z" fill="currentColor" fill-opacity="0.28"/><circle cx="7" cy="20.5" r="1.4" fill="currentColor" fill-opacity="0.55"/><circle cx="4.5" cy="22.6" r="0.9" fill="currentColor" fill-opacity="0.4"/><circle cx="2.8" cy="23.6" r="0.5" fill="currentColor" fill-opacity="0.3"/></svg></span>';
           const pvNameSm = showPvNameSm
             ? '<span class="status-msg-bubble pv-name-sm ' + pvUser.status + '">' + pvSmIcon + '<span class="sm-text">' + escapeHtml(pvUser.statusMessage) + '</span></span>'
             : '';
@@ -10808,7 +10878,7 @@ function userListItemHTML(u) {
   // Status message bubble — only visible when the user is online, idle, or dnd
   // (not offline) and they have actually set a custom status message.
   const showStatusMsg = u.statusMessage && (u.status === 'online' || u.status === 'idle' || u.status === 'dnd');
-  const smSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>';
+  const smSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><path d="M12 3.5c-1.4 0-2.7.5-3.7 1.4-.3-.1-.7-.1-1-.1-2.2 0-4 1.7-4 3.9 0 .6.1 1.1.4 1.6-.7.7-1.2 1.7-1.2 2.8 0 2.2 1.8 4 4 4 .4 0 .8-.1 1.2-.2.8 1 2 1.7 3.3 1.7 1.2 0 2.3-.5 3.1-1.4.5.2 1 .3 1.6.3 2.5 0 4.5-2 4.5-4.5 0-1.3-.5-2.4-1.3-3.3.4-.6.6-1.3.6-2.1 0-2.2-1.8-4-4-4-.3 0-.6 0-.9.1C14.6 4 13.4 3.5 12 3.5z" fill="currentColor" fill-opacity="0.28"/><circle cx="7" cy="20.5" r="1.4" fill="currentColor" fill-opacity="0.55"/><circle cx="4.5" cy="22.6" r="0.9" fill="currentColor" fill-opacity="0.4"/><circle cx="2.8" cy="23.6" r="0.5" fill="currentColor" fill-opacity="0.3"/></svg>';
   const statusMsgBubble = showStatusMsg
     ? '<div class="status-msg-bubble ' + u.status + '"><span class="sm-icon">' + smSvg + '</span><span class="sm-text">' + escapeHtml(u.statusMessage) + '</span></div>'
     : '';
@@ -13844,6 +13914,33 @@ function applyImageScaleTransform() {
   window.addEventListener('touchend', onUp);
   window.addEventListener('touchcancel', onUp);
 })();
+
+// ── Mousewheel zoom for the Adjust Profile Picture / Banner preview ──
+// Scrolling the wheel over the preview zooms the image in/out (100%..300%),
+// syncing the Scale slider + value readout in real time. Holding Shift makes
+// finer adjustments. pinch-zoom on trackpads also works via the wheel event.
+(function setupImageScaleWheel() {
+  const frame = $('image-scale-frame');
+  if (!frame) return;
+  frame.addEventListener('wheel', function (ev) {
+    if (!pendingImageEdit || !pendingImageEdit.imgEl) return;
+    ev.preventDefault();
+    // deltaY > 0 = scroll down = zoom out; < 0 = zoom in.
+    const fine = ev.shiftKey ? 2 : 6;
+    let delta = ev.deltaY > 0 ? -fine : fine;
+    // Normalize trackpad high-resolution deltas.
+    if (Math.abs(ev.deltaY) > 40) delta = delta * 2;
+    let ns = pendingImageEdit.scale + delta;
+    ns = Math.max(100, Math.min(300, Math.round(ns)));
+    if (ns === pendingImageEdit.scale) return;
+    pendingImageEdit.scale = ns;
+    const slider = $('image-scale-range');
+    const valEl = $('image-scale-value');
+    if (slider) slider.value = ns;
+    if (valEl) valEl.textContent = ns + '%';
+    applyImageScaleTransform();
+  }, { passive: false });
+})();
 $('image-scale-range').addEventListener('input', (e) => {
   const v = parseInt(e.target.value);
   $('image-scale-value').textContent = v + '%';
@@ -14682,7 +14779,10 @@ function updateSettingsPanel() {
   if ($('settings-dm-count')) $('settings-dm-count').textContent = (dmConversations || []).length;
   if ($('settings-blocked-count')) $('settings-blocked-count').textContent = (blockedUsers || []).length;
   if ($('settings-profile-complete')) {
-    const fields = ['displayName', 'bio', 'pronouns', 'location', 'website', 'avatar', 'banner'];
+    // Only count fields the user can actually set via the profile UI.
+    // (location/website have no inputs and are never saved, so excluding
+    //  them makes 100% completeness achievable.)
+    const fields = ['displayName', 'bio', 'pronouns', 'statusMessage', 'avatar', 'banner'];
     const filled = fields.filter(f => {
       const v = currentUser[f];
       return v && String(v).trim().length > 0;
@@ -15423,7 +15523,7 @@ function renderProfileView(data) {
   // The status message is shown even for hidden profiles: it's a lightweight
   // presence indicator (the dream-bubble), not a sensitive profile detail.
   const showPvNameSm = u.statusMessage && (u.status === 'online' || u.status === 'idle' || u.status === 'dnd');
-  const pvSmIcon = '<span class="sm-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></span>';
+  const pvSmIcon = '<span class="sm-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><path d="M12 3.5c-1.4 0-2.7.5-3.7 1.4-.3-.1-.7-.1-1-.1-2.2 0-4 1.7-4 3.9 0 .6.1 1.1.4 1.6-.7.7-1.2 1.7-1.2 2.8 0 2.2 1.8 4 4 4 .4 0 .8-.1 1.2-.2.8 1 2 1.7 3.3 1.7 1.2 0 2.3-.5 3.1-1.4.5.2 1 .3 1.6.3 2.5 0 4.5-2 4.5-4.5 0-1.3-.5-2.4-1.3-3.3.4-.6.6-1.3.6-2.1 0-2.2-1.8-4-4-4-.3 0-.6 0-.9.1C14.6 4 13.4 3.5 12 3.5z" fill="currentColor" fill-opacity="0.28"/><circle cx="7" cy="20.5" r="1.4" fill="currentColor" fill-opacity="0.55"/><circle cx="4.5" cy="22.6" r="0.9" fill="currentColor" fill-opacity="0.4"/><circle cx="2.8" cy="23.6" r="0.5" fill="currentColor" fill-opacity="0.3"/></svg></span>';
   const pvNameSm = showPvNameSm
     ? '<span class="status-msg-bubble pv-name-sm ' + u.status + '">' + pvSmIcon + '<span class="sm-text">' + escapeHtml(u.statusMessage) + '</span></span>'
     : '';
@@ -16466,32 +16566,56 @@ class ColorWheel {
   }
   _buildHueRing() {
     // Pre-render the hue ring to an offscreen canvas once (it never changes).
+    // Use 2x supersampling for a crisp, smooth ring.
+    const SS = 2;
     const c = document.createElement('canvas');
-    c.width = this.size; c.height = this.size;
+    c.width = this.size * SS; c.height = this.size * SS;
     const cx = c.getContext('2d');
-    const steps = 360;
+    cx.scale(SS, SS);
+    const steps = 720; // double resolution for smoother gradient
+    const oR = this.outerR, iR = this.innerR;
     for (let i = 0; i < steps; i++) {
       const a0 = (i / steps) * Math.PI * 2 - Math.PI / 2;
       const a1 = ((i + 1.5) / steps) * Math.PI * 2 - Math.PI / 2;
       cx.beginPath();
-      cx.moveTo(this.cx + Math.cos(a0) * this.outerR, this.cy + Math.sin(a0) * this.outerR);
-      cx.arc(this.cx, this.cy, this.outerR, a0, a1);
-      cx.arc(this.cx, this.cy, this.innerR, a1, a0, true);
+      cx.moveTo(this.cx + Math.cos(a0) * oR, this.cy + Math.sin(a0) * oR);
+      cx.arc(this.cx, this.cy, oR, a0, a1);
+      cx.arc(this.cx, this.cy, iR, a1, a0, true);
       cx.closePath();
       const col = hsvToRgb((i / steps) * 360, 1, 1);
       cx.fillStyle = 'rgb(' + col.r + ',' + col.g + ',' + col.b + ')';
       cx.fill();
     }
+    // Add subtle inner + outer edge bevels for a premium polished look.
+    cx.save();
+    cx.beginPath(); cx.arc(this.cx, this.cy, oR, 0, Math.PI * 2);
+    cx.lineWidth = 1.5; cx.strokeStyle = 'rgba(255,255,255,0.18)'; cx.stroke();
+    cx.beginPath(); cx.arc(this.cx, this.cy, iR, 0, Math.PI * 2);
+    cx.lineWidth = 1.5; cx.strokeStyle = 'rgba(0,0,0,0.45)'; cx.stroke();
+    cx.restore();
     this._hueRing = c;
   }
   render() {
     const ctx = this.ctx;
     ctx.clearRect(0, 0, this.size, this.size);
     // Hue ring
-    ctx.drawImage(this._hueRing, 0, 0);
-    // Inner SV square (inscribed). Saturation -> left→right, Value -> top→bottom.
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(this._hueRing, 0, 0, this.size, this.size);
+    // Inner SV square (inscribed). Saturation horizontal, Value vertical.
     const half = this.innerR;
     const x0 = this.cx - half, y0 = this.cy - half, w = half * 2;
+    const r = half * 0.16; // rounded corner radius for the SV square
+    // Draw rounded-rect clip for the SV square
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(x0 + r, y0);
+    ctx.arcTo(x0 + w, y0, x0 + w, y0 + w, r);
+    ctx.arcTo(x0 + w, y0 + w, x0, y0 + w, r);
+    ctx.arcTo(x0, y0 + w, x0, y0, r);
+    ctx.arcTo(x0, y0, x0 + w, y0, r);
+    ctx.closePath();
+    ctx.clip();
     // Pure hue color at full sat/val (top-right corner base).
     const pure = hsvToRgb(this.h, 1, 1);
     // Horizontal gradient: white (s=0) -> pure hue (s=1)
@@ -16506,31 +16630,64 @@ class ColorWheel {
     gV.addColorStop(1, 'rgba(0,0,0,1)');
     ctx.fillStyle = gV;
     ctx.fillRect(x0, y0, w, w);
-    // Subtle inner border around the SV square for a clean edge.
-    ctx.strokeStyle = 'rgba(0,0,0,0.25)';
-    ctx.lineWidth = 1;
-    ctx.strokeRect(x0 + 0.5, y0 + 0.5, w - 1, w - 1);
-    // Selection marker on the hue ring
+    // Subtle inner shadow vignette inside the SV square for depth.
+    const vGrad = ctx.createRadialGradient(this.cx, this.cy, w * 0.2, this.cx, this.cy, w * 0.72);
+    vGrad.addColorStop(0, 'rgba(0,0,0,0)');
+    vGrad.addColorStop(1, 'rgba(0,0,0,0.18)');
+    ctx.fillStyle = vGrad;
+    ctx.fillRect(x0, y0, w, w);
+    ctx.restore();
+    // Rounded border around the SV square for a clean, premium edge.
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(x0 + r, y0);
+    ctx.arcTo(x0 + w, y0, x0 + w, y0 + w, r);
+    ctx.arcTo(x0 + w, y0 + w, x0, y0 + w, r);
+    ctx.arcTo(x0, y0 + w, x0, y0, r);
+    ctx.arcTo(x0, y0, x0 + w, y0, r);
+    ctx.closePath();
+    ctx.lineWidth = 1.5;
+    ctx.strokeStyle = 'rgba(0,0,0,0.35)';
+    ctx.stroke();
+    ctx.restore();
+    // Selection marker on the hue ring (dual-ring premium look)
     const ang = this.h * Math.PI / 180 - Math.PI / 2;
     const mr = (this.outerR + this.innerR) / 2;
     const mx = this.cx + Math.cos(ang) * mr, my = this.cy + Math.sin(ang) * mr;
-    ctx.beginPath(); ctx.arc(mx, my, Math.max(5, this.ringW * 0.34), 0, Math.PI * 2);
-    ctx.lineWidth = 2.5; ctx.strokeStyle = '#fff';
-    ctx.shadowColor = 'rgba(0,0,0,0.7)'; ctx.shadowBlur = 4; ctx.stroke();
-    ctx.shadowBlur = 0;
-    // Small filled center dot inside the hue marker for a premium look.
-    ctx.beginPath(); ctx.arc(mx, my, Math.max(2, this.ringW * 0.14), 0, Math.PI * 2);
-    ctx.fillStyle = 'rgba(255,255,255,0.9)'; ctx.fill();
-    // Selection marker inside the SV square
+    const markerR = Math.max(6, this.ringW * 0.36);
+    // Outer glow ring
+    ctx.save();
+    ctx.shadowColor = 'rgba(0,0,0,0.8)'; ctx.shadowBlur = 6;
+    ctx.beginPath(); ctx.arc(mx, my, markerR + 1.5, 0, Math.PI * 2);
+    ctx.lineWidth = 2.5; ctx.strokeStyle = '#fff'; ctx.stroke();
+    ctx.restore();
+    // Inner colored fill matching the hue
+    const mc = hsvToRgb(this.h, 1, 1);
+    ctx.beginPath(); ctx.arc(mx, my, markerR - 2, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgb(' + mc.r + ',' + mc.g + ',' + mc.b + ')';
+    ctx.fill();
+    // Tiny specular highlight
+    ctx.beginPath(); ctx.arc(mx - markerR * 0.28, my - markerR * 0.28, markerR * 0.28, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(255,255,255,0.55)'; ctx.fill();
+    // Selection marker inside the SV square (dual-ring premium look)
     const px = x0 + this.s * w;
     const py = y0 + (1 - this.v) * w;
-    ctx.beginPath(); ctx.arc(px, py, 6, 0, Math.PI * 2);
-    ctx.lineWidth = 2.5; ctx.strokeStyle = (this.v > 0.5 && this.s < 0.5) ? '#000' : '#fff';
-    ctx.shadowColor = 'rgba(0,0,0,0.7)'; ctx.shadowBlur = 4; ctx.stroke();
-    ctx.shadowBlur = 0;
-    // Small filled center dot inside the SV marker.
-    ctx.beginPath(); ctx.arc(px, py, 2.5, 0, Math.PI * 2);
-    ctx.fillStyle = (this.v > 0.5 && this.s < 0.5) ? 'rgba(0,0,0,0.8)' : 'rgba(255,255,255,0.9)';
+    const darkInside = (this.v > 0.5 && this.s < 0.5);
+    const ringCol = darkInside ? '#000' : '#fff';
+    // Outer glow
+    ctx.save();
+    ctx.shadowColor = darkInside ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.8)';
+    ctx.shadowBlur = 6;
+    ctx.beginPath(); ctx.arc(px, py, 7.5, 0, Math.PI * 2);
+    ctx.lineWidth = 2.5; ctx.strokeStyle = ringCol; ctx.stroke();
+    ctx.restore();
+    // Inner accent dot
+    ctx.beginPath(); ctx.arc(px, py, 3, 0, Math.PI * 2);
+    ctx.fillStyle = darkInside ? 'rgba(0,0,0,0.85)' : 'rgba(255,255,255,0.95)';
+    ctx.fill();
+    // Specular highlight on SV marker
+    ctx.beginPath(); ctx.arc(px - 2, py - 2, 1.4, 0, Math.PI * 2);
+    ctx.fillStyle = darkInside ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.7)';
     ctx.fill();
   }
   _pos(e) {

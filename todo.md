@@ -1,9 +1,11 @@
-# Hellobye-Chat Profile UI Update
+# Hellobye-Chat UI Polish Round 2
 
 ## Tasks
-- [x] 1. Make Pronouns, Member Since, username, display name, ID:, and Send Message button use white bold font in the profile VIEW modal (override luminance-aware text so it's always white bold, preventing overlap with profile colors)
-- [x] 2. Revamp the Adjust Profile Picture / Adjust Banner preview UI — make the preview image bigger and fit the UI
-- [x] 3. Add drag-to-move functionality for the preview image; when preview is dragged, update scale + all setting sliders (Position X/Y) accordingly
-- [x] 4. Improve/revamp the scale UI (controls, sliders) to look better
-- [ ] 5. Test locally, commit, push to GitHub, and trigger Render deployment (do NOT wipe data)
-- [ ] 6. Verify deployment at https://hellobye-chat.onrender.com/
+- [x] 1. Revamp the Color Wheel UI (mini + full profile) — make it look more advanced/better than current
+- [x] 2. Adjust Profile Picture/Banner: make the preview image square box fill the whole box interior; add mousewheel zoom in/out
+- [x] 3. Make the message status dream bubble icon look more realistic
+- [x] 4. Make embed links bigger with more details
+- [x] 5. Make chat bubble letters bigger (text only)
+- [x] 6. Fix the Profile Completeness percentage
+- [x] 7. Fix overlapping/delayed UI & notifications
+- [ ] 8. Commit, push, deploy, verify (no data wiped)
