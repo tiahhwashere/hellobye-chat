@@ -1266,38 +1266,61 @@ body.no-anim .friend-item { animation: none !important; }
 .twosv-actions .setting-save-btn { width: auto; margin-top: 0; }
 .twosv-actions .setting-save-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
-/* Reset Name modal — preview of old -> new random handle */
+/* Reset Name modal — confirm resetting a username to a random handle.
+   z-index lifted so it sits above the admin slide-panel and its sub-overlays. */
+#reset-name-modal { z-index: 380; }
+#reset-name-modal .modal { max-width: 560px; width: 100%; padding: 30px 34px; text-align: left; }
+.reset-name-target-name {
+  color: var(--text-primary); font-weight: 700;
+}
+.reset-name-code {
+  background: var(--bg-darkest); padding: 3px 9px; border-radius: 6px;
+  font-family: 'SF Mono', 'Monaco', 'Cascadia Code', monospace;
+  font-size: 13px; color: var(--accent); white-space: nowrap;
+}
+.reset-name-warning {
+  display: inline-block; margin-top: 2px;
+  color: #ef4444; font-weight: 700;
+}
 .reset-name-preview {
   background: var(--bg-darkest); border: 1px solid var(--border);
-  border-radius: var(--radius); padding: 16px; margin-bottom: 4px;
+  border-radius: var(--radius); padding: 18px 20px; margin: 4px 0 0;
 }
 .reset-name-arrow {
-  display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+  display: flex; align-items: center; gap: 18px;
 }
 .reset-name-old, .reset-name-new {
-  display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 120px;
+  display: flex; flex-direction: column; gap: 7px; flex: 1; min-width: 0;
 }
 .reset-name-label {
-  font-size: 9px; font-weight: 800; color: var(--text-muted);
-  text-transform: uppercase; letter-spacing: 0.8px;
+  font-size: 10px; font-weight: 800; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: 0.9px;
 }
 .reset-name-handle {
-  font-size: 14px; font-weight: 700; color: var(--text-primary);
+  font-size: 15px; font-weight: 700; color: var(--text-primary);
   font-family: 'SF Mono', 'Monaco', 'Cascadia Code', monospace;
-  letter-spacing: 0.3px; word-break: break-all;
+  letter-spacing: 0.3px; word-break: break-all; line-height: 1.4;
 }
 .reset-name-handle.random { color: var(--accent); }
 .reset-name-arrow-icon {
-  width: 24px; height: 24px; color: var(--text-muted); flex-shrink: 0;
+  width: 26px; height: 26px; color: var(--text-muted); flex-shrink: 0;
+  transition: transform 0.2s ease;
 }
 .reset-name-shuffle {
-  display: inline-flex; align-items: center; gap: 6px;
-  margin-top: 14px; padding: 7px 13px; font-size: 11px; font-weight: 700;
+  display: inline-flex; align-items: center; gap: 7px;
+  margin-top: 16px; padding: 8px 15px; font-size: 12px; font-weight: 700;
   background: var(--bg-medium); border: 1px solid var(--border); color: var(--text-secondary);
   border-radius: var(--radius-sm); cursor: pointer; transition: var(--transition);
 }
-.reset-name-shuffle svg { width: 13px; height: 13px; }
+.reset-name-shuffle svg { width: 14px; height: 14px; }
 .reset-name-shuffle:hover { background: var(--bg-hover); color: var(--text-primary); border-color: var(--accent); }
+#reset-name-modal .modal-actions { margin-top: 26px; gap: 12px; }
+#reset-name-modal .modal-btn { padding: 12px 16px; font-size: 14.5px; }
+@media (max-width: 600px) {
+  #reset-name-modal .modal { max-width: calc(100vw - 24px); padding: 24px 20px; }
+  .reset-name-arrow { flex-direction: column; gap: 12px; }
+  .reset-name-arrow-icon { transform: rotate(90deg); }
+}
 
 /* Link Embeds — bigger, richer, more detailed */
 .link-embed {
@@ -5910,15 +5933,12 @@ body.no-anim .friend-item { animation: none !important; }
 
   <!-- ===================== ADMIN RESET NAME MODAL ===================== -->
   <div class="modal-overlay" id="reset-name-modal">
-    <div class="modal" style="max-width:440px; text-align:left;">
-      <div class="modal-icon" style="background:rgba(239,68,68,0.12); color:#ef4444; margin-bottom:14px;">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
-      </div>
-      <h3 style="display:flex; align-items:center; gap:8px;">Reset Username</h3>
-      <p style="color:var(--text-secondary); font-size:13px; line-height:1.55; margin-bottom:16px;">
-        This will reset <strong id="reset-name-target" style="color:var(--text-primary);"></strong>'s username to a random
-        <code style="background:var(--bg-darkest); padding:2px 7px; border-radius:5px; font-family:'SF Mono',monospace; font-size:12px; color:var(--accent);">reset_user_XXXXXXX</code>
-        handle. <span style="color:#ef4444; font-weight:700;">This cannot be undone.</span>
+    <div class="modal">
+      <h3 style="text-align:left; font-size:19px; margin-bottom:10px;">Reset Username</h3>
+      <p style="color:var(--text-secondary); font-size:13.5px; line-height:1.6; margin-bottom:18px; text-align:left;">
+        This will reset <strong id="reset-name-target" class="reset-name-target-name"></strong>'s username to a random
+        <code class="reset-name-code">reset_user_XXXXXXX</code> handle.
+        <br><span class="reset-name-warning">This cannot be undone.</span>
       </p>
       <div class="reset-name-preview" id="reset-name-preview">
         <div class="reset-name-arrow">
@@ -5937,7 +5957,7 @@ body.no-anim .friend-item { animation: none !important; }
           Shuffle
         </button>
       </div>
-      <div class="modal-actions" style="margin-top:22px;">
+      <div class="modal-actions">
         <button class="modal-btn" id="reset-name-cancel">Cancel</button>
         <button class="modal-btn danger" id="reset-name-confirm">Reset Username</button>
       </div>
