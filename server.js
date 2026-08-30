@@ -642,6 +642,15 @@ function purgeExpiredDisabledAccounts() {
         changed = true;
         console.log('[startup] Cleared existing mute on owner @' + u.username);
       }
+      // Ensure the owner can always receive direct messages. If DMs were
+      // disabled (manually or by a bug / disable-account residue), re-enable
+      // them so other users can DM the owner without getting "has disabled
+      // direct messages" errors.
+      if (u.directMessagesEnabled === false) {
+        u.directMessagesEnabled = true;
+        changed = true;
+        console.log('[startup] Re-enabled direct messages for owner @' + u.username);
+      }
     }
   }
   if (changed) {

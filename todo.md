@@ -14,3 +14,11 @@
 - [x] 1b. Change the block-confirm modal handler from closeProfileView() to refreshProfileViewActions(username) so the profile view stays open and the button swaps instantly
 - [x] 2. Add blocked-user filtering to renderMessages (msg.username), renderDMMessages (m.from), and renderGroupMessages (m.from); add isUserBlocked(username) helper
 - [x] 3. Syntax check, commit, push, wait for Render auto-deploy, verify live, confirm no data wiped
+
+
+# Round 5g — Revert Round 5f + fix DMs not working for @lore
+
+## Tasks
+- [x] 1. Revert Round 5f (Members list right-click Open/Close Conversation change) — commit 4fadbc0
+- [x] 2. Fix DMs not working for @lore: ensure owner directMessagesEnabled is always true at startup (added to ensureOwnerClean in server.js)
+- [x] 3. Syntax check, commit, push, wait for Render auto-deploy, verify live
