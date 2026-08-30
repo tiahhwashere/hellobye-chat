@@ -14665,6 +14665,13 @@ function applyProfileViewPanelColor(u) {
     el.style.removeProperty('border-color');
   });
   modal.querySelectorAll('a').forEach(el => { el.style.removeProperty('color'); });
+  // Reset avatar + banner inline styles so they return to default CSS.
+  const av = modal.querySelector('.profile-view-avatar');
+  if (av) { av.style.removeProperty('border-color'); av.style.removeProperty('background'); }
+  const bn = modal.querySelector('.profile-view-banner');
+  if (bn) bn.style.removeProperty('background');
+  const bph = modal.querySelector('.profile-view-banner-placeholder');
+  if (bph) { bph.style.removeProperty('color'); bph.style.removeProperty('background'); }
   // Remove any previously-created accent bar.
   const oldBar = modal.querySelector('.panel-accent-bar');
   if (oldBar) oldBar.remove();
@@ -14724,17 +14731,32 @@ function applyProfileViewPanelColor(u) {
       el.style.removeProperty('background');
     });
 
-    // Avatar border matches the colored background.
+    // Avatar border matches the colored background so the ring blends.
     const avatar = modal.querySelector('.profile-view-avatar');
     if (avatar) {
       avatar.style.setProperty('border-color', color, 'important');
+      // Avatar background (when no image) gets a slightly darker shade of
+      // the color so it blends instead of being a grey circle.
+      avatar.style.setProperty('background', darken(color, 0.2), 'important');
     }
 
-    // Banner placeholder gets a dark overlay.
+    // Banner area — fill with a darker shade of the chosen color so the
+    // top of the profile view blends with the panel color instead of being
+    // a grey strip.  When a real banner image is present we leave it alone.
+    const bannerContainer = modal.querySelector('.profile-view-banner');
+    if (bannerContainer) {
+      const hasImg = bannerContainer.querySelector('img');
+      if (!hasImg) {
+        bannerContainer.style.setProperty('background', darken(color, 0.15), 'important');
+      }
+    }
+    // Banner placeholder (the "No banner set" text) — semi-transparent dark
+    // overlay ON TOP of the colored banner so the text stays readable while
+    // the area still blends with the panel color.
     const bannerPlaceholder = modal.querySelector('.profile-view-banner-placeholder');
     if (bannerPlaceholder) {
       bannerPlaceholder.style.setProperty('color', 'rgba(255,255,255,0.7)', 'important');
-      bannerPlaceholder.style.setProperty('background', 'rgba(0,0,0,0.3)', 'important');
+      bannerPlaceholder.style.setProperty('background', 'rgba(0,0,0,0.25)', 'important');
     }
 
     // The X close button stays white.
@@ -16019,6 +16041,28 @@ function applyProfileColor() {
         bannerPlaceholder.style.setProperty('background', btnBg, 'important');
       }
 
+      // The banner section itself (when no banner image) — fill with a
+      // darker shade of the color so it blends instead of being a grey box.
+      const bannerSection = modal.querySelector('.profile-banner-section');
+      if (bannerSection) {
+        const hasImg = bannerSection.querySelector('.profile-banner-img');
+        if (!hasImg || hasImg.style.display === 'none') {
+          bannerSection.style.setProperty('background', darken(color, 0.12), 'important');
+        }
+      }
+
+      // The profile avatar (when no image) — slightly darker shade of the
+      // color so the circle blends instead of being a grey disc.  Also
+      // match the border to the color so the ring blends.
+      const profileAvatar = modal.querySelector('.profile-avatar-large');
+      if (profileAvatar) {
+        const hasImg = profileAvatar.querySelector('img');
+        if (!hasImg) {
+          profileAvatar.style.setProperty('background', darken(color, 0.2), 'important');
+        }
+        profileAvatar.style.setProperty('border-color', darken(color, 0.1), 'important');
+      }
+
       // Toggle slider track stays visible (tinted toward contrast).
       modal.querySelectorAll('.toggle-slider').forEach(el => {
         el.style.setProperty('background', luminance(color) > 0.6 ? 'rgba(0,0,0,0.22)' : 'rgba(0,0,0,0.3)', 'important');
@@ -16115,6 +16159,14 @@ function applyProfileColor() {
       if (bannerPlaceholder) {
         bannerPlaceholder.style.removeProperty('color');
         bannerPlaceholder.style.removeProperty('background');
+      }
+      // Reset banner section + profile avatar inline styles.
+      const bannerSection = modal.querySelector('.profile-banner-section');
+      if (bannerSection) bannerSection.style.removeProperty('background');
+      const profileAvatar = modal.querySelector('.profile-avatar-large');
+      if (profileAvatar) {
+        profileAvatar.style.removeProperty('background');
+        profileAvatar.style.removeProperty('border-color');
       }
       modal.querySelectorAll('.toggle-slider').forEach(el => {
         el.style.removeProperty('background');
@@ -16307,6 +16359,16 @@ function applyMiniProfileColor() {
       arrow.style.setProperty('border-color', color, 'important');
     }
 
+    // Avatar border + status-dot border — match the popover color so the
+    // rings blend with the colored background instead of being dark/grey.
+    const miniAvatar = pop.querySelector('.mini-profile-avatar');
+    if (miniAvatar) {
+      miniAvatar.style.setProperty('border-color', color, 'important');
+    }
+    pop.querySelectorAll('.mini-profile-avatar-wrap .status-dot').forEach(el => {
+      el.style.setProperty('border-color', color, 'important');
+    });
+
     // Status option dots — keep their icon backgrounds intact (they use
     // background-image url, not background-color), so no override needed.
 
@@ -16389,6 +16451,12 @@ function applyMiniProfileColor() {
       arrow.style.removeProperty('background');
       arrow.style.removeProperty('border-color');
     }
+    // Reset avatar + status-dot border-color back to default.
+    const miniAvatarReset = pop.querySelector('.mini-profile-avatar');
+    if (miniAvatarReset) miniAvatarReset.style.removeProperty('border-color');
+    pop.querySelectorAll('.mini-profile-avatar-wrap .status-dot').forEach(el => {
+      el.style.removeProperty('border-color');
+    });
     const dirtyInd = pop.querySelector('.mini-dirty-indicator');
     if (dirtyInd) dirtyInd.style.removeProperty('color');
   }
