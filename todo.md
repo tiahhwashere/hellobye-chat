@@ -8,4 +8,4 @@
 - [x] 5. Make chat bubble letters bigger (text only)
 - [x] 6. Fix the Profile Completeness percentage
 - [x] 7. Fix overlapping/delayed UI & notifications
-- [ ] 8. Commit, push, deploy, verify (no data wiped)
+- [x] 8. Commit, push, deploy, verify (no data wiped)
