@@ -14691,41 +14691,63 @@ function applyProfileViewPanelColor(u) {
     modal.style.setProperty('--accent-light', lighten(color, 0.3), 'important');
     const { r, g, b } = hexToRgb(color);
     modal.style.setProperty('--accent-glow', 'rgba(' + r + ', ' + g + ', ' + b + ', 0.12)', 'important');
-    // Always white text on the colored background.
-    modal.style.setProperty('--accent-text', '#ffffff', 'important');
+    // Luminance-aware readable text color so the blend works for EVERY
+    // Panel Theme Color — dark text on light colors (yellow, light blue),
+    // white text on dark colors. This is what makes the whole modal blend
+    // instead of forcing unreadable white text on light backgrounds.
+    const vtxt = readableText(color);
+    const isLight = luminance(color) > 0.6;
+    // A muted readable text color for secondary/muted labels.
+    const mutedTxt = isLight ? 'rgba(26,26,46,0.62)' : 'rgba(255,255,255,0.62)';
+    const mutedTxt2 = isLight ? 'rgba(26,26,46,0.55)' : 'rgba(255,255,255,0.55)';
+    const mutedTxt3 = isLight ? 'rgba(26,26,46,0.85)' : 'rgba(255,255,255,0.85)';
+    // Luminance-aware borders so inner cards blend with the panel color
+    // instead of always using white borders (which clash on light colors).
+    const cardBorder = isLight ? 'rgba(0,0,0,0.12)' : 'rgba(255,255,255,0.18)';
+    const cardBorderSoft = isLight ? 'rgba(0,0,0,0.15)' : 'rgba(255,255,255,0.2)';
+    modal.style.setProperty('--accent-text', vtxt, 'important');
 
     // Fill the entire modal background with the chosen color.
     modal.style.setProperty('background', color, 'important');
     modal.style.setProperty('border-color', color, 'important');
 
-    // Force ALL text inside the modal to white.
+    // Force ALL text inside the modal to the luminance-aware readable color.
     modal.querySelectorAll(textSelector).forEach(el => {
-      el.style.setProperty('color', '#ffffff', 'important');
+      el.style.setProperty('color', vtxt, 'important');
     });
 
-    // Keep clickable links (bio links, website links) blue.
+    // Keep clickable links (bio links, website links) a contrasting blue so
+    // they stay visible on every panel color.
     modal.querySelectorAll('a').forEach(el => {
       el.style.setProperty('color', '#6fb5ff', 'important');
     });
 
-    // Inner cards get a semi-transparent dark overlay for readability.
+    // Inner cards get a TINTED overlay DERIVED FROM the chosen color (via
+    // blendOverlay) so they BLEND with the panel color instead of being
+    // generic black/grey boxes. For dark panel colors we lighten toward
+    // white; for light panel colors we darken toward black — the alpha
+    // keeps the panel color showing through so nothing looks "grey".
+    const cardBg = blendOverlay(color, 0.18);
     modal.querySelectorAll(
       '.profile-view-bio, .profile-view-status, .profile-view-extra, .profile-view-status-msg, .status-msg-bubble, .sm-text, .sm-icon'
     ).forEach(el => {
-      el.style.setProperty('background', 'rgba(0,0,0,0.22)', 'important');
-      el.style.setProperty('border-color', 'rgba(255,255,255,0.18)', 'important');
+      el.style.setProperty('background', cardBg, 'important');
+      el.style.setProperty('border-color', cardBorder, 'important');
     });
 
-    // Copy-ID buttons + dropdown menu get dark overlay.
+    // Copy-ID buttons get a tinted overlay derived from the color (blends).
+    const btnBg = blendOverlay(color, 0.22);
     modal.querySelectorAll('.pv-copy-id-btn').forEach(el => {
-      el.style.setProperty('background', 'rgba(0,0,0,0.3)', 'important');
-      el.style.setProperty('color', 'rgba(255,255,255,0.7)', 'important');
-      el.style.setProperty('border-color', 'rgba(255,255,255,0.2)', 'important');
+      el.style.setProperty('background', btnBg, 'important');
+      el.style.setProperty('color', mutedTxt3, 'important');
+      el.style.setProperty('border-color', cardBorderSoft, 'important');
     });
+    // The copy-ID dropdown menu — a stronger tinted overlay so the menu is
+    // clearly distinct but still blends with the panel color (not pure black).
     const copyMenu = modal.querySelector('.pv-copy-id-menu');
     if (copyMenu) {
-      copyMenu.style.setProperty('background', 'rgba(0,0,0,0.85)', 'important');
-      copyMenu.style.setProperty('border-color', 'rgba(255,255,255,0.2)', 'important');
+      copyMenu.style.setProperty('background', blendOverlay(color, 0.55), 'important');
+      copyMenu.style.setProperty('border-color', cardBorderSoft, 'important');
     }
     modal.querySelectorAll('.pv-copy-id-menu-item').forEach(el => {
       el.style.removeProperty('background');
@@ -14750,61 +14772,64 @@ function applyProfileViewPanelColor(u) {
         bannerContainer.style.setProperty('background', darken(color, 0.15), 'important');
       }
     }
-    // Banner placeholder (the "No banner set" text) — semi-transparent dark
-    // overlay ON TOP of the colored banner so the text stays readable while
-    // the area still blends with the panel color.
+    // Banner placeholder (the "No banner set" text) — a translucent overlay
+    // DERIVED FROM the color (not pure black) so the text stays readable
+    // while the area still blends with the panel color.
     const bannerPlaceholder = modal.querySelector('.profile-view-banner-placeholder');
     if (bannerPlaceholder) {
-      bannerPlaceholder.style.setProperty('color', 'rgba(255,255,255,0.7)', 'important');
-      bannerPlaceholder.style.setProperty('background', 'rgba(0,0,0,0.25)', 'important');
+      bannerPlaceholder.style.setProperty('color', mutedTxt3, 'important');
+      bannerPlaceholder.style.setProperty('background', blendOverlay(color, 0.2), 'important');
     }
 
-    // The X close button stays white.
+    // The X close button uses the readable color so it blends.
     const closeBtn = modal.querySelector('.modal-close-corner');
     if (closeBtn) {
-      closeBtn.style.setProperty('color', '#ffffff', 'important');
+      closeBtn.style.setProperty('color', vtxt, 'important');
     }
 
-    // Action buttons: primary uses accent (with white text via --accent-text),
-    // secondary/danger get dark overlays with white text.
+    // Action buttons: primary uses the accent color (with luminance-aware
+    // text via --accent-text); secondary/danger get a tinted overlay derived
+    // from the color so they BLEND instead of being grey boxes.
+    const secBg = blendOverlay(color, 0.22);
     modal.querySelectorAll('.profile-view-actions .modal-btn').forEach(el => {
       if (el.classList.contains('primary')) {
-        el.style.setProperty('color', '#ffffff', 'important');
+        el.style.setProperty('color', vtxt, 'important');
       } else if (el.classList.contains('danger')) {
-        el.style.setProperty('background', 'rgba(0,0,0,0.25)', 'important');
+        el.style.setProperty('background', secBg, 'important');
         el.style.setProperty('color', '#ff6b6b', 'important');
         el.style.setProperty('border-color', 'rgba(255,107,107,0.4)', 'important');
       } else {
-        el.style.setProperty('background', 'rgba(0,0,0,0.25)', 'important');
-        el.style.setProperty('color', '#ffffff', 'important');
-        el.style.setProperty('border-color', 'rgba(255,255,255,0.2)', 'important');
+        el.style.setProperty('background', secBg, 'important');
+        el.style.setProperty('color', vtxt, 'important');
+        el.style.setProperty('border-color', cardBorderSoft, 'important');
       }
     });
 
-    // Blocked notice stays readable.
+    // Blocked notice stays readable and blends with the panel color.
     modal.querySelectorAll('.blocked-notice').forEach(el => {
-      el.style.setProperty('color', '#ffffff', 'important');
-      el.style.setProperty('background', 'rgba(0,0,0,0.25)', 'important');
+      el.style.setProperty('color', vtxt, 'important');
+      el.style.setProperty('background', secBg, 'important');
     });
 
-    // DM disabled button stays readable.
+    // DM disabled button stays readable and blends.
     modal.querySelectorAll('.dm-disabled-btn').forEach(el => {
-      el.style.setProperty('background', 'rgba(0,0,0,0.25)', 'important');
-      el.style.setProperty('color', 'rgba(255,255,255,0.7)', 'important');
+      el.style.setProperty('background', secBg, 'important');
+      el.style.setProperty('color', mutedTxt3, 'important');
     });
 
-    // Muted text variants for visual hierarchy.
+    // Muted text variants for visual hierarchy (luminance-aware so light
+    // panel colors get dark muted text instead of invisible white).
     modal.querySelectorAll('.profile-view-id, .pv-id-text').forEach(el => {
-      el.style.setProperty('color', 'rgba(255,255,255,0.6)', 'important');
+      el.style.setProperty('color', mutedTxt2, 'important');
     });
     modal.querySelectorAll('.pv-extra-label').forEach(el => {
-      el.style.setProperty('color', 'rgba(255,255,255,0.5)', 'important');
+      el.style.setProperty('color', mutedTxt2, 'important');
     });
     modal.querySelectorAll('.pv-extra-value').forEach(el => {
-      el.style.setProperty('color', 'rgba(255,255,255,0.85)', 'important');
+      el.style.setProperty('color', mutedTxt3, 'important');
     });
     modal.querySelectorAll('.profile-view-status').forEach(el => {
-      el.style.setProperty('color', 'rgba(255,255,255,0.8)', 'important');
+      el.style.setProperty('color', mutedTxt3, 'important');
     });
   }
 }
@@ -14836,18 +14861,21 @@ function updateProfileViewDMButton(u) {
   // Replace the old button with the new one (preserves position in actions)
   existingBtn.replaceWith(dmBtn);
   // Re-apply panel color styling to the new button so it matches the
-  // colored modal background (white text on accent for primary, dark
-  // overlay for disabled).
+  // colored modal background. Uses luminance-aware text + a color-derived
+  // tinted overlay (blendOverlay) so the button BLENDS with the panel color
+  // instead of being a generic grey box — works for every Panel Theme Color.
   const modal = document.querySelector('.profile-view-modal');
   if (modal) {
     const panelColor = modal.style.getPropertyValue('--accent');
     if (panelColor) {
+      const vtxt = readableText(panelColor);
+      const isLight = luminance(panelColor) > 0.6;
       if (dmBtn.classList.contains('primary')) {
-        dmBtn.style.setProperty('color', '#ffffff', 'important');
+        dmBtn.style.setProperty('color', vtxt, 'important');
       } else {
-        dmBtn.style.setProperty('background', 'rgba(0,0,0,0.25)', 'important');
-        dmBtn.style.setProperty('color', 'rgba(255,255,255,0.7)', 'important');
-        dmBtn.style.setProperty('border-color', 'rgba(255,255,255,0.2)', 'important');
+        dmBtn.style.setProperty('background', blendOverlay(panelColor, 0.22), 'important');
+        dmBtn.style.setProperty('color', isLight ? 'rgba(26,26,46,0.85)' : 'rgba(255,255,255,0.7)', 'important');
+        dmBtn.style.setProperty('border-color', isLight ? 'rgba(0,0,0,0.15)' : 'rgba(255,255,255,0.2)', 'important');
       }
     }
   }
