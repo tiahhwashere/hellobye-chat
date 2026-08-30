@@ -11372,6 +11372,7 @@ $('unfriend-confirm').addEventListener('click', async () => {
   pendingRemoveFriend = null;
   $('unfriend-modal').classList.remove('show');
   await removeFriend(username);
+  refreshProfileViewActions(username);
 });
 async function removeFriend(username) {
   // Optimistic UI
@@ -11480,6 +11481,7 @@ async function unblockUser(username) {
   // Optimistic UI FIRST
   toast('@' + username + ' has been unblocked.', 'success');
   blockedUsers = blockedUsers.filter(u => u.username !== username);
+  refreshProfileViewActions(username);
   renderBlockedList();
   updateBlockedBadge();
   // If DM open with unblocked user, reload messages
@@ -15714,6 +15716,86 @@ function updateProfileViewDMButton(u) {
   }
 }
 
+// Re-render ONLY the profile-view action buttons from LOCAL state
+// (friendRequests.sent/received, friends, blockedUsers). This is called
+// right after a friend/block action so the buttons swap INSTANTLY without
+// waiting for a server round-trip (openProfileView fetches from the server,
+// which lags behind the optimistic local update — that was why the Cancel /
+// Add Friend button didn't appear instantly).
+function refreshProfileViewActions(username) {
+  if (!username || !currentProfileViewUser || currentProfileViewUser !== username) return;
+  if (!$('profile-view-modal').classList.contains('show')) return;
+  const actions = $('pv-actions');
+  if (!actions) return;
+  // Derive the current friend/request/block state from local arrays.
+  const u = users.find(x => x.username === username) || { username, directMessagesEnabled: true };
+  const isFriend = friends.some(f => f.username === username);
+  const outgoingRequest = friendRequests.sent.some(f => f.username === username);
+  const incomingRequest = friendRequests.received.some(f => f.username === username);
+  const isBlocked = blockedUsers.some(b => b.username === username);
+  // isBlockedBy (they blocked us) isn't tracked locally; preserve whatever
+  // the last server render produced by checking for the blocked-notice.
+  const hadBlockedNotice = !!actions.querySelector('.blocked-notice');
+  const isBlockedBy = hadBlockedNotice && !isBlocked;
+  actions.innerHTML = '';
+  // DM button (unchanged logic)
+  const otherOff = u.directMessagesEnabled === false;
+  const dmBtn = document.createElement('button');
+  if (otherOff) {
+    dmBtn.className = 'modal-btn dm-disabled-btn';
+    dmBtn.textContent = 'Direct Messages Disabled';
+    dmBtn.disabled = true;
+    dmBtn.title = '@' + u.username + ' has disabled direct messages and is not accepting private messages at this time.';
+    dmBtn.style.opacity = '0.6'; dmBtn.style.cursor = 'not-allowed';
+  } else {
+    dmBtn.className = 'modal-btn primary'; dmBtn.textContent = 'Send Message';
+    dmBtn.onclick = () => { closeProfileView(); openDM(u.username); };
+  }
+  actions.appendChild(dmBtn);
+  // Friend button — state from local arrays (instant)
+  if (isFriend) {
+    const fb = document.createElement('button');
+    fb.className = 'modal-btn danger'; fb.textContent = 'Remove Friend';
+    fb.onclick = () => { promptRemoveFriend(u.username); };
+    actions.appendChild(fb);
+  } else if (outgoingRequest) {
+    const fb = document.createElement('button');
+    fb.className = 'modal-btn'; fb.textContent = 'Cancel Request';
+    fb.onclick = () => { cancelFriendRequest(u.username); refreshProfileViewActions(u.username); };
+    actions.appendChild(fb);
+  } else if (incomingRequest) {
+    const ab = document.createElement('button');
+    ab.className = 'modal-btn primary'; ab.textContent = 'Accept Request';
+    ab.onclick = () => { acceptFriendRequest(u.username); refreshProfileViewActions(u.username); };
+    actions.appendChild(ab);
+    const db = document.createElement('button');
+    db.className = 'modal-btn'; db.textContent = 'Decline';
+    db.onclick = () => { declineFriendRequest(u.username); refreshProfileViewActions(u.username); };
+    actions.appendChild(db);
+  } else {
+    const fb = document.createElement('button');
+    fb.className = 'modal-btn primary'; fb.textContent = 'Add Friend';
+    fb.onclick = () => { sendFriendRequest(u.username); refreshProfileViewActions(u.username); };
+    actions.appendChild(fb);
+  }
+  // Block button (state from local blockedUsers)
+  if (!isBlockedBy) {
+    const bb = document.createElement('button');
+    bb.className = 'modal-btn danger block-btn'; bb.textContent = isBlocked ? 'Unblock' : 'Block';
+    bb.onclick = () => {
+      if (isBlocked) { unblockUser(u.username); }
+      else { promptBlockUser(u.username); }
+    };
+    actions.appendChild(bb);
+  } else {
+    const notice = document.createElement('div');
+    notice.className = 'blocked-notice'; notice.textContent = 'This user has blocked you.';
+    actions.appendChild(notice);
+  }
+  // Re-apply the other user's Panel Theme Color so new buttons match.
+  applyProfileViewPanelColor(u);
+}
+
 function renderProfileView(data) {
   const u = data.user;
   const isHidden = !data.isMe && (data.profileHidden || u.profileHidden);
@@ -15862,21 +15944,21 @@ function renderProfileView(data) {
     } else if (data.outgoingRequest) {
       const fb = document.createElement('button');
       fb.className = 'modal-btn'; fb.textContent = 'Cancel Request';
-      fb.onclick = () => { cancelFriendRequest(u.username); openProfileView(u.username); };
+      fb.onclick = () => { cancelFriendRequest(u.username); refreshProfileViewActions(u.username); };
       actions.appendChild(fb);
     } else if (data.incomingRequest) {
       const ab = document.createElement('button');
       ab.className = 'modal-btn primary'; ab.textContent = 'Accept Request';
-      ab.onclick = () => { acceptFriendRequest(u.username); openProfileView(u.username); };
+      ab.onclick = () => { acceptFriendRequest(u.username); refreshProfileViewActions(u.username); };
       actions.appendChild(ab);
       const db = document.createElement('button');
       db.className = 'modal-btn'; db.textContent = 'Decline';
-      db.onclick = () => { declineFriendRequest(u.username); openProfileView(u.username); };
+      db.onclick = () => { declineFriendRequest(u.username); refreshProfileViewActions(u.username); };
       actions.appendChild(db);
     } else {
       const fb = document.createElement('button');
       fb.className = 'modal-btn primary'; fb.textContent = 'Add Friend';
-      fb.onclick = () => { sendFriendRequest(u.username); openProfileView(u.username); };
+      fb.onclick = () => { sendFriendRequest(u.username); refreshProfileViewActions(u.username); };
       actions.appendChild(fb);
     }
     // Block button (for all non-me users, unless they blocked us we show unblock-disabled info)

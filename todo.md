@@ -1,7 +1,7 @@
-# Round 5c — Whitelisted admins bypass the code gate; rename "Admin Code Required"
+# Round 5d — Instant add-friend / cancel button updates on profile view
 
 ## Tasks
-- [x] 1. server.js: extend isAdmin() so users on the admin whitelist (and admin-role users) are admin WITHOUT needing the code — fixes /api/admin/check to return isAdmin:true for them
-- [x] 2. index.html: rename "Admin Code Required" heading (and the lock-screen copy) to something slightly more professional
-- [x] 3. Update the server.js comment block describing admin access rules
-- [x] 4. Syntax check, commit, push, deploy, verify on Render (no data wiped)
+- [ ] 1. Add refreshProfileViewActions(username) helper that re-renders ONLY the profile-view action buttons from LOCAL state (friendRequests.sent/received, friends, blockedUsers) — no server round-trip
+- [ ] 2. Wire it into the Add Friend / Cancel Request / Accept / Decline / Remove Friend button handlers so the buttons swap instantly
+- [ ] 3. Also refresh actions after the unfriend-modal confirm and after block/unblock so those swap instantly too
+- [ ] 4. Syntax check, commit, push, deploy, verify on Render (no data wiped)
