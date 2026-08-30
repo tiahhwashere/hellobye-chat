@@ -9460,14 +9460,20 @@ function getCookie(name) {
 // ---------- Message Rendering (Public) ----------
 function renderMessages() {
   const container = $('messages');
-  const hasMessages = messages.length > 0;
+  // Hide messages from blocked users (chatroom uses msg.username)
+  const visible = messages.filter(msg => !isUserBlocked(msg.username));
+  const hasMessages = visible.length > 0;
   container.innerHTML = '';
   if (!hasMessages) {
     container.innerHTML = '<div class="empty-state" id="empty-state"><h3>No messages yet</h3><p>Be the first to start the conversation.</p></div>';
     return;
   }
-  messages.forEach(msg => appendMessage(msg, true));
+  visible.forEach(msg => appendMessage(msg, true));
   scrollToBottom();
+}
+// Helper: is the given username currently blocked by us?
+function isUserBlocked(username) {
+  return blockedUsers.some(u => u.username === username);
 }
 function hideEmptyState() { const es = $('empty-state'); if (es) es.remove(); }
 function getUserByUsername(username) {
@@ -11445,8 +11451,8 @@ $('block-confirm').addEventListener('click', async () => {
   pendingBlockUser = null;
   $('block-modal').classList.remove('show');
   await blockUser(username);
-  // Close profile view if open for this user
-  closeProfileView();
+  // Keep profile view open and refresh action buttons instantly (Block -> Unblock)
+  refreshProfileViewActions(username);
 });
 async function blockUser(username) {
   // Optimistic UI FIRST: update instantly before network round-trip
@@ -11467,6 +11473,8 @@ async function blockUser(username) {
     renderDMMessages();
   }
   renderMessages();
+  // Refresh the profile-view action buttons instantly (Block -> Unblock swap)
+  refreshProfileViewActions(username);
   // Fire network request in background (non-blocking)
   try {
     const res = await fetch(API_BASE + '/api/block', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username }) });
@@ -12020,13 +12028,15 @@ $('group-close-btn').addEventListener('click', closeGroupOverlay);
 // ---- Render group messages ----
 function renderGroupMessages() {
   const container = $('group-messages');
-  const has = groupMessages.length > 0;
+  // Hide messages from blocked users (group uses m.from)
+  const visible = groupMessages.filter(m => !isUserBlocked(m.from));
+  const has = visible.length > 0;
   container.innerHTML = '';
   if (!has) {
     container.innerHTML = '<div class="empty-state" id="group-empty-state"><div class="empty-state-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="40" height="40"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div><h3>Start the group conversation</h3><p>Send the first message to get this group chat going.</p></div>';
     return;
   }
-  groupMessages.forEach(m => appendGroupMessage(m, true));
+  visible.forEach(m => appendGroupMessage(m, true));
   scrollToBottomGroup();
 }
 
@@ -12687,13 +12697,15 @@ $('group-settings-leave-btn').addEventListener('click', async () => {
 
 function renderDMMessages() {
   const container = $('dm-messages');
-  const has = dmMessages.length > 0;
+  // Hide messages from blocked users (DM uses m.from)
+  const visible = dmMessages.filter(m => !isUserBlocked(m.from));
+  const has = visible.length > 0;
   container.innerHTML = '';
   if (!has) {
     container.innerHTML = '<div class="empty-state" id="dm-empty-state"><h3>Start the conversation</h3><p>Send your first message to begin this private conversation.</p></div>';
     return;
   }
-  dmMessages.forEach(m => appendDMMessage(m, true));
+  visible.forEach(m => appendDMMessage(m, true));
   scrollToBottomDM();
 }
 function appendDMMessage(msg, silent) {
