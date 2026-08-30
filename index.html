@@ -3005,22 +3005,15 @@ body.no-anim .friend-item { animation: none !important; }
 }
 
 /* ---- Scale / adjustments panel ---- */
-.custom-bg-scale-controls { display: grid; gap: 14px; }
-.custom-slider-label {
-  font-size: 12px; color: var(--text-secondary); font-weight: 500;
-  display: flex; justify-content: space-between; align-items: center;
-  margin-bottom: 4px;
-}
-.custom-slider-label .slider-val {
-  background: var(--bg-darkest); color: var(--text-secondary);
-  padding: 2px 8px; border-radius: 4px; font-size: 10.5px;
-  font-weight: 600; min-width: 44px; text-align: center;
-  font-family: 'SF Mono', 'Monaco', 'Cascadia Code', 'Roboto Mono', monospace;
-  border: 1px solid var(--border);
-}
+/* Chat Background scale controls — styled to match the Adjust Profile Picture
+   scale UI: grouped dark cards with uppercase labels + pill value badges. */
+.custom-bg-scale-controls { display: grid; gap: 12px; }
 .bg-control-group {
-  background: var(--bg-darker); border: 1px solid var(--border);
-  border-radius: var(--radius-sm); padding: 14px 16px; display: grid; gap: 13px;
+  display: flex; flex-direction: column; gap: 10px; flex-wrap: wrap;
+  padding: 14px 16px;
+  background: linear-gradient(180deg, var(--bg-darker), var(--bg-darkest));
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
 }
 .bg-control-group-title {
   font-size: 10.5px; font-weight: 700; text-transform: uppercase;
@@ -3030,6 +3023,39 @@ body.no-anim .friend-item { animation: none !important; }
 .bg-control-group-title::before {
   content: ''; width: 2px; height: 10px; border-radius: 1px;
   background: var(--text-muted); flex-shrink: 0; opacity: 0.6;
+}
+/* Each slider row mirrors .image-scale-extras .extra-group label */
+.custom-slider-label {
+  font-size: 10.5px; color: var(--text-secondary); text-transform: uppercase;
+  letter-spacing: 0.5px; font-weight: 700;
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 2px;
+}
+.custom-slider-label .slider-val {
+  font-size: 11px; color: var(--text-primary); font-weight: 700;
+  text-transform: none; letter-spacing: 0;
+  padding: 2px 7px; background: var(--bg-medium); border: 1px solid var(--border);
+  border-radius: 5px; min-width: 48px; text-align: center;
+  font-family: 'SF Mono', 'Monaco', 'Cascadia Code', 'Roboto Mono', monospace;
+}
+/* Range sliders match the image-scale accent-colored thin track */
+.custom-range {
+  width: 100%; height: 6px; -webkit-appearance: none; appearance: none;
+  background: var(--bg-light); border-radius: 3px; outline: none; cursor: pointer;
+  accent-color: var(--accent); margin: 2px 0;
+}
+.custom-range::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none;
+  width: 15px; height: 15px; border-radius: 50%; background: var(--accent);
+  cursor: pointer; border: 2px solid var(--bg-darker);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.35); transition: transform 0.12s ease;
+}
+.custom-range::-webkit-slider-thumb:hover { transform: scale(1.15); }
+.custom-range:active::-webkit-slider-thumb { transform: scale(1.08); }
+.custom-range::-moz-range-thumb {
+  width: 15px; height: 15px; border-radius: 50%; background: var(--accent);
+  cursor: pointer; border: 2px solid var(--bg-darker);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.35);
 }
 
 /* Fit Mode segmented control — flat, even button group */
@@ -3054,27 +3080,6 @@ body.no-anim .friend-item { animation: none !important; }
 .custom-bg-quick-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; }
 .mini-btn { padding: 7px 12px; font-size: 11px; font-weight: 600; }
 
-/* ---- Range sliders: thin, precise, professional ---- */
-.custom-range {
-  width: 100%; height: 4px; -webkit-appearance: none; appearance: none;
-  background: var(--bg-light); border-radius: 2px; outline: none; cursor: pointer;
-  margin: 4px 0;
-}
-.custom-range::-webkit-slider-thumb {
-  -webkit-appearance: none; appearance: none;
-  width: 14px; height: 14px; border-radius: 50%; background: var(--text-secondary);
-  cursor: pointer; border: 2px solid var(--bg-darker);
-  box-shadow: 0 1px 3px rgba(0,0,0,0.35); transition: background 0.15s ease, border-color 0.15s ease;
-}
-.custom-range::-webkit-slider-thumb:hover { background: var(--accent); border-color: var(--bg-darker); }
-.custom-range:active::-webkit-slider-thumb { background: var(--accent); }
-.custom-range::-moz-range-thumb {
-  width: 14px; height: 14px; border-radius: 50%; background: var(--text-secondary);
-  cursor: pointer; border: 2px solid var(--bg-darker);
-  box-shadow: 0 1px 3px rgba(0,0,0,0.35);
-}
-.custom-range::-moz-range-thumb:hover { background: var(--accent); }
-
 /* ---- Accent color section: clean card ---- */
 /* ===================== Color Studio (Panel Theme Color) =====================
    A completely revamped tabbed color-picker system. Three modes:
@@ -3094,6 +3099,95 @@ body.no-anim .friend-item { animation: none !important; }
 .cs-wrap.accent-section-card {
   padding: 0; overflow: hidden;
 }
+
+/* ===================== Advanced Current Accent (Background & Theme) ===================== */
+.accent-advanced { padding: 18px; }
+.accent-adv-top {
+  display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+  padding-bottom: 16px; border-bottom: 1px solid var(--border);
+}
+.accent-adv-swatch {
+  position: relative; width: 72px; height: 72px; border-radius: 14px;
+  flex-shrink: 0; cursor: pointer; overflow: hidden;
+  background: #4a9eff;
+  border: 2px solid rgba(255,255,255,0.12);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4), inset 0 0 0 1px rgba(0,0,0,0.2),
+              inset 0 2px 10px rgba(255,255,255,0.18);
+  transition: transform 0.18s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.18s ease;
+}
+.accent-adv-swatch::after {
+  content: ''; position: absolute; inset: 0; border-radius: inherit;
+  background: linear-gradient(150deg, rgba(255,255,255,0.28), transparent 55%);
+  pointer-events: none;
+}
+.accent-adv-swatch:hover { transform: scale(1.06); box-shadow: 0 6px 22px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(0,0,0,0.2); }
+.accent-adv-swatch input[type="color"] {
+  position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0;
+  cursor: pointer; border: none; padding: 0;
+}
+.accent-adv-info { display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 160px; }
+.accent-adv-eyebrow {
+  font-size: 9px; font-weight: 800; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: 0.9px;
+}
+.accent-adv-hex {
+  font-size: 22px; font-weight: 800; color: var(--text-primary);
+  font-family: 'SF Mono', 'Monaco', 'Cascadia Code', monospace;
+  letter-spacing: 0.5px; line-height: 1;
+}
+.accent-adv-rgb { display: flex; gap: 7px; flex-wrap: wrap; }
+.accent-adv-chip {
+  font-size: 10px; font-weight: 700; color: var(--text-secondary);
+  padding: 3px 9px; border-radius: 6px; border: 1px solid var(--border);
+  background: var(--bg-darkest); text-transform: uppercase; letter-spacing: 0.4px;
+  display: inline-flex; align-items: center; gap: 4px;
+}
+.accent-adv-chip b { color: var(--text-primary); font-family: 'SF Mono', monospace; font-weight: 700; }
+.accent-adv-chip.r b { color: #f87171; }
+.accent-adv-chip.g b { color: #4ade80; }
+.accent-adv-chip.b b { color: #60a5fa; }
+.accent-adv-meta {
+  display: flex; gap: 22px; flex-wrap: wrap; align-items: center;
+  padding: 14px 0; border-bottom: 1px solid var(--border);
+}
+.accent-adv-hsl, .accent-adv-meter { display: flex; flex-direction: column; gap: 6px; }
+.accent-adv-meter { min-width: 180px; flex: 1; }
+.accent-adv-meta-label {
+  font-size: 9px; font-weight: 800; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: 0.8px;
+}
+.accent-adv-meta-val {
+  font-size: 12px; font-weight: 700; color: var(--text-primary);
+  font-family: 'SF Mono', monospace; letter-spacing: 0.3px;
+}
+.accent-adv-meter-bar {
+  height: 8px; border-radius: 5px; background: var(--bg-darkest);
+  border: 1px solid var(--border); overflow: hidden; position: relative;
+}
+.accent-adv-meter-fill {
+  height: 100%; border-radius: 5px;
+  background: linear-gradient(90deg, #ef4444, #f59e0b 45%, #22c55e);
+  transition: width 0.3s ease;
+}
+.accent-adv-preview {
+  display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+  padding: 16px 0 18px;
+}
+.accent-adv-tile.dot {
+  width: 18px; height: 18px; border-radius: 50%; background: var(--accent);
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.1);
+}
+.accent-adv-tile.bar { width: 46px; height: 6px; border-radius: 3px; background: var(--accent); }
+.accent-adv-tile.btn {
+  padding: 7px 16px; font-size: 12px; font-weight: 700;
+  background: var(--accent); color: var(--accent-text); border: none; border-radius: 7px;
+  letter-spacing: 0.2px;
+}
+.accent-adv-tile.link {
+  font-size: 13px; font-weight: 600; color: var(--accent);
+  text-decoration: underline; text-underline-offset: 2px;
+}
+
 .accent-current-row {
   display: flex; align-items: center; gap: 14px; margin-bottom: 18px;
   flex-wrap: wrap; padding-bottom: 16px; border-bottom: 1px solid var(--border);
@@ -6321,7 +6415,6 @@ body.no-anim .friend-item { animation: none !important; }
           </div>
           <div class="theme-card">
             <div class="theme-card-head">
-              <div class="theme-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></div>
               <div class="theme-card-title">Chat Background</div>
             </div>
             <p class="theme-card-hint">Upload an image or GIF, or paste a URL. Adjust scale, position, and appearance to fit your style.</p>
@@ -6385,23 +6478,44 @@ body.no-anim .friend-item { animation: none !important; }
 
           <div class="theme-card">
             <div class="theme-card-head">
-              <div class="theme-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="10.5" r="2.5"/><circle cx="8.5" cy="7.5" r="2.5"/><circle cx="6.5" cy="12.5" r="2.5"/><path d="M12 22a10 10 0 1 1 0-20 10 10 0 0 1 10 10c0 2-1 3-2.5 3H15a2 2 0 0 0-1.5 3.5c.5 1 0 2.5-1.5 2.5z"/></svg></div>
               <div class="theme-card-title">Website Accent Color</div>
             </div>
             <p class="theme-card-hint">Sets the accent color across buttons, links, and highlights throughout the app. Only visible to you.</p>
-            <div class="accent-section-card">
-              <div class="accent-current-row">
-                <input type="color" id="accent-color-picker" value="#4a9eff" class="accent-swatch-large" title="Click to pick a custom color">
-                <div class="accent-current-info">
-                  <span class="accent-current-label">Current Accent</span>
-                  <span class="accent-current-hex" id="accent-current-hex">#4a9eff</span>
+            <div class="accent-section-card accent-advanced">
+              <!-- Advanced Current Accent display -->
+              <div class="accent-adv-top">
+                <label class="accent-adv-swatch" id="accent-adv-swatch" title="Click to open the color picker">
+                  <input type="color" id="accent-color-picker" value="#4a9eff">
+                </label>
+                <div class="accent-adv-info">
+                  <span class="accent-adv-eyebrow">Current Accent</span>
+                  <span class="accent-adv-hex" id="accent-current-hex">#4a9eff</span>
+                  <div class="accent-adv-rgb" id="accent-adv-rgb">
+                    <span class="accent-adv-chip r">R <b id="accent-adv-r">74</b></span>
+                    <span class="accent-adv-chip g">G <b id="accent-adv-g">158</b></span>
+                    <span class="accent-adv-chip b">B <b id="accent-adv-b">255</b></span>
+                  </div>
                 </div>
-                <div class="accent-preview-strip">
-                  <span class="accent-preview-dot"></span>
-                  <span class="accent-preview-bar"></span>
-                  <span class="accent-preview-btn">Button</span>
+                <button class="setting-save-btn no-checkmark danger-btn" id="accent-revert-btn">Revert</button>
+              </div>
+              <!-- HSL + readability meter -->
+              <div class="accent-adv-meta">
+                <div class="accent-adv-hsl">
+                  <span class="accent-adv-meta-label">HSL</span>
+                  <span class="accent-adv-meta-val" id="accent-adv-hsl-val">hsl(210, 100%, 65%)</span>
                 </div>
-                <button class="setting-save-btn no-checkmark danger-btn" id="accent-revert-btn">Revert Color</button>
+                <div class="accent-adv-meter">
+                  <span class="accent-adv-meta-label">Readability</span>
+                  <div class="accent-adv-meter-bar"><div class="accent-adv-meter-fill" id="accent-adv-meter-fill" style="width:65%"></div></div>
+                  <span class="accent-adv-meta-val" id="accent-adv-meter-label">Good</span>
+                </div>
+              </div>
+              <!-- Live preview tiles -->
+              <div class="accent-adv-preview" id="accent-adv-preview">
+                <span class="accent-adv-tile dot"></span>
+                <span class="accent-adv-tile bar"></span>
+                <span class="accent-adv-tile btn">Button</span>
+                <span class="accent-adv-tile link">Link</span>
               </div>
               <div class="custom-bg-label">Quick Colors</div>
               <div class="accent-preset-row" id="accent-presets"></div>
@@ -6736,7 +6850,10 @@ body.no-anim .friend-item { animation: none !important; }
                     <input type="text" id="admin-rename-new" class="admin-input" placeholder="Enter new username (1–32 chars, a-z 0-9 _)" style="flex:1; min-width:200px; padding:8px 10px;" autocomplete="off" />
                   </div>
                   <p style="color:var(--text-muted); font-size:11px; margin-bottom:10px;">Admin override: the usual 3-character minimum is disabled. Max 32 characters.</p>
-                  <button class="setting-save-btn no-checkmark" id="admin-rename-confirm-btn" style="margin-top:4px;">Rename User</button>
+                  <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:4px;">
+                    <button class="setting-save-btn no-checkmark" id="admin-rename-confirm-btn">Rename User</button>
+                    <button class="setting-save-btn no-checkmark danger-btn" id="admin-rename-reset-btn" title="Reset this user's username to a random reset_user_XXXXXXX handle">Reset Name</button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -17026,9 +17143,50 @@ function applyColorSettings() {
   if (picker) picker.value = accent;
   const hexEl = $('accent-current-hex');
   if (hexEl) hexEl.textContent = accent;
+  updateAccentAdvancedDisplay(accent, r, g, b);
   document.querySelectorAll('#accent-presets .accent-preset').forEach(p => {
     p.classList.toggle('active', p.dataset.color === ((s && s.accent) ? s.accent : ''));
   });
+}
+// Update the advanced Current Accent display (RGB chips, HSL, readability meter,
+// large swatch) in the Background & Theme tab.
+function updateAccentAdvancedDisplay(hex, r, g, b) {
+  if (!hex) return;
+  if (r === undefined) { const c = hexToRgb(hex); r = c.r; g = c.g; b = c.b; }
+  const rEl = $('accent-adv-r'), gEl = $('accent-adv-g'), bEl = $('accent-adv-b');
+  if (rEl) rEl.textContent = r; if (gEl) gEl.textContent = g; if (bEl) bEl.textContent = b;
+  const sw = $('accent-adv-swatch'); if (sw) sw.style.background = hex;
+  // HSL
+  const rr = r / 255, gg = g / 255, bb = b / 255;
+  const max = Math.max(rr, gg, bb), min = Math.min(rr, gg, bb);
+  let h = 0, s = 0; const l = (max + min) / 2;
+  const d = max - min;
+  if (d !== 0) {
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    switch (max) {
+      case rr: h = ((gg - bb) / d + (gg < bb ? 6 : 0)); break;
+      case gg: h = ((bb - rr) / d + 2); break;
+      case bb: h = ((rr - gg) / d + 4); break;
+    }
+    h = Math.round(h * 60); s = Math.round(s * 100);
+  }
+  const lp = Math.round(l * 100);
+  const hslEl = $('accent-adv-hsl-val');
+  if (hslEl) hslEl.textContent = 'hsl(' + h + ', ' + s + '%, ' + lp + '%)';
+  // Readability meter: based on relative luminance (0..1).
+  const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  const pct = Math.round(lum * 100);
+  const fill = $('accent-adv-meter-fill'); if (fill) fill.style.width = pct + '%';
+  const label = $('accent-adv-meter-label');
+  if (label) {
+    let txt = 'Good';
+    if (lum < 0.18) txt = 'Very Dark';
+    else if (lum < 0.4) txt = 'Dark';
+    else if (lum < 0.6) txt = 'Good';
+    else if (lum < 0.8) txt = 'Light';
+    else txt = 'Very Light';
+    label.textContent = txt;
+  }
 }
 function initAccentPresets() {
   const container = $('accent-presets');
@@ -18411,6 +18569,8 @@ function adminSelectRenameUser(cacheKey) {
       renameBtn.style.opacity = '';
       renameBtn.style.cursor = '';
     }
+    const resetBtn = $('admin-rename-reset-btn');
+    if (resetBtn) { resetBtn.disabled = false; resetBtn.textContent = 'Reset Name'; }
   }
 }
 async function adminRenameUser() {
@@ -18435,6 +18595,32 @@ async function adminRenameUser() {
       loadAdminData();
     } else { toast(data.error || 'Unable to rename this user. Please try again.', 'error'); }
   } catch (e) { toast('A network error occurred. Please try again.', 'error'); }
+}
+
+async function adminResetName() {
+  if (!adminRenameTarget) return;
+  const target = adminRenameTarget;
+  // Confirm before resetting — this changes the user's handle to a random one.
+  const ok = confirm('Reset ' + target.username + "'s username to a random reset_user_XXXXXXX handle? This cannot be undone.");
+  if (!ok) return;
+  const btn = $('admin-rename-reset-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Resetting...'; }
+  try {
+    const res = await fetch(API_BASE + '/api/admin/reset-name', {
+      method: 'POST', headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: target.username }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      toast('Username has been reset to @' + escapeHtml(data.newUsername) + '.', 'success');
+      $('admin-rename-form').style.display = 'none';
+      adminRenameTarget = null;
+      $('admin-rename-search').value = '';
+      $('admin-rename-results').innerHTML = '';
+      loadAdminData();
+    } else { toast(data.error || 'Unable to reset this user\'s name. Please try again.', 'error'); }
+  } catch (e) { toast('A network error occurred. Please try again.', 'error'); }
+  if (btn) { btn.disabled = false; btn.textContent = 'Reset Name'; }
 }
 
 async function adminSetRole() {
@@ -18920,6 +19106,9 @@ function initAdminEventListeners() {
   // Rename confirm
   const renameConfirmBtn = $('admin-rename-confirm-btn');
   if (renameConfirmBtn) renameConfirmBtn.addEventListener('click', adminRenameUser);
+  // Reset name
+  const renameResetBtn = $('admin-rename-reset-btn');
+  if (renameResetBtn) renameResetBtn.addEventListener('click', adminResetName);
   // Role search
   const roleSearchBtn = $('admin-role-search-btn');
   if (roleSearchBtn) {

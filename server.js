@@ -2465,6 +2465,95 @@ app.post('/api/admin/set-role', authMiddleware, adminMiddleware, (req, res) => {
   res.json({ success: true, user: publicUser(target) });
 });
 
+// ---- Reusable username migration ----
+// Moves ALL associated data from oldUn -> newUn (user record, sessions,
+// friends, blocked, DMs, group chats, messages, cooldownExempt, whitelist,
+// custom roles, closedDMs).  Used by both the rename and reset endpoints.
+function migrateUsername(oldUn, newUn) {
+  const user = db.users[oldUn];
+  delete db.users[oldUn];
+  user.username = newUn;
+  db.users[newUn] = user;
+
+  for (const [sid, un] of Object.entries(db.sessions)) {
+    if (un === oldUn) db.sessions[sid] = newUn;
+  }
+
+  if (db.friends) {
+    const f = db.friends[oldUn];
+    if (f) { delete db.friends[oldUn]; db.friends[newUn] = f; }
+    for (const [un, fr] of Object.entries(db.friends)) {
+      if (fr.friends) fr.friends = fr.friends.map(x => x === oldUn ? newUn : x);
+      if (fr.sent) fr.sent = fr.sent.map(x => x === oldUn ? newUn : x);
+      if (fr.received) fr.received = fr.received.map(x => x === oldUn ? newUn : x);
+    }
+  }
+
+  if (db.blocked) {
+    const bl = db.blocked[oldUn];
+    if (bl) { delete db.blocked[oldUn]; db.blocked[newUn] = bl; }
+    for (const [un, arr] of Object.entries(db.blocked)) {
+      db.blocked[un] = arr.map(x => x === oldUn ? newUn : x);
+    }
+  }
+
+  if (db.dms) {
+    const myDMs = db.dms[oldUn];
+    if (myDMs) { delete db.dms[oldUn]; db.dms[newUn] = myDMs; }
+    for (const [un, convos] of Object.entries(db.dms)) {
+      if (un === newUn) continue;
+      if (convos && convos[oldUn]) { convos[newUn] = convos[oldUn]; delete convos[oldUn]; }
+      if (convos) {
+        for (const convo of Object.values(convos)) {
+          if (Array.isArray(convo)) convo.forEach(m => { if (m.from === oldUn) m.from = newUn; if (m.to === oldUn) m.to = newUn; });
+        }
+      }
+    }
+    if (db.dms[newUn]) {
+      for (const convo of Object.values(db.dms[newUn])) {
+        if (Array.isArray(convo)) convo.forEach(m => { if (m.from === oldUn) m.from = newUn; if (m.to === oldUn) m.to = newUn; });
+      }
+    }
+  }
+
+  if (Array.isArray(db.groupChats)) {
+    for (const g of db.groupChats) {
+      if (g.owner === oldUn) g.owner = newUn;
+      if (Array.isArray(g.members)) g.members = g.members.map(m => m === oldUn ? newUn : m);
+      if (Array.isArray(g.messages)) g.messages.forEach(m => { if (m.username === oldUn) m.username = newUn; if (m.from === oldUn) m.from = newUn; });
+    }
+  }
+
+  if (Array.isArray(db.messages)) db.messages.forEach(m => { if (m.username === oldUn) m.username = newUn; });
+
+  if (Array.isArray(db.cooldownExempt)) db.cooldownExempt = db.cooldownExempt.map(x => x === oldUn ? newUn : x);
+  if (Array.isArray(db.whitelist)) db.whitelist = db.whitelist.map(x => x === oldUn ? newUn : x);
+
+  if (Array.isArray(db.customRoles)) {
+    for (const role of db.customRoles) {
+      if (Array.isArray(role.members)) role.members = role.members.map(x => x === oldUn ? newUn : x);
+    }
+  }
+
+  for (const u of Object.values(db.users)) {
+    if (Array.isArray(u.closedDMs)) u.closedDMs = u.closedDMs.map(x => x === oldUn ? newUn : x);
+  }
+  return user;
+}
+
+// Generate a unique reset username of the form reset_user_XXXXXXX with a
+// random 7-digit number that is different every time (collision-checked).
+function generateResetUsername() {
+  let candidate;
+  let attempts = 0;
+  do {
+    const num = Math.floor(1000000 + Math.random() * 9000000); // 7 digits
+    candidate = 'reset_user_' + num;
+    attempts++;
+  } while (db.users[candidate] && attempts < 1000);
+  return candidate;
+}
+
 // Admin: Rename a user's USERNAME (the login handle / @handle).
 // This bypasses the normal 3-20 character limit so admins can set short
 // (1-2 char) or longer usernames. Basic safety is still enforced: the new
@@ -2487,92 +2576,7 @@ app.post('/api/admin/rename-user', authMiddleware, adminMiddleware, (req, res) =
   if (newUn === oldUn) return res.status(400).json({ error: 'New username is the same as the current one' });
   if (db.users[newUn]) return res.status(409).json({ error: 'That username is already taken' });
 
-  // ---- Migrate user data ----
-  const user = db.users[oldUn];
-  delete db.users[oldUn];
-  user.username = newUn;
-  db.users[newUn] = user;
-
-  // ---- Migrate sessions ----
-  for (const [sid, un] of Object.entries(db.sessions)) {
-    if (un === oldUn) db.sessions[sid] = newUn;
-  }
-
-  // ---- Migrate friends ----
-  if (db.friends) {
-    const f = db.friends[oldUn];
-    if (f) { delete db.friends[oldUn]; db.friends[newUn] = f; }
-    for (const [un, fr] of Object.entries(db.friends)) {
-      if (fr.friends) fr.friends = fr.friends.map(x => x === oldUn ? newUn : x);
-      if (fr.sent) fr.sent = fr.sent.map(x => x === oldUn ? newUn : x);
-      if (fr.received) fr.received = fr.received.map(x => x === oldUn ? newUn : x);
-    }
-  }
-
-  // ---- Migrate blocked ----
-  if (db.blocked) {
-    const bl = db.blocked[oldUn];
-    if (bl) { delete db.blocked[oldUn]; db.blocked[newUn] = bl; }
-    for (const [un, arr] of Object.entries(db.blocked)) {
-      db.blocked[un] = arr.map(x => x === oldUn ? newUn : x);
-    }
-  }
-
-  // ---- Migrate DMs ----
-  if (db.dms) {
-    const myDMs = db.dms[oldUn];
-    if (myDMs) { delete db.dms[oldUn]; db.dms[newUn] = myDMs; }
-    for (const [un, convos] of Object.entries(db.dms)) {
-      if (un === newUn) continue;
-      if (convos && convos[oldUn]) { convos[newUn] = convos[oldUn]; delete convos[oldUn]; }
-      // Update from/to fields inside DM messages
-      if (convos) {
-        for (const convo of Object.values(convos)) {
-          if (Array.isArray(convo)) convo.forEach(m => { if (m.from === oldUn) m.from = newUn; if (m.to === oldUn) m.to = newUn; });
-        }
-      }
-    }
-    // Also fix from/to inside the renamed user's own conversations
-    if (db.dms[newUn]) {
-      for (const convo of Object.values(db.dms[newUn])) {
-        if (Array.isArray(convo)) convo.forEach(m => { if (m.from === oldUn) m.from = newUn; if (m.to === oldUn) m.to = newUn; });
-      }
-    }
-  }
-
-  // ---- Migrate group chats (owner + members + message usernames) ----
-  if (Array.isArray(db.groupChats)) {
-    for (const g of db.groupChats) {
-      if (g.owner === oldUn) g.owner = newUn;
-      if (Array.isArray(g.members)) g.members = g.members.map(m => m === oldUn ? newUn : m);
-      if (Array.isArray(g.messages)) g.messages.forEach(m => { if (m.username === oldUn) m.username = newUn; if (m.from === oldUn) m.from = newUn; });
-    }
-  }
-
-  // ---- Update public chat message usernames ----
-  if (Array.isArray(db.messages)) db.messages.forEach(m => { if (m.username === oldUn) m.username = newUn; });
-
-  // ---- Migrate cooldownExempt list ----
-  if (Array.isArray(db.cooldownExempt)) {
-    db.cooldownExempt = db.cooldownExempt.map(x => x === oldUn ? newUn : x);
-  }
-
-  // ---- Migrate whitelist ----
-  if (Array.isArray(db.whitelist)) {
-    db.whitelist = db.whitelist.map(x => x === oldUn ? newUn : x);
-  }
-
-  // ---- Migrate custom role memberships ----
-  if (Array.isArray(db.customRoles)) {
-    for (const role of db.customRoles) {
-      if (Array.isArray(role.members)) role.members = role.members.map(x => x === oldUn ? newUn : x);
-    }
-  }
-
-  // ---- Migrate closedDMs references on every user ----
-  for (const u of Object.values(db.users)) {
-    if (Array.isArray(u.closedDMs)) u.closedDMs = u.closedDMs.map(x => x === oldUn ? newUn : x);
-  }
+  migrateUsername(oldUn, newUn);
 
   if (!db.adminActivity) db.adminActivity = [];
   db.adminActivity.push({ action: 'rename-user', admin: req.user.username, target: oldUn, reason: oldUn + ' -> ' + newUn, timestamp: nowISO() });
@@ -2583,6 +2587,32 @@ app.post('/api/admin/rename-user', authMiddleware, adminMiddleware, (req, res) =
   io.emit('username-changed', { oldUsername: oldUn, newUsername: newUn, username: newUn, adminRenamed: true });
   // Force the renamed user's own client to reload their session info.
   io.to('user:' + newUn).emit('force-reload', { reason: 'Your username was changed by an admin.' });
+  broadcastProfile(newUn);
+  emitUsersList();
+  res.json({ success: true, oldUsername: oldUn, newUsername: newUn, user: publicUser(target) });
+});
+
+// Admin: Reset a user's username. Generates a random handle of the form
+// reset_user_XXXXXXX (7-digit number, different every time, collision-checked)
+// and migrates all associated data to it. Useful for anonymising / clearing
+// an offensive or compromised username.
+app.post('/api/admin/reset-name', authMiddleware, adminMiddleware, (req, res) => {
+  const { username } = req.body || {};
+  if (!username) return res.status(400).json({ error: 'Target username required' });
+  const oldUn = String(username).toLowerCase().trim();
+  const target = db.users[oldUn];
+  if (!target) return res.status(404).json({ error: 'User not found' });
+  const newUn = generateResetUsername();
+  if (newUn === oldUn) return res.status(500).json({ error: 'Could not generate a unique reset name' });
+
+  migrateUsername(oldUn, newUn);
+
+  if (!db.adminActivity) db.adminActivity = [];
+  db.adminActivity.push({ action: 'reset-name', admin: req.user.username, target: oldUn, reason: oldUn + ' -> ' + newUn, timestamp: nowISO() });
+  saveDB();
+
+  io.emit('username-changed', { oldUsername: oldUn, newUsername: newUn, username: newUn, adminRenamed: true });
+  io.to('user:' + newUn).emit('force-reload', { reason: 'Your username was reset by an admin.' });
   broadcastProfile(newUn);
   emitUsersList();
   res.json({ success: true, oldUsername: oldUn, newUsername: newUn, user: publicUser(target) });

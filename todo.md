@@ -1,7 +1,8 @@
-# Round 3 — Adjust Profile Picture UI Sizing + Loading Fix
+# Round 4 — Admin reset-name, BG scale UI, accent icon removal, revamped Current Accent
 
 ## Tasks
-- [x] 1. Make Adjust Profile Picture UI smaller/wider (avatar frame capped to 264px square, centered in fixed 300px stage; modal 620px -> 560px)
-- [x] 2. Make Adjust Profile Picture & Adjust Banner the same UI size (both share a fixed 300px-height preview stage)
-- [x] 3. Fix "slowly loading all the way down delay" (image stays opacity:0 via .loading class until img.onload fires, then fades in — no reflow/crawl)
-- [x] 4. Commit, push, deploy, verify (commit 2bcd167, live on render, no data wiped)
+- [x] 1. Admin panel "Rename a User": added "Reset Name" button + /api/admin/reset-name endpoint; resets to reset_user_XXXXXXX with random unique 7-digit number (refactored migrateUsername helper, collision-checked)
+- [x] 2. Removed the picture/image icon from the Chat Background card header
+- [x] 3. Chat Background scale UI now matches the Adjust Profile Picture scale UI (grouped dark cards, uppercase labels, pill value badges, accent-colored thumb sliders)
+- [x] 4. Removed the painting icon from the Website Accent Color card header; revamped Current Accent with advanced UI (large gradient swatch, hex, RGB chips, HSL readout, readability meter, live preview tiles)
+- [ ] 5. Commit, push, deploy, verify (no data wiped)
