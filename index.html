@@ -11122,26 +11122,29 @@ function attachUserListListeners() {
           openDM(un);
         } },
       ];
-      // Open / Close Conversation (DM) — context-aware based on closedDMs state
+      // Open / Close Conversation (DM) — always show both options when DMs enabled.
+      // "Open Conversation" opens the DM AND adds the user to the Messages tab
+      // instantly (regardless of whether a message has been sent).
+      // "Close Conversation" removes the user from the Messages tab.
       const targetForDM = users.find(x => x.username === un);
       const otherOff = targetForDM && targetForDM.directMessagesEnabled === false;
       if (!otherOff) {
         const isClosed = closedDMs.some(c => c.toLowerCase() === un.toLowerCase());
-        if (isClosed) {
-          items.push({ label: 'Open Conversation', icon: 'dm', action: () => {
-            // Optimistic: remove from closedDMs locally so the list updates instantly.
+        items.push({ label: 'Open Conversation', icon: 'dm', action: () => {
+          // If the conversation was previously closed, reopen it first.
+          if (isClosed) {
             closedDMs = closedDMs.filter(c => c.toLowerCase() !== un.toLowerCase());
             toast('Conversation has been reopened.', 'success');
             fetch(API_BASE + '/api/dms/reopen/' + encodeURIComponent(un), { method: 'POST' }).then(() => {
               loadDMConversations();
             }).catch(() => {});
-            // Optimistically add the conversation to the Messages tab right away.
-            ensureDMConversation(un);
-            openDM(un);
-          } });
-        } else {
-          items.push({ label: 'Close Conversation', icon: 'close', action: () => closeDM(un) });
-        }
+          }
+          // Optimistically add the conversation to the Messages tab right away
+          // so the user appears there even if no message has been sent yet.
+          ensureDMConversation(un);
+          openDM(un);
+        } });
+        items.push({ label: 'Close Conversation', icon: 'close', action: () => closeDM(un) });
       }
       // Friend-related action is context-aware
       if (isFriend) {
