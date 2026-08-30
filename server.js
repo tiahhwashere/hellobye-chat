@@ -3261,7 +3261,7 @@ io.on('connection', (socket) => {
   socket.emit('welcome-title-changed', { title: db.welcomeTitle || 'welcome - to the safe place' });
 
   // ---- Send message ----
-  socket.on('send-message', ({ text, file, files, reply }, ack) => {
+  socket.on('send-message', ({ text, file, files, reply, spoiler }, ack) => {
     try {
       // Mute check — muted users cannot send public chat messages.
       // (DMs are intentionally NOT affected by mutes.)
@@ -3301,6 +3301,7 @@ io.on('connection', (socket) => {
         deleted: false,
         deletedAt: null,
         displayName: user.displayName,
+        spoiler: !!spoiler,
       };
       db.messages.push(msg);
       if (db.messages.length > 1000) db.messages = db.messages.slice(-1000);
@@ -3387,7 +3388,7 @@ io.on('connection', (socket) => {
   });
 
   // ---- DM send ----
-  socket.on('dm-send', ({ to, text, file, files, reply }, ack) => {
+  socket.on('dm-send', ({ to, text, file, files, reply, spoiler }, ack) => {
     try {
       const target = to ? to.toLowerCase() : '';
       if (!db.users[target]) { if (typeof ack === 'function') ack({ error: 'User not found' }); return; }
@@ -3418,6 +3419,7 @@ io.on('connection', (socket) => {
         deletedAt: null,
         displayName: user.displayName,
         read: false,
+        spoiler: !!spoiler,
       };
       // Store in both users' DM maps
       const myDMs = db.dms[username] || (db.dms[username] = {});
@@ -3532,7 +3534,7 @@ io.on('connection', (socket) => {
   });
 
   // ---- Group chat send ----
-  socket.on('group-send', ({ groupId, text, file, files, reply }, ack) => {
+  socket.on('group-send', ({ groupId, text, file, files, reply, spoiler }, ack) => {
     try {
       const g = findGroup(groupId);
       if (!g) { if (typeof ack === 'function') ack({ error: 'Group not found' }); return; }
@@ -3565,6 +3567,7 @@ io.on('connection', (socket) => {
         deleted: false,
         deletedAt: null,
         displayName: user.displayName,
+        spoiler: !!spoiler,
       };
       g.messages.push(msg);
       if (g.messages.length > 2000) g.messages = g.messages.slice(-2000);

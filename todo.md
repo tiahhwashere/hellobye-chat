@@ -40,3 +40,14 @@
 - [x] 2. Make media embeds wider (images: 360px→480px, videos: 380px→500px, audio: 320px→400px, file-attachment: 360px→480px) and redesign with non-cartoony, professional look (subtle borders, refined shadows, cleaner radius)
 - [x] 3. Update mobile responsive overrides to match the wider embeds
 - [x] 4. Syntax check, commit, push, wait for Render auto-deploy, verify live
+
+
+# Round 5j — Remove GIF picker option, add optional spoiler for file messages, rename "Send in Chat", revamp UI
+
+## Tasks
+- [x] 1. Investigate current attach/send UI: find "Send a GIF / Video" vs "Send Image/Video" UI elements, "Send in Chat" text, file attach dropdown/buttons
+- [x] 2. Remove the "Send a GIF / Video" option UI (keep the image/video file upload) — attach buttons now directly trigger file input
+- [x] 3. Add optional spoiler feature: when sending files, user can mark as spoiler; message content hidden until clicked (client → socket → server → render chain)
+- [x] 4. Rename "Send in Chat" → "Share in Chat" / "Share in Direct Message" / "Share in Group"; confirm button "Send"→"Share"; modal title "Send Media"→"Share Attachment"
+- [x] 5. Revamp and modernize the media-send-modal UI — header with icon, custom spoiler toggle switch, improved preview area, refined spacing
+- [x] 6. Syntax check (both pass), commit, push, wait for Render auto-deploy, verify live

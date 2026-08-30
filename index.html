@@ -3872,31 +3872,133 @@ body.no-anim .friend-item { animation: none !important; }
 .url-preview-loading { font-size: 13px; color: var(--text-muted); }
 
 /* ============================================
-   MEDIA SEND CONFIRM MODAL
+   MEDIA SEND CONFIRM MODAL — revamped, advanced design
    ============================================ */
 #media-send-modal { z-index: 380 !important; }
-.media-send-modal { max-width: 480px; text-align: left; }
-.media-send-preview {
-  margin: 16px 0; background: var(--bg-darkest); border-radius: var(--radius);
-  padding: 12px; display: flex; align-items: center; justify-content: center;
-  min-height: 80px; max-height: 300px; overflow: hidden;
+.media-send-modal {
+  max-width: 500px; text-align: left;
+  border-radius: 16px; overflow: hidden;
 }
-.media-send-preview img { max-width: 100%; max-height: 240px; border-radius: var(--radius-sm); object-fit: contain; }
-.media-send-preview video { max-width: 100%; max-height: 240px; border-radius: var(--radius-sm); }
+.media-send-header {
+  display: flex; align-items: center; gap: 14px;
+  margin-bottom: 4px;
+}
+.media-send-header-icon {
+  width: 42px; height: 42px; border-radius: 10px;
+  background: var(--accent-dim); color: var(--accent);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.media-send-header-icon svg { width: 22px; height: 22px; }
+.media-send-header-text { flex: 1; min-width: 0; }
+.media-send-header-text h3 { margin: 0 0 2px; font-size: 18px; font-weight: 700; }
+.media-send-header-text .setting-hint { margin: 0; font-size: 13px; }
+.media-send-preview {
+  margin: 18px 0 14px; background: var(--bg-darkest);
+  border: 1px solid rgba(255,255,255,0.05); border-radius: 10px;
+  padding: 14px; display: flex; align-items: center; justify-content: center;
+  min-height: 80px; max-height: 320px; overflow: hidden;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.2);
+}
+.media-send-preview img { max-width: 100%; max-height: 260px; border-radius: 8px; object-fit: contain; }
+.media-send-preview video { max-width: 100%; max-height: 260px; border-radius: 8px; }
 .media-send-preview audio { width: 100%; }
 .media-send-preview .media-file-card {
   display: flex; align-items: center; gap: 12px; width: 100%;
-  background: var(--bg-medium); padding: 12px; border-radius: var(--radius-sm);
+  background: var(--bg-medium); padding: 14px; border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.05);
 }
 .media-send-preview .media-file-card .file-icon { width: 44px; height: 44px; font-size: 13px; }
-.media-send-caption-row { margin-bottom: 16px; }
+.media-send-caption-row { margin-bottom: 14px; }
 .media-send-caption-row textarea {
-  width: 100%; box-sizing: border-box; padding: 10px 12px; resize: vertical;
+  width: 100%; box-sizing: border-box; padding: 12px 14px; resize: vertical;
   background: var(--bg-darkest); border: 1px solid var(--border);
-  border-radius: var(--radius-sm); color: var(--text-primary); font-size: 14px;
-  font-family: inherit; transition: var(--transition);
+  border-radius: 8px; color: var(--text-primary); font-size: 14px;
+  font-family: inherit; transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  line-height: 1.5;
 }
-.media-send-caption-row textarea:focus { outline: none; border-color: var(--accent); }
+.media-send-caption-row textarea:focus {
+  outline: none; border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(var(--accent-rgb, 99,102,241), 0.12);
+}
+/* Spoiler toggle option row */
+.media-send-options {
+  margin-bottom: 18px;
+}
+.media-send-spoiler-toggle {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 14px; background: var(--bg-darkest);
+  border: 1px solid var(--border); border-radius: 10px;
+  cursor: pointer; transition: border-color 0.2s ease, background 0.2s ease;
+  user-select: none;
+}
+.media-send-spoiler-toggle:hover { border-color: rgba(255,255,255,0.12); background: rgba(255,255,255,0.03); }
+.media-send-spoiler-toggle input[type="checkbox"] { display: none; }
+.spoiler-toggle-track {
+  width: 38px; height: 22px; border-radius: 11px;
+  background: rgba(255,255,255,0.1); position: relative;
+  transition: background 0.25s ease; flex-shrink: 0;
+}
+.spoiler-toggle-thumb {
+  position: absolute; top: 3px; left: 3px;
+  width: 16px; height: 16px; border-radius: 50%;
+  background: #fff; transition: transform 0.25s ease, background 0.25s ease;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+.media-send-spoiler-toggle input:checked ~ .spoiler-toggle-track {
+  background: var(--accent);
+}
+.media-send-spoiler-toggle input:checked ~ .spoiler-toggle-track .spoiler-toggle-thumb {
+  transform: translateX(16px);
+}
+.spoiler-toggle-label {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 14px; font-weight: 600; color: var(--text-primary);
+}
+.spoiler-toggle-icon { width: 16px; height: 16px; color: var(--text-muted); }
+.media-send-spoiler-toggle input:checked ~ .spoiler-toggle-label .spoiler-toggle-icon {
+  color: var(--accent);
+}
+.spoiler-toggle-hint {
+  font-size: 11px; color: var(--text-muted); font-weight: 400;
+  margin-left: auto; white-space: nowrap;
+}
+
+/* ============================================
+   SPOILER OVERLAY (in messages)
+   ============================================ */
+.spoiler-wrapper {
+  position: relative; display: inline-block; max-width: 100%;
+  border-radius: 6px; overflow: hidden;
+}
+.spoiler-content {
+  /* Content is blurred/hidden until revealed */
+  filter: blur(12px); opacity: 0.5;
+  transition: filter 0.3s ease, opacity 0.3s ease;
+  pointer-events: none; user-select: none;
+}
+.spoiler-wrapper.revealed .spoiler-content {
+  filter: none; opacity: 1; pointer-events: auto; user-select: auto;
+}
+.spoiler-overlay {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  background: rgba(20,20,25,0.85); backdrop-filter: blur(4px);
+  color: var(--text-secondary); font-size: 13px; font-weight: 600;
+  cursor: pointer; z-index: 5;
+  border-radius: 6px;
+  transition: background 0.2s ease, color 0.2s ease;
+  padding: 8px 14px; text-align: center;
+}
+.spoiler-overlay:hover {
+  background: rgba(30,30,38,0.9); color: var(--text-primary);
+}
+.spoiler-overlay svg { color: var(--accent); }
+.spoiler-click-hint {
+  font-size: 11px; font-weight: 400; color: var(--text-muted);
+  margin-left: 4px;
+}
+.spoiler-overlay:hover .spoiler-click-hint { color: var(--text-secondary); }
 
 /* ============================================
    CONTEXT MENU
@@ -4992,6 +5094,9 @@ body.no-anim .friend-item { animation: none !important; }
 @media (max-width: 480px) {
   .media-send-modal { max-width: calc(100vw - 16px); }
   .media-send-preview img, .media-send-preview video { max-height: 200px; }
+  .spoiler-toggle-hint { display: none; }
+  .media-send-header-icon { width: 36px; height: 36px; }
+  .media-send-header-text h3 { font-size: 16px; }
 }
 
 /* ============================================
@@ -5770,15 +5875,10 @@ body.no-anim .friend-item { animation: none !important; }
           <input type="file" id="file-input" hidden multiple>
           <input type="file" id="gif-file-input" accept="image/gif,video/*" hidden multiple>
           <div class="attach-dropdown" id="attach-dropdown">
-            <div class="attach-dropdown-item" id="attach-gif-btn">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><text x="7" y="15" font-size="7" font-weight="bold" fill="currentColor" stroke="none">GIF</text></svg>
-              <span class="attach-dropdown-label">Send a GIF / Video</span>
-              <span class="attach-dropdown-hint">From your device (max 150MB)</span>
-            </div>
             <div class="attach-dropdown-item" id="attach-file-btn">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
-              <span class="attach-dropdown-label">Send Image/Video</span>
-              <span class="attach-dropdown-hint">From your device (max 150MB)</span>
+              <span class="attach-dropdown-label">Upload File</span>
+              <span class="attach-dropdown-hint">Image, video, or any file (max 150MB)</span>
             </div>
           </div>
           <textarea class="chat-textarea" id="chat-input" placeholder="Message" rows="1"></textarea>
@@ -7116,15 +7216,10 @@ body.no-anim .friend-item { animation: none !important; }
           <input type="file" id="dm-file-input" hidden multiple>
           <input type="file" id="dm-gif-file-input" accept="image/gif,video/*" hidden multiple>
           <div class="attach-dropdown" id="dm-attach-dropdown">
-            <div class="attach-dropdown-item" id="dm-attach-gif-btn">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><text x="7" y="15" font-size="7" font-weight="bold" fill="currentColor" stroke="none">GIF</text></svg>
-              <span class="attach-dropdown-label">Send a GIF / Video</span>
-              <span class="attach-dropdown-hint">From your device (max 150MB)</span>
-            </div>
             <div class="attach-dropdown-item" id="dm-attach-file-btn">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
-              <span class="attach-dropdown-label">Send Image/Video</span>
-              <span class="attach-dropdown-hint">From your device (max 150MB)</span>
+              <span class="attach-dropdown-label">Upload File</span>
+              <span class="attach-dropdown-hint">Image, video, or any file (max 150MB)</span>
             </div>
           </div>
           <textarea class="chat-textarea" id="dm-input" placeholder="Message @user" rows="1"></textarea>
@@ -7186,15 +7281,10 @@ body.no-anim .friend-item { animation: none !important; }
           <input type="file" id="group-file-input" hidden multiple>
           <input type="file" id="group-gif-file-input" accept="image/gif,video/*" hidden multiple>
           <div class="attach-dropdown" id="group-attach-dropdown">
-            <div class="attach-dropdown-item" id="group-attach-gif-btn">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><text x="7" y="15" font-size="7" font-weight="bold" fill="currentColor" stroke="none">GIF</text></svg>
-              <span class="attach-dropdown-label">Send a GIF / Video</span>
-              <span class="attach-dropdown-hint">From your device (max 150MB)</span>
-            </div>
             <div class="attach-dropdown-item" id="group-attach-file-btn">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
-              <span class="attach-dropdown-label">Send Image/Video</span>
-              <span class="attach-dropdown-hint">From your device (max 150MB)</span>
+              <span class="attach-dropdown-label">Upload File</span>
+              <span class="attach-dropdown-hint">Image, video, or any file (max 150MB)</span>
             </div>
           </div>
           <textarea class="chat-textarea" id="group-input" placeholder="Message the group" rows="1"></textarea>
@@ -7316,17 +7406,35 @@ body.no-anim .friend-item { animation: none !important; }
   <!-- ===================== MEDIA SEND CONFIRM MODAL ===================== -->
   <div class="modal-overlay" id="media-send-modal">
     <div class="modal media-send-modal">
-      <h3 id="media-send-title">Send Media</h3>
-      <p class="setting-hint">Add a caption (optional) then confirm to send.</p>
+      <div class="media-send-header">
+        <div class="media-send-header-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+        </div>
+        <div class="media-send-header-text">
+          <h3 id="media-send-title">Share Attachment</h3>
+          <p class="setting-hint" id="media-send-subtitle">Add a caption below, then confirm to share.</p>
+        </div>
+      </div>
       <div class="media-send-preview" id="media-send-preview"></div>
       <div class="media-send-caption-row">
-        <textarea id="media-send-caption" placeholder="Add a caption" rows="2" maxlength="500"></textarea>
+        <textarea id="media-send-caption" placeholder="Add a caption (optional)" rows="2" maxlength="500"></textarea>
+      </div>
+      <div class="media-send-options">
+        <label class="media-send-spoiler-toggle">
+          <input type="checkbox" id="media-send-spoiler">
+          <span class="spoiler-toggle-track"><span class="spoiler-toggle-thumb"></span></span>
+          <span class="spoiler-toggle-label">
+            <svg class="spoiler-toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/><line x1="3" y1="3" x2="21" y2="21" stroke-width="2.5"/></svg>
+            Mark as Spoiler
+          </span>
+          <span class="spoiler-toggle-hint">Hides content until clicked</span>
+        </label>
       </div>
       <div class="modal-actions">
         <button class="modal-btn" id="media-send-cancel">Cancel</button>
         <button class="modal-btn primary" id="media-send-confirm">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:4px;"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-          Send
+          Share
         </button>
       </div>
     </div>
@@ -9571,11 +9679,19 @@ function appendMessage(msg, silent) {
       const quote = createReplyQuote(msg.reply);
       if (quote) bubble.appendChild(quote);
     }
+    // Determine the parent element for text + files.
+    // If the message is a spoiler, content goes into a spoiler wrapper.
+    let contentParent = bubble;
+    let spoilerWrap = null;
+    if (msg.spoiler) {
+      spoilerWrap = createSpoilerWrapper();
+      contentParent = spoilerWrap.content;
+    }
     if (msg.text) {
       const textSpan = document.createElement('span');
       textSpan.className = 'message-text';
       textSpan.innerHTML = highlightMentions(linkifyAndEmbed(escapeHtml(msg.text)));
-      bubble.appendChild(textSpan);
+      contentParent.appendChild(textSpan);
       // Add pinged class if this message mentions the current user
       if (msg.pingedForMe) bubble.classList.add('pinged-msg');
       // Make mention spans clickable to open profile + hover tooltip
@@ -9583,11 +9699,12 @@ function appendMessage(msg, silent) {
       // Embed links
       textSpan.querySelectorAll('.link-embed').forEach(el => fetchEmbed(el.dataset.url, el));
     }
-    if (msg.file) { bubble.appendChild(createFileElement(msg.file)); }
+    if (msg.file) { contentParent.appendChild(createFileElement(msg.file)); }
     // Multi-file attachments
     if (msg.files && Array.isArray(msg.files) && msg.files.length > 0) {
-      msg.files.forEach(f => { if (f) bubble.appendChild(createFileElement(f)); });
+      msg.files.forEach(f => { if (f) contentParent.appendChild(createFileElement(f)); });
     }
+    if (spoilerWrap) bubble.appendChild(spoilerWrap.wrapper);
     // Media-only bubbles (no text, no reply) get a flat/transparent style so
     // images & videos aren't wrapped in an accent-colored box.
     const hasMedia = !!(msg.file || (msg.files && msg.files.length));
@@ -9665,6 +9782,31 @@ function appendMessage(msg, silent) {
   group.appendChild(avatarDiv);
   group.appendChild(wrap);
   container.appendChild(group);
+}
+
+// ---------- Spoiler Wrapper ----------
+// Wraps message content (text + files) in a spoiler overlay that hides
+// the content until the user clicks to reveal it.
+function createSpoilerWrapper() {
+  const wrapper = document.createElement('div');
+  wrapper.className = 'spoiler-wrapper';
+
+  const content = document.createElement('div');
+  content.className = 'spoiler-content';
+
+  const overlay = document.createElement('div');
+  overlay.className = 'spoiler-overlay';
+  overlay.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;flex-shrink:0;"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg><span>Spoiler</span><span class="spoiler-click-hint">Click to reveal</span>';
+
+  overlay.addEventListener('click', (e) => {
+    e.stopPropagation();
+    wrapper.classList.add('revealed');
+    overlay.style.display = 'none';
+  });
+
+  wrapper.appendChild(content);
+  wrapper.appendChild(overlay);
+  return { wrapper, content };
 }
 
 function createFileElement(file) {
@@ -10151,9 +10293,9 @@ async function sendMessage() {
       file: pendingFile,
       context: 'chat',
       initialCaption: text,
-      onConfirm: (caption) => {
+      onConfirm: (caption, spoiler) => {
         chatInput.value = ''; updateSendButton();
-        doSendMessage(caption);
+        doSendMessage(caption, spoiler);
       }
     });
     return;
@@ -10201,7 +10343,7 @@ function uploadFileWithProgress(file, bar) {
   });
 }
 
-async function doSendMessage(text) {
+async function doSendMessage(text, spoiler) {
   if (!text && !pendingFile) return;
   const isExempt = !!(currentUser && currentUser.cooldownExempt);
   if (!isExempt && Date.now() < chatCooldownEnds) {
@@ -10238,7 +10380,7 @@ async function doSendMessage(text) {
     allFiles = extraFileData.slice(0, 5);
   }
   // Send the message (text + all files in one message)
-  socket.emit('send-message', { text, file: fileData, files: allFiles, reply: replyingTo }, (res) => {
+  socket.emit('send-message', { text, file: fileData, files: allFiles, reply: replyingTo, spoiler: !!spoiler }, (res) => {
     if (res && res.error) {
       toast(res.error, 'error');
       if (res.muted) {
@@ -10588,30 +10730,10 @@ function positionAttachDropdown(dropdown, btn) {
   dropdown.style.left = Math.round(left) + 'px';
   dropdown.style.top = Math.round(top) + 'px';
 }
-// Attach dropdown: clicking the attach button toggles a menu (Send GIF / Send Image-Video)
+// Attach button: directly opens the file picker (single option: Upload File)
 $('attach-btn').addEventListener('click', (e) => {
   e.stopPropagation();
   if (recordSpamClick()) return;
-  const dd = $('attach-dropdown');
-  const isOpen = dd.classList.contains('show');
-  // Close DM dropdown if open
-  $('dm-attach-dropdown').classList.remove('show');
-  $('dm-attach-btn').classList.remove('active');
-  // Close group dropdown if open
-  const gdd0 = $('group-attach-dropdown');
-  if (gdd0) { gdd0.classList.remove('show'); $('group-attach-btn').classList.remove('active'); }
-  if (isOpen) { dd.classList.remove('show'); $('attach-btn').classList.remove('active'); }
-  else { dd.classList.add('show'); $('attach-btn').classList.add('active'); positionAttachDropdown(dd, $('attach-btn')); }
-});
-$('attach-gif-btn').addEventListener('click', () => {
-  $('attach-dropdown').classList.remove('show');
-  $('attach-btn').classList.remove('active');
-  gifPickerContext = 'chat';
-  openGifPicker();
-});
-$('attach-file-btn').addEventListener('click', () => {
-  $('attach-dropdown').classList.remove('show');
-  $('attach-btn').classList.remove('active');
   fileInput.click();
 });
 // ---------- GIF / Video device picker (chat) ----------
@@ -10648,38 +10770,13 @@ gifFileInput.addEventListener('change', (e) => {
   updateSendButton();
   gifFileInput.value = '';
 });
-// Close dropdown when clicking elsewhere
-document.addEventListener('click', (e) => {
-  if (!e.target.closest('#attach-btn') && !e.target.closest('#attach-dropdown')) {
-    $('attach-dropdown').classList.remove('show');
-    $('attach-btn').classList.remove('active');
-  }
-  if (!e.target.closest('#dm-attach-btn') && !e.target.closest('#dm-attach-dropdown')) {
-    $('dm-attach-dropdown').classList.remove('show');
-    $('dm-attach-btn').classList.remove('active');
-  }
-  if (!e.target.closest('#group-attach-btn') && !e.target.closest('#group-attach-dropdown')) {
-    const gdd = $('group-attach-dropdown');
-    if (gdd) { gdd.classList.remove('show'); $('group-attach-btn').classList.remove('active'); }
-  }
-});
-// Reposition open attach dropdowns on resize/scroll
+// (Attach dropdowns removed - attach buttons now directly open the file picker)
 window.addEventListener('resize', () => {
-  if ($('attach-dropdown').classList.contains('show')) positionAttachDropdown($('attach-dropdown'), $('attach-btn'));
-  if ($('dm-attach-dropdown').classList.contains('show')) positionAttachDropdown($('dm-attach-dropdown'), $('dm-attach-btn'));
-  const gdd = $('group-attach-dropdown');
-  if (gdd && gdd.classList.contains('show')) positionAttachDropdown(gdd, $('group-attach-btn'));
   /* Re-apply the members-list background so its height-anchored sizing tracks
      the sidebar's new height after a browser zoom or viewport change. */
   if (typeof applyMembersBg === 'function') applyMembersBg();
 });
 window.addEventListener('orientationchange', () => { setTimeout(() => { if (typeof applyMembersBg === 'function') applyMembersBg(); }, 220); });
-window.addEventListener('scroll', () => {
-  if ($('attach-dropdown').classList.contains('show')) positionAttachDropdown($('attach-dropdown'), $('attach-btn'));
-  if ($('dm-attach-dropdown').classList.contains('show')) positionAttachDropdown($('dm-attach-dropdown'), $('dm-attach-btn'));
-  const gdd = $('group-attach-dropdown');
-  if (gdd && gdd.classList.contains('show')) positionAttachDropdown(gdd, $('group-attach-btn'));
-}, true);
 const MAX_FILES = 5;
 fileInput.addEventListener('change', (e) => {
   const files = Array.from(e.target.files || []);
@@ -12103,19 +12200,27 @@ function appendGroupMessage(msg, silent) {
       const quote = createReplyQuote(msg.reply);
       if (quote) bubble.appendChild(quote);
     }
+    // Determine the parent element for text + files.
+    let contentParent = bubble;
+    let spoilerWrap = null;
+    if (msg.spoiler) {
+      spoilerWrap = createSpoilerWrapper();
+      contentParent = spoilerWrap.content;
+    }
     if (msg.text) {
       const textSpan = document.createElement('span');
       textSpan.className = 'message-text';
       textSpan.innerHTML = highlightMentions(linkifyAndEmbed(escapeHtml(msg.text)));
-      bubble.appendChild(textSpan);
+      contentParent.appendChild(textSpan);
       if (msg.pingedForMe) bubble.classList.add('pinged-msg');
       attachMentionEvents(textSpan);
       textSpan.querySelectorAll('.link-embed').forEach(el => fetchEmbed(el.dataset.url, el));
     }
-    if (msg.file) bubble.appendChild(createFileElement(msg.file));
+    if (msg.file) contentParent.appendChild(createFileElement(msg.file));
     if (msg.files && Array.isArray(msg.files) && msg.files.length > 0) {
-      msg.files.forEach(f => { if (f) bubble.appendChild(createFileElement(f)); });
+      msg.files.forEach(f => { if (f) contentParent.appendChild(createFileElement(f)); });
     }
+    if (spoilerWrap) bubble.appendChild(spoilerWrap.wrapper);
     const hasMedia = !!(msg.file || (msg.files && msg.files.length));
     if (hasMedia && !msg.text && !msg.reply) bubble.classList.add('media-only');
   }
@@ -12254,11 +12359,11 @@ function sendGroupMessage() {
   if (pendingGroupFile) {
     openMediaSendModal({
       file: pendingGroupFile,
-      context: 'dm',
+      context: 'group',
       initialCaption: text,
-      onConfirm: (caption) => {
+      onConfirm: (caption, spoiler) => {
         groupInputEl.value = ''; groupInputEl.style.height = 'auto'; updateGroupSend();
-        doSendGroup(caption);
+        doSendGroup(caption, spoiler);
       }
     });
     return;
@@ -12266,9 +12371,9 @@ function sendGroupMessage() {
   doSendGroup(text);
 }
 
-function doSendGroup(text) {
+function doSendGroup(text, spoiler) {
   if (!text && !pendingGroupFile) return;
-  if (pendingGroupFile) { sendGroupWithFile(text); return; }
+  if (pendingGroupFile) { sendGroupWithFile(text, spoiler); return; }
   socket.emit('group-send', { groupId: activeGroupId, text, reply: replyingToGroup }, (res) => {
     if (res && res.error) { toast(res.error, 'error'); if (res.cooldown) startGroupCooldown(res.cooldown); return; }
     if (res && res.message) {
@@ -12292,7 +12397,7 @@ function doSendGroup(text) {
   cancelGroupReply();
 }
 
-async function sendGroupWithFile(text) {
+async function sendGroupWithFile(text, spoiler) {
   const file = pendingGroupFile;
   const bar = $('dm-file-preview-bar'); // reuse the DM progress bar element
   groupSendBtn.disabled = true;
@@ -12310,7 +12415,7 @@ async function sendGroupWithFile(text) {
     let allFiles = null;
     if (fileData && extraFileData.length > 0) allFiles = [fileData, ...extraFileData].slice(0, 5);
     else if (extraFileData.length > 0) allFiles = extraFileData.slice(0, 5);
-    socket.emit('group-send', { groupId: activeGroupId, text, file: fileData, files: allFiles, reply: replyingToGroup }, (res) => {
+    socket.emit('group-send', { groupId: activeGroupId, text, file: fileData, files: allFiles, reply: replyingToGroup, spoiler: !!spoiler }, (res) => {
       if (res && res.error) { toast(res.error, 'error'); if (res.cooldown) startGroupCooldown(res.cooldown); return; }
       if (res && res.message) {
         if (!groupMessages.some(m => m.id === res.message.id)) {
@@ -12341,28 +12446,11 @@ function updateGroupConvPreview(groupId, msg) {
 }
 
 // ---- Group file attach ----
+// Group attach button: directly opens the file picker (single option: Upload File)
 $('group-attach-btn').addEventListener('click', (e) => {
   e.stopPropagation();
   if (recordSpamClick()) return;
-  const dd = $('group-attach-dropdown');
-  const isOpen = dd.classList.contains('show');
-  // Close chat & DM dropdowns if open
-  $('attach-dropdown').classList.remove('show');
-  $('attach-btn').classList.remove('active');
-  $('dm-attach-dropdown').classList.remove('show');
-  $('dm-attach-btn').classList.remove('active');
-  if (isOpen) { dd.classList.remove('show'); $('group-attach-btn').classList.remove('active'); }
-  else { dd.classList.add('show'); $('group-attach-btn').classList.add('active'); positionAttachDropdown(dd, $('group-attach-btn')); }
-});
-$('group-attach-gif-btn').addEventListener('click', () => {
-  $('group-attach-dropdown').classList.remove('show');
-  $('group-attach-btn').classList.remove('active');
-  $('group-gif-file-input').click();
-});
-$('group-attach-file-btn').addEventListener('click', () => {
-  $('group-attach-dropdown').classList.remove('show');
-  $('group-attach-btn').classList.remove('active');
-  $('group-file-input').click();
+  groupFileInput.click();
 });
 const groupFileInput = $('group-file-input');
 function handleGroupFileSelect(e, inputEl) {
@@ -12739,20 +12827,28 @@ function appendDMMessage(msg, silent) {
       const quote = createReplyQuote(msg.reply);
       if (quote) bubble.appendChild(quote);
     }
+    // Determine the parent element for text + files.
+    let contentParent = bubble;
+    let spoilerWrap = null;
+    if (msg.spoiler) {
+      spoilerWrap = createSpoilerWrapper();
+      contentParent = spoilerWrap.content;
+    }
     if (msg.text) {
       const textSpan = document.createElement('span');
       textSpan.className = 'message-text';
       textSpan.innerHTML = highlightMentions(linkifyAndEmbed(escapeHtml(msg.text)));
-      bubble.appendChild(textSpan);
+      contentParent.appendChild(textSpan);
       if (msg.pingedForMe) bubble.classList.add('pinged-msg');
       attachMentionEvents(textSpan);
       textSpan.querySelectorAll('.link-embed').forEach(el => fetchEmbed(el.dataset.url, el));
     }
-    if (msg.file) bubble.appendChild(createFileElement(msg.file));
+    if (msg.file) contentParent.appendChild(createFileElement(msg.file));
     // Multi-file attachments
     if (msg.files && Array.isArray(msg.files) && msg.files.length > 0) {
-      msg.files.forEach(f => { if (f) bubble.appendChild(createFileElement(f)); });
+      msg.files.forEach(f => { if (f) contentParent.appendChild(createFileElement(f)); });
     }
+    if (spoilerWrap) bubble.appendChild(spoilerWrap.wrapper);
     const hasMediaDM = !!(msg.file || (msg.files && msg.files.length));
     if (hasMediaDM && !msg.text && !msg.reply) bubble.classList.add('media-only');
   }
@@ -13032,28 +13128,10 @@ dmInputEl.addEventListener('blur', () => {
 
 // ---------- DM File Attachment ----------
 const dmFileInput = $('dm-file-input');
+// DM attach button: directly opens the file picker (single option: Upload File)
 $('dm-attach-btn').addEventListener('click', (e) => {
   e.stopPropagation();
   if (recordSpamClick()) return;
-  const dd = $('dm-attach-dropdown');
-  const isOpen = dd.classList.contains('show');
-  // Close chat dropdown if open
-  $('attach-dropdown').classList.remove('show');
-  $('attach-btn').classList.remove('active');
-  // Close group dropdown if open
-  const gdd1 = $('group-attach-dropdown');
-  if (gdd1) { gdd1.classList.remove('show'); $('group-attach-btn').classList.remove('active'); }
-  if (isOpen) { dd.classList.remove('show'); $('dm-attach-btn').classList.remove('active'); }
-  else { dd.classList.add('show'); $('dm-attach-btn').classList.add('active'); positionAttachDropdown(dd, $('dm-attach-btn')); }
-});
-$('dm-attach-gif-btn').addEventListener('click', () => {
-  $('dm-attach-dropdown').classList.remove('show');
-  $('dm-attach-btn').classList.remove('active');
-  $('dm-gif-file-input').click();
-});
-$('dm-attach-file-btn').addEventListener('click', () => {
-  $('dm-attach-dropdown').classList.remove('show');
-  $('dm-attach-btn').classList.remove('active');
   dmFileInput.click();
 });
 dmFileInput.addEventListener('change', (e) => {
@@ -13161,20 +13239,20 @@ function sendDM() {
       file: pendingDMFile,
       context: 'dm',
       initialCaption: text,
-      onConfirm: (caption) => {
+      onConfirm: (caption, spoiler) => {
         dmInputEl.value = ''; dmInputEl.style.height = 'auto'; updateDMSend();
-        doSendDM(caption);
+        doSendDM(caption, spoiler);
       }
     });
     return;
   }
   doSendDM(text);
 }
-function doSendDM(text) {
+function doSendDM(text, spoiler) {
   if (!text && !pendingDMFile) return;
   // If we have a file, upload it first
   if (pendingDMFile) {
-    sendDMWithFile(text);
+    sendDMWithFile(text, spoiler);
     return;
   }
   socket.emit('dm-send', { to: activeDMUser, text, reply: replyingToDM }, (res) => {
@@ -13192,7 +13270,7 @@ function doSendDM(text) {
   // Mark conversation as read and update badge immediately (we just replied)
   markDMReadAndBadge();
 }
-async function sendDMWithFile(text) {
+async function sendDMWithFile(text, spoiler) {
   const file = pendingDMFile;
   const bar = $('dm-file-preview-bar');
   const sendBtn = $('dm-send-btn');
@@ -13219,7 +13297,7 @@ async function sendDMWithFile(text) {
     } else if (extraFileData.length > 0) {
       allFiles = extraFileData.slice(0, 5);
     }
-    socket.emit('dm-send', { to: activeDMUser, text, file: fileData, files: allFiles, reply: replyingToDM }, (res) => {
+    socket.emit('dm-send', { to: activeDMUser, text, file: fileData, files: allFiles, reply: replyingToDM, spoiler: !!spoiler }, (res) => {
       if (res && res.error) { toast(res.error, 'error'); return; }
       if (res && res.message) {
         dmMessages.push(res.message);
@@ -13275,7 +13353,7 @@ function openMediaSendModal(opts) {
   const titleEl = $('media-send-title');
   previewWrap.innerHTML = '';
   captionEl.value = opts.initialCaption || '';
-  titleEl.textContent = opts.context === 'dm' ? 'Send in Direct Message' : 'Send in Chat';
+  titleEl.textContent = opts.context === 'dm' ? 'Share in Direct Message' : opts.context === 'group' ? 'Share in Group' : 'Share in Chat';
   const mt = file.type || '';
   if (mt.startsWith('image/')) {
     const img = document.createElement('img');
@@ -13311,6 +13389,9 @@ function openMediaSendModal(opts) {
     card.appendChild(icon); card.appendChild(info);
     previewWrap.appendChild(card);
   }
+  // Reset the spoiler checkbox each time the modal opens
+  const spoilerCb = $('media-send-spoiler');
+  if (spoilerCb) spoilerCb.checked = false;
   $('media-send-modal').classList.add('show');
   setTimeout(() => captionEl.focus(), 50);
 }
@@ -13334,8 +13415,9 @@ $('media-send-modal').addEventListener('keydown', (e) => {
 });
 $('media-send-confirm').addEventListener('click', () => {
   const caption = $('media-send-caption').value.trim();
+  const spoiler = $('media-send-spoiler') ? $('media-send-spoiler').checked : false;
   $('media-send-modal').classList.remove('show');
-  if (mediaSendCallback) { const cb = mediaSendCallback; mediaSendCallback = null; cb(caption); }
+  if (mediaSendCallback) { const cb = mediaSendCallback; mediaSendCallback = null; cb(caption, spoiler); }
 });
 
 function showContextMenu(x, y, items) {
