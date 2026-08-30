@@ -1392,40 +1392,50 @@ body.no-anim .friend-item { animation: none !important; }
 .message-file { margin-top: 8px; }
 .message-bubble.media-only .message-file:first-child { margin-top: 0; }
 .message-file img {
-  max-width: 360px; max-height: 360px; border-radius: 10px; display: block; cursor: pointer;
+  max-width: 480px; max-height: 480px; border-radius: 6px; display: block; cursor: pointer;
   object-fit: cover; image-rendering: -webkit-optimize-contrast;
-  border: 1px solid var(--border);
-  transition: border-color 0.15s ease, transform 0.15s ease;
-  box-shadow: none;
+  border: 1px solid rgba(255,255,255,0.06);
+  transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.25);
 }
-.message-file img:hover { border-color: var(--border-light); transform: scale(1.01); }
+.message-file img:hover {
+  border-color: rgba(255,255,255,0.12); transform: scale(1.015);
+  box-shadow: 0 4px 14px rgba(0,0,0,0.35);
+}
 /* 4K/HD enhancement: images are upscaled + sharpened on the server; this
    subtle display filter adds a final crispness/contrast pop when rendered. */
 .message-file img.hd-enhanced { filter: contrast(1.04) saturate(1.06) sharpen(1); }
 .message-file video {
-  max-width: 380px; max-height: 360px; border-radius: 10px; border: 1px solid var(--border);
-  box-shadow: none; background: #000;
-  transition: border-color 0.15s ease, transform 0.15s ease;
+  max-width: 500px; max-height: 480px; border-radius: 6px;
+  border: 1px solid rgba(255,255,255,0.06);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.25); background: #000;
+  transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
 }
-.message-file video:hover { border-color: var(--border-light); transform: scale(1.01); }
+.message-file video:hover {
+  border-color: rgba(255,255,255,0.12); transform: scale(1.015);
+  box-shadow: 0 4px 14px rgba(0,0,0,0.35);
+}
 /* HD enhancement filter for inline videos (server can't transcode video, so
    we apply a light sharpen/contrast/saturate pass at display time). */
 .message-file video.hd-enhanced { filter: contrast(1.05) saturate(1.08) brightness(1.02); }
-.message-file audio { width: 320px; border-radius: 10px; }
+.message-file audio { width: 400px; border-radius: 6px; }
 .message-file-attachment {
   display: flex; align-items: center; gap: 12px;
-  padding: 11px 14px; background: var(--bg-darker);
-  border: 1px solid var(--border); border-radius: 10px;
+  padding: 12px 16px; background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.07); border-radius: 6px;
   text-decoration: none; color: var(--text-primary);
-  transition: border-color 0.15s ease, background 0.15s ease, transform 0.12s ease;
-  max-width: 360px;
-  box-shadow: none;
+  transition: border-color 0.2s ease, background 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+  max-width: 480px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
 }
-.message-group.own .message-file-attachment { background: rgba(0,0,0,0.15); border-color: rgba(255,255,255,0.12); }
-.message-file-attachment:hover { border-color: var(--border-light); background: var(--bg-dark); transform: translateY(-1px); }
-.message-group.own .message-file-attachment:hover { background: rgba(0,0,0,0.22); }
+.message-group.own .message-file-attachment { background: rgba(0,0,0,0.18); border-color: rgba(255,255,255,0.10); }
+.message-file-attachment:hover {
+  border-color: rgba(255,255,255,0.14); background: rgba(255,255,255,0.06);
+  transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+.message-group.own .message-file-attachment:hover { background: rgba(0,0,0,0.25); }
 .file-icon {
-  width: 40px; height: 40px; border-radius: 10px;
+  width: 42px; height: 42px; border-radius: 6px;
   background: var(--accent-dim); color: #fff;
   display: flex; align-items: center; justify-content: center;
   font-size: 10px; font-weight: 700; flex-shrink: 0;
@@ -4940,8 +4950,8 @@ body.no-anim .friend-item { animation: none !important; }
 
 /* --- Fix: image attachments responsive on mobile --- */
 @media (max-width: 768px) {
-  .message-image, .message-image img { max-width: 100%; max-height: 300px; }
-  .dm-message-image, .dm-message-image img { max-width: 100%; max-height: 300px; }
+  .message-image, .message-image img { max-width: 100%; max-height: 380px; }
+  .dm-message-image, .dm-message-image img { max-width: 100%; max-height: 380px; }
 }
 
 /* --- Fix: file attachment cards responsive --- */
@@ -4990,11 +5000,11 @@ body.no-anim .friend-item { animation: none !important; }
 
 /* Mobile: file & link embeds fit within the narrower message bubbles */
 @media (max-width: 768px) {
-  .message-file img { max-width: 240px; max-height: 240px; }
-  .message-file video { max-width: 280px; max-height: 240px; }
-  .message-file audio { width: 240px; }
-  .message-file-attachment { max-width: 280px; padding: 10px 12px; gap: 10px; }
-  .file-icon { width: 36px; height: 36px; }
+  .message-file img { max-width: 320px; max-height: 320px; }
+  .message-file video { max-width: 340px; max-height: 300px; }
+  .message-file audio { width: 280px; }
+  .message-file-attachment { max-width: 340px; padding: 10px 13px; gap: 10px; }
+  .file-icon { width: 38px; height: 38px; }
   .file-name { font-size: 12px; }
   .file-size { font-size: 10px; }
 
@@ -5019,9 +5029,9 @@ body.no-anim .friend-item { animation: none !important; }
 
 /* Small mobile: further compact embeds */
 @media (max-width: 480px) {
-  .message-file img { max-width: 200px; max-height: 200px; }
-  .message-file video { max-width: 220px; max-height: 200px; }
-  .message-file-attachment { max-width: 240px; padding: 8px 10px; }
+  .message-file img { max-width: 260px; max-height: 260px; }
+  .message-file video { max-width: 280px; max-height: 240px; }
+  .message-file-attachment { max-width: 280px; padding: 9px 12px; }
   .link-embed-image { width: 96px; min-height: 76px; }
   .link-embed-image.large { min-height: 130px; max-height: 170px; }
   .link-embed-title { font-size: 12px; }
@@ -13308,6 +13318,19 @@ $('media-send-cancel').addEventListener('click', () => { $('media-send-modal').c
 $('media-send-modal').addEventListener('click', (e) => { if (e.target === $('media-send-modal')) { $('media-send-modal').classList.remove('show'); mediaSendCallback = null; } });
 $('media-send-caption').addEventListener('keydown', (e) => {
   if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); $('media-send-confirm').click(); }
+});
+// Broader Enter-to-send: capture Enter on the entire modal so it sends
+// even when focus is not in the caption textarea (e.g. just opened, or
+// focus is on a button/preview). Shift+Enter still inserts a newline
+// when the caption textarea is focused.
+$('media-send-modal').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    // Don't interfere if the user is typing in the caption textarea —
+    // the textarea's own handler above already deals with that case.
+    if (e.target === $('media-send-caption')) return;
+    e.preventDefault();
+    $('media-send-confirm').click();
+  }
 });
 $('media-send-confirm').addEventListener('click', () => {
   const caption = $('media-send-caption').value.trim();

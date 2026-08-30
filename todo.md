@@ -31,3 +31,12 @@
 - [x] 2. Redesign toast UI to be more advanced/polished (CSS + JS)
 - [x] 3. Remove green checkmark SVG icons from success/confirm toasts
 - [x] 4. Syntax check, commit, push, wait for Render auto-deploy, verify live
+
+
+# Round 5i — Enter shortcut for media-send-modal + wider non-cartoony media embeds
+
+## Tasks
+- [ ] 1. Add broader Enter-to-send on media-send-modal (keydown listener on the modal overlay so Enter sends even if the caption textarea isn't focused; keep Shift+Enter for newlines in caption)
+- [ ] 2. Make media embeds wider (images: 360px→480px, videos: 380px→500px, audio: 320px→400px, file-attachment: 360px→480px) and redesign with non-cartoony, professional look (subtle borders, refined shadows, cleaner radius)
+- [ ] 3. Update mobile responsive overrides to match the wider embeds
+- [ ] 4. Syntax check, commit, push, wait for Render auto-deploy, verify live
