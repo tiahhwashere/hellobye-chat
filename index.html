@@ -67,10 +67,10 @@ body {
 
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.4); border-radius: 10px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(0, 0, 0, 0.6); }
-/* Firefox scrollbar styling */
-* { scrollbar-width: thin; scrollbar-color: rgba(0, 0, 0, 0.4) transparent; }
+::-webkit-scrollbar-thumb { background: transparent; border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.08); }
+/* Firefox scrollbar styling — fully transparent */
+* { scrollbar-width: thin; scrollbar-color: transparent transparent; }
 
 button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
 input, textarea { font-family: inherit; }
@@ -733,11 +733,11 @@ body.loading-session #chat-app.active::after { content: none; }
   font-size: 14px; font-weight: 500;
   border-radius: 0 14px 14px 24px;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  max-width: 280px;
+  max-width: 240px;
 }
 /* The display name text sits on its own line so the status message bubble
    flows neatly below it instead of crowding on the same line. */
-.pv-displayname-text { display: block; }
+.pv-displayname-text { display: block; word-break: break-word; overflow-wrap: break-word; }
 
 .friend-item .user-info { display: flex; flex-direction: column; }
 .friend-actions { display: flex; gap: 5px; margin-top: 4px; }
@@ -971,12 +971,12 @@ body.no-anim .friend-item { animation: none !important; }
   padding: 6px;
   display: none;
   scrollbar-width: thin;
-  scrollbar-color: var(--border) transparent;
+  scrollbar-color: transparent transparent;
 }
-.mention-dropdown::-webkit-scrollbar { width: 6px; }
+.mention-dropdown::-webkit-scrollbar { width: 4px; }
 .mention-dropdown::-webkit-scrollbar-track { background: transparent; }
-.mention-dropdown::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-.mention-dropdown::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+.mention-dropdown::-webkit-scrollbar-thumb { background: transparent; border-radius: 3px; }
+.mention-dropdown::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.1); }
 .mention-dropdown.show { display: block; animation: mention-drop-in 0.16s ease; }
 @keyframes mention-drop-in {
   from { opacity: 0; transform: translateY(6px); }
@@ -1587,11 +1587,11 @@ body.no-anim .friend-item { animation: none !important; }
 }
 .search-msg-results {
   flex: 1; overflow-y: auto; padding: 8px 16px 20px;
-  scrollbar-width: thin; scrollbar-color: var(--border) transparent;
+  scrollbar-width: thin; scrollbar-color: transparent transparent;
 }
-.search-msg-results::-webkit-scrollbar { width: 6px; }
-.search-msg-results::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-.search-msg-results::-webkit-scrollbar-thumb:hover { background: var(--border-light); }
+.search-msg-results::-webkit-scrollbar { width: 4px; }
+.search-msg-results::-webkit-scrollbar-thumb { background: transparent; border-radius: 3px; }
+.search-msg-results::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.1); }
 .search-msg-count {
   font-size: 11.5px; font-weight: 600; color: var(--text-muted);
   padding: 4px 6px 12px; letter-spacing: 0.2px;
@@ -2679,6 +2679,7 @@ body.no-anim .friend-item { animation: none !important; }
   flex: 1 1 auto;
   padding-top: 14px;
   min-width: 0;
+  overflow: hidden;
 }
 .profile-v2-idblock .profile-username {
   font-size: 17px;
@@ -2688,12 +2689,17 @@ body.no-anim .friend-item { animation: none !important; }
   align-items: center;
   gap: 6px;
   color: var(--text-primary);
+  word-break: break-word;
+  overflow-wrap: break-word;
+  overflow: hidden;
 }
 .profile-v2-idblock .profile-userid {
   font-size: 11px;
   color: var(--text-primary);
   font-family: 'SF Mono', 'Monaco', 'Cascadia Code', 'Roboto Mono', monospace;
   letter-spacing: 0.2px;
+  word-break: break-all;
+  overflow-wrap: break-word;
 }
 
 /* Sections inside profile-v2-body keep their existing spacing */
@@ -3205,9 +3211,9 @@ body.no-anim .friend-item { animation: none !important; }
   display: flex; align-items: flex-start; gap: 20px;
   padding: 0 32px; flex-wrap: nowrap;
 }
-.profile-view-info { padding: 14px 0 20px; text-align: left; flex: 1 1 auto; min-width: 0; }
-.profile-view-info h3 { font-size: 19px; font-weight: 600; margin-bottom: 3px; }
-.profile-view-handle { font-size: 17px; color: var(--accent); margin-bottom: 4px; font-weight: 600; }
+.profile-view-info { padding: 14px 0 20px; text-align: left; flex: 1 1 auto; min-width: 0; overflow: hidden; }
+.profile-view-info h3 { font-size: 19px; font-weight: 600; margin-bottom: 3px; word-break: break-word; overflow-wrap: break-word; }
+.profile-view-handle { font-size: 17px; color: var(--accent); margin-bottom: 4px; font-weight: 600; word-break: break-word; overflow-wrap: break-word; }
 .profile-view-id { font-size: 11px; color: var(--text-muted); font-family: monospace; margin-bottom: 10px; display: flex; align-items: center; justify-content: flex-start; gap: 6px; position: relative; }
 .pv-id-text { }
 .pv-copy-id-btn { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 4px; background: var(--bg-medium); color: var(--text-muted); border: 1px solid var(--border-light); cursor: pointer; transition: var(--transition); padding: 0; }
@@ -4016,8 +4022,8 @@ body.no-anim .friend-item { animation: none !important; }
   max-height: min(70vh, 560px);
   background: var(--bg-dark);
   border: 1px solid var(--border-light);
-  border-radius: 16px;
-  box-shadow: 0 16px 48px rgba(0,0,0,0.55), 0 2px 8px rgba(0,0,0,0.3);
+  border-radius: 18px;
+  box-shadow: 0 20px 56px rgba(0,0,0,0.6), 0 4px 12px rgba(0,0,0,0.35);
   z-index: 9000;
   display: flex;
   flex-direction: column;
@@ -4051,30 +4057,30 @@ body.no-anim .friend-item { animation: none !important; }
 .mini-profile-scroll {
   flex: 1;
   overflow-y: auto;
-  padding: 18px 18px 14px;
+  padding: 20px 18px 16px;
   scrollbar-width: thin;
-  scrollbar-color: #000 transparent;
+  scrollbar-color: transparent transparent;
 }
-.mini-profile-scroll::-webkit-scrollbar { width: 6px; }
+.mini-profile-scroll::-webkit-scrollbar { width: 4px; }
 .mini-profile-scroll::-webkit-scrollbar-track { background: transparent; }
-.mini-profile-scroll::-webkit-scrollbar-thumb { background: #000; border-radius: 3px; }
-.mini-profile-scroll::-webkit-scrollbar-thumb:hover { background: #000; }
+.mini-profile-scroll::-webkit-scrollbar-thumb { background: transparent; border-radius: 3px; }
+.mini-profile-scroll::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.1); }
 
 /* Header: avatar + identity */
 .mini-profile-header {
   display: flex;
   align-items: center;
   gap: 14px;
-  padding-bottom: 16px;
-  margin-bottom: 4px;
+  padding-bottom: 18px;
+  margin-bottom: 2px;
   border-bottom: 1px solid var(--border);
 }
 .mini-profile-avatar-wrap { position: relative; flex-shrink: 0; }
 .mini-profile-avatar {
-  width: 52px; height: 52px; border-radius: 50%;
+  width: 54px; height: 54px; border-radius: 50%;
   background: var(--accent); color: #fff;
   display: flex; align-items: center; justify-content: center;
-  font-size: 20px; font-weight: 700; overflow: hidden;
+  font-size: 21px; font-weight: 700; overflow: hidden;
   border: 2px solid var(--bg-dark);
   box-shadow: 0 0 0 2px var(--accent-dim);
 }
@@ -4089,7 +4095,7 @@ body.no-anim .friend-item { animation: none !important; }
 .mini-profile-avatar-wrap .status-dot.idle { background-image: url('idle.png'); }
 .mini-profile-avatar-wrap .status-dot.dnd { background-image: url('dnd.png'); }
 .mini-profile-avatar-wrap .status-dot.offline { background-image: url('offline.png'); }
-.mini-profile-identity { flex: 1; min-width: 0; }
+.mini-profile-identity { flex: 1; min-width: 0; overflow: hidden; }
 .mini-profile-name {
   font-size: 15px; font-weight: 600; color: var(--text-primary);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
@@ -4097,7 +4103,7 @@ body.no-anim .friend-item { animation: none !important; }
 }
 .mini-profile-name .sender-displayname { font-weight: 700; }
 .mini-profile-statustext {
-  font-size: 12px; color: var(--text-muted); margin-top: 3px;
+  font-size: 12px; color: var(--text-muted); margin-top: 4px;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .mini-profile-statustext.online { color: var(--online); }
@@ -4107,19 +4113,19 @@ body.no-anim .friend-item { animation: none !important; }
 
 /* Sections */
 .mini-profile-section {
-  padding: 14px 0;
+  padding: 16px 0;
   border-top: 1px solid var(--border);
 }
-.mini-profile-section:first-of-type { border-top: none; padding-top: 12px; }
+.mini-profile-section:first-of-type { border-top: none; padding-top: 14px; }
 .mini-profile-section-title {
   font-size: 10px; font-weight: 700; color: var(--text-muted);
-  text-transform: uppercase; letter-spacing: 0.7px; margin-bottom: 10px;
+  text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 12px;
 }
 
 /* Status options — compact 2-col grid */
-.mini-status-options { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+.mini-status-options { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .mini-status-options .status-option {
-  padding: 8px 10px; gap: 7px;
+  padding: 9px 10px; gap: 7px;
 }
 .mini-status-options .status-option-label { font-size: 12px; }
 .mini-status-options .status-option-dot { width: 14px; height: 14px; }
@@ -4127,12 +4133,12 @@ body.no-anim .friend-item { animation: none !important; }
 /* Compact bio textarea */
 .mini-bio {
   min-height: 64px; padding: 10px 12px; font-size: 12px; line-height: 1.5;
-  border-radius: 8px;
+  border-radius: 10px;
 }
-.mini-input { padding: 9px 12px; font-size: 12px; border-radius: 8px; }
+.mini-input { padding: 9px 12px; font-size: 12px; border-radius: 10px; }
 
 /* Compact toggle rows */
-.mini-toggle-row { padding: 6px 0; font-size: 12px; }
+.mini-toggle-row { padding: 7px 0; font-size: 12px; }
 
 /* Compact accent row */
 .mini-accent-row {
@@ -4173,14 +4179,14 @@ body.no-anim .friend-item { animation: none !important; }
 .mini-dirty-indicator svg { width: 13px; height: 13px; }
 .mini-profile-footer-btns { display: flex; gap: 8px; }
 .mini-open-full-btn {
-  padding: 8px 14px; font-size: 12px; font-weight: 600;
+  padding: 9px 14px; font-size: 12px; font-weight: 600;
   background: transparent; border: 1px solid var(--border-light);
   border-radius: 8px; color: var(--text-secondary); cursor: pointer;
   transition: var(--transition); white-space: nowrap;
 }
 .mini-open-full-btn:hover { background: var(--bg-light); color: var(--text-primary); border-color: var(--text-muted); }
 .mini-save-btn {
-  padding: 8px 18px; font-size: 12px; font-weight: 600;
+  padding: 9px 20px; font-size: 12px; font-weight: 600;
   background: var(--accent); border: none; border-radius: 8px;
   color: var(--accent-text); cursor: pointer; transition: var(--transition);
   white-space: nowrap; display: inline-flex; align-items: center; gap: 6px;
@@ -4575,8 +4581,9 @@ body.no-anim .friend-item { animation: none !important; }
 
   /* Profile view modal banner — scale down on mobile but keep taller ratio */
   .profile-view-banner { height: 200px; }
-  .profile-view-avatar { width: 128px; height: 128px; margin: -64px 0 0; font-size: 48px; }
+  .profile-view-avatar { width: 120px; height: 120px; margin: -60px 0 0; font-size: 46px; }
   .profile-view-main { padding: 0 18px; gap: 14px; }
+  .profile-view-info h3 { font-size: 18px; }
 
   /* System alert — full width on mobile */
   .system-alert { padding: 12px 14px; gap: 10px; }
@@ -4593,9 +4600,12 @@ body.no-anim .friend-item { animation: none !important; }
   .link-embed-title { font-size: 11px; }
   .link-embed-desc { display: none; } /* hide description on very small screens */
   .profile-view-banner { height: 160px; }
-  .profile-view-avatar { width: 108px; height: 108px; margin: -54px 0 0; font-size: 40px; border-width: 5px; }
+  .profile-view-avatar { width: 92px; height: 92px; margin: -46px 0 0; font-size: 36px; border-width: 4px; }
   .profile-view-main { padding: 0 14px; gap: 12px; }
   .profile-view-info { padding: 10px 0 14px; }
+  .profile-view-info h3 { font-size: 16px; }
+  .profile-view-handle { font-size: 14px; }
+  .status-msg-bubble.pv-name-sm .sm-text { max-width: 180px; font-size: 13px; }
   .profile-view-actions { padding: 0 14px 18px; gap: 8px; }
   .profile-view-actions .modal-btn { padding: 10px 8px; font-size: 12px; }
   .profile-view-bio { padding: 12px 14px; font-size: 13px; }
@@ -4812,11 +4822,11 @@ body.no-anim .friend-item { animation: none !important; }
 
 /* Mini profile popover — better fit on small phones */
 @media (max-width: 480px) {
-  .mini-profile-popover { left: 8px; right: 8px; width: auto; bottom: 70px; border-radius: 14px; }
+  .mini-profile-popover { left: 8px; right: 8px; width: auto; bottom: 70px; border-radius: 16px; }
   .mini-profile-popover .mini-profile-arrow { left: 24px; }
-  .mini-profile-scroll { padding: 14px 14px 10px; }
-  .mini-profile-header { gap: 12px; padding-bottom: 12px; }
-  .mini-profile-avatar { width: 46px; height: 46px; font-size: 18px; }
+  .mini-profile-scroll { padding: 16px 14px 12px; }
+  .mini-profile-header { gap: 12px; padding-bottom: 14px; }
+  .mini-profile-avatar { width: 48px; height: 48px; font-size: 18px; }
   .mini-profile-footer { padding: 10px 14px; }
   .mini-status-options .status-option { padding: 9px 8px; }
   .mini-save-btn { padding: 9px 16px; }
@@ -8548,7 +8558,7 @@ function connectSocket() {
           const pvNameSm = showPvNameSm
             ? '<span class="status-msg-bubble pv-name-sm ' + pvUser.status + '">' + pvSmIcon + '<span class="sm-text">' + escapeHtml(pvUser.statusMessage) + '</span></span>'
             : '';
-          if ($('pv-displayname')) $('pv-displayname').innerHTML = escapeHtml(pvUser.displayName || pvUser.username) + pvNameSm;
+          if ($('pv-displayname')) $('pv-displayname').innerHTML = '<span class="pv-displayname-text">' + escapeHtml(pvUser.displayName || pvUser.username) + '</span>' + pvNameSm;
           // Live-update status text (but hide last-seen for hidden profiles)
           const st = pvUser.status === 'offline' ? (pvHidden || pvUser.hideLastSeen ? 'Offline' : 'Last seen ' + getRelativeLastSeen(pvUser.lastSeen)) : getStatusText(pvUser.status);
           if ($('pv-status')) $('pv-status').innerHTML = '<span class="status-dot ' + pvUser.status + '"></span> ' + escapeHtml(st);
