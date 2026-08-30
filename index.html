@@ -10730,10 +10730,24 @@ function positionAttachDropdown(dropdown, btn) {
   dropdown.style.left = Math.round(left) + 'px';
   dropdown.style.top = Math.round(top) + 'px';
 }
-// Attach button: directly opens the file picker (single option: Upload File)
+// Attach button: toggles the attach dropdown (single option: Upload File)
 $('attach-btn').addEventListener('click', (e) => {
   e.stopPropagation();
   if (recordSpamClick()) return;
+  const dd = $('attach-dropdown');
+  const isOpen = dd.classList.contains('show');
+  // Close DM dropdown if open
+  $('dm-attach-dropdown').classList.remove('show');
+  $('dm-attach-btn').classList.remove('active');
+  // Close group dropdown if open
+  const gdd0 = $('group-attach-dropdown');
+  if (gdd0) { gdd0.classList.remove('show'); $('group-attach-btn').classList.remove('active'); }
+  if (isOpen) { dd.classList.remove('show'); $('attach-btn').classList.remove('active'); }
+  else { dd.classList.add('show'); $('attach-btn').classList.add('active'); positionAttachDropdown(dd, $('attach-btn')); }
+});
+$('attach-file-btn').addEventListener('click', () => {
+  $('attach-dropdown').classList.remove('show');
+  $('attach-btn').classList.remove('active');
   fileInput.click();
 });
 // ---------- GIF / Video device picker (chat) ----------
@@ -10771,12 +10785,38 @@ gifFileInput.addEventListener('change', (e) => {
   gifFileInput.value = '';
 });
 // (Attach dropdowns removed - attach buttons now directly open the file picker)
+// Close attach dropdowns when clicking elsewhere
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('#attach-btn') && !e.target.closest('#attach-dropdown')) {
+    $('attach-dropdown').classList.remove('show');
+    $('attach-btn').classList.remove('active');
+  }
+  if (!e.target.closest('#dm-attach-btn') && !e.target.closest('#dm-attach-dropdown')) {
+    $('dm-attach-dropdown').classList.remove('show');
+    $('dm-attach-btn').classList.remove('active');
+  }
+  if (!e.target.closest('#group-attach-btn') && !e.target.closest('#group-attach-dropdown')) {
+    const gdd = $('group-attach-dropdown');
+    if (gdd) { gdd.classList.remove('show'); $('group-attach-btn').classList.remove('active'); }
+  }
+});
+// Reposition open attach dropdowns on resize/scroll
 window.addEventListener('resize', () => {
+  if ($('attach-dropdown').classList.contains('show')) positionAttachDropdown($('attach-dropdown'), $('attach-btn'));
+  if ($('dm-attach-dropdown').classList.contains('show')) positionAttachDropdown($('dm-attach-dropdown'), $('dm-attach-btn'));
+  const gdd = $('group-attach-dropdown');
+  if (gdd && gdd.classList.contains('show')) positionAttachDropdown(gdd, $('group-attach-btn'));
   /* Re-apply the members-list background so its height-anchored sizing tracks
      the sidebar's new height after a browser zoom or viewport change. */
   if (typeof applyMembersBg === 'function') applyMembersBg();
 });
 window.addEventListener('orientationchange', () => { setTimeout(() => { if (typeof applyMembersBg === 'function') applyMembersBg(); }, 220); });
+window.addEventListener('scroll', () => {
+  if ($('attach-dropdown').classList.contains('show')) positionAttachDropdown($('attach-dropdown'), $('attach-btn'));
+  if ($('dm-attach-dropdown').classList.contains('show')) positionAttachDropdown($('dm-attach-dropdown'), $('dm-attach-btn'));
+  const gdd = $('group-attach-dropdown');
+  if (gdd && gdd.classList.contains('show')) positionAttachDropdown(gdd, $('group-attach-btn'));
+}, true);
 const MAX_FILES = 5;
 fileInput.addEventListener('change', (e) => {
   const files = Array.from(e.target.files || []);
@@ -12446,10 +12486,23 @@ function updateGroupConvPreview(groupId, msg) {
 }
 
 // ---- Group file attach ----
-// Group attach button: directly opens the file picker (single option: Upload File)
+// Group attach button: toggles the attach dropdown (single option: Upload File)
 $('group-attach-btn').addEventListener('click', (e) => {
   e.stopPropagation();
   if (recordSpamClick()) return;
+  const dd = $('group-attach-dropdown');
+  const isOpen = dd.classList.contains('show');
+  // Close chat & DM dropdowns if open
+  $('attach-dropdown').classList.remove('show');
+  $('attach-btn').classList.remove('active');
+  $('dm-attach-dropdown').classList.remove('show');
+  $('dm-attach-btn').classList.remove('active');
+  if (isOpen) { dd.classList.remove('show'); $('group-attach-btn').classList.remove('active'); }
+  else { dd.classList.add('show'); $('group-attach-btn').classList.add('active'); positionAttachDropdown(dd, $('group-attach-btn')); }
+});
+$('group-attach-file-btn').addEventListener('click', () => {
+  $('group-attach-dropdown').classList.remove('show');
+  $('group-attach-btn').classList.remove('active');
   groupFileInput.click();
 });
 const groupFileInput = $('group-file-input');
@@ -13128,10 +13181,24 @@ dmInputEl.addEventListener('blur', () => {
 
 // ---------- DM File Attachment ----------
 const dmFileInput = $('dm-file-input');
-// DM attach button: directly opens the file picker (single option: Upload File)
+// DM attach button: toggles the attach dropdown (single option: Upload File)
 $('dm-attach-btn').addEventListener('click', (e) => {
   e.stopPropagation();
   if (recordSpamClick()) return;
+  const dd = $('dm-attach-dropdown');
+  const isOpen = dd.classList.contains('show');
+  // Close chat dropdown if open
+  $('attach-dropdown').classList.remove('show');
+  $('attach-btn').classList.remove('active');
+  // Close group dropdown if open
+  const gdd1 = $('group-attach-dropdown');
+  if (gdd1) { gdd1.classList.remove('show'); $('group-attach-btn').classList.remove('active'); }
+  if (isOpen) { dd.classList.remove('show'); $('dm-attach-btn').classList.remove('active'); }
+  else { dd.classList.add('show'); $('dm-attach-btn').classList.add('active'); positionAttachDropdown(dd, $('dm-attach-btn')); }
+});
+$('dm-attach-file-btn').addEventListener('click', () => {
+  $('dm-attach-dropdown').classList.remove('show');
+  $('dm-attach-btn').classList.remove('active');
   dmFileInput.click();
 });
 dmFileInput.addEventListener('change', (e) => {

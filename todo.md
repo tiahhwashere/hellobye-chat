@@ -51,3 +51,12 @@
 - [x] 4. Rename "Send in Chat" → "Share in Chat" / "Share in Direct Message" / "Share in Group"; confirm button "Send"→"Share"; modal title "Send Media"→"Share Attachment"
 - [x] 5. Revamp and modernize the media-send-modal UI — header with icon, custom spoiler toggle switch, improved preview area, refined spacing
 - [x] 6. Syntax check (both pass), commit, push, wait for Render auto-deploy, verify live
+
+# Round 5k — Restore file attach dropdown (remove only GIF URL option)
+
+## Tasks
+- [x] 1. Restore attach dropdown toggle behavior for all three contexts (chat, DM, group)
+- [x] 2. Restore click-outside-to-close handler for dropdowns
+- [x] 3. Restore resize/scroll reposition handlers for dropdowns
+- [x] 4. Keep dropdown HTML with single "Upload File" item (GIF URL option stays removed)
+- [x] 5. Syntax check, commit, push, wait for Render auto-deploy, verify live
