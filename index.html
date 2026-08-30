@@ -619,7 +619,7 @@ body.loading-session #chat-app.active::after { content: none; }
 .status-dot {
   position: absolute; bottom: -1px; right: -1px;
   width: 14px; height: 14px; border-radius: 50%;
-  border: 2px solid var(--bg-darker);
+  border: 2px solid transparent;
   background-size: contain; background-repeat: no-repeat; background-position: center;
 }
 .status-dot.online { background-image: url('online.png'); border-radius: 4px; }
@@ -859,7 +859,7 @@ body.no-anim .friend-item { animation: none !important; }
   background: var(--bg-lighter); color: var(--text-secondary);
   display: flex; align-items: center; justify-content: center;
   font-size: 15px; font-weight: 600; flex-shrink: 0; overflow: hidden;
-  border: 1px solid var(--border);
+  border: 1px solid transparent;
   box-shadow: none;
   transition: transform 0.18s ease;
 }
@@ -1018,7 +1018,7 @@ body.no-anim .friend-item { animation: none !important; }
   font-size: 13px; font-weight: 700; color: var(--text-muted);
   flex-shrink: 0; overflow: hidden;
   position: relative;
-  border: 2px solid var(--border-light);
+  border: 2px solid transparent;
 }
 .mention-dropdown-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
 /* Status dot on avatar in dropdown */
@@ -1027,7 +1027,7 @@ body.no-anim .friend-item { animation: none !important; }
   bottom: -1px; right: -1px;
   width: 10px; height: 10px;
   border-radius: 50%;
-  border: 2px solid var(--bg-medium);
+  border: 2px solid transparent;
   background: var(--text-muted);
 }
 .mention-dropdown-status.online { background: #22c55e; }
@@ -1076,13 +1076,13 @@ body.no-anim .friend-item { animation: none !important; }
   background: var(--bg-darker); flex-shrink: 0; overflow: hidden;
   display: flex; align-items: center; justify-content: center;
   font-size: 15px; font-weight: 700; color: var(--text-secondary);
-  position: relative; border: 2px solid var(--border-light);
+  position: relative; border: 2px solid transparent;
 }
 .mention-tooltip-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
 .mention-tooltip-status {
   position: absolute; bottom: -1px; right: -1px;
   width: 11px; height: 11px; border-radius: 50%;
-  border: 2px solid rgba(18,20,24,0.92); background: var(--text-muted);
+  border: 2px solid transparent; background: var(--text-muted);
 }
 .mention-tooltip-status.online { background: #22c55e; }
 .mention-tooltip-status.idle { background: #facc15; }
@@ -1636,7 +1636,7 @@ body.no-anim .friend-item { animation: none !important; }
   width: 26px; height: 26px; border-radius: 50%; flex-shrink: 0;
   background: var(--bg-lighter); display: flex; align-items: center; justify-content: center;
   font-size: 10px; font-weight: 700; color: var(--text-secondary); overflow: hidden;
-  border: 1px solid var(--border);
+  border: 1px solid transparent;
 }
 .search-result-avatar img { width: 100%; height: 100%; object-fit: cover; }
 .search-result-name { font-size: 13px; font-weight: 600; color: var(--text-primary); }
@@ -2660,7 +2660,7 @@ body.no-anim .friend-item { animation: none !important; }
   width: 132px;
   height: 132px;
   font-size: 46px;
-  border: 4px solid var(--bg-darker);
+  border: 4px solid transparent;
   box-shadow: 0 4px 16px rgba(0,0,0,0.45);
   background: var(--bg-lighter);
 }
@@ -2801,7 +2801,7 @@ body.no-anim .friend-item { animation: none !important; }
   background: var(--bg-lighter); color: var(--text-secondary);
   display: flex; align-items: center; justify-content: center;
   font-size: 46px; font-weight: 600; margin: 0 auto 12px;
-  overflow: hidden; border: 4px solid var(--bg-darker);
+  overflow: hidden; border: 4px solid transparent;
   box-shadow: 0 6px 20px rgba(0,0,0,0.4);
 }
 .profile-avatar-large img { width: 100%; height: 100%; object-fit: cover; image-rendering: -webkit-optimize-contrast; }
@@ -3201,7 +3201,7 @@ body.no-anim .friend-item { animation: none !important; }
   background: var(--bg-lighter); color: var(--text-secondary);
   display: flex; align-items: center; justify-content: center;
   font-size: 60px; font-weight: 600; overflow: hidden;
-  margin: -84px 0 0; border: 6px solid var(--bg-dark); position: relative; z-index: 1;
+  margin: -84px 0 0; border: 6px solid transparent; position: relative; z-index: 1;
   flex: 0 0 auto;
   box-shadow: 0 6px 24px rgba(0,0,0,0.5);
 }
@@ -3937,7 +3937,7 @@ body.no-anim .friend-item { animation: none !important; }
 .profile-view-banner { position: relative; }
 /* Avatar: refined ring matching modal surface */
 .profile-view-avatar {
-  border-color: var(--bg-dark);
+  border-color: transparent;
   box-shadow: 0 4px 14px rgba(0,0,0,0.4);
 }
 /* Info wrapper: gentle top padding so avatar overlap breathes */
@@ -4081,14 +4081,14 @@ body.no-anim .friend-item { animation: none !important; }
   background: var(--accent); color: #fff;
   display: flex; align-items: center; justify-content: center;
   font-size: 21px; font-weight: 700; overflow: hidden;
-  border: 2px solid var(--bg-dark);
-  box-shadow: 0 0 0 2px var(--accent-dim);
+  border: 2px solid transparent;
+  box-shadow: none;
 }
 .mini-profile-avatar img { width: 100%; height: 100%; object-fit: cover; }
 .mini-profile-avatar-wrap .status-dot {
   position: absolute; bottom: 0; right: 0;
   width: 15px; height: 15px; border-radius: 50%;
-  border: 2.5px solid var(--bg-dark);
+  border: 2.5px solid transparent;
   background-size: contain; background-repeat: no-repeat; background-position: center;
 }
 .mini-profile-avatar-wrap .status-dot.online { background-image: url('online.png'); border-radius: 4px; }
@@ -4246,7 +4246,7 @@ body.no-anim .friend-item { animation: none !important; }
 }
 .dm-header-avatar {
   position: relative;
-  border: 2px solid var(--border);
+  border: 2px solid transparent;
   transition: border-color var(--transition), transform var(--transition);
   box-shadow: 0 2px 8px rgba(0,0,0,0.2);
 }
@@ -16425,7 +16425,7 @@ function applyMiniProfileColor() {
       miniAvatar.style.setProperty('box-shadow', 'none', 'important');
     }
     pop.querySelectorAll('.mini-profile-avatar-wrap .status-dot').forEach(el => {
-      el.style.setProperty('border-color', color, 'important');
+      el.style.setProperty('border-color', 'transparent', 'important');
     });
 
     // Status option dots — keep their icon backgrounds intact (they use
