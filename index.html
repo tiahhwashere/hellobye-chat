@@ -3606,6 +3606,7 @@ body.no-anim .friend-item { animation: none !important; }
 }
 .image-lightbox-stage img.zoomed { cursor: zoom-out; transform: scale(2.2); transition: transform 0.18s ease; }
 .image-lightbox-stage img { transform-origin: center center; }
+.image-lightbox-stage img.panning { transition: none !important; }
 .image-lightbox-close {
   position: absolute; top: 18px; right: 22px; z-index: 2;
   width: 42px; height: 42px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.12);
@@ -5825,7 +5826,7 @@ body.no-anim .friend-item { animation: none !important; }
               <div class="identity-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
               <div class="identity-card-title">Password</div>
             </div>
-            <p class="identity-card-hint">Choose a strong password of at least 6 characters. You'll stay logged in after changing it.</p>
+            <p class="identity-card-hint">Use at least 6 characters. You'll stay logged in.</p>
             <div class="identity-field">
               <input type="password" class="form-input" id="current-password-input" placeholder="Enter your current password">
             </div>
@@ -5905,7 +5906,7 @@ body.no-anim .friend-item { animation: none !important; }
                 <span class="toggle-slider"></span>
               </span>
             </label>
-            <p class="setting-hint" style="margin-top:8px;">When enabled, other users can add you to group chats. When disabled, you won't be added to groups by others.</p>
+            <p class="setting-hint" style="margin-top:8px;">When on, others can add you to groups. When off, you won't be added automatically.</p>
           </div>
 
           <div class="profile-section">
@@ -9161,6 +9162,29 @@ function lightboxStep(delta) {
         img.style.transformOrigin = '';
       }
     });
+    // Mouse wheel: when zoomed in, pan the image up/down (and left/right with Shift).
+    // When not zoomed, let the wheel do nothing (don't close or navigate).
+    if (img) img.addEventListener('wheel', (e) => {
+      if (!img.classList.contains('zoomed')) return;
+      e.preventDefault();
+      // Parse current transform-origin (e.g. "50% 50%" or "30% 70%")
+      const to = img.style.transformOrigin || '50% 50%';
+      const parts = to.split(/\s+/);
+      let ox = parseFloat(parts[0]) || 50;
+      let oy = parseFloat(parts[1]) || 50;
+      // Each wheel tick moves ~4% of the image. Shift swaps to horizontal.
+      const step = 4;
+      if (e.shiftKey) {
+        ox = Math.max(0, Math.min(100, ox + (e.deltaY > 0 ? step : -step)));
+      } else {
+        oy = Math.max(0, Math.min(100, oy + (e.deltaY > 0 ? step : -step)));
+      }
+      img.classList.add('panning');
+      img.style.transformOrigin = ox + '% ' + oy + '%';
+      // Re-enable transition after a brief moment for smooth feel
+      clearTimeout(img._panTimer);
+      img._panTimer = setTimeout(() => { img.classList.remove('panning'); }, 120);
+    }, { passive: false });
     // Keyboard: Esc close, arrows navigate
     document.addEventListener('keydown', (e) => {
       if (!box.classList.contains('show')) return;
@@ -10402,11 +10426,13 @@ function renderUserList() {
     // Header member stats — exactly three categories: online · dnd · offline.
     // "online" includes both online and idle users (idle is treated as online
     // for the header summary so the stats always read the 3 expected labels).
-    const onlineCount = online.filter(u => u.status === 'online' || u.status === 'idle').length;
-    const dndCount = online.filter(u => u.status === 'dnd').length;
-    let parts = [onlineCount + ' online'];
-    parts.push(dndCount + ' dnd');
-    parts.push(offline.length + ' offline');
+    // Count ALL users (including custom-role members) in the header stats.
+    const allOnline = users.filter(u => u.status === 'online' || u.status === 'idle');
+    const allDnd = users.filter(u => u.status === 'dnd');
+    const allOffline = users.filter(u => u.status === 'offline');
+    let parts = [allOnline.length + ' online'];
+    parts.push(allDnd.length + ' dnd');
+    parts.push(allOffline.length + ' offline');
     $('member-count-text').textContent = users.length + ' members - ' + parts.join(' · ');
   }
   const filter = $('user-search').value.trim().toLowerCase();
@@ -16783,7 +16809,7 @@ async function submitAdminCode() {
     } else {
       // Wrong code — tell the user they got it wrong
       if (errEl) {
-        errEl.textContent = data.error || 'Wrong code. You have gotten it wrong — please try again.';
+        errEl.textContent = data.error || 'Incorrect code. Please try again.';
         errEl.style.display = '';
       }
       codeInput.value = '';
