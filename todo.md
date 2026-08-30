@@ -1,11 +1,7 @@
-# Hellobye-Chat UI Polish Round 2
+# Round 3 — Adjust Profile Picture UI Sizing + Loading Fix
 
 ## Tasks
-- [x] 1. Revamp the Color Wheel UI (mini + full profile) — make it look more advanced/better than current
-- [x] 2. Adjust Profile Picture/Banner: make the preview image square box fill the whole box interior; add mousewheel zoom in/out
-- [x] 3. Make the message status dream bubble icon look more realistic
-- [x] 4. Make embed links bigger with more details
-- [x] 5. Make chat bubble letters bigger (text only)
-- [x] 6. Fix the Profile Completeness percentage
-- [x] 7. Fix overlapping/delayed UI & notifications
-- [x] 8. Commit, push, deploy, verify (no data wiped)
+- [ ] 1. Make Adjust Profile Picture UI smaller/wider (cap avatar frame height, match banner footprint)
+- [ ] 2. Make Adjust Profile Picture & Adjust Banner the same UI size (consistent modal/preview dimensions)
+- [ ] 3. Fix "slowly loading all the way down delay" (image load reflow / transition causing perceived delay)
+- [ ] 4. Commit, push, deploy, verify (no data wiped)

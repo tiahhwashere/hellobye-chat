@@ -3585,38 +3585,44 @@ body.no-anim .friend-item { animation: none !important; }
 /* ============================================
    IMAGE SCALE MODAL
    ============================================ */
-.image-scale-modal { max-width: 620px; text-align: left; }
+.image-scale-modal { max-width: 560px; text-align: left; }
 #image-scale-modal { z-index: 400 !important; }
 .image-scale-modal h3 { font-size: 18px; margin-bottom: 4px; font-weight: 700; letter-spacing: -0.2px; }
 /* ── Revamped preview: bigger, fills the modal width, modern dark stage ── */
 .image-scale-preview {
-  margin: 16px 0 14px; display: flex; justify-content: stretch; align-items: stretch;
+  /* Fixed-height stage so avatar & banner occupy the SAME box size.
+     No layout reflow / "loading down" jump when the image decodes. */
+  margin: 14px auto 14px; display: flex; justify-content: center; align-items: center;
   background:
     linear-gradient(135deg, rgba(255,255,255,0.02), rgba(0,0,0,0.25)),
     var(--bg-darkest);
   border: 1px solid var(--border);
-  border-radius: var(--radius); padding: 0;
+  border-radius: var(--radius); padding: 18px;
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
   overflow: hidden;
   position: relative;
+  width: 100%; box-sizing: border-box;
+  height: 300px;            /* consistent height for BOTH avatar and banner */
 }
 .image-scale-frame {
-  position: relative; overflow: hidden; border-radius: 0;
+  position: relative; overflow: hidden; border-radius: var(--radius-sm);
   background:
     repeating-conic-gradient(rgba(255,255,255,0.04) 0% 25%, transparent 0% 50%) 50% / 22px 22px,
     var(--bg-medium);
   border: none;
   box-shadow: 0 6px 22px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.04) inset;
-  /* Frame fills the entire preview box interior */
-  width: 100%; max-width: 100%; min-height: 0;
 }
-.image-scale-frame.avatar { aspect-ratio: 1 / 1; max-width: 100%; }
-.image-scale-frame.banner  { aspect-ratio: 19 / 8; max-width: 100%; }
+/* Avatar: capped square, centered — never dominates the screen */
+.image-scale-frame.avatar { aspect-ratio: 1 / 1; width: 264px; max-width: 100%; height: auto; }
+/* Banner: wide banner ratio, capped to the same stage width */
+.image-scale-frame.banner  { aspect-ratio: 19 / 8; width: 100%; max-width: 100%; height: auto; }
 .image-scale-frame img {
   width: 100%; height: 100%; object-fit: cover;
-  transform-origin: center; transition: transform 0.08s ease-out;
+  transform-origin: center; transition: transform 0.06s ease-out;
   cursor: grab; user-select: none; -webkit-user-drag: none; touch-action: none;
+  opacity: 1;
 }
+.image-scale-frame img.loading { opacity: 0; transition: none; }
 .image-scale-frame img:active,
 .image-scale-frame.dragging img { cursor: grabbing; transition: none; }
 .image-scale-frame.dragging { box-shadow: 0 6px 22px rgba(0,0,0,0.4), 0 0 0 2px var(--accent-glow); }
@@ -13796,31 +13802,38 @@ $('banner-input').addEventListener('change', (e) => {
 function openImageScaleModal(file, type) {
   pendingImageEdit = { file, type, scale: 100, offsetX: 50, offsetY: 50, rotation: 0, flip: 'none', brightness: 100 };
   $('image-scale-title').textContent = type === 'avatar' ? 'Adjust Profile Picture' : 'Adjust Banner';
-  const reader = new FileReader();
-  reader.onload = (ev) => {
-    const img = $('image-scale-img');
-    img.src = ev.target.result;
-    img.style.display = 'block';
-    // Reset all controls
-    $('image-scale-range').value = 100;
-    $('image-scale-value').textContent = '100%';
-    $('image-scale-posx').value = 50;
-    $('image-scale-posx-val').textContent = '50%';
-    $('image-scale-posy').value = 50;
-    $('image-scale-posy-val').textContent = '50%';
-    $('image-scale-rotation').value = 0;
-    $('image-scale-rot-val').textContent = '0°';
-    $('image-scale-brightness').value = 100;
-    $('image-scale-bright-val').textContent = '100%';
-    $('image-scale-flip').value = 'none';
-    // Adjust frame aspect based on type
-    const frame = $('image-scale-frame');
-    frame.className = 'image-scale-frame ' + type;
+  // Reset all controls immediately (before image decode) so the UI is stable
+  $('image-scale-range').value = 100;
+  $('image-scale-value').textContent = '100%';
+  $('image-scale-posx').value = 50;
+  $('image-scale-posx-val').textContent = '50%';
+  $('image-scale-posy').value = 50;
+  $('image-scale-posy-val').textContent = '50%';
+  $('image-scale-rotation').value = 0;
+  $('image-scale-rot-val').textContent = '0°';
+  $('image-scale-brightness').value = 100;
+  $('image-scale-bright-val').textContent = '100%';
+  $('image-scale-flip').value = 'none';
+  // Set the frame aspect immediately so the stage is correctly sized
+  const frame = $('image-scale-frame');
+  frame.className = 'image-scale-frame ' + type;
+  // Show the modal right away - the fixed-height stage prevents reflow.
+  $('image-scale-modal').classList.add('show');
+  const img = $('image-scale-img');
+  // Mark the image as 'loading' so it stays invisible until fully decoded,
+  // eliminating the slow crawl-down while the bitmap renders.
+  img.classList.add('loading');
+  img.style.display = 'block';
+  // Reveal only once the image is actually decoded & laid out.
+  img.onload = function () {
+    img.classList.remove('loading');
     pendingImageEdit.imgEl = img;
     applyImageScaleTransform();
   };
+  img.onerror = function () { img.classList.remove('loading'); };
+  const reader = new FileReader();
+  reader.onload = (ev) => { img.src = ev.target.result; };
   reader.readAsDataURL(file);
-  $('image-scale-modal').classList.add('show');
 }
 function applyImageScaleTransform() {
   if (!pendingImageEdit || !pendingImageEdit.imgEl) return;
