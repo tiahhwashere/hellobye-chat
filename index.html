@@ -911,7 +911,7 @@ body.no-anim .friend-item { animation: none !important; }
 }
 .message-bubble.dm-bubble { max-width: 740px; }
 
-.message-text { display: inline; }
+.message-text { display: inline; white-space: pre-wrap; word-break: break-word; overflow-wrap: break-word; }
 .inline-link { color: inherit; text-decoration: underline; text-underline-offset: 2px; text-decoration-color: rgba(255,255,255,0.25); }
 .message-group:not(.own) .inline-link { text-decoration-color: rgba(74,158,255,0.4); }
 
@@ -2160,7 +2160,7 @@ body.no-anim .friend-item { animation: none !important; }
 .chat-textarea {
   flex: 1; resize: none; border: none; background: transparent;
   color: var(--text-primary); font-size: 15px; line-height: 1.5;
-  padding: 9px 6px; max-height: 120px;
+  padding: 9px 6px; max-height: 200px;
 }
 .chat-textarea:focus { outline: none; }
 .chat-textarea::placeholder { color: var(--text-muted); }
@@ -3459,11 +3459,11 @@ body.no-anim .friend-item { animation: none !important; }
 .cw-wrap {
   display: flex; flex-direction: column; align-items: center; gap: 14px;
   width: 100%; margin: 0;
-  padding: 16px 14px 14px;
-  border-radius: 16px;
-  background: linear-gradient(160deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01) 60%, rgba(0,0,0,0.12));
-  border: 1px solid rgba(255,255,255,0.06);
-  box-shadow: 0 4px 20px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.05);
+  padding: 14px 12px 12px;
+  border-radius: 14px;
+  background: transparent;
+  border: 1px solid var(--border);
+  box-shadow: none;
 }
 .cw-wrap.mini { gap: 11px; padding: 11px 10px 10px; border-radius: 13px; }
 .cw-canvas {
@@ -3472,7 +3472,7 @@ body.no-anim .friend-item { animation: none !important; }
   cursor: crosshair; border-radius: 12px;
   background: var(--bg-darkest);
   touch-action: none; -webkit-user-select: none; user-select: none;
-  filter: drop-shadow(0 4px 14px rgba(0,0,0,0.45));
+  filter: none;
   transition: filter 0.25s cubic-bezier(0.4,0,0.2,1), transform 0.25s cubic-bezier(0.4,0,0.2,1);
   will-change: filter;
 }
@@ -3484,7 +3484,7 @@ body.no-anim .friend-item { animation: none !important; }
 .cw-wrap.mini .cw-canvas {
   width: 250px;
   aspect-ratio: 280 / 180;
-  filter: drop-shadow(0 3px 10px rgba(0,0,0,0.32));
+  filter: none;
 }
 .cw-wrap.mini .cw-canvas:hover {
   filter: drop-shadow(0 4px 16px rgba(0,0,0,0.42));
@@ -3732,6 +3732,15 @@ body.no-anim .friend-item { animation: none !important; }
   margin-bottom: 20px; text-align: left; white-space: pre-wrap; word-wrap: break-word;
   min-height: 20px;
 }
+/* When the profile is hidden, the bio container becomes a frameless host so the
+   private-profile notice fills the entire square box edge-to-edge. */
+.profile-view-bio.pv-bio-hidden {
+  padding: 0; background: transparent; border: none; border-radius: 0;
+  margin-bottom: 20px; min-height: 0;
+}
+.profile-view-bio.pv-bio-hidden .pv-hidden-notice {
+  border-radius: var(--radius-sm); min-height: 100%;
+}
 .pv-hidden-notice {
   display: flex; flex-direction: row; align-items: center; gap: 16px;
   text-align: left; padding: 20px 24px;
@@ -3740,7 +3749,7 @@ body.no-anim .friend-item { animation: none !important; }
     var(--bg-medium);
   border: 1px solid var(--border-light); border-left: 3px solid var(--accent);
   border-radius: var(--radius-md);
-  margin: 0 0 20px; width: 100%; box-sizing: border-box;
+  margin: 0; width: 100%; box-sizing: border-box;
   position: relative; overflow: hidden;
 }
 .pv-hidden-notice::after {
@@ -4383,7 +4392,7 @@ body.no-anim .friend-item { animation: none !important; }
 
   /* Mobile: make chat input wrap stay at bottom, prevent layout shift */
   .chat-input-wrap { max-height: 120px; }
-  .chat-textarea { max-height: 100px; }
+  .chat-textarea { max-height: 160px; }
 
   /* Mobile: prevent body scroll when keyboard opens */
   .chat-main { height: 100%; }
@@ -5159,7 +5168,7 @@ body.no-anim .friend-item { animation: none !important; }
   .sidebar-header h2 { font-size: 16px; }
   .sidebar-search { padding: 4px 8px; }
   .chat-input-area { padding: 6px 10px; }
-  .chat-textarea { max-height: 60px; }
+  .chat-textarea { max-height: 140px; }
 }
 
 /* --- Fix: prevent horizontal scroll/overflow on mobile --- */
@@ -5417,6 +5426,109 @@ body.no-anim .friend-item { animation: none !important; }
    and long-press on touch (native browser behavior) */
 
 /* ============================================
+/* ===================== Round 4: Mobile support & anti-smush ===================== */
+
+/* Color studio (both profile & mini) — keep canvas and controls from overflowing on phones */
+@media (max-width: 480px) {
+  .cw-canvas { width: 100% !important; max-width: 260px; }
+  .cw-wrap.mini .cw-canvas { width: 100% !important; max-width: 240px; }
+  .cw-wrap { padding: 12px 8px 10px; }
+  .cw-wrap.mini { padding: 10px 6px 8px; gap: 9px; }
+  .cw-value-slider { width: 100% !important; max-width: 200px; }
+  .cw-wrap.mini .cw-value-slider { width: 100% !important; max-width: 160px; }
+  .cw-row { gap: 8px; }
+  .cw-hex-input { width: 100px !important; max-width: 100%; }
+  .cs-preview-bar { padding: 10px 12px; gap: 10px; flex-wrap: wrap; }
+  .cs-preview-swatch { width: 38px; height: 38px; }
+  .cs-preview-hex { font-size: 14px; }
+  .cs-reset-btn { padding: 5px 10px; font-size: 10px; }
+  .cs-tabs { padding: 0 10px; }
+  .cs-tab { padding: 9px 2px; font-size: 10.5px; }
+  .cs-panel { padding: 12px 10px; }
+  .cs-slider-row { gap: 8px; }
+  .cs-slider-label { width: 18px; font-size: 11px; }
+  .cs-slider-value { min-width: 32px; font-size: 11px; }
+  .cs-swatch-grid { grid-template-columns: repeat(5, 1fr) !important; gap: 5px !important; }
+}
+
+/* Tablet — color studio moderate sizing */
+@media (max-width: 768px) {
+  .cw-canvas { max-width: 280px; }
+  .cw-wrap.mini .cw-canvas { max-width: 250px; }
+}
+
+/* Mini profile popover — prevent content smush on very small phones */
+@media (max-width: 360px) {
+  .mini-profile-popover { left: 6px; right: 6px; bottom: 68px; border-radius: 14px; max-height: 62vh; }
+  .mini-profile-scroll { padding: 14px 10px 10px; }
+  .mini-profile-header { gap: 10px; padding-bottom: 12px; }
+  .mini-profile-avatar { width: 44px; height: 44px; font-size: 17px; }
+  .mini-profile-name { font-size: 14px; }
+  .mini-profile-section { padding: 13px 0; }
+  .mini-profile-section-title { font-size: 9.5px; margin-bottom: 10px; }
+  .mini-status-options { grid-template-columns: 1fr 1fr; gap: 6px; }
+  .mini-status-options .status-option { padding: 8px 6px; }
+  .mini-status-options .status-option-label { font-size: 11px; }
+  .mini-bio { min-height: 56px; padding: 8px 10px; font-size: 11.5px; }
+  .mini-input { padding: 8px 10px; font-size: 11.5px; }
+  .mini-toggle-row { padding: 6px 0; font-size: 11.5px; }
+  .mini-profile-footer { padding: 9px 10px; gap: 6px; flex-wrap: wrap; }
+  .mini-save-btn { padding: 8px 14px; font-size: 11px; }
+  .mini-open-full-btn { padding: 8px 10px; font-size: 11px; }
+  .mini-dirty-indicator { font-size: 10px; }
+}
+
+/* Profile view modal — prevent smush on very small phones */
+@media (max-width: 360px) {
+  .profile-view-modal { max-width: calc(100vw - 8px); max-height: 94vh; }
+  .profile-view-banner { height: 130px; }
+  .profile-view-avatar { width: 80px; height: 80px; margin: -40px 0 0; font-size: 30px; }
+  .profile-view-main { padding: 0 10px; gap: 10px; }
+  .profile-view-info { padding: 8px 0 12px; }
+  .profile-view-info h3 { font-size: 15px; }
+  .profile-view-handle { font-size: 13px; }
+  .profile-view-actions { padding: 0 10px 14px; gap: 6px; flex-wrap: wrap; }
+  .profile-view-actions .modal-btn { padding: 9px 6px; font-size: 11px; flex: 1 1 auto; min-width: 0; }
+  .profile-view-bio { padding: 10px 12px; font-size: 12.5px; }
+  .profile-view-extra { padding: 10px 12px; gap: 8px; grid-template-columns: 1fr; }
+  .pv-hidden-notice { padding: 16px 14px; gap: 12px; flex-direction: row; }
+  .pv-hidden-title { font-size: 13.5px; }
+  .pv-hidden-sub { font-size: 11.5px; }
+  .pv-hidden-badge { font-size: 9px; padding: 5px 10px; }
+}
+
+/* Chat composer — comfortable on very small phones */
+@media (max-width: 360px) {
+  .chat-input-wrap { padding: 4px 4px 4px 6px; gap: 2px; border-radius: 18px; }
+  .attach-btn { width: 36px; height: 36px; }
+  .send-btn { width: 36px; height: 36px; }
+  .chat-textarea { font-size: 16px; padding: 9px 3px; max-height: 130px; }
+}
+
+/* Profile color studio (full modal) — responsive on phones */
+@media (max-width: 480px) {
+  #profile-color-studio .cw-canvas { width: 100% !important; max-width: 280px; }
+  #profile-color-studio .cs-swatch-grid { grid-template-columns: repeat(6, 1fr) !important; }
+}
+
+/* Prevent the mini profile footer buttons from being smushed on narrow screens */
+@media (max-width: 480px) {
+  .mini-profile-footer { flex-wrap: wrap; }
+  .mini-profile-footer-btns { flex: 1 1 auto; justify-content: flex-end; }
+  .mini-dirty-indicator { flex: 1 1 100%; order: -1; margin-bottom: 2px; }
+}
+
+/* Ensure the profile-view-extra grid collapses to single column on small phones */
+@media (max-width: 420px) {
+  .profile-view-extra { grid-template-columns: 1fr; }
+}
+
+/* Message bubble — readable min width on small phones, prevent crush */
+@media (max-width: 360px) {
+  .message-bubble { font-size: 15px; padding: 8px 11px; max-width: 100%; }
+  .message-group { max-width: 96%; }
+}
+
    ROUND 45 — ADDITIONAL MOBILE SUPPORT & FIXES
    ============================================ */
 
@@ -10330,7 +10442,7 @@ function updateSendButton() { sendBtn.disabled = !chatInput.value.trim() && !pen
 chatInput.addEventListener('input', () => {
   updateSendButton();
   chatInput.style.height = 'auto';
-  chatInput.style.height = Math.min(chatInput.scrollHeight, 120) + 'px';
+  chatInput.style.height = Math.min(chatInput.scrollHeight, 200) + 'px';
   if (!isTyping && chatInput.value.trim()) { isTyping = true; socket.emit('typing', true); }
   clearTimeout(typingTimeout);
   typingTimeout = setTimeout(() => { isTyping = false; socket.emit('typing', false); }, 1500);
@@ -10453,7 +10565,7 @@ function insertChatMention(username) {
   hideChatMentionDropdown();
   updateSendButton();
   chatInput.style.height = 'auto';
-  chatInput.style.height = Math.min(chatInput.scrollHeight, 120) + 'px';
+  chatInput.style.height = Math.min(chatInput.scrollHeight, 200) + 'px';
 }
 
 // Detect @ typing in chat input
@@ -12645,7 +12757,7 @@ function updateGroupSend() { groupSendBtn.disabled = !groupInputEl.value.trim() 
 groupInputEl.addEventListener('input', () => {
   updateGroupSend();
   groupInputEl.style.height = 'auto';
-  groupInputEl.style.height = Math.min(groupInputEl.scrollHeight, 120) + 'px';
+  groupInputEl.style.height = Math.min(groupInputEl.scrollHeight, 200) + 'px';
   if (!isGroupTyping && groupInputEl.value.trim() && activeGroupId) { isGroupTyping = true; socket.emit('group-typing', { groupId: activeGroupId, typing: true }); }
   clearTimeout(groupTypingTimeout);
   groupTypingTimeout = setTimeout(() => { isGroupTyping = false; if (activeGroupId) socket.emit('group-typing', { groupId: activeGroupId, typing: false }); }, 1500);
@@ -13282,7 +13394,7 @@ function updateDMSend() { dmSendBtn.disabled = !dmInputEl.value.trim() && !pendi
 dmInputEl.addEventListener('input', () => {
   updateDMSend();
   dmInputEl.style.height = 'auto';
-  dmInputEl.style.height = Math.min(dmInputEl.scrollHeight, 120) + 'px';
+  dmInputEl.style.height = Math.min(dmInputEl.scrollHeight, 200) + 'px';
   if (!isDMTyping && dmInputEl.value.trim()) { isDMTyping = true; socket.emit('dm-typing', { to: activeDMUser, typing: true }); }
   clearTimeout(dmTypingTimeout);
   dmTypingTimeout = setTimeout(() => { isDMTyping = false; socket.emit('dm-typing', { to: activeDMUser, typing: false }); }, 1500);
@@ -13389,7 +13501,7 @@ function insertDMMention(username) {
   hideDMMentionDropdown();
   updateDMSend();
   dmInputEl.style.height = 'auto';
-  dmInputEl.style.height = Math.min(dmInputEl.scrollHeight, 120) + 'px';
+  dmInputEl.style.height = Math.min(dmInputEl.scrollHeight, 200) + 'px';
 }
 
 dmInputEl.addEventListener('input', () => {
@@ -16383,6 +16495,7 @@ function renderProfileView(data) {
   }
   // Bio — show a professional hidden-profile notice when the profile is hidden
   if (isHidden) {
+    $('pv-bio').classList.add('pv-bio-hidden');
     $('pv-bio').innerHTML = '<div class="pv-hidden-notice">' +
       '<div class="pv-hidden-text-wrap">' +
         '<div class="pv-hidden-title"><span class="pv-hidden-title-dot"></span>This Profile is Private</div>' +
@@ -16391,6 +16504,7 @@ function renderProfileView(data) {
       '<div class="pv-hidden-badge"><span class="pv-hidden-badge-dot"></span>Private Account</div>' +
       '</div>';
   } else {
+    $('pv-bio').classList.remove('pv-bio-hidden');
     $('pv-bio').innerHTML = u.bio ? linkifyBio(u.bio) : 'No bio set.';
   }
   // Extra info: pronouns, location, website, member since
