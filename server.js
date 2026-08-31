@@ -1085,16 +1085,13 @@ setInterval(() => {
   Object.keys(verifiedEmails).forEach(em => { if (verifiedEmails[em].expires < now) delete verifiedEmails[em]; });
 }, 300000).unref();
 
-app.post('/api/register', (req, res) => {
-  const { username, password, displayName, email, verifyToken } = req.body || {};
+app.post('/api/register', async (req, res) => {
+  const { username, password, displayName, email, code } = req.body || {};
   if (!username || !password) return res.status(400).json({ error: 'Username and password required' });
-  // ---- Email verification requirement ----
+  // ---- Email validation ----
   const em = String(email || '').toLowerCase().trim();
   if (!em) return res.status(400).json({ error: 'Email address is required' });
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) return res.status(400).json({ error: 'Invalid email address' });
-  const vEntry = verifiedEmails[em];
-  if (!vEntry || vEntry.expires < Date.now()) return res.status(400).json({ error: 'Email not verified. Please request and enter a verification code first.' });
-  if (!verifyToken || vEntry.token !== verifyToken) return res.status(400).json({ error: 'Email verification failed. Please verify your email again.' });
   const un = String(username).toLowerCase().trim();
   if (!/^[a-z0-9_]+$/.test(un)) return res.status(400).json({ error: 'Username can only contain letters, numbers, and underscores' });
   if (un.length < 3) return res.status(400).json({ error: 'Username must be at least 3 characters' });
@@ -1104,6 +1101,60 @@ app.post('/api/register', (req, res) => {
       return res.status(409).json({ error: 'An account with this email already exists' });
     }
   }
+  if (db.users[un]) return res.status(409).json({ error: 'Username already taken' });
+
+  // ---- Two-phase email verification ----
+  // Phase 1: no code yet -> generate, send, and ask the user to enter it
+  const enteredCode = String(code || '').trim();
+  if (!enteredCode) {
+    if (!isEmailConfigured()) return res.status(503).json({ error: 'Email verification is not configured on the server. Please contact an administrator.' });
+    // Rate-limit: one code per email per 60 seconds
+    const existing = emailVerifyCodes[em];
+    if (existing && existing.expires - Date.now() > 540000) {
+      return res.status(429).json({ error: 'A code was already sent. Please wait a minute before requesting another.' });
+    }
+    const genCode = String(Math.floor(10000 + Math.random() * 90000));
+    emailVerifyCodes[em] = { code: genCode, expires: Date.now() + 600000, attempts: 0 }; // 10-min expiry
+    const mailHtml = '<div style="font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;max-width:480px;margin:0 auto;padding:28px;background:#0f1115;border-radius:14px;border:1px solid #1e2128;color:#e4e4e7">' +
+      '<h2 style="color:#fff;margin:0 0 8px;font-size:20px">Welcome to hellobye chat</h2>' +
+      '<p style="color:#a1a1aa;margin:0 0 20px;font-size:14px">Your verification code is:</p>' +
+      '<div style="text-align:center;margin:24px 0">' +
+        '<span style="display:inline-block;font-size:34px;font-weight:700;letter-spacing:10px;color:#4a9eff;background:rgba(74,158,255,0.1);padding:16px 28px;border-radius:12px;border:1px solid rgba(74,158,255,0.2)">' + genCode + '</span>' +
+      '</div>' +
+      '<p style="color:#a1a1aa;margin:0;font-size:13px">Enter this code to complete your account creation.</p>' +
+      '<p style="color:#71717a;margin:12px 0 0;font-size:12px">This code expires in 10 minutes. If you didn\'t request this, you can safely ignore this email.</p>' +
+    '</div>';
+    const mailText = 'Welcome to hellobye chat!\n\nYour verification code is: ' + genCode + '\n\nEnter this code to complete your account creation. This code expires in 10 minutes.\n\nIf you didn\'t request this, you can safely ignore this email.';
+    try {
+      const result = await resendSendMail({ to: em, subject: 'Your hellobye verification code', html: mailHtml, text: mailText });
+      if (result.error) {
+        delete emailVerifyCodes[em];
+        console.error('Resend send error (register phase 1):', result.error);
+        return res.status(500).json({ error: 'Could not send the verification email. Please check the address and try again.' });
+      }
+    } catch (err) {
+      delete emailVerifyCodes[em];
+      console.error('Resend send exception (register phase 1):', err.message);
+      return res.status(500).json({ error: 'Could not send the verification email. Please check the address and try again.' });
+    }
+    return res.status(200).json({ needsVerification: true, message: 'A 5-digit code was sent to ' + em + '. Check your inbox (and spam folder).' });
+  }
+
+  // Phase 2: code provided -> validate it, then create the account
+  const entry = emailVerifyCodes[em];
+  if (!entry) return res.status(400).json({ error: 'No verification code was sent to this email. Please request a new code.' });
+  if (entry.expires < Date.now()) {
+    delete emailVerifyCodes[em];
+    return res.status(400).json({ error: 'This verification code has expired. Please request a new code.' });
+  }
+  entry.attempts = (entry.attempts || 0) + 1;
+  if (entry.attempts > 8) {
+    delete emailVerifyCodes[em];
+    return res.status(429).json({ error: 'Too many incorrect attempts. Please request a new code.' });
+  }
+  if (entry.code !== enteredCode) return res.status(400).json({ error: 'Incorrect verification code. Please try again.' });
+  // Code is correct -> consume it and create the account
+  delete emailVerifyCodes[em];
   // 10-second registration cooldown
   const lastReg = db.lastRegTime[req.ip] || 0;
   const elapsed = Date.now() - lastReg;
@@ -1112,9 +1163,6 @@ app.post('/api/register', (req, res) => {
     return res.status(429).json({ error: 'Please wait before registering again', cooldown });
   }
   db.lastRegTime[req.ip] = Date.now();
-  if (db.users[un]) return res.status(409).json({ error: 'Username already taken' });
-  // Consume the verification token (one-time use)
-  delete verifiedEmails[em];
   const user = {
     id: genId(),
     username: un,
