@@ -31,7 +31,7 @@
 - [x] Switched from Gmail OAuth to Resend API (no OAuth needed)
 - [x] Test send-verify-code locally (real email sent successfully)
 - [x] Test verify-code + register rejection locally
-- [ ] Commit + push Resend changes to GitHub
-- [ ] Add RESEND_API_KEY env var on Render
-- [ ] Verify Render deploy live
-- [ ] Confirm features on live site
+- [x] Commit + push Resend changes to GitHub (c8baeb0)
+- [x] Add RESEND_API_KEY env var on Render
+- [x] Verify Render deploy live (dep-daasm7p42hec)
+- [x] Confirm features on live site (email sent + rate limit + UI all working)
