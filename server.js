@@ -3690,6 +3690,37 @@ io.on('connection', (socket) => {
       // Emit to every member of the group (including the sender, so their own
       // message appears instantly without a refetch).
       for (const m of (g.members || [])) io.to('user:' + m).emit('group-message', { groupId: g.id, message: msg });
+      // ---- Group reply highlight notification ----
+      if (msg.reply && msg.reply.id && msg.reply.username && msg.reply.username !== username) {
+        const replyTarget = String(msg.reply.username).toLowerCase();
+        if ((g.members || []).map(x => x.toLowerCase()).includes(replyTarget) && db.users[replyTarget]) {
+          io.to('user:' + replyTarget).emit('group-replied-to', {
+            groupId: g.id,
+            messageId: msg.reply.id,
+            by: username,
+            replyId: msg.id,
+            text: msg.text.slice(0, 200),
+          });
+        }
+      }
+      // ---- Group ping/mention notifications ----
+      // Parse @mentions and notify each mentioned group member who is online.
+      // Only members of the group are eligible (you can't ping a non-member
+      // in a group they can't see).
+      const grpMentionMatches = String(text || '').match(/(^|[^\w@])@([a-zA-Z0-9_\-]+)/g) || [];
+      const grpMentionedSet = new Set();
+      grpMentionMatches.forEach(m => { const i = m.indexOf('@'); if (i >= 0) grpMentionedSet.add(m.slice(i + 1).toLowerCase()); });
+      const memberLower = (g.members || []).map(x => x.toLowerCase());
+      grpMentionedSet.forEach(mentionedUn => {
+        if (mentionedUn !== username && memberLower.includes(mentionedUn) && db.users[mentionedUn]) {
+          io.to('user:' + mentionedUn).emit('group-pinged', {
+            groupId: g.id,
+            from: username,
+            messageId: msg.id,
+            text: msg.text.slice(0, 200),
+          });
+        }
+      });
       if (typeof ack === 'function') ack({ success: true, message: msg });
     } catch (e) {
       console.error('group-send error', e);

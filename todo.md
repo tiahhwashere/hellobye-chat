@@ -1,23 +1,37 @@
-# Round 6 — DM & Validation UI Improvements
+# Round 7 — UI Text Polish, Notifications & Media Revamp
 
-## Setup / Investigation
-- [x] Explore index.html + server.js to find relevant code sections
-- [x] Find "Password is required." UI + its SVG (error toast icon, 5 calls)
-- [x] Find "extra message space messages" = DM messages (.dm-messages bigger than .messages-container) — confirmed by user
-- [x] Find DM message rendering (renderDMMessages/appendDMMessage) + X close button (dm-close-btn @7442)
-- [x] Find existing Search Messages system (global panel + /api/search-messages scope=dms)
+## Investigation
+- [x] Find "Log out of hellobye?" confirm text — index.html:6283
+- [x] Find status bubble tooltip — index.html:6716 ("Shown to others as a bubble...")
+- [x] Find privacy description — index.html:6736 ("Others can only see your picture...")
+- [x] Find chatroom msg system notif — index.html:9596 showNotification() on every chatroom msg
+- [x] Find groupchat msg notif — group-message handler (9959) has NO showNotification (only playMessageSound) — but still noisy; will ensure clean
+- [x] Find DM open/close toast — closeConversation toast at 12711; openDM has no toast (already clean). DM-receive already badge-only.
+- [x] Find "Use at least 6 characters..." — index.html:6918
+- [x] Find "Send in Direct Message" — index.html:14326
+- [x] Find video rendering — createFileElement (10401) + .message-file video CSS (1436) + media-send-preview (4143)
+- [x] Find image rendering — .message-file img CSS (1422) max 480px; mobile 320px
+- [x] Find mention system — highlightMentions/extractMentions (8345); chat autocomplete (10720); DM autocomplete (13920); NO group autocomplete; server ping emit public(3442)+dm(3571), NO group ping emit
+- [x] Find reply system — startReply/cancelReply (14465); startDMReply (14489); startGroupReply (13174); createReplyQuote (14515) with jump-to-msg
 
 ## Implementation
-- [x] Fix 1: Remove the SVG from the "Password is required." UI (toast noIcon option)
-- [x] Fix 2: Make DM messages small like normal public-chat messages
-- [x] Fix 3: Add pin-messages system (header Pinned btn left of X + per-msg pin action + pinned list)
-- [x] Fix 4: Add Search Messages button in DM header (left of X) scoped to current DM
-- [x] Backend: persist pinned DM messages (db.users[me].dmPins) + dm-search-conversation endpoint
+- [x] Change "Log out of hellobye?" → "Are you sure you want to log out"
+- [x] Rewrite status bubble tooltip text (professional)
+- [x] Rewrite privacy description text (professional)
+- [x] Remove system notification for chatroom messages (keep DMs)
+- [x] Remove system notification for groupchat messages (keep DMs)
+- [x] Remove toast on DM open/close
+- [x] Rewrite "Use at least 6 characters..." (professional)
+- [x] Rewrite "Send in Direct Message" (professional)
+- [x] Revamp video sending format (better UI when sending video from files)
+- [x] Make images a bit smaller
+- [x] Revamp/advance user pinging/mentions system (group autocomplete + group ping/mention server emit + handlers)
+- [x] Revamp/advance reply system (hover preview tooltip with sender avatar + full message)
 
 ## Deploy
-- [x] Syntax check (server.js + inline JS in index.html) — both pass node -c
-- [x] Local boot test — server boots, / returns 200, new endpoints return 401 (auth-protected)
-- [x] db.json untouched (md5 unchanged: 99761e4c34b3b0dd84d8952dfef8efd0, empty schema only)
-- [ ] Commit + push to GitHub (auto-deploys via Render)
+- [x] Syntax check (server.js + inline JS in index.html)
+- [x] Local boot test
+- [x] db.json untouched (no data removed)
+- [ ] Commit + push to GitHub
 - [ ] Verify Render deploy live
 - [ ] Confirm all features on live site

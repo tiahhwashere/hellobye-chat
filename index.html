@@ -1420,28 +1420,29 @@ body.no-anim .friend-item { animation: none !important; }
 .msg-more-files .message-file { margin-top: 0; }
 
 .message-file img {
-  max-width: 480px; max-height: 480px; border-radius: 6px; display: block; cursor: pointer;
+  max-width: 360px; max-height: 360px; border-radius: 8px; display: block; cursor: pointer;
   object-fit: cover; image-rendering: -webkit-optimize-contrast;
   border: 1px solid rgba(255,255,255,0.06);
   transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
   box-shadow: 0 1px 3px rgba(0,0,0,0.25);
 }
 .message-file img:hover {
-  border-color: rgba(255,255,255,0.12); transform: scale(1.015);
+  border-color: rgba(255,255,255,0.12); transform: scale(1.02);
   box-shadow: 0 4px 14px rgba(0,0,0,0.35);
 }
 /* 4K/HD enhancement: images are upscaled + sharpened on the server; this
    subtle display filter adds a final crispness/contrast pop when rendered. */
 .message-file img.hd-enhanced { filter: contrast(1.04) saturate(1.06) sharpen(1); }
 .message-file video {
-  max-width: 500px; max-height: 480px; border-radius: 6px;
-  border: 1px solid rgba(255,255,255,0.06);
-  box-shadow: 0 1px 3px rgba(0,0,0,0.25); background: #000;
+  max-width: 420px; max-height: 360px; border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.08);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.35); background: #000;
   transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+  outline: none;
 }
 .message-file video:hover {
-  border-color: rgba(255,255,255,0.12); transform: scale(1.015);
-  box-shadow: 0 4px 14px rgba(0,0,0,0.35);
+  border-color: rgba(255,255,255,0.16); transform: scale(1.015);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.45);
 }
 /* HD enhancement filter for inline videos (server can't transcode video, so
    we apply a light sharpen/contrast/saturate pass at display time). */
@@ -1607,6 +1608,52 @@ body.no-anim .friend-item { animation: none !important; }
   background: var(--accent); opacity: 0.4;
 }
 .message-group { position: relative; }
+
+/* ---- Reply hover preview tooltip ---- */
+.reply-preview-tooltip {
+  position: fixed;
+  z-index: 9000;
+  background: rgba(18, 20, 24, 0.94);
+  backdrop-filter: blur(18px) saturate(1.5);
+  -webkit-backdrop-filter: blur(18px) saturate(1.5);
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  box-shadow: 0 14px 44px rgba(0, 0, 0, 0.55);
+  padding: 12px 14px;
+  min-width: 240px;
+  max-width: 380px;
+  pointer-events: none;
+  animation: mentionTooltipIn 0.14s ease;
+}
+.reply-preview-head {
+  display: flex; align-items: center; gap: 9px;
+  margin-bottom: 8px; padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+}
+.reply-preview-avatar {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: var(--bg-darker); flex-shrink: 0; overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700; color: var(--text-secondary);
+}
+.reply-preview-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+.reply-preview-sender {
+  font-size: 13px; font-weight: 700; color: var(--text-primary);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.reply-preview-body {
+  font-size: 13px; line-height: 1.5; color: var(--text-secondary);
+  max-height: 160px; overflow-y: auto;
+  word-break: break-word; white-space: pre-wrap;
+}
+.reply-preview-body .mention-self,
+.reply-preview-body .mention {
+  font-weight: 700; border-radius: 3px; padding: 0 2px;
+}
+.reply-preview-body .mention-self { background: rgba(74,158,255,0.18); color: #8ab8ff; }
+.reply-preview-body .mention { background: rgba(255,255,255,0.08); color: var(--text-primary); }
+.reply-preview-body a { color: var(--accent); text-decoration: none; }
+.reply-preview-body a:hover { text-decoration: underline; }
 
 /* ---- Message search panel ---- */
 #search-msg-panel {
@@ -4155,6 +4202,43 @@ body.no-anim .friend-item { animation: none !important; }
   border: 1px solid rgba(255,255,255,0.05);
 }
 .media-send-preview .media-file-card .file-icon { width: 44px; height: 44px; font-size: 13px; }
+/* Revamped video send card: framed thumbnail + metadata row */
+.media-send-preview .media-video-card {
+  display: flex; flex-direction: column; gap: 10px; width: 100%;
+  background: var(--bg-medium); padding: 12px; border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.06);
+}
+.media-send-preview .media-video-stage {
+  position: relative; width: 100%; background: #000; border-radius: 8px;
+  overflow: hidden; cursor: pointer; aspect-ratio: 16 / 9; max-height: 220px;
+  display: flex; align-items: center; justify-content: center;
+}
+.media-send-preview .media-video-stage video {
+  width: 100%; height: 100%; object-fit: contain; display: block; border-radius: 8px;
+}
+.media-send-preview .media-video-play-badge {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  color: #fff; background: rgba(0,0,0,0.22); transition: background 0.18s ease;
+  pointer-events: none;
+}
+.media-send-preview .media-video-stage:hover .media-video-play-badge { background: rgba(0,0,0,0.34); }
+.media-send-preview .media-video-meta {
+  display: flex; align-items: center; gap: 10px; padding: 2px 2px 0;
+}
+.media-send-preview .media-video-icon {
+  width: 34px; height: 34px; border-radius: 8px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(74,158,255,0.14); color: var(--accent);
+}
+.media-send-preview .media-video-info { flex: 1; min-width: 0; overflow: hidden; }
+.media-send-preview .media-video-name {
+  font-size: 13px; font-weight: 600; color: var(--text-primary);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.media-send-preview .media-video-sub {
+  font-size: 11px; color: var(--text-muted); margin-top: 2px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
 /* Multi-file count chip shown in the preview area */
 .media-send-extra-count {
   position: absolute; bottom: 10px; right: 10px;
@@ -5388,8 +5472,8 @@ body.no-anim .friend-item { animation: none !important; }
 
 /* Mobile: file & link embeds fit within the narrower message bubbles */
 @media (max-width: 768px) {
-  .message-file img { max-width: 320px; max-height: 320px; }
-  .message-file video { max-width: 340px; max-height: 300px; }
+  .message-file img { max-width: 260px; max-height: 260px; }
+  .message-file video { max-width: 300px; max-height: 260px; }
   .message-file audio { width: 280px; }
   .message-file-attachment { max-width: 340px; padding: 10px 13px; gap: 10px; }
   .file-icon { width: 38px; height: 38px; }
@@ -6713,7 +6797,7 @@ body.no-anim .friend-item { animation: none !important; }
         <div class="profile-section-title">Status Message</div>
         <input type="text" class="form-input" id="statusmsg-input" placeholder="Set a custom status message..." maxlength="25" autocomplete="off">
         <div class="bio-counter"><span id="statusmsg-count">0</span> / 25</div>
-        <p class="setting-hint">Shown to others as a bubble when you're Online, Idle, or Do Not Disturb. Removed when you go offline.</p>
+        <p class="setting-hint">Visible to others as a status bubble while you're Online, Idle, or Do Not Disturb, and automatically cleared when you go offline.</p>
       </div>
 
       <div class="profile-section">
@@ -6915,7 +6999,7 @@ body.no-anim .friend-item { animation: none !important; }
               <div class="identity-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
               <div class="identity-card-title">Password</div>
             </div>
-            <p class="identity-card-hint">Use at least 6 characters. You'll stay logged in.</p>
+            <p class="identity-card-hint">Choose a password of at least 6 characters. You'll stay logged in across sessions.</p>
             <div class="identity-field">
               <input type="password" class="form-input" id="current-password-input" placeholder="Enter your current password">
             </div>
@@ -8453,6 +8537,15 @@ function formatFileSize(bytes) {
   if (bytes < 1024 * 1024 * 1024) return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
   return (bytes / (1024 * 1024 * 1024)).toFixed(1) + ' GB';
 }
+// Human-friendly video/audio duration, e.g. 73s -> "1:13", 3661s -> "1:01:01"
+function formatDuration(seconds) {
+  if (!isFinite(seconds) || seconds < 0) return '0:00';
+  const s = Math.floor(seconds % 60);
+  const m = Math.floor((seconds / 60) % 60);
+  const h = Math.floor(seconds / 3600);
+  const pad = (n) => (n < 10 ? '0' + n : '' + n);
+  return h > 0 ? (h + ':' + pad(m) + ':' + pad(s)) : (m + ':' + pad(s));
+}
 function getInitials(username) {
   if (!username) return '?';
   return username.charAt(0).toUpperCase();
@@ -9588,13 +9681,9 @@ function connectSocket() {
     hideEmptyState();
     scrollToBottom();
     if (msg.pingedForMe) playPingSound(); else playMessageSound();
-    // Desktop notification when not focused
-    if (msg.username !== currentUser.username) {
-      const user = users.find(u => u.username === msg.username);
-      const name = (user && user.displayName) ? user.displayName : '@' + msg.username;
-      const isPing = msg.pingedForMe;
-      showNotification((isPing ? name + ' mentioned you' : name + ' sent a message'), msg.text || (msg.file ? 'Sent a file' : ''), user && user.avatar);
-    }
+    // System/desktop notifications for chatroom messages have been removed
+    // per request. The unread sound above + in-app ping handling below are
+    // the only signals. (DMs retain their own notification behaviour.)
   });
   // Pinged in chat — show notification
   socket.on('pinged', (data) => {
@@ -9987,6 +10076,52 @@ function connectSocket() {
       showGroupTyping(false);
     } else {
       playMessageSound();
+    }
+  });
+  // Pinged in a group — someone @mentioned you in a group chat.
+  // Plays the ping sound + marks the message so it gets the pinged highlight
+  // when the group is opened. Shows an in-app notification if you're not
+  // currently viewing that group with focus.
+  socket.on('group-pinged', (data) => {
+    if (!data || !data.from) return;
+    if (blockedUsers.some(u => u.username === data.from)) return;
+    const user = users.find(u => u.username === data.from);
+    const g = (groupChats || []).find(x => x.id === data.groupId);
+    const gname = (g && g.name) ? g.name : 'a group';
+    const name = (user && user.displayName) ? user.displayName : '@' + data.from;
+    const isGroupFocused = document.hasFocus() && activeGroupId === data.groupId;
+    if (!isGroupFocused) {
+      showInAppNotification({
+        title: name + ' mentioned you in ' + gname,
+        text: data.text || '',
+        avatar: user && user.avatar,
+        type: 'mention',
+        username: data.from,
+        onClick: () => { switchSidebarView('groups'); if (g) openGroup(g.id); }
+      });
+      playPingSound();
+    } else {
+      playPingSound();
+    }
+    // Mark the message so it gets the pinged highlight when rendered
+    if (data.messageId) {
+      const m = groupMessages.find(x => x.id === data.messageId);
+      if (m) m.pingedForMe = true;
+      const el = document.querySelector('.message-group[data-message-id="' + data.messageId + '"] .message-bubble');
+      if (el && !el.classList.contains('pinged-msg')) el.classList.add('pinged-msg');
+    }
+  });
+  // Someone replied to your message in a group — highlight your original.
+  socket.on('group-replied-to', (data) => {
+    if (!data || !data.messageId) return;
+    const el = document.querySelector('.message-group[data-message-id="' + data.messageId + '"]');
+    if (el) {
+      el.classList.add('replied-to-me');
+      const bubble = el.querySelector('.message-bubble');
+      if (bubble && !bubble.classList.contains('replied-flash')) {
+        bubble.classList.add('replied-flash');
+        setTimeout(() => bubble.classList.remove('replied-flash'), 2200);
+      }
     }
   });
 
@@ -11911,7 +12046,7 @@ function attachUserListListeners() {
           items.push({ label: 'Open Conversation', icon: 'dm', action: () => {
             // Optimistic: remove from closedDMs locally so the list updates instantly.
             closedDMs = closedDMs.filter(c => c.toLowerCase() !== un.toLowerCase());
-            toast('Conversation has been reopened.', 'success');
+            // Toast notification on conversation reopen removed per request.
             fetch(API_BASE + '/api/dms/reopen/' + encodeURIComponent(un), { method: 'POST' }).then(() => {
               loadDMConversations();
             }).catch(() => {});
@@ -12707,8 +12842,7 @@ async function closeDM(username) {
   updateDMNavBadge();
   // If the user is currently viewing this conversation in the overlay, close it.
   if (activeDMUser && activeDMUser.toLowerCase() === un) closeDMOverlay();
-  // Professional, clear confirmation with the reopen hint.
-  toast('Conversation closed. Reopen it anytime by right-clicking the Messages tab.', 'info');
+  // Toast notification on conversation close removed per request.
   // Fire network request in background (non-blocking)
   fetch(API_BASE + '/api/dms/close/' + encodeURIComponent(username), { method: 'POST' }).then(() => {
     loadDMConversations();
@@ -12722,7 +12856,7 @@ document.querySelector('.sidebar-nav-btn[data-view="dms"]').addEventListener('co
     label: 'Reopen @' + un, icon: 'dm', action: async () => {
       // Optimistic: remove from closedDMs locally so the list updates instantly.
       closedDMs = closedDMs.filter(c => c.toLowerCase() !== un.toLowerCase());
-      toast('Conversation has been reopened.', 'success');
+      // Toast notification on conversation reopen removed per request.
       fetch(API_BASE + '/api/dms/reopen/' + encodeURIComponent(un), { method: 'POST' }).then(() => {
         loadDMConversations();
       }).catch(() => {});
@@ -13033,6 +13167,7 @@ function closeGroupOverlay() {
   groupMessages = [];
   replyingToGroup = null;
   editingGroupMsgId = null;
+  if (typeof hideGroupMentionDropdown === 'function') hideGroupMentionDropdown();
 }
 $('group-back').addEventListener('click', closeGroupOverlay);
 $('group-close-btn').addEventListener('click', closeGroupOverlay);
@@ -13251,6 +13386,167 @@ groupInputEl.addEventListener('keydown', (e) => {
   if (e.key === 'Escape' && replyingToGroup) { e.preventDefault(); cancelGroupReply(); }
 });
 groupSendBtn.addEventListener('click', () => { if (recordSpamClick()) return; sendGroupMessage(); });
+
+// ---------- Mention dropdown for group input (scoped to group members) ----------
+let groupMentionDropdown = null;
+let groupMentionActiveIndex = -1;
+let groupMentionItems = [];
+let groupMentionQuery = '';
+
+// Returns the member username list of the currently-open group.
+function currentGroupMemberUsernames() {
+  if (!activeGroupId) return [];
+  const g = groupChats.find(x => x.id === activeGroupId) || groupConvs.find(x => x.id === activeGroupId);
+  return (g && Array.isArray(g.members)) ? g.members.slice() : [];
+}
+
+function buildGroupMentionDropdown() {
+  if (!groupMentionDropdown) {
+    groupMentionDropdown = document.createElement('div');
+    groupMentionDropdown.className = 'mention-dropdown';
+    groupMentionDropdown.id = 'group-mention-dropdown';
+    const wrap = groupInputEl.closest('.chat-input-wrap') || groupInputEl.parentElement;
+    if (wrap) { wrap.style.position = 'relative'; wrap.appendChild(groupMentionDropdown); }
+    else { document.body.appendChild(groupMentionDropdown); }
+  }
+  return groupMentionDropdown;
+}
+
+function showGroupMentionDropdown(query) {
+  groupMentionQuery = (query || '').toLowerCase();
+  const dd = buildGroupMentionDropdown();
+  // Candidates are members of the current group (exclude self + banned)
+  const memberNames = currentGroupMemberUsernames();
+  let candidates = memberNames
+    .map(un => users.find(u => u.username === un))
+    .filter(u => u && u.username !== (currentUser && currentUser.username) && !u.banned);
+  if (groupMentionQuery) {
+    candidates = candidates.filter(u =>
+      u.username.toLowerCase().includes(groupMentionQuery) ||
+      (u.displayName && u.displayName.toLowerCase().includes(groupMentionQuery))
+    );
+  }
+  // Sort: online first, then by username
+  candidates.sort((a, b) => {
+    const aOnline = a.status && a.status !== 'offline';
+    const bOnline = b.status && b.status !== 'offline';
+    if (aOnline && !bOnline) return -1;
+    if (!aOnline && bOnline) return 1;
+    return a.username.localeCompare(b.username);
+  });
+  candidates = candidates.slice(0, 12);
+  groupMentionItems = candidates;
+  groupMentionActiveIndex = -1;
+  if (candidates.length === 0) {
+    dd.innerHTML = '<div class="mention-dropdown-empty">No members found</div>';
+    dd.classList.add('show');
+    return;
+  }
+  let headerHTML = '<div class="mention-dropdown-header">' + (groupMentionQuery ? 'Matching members' : 'Members') + ' &middot; ' + candidates.length + '</div>';
+  dd.innerHTML = headerHTML + candidates.map((u, i) => {
+    const avatarInner = u.avatar
+      ? '<img src="' + escapeHtml(u.avatar) + '" alt="" />'
+      : escapeHtml(getInitials(u.displayName || u.username));
+    const dotClass = statusDotClass(u.status);
+    return '<div class="mention-dropdown-item" data-idx="' + i + '" data-username="' + escapeHtml(u.username) + '">'
+      + '<div class="mention-dropdown-avatar">' + avatarInner + '<span class="mention-dropdown-status ' + dotClass + '"></span></div>'
+      + '<div class="mention-dropdown-info">'
+      + '<div class="mention-dropdown-name">' + escapeHtml(u.displayName || u.username) + '</div>'
+      + '<div class="mention-dropdown-handle">@' + escapeHtml(u.username) + '</div>'
+      + '</div></div>';
+  }).join('');
+  dd.classList.add('show');
+  dd.querySelectorAll('.mention-dropdown-item').forEach(item => {
+    item.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+      const un = item.getAttribute('data-username');
+      if (un) insertGroupMention(un);
+    });
+  });
+}
+
+function hideGroupMentionDropdown() {
+  if (groupMentionDropdown) groupMentionDropdown.classList.remove('show');
+  groupMentionActiveIndex = -1;
+  groupMentionItems = [];
+}
+
+function insertGroupMention(username) {
+  const val = groupInputEl.value;
+  const cursor = groupInputEl.selectionStart;
+  let atIdx = -1;
+  for (let i = cursor - 1; i >= 0; i--) {
+    if (val[i] === '@') { atIdx = i; break; }
+    if (!/[a-zA-Z0-9_\-]/.test(val[i])) break;
+  }
+  if (atIdx < 0) atIdx = cursor;
+  groupInputEl.value = val.slice(0, atIdx) + '@' + username + ' ' + val.slice(cursor);
+  const newPos = atIdx + username.length + 2;
+  groupInputEl.focus();
+  groupInputEl.setSelectionRange(newPos, newPos);
+  hideGroupMentionDropdown();
+  updateGroupSend();
+  groupInputEl.style.height = 'auto';
+  groupInputEl.style.height = Math.min(groupInputEl.scrollHeight, 120) + 'px';
+}
+
+function updateGroupMentionActive() {
+  if (!groupMentionDropdown) return;
+  groupMentionDropdown.querySelectorAll('.mention-dropdown-item').forEach((item, i) => {
+    item.classList.toggle('active', i === groupMentionActiveIndex);
+    if (i === groupMentionActiveIndex) item.scrollIntoView({ block: 'nearest' });
+  });
+}
+
+// Detect @ typing in the group input
+groupInputEl.addEventListener('input', (e) => {
+  const val = groupInputEl.value;
+  const cursor = groupInputEl.selectionStart;
+  let atIdx = -1;
+  for (let i = cursor - 1; i >= 0; i--) {
+    if (val[i] === '@') { atIdx = i; break; }
+    if (!/[a-zA-Z0-9_\-]/.test(val[i])) break;
+  }
+  if (atIdx >= 0 && (atIdx === 0 || /[^\w@]/.test(val[atIdx - 1]))) {
+    const query = val.slice(atIdx + 1, cursor);
+    if (query.length <= 20 && /^[a-zA-Z0-9_\-]*$/.test(query)) {
+      showGroupMentionDropdown(query);
+      return;
+    }
+  }
+  hideGroupMentionDropdown();
+});
+
+// Keyboard navigation for the group mention dropdown
+groupInputEl.addEventListener('keydown', (e) => {
+  if (!groupMentionDropdown || !groupMentionDropdown.classList.contains('show')) return;
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    groupMentionActiveIndex = Math.min(groupMentionActiveIndex + 1, groupMentionItems.length - 1);
+    updateGroupMentionActive();
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    groupMentionActiveIndex = Math.max(groupMentionActiveIndex - 1, 0);
+    updateGroupMentionActive();
+  } else if (e.key === 'Enter' || e.key === 'Tab') {
+    if (groupMentionActiveIndex >= 0 && groupMentionItems[groupMentionActiveIndex]) {
+      e.preventDefault();
+      e.stopPropagation();
+      insertGroupMention(groupMentionItems[groupMentionActiveIndex].username);
+    }
+  } else if (e.key === 'Escape') {
+    e.preventDefault();
+    hideGroupMentionDropdown();
+  }
+}, true); // capture so we run before the send-on-Enter handler
+
+// Hide the group mention dropdown when clicking outside or losing focus
+document.addEventListener('click', (e) => {
+  if (groupMentionDropdown && groupMentionDropdown.classList.contains('show')) {
+    if (!groupMentionDropdown.contains(e.target) && e.target !== groupInputEl) hideGroupMentionDropdown();
+  }
+});
+groupInputEl.addEventListener('blur', () => { setTimeout(() => hideGroupMentionDropdown(), 150); });
 
 function sendGroupMessage() {
   const text = groupInputEl.value.trim();
@@ -14323,7 +14619,7 @@ function openMediaSendModal(opts) {
   const titleEl = $('media-send-title');
   previewWrap.innerHTML = '';
   captionEl.value = opts.initialCaption || '';
-  titleEl.textContent = opts.context === 'dm' ? 'Send in Direct Message' : opts.context === 'group' ? 'Send in Group' : 'Send Attachment';
+  titleEl.textContent = opts.context === 'dm' ? 'Send via Direct Message' : opts.context === 'group' ? 'Send in Group' : 'Send Attachment';
   const mt = file.type || '';
   if (mt.startsWith('image/')) {
     const img = document.createElement('img');
@@ -14332,11 +14628,51 @@ function openMediaSendModal(opts) {
     img.onload = () => URL.revokeObjectURL(url);
     previewWrap.appendChild(img);
   } else if (mt.startsWith('video/')) {
-    const video = document.createElement('video');
+    // Revamped video send preview: a framed thumbnail + metadata card
+    // instead of a bare <video controls> element.
+    const card = document.createElement('div');
+    card.className = 'media-video-card';
     const url = URL.createObjectURL(file);
-    video.src = url; video.controls = true;
-    video.onloadeddata = () => URL.revokeObjectURL(url);
-    previewWrap.appendChild(video);
+    // Thumbnail stage (uses the first frame as a poster once loaded)
+    const stage = document.createElement('div');
+    stage.className = 'media-video-stage';
+    const thumb = document.createElement('video');
+    thumb.src = url; thumb.muted = true; thumb.preload = 'metadata'; thumb.playsInline = true;
+    thumb.setAttribute('aria-label', file.name);
+    const playBadge = document.createElement('div');
+    playBadge.className = 'media-video-play-badge';
+    playBadge.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor" width="26" height="26"><path d="M8 5v14l11-7z"/></svg>';
+    // Clicking the stage plays/pauses the inline preview
+    stage.addEventListener('click', () => {
+      if (thumb.paused) { thumb.controls = true; thumb.play().catch(() => {}); playBadge.style.display = 'none'; }
+      else { thumb.pause(); }
+    });
+    stage.appendChild(thumb);
+    stage.appendChild(playBadge);
+    card.appendChild(stage);
+    // Metadata row: video icon + name + size + duration + resolution
+    const meta = document.createElement('div');
+    meta.className = 'media-video-meta';
+    meta.innerHTML = '<div class="media-video-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg></div><div class="media-video-info"><div class="media-video-name"></div><div class="media-video-sub"></div></div>';
+    meta.querySelector('.media-video-name').textContent = file.name;
+    meta.querySelector('.media-video-sub').textContent = formatFileSize(file.size) + ' \u00b7 video';
+    card.appendChild(meta);
+    previewWrap.appendChild(card);
+    // Grab duration + resolution once metadata is available, then seek to a
+    // representative frame (~25% in) so the thumbnail isn't a blank first frame.
+    thumb.addEventListener('loadedmetadata', () => {
+      const dur = thumb.duration;
+      const w = thumb.videoWidth || 0;
+      const h = thumb.videoHeight || 0;
+      const parts = [];
+      if (isFinite(dur) && dur > 0) parts.push(formatDuration(dur));
+      if (w && h) parts.push(w + '\u00d7' + h);
+      const sub = meta.querySelector('.media-video-sub');
+      sub.textContent = (parts.length ? parts.join(' \u00b7 ') + ' \u00b7 ' : '') + formatFileSize(file.size) + ' \u00b7 video';
+      // Seek to ~25% for a nicer poster frame (clamped for very short clips)
+      try { thumb.currentTime = Math.min(Math.max(dur * 0.25, 0.1), Math.max(dur - 0.1, 0.1)); } catch (e) {}
+    });
+    thumb.addEventListener('loadeddata', () => { try { URL.revokeObjectURL(url); } catch (e) {} });
   } else if (mt.startsWith('audio/')) {
     const audio = document.createElement('audio');
     const url = URL.createObjectURL(file);
@@ -14558,7 +14894,61 @@ function createReplyQuote(reply) {
       }
     });
   }
+  // Advanced reply: hover preview tooltip showing the full original message
+  // (including sender + timestamp) so users can see context without clicking.
+  let replyHoverTimer = null;
+  quote.addEventListener('mouseenter', () => {
+    clearTimeout(replyHoverTimer);
+    replyHoverTimer = setTimeout(() => showReplyPreview(quote, reply), 280);
+  });
+  quote.addEventListener('mouseleave', () => {
+    clearTimeout(replyHoverTimer);
+    hideReplyPreview();
+  });
   return quote;
+}
+
+// ---------- Reply hover preview tooltip ----------
+let replyPreviewEl = null;
+function ensureReplyPreviewEl() {
+  if (replyPreviewEl) return replyPreviewEl;
+  replyPreviewEl = document.createElement('div');
+  replyPreviewEl.className = 'reply-preview-tooltip';
+  replyPreviewEl.style.display = 'none';
+  document.body.appendChild(replyPreviewEl);
+  return replyPreviewEl;
+}
+function showReplyPreview(anchor, reply) {
+  if (!reply) return;
+  const tip = ensureReplyPreviewEl();
+  const replyUser = users.find(u => u.username === reply.username) || {};
+  const name = reply.displayName ? escapeHtml(reply.displayName) : '@' + escapeHtml(reply.username);
+  const avatarInner = replyUser.avatar
+    ? '<img src="' + escapeHtml(replyUser.avatar) + '" alt="">'
+    : escapeHtml(getInitials(reply.displayName || reply.username));
+  const textHtml = reply.text
+    ? highlightMentions(linkifyAndEmbed(escapeHtml(reply.text)))
+    : '<span style="color:var(--text-muted);font-style:italic;">[File attachment]</span>';
+  tip.innerHTML =
+    '<div class="reply-preview-head">' +
+      '<div class="reply-preview-avatar">' + avatarInner + '</div>' +
+      '<div class="reply-preview-sender">' + name + '</div>' +
+    '</div>' +
+    '<div class="reply-preview-body">' + textHtml + '</div>';
+  // Position above the anchor
+  const rect = anchor.getBoundingClientRect();
+  tip.style.display = 'block';
+  const tipRect = tip.getBoundingClientRect();
+  let left = rect.left + rect.width / 2 - tipRect.width / 2;
+  let top = rect.top - tipRect.height - 8;
+  // Clamp to viewport
+  left = Math.max(8, Math.min(left, window.innerWidth - tipRect.width - 8));
+  if (top < 8) top = rect.bottom + 8; // flip below if no room above
+  tip.style.left = left + 'px';
+  tip.style.top = top + 'px';
+}
+function hideReplyPreview() {
+  if (replyPreviewEl) replyPreviewEl.style.display = 'none';
 }
 
 // ---------- Logout ----------
