@@ -1612,7 +1612,7 @@ body.no-anim .friend-item { animation: none !important; }
 /* ---- Reply hover preview tooltip ---- */
 .reply-preview-tooltip {
   position: fixed;
-  z-index: 9000;
+  z-index: 9200;
   background: rgba(18, 20, 24, 0.94);
   backdrop-filter: blur(18px) saturate(1.5);
   -webkit-backdrop-filter: blur(18px) saturate(1.5);
@@ -4376,6 +4376,7 @@ body.no-anim .friend-item { animation: none !important; }
 .ctx-block { background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23d83a3a' stroke-width='2'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cline x1='4.93' y1='4.93' x2='19.07' y2='19.07'/%3E%3C/svg%3E") center/contain no-repeat; }
 .ctx-dm { background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a0a0b0' stroke-width='2'%3E%3Cpath d='M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z'/%3E%3C/svg%3E") center/contain no-repeat; }
 .ctx-close { background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a0a0b0' stroke-width='2'%3E%3Cline x1='18' y1='6' x2='6' y2='18'/%3E%3Cline x1='6' y1='6' x2='18' y2='18'/%3E%3C/svg%3E") center/contain no-repeat; }
+.ctx-copy { background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a0a0b0' stroke-width='2'%3E%3Crect x='9' y='9' width='13' height='13' rx='2' ry='2'/%3E%3Cpath d='M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1'/%3E%3C/svg%3E") center/contain no-repeat; }
 .ctx-none { background: none; }
 
 /* ============================================
@@ -8458,6 +8459,8 @@ let mentionTooltipTimer = null;
 function showMentionTooltip(username, anchorEl) {
   const u = users.find(x => x.username.toLowerCase() === username.toLowerCase());
   if (!u) return; // only show for known users
+  // Dismiss any other floating tooltip so they don't overlap
+  try { hideReplyPreview(); } catch(e){}
   const tip = $('mention-tooltip');
   const avEl = $('mention-tooltip-avatar');
   // Build avatar
@@ -8476,8 +8479,9 @@ function showMentionTooltip(username, anchorEl) {
   // Name + handle
   $('mention-tooltip-name').textContent = u.displayName || u.username;
   $('mention-tooltip-handle').textContent = '@' + u.username;
-  // Position above the anchor element
+  // Position above the anchor element — measure off-screen first to avoid flash
   const rect = anchorEl.getBoundingClientRect();
+  tip.style.left = '-9999px'; tip.style.top = '0';
   tip.classList.add('show');
   const tipRect = tip.getBoundingClientRect();
   let left = rect.left + rect.width / 2 - tipRect.width / 2;
@@ -10344,10 +10348,11 @@ function appendMessage(msg, silent) {
   if (isOwn && !msg.deleted) {
     const ctxItems = [
       { label: 'Reply to message', icon: 'reply', action: () => startReply(msg) },
+      { label: 'Copy Message', icon: 'copy', action: () => copyMessageToClipboard(msg) },
       { label: 'Edit Message', icon: 'edit', action: () => startEditMessage(msg.id, bubble) },
       { label: 'Delete Message', icon: 'delete', danger: true, action: () => confirmDeleteMessage(msg.id) }
     ];
-    if (msg.file) ctxItems.splice(1, 0, { label: 'Download ' + (msg.file.name || 'file'), icon: 'download', action: () => downloadFile(msg.file) });
+    if (msg.file) ctxItems.splice(2, 0, { label: 'Download ' + (msg.file.name || 'file'), icon: 'download', action: () => downloadFile(msg.file) });
     bubble.addEventListener('contextmenu', (e) => {
       e.preventDefault();
       showContextMenu(e.clientX, e.clientY, ctxItems);
@@ -10370,6 +10375,7 @@ function appendMessage(msg, silent) {
     // For other users' messages, add reply context menu on bubble too
     const otherCtxItems = [
       { label: 'Reply to message', icon: 'reply', action: () => startReply(msg) },
+      { label: 'Copy Message', icon: 'copy', action: () => copyMessageToClipboard(msg) },
       { label: 'Send Message', icon: 'dm', action: () => {
         const target = users.find(x => x.username === msg.username);
         const otherOff = target && target.directMessagesEnabled === false;
@@ -10377,7 +10383,7 @@ function appendMessage(msg, silent) {
         openDM(msg.username);
       } }
     ];
-    if (msg.file) otherCtxItems.push({ label: 'Download ' + (msg.file.name || 'file'), icon: 'download', action: () => downloadFile(msg.file) });
+    if (msg.file) otherCtxItems.splice(3, 0, { label: 'Download ' + (msg.file.name || 'file'), icon: 'download', action: () => downloadFile(msg.file) });
     bubble.addEventListener('contextmenu', (e) => {
       e.preventDefault();
       showContextMenu(e.clientX, e.clientY, otherCtxItems);
@@ -13262,10 +13268,11 @@ function appendGroupMessage(msg, silent) {
   if (isOwn && !msg.deleted) {
     const ctxItems = [
       { label: 'Reply to message', icon: 'reply', action: () => startGroupReply(msg) },
+      { label: 'Copy Message', icon: 'copy', action: () => copyMessageToClipboard(msg) },
       { label: 'Edit Message', icon: 'edit', action: () => startEditGroup(msg.id, bubble) },
       { label: 'Delete Message', icon: 'delete', danger: true, action: () => confirmDeleteGroup(msg.id) }
     ];
-    if (msg.file) ctxItems.splice(1, 0, { label: 'Download ' + (msg.file.name || 'file'), icon: 'download', action: () => downloadFile(msg.file) });
+    if (msg.file) ctxItems.splice(2, 0, { label: 'Download ' + (msg.file.name || 'file'), icon: 'download', action: () => downloadFile(msg.file) });
     bubble.addEventListener('contextmenu', (e) => { e.preventDefault(); showContextMenu(e.clientX, e.clientY, ctxItems); });
     const actions = document.createElement('div');
     actions.className = 'message-actions';
@@ -13275,8 +13282,11 @@ function appendGroupMessage(msg, silent) {
     actions.appendChild(replyBtn); actions.appendChild(editBtn); actions.appendChild(delBtn);
     bubble.appendChild(actions);
   } else if (!isOwn && !msg.deleted) {
-    const ctxItems = [{ label: 'Reply to message', icon: 'reply', action: () => startGroupReply(msg) }];
-    if (msg.file) ctxItems.push({ label: 'Download ' + (msg.file.name || 'file'), icon: 'download', action: () => downloadFile(msg.file) });
+    const ctxItems = [
+      { label: 'Reply to message', icon: 'reply', action: () => startGroupReply(msg) },
+      { label: 'Copy Message', icon: 'copy', action: () => copyMessageToClipboard(msg) }
+    ];
+    if (msg.file) ctxItems.splice(2, 0, { label: 'Download ' + (msg.file.name || 'file'), icon: 'download', action: () => downloadFile(msg.file) });
     bubble.addEventListener('contextmenu', (e) => { e.preventDefault(); showContextMenu(e.clientX, e.clientY, ctxItems); });
     const actions = document.createElement('div');
     actions.className = 'message-actions';
@@ -14073,11 +14083,12 @@ function appendDMMessage(msg, silent) {
   if (isOwn && !msg.deleted) {
     const dmCtxItems = [
       { label: 'Reply to message', icon: 'reply', action: () => startDMReply(msg) },
+      { label: 'Copy Message', icon: 'copy', action: () => copyMessageToClipboard(msg) },
       { label: 'Pin Message', icon: 'pin', action: () => togglePinMessage(msg.id) },
       { label: 'Edit Message', icon: 'edit', action: () => startEditDM(msg.id, bubble) },
       { label: 'Delete Message', icon: 'delete', danger: true, action: () => confirmDeleteDM(msg.id) }
     ];
-    if (msg.file) dmCtxItems.splice(2, 0, { label: 'Download ' + (msg.file.name || 'file'), icon: 'download', action: () => downloadFile(msg.file) });
+    if (msg.file) dmCtxItems.splice(3, 0, { label: 'Download ' + (msg.file.name || 'file'), icon: 'download', action: () => downloadFile(msg.file) });
     bubble.addEventListener('contextmenu', (e) => {
       e.preventDefault();
       showContextMenu(e.clientX, e.clientY, dmCtxItems);
@@ -14101,9 +14112,10 @@ function appendDMMessage(msg, silent) {
   } else if (!isOwn && !msg.deleted) {
     const dmOtherCtxItems = [
       { label: 'Reply to message', icon: 'reply', action: () => startDMReply(msg) },
+      { label: 'Copy Message', icon: 'copy', action: () => copyMessageToClipboard(msg) },
       { label: 'Pin Message', icon: 'pin', action: () => togglePinMessage(msg.id) }
     ];
-    if (msg.file) dmOtherCtxItems.push({ label: 'Download ' + (msg.file.name || 'file'), icon: 'download', action: () => downloadFile(msg.file) });
+    if (msg.file) dmOtherCtxItems.splice(3, 0, { label: 'Download ' + (msg.file.name || 'file'), icon: 'download', action: () => downloadFile(msg.file) });
     bubble.addEventListener('contextmenu', (e) => {
       e.preventDefault();
       showContextMenu(e.clientX, e.clientY, dmOtherCtxItems);
@@ -14745,6 +14757,12 @@ $('media-send-confirm').addEventListener('click', () => {
 });
 
 function showContextMenu(x, y, items) {
+  // Dismiss any overlapping floating UI so nothing stacks on top of the menu
+  try { hideMentionTooltip(); } catch(e){}
+  try { hideReplyPreview(); } catch(e){}
+  try { hideChatMentionDropdown(); } catch(e){}
+  try { hideDMMentionDropdown(); } catch(e){}
+  try { hideGroupMentionDropdown(); } catch(e){}
   ctxMenu.innerHTML = '';
   items.forEach(item => {
     const el = document.createElement('div');
@@ -14753,17 +14771,21 @@ function showContextMenu(x, y, items) {
     el.addEventListener('click', () => { hideContextMenu(); item.action(); });
     ctxMenu.appendChild(el);
   });
+  // Position off-screen first so we can measure without a 0,0 flash
+  ctxMenu.style.left = '-9999px';
+  ctxMenu.style.top = '0';
   ctxMenu.style.display = 'block';
   const rect = ctxMenu.getBoundingClientRect();
   let px = x, py = y;
-  if (x + rect.width > window.innerWidth) px = window.innerWidth - rect.width - 8;
-  if (y + rect.height > window.innerHeight) py = window.innerHeight - rect.height - 8;
+  if (px + rect.width > window.innerWidth) px = window.innerWidth - rect.width - 8;
+  if (py + rect.height > window.innerHeight) py = window.innerHeight - rect.height - 8;
+  px = Math.max(8, px); py = Math.max(8, py);
   ctxMenu.style.left = px + 'px';
   ctxMenu.style.top = py + 'px';
 }
 function hideContextMenu() { ctxMenu.style.display = 'none'; }
 document.addEventListener('click', hideContextMenu);
-document.addEventListener('scroll', hideContextMenu, true);
+document.addEventListener('scroll', () => { hideContextMenu(); try { hideReplyPreview(); } catch(e){} try { hideMentionTooltip(); } catch(e){} }, true);
 
 /* ---------- Generic confirmation modal (replaces native confirm()) ----------
  * Usage: showGenericConfirm({ title, body, confirmText, cancelText, danger })
@@ -14920,6 +14942,8 @@ function ensureReplyPreviewEl() {
 }
 function showReplyPreview(anchor, reply) {
   if (!reply) return;
+  // Dismiss any other floating tooltip so they don't overlap
+  try { hideMentionTooltip(); } catch(e){}
   const tip = ensureReplyPreviewEl();
   const replyUser = users.find(u => u.username === reply.username) || {};
   const name = reply.displayName ? escapeHtml(reply.displayName) : '@' + escapeHtml(reply.username);
@@ -14935,8 +14959,9 @@ function showReplyPreview(anchor, reply) {
       '<div class="reply-preview-sender">' + name + '</div>' +
     '</div>' +
     '<div class="reply-preview-body">' + textHtml + '</div>';
-  // Position above the anchor
+  // Position above the anchor — measure off-screen first to avoid flash
   const rect = anchor.getBoundingClientRect();
+  tip.style.left = '-9999px'; tip.style.top = '0';
   tip.style.display = 'block';
   const tipRect = tip.getBoundingClientRect();
   let left = rect.left + rect.width / 2 - tipRect.width / 2;
@@ -16853,6 +16878,36 @@ function copyUserIdToClipboard(userId, username) {
   // Close dropdown if open
   const menu = $('pv-copy-id-menu');
   if (menu) menu.classList.remove('show');
+}
+// ---------- Copy message text to clipboard ----------
+// Builds a clean, plain-text representation of a chat / DM / group message
+// (message text + optional file name) and copies it to the clipboard with a
+// toast confirmation. Used by the right-click "Copy Message" context option.
+function copyMessageToClipboard(msg) {
+  if (!msg) return;
+  let text = '';
+  if (typeof msg.text === 'string' && msg.text.trim()) text = msg.text.trim();
+  // Append file attachment name(s) so copied media messages aren't empty
+  const files = [];
+  if (msg.file && msg.file.name) files.push(msg.file.name);
+  if (Array.isArray(msg.files)) msg.files.forEach(f => { if (f && f.name) files.push(f.name); });
+  if (files.length) text = (text ? text + '\n' : '') + files.map(n => '📎 ' + n).join('\n');
+  if (!text) { toast('This message has no copyable text.', 'error'); return; }
+  const doToast = () => toast('Message copied to clipboard', 'success');
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(doToast).catch(() => fallbackCopy(text, doToast));
+  } else {
+    fallbackCopy(text, doToast);
+  }
+}
+function fallbackCopy(text, onOk) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed'; ta.style.left = '-9999px'; ta.style.top = '0';
+  document.body.appendChild(ta); ta.focus(); ta.select();
+  try { document.execCommand('copy'); onOk && onOk(); }
+  catch (e) { toast('Unable to copy to clipboard.', 'error'); }
+  document.body.removeChild(ta);
 }
 function toggleCopyIdDropdown(e) {
   e.stopPropagation();
