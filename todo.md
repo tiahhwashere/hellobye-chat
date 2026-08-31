@@ -71,3 +71,12 @@
 - [x] 4. Fix duplicate-file bug: when a user uploads multiple files, the first file no longer renders twice (file + files overlap)
 - [x] 5. Profile view: Send Message / Add Friend / Block buttons auto-blend with the user's panel/profile color (auto-blind in)
 - [x] 6. Syntax check, commit, push to GitHub, deploy to Render, verify live (no data wiped)
+
+# Round 7 — "This Profile is Private" UI redesign
+
+## Tasks
+- [ ] 1. Redesign `.pv-hidden-notice` CSS: wider (full-width, wider left-right padding), better-made looking (card with subtle border, gradient/surface bg, refined spacing, badge-style title)
+- [ ] 2. Remove the lock SVG icon from the JS HTML template (and from the panel-color selector list)
+- [ ] 3. Improve `.pv-hidden-title` and `.pv-hidden-sub` styling for a more polished, professional look
+- [ ] 4. Clean up the `applyProfileViewPanelColor` icon reference (remove `.pv-hidden-icon` selector since icon is gone)
+- [ ] 5. Syntax check, commit, push to GitHub, deploy to Render, verify live (no data wiped)

@@ -3673,16 +3673,26 @@ body.no-anim .friend-item { animation: none !important; }
 }
 .pv-hidden-notice {
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  text-align: center; gap: 8px; padding: 28px 20px;
+  text-align: center; gap: 14px; padding: 40px 48px;
+  background: linear-gradient(180deg, var(--bg-medium) 0%, var(--bg-light) 100%);
+  border: 1px solid var(--border-light); border-radius: var(--radius-md);
+  margin: 0 0 20px; width: 100%; box-sizing: border-box;
+  position: relative; overflow: hidden;
 }
-.pv-hidden-icon { color: var(--text-muted); opacity: 0.7; margin-bottom: 4px; }
+.pv-hidden-notice::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: linear-gradient(90deg, transparent, var(--text-muted), transparent);
+  opacity: 0.4;
+}
 .pv-hidden-title {
-  font-size: 15px; font-weight: 600; color: var(--text-primary);
-  letter-spacing: 0.2px;
+  font-size: 17px; font-weight: 700; color: var(--text-primary);
+  letter-spacing: 0.3px; text-transform: none;
+  padding: 6px 20px; border-radius: 100px;
+  background: var(--bg-lighter); border: 1px solid var(--border-light);
 }
 .pv-hidden-sub {
-  font-size: 12px; color: var(--text-muted); line-height: 1.5; max-width: 320px;
-  white-space: normal;
+  font-size: 13.5px; color: var(--text-muted); line-height: 1.65; max-width: 520px;
+  white-space: normal; font-weight: 400;
 }
 .profile-view-actions {
   display: flex; gap: 10px; padding: 0 32px 24px;
@@ -15715,7 +15725,7 @@ function applyProfileViewPanelColor(u) {
     '.pv-extra-label', '.pv-extra-value', '.pv-status',
     '.profile-view-status-msg', '.status-msg-bubble', '.sm-text',
     '.profile-view-banner-placeholder',
-    '.pv-hidden-title', '.pv-hidden-sub', '.pv-hidden-icon',
+    '.pv-hidden-title', '.pv-hidden-sub',
     '.pv-displayname-text'
   ].join(', ');
   // Elements with their own background that need a dark overlay.
@@ -15998,13 +16008,11 @@ function applyProfileViewPanelColor(u) {
     });
 
     // Hidden-profile notice \u2014 title uses full readable color, subtitle uses
-    // muted readable color, icon uses muted so it blends with the panel color.
+    // muted readable color so it blends with the panel color.
     const pvHiddenTitle = modal.querySelector('.pv-hidden-title');
     if (pvHiddenTitle) pvHiddenTitle.style.setProperty('color', vtxt, 'important');
     const pvHiddenSub = modal.querySelector('.pv-hidden-sub');
     if (pvHiddenSub) pvHiddenSub.style.setProperty('color', mutedTxt3, 'important');
-    const pvHiddenIcon = modal.querySelector('.pv-hidden-icon');
-    if (pvHiddenIcon) pvHiddenIcon.style.setProperty('color', mutedTxt3, 'important');
   }
 }
 
@@ -16192,7 +16200,6 @@ function renderProfileView(data) {
   // Bio — show a professional hidden-profile notice when the profile is hidden
   if (isHidden) {
     $('pv-bio').innerHTML = '<div class="pv-hidden-notice">' +
-      '<svg class="pv-hidden-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>' +
       '<div class="pv-hidden-title">This Profile is Private</div>' +
       '<div class="pv-hidden-sub">This member keeps their profile details private. Only their picture, banner, username, and status message are visible.</div>' +
       '</div>';
