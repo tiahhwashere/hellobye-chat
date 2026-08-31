@@ -1412,13 +1412,17 @@ app.post('/api/upload', authMiddleware, upload.single('file'), async (req, res) 
   // 4K/HD enhance image/GIF attachments in place (best-effort). Videos and
   // other non-image files are left untouched — the frontend applies a CSS
   // HD-enhancement filter when rendering <video> media.
+  // For chat attachments we cap static-image enhancement at 2K (2048px) and
+  // use a shorter 4s timeout: chat images render small, so 2K is visually
+  // equivalent to 4K but processes ~2-3x faster, keeping uploads snappy.
   const absPath = path.join(UPLOAD_DIR, req.file.filename);
   let isImage = /^image\//.test(req.file.mimetype || '');
   if (isImage) {
     // Animated GIF/WebP attachments are served as-is (skipAnimated: true)
     // to avoid sharp's slow per-frame resize lagging the chat. Static
-    // images still get the HD enhance. Timeout guards against any hang.
-    try { await enhanceWithTimeout(absPath, { skipAnimated: true }, 8000); }
+    // images still get the HD enhance (capped at 2K for speed). Timeout
+    // guards against any hang.
+    try { await enhanceWithTimeout(absPath, { skipAnimated: true, maxStatic: 2048 }, 4000); }
     catch (e) { console.error('[upload] enhance error:', e.message); }
   }
   // Re-stat so the reported size matches the enhanced file on disk.

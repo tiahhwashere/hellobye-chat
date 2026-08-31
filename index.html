@@ -1391,6 +1391,32 @@ body.no-anim .friend-item { animation: none !important; }
 /* Message file attachments — modern, clean card style (not cartoony) */
 .message-file { margin-top: 8px; }
 .message-bubble.media-only .message-file:first-child { margin-top: 0; }
+
+/* ---------- Multi-file message: collapsed first file + "+N more" badge ---------- */
+/* When a message has more than one attachment, only the first file is shown
+   inline with a clickable badge; clicking it expands to reveal the rest. */
+.message-file.msg-first-file { position: relative; }
+.msg-more-badge {
+  position: absolute; right: 8px; bottom: 8px; z-index: 2;
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 12px; font-weight: 700; color: #fff;
+  background: rgba(0,0,0,0.66); backdrop-filter: blur(6px);
+  padding: 5px 11px; border-radius: 100px;
+  border: 1px solid rgba(255,255,255,0.18);
+  cursor: pointer; user-select: none;
+  transition: background 0.18s ease, transform 0.18s ease;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+}
+.msg-more-badge:hover { background: rgba(0,0,0,0.82); transform: translateY(-1px); }
+.msg-more-badge svg { width: 14px; height: 14px; flex-shrink: 0; }
+.msg-more-files {
+  display: none; margin-top: 8px;
+  flex-direction: column; gap: 8px;
+}
+.msg-more-files.expanded { display: flex; animation: msgMoreFade 0.2s ease; }
+@keyframes msgMoreFade { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+.msg-more-files .message-file { margin-top: 0; }
+
 .message-file img {
   max-width: 480px; max-height: 480px; border-radius: 6px; display: block; cursor: pointer;
   object-fit: cover; image-rendering: -webkit-optimize-contrast;
@@ -3706,22 +3732,49 @@ body.no-anim .friend-item { animation: none !important; }
 }
 .pv-hidden-notice {
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  text-align: center; gap: 8px; padding: 28px 32px;
-  background: var(--bg-light);
-  border: 1px solid var(--border-light); border-radius: var(--radius-sm);
+  text-align: center; gap: 14px; padding: 36px 32px 32px;
+  background: linear-gradient(180deg, var(--bg-medium) 0%, var(--bg-light) 100%);
+  border: 1px solid var(--border-light); border-radius: var(--radius-md);
   margin: 0 0 20px; width: 100%; box-sizing: border-box;
+  position: relative; overflow: hidden;
 }
 .pv-hidden-notice::before {
-  content: none;
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  opacity: 0.5;
 }
+.pv-hidden-icon-wrap {
+  width: 56px; height: 56px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--bg-lighter);
+  border: 1px solid var(--border-light);
+  position: relative; flex-shrink: 0;
+}
+.pv-hidden-icon-wrap::after {
+  content: ''; position: absolute; inset: -6px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(74,158,255,0.18), transparent 70%);
+  pointer-events: none; z-index: -1;
+}
+.pv-hidden-icon-wrap svg { width: 26px; height: 26px; color: var(--text-secondary); }
 .pv-hidden-title {
-  font-size: 15px; font-weight: 600; color: var(--text-primary);
-  letter-spacing: 0.1px; text-transform: none;
+  font-size: 17px; font-weight: 700; color: var(--text-primary);
+  letter-spacing: 0.2px; text-transform: none;
   padding: 0; border: none; background: transparent;
 }
 .pv-hidden-sub {
-  font-size: 13px; color: var(--text-muted); line-height: 1.6; max-width: 480px;
+  font-size: 13.5px; color: var(--text-muted); line-height: 1.65; max-width: 460px;
   white-space: normal; font-weight: 400;
+}
+.pv-hidden-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 11px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase;
+  color: var(--text-muted);
+  padding: 5px 12px; border-radius: 100px;
+  background: var(--bg-lighter); border: 1px solid var(--border-light);
+}
+.pv-hidden-badge-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--text-muted); flex-shrink: 0;
 }
 .profile-view-actions {
   display: flex; gap: 10px; padding: 0 32px 24px;
@@ -9021,6 +9074,16 @@ function showAuth() {
   // Remove any lingering loading overlay so it's fresh for next login.
   const ov = document.getElementById('chat-loading-overlay');
   if (ov) ov.remove();
+  // Close the Account Settings & Profile Settings slide-panels so they don't
+  // overlay the signin/register screen after an auto-logout (e.g. when a user
+  // deletes or disables their account from inside Account Settings).
+  const pp = $('profile-panel'); if (pp) pp.classList.remove('show');
+  const sp = $('settings-panel'); if (sp) sp.classList.remove('show');
+  profileDirty = false;
+  // Close any other open modal overlays (delete/disable confirm dialogs, etc.)
+  document.querySelectorAll('.modal-overlay.show').forEach(m => m.classList.remove('show'));
+  // Close the DM overlay if it's open.
+  if (typeof closeDMOverlay === 'function') { try { closeDMOverlay(); } catch (e) {} }
 }
 
 // Ensure the chat loading overlay exists inside #chat-app so that the
@@ -9923,19 +9986,58 @@ function createSpoilerWrapper() {
 // older messages that still carry the duplicate. `file` is only rendered on
 // its own when there is no `files` array; when `files` exists (multi-file),
 // every file — including what used to be `file` — comes from `files`.
+//
+// MULTI-FILE BEHAVIOR: when a message has more than one attachment, only the
+// FIRST file is rendered inline with a "+N more" badge overlay. Clicking the
+// badge expands a hidden container that reveals the rest.
 function appendMessageFiles(parent, msg) {
   if (!parent || !msg) return;
   const hasFiles = Array.isArray(msg.files) && msg.files.length > 0;
   if (hasFiles) {
     // Dedup by url (and by name+size as a fallback) so no file shows twice.
     const seen = new Set();
+    const uniqueFiles = [];
     msg.files.forEach(f => {
       if (!f) return;
       const key = (f.url || '') + '|' + (f.name || '') + '|' + (f.size || 0);
       if (seen.has(key)) return;
       seen.add(key);
-      parent.appendChild(createFileElement(f));
+      uniqueFiles.push(f);
     });
+    if (uniqueFiles.length > 1) {
+      // Multi-file: show first file inline + a collapsible container for the rest.
+      const firstEl = createFileElement(uniqueFiles[0]);
+      firstEl.classList.add('msg-first-file');
+
+      // Build the "+N more" badge overlay on the first file.
+      const moreCount = uniqueFiles.length - 1;
+      const badge = document.createElement('div');
+      badge.className = 'msg-more-badge';
+      badge.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>' +
+        '+' + moreCount + ' more';
+      badge.title = 'Show ' + moreCount + ' more file' + (moreCount !== 1 ? 's' : '');
+      firstEl.appendChild(badge);
+
+      // Hidden container for the remaining files (revealed on click).
+      const moreWrap = document.createElement('div');
+      moreWrap.className = 'msg-more-files';
+      uniqueFiles.slice(1).forEach(f => moreWrap.appendChild(createFileElement(f)));
+
+      // Toggle expansion when the badge is clicked.
+      badge.addEventListener('click', (e) => {
+        e.stopPropagation(); e.preventDefault();
+        const expanded = moreWrap.classList.toggle('expanded');
+        badge.innerHTML = expanded
+          ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>Show less'
+          : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>+' + moreCount + ' more';
+      });
+
+      parent.appendChild(firstEl);
+      parent.appendChild(moreWrap);
+    } else {
+      // Single file (after dedup) — render normally.
+      uniqueFiles.forEach(f => parent.appendChild(createFileElement(f)));
+    }
   } else if (msg.file) {
     parent.appendChild(createFileElement(msg.file));
   }
@@ -15795,7 +15897,7 @@ function applyProfileViewPanelColor(u) {
     '.pv-extra-label', '.pv-extra-value', '.pv-status',
     '.profile-view-status-msg', '.status-msg-bubble', '.sm-text',
     '.profile-view-banner-placeholder',
-    '.pv-hidden-title', '.pv-hidden-sub',
+    '.pv-hidden-title', '.pv-hidden-sub', '.pv-hidden-badge',
     '.pv-displayname-text'
   ].join(', ');
   // Elements with their own background that need a dark overlay.
@@ -15804,7 +15906,8 @@ function applyProfileViewPanelColor(u) {
     '.profile-view-status-msg', '.status-msg-bubble', '.sm-text', '.sm-icon',
     '.pv-copy-id-btn', '.pv-copy-id-menu', '.pv-copy-id-menu-item',
     '.pv-copy-id-menu-name', '.pv-copy-id-menu-id', '.pv-copy-id-menu-header',
-    '.pv-copy-id-menu-empty'
+    '.pv-copy-id-menu-empty',
+    '.pv-hidden-notice', '.pv-hidden-icon-wrap', '.pv-hidden-badge'
   ].join(', ');
 
   // Reset any previously-applied inline styles first.
@@ -16077,12 +16180,17 @@ function applyProfileViewPanelColor(u) {
       el.style.setProperty('color', mutedTxt3, 'important');
     });
 
-    // Hidden-profile notice \u2014 title uses full readable color, subtitle uses
-    // muted readable color so it blends with the panel color.
+    // Hidden-profile notice \u2014 title uses full readable color, subtitle & badge
+    // use muted readable color, and the lock icon uses readable color so the
+    // revamped private-profile notice blends with the panel color.
     const pvHiddenTitle = modal.querySelector('.pv-hidden-title');
     if (pvHiddenTitle) pvHiddenTitle.style.setProperty('color', vtxt, 'important');
     const pvHiddenSub = modal.querySelector('.pv-hidden-sub');
     if (pvHiddenSub) pvHiddenSub.style.setProperty('color', mutedTxt3, 'important');
+    const pvHiddenBadge = modal.querySelector('.pv-hidden-badge');
+    if (pvHiddenBadge) pvHiddenBadge.style.setProperty('color', mutedTxt3, 'important');
+    const pvHiddenIcon = modal.querySelector('.pv-hidden-icon-wrap svg');
+    if (pvHiddenIcon) pvHiddenIcon.style.setProperty('color', vtxt, 'important');
   }
 }
 
@@ -16270,8 +16378,12 @@ function renderProfileView(data) {
   // Bio — show a professional hidden-profile notice when the profile is hidden
   if (isHidden) {
     $('pv-bio').innerHTML = '<div class="pv-hidden-notice">' +
-      '<div class="pv-hidden-title">Private Profile</div>' +
-      '<div class="pv-hidden-sub">This member keeps their profile details private. Only their picture, banner, username, and status message are visible.</div>' +
+      '<div class="pv-hidden-icon-wrap">' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>' +
+      '</div>' +
+      '<div class="pv-hidden-title">This Profile is Private</div>' +
+      '<div class="pv-hidden-sub">This user has made their profile private.</div>' +
+      '<div class="pv-hidden-badge"><span class="pv-hidden-badge-dot"></span>Private Account</div>' +
       '</div>';
   } else {
     $('pv-bio').innerHTML = u.bio ? linkifyBio(u.bio) : 'No bio set.';
