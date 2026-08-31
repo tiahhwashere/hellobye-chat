@@ -5984,14 +5984,6 @@ body.no-anim .friend-item { animation: none !important; }
             <input type="text" class="form-input" id="signup-username" placeholder="3–20 characters: letters, numbers, underscore" autocomplete="username" spellcheck="false">
             <div class="username-check" id="username-check"></div>
           </div>
-          <div class="form-field full">
-            <label>Email Address</label>
-            <input type="email" class="form-input" id="signup-email" placeholder="you@example.com" autocomplete="email" spellcheck="false">
-            <div class="email-verify-row" id="signup-verify-row" style="display:none">
-              <input type="text" class="form-input email-code-input" id="signup-verify-code" placeholder="5-digit code" inputmode="numeric" maxlength="5" autocomplete="one-time-code" spellcheck="false">
-            </div>
-            <div class="username-check" id="email-verify-status"></div>
-          </div>
           <div class="form-field">
             <label>Password</label>
             <div class="pwd-field">
@@ -8853,52 +8845,16 @@ $('signin-form').addEventListener('submit', async (e) => {
 });
 
 // ---------- Sign Up ----------
-// ---- Two-phase email verification (no separate "Send Code" button) ----
-// Phase 1: user clicks "Create Account" -> server sends 5-digit code -> we show the code input.
-// Phase 2: user enters code, clicks "Create Account" again -> server verifies code + creates account.
-let signupVerifyEmail = null; // the email a code was sent to (phase 1 complete)
-
-function setEmailVerifyStatus(msg, type) {
-  const el = $('email-verify-status');
-  if (!msg) { el.classList.remove('show', 'available', 'taken', 'checking'); el.innerHTML = ''; return; }
-  el.className = 'username-check show ' + (type || 'checking');
-  const icon = type === 'available' ? '<span class="check-icon-ok"></span> '
-            : type === 'taken' ? '<span class="check-icon-bad"></span> '
-            : type === 'checking' ? '<span class="spinner"></span> ' : '';
-  el.innerHTML = icon + escapeHtml(msg);
-}
-
-// If the user changes their email after a code was sent, reset verification state.
-$('signup-email').addEventListener('input', () => {
-  if (signupVerifyEmail) {
-    signupVerifyEmail = null;
-    $('signup-verify-row').style.display = 'none';
-    $('signup-verify-code').value = '';
-    setEmailVerifyStatus('', '');
-  }
-});
-
 $('signup-form').addEventListener('submit', async (e) => {
   e.preventDefault();
   const username = $('signup-username').value.trim().toLowerCase();
   const password = $('signup-password').value;
   const confirm = $('signup-confirm').value;
-  const email = $('signup-email').value.trim().toLowerCase();
   const errEl = $('signup-error');
   const btn = $('signup-btn');
   errEl.classList.remove('show');
   if (!username || !password) {
     errEl.textContent = 'Please fill in all fields.';
-    errEl.classList.add('show');
-    return;
-  }
-  if (!email) {
-    errEl.textContent = 'Please enter your email address.';
-    errEl.classList.add('show');
-    return;
-  }
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    errEl.textContent = 'Please enter a valid email address.';
     errEl.classList.add('show');
     return;
   }
@@ -8912,46 +8868,19 @@ $('signup-form').addEventListener('submit', async (e) => {
     errEl.classList.add('show');
     return;
   }
-  const code = $('signup-verify-code').value.replace(/\D/g, '').slice(0, 5);
-  // Phase 2: code expected but missing/incomplete
-  if (signupVerifyEmail && code.length !== 5) {
-    errEl.textContent = 'Please enter the 5-digit code sent to your email.';
-    errEl.classList.add('show');
-    return;
-  }
   btn.disabled = true;
-  btn.textContent = signupVerifyEmail ? 'Creating...' : 'Sending code...';
-  const body = { username, password, email };
-  if (signupVerifyEmail) body.code = code;
+  btn.textContent = 'Creating...';
   try {
     const res = await fetch(API_BASE + '/api/register', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
+      body: JSON.stringify({ username, password })
     });
     const data = await res.json();
-    // Phase 1 complete -> server sent the code, now ask user to enter it
-    if (res.ok && data.needsVerification) {
-      signupVerifyEmail = email;
-      $('signup-verify-row').style.display = '';
-      $('signup-verify-code').value = '';
-      setEmailVerifyStatus(data.message || 'A 5-digit code was sent to your email. Check your inbox (and spam folder).', 'available');
-      errEl.classList.remove('show');
-      btn.disabled = false;
-      btn.textContent = 'Create Account';
-      setTimeout(() => $('signup-verify-code').focus(), 100);
-      return;
-    }
     if (!res.ok) {
       errEl.textContent = data.error || 'Registration failed.';
       errEl.classList.add('show');
       btn.disabled = false;
       btn.textContent = 'Create Account';
-      // If the email send failed, reset phase-1 state so user can try again
-      if (!data.needsVerification) {
-        signupVerifyEmail = null;
-        $('signup-verify-row').style.display = 'none';
-        $('signup-verify-code').value = '';
-      }
       if (res.status === 429 && data.cooldown) {
         startAuthCooldown('signup', data.cooldown, btn, 'Create Account');
       }

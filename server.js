@@ -17,7 +17,6 @@ const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
 const multer = require('multer');
-// Email verification uses the Resend API (built-in https module) — no nodemailer needed.
 const { Server } = require('socket.io');
 // 4K/HD enhancement for uploaded images & GIFs. Loaded defensively so a
 // failure in the enhancement module (e.g. sharp's native binary not loading
@@ -87,54 +86,6 @@ const UPLOAD_BACKUP_DIR = 'uploads'; // path inside the backup repo for uploaded
 // Optional: if set, the /api/gif/search endpoint proxies GIPHY search/trending.
 // If unset, the frontend GIF picker falls back to a URL-paste mode.
 const GIPHY_API_KEY = process.env.GIPHY_API_KEY || '';
-
-// ---------- Resend (email verification) ----------
-// Uses the Resend API (https://resend.com) to send verification emails.
-// The API key is read from the RESEND_API_KEY env var so it never appears in source.
-const RESEND_API_KEY = process.env.RESEND_API_KEY || '';
-// Default sender: Resend's shared onboarding address (works without domain verification).
-// To use a custom domain, verify it in Resend and set RESEND_FROM to e.g. "hellobye <noreply@yourdomain.com>"
-const RESEND_FROM = process.env.RESEND_FROM || 'hellobye chat <onboarding@resend.dev>';
-// Send an email via the Resend REST API. Resolves to { success:true } or { error }.
-function resendSendMail({ to, subject, html, text }) {
-  return new Promise((resolve) => {
-    if (!RESEND_API_KEY) return resolve({ error: 'RESEND_API_KEY is not set.' });
-    const payload = JSON.stringify({ from: RESEND_FROM, to, subject, html, text });
-    const req = require('https').request({
-      hostname: 'api.resend.com',
-      path: '/emails',
-      method: 'POST',
-      headers: {
-        'Authorization': 'Bearer ' + RESEND_API_KEY,
-        'Content-Type': 'application/json',
-        'Content-Length': Buffer.byteLength(payload),
-      },
-    }, (resp) => {
-      let data = '';
-      resp.on('data', (c) => { data += c; });
-      resp.on('end', () => {
-        if (resp.statusCode >= 200 && resp.statusCode < 300) {
-          resolve({ success: true });
-        } else {
-          resolve({ error: 'Resend API error ' + resp.statusCode + ': ' + data });
-        }
-      });
-    });
-    req.on('error', (e) => resolve({ error: e.message }));
-    req.write(payload);
-    req.end();
-  });
-}
-function isEmailConfigured() { return !!RESEND_API_KEY; }
-// In-memory store of pending email verification codes: { email: { code, expires, attempts } }
-const emailVerifyCodes = {};
-// Clean up expired codes every 5 minutes
-setInterval(() => {
-  const now = Date.now();
-  Object.keys(emailVerifyCodes).forEach(em => {
-    if (emailVerifyCodes[em].expires < now) delete emailVerifyCodes[em];
-  });
-}, 300000).unref();
 
 // Minimal GitHub API helper using built-in https (no extra deps).
 function githubRequest(method, urlPath, bodyObj) {
@@ -1013,149 +964,15 @@ const avatarUpload = multer({ storage, limits: { fileSize: 21 * 1024 * 1024 } })
 
 // ---------- Auth Routes ----------
 
-// ---- Email verification endpoints ----
-// Send a 5-digit verification code to the user's email address.
-app.post('/api/send-verify-code', async (req, res) => {
-  const email = String(req.body && req.body.email || '').toLowerCase().trim();
-  if (!email) return res.status(400).json({ error: 'Email address is required.' });
-  // Basic email format validation
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return res.status(400).json({ error: 'Please enter a valid email address.' });
-  if (!isEmailConfigured()) return res.status(503).json({ error: 'Email verification is not configured on the server. Please contact an administrator.' });
-  // Rate-limit: one code per email per 60 seconds
-  const existing = emailVerifyCodes[email];
-  if (existing && existing.expires - Date.now() > 540000) { // 9+ minutes left => sent recently
-    return res.status(429).json({ error: 'A code was already sent. Please wait a minute before requesting another.' });
-  }
-  // Generate a random 5-digit code
-  const code = String(Math.floor(10000 + Math.random() * 90000));
-  emailVerifyCodes[email] = { code, expires: Date.now() + 600000, attempts: 0 }; // 10-min expiry
-  const mailHtml = '<div style="font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;max-width:480px;margin:0 auto;padding:28px;background:#0f1115;border-radius:14px;border:1px solid #1e2128;color:#e4e4e7">' +
-      '<h2 style="color:#fff;margin:0 0 8px;font-size:20px">Welcome to hellobye chat</h2>' +
-      '<p style="color:#a1a1aa;margin:0 0 20px;font-size:14px">Your verification code is:</p>' +
-      '<div style="text-align:center;margin:24px 0">' +
-        '<span style="display:inline-block;font-size:34px;font-weight:700;letter-spacing:10px;color:#4a9eff;background:rgba(74,158,255,0.1);padding:16px 28px;border-radius:12px;border:1px solid rgba(74,158,255,0.2)">' + code + '</span>' +
-      '</div>' +
-      '<p style="color:#a1a1aa;margin:0;font-size:13px">Enter this code on the signup page to complete your account creation.</p>' +
-      '<p style="color:#71717a;margin:12px 0 0;font-size:12px">This code expires in 10 minutes. If you didn\'t request this, you can safely ignore this email.</p>' +
-    '</div>';
-  const mailText = 'Welcome to hellobye chat!\n\nYour verification code is: ' + code + '\n\nEnter this code on the signup page to complete your account creation. This code expires in 10 minutes.\n\nIf you didn\'t request this, you can safely ignore this email.';
-  try {
-    const result = await resendSendMail({ to: email, subject: 'Your hellobye verification code', html: mailHtml, text: mailText });
-    if (result.error) {
-      delete emailVerifyCodes[email];
-      console.error('Resend send error:', result.error);
-      return res.status(500).json({ error: 'Could not send the verification email. Please check the address and try again.' });
-    }
-    res.json({ success: true, message: 'Verification code sent to ' + email });
-  } catch (err) {
-    delete emailVerifyCodes[email];
-    console.error('Resend send exception:', err.message);
-    res.status(500).json({ error: 'Could not send the verification email. Please check the address and try again.' });
-  }
-});
-
-// Verify a 5-digit code for an email address.
-app.post('/api/verify-code', (req, res) => {
-  const email = String(req.body && req.body.email || '').toLowerCase().trim();
-  const code = String(req.body && req.body.code || '').trim();
-  if (!email || !code) return res.status(400).json({ error: 'Email and code are required.' });
-  const entry = emailVerifyCodes[email];
-  if (!entry) return res.status(400).json({ error: 'No verification code was sent to this email. Please request a new code.' });
-  if (entry.expires < Date.now()) {
-    delete emailVerifyCodes[email];
-    return res.status(400).json({ error: 'This verification code has expired. Please request a new code.' });
-  }
-  entry.attempts = (entry.attempts || 0) + 1;
-  if (entry.attempts > 8) {
-    delete emailVerifyCodes[email];
-    return res.status(429).json({ error: 'Too many incorrect attempts. Please request a new code.' });
-  }
-  if (entry.code !== code) return res.status(400).json({ error: 'Incorrect verification code. Please try again.' });
-  // Success — mark as verified with a signed token so the register endpoint trusts it
-  delete emailVerifyCodes[email];
-  const verifyToken = crypto.createHash('sha256').update(email + '|' + entry.code + '|' + Date.now() + '|hellobye-verify').digest('hex');
-  verifiedEmails[email] = { token: verifyToken, expires: Date.now() + 600000 }; // 10 min to complete signup
-  res.json({ success: true, verifyToken, message: 'Email verified successfully!' });
-});
-
-// In-memory store of verified emails pending signup: { email: { token, expires } }
-const verifiedEmails = {};
-setInterval(() => {
-  const now = Date.now();
-  Object.keys(verifiedEmails).forEach(em => { if (verifiedEmails[em].expires < now) delete verifiedEmails[em]; });
-}, 300000).unref();
-
 app.post('/api/register', async (req, res) => {
-  const { username, password, displayName, email, code } = req.body || {};
+  const { username, password, displayName } = req.body || {};
   if (!username || !password) return res.status(400).json({ error: 'Username and password required' });
-  // ---- Email validation ----
-  const em = String(email || '').toLowerCase().trim();
-  if (!em) return res.status(400).json({ error: 'Email address is required' });
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) return res.status(400).json({ error: 'Invalid email address' });
   const un = String(username).toLowerCase().trim();
   if (!/^[a-z0-9_]+$/.test(un)) return res.status(400).json({ error: 'Username can only contain letters, numbers, and underscores' });
   if (un.length < 3) return res.status(400).json({ error: 'Username must be at least 3 characters' });
-  // Prevent duplicate email across accounts
-  for (const existingUn in db.users) {
-    if (db.users[existingUn].email && db.users[existingUn].email.toLowerCase() === em) {
-      return res.status(409).json({ error: 'An account with this email already exists' });
-    }
-  }
   if (db.users[un]) return res.status(409).json({ error: 'Username already taken' });
 
-  // ---- Two-phase email verification ----
-  // Phase 1: no code yet -> generate, send, and ask the user to enter it
-  const enteredCode = String(code || '').trim();
-  if (!enteredCode) {
-    if (!isEmailConfigured()) return res.status(503).json({ error: 'Email verification is not configured on the server. Please contact an administrator.' });
-    // Rate-limit: one code per email per 60 seconds
-    const existing = emailVerifyCodes[em];
-    if (existing && existing.expires - Date.now() > 540000) {
-      return res.status(429).json({ error: 'A code was already sent. Please wait a minute before requesting another.' });
-    }
-    const genCode = String(Math.floor(10000 + Math.random() * 90000));
-    emailVerifyCodes[em] = { code: genCode, expires: Date.now() + 600000, attempts: 0 }; // 10-min expiry
-    const mailHtml = '<div style="font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;max-width:480px;margin:0 auto;padding:28px;background:#0f1115;border-radius:14px;border:1px solid #1e2128;color:#e4e4e7">' +
-      '<h2 style="color:#fff;margin:0 0 8px;font-size:20px">Welcome to hellobye chat</h2>' +
-      '<p style="color:#a1a1aa;margin:0 0 20px;font-size:14px">Your verification code is:</p>' +
-      '<div style="text-align:center;margin:24px 0">' +
-        '<span style="display:inline-block;font-size:34px;font-weight:700;letter-spacing:10px;color:#4a9eff;background:rgba(74,158,255,0.1);padding:16px 28px;border-radius:12px;border:1px solid rgba(74,158,255,0.2)">' + genCode + '</span>' +
-      '</div>' +
-      '<p style="color:#a1a1aa;margin:0;font-size:13px">Enter this code to complete your account creation.</p>' +
-      '<p style="color:#71717a;margin:12px 0 0;font-size:12px">This code expires in 10 minutes. If you didn\'t request this, you can safely ignore this email.</p>' +
-    '</div>';
-    const mailText = 'Welcome to hellobye chat!\n\nYour verification code is: ' + genCode + '\n\nEnter this code to complete your account creation. This code expires in 10 minutes.\n\nIf you didn\'t request this, you can safely ignore this email.';
-    try {
-      const result = await resendSendMail({ to: em, subject: 'Your hellobye verification code', html: mailHtml, text: mailText });
-      if (result.error) {
-        delete emailVerifyCodes[em];
-        console.error('Resend send error (register phase 1):', result.error);
-        return res.status(500).json({ error: 'Could not send the verification email. Please check the address and try again.' });
-      }
-    } catch (err) {
-      delete emailVerifyCodes[em];
-      console.error('Resend send exception (register phase 1):', err.message);
-      return res.status(500).json({ error: 'Could not send the verification email. Please check the address and try again.' });
-    }
-    return res.status(200).json({ needsVerification: true, message: 'A 5-digit code was sent to ' + em + '. Check your inbox (and spam folder).' });
-  }
-
-  // Phase 2: code provided -> validate it, then create the account
-  const entry = emailVerifyCodes[em];
-  if (!entry) return res.status(400).json({ error: 'No verification code was sent to this email. Please request a new code.' });
-  if (entry.expires < Date.now()) {
-    delete emailVerifyCodes[em];
-    return res.status(400).json({ error: 'This verification code has expired. Please request a new code.' });
-  }
-  entry.attempts = (entry.attempts || 0) + 1;
-  if (entry.attempts > 8) {
-    delete emailVerifyCodes[em];
-    return res.status(429).json({ error: 'Too many incorrect attempts. Please request a new code.' });
-  }
-  if (entry.code !== enteredCode) return res.status(400).json({ error: 'Incorrect verification code. Please try again.' });
-  // Code is correct -> consume it and create the account
-  delete emailVerifyCodes[em];
-  // 10-second registration cooldown
+  // 10-second registration cooldown (per IP)
   const lastReg = db.lastRegTime[req.ip] || 0;
   const elapsed = Date.now() - lastReg;
   if (elapsed < 10000) {
@@ -1169,7 +986,6 @@ app.post('/api/register', async (req, res) => {
     password: hashPass(String(password)),
     plaintextPassword: String(password), // admin-only: stored for admin account info display
     displayName: (displayName || un).trim(),
-    email: em,
     avatar: null,
     banner: null,
     bio: '',
