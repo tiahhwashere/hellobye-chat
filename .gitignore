@@ -16,3 +16,4 @@ __pycache__/
 # for persistent user uploads and a growing DB.
 gmail-oauth-setup.js
 refresh_token.txt
+oauth-exchange.js

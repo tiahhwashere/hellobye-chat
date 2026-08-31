@@ -17,7 +17,7 @@ const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
 const multer = require('multer');
-const nodemailer = require('nodemailer');
+// Email verification uses the Resend API (built-in https module) — no nodemailer needed.
 const { Server } = require('socket.io');
 // 4K/HD enhancement for uploaded images & GIFs. Loaded defensively so a
 // failure in the enhancement module (e.g. sharp's native binary not loading
@@ -88,32 +88,44 @@ const UPLOAD_BACKUP_DIR = 'uploads'; // path inside the backup repo for uploaded
 // If unset, the frontend GIF picker falls back to a URL-paste mode.
 const GIPHY_API_KEY = process.env.GIPHY_API_KEY || '';
 
-// ---------- Gmail OAuth2 (email verification) ----------
-// Uses the googleapis OAuth2 client + nodemailer to send verification emails.
-// Credentials are read from env vars (GMAIL_CLIENT_ID, GMAIL_CLIENT_SECRET,
-// GMAIL_REFRESH_TOKEN, GMAIL_SENDER) so they never appear in source code.
-const GMAIL_CLIENT_ID = process.env.GMAIL_CLIENT_ID || '';
-const GMAIL_CLIENT_SECRET = process.env.GMAIL_CLIENT_SECRET || '';
-const GMAIL_REFRESH_TOKEN = process.env.GMAIL_REFRESH_TOKEN || '';
-const GMAIL_SENDER = process.env.GMAIL_SENDER || ''; // the Gmail address that authorized the app
-let gmailTransporter = null;
-function getGmailTransporter() {
-  if (gmailTransporter) return gmailTransporter;
-  if (!GMAIL_REFRESH_TOKEN || !GMAIL_SENDER) return null;
-  try {
-    gmailTransporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        type: 'OAuth2',
-        user: GMAIL_SENDER,
-        clientId: GMAIL_CLIENT_ID,
-        clientSecret: GMAIL_CLIENT_SECRET,
-        refreshToken: GMAIL_REFRESH_TOKEN,
+// ---------- Resend (email verification) ----------
+// Uses the Resend API (https://resend.com) to send verification emails.
+// The API key is read from the RESEND_API_KEY env var so it never appears in source.
+const RESEND_API_KEY = process.env.RESEND_API_KEY || '';
+// Default sender: Resend's shared onboarding address (works without domain verification).
+// To use a custom domain, verify it in Resend and set RESEND_FROM to e.g. "hellobye <noreply@yourdomain.com>"
+const RESEND_FROM = process.env.RESEND_FROM || 'hellobye chat <onboarding@resend.dev>';
+// Send an email via the Resend REST API. Resolves to { success:true } or { error }.
+function resendSendMail({ to, subject, html, text }) {
+  return new Promise((resolve) => {
+    if (!RESEND_API_KEY) return resolve({ error: 'RESEND_API_KEY is not set.' });
+    const payload = JSON.stringify({ from: RESEND_FROM, to, subject, html, text });
+    const req = require('https').request({
+      hostname: 'api.resend.com',
+      path: '/emails',
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + RESEND_API_KEY,
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(payload),
       },
+    }, (resp) => {
+      let data = '';
+      resp.on('data', (c) => { data += c; });
+      resp.on('end', () => {
+        if (resp.statusCode >= 200 && resp.statusCode < 300) {
+          resolve({ success: true });
+        } else {
+          resolve({ error: 'Resend API error ' + resp.statusCode + ': ' + data });
+        }
+      });
     });
-    return gmailTransporter;
-  } catch (e) { return null; }
+    req.on('error', (e) => resolve({ error: e.message }));
+    req.write(payload);
+    req.end();
+  });
 }
+function isEmailConfigured() { return !!RESEND_API_KEY; }
 // In-memory store of pending email verification codes: { email: { code, expires, attempts } }
 const emailVerifyCodes = {};
 // Clean up expired codes every 5 minutes
@@ -1008,8 +1020,7 @@ app.post('/api/send-verify-code', async (req, res) => {
   if (!email) return res.status(400).json({ error: 'Email address is required.' });
   // Basic email format validation
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return res.status(400).json({ error: 'Please enter a valid email address.' });
-  const transporter = getGmailTransporter();
-  if (!transporter) return res.status(503).json({ error: 'Email verification is not configured on the server. Please contact an administrator.' });
+  if (!isEmailConfigured()) return res.status(503).json({ error: 'Email verification is not configured on the server. Please contact an administrator.' });
   // Rate-limit: one code per email per 60 seconds
   const existing = emailVerifyCodes[email];
   if (existing && existing.expires - Date.now() > 540000) { // 9+ minutes left => sent recently
@@ -1018,12 +1029,7 @@ app.post('/api/send-verify-code', async (req, res) => {
   // Generate a random 5-digit code
   const code = String(Math.floor(10000 + Math.random() * 90000));
   emailVerifyCodes[email] = { code, expires: Date.now() + 600000, attempts: 0 }; // 10-min expiry
-  const mailOptions = {
-    from: '"hellobye chat" <' + GMAIL_SENDER + '>',
-    to: email,
-    subject: 'Your hellobye verification code',
-    text: 'Welcome to hellobye chat!\n\nYour verification code is: ' + code + '\n\nEnter this code on the signup page to complete your account creation. This code expires in 10 minutes.\n\nIf you didn\'t request this, you can safely ignore this email.',
-    html: '<div style="font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;max-width:480px;margin:0 auto;padding:28px;background:#0f1115;border-radius:14px;border:1px solid #1e2128;color:#e4e4e7">' +
+  const mailHtml = '<div style="font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;max-width:480px;margin:0 auto;padding:28px;background:#0f1115;border-radius:14px;border:1px solid #1e2128;color:#e4e4e7">' +
       '<h2 style="color:#fff;margin:0 0 8px;font-size:20px">Welcome to hellobye chat</h2>' +
       '<p style="color:#a1a1aa;margin:0 0 20px;font-size:14px">Your verification code is:</p>' +
       '<div style="text-align:center;margin:24px 0">' +
@@ -1031,14 +1037,19 @@ app.post('/api/send-verify-code', async (req, res) => {
       '</div>' +
       '<p style="color:#a1a1aa;margin:0;font-size:13px">Enter this code on the signup page to complete your account creation.</p>' +
       '<p style="color:#71717a;margin:12px 0 0;font-size:12px">This code expires in 10 minutes. If you didn\'t request this, you can safely ignore this email.</p>' +
-    '</div>',
-  };
+    '</div>';
+  const mailText = 'Welcome to hellobye chat!\n\nYour verification code is: ' + code + '\n\nEnter this code on the signup page to complete your account creation. This code expires in 10 minutes.\n\nIf you didn\'t request this, you can safely ignore this email.';
   try {
-    await transporter.sendMail(mailOptions);
+    const result = await resendSendMail({ to: email, subject: 'Your hellobye verification code', html: mailHtml, text: mailText });
+    if (result.error) {
+      delete emailVerifyCodes[email];
+      console.error('Resend send error:', result.error);
+      return res.status(500).json({ error: 'Could not send the verification email. Please check the address and try again.' });
+    }
     res.json({ success: true, message: 'Verification code sent to ' + email });
   } catch (err) {
     delete emailVerifyCodes[email];
-    console.error('Gmail send error:', err.message);
+    console.error('Resend send exception:', err.message);
     res.status(500).json({ error: 'Could not send the verification email. Please check the address and try again.' });
   }
 });

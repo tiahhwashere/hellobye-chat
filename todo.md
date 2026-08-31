@@ -27,8 +27,11 @@
 - [x] Syntax check (server.js + inline JS)
 - [x] Local boot test
 - [x] db.json untouched
-- [ ] Commit + push to GitHub
-- [ ] User completes one-time OAuth to get refresh token
-- [ ] Add GMAIL_REFRESH_TOKEN + GMAIL_SENDER env vars on Render
+- [x] Commit + push to GitHub (d53d257)
+- [x] Switched from Gmail OAuth to Resend API (no OAuth needed)
+- [x] Test send-verify-code locally (real email sent successfully)
+- [x] Test verify-code + register rejection locally
+- [ ] Commit + push Resend changes to GitHub
+- [ ] Add RESEND_API_KEY env var on Render
 - [ ] Verify Render deploy live
 - [ ] Confirm features on live site
