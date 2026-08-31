@@ -281,10 +281,27 @@ html.has-session #chat-app { display: grid; } /* show chat grid immediately */
 .username-check .check-icon-ok::before { content: '\2713'; font-weight: bold; }
 .username-check .check-icon-bad::before { content: '\2715'; font-weight: bold; }
 .username-check .check-icon-warn::before { content: '!'; font-weight: bold; display: inline-flex; width: 14px; height: 14px; align-items: center; justify-content: center; background: currentColor; color: var(--bg-darker); border-radius: 50%; font-size: 10px; }
-/* CAPTCHA (Cloudflare Turnstile) on signup */
-.captcha-field { display: flex; flex-direction: column; align-items: stretch; gap: 6px; }
-.captcha-field #signup-captcha-widget { display: flex; justify-content: center; min-height: 65px; }
-.captcha-field #signup-captcha-widget iframe { border: 0; }
+/* CAPTCHA (custom slider puzzle) on signup */
+.captcha-field { display: flex; flex-direction: column; align-items: stretch; gap: 8px; }
+.captcha-slider-wrap { position: relative; width: 100%; height: 44px; border-radius: 10px; background: var(--bg-darker); border: 1px solid var(--border); overflow: hidden; user-select: none; -webkit-user-select: none; }
+.captcha-slider-track { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 13px; color: var(--text-muted); letter-spacing: 0.3px; transition: color 0.2s; pointer-events: none; }
+.captcha-slider-fill { position: absolute; top: 0; left: 0; height: 100%; width: 0; background: linear-gradient(90deg, rgba(74,158,255,0.15), rgba(74,158,255,0.3)); transition: width 0.05s linear; }
+.captcha-slider-handle { position: absolute; top: 3px; left: 0; width: 38px; height: 38px; border-radius: 8px; background: var(--bg-medium); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; cursor: grab; transition: border-color 0.2s, box-shadow 0.2s; z-index: 2; touch-action: none; }
+.captcha-slider-handle:hover { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+.captcha-slider-handle:active, .captcha-slider-handle.dragging { cursor: grabbing; border-color: var(--accent); box-shadow: 0 0 0 4px rgba(74,158,255,0.2); }
+.captcha-slider-handle svg { width: 20px; height: 20px; fill: var(--text-muted); transition: fill 0.2s, transform 0.3s; }
+.captcha-slider-handle:hover svg { fill: var(--accent); }
+.captcha-slider-wrap.verified .captcha-slider-fill { background: linear-gradient(90deg, rgba(59,165,93,0.2), rgba(59,165,93,0.4)); width: 100% !important; }
+.captcha-slider-wrap.verified .captcha-slider-handle { border-color: var(--online); left: calc(100% - 38px) !important; }
+.captcha-slider-wrap.verified .captcha-slider-handle svg { fill: var(--online); transform: rotate(360deg); }
+.captcha-slider-wrap.verified .captcha-slider-track { color: var(--online); }
+.captcha-slider-wrap.error .captcha-slider-fill { background: linear-gradient(90deg, rgba(216,58,58,0.2), rgba(216,58,58,0.4)); }
+.captcha-slider-wrap.error .captcha-slider-handle { border-color: var(--danger); animation: captcha-shake 0.4s; }
+.captcha-slider-wrap.error .captcha-slider-handle svg { fill: var(--danger); }
+@keyframes captcha-shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }
+.captcha-refresh { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--text-muted); cursor: pointer; background: none; border: none; padding: 2px 0; transition: color 0.2s; align-self: flex-end; }
+.captcha-refresh:hover { color: var(--accent); }
+.captcha-refresh svg { width: 14px; height: 14px; fill: currentColor; }
 /* Email verification row on signup */
 .email-verify-row {
   display: flex; gap: 8px; margin-top: 8px; align-items: stretch;
@@ -6009,8 +6026,18 @@ body.no-anim .friend-item { animation: none !important; }
             </div>
           </div>
           <div class="form-field full captcha-field" id="signup-captcha-field" style="display:none">
-            <div id="signup-captcha-widget"></div>
-            <div class="username-check" id="captcha-status"></div>
+            <label>Security Check</label>
+            <div class="captcha-slider-wrap" id="captcha-slider-wrap">
+              <div class="captcha-slider-fill" id="captcha-slider-fill"></div>
+              <div class="captcha-slider-track" id="captcha-slider-track">Slide to verify</div>
+              <div class="captcha-slider-handle" id="captcha-slider-handle" role="slider" aria-label="Security check slider" tabindex="0">
+                <svg viewBox="0 0 24 24"><path d="M8 5l7 7-7 7V5z"/></svg>
+              </div>
+            </div>
+            <button type="button" class="captcha-refresh" id="captcha-refresh">
+              <svg viewBox="0 0 24 24"><path d="M17.65 6.35A7.95 7.95 0 0 0 12 4a8 8 0 1 0 7.74 10h-2.08A6 6 0 1 1 12 6a5.91 5.91 0 0 1 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+              Refresh
+            </button>
           </div>
           <button type="submit" class="btn-primary" id="signup-btn" disabled>Create Account</button>
         </form>
@@ -8016,7 +8043,6 @@ body.no-anim .friend-item { animation: none !important; }
   </div>
 
   <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
-  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=onTurnstileLoad" async defer></script>
   <script>
 // ============================================================
 // HELLOBYE — SINGLE-FILE CONFIGURATION
@@ -8117,13 +8143,11 @@ let editingMessageId = null;
 let editingDMMessageId = null;
 let usernameCheckTimeout = null;
 let sessionSocketId = localStorage.getItem('hellobye_sid') || null;
-// ---------- CAPTCHA (Cloudflare Turnstile) on signup ----------
-let turnstileWidgetId = null;   // widget id returned by turnstile.render()
-let turnstileToken = null;       // token returned on successful verification
-let turnstileSitekey = null;     // sitekey fetched from server
-let turnstileReady = false;      // Turnstile API script loaded
-let turnstileRendered = false;   // widget already rendered in DOM
-let turnstileFetchPromise = null;// in-flight sitekey fetch
+// ---------- Custom CAPTCHA (slider puzzle) on signup ----------
+let captchaChallenge = null;   // signed challenge token from server
+let captchaTarget = 0;         // target position (0-100) the slider must reach
+let captchaVerified = false;   // user completed the slider puzzle
+let captchaSliderActive = false; // user is currently dragging
 let pendingDeleteMsgId = null;
 let pendingDeleteDM = null;
 // Reply system
@@ -8730,116 +8754,182 @@ document.querySelectorAll('.auth-tab').forEach(tab => {
     const captchaField = $('signup-captcha-field');
     if (captchaField) captchaField.style.display = isSignup ? '' : 'none';
     if (isSignup) {
-      // (Re)render the Turnstile widget when the signup tab becomes visible
-      renderSignupCaptcha();
+      // Fetch a fresh challenge and reset the slider when the signup tab is shown
+      initSignupCaptcha();
     } else {
-      // Hide clears the token so a fresh verification is required next time
-      turnstileToken = null;
+      // Leaving the signup tab: clear verification state
+      captchaVerified = false;
       const sb = $('signup-btn');
       if (sb) sb.disabled = true;
     }
   });
 });
 
-// ---------- CAPTCHA (Cloudflare Turnstile) widget management ----------
-// Global callback referenced by the Turnstile api.js script tag (onload=onTurnstileLoad).
-// Cloudflare calls this once the API script has finished loading.
-window.onTurnstileLoad = function () {
-  turnstileReady = true;
-  // Fetch the sitekey from the server (with the enabled flag) and render if needed
-  ensureTurnstileSitekey().then(() => {
-    // If the signup tab is currently visible, render the widget now
-    const signupForm = $('signup-form');
-    if (signupForm && signupForm.classList.contains('active')) {
-      renderSignupCaptcha();
-    }
-  });
-};
-
-// Fetch the sitekey from the server endpoint (cached via promise).
-function ensureTurnstileSitekey() {
-  if (turnstileFetchPromise) return turnstileFetchPromise;
-  turnstileFetchPromise = fetch(API_BASE + '/api/turnstile-sitekey')
-    .then(r => r.json())
-    .then(data => {
-      turnstileSitekey = (data && data.sitekey) || '1x00000000000000000000AA';
-      return turnstileSitekey;
-    })
-    .catch(() => {
-      turnstileSitekey = '1x00000000000000000000AA'; // fallback to test key
-      return turnstileSitekey;
-    });
-  return turnstileFetchPromise;
+// ---------- Custom CAPTCHA (slider puzzle) management ----------
+// Fetches a signed challenge from the server and wires up the slider widget.
+function initSignupCaptcha() {
+  fetchCaptchaChallenge();
+  setupCaptchaSlider();
 }
 
-// Render (or re-render) the Turnstile widget inside #signup-captcha-widget.
-function renderSignupCaptcha() {
-  if (!turnstileReady || typeof window.turnstile === 'undefined') {
-    // API script not loaded yet; will render once onTurnstileLoad fires
-    return;
-  }
-  const container = $('signup-captcha-widget');
-  if (!container) return;
-  // Avoid duplicate widgets: remove the old one first
-  if (turnstileWidgetId !== null) {
-    try { window.turnstile.remove(turnstileWidgetId); } catch (e) {}
-    turnstileWidgetId = null;
-  }
-  container.innerHTML = '';
-  ensureTurnstileSitekey().then(() => {
-    try {
-      turnstileWidgetId = window.turnstile.render('#signup-captcha-widget', {
-        sitekey: turnstileSitekey,
-        theme: 'dark',
-        size: 'normal',
-        callback: function (token) {
-          // Verification succeeded — store token and enable the submit button
-          turnstileToken = token;
-          const sb = $('signup-btn');
-          if (sb) sb.disabled = false;
-          const status = $('captcha-status');
-          if (status) { status.textContent = ''; status.classList.remove('show'); }
-        },
-        'error-callback': function () {
-          // Verification errored — clear token and disable submit
-          turnstileToken = null;
-          const sb = $('signup-btn');
-          if (sb) sb.disabled = true;
-          const status = $('captcha-status');
-          if (status) { status.textContent = 'Security check failed. Please retry.'; status.classList.add('show'); }
-        },
-        'expired-callback': function () {
-          // Token expired (300s) — require the user to re-verify
-          turnstileToken = null;
-          const sb = $('signup-btn');
-          if (sb) sb.disabled = true;
-          const status = $('captcha-status');
-          if (status) { status.textContent = 'Security check expired. Please retry.'; status.classList.add('show'); }
-        }
-      });
-      turnstileRendered = true;
-    } catch (e) {
-      // If rendering fails, fall back to enabling the button so signup isn't blocked
-      turnstileToken = null;
-      const sb = $('signup-btn');
-      if (sb) sb.disabled = false;
-    }
-  });
-}
-
-// Reset the Turnstile widget (e.g. after a failed registration attempt).
-function resetSignupCaptcha() {
-  turnstileToken = null;
+// Fetch a new signed challenge + target from the server.
+function fetchCaptchaChallenge() {
+  captchaChallenge = null;
+  captchaTarget = 0;
+  captchaVerified = false;
   const sb = $('signup-btn');
   if (sb) sb.disabled = true;
-  if (turnstileWidgetId !== null && typeof window.turnstile !== 'undefined') {
-    try { window.turnstile.reset(turnstileWidgetId); } catch (e) {}
+  const wrap = $('captcha-slider-wrap');
+  if (wrap) { wrap.classList.remove('verified', 'error'); }
+  const fill = $('captcha-slider-fill');
+  if (fill) { fill.style.width = '0px'; }
+  const handle = $('captcha-slider-handle');
+  if (handle) { handle.style.left = '0px'; }
+  const track = $('captcha-slider-track');
+  if (track) { track.textContent = 'Slide to verify'; track.style.opacity = '1'; }
+  fetch(API_BASE + '/api/captcha-challenge')
+    .then(r => r.json())
+    .then(data => {
+      if (data && data.challenge) {
+        captchaChallenge = data.challenge;
+        captchaTarget = data.target;
+      }
+    })
+    .catch(() => {
+      // Network error — leave widget in "slide to verify" state
+      if (track) { track.textContent = 'Tap refresh to retry'; }
+    });
+}
+
+// Wire up the slider drag interaction (only once).
+let captchaSliderWired = false;
+function setupCaptchaSlider() {
+  if (captchaSliderWired) return;
+  const handle = $('captcha-slider-handle');
+  const wrap = $('captcha-slider-wrap');
+  const fill = $('captcha-slider-fill');
+  const track = $('captcha-slider-track');
+  if (!handle || !wrap) return;
+  captchaSliderWired = true;
+
+  function getSliderMax() {
+    return wrap.clientWidth - handle.offsetWidth;
+  }
+
+  function setHandlePos(px) {
+    const max = getSliderMax();
+    px = Math.max(0, Math.min(max, px));
+    handle.style.left = px + 'px';
+    if (fill) fill.style.width = (px + handle.offsetWidth) + 'px';
+    // Fade track text as the user drags
+    if (track) {
+      track.style.opacity = String(Math.max(0, 1 - (px / max) * 1.5));
+    }
+    return px;
+  }
+
+  function onDragStart(e) {
+    if (captchaVerified) return; // already done
+    if (!captchaChallenge) return; // challenge not loaded yet
+    e.preventDefault();
+    captchaSliderActive = true;
+    handle.classList.add('dragging');
+    wrap.classList.remove('error');
+    const startX = (e.touches ? e.touches[0].clientX : e.clientX);
+    const startLeft = handle.offsetLeft;
+    function onMove(ev) {
+      if (!captchaSliderActive) return;
+      const currentX = (ev.touches ? ev.touches[0].clientX : ev.clientX);
+      setHandlePos(startLeft + (currentX - startX));
+    }
+    function onEnd(ev) {
+      if (!captchaSliderActive) return;
+      captchaSliderActive = false;
+      handle.classList.remove('dragging');
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onEnd);
+      document.removeEventListener('touchmove', onMove);
+      document.removeEventListener('touchend', onEnd);
+      // Check if the slider reached the target
+      const max = getSliderMax();
+      const currentPx = handle.offsetLeft;
+      const pct = max > 0 ? (currentPx / max) * 100 : 0;
+      if (Math.abs(pct - captchaTarget) <= 5) {
+        // Success — snap to verified state
+        captchaVerified = true;
+        setHandlePos(max);
+        wrap.classList.add('verified');
+        if (track) { track.textContent = 'Verified'; track.style.opacity = '1'; }
+        const sb = $('signup-btn');
+        if (sb) sb.disabled = false;
+      } else {
+        // Failed — shake and reset
+        wrap.classList.add('error');
+        if (track) { track.textContent = 'Try again'; track.style.opacity = '1'; }
+        setTimeout(() => {
+          wrap.classList.remove('error');
+          setHandlePos(0);
+          if (track) { track.textContent = 'Slide to verify'; track.style.opacity = '1'; }
+        }, 500);
+      }
+    }
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onEnd);
+    document.addEventListener('touchmove', onMove, { passive: false });
+    document.addEventListener('touchend', onEnd);
+  }
+
+  handle.addEventListener('mousedown', onDragStart);
+  handle.addEventListener('touchstart', onDragStart, { passive: false });
+
+  // Keyboard support: arrow keys to move, Enter to confirm
+  handle.addEventListener('keydown', (e) => {
+    if (captchaVerified) return;
+    if (!captchaChallenge) return;
+    const max = getSliderMax();
+    if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      setHandlePos(handle.offsetLeft + Math.max(5, max / 20));
+    } else if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      setHandlePos(handle.offsetLeft - Math.max(5, max / 20));
+    } else if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      const currentPx = handle.offsetLeft;
+      const pct = max > 0 ? (currentPx / max) * 100 : 0;
+      if (Math.abs(pct - captchaTarget) <= 5) {
+        captchaVerified = true;
+        setHandlePos(max);
+        wrap.classList.add('verified');
+        if (track) { track.textContent = 'Verified'; track.style.opacity = '1'; }
+        const sb = $('signup-btn');
+        if (sb) sb.disabled = false;
+      } else {
+        wrap.classList.add('error');
+        if (track) { track.textContent = 'Try again'; track.style.opacity = '1'; }
+        setTimeout(() => {
+          wrap.classList.remove('error');
+          setHandlePos(0);
+          if (track) { track.textContent = 'Slide to verify'; track.style.opacity = '1'; }
+        }, 500);
+      }
+    }
+  });
+
+  // Refresh button
+  const refreshBtn = $('captcha-refresh');
+  if (refreshBtn) {
+    refreshBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      fetchCaptchaChallenge();
+    });
   }
 }
 
-// Kick off the sitekey fetch as soon as the page loads so it's ready when
-// the Turnstile API script fires onTurnstileLoad.
-ensureTurnstileSitekey();
+// Reset the CAPTCHA widget (e.g. after a failed registration attempt).
+function resetSignupCaptcha() {
+  fetchCaptchaChallenge();
+}
 
 // ---------- Username Availability Check ----------
 // ---------- Password show/hide (eye) toggles ----------
@@ -8997,9 +9087,9 @@ $('signup-form').addEventListener('submit', async (e) => {
     errEl.classList.add('show');
     return;
   }
-  // CAPTCHA check: require a Turnstile token before submitting
-  if (!turnstileToken) {
-    errEl.textContent = 'Please complete the security check (CAPTCHA) to continue.';
+  // CAPTCHA check: require the slider puzzle to be completed before submitting
+  if (!captchaVerified || !captchaChallenge) {
+    errEl.textContent = 'Please complete the security check (slide to verify) to continue.';
     errEl.classList.add('show');
     return;
   }
@@ -9008,7 +9098,7 @@ $('signup-form').addEventListener('submit', async (e) => {
   try {
     const res = await fetch(API_BASE + '/api/register', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password, captchaToken: turnstileToken })
+      body: JSON.stringify({ username, password, captchaToken: captchaChallenge, captchaAnswer: captchaTarget })
     });
     const data = await res.json();
     if (!res.ok) {
