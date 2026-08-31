@@ -3706,25 +3706,21 @@ body.no-anim .friend-item { animation: none !important; }
 }
 .pv-hidden-notice {
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  text-align: center; gap: 14px; padding: 40px 48px;
-  background: linear-gradient(180deg, var(--bg-medium) 0%, var(--bg-light) 100%);
-  border: 1px solid var(--border-light); border-radius: var(--radius-md);
+  text-align: center; gap: 8px; padding: 28px 32px;
+  background: var(--bg-light);
+  border: 1px solid var(--border-light); border-radius: var(--radius-sm);
   margin: 0 0 20px; width: 100%; box-sizing: border-box;
-  position: relative; overflow: hidden;
 }
 .pv-hidden-notice::before {
-  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
-  background: linear-gradient(90deg, transparent, var(--text-muted), transparent);
-  opacity: 0.4;
+  content: none;
 }
 .pv-hidden-title {
-  font-size: 17px; font-weight: 700; color: var(--text-primary);
-  letter-spacing: 0.3px; text-transform: none;
-  padding: 6px 20px; border-radius: 100px;
-  background: var(--bg-lighter); border: 1px solid var(--border-light);
+  font-size: 15px; font-weight: 600; color: var(--text-primary);
+  letter-spacing: 0.1px; text-transform: none;
+  padding: 0; border: none; background: transparent;
 }
 .pv-hidden-sub {
-  font-size: 13.5px; color: var(--text-muted); line-height: 1.65; max-width: 520px;
+  font-size: 13px; color: var(--text-muted); line-height: 1.6; max-width: 480px;
   white-space: normal; font-weight: 400;
 }
 .profile-view-actions {
@@ -6124,9 +6120,9 @@ body.no-anim .friend-item { animation: none !important; }
       <div class="welcome-modal-glow"></div>
       <div class="welcome-modal-badge">hellobye</div>
       <h2 class="welcome-modal-title">Welcome to hellobye</h2>
-      <p class="welcome-modal-subtitle">Your account is ready.</p>
+      <p class="welcome-modal-subtitle">Thanks for joining us.</p>
       <div class="welcome-modal-body">
-        Thanks for joining. You can now send messages, share files, and connect with others in real time. Take a moment to set up your profile whenever you're ready.
+        Your account is ready. We're glad to have you here. You can now send messages, share files, and connect with others in real time. Take a moment to set up your profile whenever you're ready.
       </div>
       <div class="modal-actions welcome-modal-actions">
         <button class="modal-btn primary" id="welcome-modal-get-started">Get Started</button>
@@ -8909,9 +8905,19 @@ function preloadProfileImages(me, userList, msgs) {
 }
 
 // ---------- Welcome popup (one-time, new accounts only) ----------
+// Shows a one-time welcome/thank-you popup the first time a user creates an
+// account. Guarded by a per-username localStorage flag so it never re-appears
+// for the same user (e.g. on refresh or re-login), and only triggered from the
+// signup flow so existing/logged-in users never see it.
 function showWelcomeModal() {
   const modal = $('welcome-modal');
   if (!modal) return;
+  // One-time guard: don't show again for a user who has already acknowledged it.
+  try {
+    const seenKey = 'hellobye_welcome_seen_' + (currentUser && currentUser.username ? currentUser.username : '');
+    if (currentUser && currentUser.username && localStorage.getItem(seenKey) === '1') return;
+    if (currentUser && currentUser.username) localStorage.setItem(seenKey, '1');
+  } catch (e) {}
   modal.classList.add('show');
   const btn = $('welcome-modal-get-started');
   if (btn) {
@@ -16264,8 +16270,8 @@ function renderProfileView(data) {
   // Bio — show a professional hidden-profile notice when the profile is hidden
   if (isHidden) {
     $('pv-bio').innerHTML = '<div class="pv-hidden-notice">' +
-      '<div class="pv-hidden-title">This Profile is Private</div>' +
-      '<div class="pv-hidden-sub">This member keeps their profile details private.</div>' +
+      '<div class="pv-hidden-title">Private Profile</div>' +
+      '<div class="pv-hidden-sub">This member keeps their profile details private. Only their picture, banner, username, and status message are visible.</div>' +
       '</div>';
   } else {
     $('pv-bio').innerHTML = u.bio ? linkifyBio(u.bio) : 'No bio set.';
