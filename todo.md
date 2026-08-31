@@ -22,15 +22,24 @@ Constraint: Do NOT modify `data/db.json` (md5 99761e4c34b3b0dd84d8952dfef8efd0).
 - [x] Hook tab-switching to show/hide captcha field + render widget
 - [x] Update signup submit handler: require token, send captchaToken, reset on failure
 
-## Deploy & Test
+## Deploy & Test — DONE
 - [x] Syntax-check inline JS after edits (both blocks pass node -c)
 - [x] Verify data/db.json untouched (md5 99761e4c34b3b0dd84d8952dfef8efd0)
-- [ ] Commit + push to GitHub (git push origin master)
-- [ ] Wait for Render auto-deploy
-- [ ] Test CAPTCHA flow live
+- [x] Commit + push to GitHub (git push origin master, commit bb8a62d)
+- [x] Wait for Render auto-deploy (deploy live)
+- [x] Test CAPTCHA flow live:
+  - [x] /api/turnstile-sitekey returns sitekey + enabled flag
+  - [x] Turnstile widget renders in dark theme on signup tab (shows "Success!")
+  - [x] Submit button disabled until CAPTCHA verified
+  - [x] Full signup with CAPTCHA creates account successfully
+  - [x] Register WITHOUT captchaToken → 403 (rejected when CAPTCHA enabled)
+  - [x] Register WITH captchaToken → 200 (accepted)
+- [x] Set TURNSTILE_SECRET_KEY env var on Render (test secret: 1x0000000000000000000000000000000AA)
 
 ## Notes
 - Test sitekey 1x00000000000000000000AA always passes (visible widget)
 - Test secret 1x0000000000000000000000000000000AA always passes validation
-- Without TURNSTILE_SECRET_KEY set on Render, server skips verification (app works)
-- User can create real widget at Cloudflare dashboard for production keys
+- Currently using test keys on Render — CAPTCHA widget is visible and functional
+- For production: user creates real widget at https://dash.cloudflare.com/?to=/:/turnstile
+  and sets real TURNSTILE_SITEKEY + TURNSTILE_SECRET_KEY env vars on Render
+- data/db.json md5 confirmed unchanged: 99761e4c34b3b0dd84d8952dfef8efd0
