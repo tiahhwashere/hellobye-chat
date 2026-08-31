@@ -281,6 +281,10 @@ html.has-session #chat-app { display: grid; } /* show chat grid immediately */
 .username-check .check-icon-ok::before { content: '\2713'; font-weight: bold; }
 .username-check .check-icon-bad::before { content: '\2715'; font-weight: bold; }
 .username-check .check-icon-warn::before { content: '!'; font-weight: bold; display: inline-flex; width: 14px; height: 14px; align-items: center; justify-content: center; background: currentColor; color: var(--bg-darker); border-radius: 50%; font-size: 10px; }
+/* CAPTCHA (Cloudflare Turnstile) on signup */
+.captcha-field { display: flex; flex-direction: column; align-items: stretch; gap: 6px; }
+.captcha-field #signup-captcha-widget { display: flex; justify-content: center; min-height: 65px; }
+.captcha-field #signup-captcha-widget iframe { border: 0; }
 /* Email verification row on signup */
 .email-verify-row {
   display: flex; gap: 8px; margin-top: 8px; align-items: stretch;
@@ -6004,7 +6008,11 @@ body.no-anim .friend-item { animation: none !important; }
               </button>
             </div>
           </div>
-          <button type="submit" class="btn-primary" id="signup-btn">Create Account</button>
+          <div class="form-field full captcha-field" id="signup-captcha-field" style="display:none">
+            <div id="signup-captcha-widget"></div>
+            <div class="username-check" id="captcha-status"></div>
+          </div>
+          <button type="submit" class="btn-primary" id="signup-btn" disabled>Create Account</button>
         </form>
       </div>
       <div class="auth-footer">
@@ -8008,6 +8016,7 @@ body.no-anim .friend-item { animation: none !important; }
   </div>
 
   <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=onTurnstileLoad" async defer></script>
   <script>
 // ============================================================
 // HELLOBYE — SINGLE-FILE CONFIGURATION
@@ -8108,6 +8117,13 @@ let editingMessageId = null;
 let editingDMMessageId = null;
 let usernameCheckTimeout = null;
 let sessionSocketId = localStorage.getItem('hellobye_sid') || null;
+// ---------- CAPTCHA (Cloudflare Turnstile) on signup ----------
+let turnstileWidgetId = null;   // widget id returned by turnstile.render()
+let turnstileToken = null;       // token returned on successful verification
+let turnstileSitekey = null;     // sitekey fetched from server
+let turnstileReady = false;      // Turnstile API script loaded
+let turnstileRendered = false;   // widget already rendered in DOM
+let turnstileFetchPromise = null;// in-flight sitekey fetch
 let pendingDeleteMsgId = null;
 let pendingDeleteDM = null;
 // Reply system
@@ -8709,8 +8725,121 @@ document.querySelectorAll('.auth-tab').forEach(tab => {
     $('signup-form').classList.toggle('active', tab.dataset.tab === 'signup');
     $('signin-error').classList.remove('show');
     $('signup-error').classList.remove('show');
+    // Show/hide the CAPTCHA widget when switching to/from the signup tab
+    const isSignup = tab.dataset.tab === 'signup';
+    const captchaField = $('signup-captcha-field');
+    if (captchaField) captchaField.style.display = isSignup ? '' : 'none';
+    if (isSignup) {
+      // (Re)render the Turnstile widget when the signup tab becomes visible
+      renderSignupCaptcha();
+    } else {
+      // Hide clears the token so a fresh verification is required next time
+      turnstileToken = null;
+      const sb = $('signup-btn');
+      if (sb) sb.disabled = true;
+    }
   });
 });
+
+// ---------- CAPTCHA (Cloudflare Turnstile) widget management ----------
+// Global callback referenced by the Turnstile api.js script tag (onload=onTurnstileLoad).
+// Cloudflare calls this once the API script has finished loading.
+window.onTurnstileLoad = function () {
+  turnstileReady = true;
+  // Fetch the sitekey from the server (with the enabled flag) and render if needed
+  ensureTurnstileSitekey().then(() => {
+    // If the signup tab is currently visible, render the widget now
+    const signupForm = $('signup-form');
+    if (signupForm && signupForm.classList.contains('active')) {
+      renderSignupCaptcha();
+    }
+  });
+};
+
+// Fetch the sitekey from the server endpoint (cached via promise).
+function ensureTurnstileSitekey() {
+  if (turnstileFetchPromise) return turnstileFetchPromise;
+  turnstileFetchPromise = fetch(API_BASE + '/api/turnstile-sitekey')
+    .then(r => r.json())
+    .then(data => {
+      turnstileSitekey = (data && data.sitekey) || '1x00000000000000000000AA';
+      return turnstileSitekey;
+    })
+    .catch(() => {
+      turnstileSitekey = '1x00000000000000000000AA'; // fallback to test key
+      return turnstileSitekey;
+    });
+  return turnstileFetchPromise;
+}
+
+// Render (or re-render) the Turnstile widget inside #signup-captcha-widget.
+function renderSignupCaptcha() {
+  if (!turnstileReady || typeof window.turnstile === 'undefined') {
+    // API script not loaded yet; will render once onTurnstileLoad fires
+    return;
+  }
+  const container = $('signup-captcha-widget');
+  if (!container) return;
+  // Avoid duplicate widgets: remove the old one first
+  if (turnstileWidgetId !== null) {
+    try { window.turnstile.remove(turnstileWidgetId); } catch (e) {}
+    turnstileWidgetId = null;
+  }
+  container.innerHTML = '';
+  ensureTurnstileSitekey().then(() => {
+    try {
+      turnstileWidgetId = window.turnstile.render('#signup-captcha-widget', {
+        sitekey: turnstileSitekey,
+        theme: 'dark',
+        size: 'normal',
+        callback: function (token) {
+          // Verification succeeded — store token and enable the submit button
+          turnstileToken = token;
+          const sb = $('signup-btn');
+          if (sb) sb.disabled = false;
+          const status = $('captcha-status');
+          if (status) { status.textContent = ''; status.classList.remove('show'); }
+        },
+        'error-callback': function () {
+          // Verification errored — clear token and disable submit
+          turnstileToken = null;
+          const sb = $('signup-btn');
+          if (sb) sb.disabled = true;
+          const status = $('captcha-status');
+          if (status) { status.textContent = 'Security check failed. Please retry.'; status.classList.add('show'); }
+        },
+        'expired-callback': function () {
+          // Token expired (300s) — require the user to re-verify
+          turnstileToken = null;
+          const sb = $('signup-btn');
+          if (sb) sb.disabled = true;
+          const status = $('captcha-status');
+          if (status) { status.textContent = 'Security check expired. Please retry.'; status.classList.add('show'); }
+        }
+      });
+      turnstileRendered = true;
+    } catch (e) {
+      // If rendering fails, fall back to enabling the button so signup isn't blocked
+      turnstileToken = null;
+      const sb = $('signup-btn');
+      if (sb) sb.disabled = false;
+    }
+  });
+}
+
+// Reset the Turnstile widget (e.g. after a failed registration attempt).
+function resetSignupCaptcha() {
+  turnstileToken = null;
+  const sb = $('signup-btn');
+  if (sb) sb.disabled = true;
+  if (turnstileWidgetId !== null && typeof window.turnstile !== 'undefined') {
+    try { window.turnstile.reset(turnstileWidgetId); } catch (e) {}
+  }
+}
+
+// Kick off the sitekey fetch as soon as the page loads so it's ready when
+// the Turnstile API script fires onTurnstileLoad.
+ensureTurnstileSitekey();
 
 // ---------- Username Availability Check ----------
 // ---------- Password show/hide (eye) toggles ----------
@@ -8868,12 +8997,18 @@ $('signup-form').addEventListener('submit', async (e) => {
     errEl.classList.add('show');
     return;
   }
+  // CAPTCHA check: require a Turnstile token before submitting
+  if (!turnstileToken) {
+    errEl.textContent = 'Please complete the security check (CAPTCHA) to continue.';
+    errEl.classList.add('show');
+    return;
+  }
   btn.disabled = true;
   btn.textContent = 'Creating...';
   try {
     const res = await fetch(API_BASE + '/api/register', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password })
+      body: JSON.stringify({ username, password, captchaToken: turnstileToken })
     });
     const data = await res.json();
     if (!res.ok) {
@@ -8881,6 +9016,8 @@ $('signup-form').addEventListener('submit', async (e) => {
       errEl.classList.add('show');
       btn.disabled = false;
       btn.textContent = 'Create Account';
+      // Reset the CAPTCHA widget so the user gets a fresh token to retry
+      resetSignupCaptcha();
       if (res.status === 429 && data.cooldown) {
         startAuthCooldown('signup', data.cooldown, btn, 'Create Account');
       }
@@ -8899,6 +9036,8 @@ $('signup-form').addEventListener('submit', async (e) => {
     errEl.classList.add('show');
     btn.disabled = false;
     btn.textContent = 'Create Account';
+    // Reset the CAPTCHA widget on network error so the user can retry
+    resetSignupCaptcha();
   }
 });
 

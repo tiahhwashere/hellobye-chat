@@ -87,6 +87,50 @@ const UPLOAD_BACKUP_DIR = 'uploads'; // path inside the backup repo for uploaded
 // If unset, the frontend GIF picker falls back to a URL-paste mode.
 const GIPHY_API_KEY = process.env.GIPHY_API_KEY || '';
 
+// ---------- Cloudflare Turnstile (signup CAPTCHA) ----------
+// The sitekey is public (used by the browser widget). The secret key is private
+// (used by the server to verify the token via Cloudflare's siteverify API).
+// If TURNSTILE_SECRET_KEY is unset, verification is skipped so the app still
+// works — set it once you create a widget at https://dash.cloudflare.com/?to=/:/turnstile
+const TURNSTILE_SITEKEY = process.env.TURNSTILE_SITEKEY || '1x00000000000000000000AA'; // test key (always passes) by default
+const TURNSTILE_SECRET_KEY = process.env.TURNSTILE_SECRET_KEY || ''; // empty => verification disabled
+function isTurnstileEnabled() { return !!TURNSTILE_SECRET_KEY; }
+// Verify a Turnstile token server-side. Resolves to true (valid) or false.
+function verifyTurnstileToken(token, remoteip) {
+  return new Promise((resolve) => {
+    if (!isTurnstileEnabled()) return resolve(true); // not configured -> allow
+    if (!token) return resolve(false);
+    const postData = require('querystring').stringify({
+      secret: TURNSTILE_SECRET_KEY,
+      response: token,
+      remoteip: remoteip || '',
+    });
+    const req = require('https').request({
+      hostname: 'challenges.cloudflare.com',
+      path: '/turnstile/v0/siteverify',
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Content-Length': Buffer.byteLength(postData),
+      },
+    }, (resp) => {
+      let data = '';
+      resp.on('data', (c) => { data += c; });
+      resp.on('end', () => {
+        try {
+          const parsed = JSON.parse(data);
+          resolve(!!parsed.success);
+        } catch (e) {
+          resolve(false);
+        }
+      });
+    });
+    req.on('error', () => resolve(false));
+    req.write(postData);
+    req.end();
+  });
+}
+
 // Minimal GitHub API helper using built-in https (no extra deps).
 function githubRequest(method, urlPath, bodyObj) {
   return new Promise((resolve) => {
@@ -964,9 +1008,19 @@ const avatarUpload = multer({ storage, limits: { fileSize: 21 * 1024 * 1024 } })
 
 // ---------- Auth Routes ----------
 
+// Public endpoint: returns the Turnstile sitekey for the browser widget.
+app.get('/api/turnstile-sitekey', (req, res) => {
+  res.json({ sitekey: TURNSTILE_SITEKEY, enabled: isTurnstileEnabled() });
+});
+
 app.post('/api/register', async (req, res) => {
-  const { username, password, displayName } = req.body || {};
+  const { username, password, displayName, captchaToken } = req.body || {};
   if (!username || !password) return res.status(400).json({ error: 'Username and password required' });
+  // ---- CAPTCHA verification (Cloudflare Turnstile) ----
+  if (isTurnstileEnabled()) {
+    const captchaOk = await verifyTurnstileToken(captchaToken, req.ip);
+    if (!captchaOk) return res.status(403).json({ error: 'CAPTCHA verification failed. Please complete the security check and try again.' });
+  }
   const un = String(username).toLowerCase().trim();
   if (!/^[a-z0-9_]+$/.test(un)) return res.status(400).json({ error: 'Username can only contain letters, numbers, and underscores' });
   if (un.length < 3) return res.status(400).json({ error: 'Username must be at least 3 characters' });
