@@ -80,3 +80,12 @@
 - [x] 3. Improve `.pv-hidden-title` and `.pv-hidden-sub` styling for a more polished, professional look
 - [x] 4. Clean up the `applyProfileViewPanelColor` icon reference (remove `.pv-hidden-icon` selector since icon is gone)
 - [x] 5. Syntax check, commit, push to GitHub, deploy to Render, verify live (no data wiped)
+
+# Round 8 — One-time welcome popup for new accounts + simplify private-profile subtitle
+
+## Tasks
+- [ ] 1. Add welcome modal HTML (one-time popup shown only on new account creation)
+- [ ] 2. Add CSS for welcome modal (clean, professional, branded)
+- [ ] 3. Add showWelcomeModal() JS function + trigger it only after signup (not login/refresh)
+- [ ] 4. Simplify the "This Profile is Private" subtitle to be basic but semi-professional
+- [ ] 5. Syntax check, commit, push to GitHub, deploy to Render, verify live (no data wiped)

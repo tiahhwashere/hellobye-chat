@@ -2218,6 +2218,39 @@ body.no-anim .friend-item { animation: none !important; }
 .modal-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
 /* ============================================
+   WELCOME MODAL (one-time popup for new accounts)
+   ============================================ */
+.welcome-modal {
+  max-width: 440px; padding: 40px 36px 32px; text-align: center;
+  position: relative; overflow: hidden;
+}
+.welcome-modal-glow {
+  position: absolute; top: -60px; left: 50%; transform: translateX(-50%);
+  width: 220px; height: 120px; border-radius: 50%;
+  background: radial-gradient(ellipse at center, rgba(74,158,255,0.18), transparent 70%);
+  pointer-events: none;
+}
+.welcome-modal-badge {
+  font-size: 13px; font-weight: 700; letter-spacing: 1.5px; text-transform: lowercase;
+  color: var(--accent); margin-bottom: 18px; position: relative;
+}
+.welcome-modal-title {
+  font-size: 24px; font-weight: 700; color: var(--text-primary);
+  margin: 0 0 6px; position: relative; letter-spacing: 0.2px;
+}
+.welcome-modal-subtitle {
+  font-size: 14px; color: var(--text-muted); margin: 0 0 22px; font-weight: 500;
+  position: relative;
+}
+.welcome-modal-body {
+  font-size: 14px; color: var(--text-secondary); line-height: 1.65;
+  margin: 0 0 28px; position: relative;
+}
+.welcome-modal-actions { justify-content: center; position: relative; }
+.welcome-modal-actions .modal-btn { min-width: 160px; padding: 12px 24px; font-size: 15px; }
+#welcome-modal { z-index: 400; }
+
+/* ============================================
    SLIDE PANELS (Profile / Settings)
    ============================================ */
 .slide-panel {
@@ -6085,6 +6118,22 @@ body.no-anim .friend-item { animation: none !important; }
     </div>
   </div>
 
+  <!-- ===================== WELCOME MODAL (one-time, new accounts) ===================== -->
+  <div class="modal-overlay" id="welcome-modal">
+    <div class="modal welcome-modal">
+      <div class="welcome-modal-glow"></div>
+      <div class="welcome-modal-badge">hellobye</div>
+      <h2 class="welcome-modal-title">Welcome to hellobye</h2>
+      <p class="welcome-modal-subtitle">Your account is ready.</p>
+      <div class="welcome-modal-body">
+        Thanks for joining. You can now send messages, share files, and connect with others in real time. Take a moment to set up your profile whenever you're ready.
+      </div>
+      <div class="modal-actions welcome-modal-actions">
+        <button class="modal-btn primary" id="welcome-modal-get-started">Get Started</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ===================== ADMIN RESET NAME MODAL ===================== -->
   <div class="modal-overlay" id="reset-name-modal">
     <div class="modal">
@@ -8361,6 +8410,8 @@ $('signup-form').addEventListener('submit', async (e) => {
     localStorage.setItem('hellobye_sid', data.sessionId);
     document.documentElement.classList.add('has-session');
     initChat({ user: data.user, sessionId: data.sessionId });
+    // One-time welcome popup for new accounts only
+    setTimeout(() => { showWelcomeModal(); }, 600);
   } catch (err) {
     errEl.textContent = 'Network error. Please try again.';
     errEl.classList.add('show');
@@ -8855,6 +8906,19 @@ function preloadProfileImages(me, userList, msgs) {
       if (m && m.file && m.file.url && /\.(png|jpe?g|gif|webp|bmp|svg)$/i.test(m.file.url)) preloadImage(m.file.url);
     }
   }
+}
+
+// ---------- Welcome popup (one-time, new accounts only) ----------
+function showWelcomeModal() {
+  const modal = $('welcome-modal');
+  if (!modal) return;
+  modal.classList.add('show');
+  const btn = $('welcome-modal-get-started');
+  if (btn) {
+    btn.onclick = () => { modal.classList.remove('show'); };
+  }
+  // Close on overlay click (outside the card)
+  modal.onclick = (e) => { if (e.target === modal) modal.classList.remove('show'); };
 }
 
 async function initChat(existingMeData) {
@@ -16201,7 +16265,7 @@ function renderProfileView(data) {
   if (isHidden) {
     $('pv-bio').innerHTML = '<div class="pv-hidden-notice">' +
       '<div class="pv-hidden-title">This Profile is Private</div>' +
-      '<div class="pv-hidden-sub">This member keeps their profile details private. Only their picture, banner, username, and status message are visible.</div>' +
+      '<div class="pv-hidden-sub">This member keeps their profile details private.</div>' +
       '</div>';
   } else {
     $('pv-bio').innerHTML = u.bio ? linkifyBio(u.bio) : 'No bio set.';
