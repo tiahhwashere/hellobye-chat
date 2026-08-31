@@ -909,7 +909,9 @@ body.no-anim .friend-item { animation: none !important; }
   color: var(--text-muted); font-style: italic; font-size: 13px;
   border-radius: 10px;
 }
-.message-bubble.dm-bubble { max-width: 740px; }
+/* DM bubbles now match the normal public-chat message size (no oversized
+   max-width) so DM messages look the same as regular chat messages. */
+.message-bubble.dm-bubble { max-width: 100%; }
 
 .message-text { display: inline; white-space: pre-wrap; word-break: break-word; overflow-wrap: break-word; }
 .inline-link { color: inherit; text-decoration: underline; text-underline-offset: 2px; text-decoration-color: rgba(255,255,255,0.25); }
@@ -3805,6 +3807,7 @@ body.no-anim .friend-item { animation: none !important; }
 }
 .dm-overlay.show { display: flex; }
 .dm-panel {
+  position: relative;
   width: 100%; max-width: 760px; height: 100%; max-height: 760px;
   background: var(--bg-dark); border: 1px solid var(--border);
   border-radius: var(--radius-lg); display: flex; flex-direction: column;
@@ -3831,12 +3834,146 @@ body.no-anim .friend-item { animation: none !important; }
 .dm-header-status.online { color: var(--online); }
 .dm-header-status.idle { color: var(--idle); }
 .dm-header-status.dnd { color: var(--dnd); }
+
+/* DM header tool buttons (Pinned + Search) sit left of the X close button.
+   They reuse .icon-btn and add a relative anchor for the pin count badge. */
+.dm-header-tool { position: relative; }
+.dm-pins-badge {
+  position: absolute; top: 3px; right: 3px;
+  min-width: 15px; height: 15px; padding: 0 4px;
+  border-radius: 8px; background: var(--accent); color: #fff;
+  font-size: 9px; font-weight: 700; line-height: 15px; text-align: center;
+  box-shadow: 0 0 0 2px var(--bg-darker);
+}
+
+/* ===== DM Pinned Messages Panel ===== */
+.dm-pins-panel {
+  display: none; position: absolute; top: 62px; right: 14px;
+  width: 340px; max-width: calc(100vw - 28px); max-height: 70vh;
+  flex-direction: column; z-index: 60;
+  background: rgba(20,20,24,0.97); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  border: 1px solid var(--border-light); border-radius: 14px;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.55);
+  overflow: hidden;
+}
+.dm-pins-panel.open { display: flex; animation: dmPanelIn 0.22s cubic-bezier(0.16,1,0.3,1); }
+@keyframes dmPanelIn { from { opacity: 0; transform: translateY(-8px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+.dm-pins-head {
+  display: flex; align-items: center; gap: 8px; padding: 14px 16px;
+  border-bottom: 1px solid var(--border); flex-shrink: 0;
+}
+.dm-pins-head h4 { margin: 0; font-size: 13px; font-weight: 600; color: var(--text-primary); display: flex; align-items: center; gap: 7px; }
+.dm-pins-head h4 svg { width: 15px; height: 15px; color: var(--accent); }
+.dm-pins-close {
+  margin-left: auto; width: 26px; height: 26px; border-radius: 7px;
+  border: 1px solid var(--border); background: var(--bg-medium); color: var(--text-secondary);
+  cursor: pointer; display: flex; align-items: center; justify-content: center; transition: var(--transition);
+}
+.dm-pins-close:hover { color: var(--text-primary); border-color: var(--border-light); background: var(--bg-light); }
+.dm-pins-close svg { width: 13px; height: 13px; }
+.dm-pins-list { overflow-y: auto; padding: 8px; flex: 1; display: flex; flex-direction: column; gap: 6px; }
+.dm-pins-list::-webkit-scrollbar { width: 6px; }
+.dm-pins-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 3px; }
+.dm-pin-item {
+  padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border);
+  background: var(--bg-medium); cursor: pointer; transition: var(--transition);
+  display: flex; flex-direction: column; gap: 5px;
+}
+.dm-pin-item:hover { border-color: var(--border-light); background: var(--bg-light); }
+.dm-pin-item-top { display: flex; align-items: center; gap: 7px; }
+.dm-pin-item-avatar { width: 20px; height: 20px; border-radius: 50%; flex-shrink: 0; overflow: hidden; background: var(--bg-lighter); display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 700; color: var(--text-secondary); }
+.dm-pin-item-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.dm-pin-item-name { font-size: 11px; font-weight: 600; color: var(--text-secondary); }
+.dm-pin-item-time { margin-left: auto; font-size: 10px; color: var(--text-muted); flex-shrink: 0; }
+.dm-pin-item-text { font-size: 12.5px; line-height: 1.42; color: var(--text-primary); word-break: break-word; overflow-wrap: break-word; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+.dm-pin-item-text.deleted { color: var(--text-muted); font-style: italic; }
+.dm-pin-item-actions { display: flex; gap: 10px; align-items: center; }
+.dm-pin-item-jump { font-size: 10.5px; color: var(--accent); display: flex; align-items: center; gap: 4px; }
+.dm-pin-item-jump svg { width: 11px; height: 11px; }
+.dm-pin-item-unpin { margin-left: auto; font-size: 10.5px; color: var(--text-muted); background: none; border: none; cursor: pointer; padding: 2px 4px; border-radius: 5px; transition: var(--transition); }
+.dm-pin-item-unpin:hover { color: var(--danger); background: rgba(216,58,58,0.1); }
+.dm-pins-empty { text-align: center; padding: 28px 16px; color: var(--text-muted); }
+.dm-pins-empty svg { width: 38px; height: 38px; margin: 0 auto 12px; opacity: 0.3; display: block; }
+.dm-pins-empty .empty-title { font-size: 13px; font-weight: 600; color: var(--text-secondary); margin-bottom: 5px; display: block; }
+.dm-pins-empty .empty-sub { font-size: 11.5px; line-height: 1.5; }
+
+/* ===== DM Conversation Search Panel ===== */
+.dm-search-panel {
+  display: none; position: absolute; top: 62px; right: 14px;
+  width: 340px; max-width: calc(100vw - 28px); max-height: 70vh;
+  flex-direction: column; z-index: 60;
+  background: rgba(20,20,24,0.97); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  border: 1px solid var(--border-light); border-radius: 14px;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.55);
+  overflow: hidden;
+}
+.dm-search-panel.open { display: flex; animation: dmPanelIn 0.22s cubic-bezier(0.16,1,0.3,1); }
+.dm-search-head {
+  display: flex; align-items: center; gap: 8px; padding: 14px 16px 10px;
+  flex-shrink: 0;
+}
+.dm-search-head h4 { margin: 0; font-size: 13px; font-weight: 600; color: var(--text-primary); display: flex; align-items: center; gap: 7px; }
+.dm-search-head h4 svg { width: 15px; height: 15px; color: var(--accent); }
+.dm-search-close {
+  margin-left: auto; width: 26px; height: 26px; border-radius: 7px;
+  border: 1px solid var(--border); background: var(--bg-medium); color: var(--text-secondary);
+  cursor: pointer; display: flex; align-items: center; justify-content: center; transition: var(--transition);
+}
+.dm-search-close:hover { color: var(--text-primary); border-color: var(--border-light); background: var(--bg-light); }
+.dm-search-close svg { width: 13px; height: 13px; }
+.dm-search-input-wrap {
+  position: relative; padding: 0 16px 12px; flex-shrink: 0;
+}
+.dm-search-input-wrap::before {
+  content: ''; position: absolute; left: 28px; top: 50%; transform: translateY(-50%);
+  width: 14px; height: 14px; opacity: 0.45;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' stroke='%23ffffff' stroke-width='2' viewBox='0 0 24 24'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'/%3E%3C/svg%3E") center/contain no-repeat;
+}
+.dm-search-input {
+  width: 100%; box-sizing: border-box; padding: 10px 14px 10px 34px;
+  border-radius: 9px; border: 1px solid var(--border); background: var(--bg-dark);
+  color: var(--text-primary); font-size: 13px; outline: none; transition: var(--transition);
+}
+.dm-search-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(74,158,255,0.16); }
+.dm-search-input::placeholder { color: var(--text-muted); }
+.dm-search-results { overflow-y: auto; padding: 4px 8px 10px; flex: 1; display: flex; flex-direction: column; gap: 6px; }
+.dm-search-results::-webkit-scrollbar { width: 6px; }
+.dm-search-results::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 3px; }
+.dm-search-count { font-size: 11px; color: var(--text-muted); padding: 4px 6px 2px; }
+.dm-search-count strong { color: var(--text-secondary); font-weight: 700; }
+.dm-search-empty { text-align: center; padding: 26px 16px; color: var(--text-muted); }
+.dm-search-empty svg { width: 38px; height: 38px; margin: 0 auto 12px; opacity: 0.3; display: block; }
+.dm-search-empty .empty-title { font-size: 13px; font-weight: 600; color: var(--text-secondary); margin-bottom: 5px; display: block; }
+.dm-search-empty .empty-sub { font-size: 11.5px; line-height: 1.5; }
+.dm-search-loading { text-align: center; padding: 22px; color: var(--text-muted); font-size: 12px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+.dm-search-result-item {
+  padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border);
+  background: var(--bg-medium); cursor: pointer; transition: var(--transition);
+  display: flex; flex-direction: column; gap: 5px;
+}
+.dm-search-result-item:hover { border-color: var(--border-light); background: var(--bg-light); }
+.dm-search-result-top { display: flex; align-items: center; gap: 7px; }
+.dm-search-result-name { font-size: 11px; font-weight: 600; color: var(--text-secondary); }
+.dm-search-result-time { margin-left: auto; font-size: 10px; color: var(--text-muted); }
+.dm-search-result-text { font-size: 12.5px; line-height: 1.42; color: var(--text-primary); word-break: break-word; overflow-wrap: break-word; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+.dm-search-result-text mark { background: rgba(74,158,255,0.22); color: inherit; border-radius: 3px; padding: 0 1px; }
+
+/* Pinned-message indicator on the bubble itself */
+.message-bubble.is-pinned { box-shadow: inset 3px 0 0 var(--accent); }
+.pin-indicator {
+  display: inline-flex; align-items: center; gap: 3px;
+  font-size: 10px; color: var(--accent); font-weight: 600;
+  margin-bottom: 4px; padding: 0 2px;
+}
+.pin-indicator svg { width: 11px; height: 11px; }
+.msg-action-btn.pin-active { color: var(--accent); font-weight: 600; }
+
 .dm-messages {
-  flex: 1; overflow-y: auto; padding: 26px 24px;
-  display: flex; flex-direction: column; gap: 8px;
+  flex: 1; overflow-y: auto; padding: 22px 28px;
+  display: flex; flex-direction: column; gap: 6px;
   min-height: 0; -webkit-overflow-scrolling: touch; overscroll-behavior: contain;
 }
-.dm-messages .message-group { max-width: 90%; }
+.dm-messages .message-group { max-width: 94%; }
 .dm-typing { padding: 2px 20px 6px; font-size: 12px; color: var(--text-muted); font-style: italic; min-height: 18px; flex-shrink: 0; }
 .dm-input-area { padding: 12px 18px 16px; border-top: 1px solid var(--border); background: var(--bg-darker); flex-shrink: 0; }
 .dm-blocked-banner {
@@ -4150,6 +4287,7 @@ body.no-anim .friend-item { animation: none !important; }
 .ctx-delete { background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23d83a3a' stroke-width='2'%3E%3Cpolyline points='3 6 5 6 21 6'/%3E%3Cpath d='M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2'/%3E%3C/svg%3E") center/contain no-repeat; }
 .ctx-user { background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a0a0b0' stroke-width='2'%3E%3Cpath d='M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2'/%3E%3Ccircle cx='12' cy='7' r='4'/%3E%3C/svg%3E") center/contain no-repeat; }
 .ctx-download { background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a0a0b0' stroke-width='2'%3E%3Cpath d='M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4'/%3E%3Cpolyline points='7 10 12 15 17 10'/%3E%3Cline x1='12' y1='15' x2='12' y2='3'/%3E%3C/svg%3E") center/contain no-repeat; }
+.ctx-pin { background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a0a0b0' stroke-width='2'%3E%3Cpath d='M12 17v5'/%3E%3Cpath d='M5 9l4-4 6 2-2 6 4 4-4 4-4-4-6-2 4-4z'/%3E%3C/svg%3E") center/contain no-repeat; }
 .ctx-friend { background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a0a0b0' stroke-width='2'%3E%3Cpath d='M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2'/%3E%3Ccircle cx='9' cy='7' r='4'/%3E%3Cline x1='19' y1='8' x2='19' y2='14'/%3E%3Cline x1='22' y1='11' x2='16' y2='11'/%3E%3C/svg%3E") center/contain no-repeat; }
 .ctx-block { background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23d83a3a' stroke-width='2'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cline x1='4.93' y1='4.93' x2='19.07' y2='19.07'/%3E%3C/svg%3E") center/contain no-repeat; }
 .ctx-dm { background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a0a0b0' stroke-width='2'%3E%3Cpath d='M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z'/%3E%3C/svg%3E") center/contain no-repeat; }
@@ -4547,7 +4685,7 @@ body.no-anim .friend-item { animation: none !important; }
   .message-actions { gap: 6px; margin-top: 8px; }
   .msg-action-btn { padding: 5px 12px; font-size: 12px; }
 
-  /* --- DM panel: wider, taller, roomier on desktop --- */
+  /* --- DM panel: wider, taller on desktop; messages match chat size --- */
   .dm-overlay { padding: 40px; }
   .dm-panel { max-width: 900px; max-height: 820px; border-radius: 20px; }
   .dm-header { padding: 18px 24px; }
@@ -4555,10 +4693,10 @@ body.no-anim .friend-item { animation: none !important; }
   .dm-header-name { font-size: 16.5px; }
   .dm-header-status { font-size: 13px; }
   .dm-back { width: 40px; height: 40px; }
-  .dm-messages { padding: 30px 32px; gap: 8px; }
-  .dm-messages .message-group { max-width: 82%; }
+  .dm-messages { padding: 28px 36px; gap: 6px; }
+  .dm-messages .message-group { max-width: 90%; }
   .dm-input-area { padding: 16px 24px 20px; }
-  .message-bubble.dm-bubble { max-width: 780px; }
+  .message-bubble.dm-bubble { max-width: 100%; }
 
   /* --- Sidebar user-list & DM-list avatars --- */
   .user-item { gap: 13px; padding: 10px; }
@@ -7437,10 +7575,55 @@ body.no-anim .friend-item { animation: none !important; }
           <div class="dm-header-name" id="dm-header-name"></div>
           <div class="dm-header-status" id="dm-header-status"></div>
         </div>
+        <button class="icon-btn dm-header-tool" id="dm-search-btn" title="Search messages in this conversation">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </button>
+        <button class="icon-btn dm-header-tool" id="dm-pins-btn" title="Pinned messages">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"/></svg>
+          <span class="dm-pins-badge" id="dm-pins-badge" style="display:none;">0</span>
+        </button>
         <button class="icon-btn" id="dm-close-btn" title="Close conversation">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
       </div>
+
+      <!-- DM Pinned Messages panel -->
+      <div class="dm-pins-panel" id="dm-pins-panel">
+        <div class="dm-pins-head">
+          <h4><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"/></svg> Pinned Messages</h4>
+          <button class="dm-pins-close" id="dm-pins-close" title="Close" aria-label="Close">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+        <div class="dm-pins-list" id="dm-pins-list">
+          <div class="dm-pins-empty">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"/></svg>
+            <span class="empty-title">No pinned messages</span>
+            <span class="empty-sub">Pin a message from its action menu to keep it here for quick access.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- DM Conversation Search panel -->
+      <div class="dm-search-panel" id="dm-search-panel">
+        <div class="dm-search-head">
+          <h4><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> Search Messages</h4>
+          <button class="dm-search-close" id="dm-search-close" title="Close" aria-label="Close">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+        <div class="dm-search-input-wrap">
+          <input type="text" class="dm-search-input" id="dm-search-input" placeholder="Search this conversation" autocomplete="off">
+        </div>
+        <div class="dm-search-results" id="dm-search-results">
+          <div class="dm-search-empty">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <span class="empty-title">Search this conversation</span>
+            <span class="empty-sub">Find messages by keyword in this DM. Click a result to jump to it.</span>
+          </div>
+        </div>
+      </div>
+
       <div class="dm-messages" id="dm-messages">
         <div class="empty-state" id="dm-empty-state">
           <h3>Start the conversation</h3>
@@ -7809,6 +7992,9 @@ let currentStatus = 'online';
 let currentView = 'public';
 let activeDMUser = null;
 let dmMessages = [];
+// DM pinned-message ids for the currently open conversation (loaded on openDM)
+let dmPinnedIds = new Set();
+let dmSearchTimer = null;
 // Running count of unread DMs per sender that have triggered a persistent
 // in-app notification. Used to show "N new DMs" on the notification pill and
 // to update an existing notification in place (instead of stacking duplicates).
@@ -7908,10 +8094,14 @@ const authScreen = $('auth-screen');
 const chatApp = $('chat-app');
 
 // ---------- Toast ----------
-function toast(msg, type = '') {
+function toast(msg, type = '', opts = {}) {
   const container = $('toast-container');
   const el = document.createElement('div');
   el.className = 'toast ' + type;
+  // opts.noIcon suppresses the leading SVG icon for this toast (keeps the
+  // colored accent bar). Used for the "Password is required." validation
+  // toast so it shows as a clean text message without the error icon.
+  const skipIcon = !!(opts && opts.noIcon);
   // Icons for each toast type (success/confirm have no icon — green checkmark removed)
   const icons = {
     success: '',
@@ -7921,7 +8111,7 @@ function toast(msg, type = '') {
     warning: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
     '': '',
   };
-  const iconHtml = icons[type] || icons[''];
+  const iconHtml = skipIcon ? '' : (icons[type] || icons['']);
   el.innerHTML =
     (iconHtml ? '<span class="toast-icon">' + iconHtml + '</span>' : '') +
     '<span class="toast-msg">' + escapeHtml(String(msg)) + '</span>' +
@@ -8787,7 +8977,7 @@ $('twosv-toggle').addEventListener('change', async (e) => {
       return;
     }
     if (!password) {
-      toast('Password is required to enable 2-Step Verification.', 'error');
+      toast('Password is required to enable 2-Step Verification.', 'error', { noIcon: true });
       e.target.checked = false;
       return;
     }
@@ -8819,7 +9009,7 @@ $('twosv-toggle').addEventListener('change', async (e) => {
       return;
     }
     if (!password) {
-      toast('Password is required to disable 2-Step Verification.', 'error');
+      toast('Password is required to disable 2-Step Verification.', 'error', { noIcon: true });
       e.target.checked = true;
       return;
     }
@@ -8860,7 +9050,7 @@ $('twosv-view-code-btn').addEventListener('click', async () => {
   const password = await prompt2SVPassword('View Recovery Code', 'Enter your password to view your recovery code.');
   if (!password) {
     if (password === null) return; // cancelled
-    toast('Password is required.', 'error');
+    toast('Password is required.', 'error', { noIcon: true });
     return;
   }
   try {
@@ -8888,7 +9078,7 @@ $('twosv-regenerate-btn').addEventListener('click', async () => {
   const password = await prompt2SVPassword('Regenerate Recovery Code', "Enter your password to generate a new recovery code. The previous code will be invalidated. Manual regeneration is limited to once every 48 hours.");
   if (!password) {
     if (password === null) return; // cancelled
-    toast('Password is required.', 'error');
+    toast('Password is required.', 'error', { noIcon: true });
     return;
   }
   try {
@@ -8924,7 +9114,7 @@ $('twosv-revoke-btn').addEventListener('click', async () => {
   const password = await prompt2SVPassword('Revoke Trusted Devices', "Enter your password to revoke all trusted devices. You'll need to verify on every device next sign-in.");
   if (!password) {
     if (password === null) return; // cancelled
-    toast('Password is required.', 'error');
+    toast('Password is required.', 'error', { noIcon: true });
     return;
   }
   try {
@@ -12215,6 +12405,9 @@ async function openDM(username) {
     renderDMMessages();
     scrollToBottomDM();
   } catch(e) { dmMessages = []; renderDMMessages(); }
+  // Load pinned-message ids for this conversation (private to the current
+  // user). Used to render the pin indicator on bubbles + the header badge.
+  loadDMPins();
   // Mark read and refresh conversation list in background (non-blocking)
   fetch(API_BASE + '/api/dms/mark-read/' + encodeURIComponent(username), { method: 'POST' }).then(() => {
     loadDMConversations();
@@ -12259,6 +12452,9 @@ function closeDMOverlay() {
   $('dm-overlay').classList.remove('show');
   activeDMUser = null;
   dmMessages = [];
+  dmPinnedIds = new Set();
+  closeDMPinsPanel();
+  closeDMSearchPanel();
   const dmInput = $('dm-input');
   if (dmInput) dmInput.placeholder = 'Message @user';
 }
@@ -12271,6 +12467,232 @@ $('dm-header-avatar').addEventListener('click', () => {
 // Also allow clicking the DM header name to open the profile
 $('dm-header-name').addEventListener('click', () => {
   if (activeDMUser) openProfileView(activeDMUser);
+});
+
+// ===================== DM Pinned Messages =====================
+// Load the pinned-message ids for the currently open DM conversation and
+// refresh the header badge + bubble indicators.
+async function loadDMPins() {
+  if (!activeDMUser) { dmPinnedIds = new Set(); updateDMPinsBadge(); return; }
+  try {
+    const res = await fetch(API_BASE + '/api/dms/' + encodeURIComponent(activeDMUser) + '/pins');
+    const data = await res.json();
+    dmPinnedIds = new Set((data.pins || []).map(m => m.id));
+  } catch (e) {
+    dmPinnedIds = new Set();
+  }
+  updateDMPinsBadge();
+  applyPinIndicators();
+}
+function updateDMPinsBadge() {
+  const badge = $('dm-pins-badge');
+  if (!badge) return;
+  const n = dmPinnedIds.size;
+  if (n > 0) { badge.textContent = n > 99 ? '99+' : String(n); badge.style.display = 'inline-flex'; }
+  else badge.style.display = 'none';
+}
+// Add/remove the visual pin indicator on rendered bubbles for the open DM.
+function applyPinIndicators() {
+  const container = $('dm-messages');
+  if (!container) return;
+  container.querySelectorAll('.message-group[data-dm-id]').forEach(group => {
+    const id = group.getAttribute('data-dm-id');
+    const bubble = group.querySelector('.message-bubble');
+    if (!bubble) return;
+    const pinned = dmPinnedIds.has(id);
+    bubble.classList.toggle('is-pinned', pinned);
+    // Toggle the inline pin indicator label at the top of the bubble
+    let ind = bubble.querySelector('.pin-indicator');
+    if (pinned && !ind) {
+      ind = document.createElement('div');
+      ind.className = 'pin-indicator';
+      ind.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"/></svg> Pinned';
+      bubble.insertBefore(ind, bubble.firstChild);
+    } else if (!pinned && ind) {
+      ind.remove();
+    }
+  });
+}
+async function togglePinMessage(msgId) {
+  if (!activeDMUser || !msgId) return;
+  const isPinned = dmPinnedIds.has(msgId);
+  const endpoint = isPinned ? 'unpin' : 'pin';
+  try {
+    const res = await fetch(API_BASE + '/api/dms/' + encodeURIComponent(activeDMUser) + '/' + endpoint, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messageId: msgId })
+    });
+    const data = await res.json();
+    if (!res.ok) { toast((data && data.error) || 'Could not update pin.', 'error'); return; }
+    if (isPinned) dmPinnedIds.delete(msgId);
+    else dmPinnedIds.add(msgId);
+    updateDMPinsBadge();
+    applyPinIndicators();
+    // If the pins panel is open, refresh it so the list stays in sync.
+    if ($('dm-pins-panel').classList.contains('open')) renderDMPinsPanel();
+  } catch (e) {
+    toast('A network error occurred. Please try again.', 'error');
+  }
+}
+function openDMPinsPanel() {
+  closeDMSearchPanel();
+  $('dm-pins-panel').classList.add('open');
+  renderDMPinsPanel();
+}
+function closeDMPinsPanel() {
+  const p = $('dm-pins-panel');
+  if (p) p.classList.remove('open');
+}
+async function renderDMPinsPanel() {
+  const list = $('dm-pins-list');
+  if (!list || !activeDMUser) return;
+  if (dmPinnedIds.size === 0) {
+    list.innerHTML = '<div class="dm-pins-empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"/></svg><span class="empty-title">No pinned messages</span><span class="empty-sub">Pin a message from its action menu to keep it here for quick access.</span></div>';
+    return;
+  }
+  // Fetch the full pinned message objects (sorted newest-first by the server).
+  let pins = [];
+  try {
+    const res = await fetch(API_BASE + '/api/dms/' + encodeURIComponent(activeDMUser) + '/pins');
+    const data = await res.json();
+    pins = data.pins || [];
+  } catch (e) { pins = []; }
+  if (!pins.length) {
+    list.innerHTML = '<div class="dm-pins-empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"/></svg><span class="empty-title">No pinned messages</span><span class="empty-sub">Pin a message from its action menu to keep it here for quick access.</span></div>';
+    return;
+  }
+  list.innerHTML = pins.map(m => {
+    const u = users.find(x => x.username === m.from);
+    const avatarInner = (u && u.avatar) ? '<img src="' + u.avatar + '">' : getInitials(m.from);
+    const nameDisplay = m.displayName ? escapeHtml(m.displayName) : '@' + escapeHtml(m.from);
+    const textPreview = m.text ? escapeHtml(m.text) : (m.file ? '📎 ' + escapeHtml(m.file.name) : '<span class="deleted">This message was deleted</span>');
+    const isDeleted = !m.text && !m.file;
+    return '<div class="dm-pin-item" data-id="' + escapeHtml(m.id) + '">' +
+      '<div class="dm-pin-item-top">' +
+        '<div class="dm-pin-item-avatar">' + avatarInner + '</div>' +
+        '<span class="dm-pin-item-name">' + nameDisplay + '</span>' +
+        '<span class="dm-pin-item-time">' + formatTime(m.timestamp) + '</span>' +
+      '</div>' +
+      '<div class="dm-pin-item-text' + (isDeleted ? ' deleted' : '') + '">' + textPreview + '</div>' +
+      '<div class="dm-pin-item-actions">' +
+        '<span class="dm-pin-item-jump"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>Jump to message</span>' +
+        '<button class="dm-pin-item-unpin" data-id="' + escapeHtml(m.id) + '" title="Unpin">Unpin</button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+  // Wire up clicks: jump to message (click the item) + unpin (click the button)
+  list.querySelectorAll('.dm-pin-item').forEach(item => {
+    item.addEventListener('click', (e) => {
+      if (e.target.closest('.dm-pin-item-unpin')) return; // unpin handled separately
+      const id = item.getAttribute('data-id');
+      jumpToDMMessage(id);
+    });
+  });
+  list.querySelectorAll('.dm-pin-item-unpin').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      togglePinMessage(btn.getAttribute('data-id'));
+    });
+  });
+}
+function jumpToDMMessage(id) {
+  const el = document.querySelector('[data-dm-id="' + CSS.escape(id) + '"]');
+  if (el) {
+    closeDMPinsPanel();
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    el.classList.remove('replied-to-me');
+    void el.offsetWidth;
+    el.classList.add('replied-to-me');
+  } else {
+    toast('Message not currently loaded — scroll up to find it.', 'info');
+  }
+}
+$('dm-pins-btn').addEventListener('click', (e) => {
+  e.stopPropagation();
+  const p = $('dm-pins-panel');
+  if (p.classList.contains('open')) closeDMPinsPanel();
+  else openDMPinsPanel();
+});
+$('dm-pins-close').addEventListener('click', closeDMPinsPanel);
+
+// ===================== DM Conversation Search =====================
+function openDMSearchPanel() {
+  closeDMPinsPanel();
+  $('dm-search-panel').classList.add('open');
+  setTimeout(() => $('dm-search-input').focus(), 120);
+}
+function closeDMSearchPanel() {
+  const p = $('dm-search-panel');
+  if (p) p.classList.remove('open');
+  const inp = $('dm-search-input');
+  if (inp) inp.value = '';
+}
+$('dm-search-btn').addEventListener('click', (e) => {
+  e.stopPropagation();
+  const p = $('dm-search-panel');
+  if (p.classList.contains('open')) closeDMSearchPanel();
+  else openDMSearchPanel();
+});
+$('dm-search-close').addEventListener('click', closeDMSearchPanel);
+$('dm-search-input').addEventListener('input', () => {
+  clearTimeout(dmSearchTimer);
+  const val = $('dm-search-input').value.trim();
+  if (!val) {
+    $('dm-search-results').innerHTML = '<div class="dm-search-empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><span class="empty-title">Search this conversation</span><span class="empty-sub">Find messages by keyword in this DM. Click a result to jump to it.</span></div>';
+    return;
+  }
+  dmSearchTimer = setTimeout(() => runDMSearch(), 250);
+});
+async function runDMSearch() {
+  if (!activeDMUser) return;
+  const q = $('dm-search-input').value.trim();
+  if (!q) return;
+  $('dm-search-results').innerHTML = '<div class="dm-search-loading"><div class="search-spinner"></div>Searching messages…</div>';
+  try {
+    const res = await fetch(API_BASE + '/api/dms/' + encodeURIComponent(activeDMUser) + '/search?q=' + encodeURIComponent(q));
+    const data = await res.json();
+    renderDMSearchResults(data.results || [], q);
+  } catch (e) {
+    $('dm-search-results').innerHTML = '<div class="dm-search-empty"><span class="empty-sub">Search failed. Please try again.</span></div>';
+  }
+}
+function renderDMSearchResults(results, q) {
+  const container = $('dm-search-results');
+  if (!results.length) {
+    container.innerHTML = '<div class="dm-search-empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><span class="empty-title">No results</span><span class="empty-sub">No messages found for &ldquo;' + escapeHtml(q) + '&rdquo; in this conversation.</span></div>';
+    return;
+  }
+  container.innerHTML = '<div class="dm-search-count"><strong>' + escapeHtml(String(results.length)) + '</strong> ' + escapeHtml(results.length === 1 ? 'result' : 'results') + ' for &ldquo;' + escapeHtml(q) + '&rdquo;</div>' + results.map((r) => {
+    const u = users.find(x => x.username === r.username);
+    const avatarInner = (u && u.avatar) ? '<img src="' + u.avatar + '">' : getInitials(r.username);
+    const nameDisplay = r.displayName ? escapeHtml(r.displayName) : '@' + escapeHtml(r.username);
+    const textPreview = r.text ? highlightSearchTerm(r.text.slice(0, 300), q.replace(/^@/, '')) : (r.file ? '📎 ' + escapeHtml(r.file.name) : '');
+    return '<div class="dm-search-result-item" data-id="' + escapeHtml(r.id) + '">' +
+      '<div class="dm-search-result-top">' +
+        '<div class="dm-pin-item-avatar">' + avatarInner + '</div>' +
+        '<span class="dm-search-result-name">' + nameDisplay + '</span>' +
+        '<span class="dm-search-result-time">' + formatTime(r.timestamp) + '</span>' +
+      '</div>' +
+      '<div class="dm-search-result-text">' + textPreview + '</div>' +
+    '</div>';
+  }).join('');
+  container.querySelectorAll('.dm-search-result-item').forEach(item => {
+    item.addEventListener('click', () => jumpToDMMessage(item.getAttribute('data-id')));
+  });
+}
+// Close DM panels when clicking outside of them (and outside their buttons)
+document.addEventListener('click', (e) => {
+  if (!activeDMUser) return;
+  const pinsPanel = $('dm-pins-panel');
+  const searchPanel = $('dm-search-panel');
+  if (pinsPanel && pinsPanel.classList.contains('open') &&
+      !pinsPanel.contains(e.target) && !e.target.closest('#dm-pins-btn')) {
+    closeDMPinsPanel();
+  }
+  if (searchPanel && searchPanel.classList.contains('open') &&
+      !searchPanel.contains(e.target) && !e.target.closest('#dm-search-btn')) {
+    closeDMSearchPanel();
+  }
 });
 
 async function closeDM(username) {
@@ -13355,10 +13777,11 @@ function appendDMMessage(msg, silent) {
   if (isOwn && !msg.deleted) {
     const dmCtxItems = [
       { label: 'Reply to message', icon: 'reply', action: () => startDMReply(msg) },
+      { label: 'Pin Message', icon: 'pin', action: () => togglePinMessage(msg.id) },
       { label: 'Edit Message', icon: 'edit', action: () => startEditDM(msg.id, bubble) },
       { label: 'Delete Message', icon: 'delete', danger: true, action: () => confirmDeleteDM(msg.id) }
     ];
-    if (msg.file) dmCtxItems.splice(1, 0, { label: 'Download ' + (msg.file.name || 'file'), icon: 'download', action: () => downloadFile(msg.file) });
+    if (msg.file) dmCtxItems.splice(2, 0, { label: 'Download ' + (msg.file.name || 'file'), icon: 'download', action: () => downloadFile(msg.file) });
     bubble.addEventListener('contextmenu', (e) => {
       e.preventDefault();
       showContextMenu(e.clientX, e.clientY, dmCtxItems);
@@ -13368,17 +13791,21 @@ function appendDMMessage(msg, silent) {
     const replyBtn = document.createElement('button');
     replyBtn.className = 'msg-action-btn'; replyBtn.textContent = 'Reply';
     replyBtn.onclick = (ev) => { ev.stopPropagation(); startDMReply(msg); };
+    const pinBtn = document.createElement('button');
+    pinBtn.className = 'msg-action-btn' + (dmPinnedIds.has(msg.id) ? ' pin-active' : ''); pinBtn.textContent = dmPinnedIds.has(msg.id) ? 'Unpin' : 'Pin';
+    pinBtn.onclick = (ev) => { ev.stopPropagation(); togglePinMessage(msg.id); };
     const editBtn = document.createElement('button');
     editBtn.className = 'msg-action-btn'; editBtn.textContent = 'Edit';
     editBtn.onclick = (ev) => { ev.stopPropagation(); startEditDM(msg.id, bubble); };
     const delBtn = document.createElement('button');
     delBtn.className = 'msg-action-btn danger'; delBtn.textContent = 'Delete';
     delBtn.onclick = (ev) => { ev.stopPropagation(); confirmDeleteDM(msg.id); };
-    actions.appendChild(replyBtn); actions.appendChild(editBtn); actions.appendChild(delBtn);
+    actions.appendChild(replyBtn); actions.appendChild(pinBtn); actions.appendChild(editBtn); actions.appendChild(delBtn);
     bubble.appendChild(actions);
   } else if (!isOwn && !msg.deleted) {
     const dmOtherCtxItems = [
-      { label: 'Reply to message', icon: 'reply', action: () => startDMReply(msg) }
+      { label: 'Reply to message', icon: 'reply', action: () => startDMReply(msg) },
+      { label: 'Pin Message', icon: 'pin', action: () => togglePinMessage(msg.id) }
     ];
     if (msg.file) dmOtherCtxItems.push({ label: 'Download ' + (msg.file.name || 'file'), icon: 'download', action: () => downloadFile(msg.file) });
     bubble.addEventListener('contextmenu', (e) => {
@@ -13390,7 +13817,10 @@ function appendDMMessage(msg, silent) {
     const replyBtn = document.createElement('button');
     replyBtn.className = 'msg-action-btn'; replyBtn.textContent = 'Reply';
     replyBtn.onclick = (ev) => { ev.stopPropagation(); startDMReply(msg); };
-    actions.appendChild(replyBtn);
+    const pinBtn = document.createElement('button');
+    pinBtn.className = 'msg-action-btn' + (dmPinnedIds.has(msg.id) ? ' pin-active' : ''); pinBtn.textContent = dmPinnedIds.has(msg.id) ? 'Unpin' : 'Pin';
+    pinBtn.onclick = (ev) => { ev.stopPropagation(); togglePinMessage(msg.id); };
+    actions.appendChild(replyBtn); actions.appendChild(pinBtn);
     bubble.appendChild(actions);
   }
   const wrap = document.createElement('div');

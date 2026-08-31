@@ -1,25 +1,23 @@
-# Round 5 — 5 Fixes
+# Round 6 — DM & Validation UI Improvements
 
 ## Setup / Investigation
-- [x] Fix 1: "This Profile is Private" UI — make right edge align (not stick out), tighten spacing
-- [x] Fix 2: Compact message mode — make it actually affect message layout + lower the messages
-- [x] Fix 3: Chat typing space + paste line breaks — smaller max-height, don't take half the screen
-- [x] Fix 4: Fix uploading-on-send loading bar
-- [x] Fix 5: Spoiler re-shows on images/screenshots every 5 minutes
+- [x] Explore index.html + server.js to find relevant code sections
+- [x] Find "Password is required." UI + its SVG (error toast icon, 5 calls)
+- [x] Find "extra message space messages" = DM messages (.dm-messages bigger than .messages-container) — confirmed by user
+- [x] Find DM message rendering (renderDMMessages/appendDMMessage) + X close button (dm-close-btn @7442)
+- [x] Find existing Search Messages system (global panel + /api/search-messages scope=dms)
 
 ## Implementation
-- [x] Fix 1 implemented
-- [x] Fix 2 implemented (incl. continuation grouping for all 3 chats)
-- [x] Fix 3 implemented
-- [x] Fix 4 implemented
-- [x] Fix 5 implemented
+- [x] Fix 1: Remove the SVG from the "Password is required." UI (toast noIcon option)
+- [x] Fix 2: Make DM messages small like normal public-chat messages
+- [x] Fix 3: Add pin-messages system (header Pinned btn left of X + per-msg pin action + pinned list)
+- [x] Fix 4: Add Search Messages button in DM header (left of X) scoped to current DM
+- [x] Backend: persist pinned DM messages (db.users[me].dmPins) + dm-search-conversation endpoint
 
 ## Deploy
-- [x] Syntax check (server.js + inline JS)
-- [x] Local boot test
-- [x] db.json untouched
-- [x] Clean up helper scripts
-- [ ] Commit + push
+- [x] Syntax check (server.js + inline JS in index.html) — both pass node -c
+- [x] Local boot test — server boots, / returns 200, new endpoints return 401 (auth-protected)
+- [x] db.json untouched (md5 unchanged: 99761e4c34b3b0dd84d8952dfef8efd0, empty schema only)
+- [ ] Commit + push to GitHub (auto-deploys via Render)
 - [ ] Verify Render deploy live
-- [ ] Verify all fixes on live site
-- [ ] Confirm no data removed
+- [ ] Confirm all features on live site

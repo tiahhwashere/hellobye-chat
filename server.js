@@ -589,6 +589,10 @@ function purgeExpiredDisabledAccounts() {
       if (db.friends) { delete db.friends[un]; }
       if (db.blocked) { delete db.blocked[un]; }
       if (db.dms) { delete db.dms[un]; }
+      // Remove this user from everyone else's DM pinned-message lists.
+      for (const u of Object.values(db.users)) {
+        if (u && u.dmPins && u.dmPins[un]) delete u.dmPins[un];
+      }
       if (db.friends) {
         for (const fr of Object.values(db.friends)) {
           if (fr) { fr.friends = (fr.friends||[]).filter(x => x !== un); fr.sent = (fr.sent||[]).filter(x => x !== un); fr.received = (fr.received||[]).filter(x => x !== un); }
@@ -1730,6 +1734,98 @@ app.post('/api/dms/reopen/:username', authMiddleware, (req, res) => {
   res.json({ success: true });
 });
 
+// ---------- DM Pinned Messages ----------
+// Per-user, per-conversation pin list. Stored on the user record as:
+//   db.users[me].dmPins = { otherUsername: [msgId, msgId, ...] }
+// This is private to each user (you pin for yourself, like a bookmark) and
+// never modifies or wipes any existing DM message data.
+function getUserDMPins(username, other) {
+  const u = db.users[username];
+  if (!u) return [];
+  if (!u.dmPins) u.dmPins = {};
+  if (!Array.isArray(u.dmPins[other])) u.dmPins[other] = [];
+  return u.dmPins[other];
+}
+
+// GET pinned messages (full message objects) for a conversation
+app.get('/api/dms/:username/pins', authMiddleware, (req, res) => {
+  const other = req.params.username.toLowerCase();
+  if (!db.users[other]) return res.status(404).json({ error: 'User not found' });
+  const pins = getUserDMPins(req.user.username, other);
+  const myDMs = db.dms[req.user.username] || {};
+  const msgs = myDMs[other] || [];
+  // Resolve each pinned id to its current message object (skip missing/deleted)
+  const out = [];
+  pins.forEach(id => {
+    const m = msgs.find(x => x.id === id);
+    if (m && !m.deleted) out.push(m);
+  });
+  res.json({ pins: out });
+});
+
+// POST pin a message
+app.post('/api/dms/:username/pin', authMiddleware, (req, res) => {
+  const other = req.params.username.toLowerCase();
+  const messageId = String((req.body && req.body.messageId) || '').trim();
+  if (!messageId) return res.status(400).json({ error: 'Message id required' });
+  if (!db.users[other]) return res.status(404).json({ error: 'User not found' });
+  // Verify the message exists in this conversation for this user
+  const myDMs = db.dms[req.user.username] || {};
+  const msgs = myDMs[other] || [];
+  const m = msgs.find(x => x.id === messageId);
+  if (!m) return res.status(404).json({ error: 'Message not found' });
+  const pins = getUserDMPins(req.user.username, other);
+  if (!pins.includes(messageId)) pins.push(messageId);
+  saveDB();
+  res.json({ success: true, pinned: true });
+});
+
+// POST unpin a message
+app.post('/api/dms/:username/unpin', authMiddleware, (req, res) => {
+  const other = req.params.username.toLowerCase();
+  const messageId = String((req.body && req.body.messageId) || '').trim();
+  if (!messageId) return res.status(400).json({ error: 'Message id required' });
+  const pins = getUserDMPins(req.user.username, other);
+  const idx = pins.indexOf(messageId);
+  let pinned = true;
+  if (idx >= 0) { pins.splice(idx, 1); pinned = false; saveDB(); }
+  res.json({ success: true, pinned });
+});
+
+// GET search messages within a single DM conversation
+app.get('/api/dms/:username/search', authMiddleware, (req, res) => {
+  const other = req.params.username.toLowerCase();
+  const rawQ = String(req.query.q || '').trim();
+  const q = rawQ.toLowerCase();
+  if (!q) return res.json({ results: [] });
+  if (!db.users[other]) return res.status(404).json({ error: 'User not found' });
+  const myDMs = db.dms[req.user.username] || {};
+  const msgs = (myDMs[other] || []).slice(-1000);
+  const results = [];
+  // Resolve a user-id query to a username (like the global search)
+  const idMatchUser = rawQ.length >= 8
+    ? Object.values(db.users).find(u => u.id && u.id.toLowerCase() === q)
+    : null;
+  const usernameQuery = q.replace(/^@/, '');
+  const resolvedUsername = idMatchUser ? idMatchUser.username.toLowerCase() : null;
+  msgs.forEach(m => {
+    if (m.deleted) return;
+    if (m.from && m.from.toLowerCase() === usernameQuery) {
+      results.push({ type: 'dm', id: m.id, username: m.from, displayName: m.displayName, withUser: other, text: m.text, timestamp: m.timestamp, file: m.file ? { name: m.file.name } : null });
+      return;
+    }
+    if (resolvedUsername && m.from && m.from.toLowerCase() === resolvedUsername) {
+      results.push({ type: 'dm', id: m.id, username: m.from, displayName: m.displayName, withUser: other, text: m.text, timestamp: m.timestamp, file: m.file ? { name: m.file.name } : null, matchedById: true });
+      return;
+    }
+    if (m.text && m.text.toLowerCase().includes(q)) {
+      results.push({ type: 'dm', id: m.id, username: m.from, displayName: m.displayName, withUser: other, text: m.text, timestamp: m.timestamp, file: m.file ? { name: m.file.name } : null });
+    }
+  });
+  results.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+  res.json({ results: results.slice(0, 50) });
+});
+
 // ---------- Group Chats ----------
 // db.groupChats = [{ id, name, owner, icon, members:[username], messages:[msg], createdAt }]
 // Group message shape: { id, from, username, text, file, files, reply, timestamp, edited, editedAt, deleted, deletedAt, displayName }
@@ -1973,6 +2069,17 @@ app.post('/api/settings/username', authMiddleware, (req, res) => {
     if (un === newUn) continue;
     if (convos[oldUn]) { convos[newUn] = convos[oldUn]; delete convos[oldUn]; }
   }
+  // Migrate DM pinned-message keys: any user who pinned messages in their
+  // conversation with oldUn should now reference newUn instead. Also migrate
+  // the renamed user's own pin keys (their conversations are keyed by partner
+  // username, which haven't changed — but their record moved to newUn above).
+  for (const [un, u] of Object.entries(db.users)) {
+    if (u && u.dmPins && u.dmPins[oldUn]) {
+      u.dmPins[newUn] = u.dmPins[oldUn];
+      delete u.dmPins[oldUn];
+    }
+  }
+  // The renamed user's own dmPins already moved with `user` -> db.users[newUn].
   // Migrate group chats (owner + members + message usernames)
   if (Array.isArray(db.groupChats)) {
     for (const g of db.groupChats) {
@@ -2147,6 +2254,10 @@ app.post('/api/settings/delete-account', authMiddleware, (req, res) => {
   delete db.friends[un];
   delete db.blocked[un];
   delete db.dms[un];
+  // Remove this user from everyone else's DM pinned-message lists.
+  for (const [otherUn, u] of Object.entries(db.users)) {
+    if (u && u.dmPins && u.dmPins[un]) delete u.dmPins[un];
+  }
   // Remove from others' friend lists
   for (const [otherUn, fr] of Object.entries(db.friends)) {
     fr.friends = fr.friends.filter(x => x !== un);
