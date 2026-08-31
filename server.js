@@ -92,39 +92,42 @@ const GIPHY_API_KEY = process.env.GIPHY_API_KEY || '';
 // No external services or scripts required — fully aligns with the site UI.
 //
 // Flow:
-//   1. Browser calls GET /api/captcha-challenge  →  receives { challenge, target }
-//      where `challenge` is a base64 HMAC-signed token embedding a nonce + target.
-//   2. Browser shows a slider puzzle; the user drags to the target position.
-//   3. Browser sends POST /api/register with { ..., captchaToken: challenge, captchaAnswer: position }
+//   1. Browser calls GET /api/captcha-challenge  →  receives { challenge }
+//      where `challenge` is a base64 HMAC-signed token embedding a nonce + timestamp.
+//   2. Browser shows a "slide to verify" slider; the user drags it all the way
+//      to the right end.  The client confirms the slider reached 100%.
+//   3. Browser sends POST /api/register with { ..., captchaToken: challenge }
 //   4. Server verifies the HMAC signature, checks the nonce hasn't been used,
-//      and confirms the answer matches the target (within a small tolerance).
+//      and confirms the challenge hasn't expired.
 const CAPTCHA_SECRET = process.env.CAPTCHA_SECRET || crypto.randomBytes(32).toString('hex');
-const CAPTCHA_TOLERANCE = 5; // pixels of slack for the slider answer
 // In-memory set of consumed nonces (prevents replay). Cleared periodically.
 const captchaUsedNonces = new Map(); // nonce -> expiry timestamp
 const CAPTCHA_NONCE_TTL = 5 * 60 * 1000; // 5 minutes
+// Minimum time (ms) between challenge issue and registration submit.
+// Prevents instant automated submissions.
+const CAPTCHA_MIN_SOLVE_TIME = 600;
 
-// Create a signed challenge: returns { challenge (token), target (0-100) }
+// Create a signed challenge: returns { challenge (token) }
 function createCaptchaChallenge() {
   const nonce = crypto.randomBytes(16).toString('hex');
-  const target = Math.floor(Math.random() * 61) + 20; // 20-80 (avoid edges)
-  const expires = Date.now() + CAPTCHA_NONCE_TTL;
-  const payload = JSON.stringify({ nonce, target, expires });
+  const issued = Date.now();
+  const expires = issued + CAPTCHA_NONCE_TTL;
+  const payload = JSON.stringify({ nonce, issued, expires });
   const sig = crypto.createHmac('sha256', CAPTCHA_SECRET).update(payload).digest('hex');
   const token = Buffer.from(payload).toString('base64url') + '.' + sig;
-  return { challenge: token, target };
+  return { challenge: token };
 }
 
-// Verify a captcha token + answer. Returns true if valid.
-function verifyCaptchaToken(token, answer) {
-  if (!token || answer === undefined || answer === null) return false;
+// Verify a captcha token. Returns true if valid.
+function verifyCaptchaToken(token) {
+  if (!token) return false;
   const parts = String(token).split('.');
   if (parts.length !== 2) return false;
   const [payloadB64, sig] = parts;
   let payload;
   try { payload = JSON.parse(Buffer.from(payloadB64, 'base64url').toString()); }
   catch (e) { return false; }
-  if (!payload || !payload.nonce || payload.target === undefined || !payload.expires) return false;
+  if (!payload || !payload.nonce || !payload.issued || !payload.expires) return false;
   // Check expiry
   if (Date.now() > payload.expires) return false;
   // Check replay (nonce must not have been used)
@@ -134,10 +137,8 @@ function verifyCaptchaToken(token, answer) {
   const expectedSig = crypto.createHmac('sha256', CAPTCHA_SECRET)
     .update(Buffer.from(payloadB64, 'base64url').toString()).digest('hex');
   if (sig !== expectedSig) return false;
-  // Check answer is within tolerance of the target
-  const ans = Number(answer);
-  if (isNaN(ans)) return false;
-  if (Math.abs(ans - payload.target) > CAPTCHA_TOLERANCE) return false;
+  // Check minimum solve time (prevent instant bot submission)
+  if (Date.now() - payload.issued < CAPTCHA_MIN_SOLVE_TIME) return false;
   // Mark nonce as used (prevent replay)
   captchaUsedNonces.set(payload.nonce, Date.now() + CAPTCHA_NONCE_TTL);
   return true;
@@ -1030,15 +1031,15 @@ const avatarUpload = multer({ storage, limits: { fileSize: 21 * 1024 * 1024 } })
 
 // Public endpoint: issues a new CAPTCHA challenge for the browser widget.
 app.get('/api/captcha-challenge', (req, res) => {
-  const { challenge, target } = createCaptchaChallenge();
-  res.json({ challenge, target });
+  const { challenge } = createCaptchaChallenge();
+  res.json({ challenge });
 });
 
 app.post('/api/register', async (req, res) => {
-  const { username, password, displayName, captchaToken, captchaAnswer } = req.body || {};
+  const { username, password, displayName, captchaToken } = req.body || {};
   if (!username || !password) return res.status(400).json({ error: 'Username and password required' });
   // ---- CAPTCHA verification (custom signed challenge) ----
-  const captchaOk = verifyCaptchaToken(captchaToken, captchaAnswer);
+  const captchaOk = verifyCaptchaToken(captchaToken);
   if (!captchaOk) return res.status(403).json({ error: 'Security check failed. Please complete the CAPTCHA and try again.' });
   const un = String(username).toLowerCase().trim();
   if (!/^[a-z0-9_]+$/.test(un)) return res.status(400).json({ error: 'Username can only contain letters, numbers, and underscores' });

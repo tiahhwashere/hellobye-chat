@@ -8145,7 +8145,6 @@ let usernameCheckTimeout = null;
 let sessionSocketId = localStorage.getItem('hellobye_sid') || null;
 // ---------- Custom CAPTCHA (slider puzzle) on signup ----------
 let captchaChallenge = null;   // signed challenge token from server
-let captchaTarget = 0;         // target position (0-100) the slider must reach
 let captchaVerified = false;   // user completed the slider puzzle
 let captchaSliderActive = false; // user is currently dragging
 let pendingDeleteMsgId = null;
@@ -8772,10 +8771,9 @@ function initSignupCaptcha() {
   setupCaptchaSlider();
 }
 
-// Fetch a new signed challenge + target from the server.
+// Fetch a new signed challenge from the server.
 function fetchCaptchaChallenge() {
   captchaChallenge = null;
-  captchaTarget = 0;
   captchaVerified = false;
   const sb = $('signup-btn');
   if (sb) sb.disabled = true;
@@ -8792,7 +8790,6 @@ function fetchCaptchaChallenge() {
     .then(data => {
       if (data && data.challenge) {
         captchaChallenge = data.challenge;
-        captchaTarget = data.target;
       }
     })
     .catch(() => {
@@ -8850,11 +8847,11 @@ function setupCaptchaSlider() {
       document.removeEventListener('mouseup', onEnd);
       document.removeEventListener('touchmove', onMove);
       document.removeEventListener('touchend', onEnd);
-      // Check if the slider reached the target
+      // Check if the slider reached the end
       const max = getSliderMax();
       const currentPx = handle.offsetLeft;
       const pct = max > 0 ? (currentPx / max) * 100 : 0;
-      if (Math.abs(pct - captchaTarget) <= 5) {
+      if (pct >= 92) {
         // Success — snap to verified state
         captchaVerified = true;
         setHandlePos(max);
@@ -8863,7 +8860,7 @@ function setupCaptchaSlider() {
         const sb = $('signup-btn');
         if (sb) sb.disabled = false;
       } else {
-        // Failed — shake and reset
+        // Didn't reach the end — shake and reset
         wrap.classList.add('error');
         if (track) { track.textContent = 'Try again'; track.style.opacity = '1'; }
         setTimeout(() => {
@@ -8897,7 +8894,7 @@ function setupCaptchaSlider() {
       e.preventDefault();
       const currentPx = handle.offsetLeft;
       const pct = max > 0 ? (currentPx / max) * 100 : 0;
-      if (Math.abs(pct - captchaTarget) <= 5) {
+      if (pct >= 92) {
         captchaVerified = true;
         setHandlePos(max);
         wrap.classList.add('verified');
@@ -9098,7 +9095,7 @@ $('signup-form').addEventListener('submit', async (e) => {
   try {
     const res = await fetch(API_BASE + '/api/register', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password, captchaToken: captchaChallenge, captchaAnswer: captchaTarget })
+      body: JSON.stringify({ username, password, captchaToken: captchaChallenge })
     });
     const data = await res.json();
     if (!res.ok) {
