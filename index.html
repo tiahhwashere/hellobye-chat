@@ -2160,7 +2160,7 @@ body.no-anim .friend-item { animation: none !important; }
 .chat-textarea {
   flex: 1; resize: none; border: none; background: transparent;
   color: var(--text-primary); font-size: 15px; line-height: 1.5;
-  padding: 9px 6px; max-height: 200px;
+  padding: 9px 6px; max-height: 120px;
 }
 .chat-textarea:focus { outline: none; }
 .chat-textarea::placeholder { color: var(--text-muted); }
@@ -3742,8 +3742,8 @@ body.no-anim .friend-item { animation: none !important; }
   border-radius: var(--radius-sm); min-height: 100%;
 }
 .pv-hidden-notice {
-  display: flex; flex-direction: row; align-items: center; gap: 16px;
-  text-align: left; padding: 20px 24px;
+  display: flex; flex-direction: row; align-items: center; gap: 12px;
+  text-align: left; padding: 16px 18px;
   background:
     linear-gradient(105deg, rgba(255,255,255,0.035) 0%, transparent 55%),
     var(--bg-medium);
@@ -3752,12 +3752,7 @@ body.no-anim .friend-item { animation: none !important; }
   margin: 0; width: 100%; box-sizing: border-box;
   position: relative; overflow: hidden;
 }
-.pv-hidden-notice::after {
-  content: ''; position: absolute; right: -30px; top: -30px; width: 90px; height: 90px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(74,158,255,0.10), transparent 70%);
-  pointer-events: none;
-}
+
 .pv-hidden-text-wrap {
   display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 0;
 }
@@ -4392,7 +4387,7 @@ body.no-anim .friend-item { animation: none !important; }
 
   /* Mobile: make chat input wrap stay at bottom, prevent layout shift */
   .chat-input-wrap { max-height: 120px; }
-  .chat-textarea { max-height: 160px; }
+  .chat-textarea { max-height: 110px; }
 
   /* Mobile: prevent body scroll when keyboard opens */
   .chat-main { height: 100%; }
@@ -4593,12 +4588,30 @@ body.no-anim .friend-item { animation: none !important; }
 /* ============================================
    COMPACT MODE
    ============================================ */
-#chat-app.compact .messages-container { gap: 1px; padding: 12px 24px; }
-#chat-app.compact .message-group { animation: none; }
-#chat-app.compact .message-avatar { width: 28px; height: 28px; font-size: 12px; }
-#chat-app.compact .message-sender { margin-bottom: 1px; }
-#chat-app.compact .message-bubble { padding: 8px 13px; font-size: 16px; }
-#chat-app.compact .message-meta { margin-top: 1px; }
+#chat-app.compact .messages-container { gap: 1px; padding: 10px 20px; }
+#chat-app.compact .message-group { animation: none; padding: 1px 0; gap: 8px; max-width: 96%; }
+#chat-app.compact .message-avatar { width: 26px; height: 26px; font-size: 11px; }
+#chat-app.compact .message-sender { margin-bottom: 0; font-size: 12px; }
+#chat-app.compact .message-sender .sender-displayname { font-size: 12.5px; }
+#chat-app.compact .message-sender .sender-handle { font-size: 11px; }
+#chat-app.compact .message-bubble { padding: 6px 11px; font-size: 14.5px; line-height: 1.4; border-radius: 10px; }
+#chat-app.compact .message-text { line-height: 1.4; }
+#chat-app.compact .message-meta { margin-top: 0; font-size: 9px; }
+#chat-app.compact .message-bubble-wrap { gap: 0; }
+/* Lower (densify) grouped messages: when consecutive messages share a sender,
+   the avatar is hidden and the bubble sits tighter against the one above. */
+#chat-app.compact .message-group.continuation { padding-top: 0; }
+#chat-app.compact .message-group.continuation .message-avatar { visibility: hidden; }
+#chat-app.compact .message-group.continuation .message-sender { display: none; }
+#chat-app.compact .message-group.continuation .message-bubble { margin-top: 1px; }
+/* Compact DM + group messages too */
+#chat-app.compact .dm-messages .message-group,
+#chat-app.compact .group-messages .message-group { padding: 1px 0; gap: 8px; }
+#chat-app.compact .dm-messages .message-bubble,
+#chat-app.compact .group-messages .message-bubble { padding: 6px 11px; font-size: 14.5px; line-height: 1.4; }
+/* Compact media: smaller image previews in compact mode */
+#chat-app.compact .message-image,
+#chat-app.compact .message-image img { max-width: 280px; max-height: 280px; }
 
 /* ============================================
    SIDEBAR NAV 4-BUTTON LAYOUT
@@ -5168,7 +5181,7 @@ body.no-anim .friend-item { animation: none !important; }
   .sidebar-header h2 { font-size: 16px; }
   .sidebar-search { padding: 4px 8px; }
   .chat-input-area { padding: 6px 10px; }
-  .chat-textarea { max-height: 140px; }
+  .chat-textarea { max-height: 100px; }
 }
 
 /* --- Fix: prevent horizontal scroll/overflow on mobile --- */
@@ -5502,7 +5515,7 @@ body.no-anim .friend-item { animation: none !important; }
   .chat-input-wrap { padding: 4px 4px 4px 6px; gap: 2px; border-radius: 18px; }
   .attach-btn { width: 36px; height: 36px; }
   .send-btn { width: 36px; height: 36px; }
-  .chat-textarea { font-size: 16px; padding: 9px 3px; max-height: 130px; }
+  .chat-textarea { font-size: 16px; padding: 9px 3px; max-height: 100px; }
 }
 
 /* Profile color studio (full modal) — responsive on phones */
@@ -9903,6 +9916,8 @@ function appendMessage(msg, silent) {
   const group = document.createElement('div');
   group.className = 'message-group' + (isOwn ? ' own' : '');
   group.dataset.messageId = msg.id;
+  group.setAttribute('data-sender', msg.username);
+  group.setAttribute('data-ts', String(msg.timestamp || 0));
 
   const avatarDiv = document.createElement('div');
   avatarDiv.className = 'message-avatar clickable';
@@ -10071,6 +10086,27 @@ function appendMessage(msg, silent) {
   group.appendChild(avatarDiv);
   group.appendChild(wrap);
   container.appendChild(group);
+  markContinuation(group, container, msg.username, msg.timestamp);
+}
+
+// ---------- Continuation grouping (compact mode) ----------
+// Marks a freshly-appended message-group as a "continuation" of the previous
+// group if both came from the same sender and were sent within 5 minutes.
+// In compact mode this collapses the avatar + sender name so consecutive
+// messages from the same person sit tightly stacked (denser / "lowered").
+function markContinuation(group, container, senderName, timestamp) {
+  if (!group || !container) return;
+  const prev = group.previousElementSibling;
+  if (!prev || !prev.classList || !prev.classList.contains('message-group')) return;
+  const prevSender = prev.getAttribute('data-sender');
+  const prevTs = parseInt(prev.getAttribute('data-ts') || '0', 10);
+  if (prevSender && prevSender === senderName) {
+    // Only group messages within a 5-minute window so a long gap still
+    // shows a fresh avatar/name header.
+    if (timestamp && prevTs && (timestamp - prevTs) <= 5 * 60 * 1000) {
+      group.classList.add('continuation');
+    }
+  }
 }
 
 // ---------- Spoiler Wrapper ----------
@@ -10087,10 +10123,22 @@ function createSpoilerWrapper() {
   overlay.className = 'spoiler-overlay';
   overlay.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;flex-shrink:0;"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg><span>Spoiler</span><span class="spoiler-click-hint">Click to reveal</span>';
 
+  // Re-arm timer handle so repeated clicks don't stack multiple timers.
+  let rearmTimer = null;
+  const SPOILER_REARM_MS = 5 * 60 * 1000; // 5 minutes
+
   overlay.addEventListener('click', (e) => {
     e.stopPropagation();
     wrapper.classList.add('revealed');
     overlay.style.display = 'none';
+    // Clear any existing re-arm timer before starting a fresh one.
+    if (rearmTimer) clearTimeout(rearmTimer);
+    // After 5 minutes, re-hide the content so the spoiler overlay comes back.
+    rearmTimer = setTimeout(() => {
+      wrapper.classList.remove('revealed');
+      overlay.style.display = '';
+      rearmTimer = null;
+    }, SPOILER_REARM_MS);
   });
 
   wrapper.appendChild(content);
@@ -10442,7 +10490,7 @@ function updateSendButton() { sendBtn.disabled = !chatInput.value.trim() && !pen
 chatInput.addEventListener('input', () => {
   updateSendButton();
   chatInput.style.height = 'auto';
-  chatInput.style.height = Math.min(chatInput.scrollHeight, 200) + 'px';
+  chatInput.style.height = Math.min(chatInput.scrollHeight, 120) + 'px';
   if (!isTyping && chatInput.value.trim()) { isTyping = true; socket.emit('typing', true); }
   clearTimeout(typingTimeout);
   typingTimeout = setTimeout(() => { isTyping = false; socket.emit('typing', false); }, 1500);
@@ -10565,7 +10613,7 @@ function insertChatMention(username) {
   hideChatMentionDropdown();
   updateSendButton();
   chatInput.style.height = 'auto';
-  chatInput.style.height = Math.min(chatInput.scrollHeight, 200) + 'px';
+  chatInput.style.height = Math.min(chatInput.scrollHeight, 120) + 'px';
 }
 
 // Detect @ typing in chat input
@@ -10668,7 +10716,14 @@ function setSendButtonUploading(btn, on) {
   if (on) { el.classList.add('uploading'); el.disabled = true; }
   else { el.classList.remove('uploading'); }
 }
-function uploadFileWithProgress(file, bar) {
+function uploadFileWithProgress(file, bar, fileIndex, totalFiles) {
+  // fileIndex (0-based) and totalFiles let the bar reflect OVERALL progress
+  // across every file in a multi-file send, instead of resetting to 0% per
+  // file. Each file owns a slice [base, next] of the 0-100% range.
+  const fi = fileIndex || 0;
+  const tot = Math.max(1, totalFiles || 1);
+  const base = (fi / tot) * 100;
+  const next = ((fi + 1) / tot) * 100;
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     const fd = new FormData();
@@ -10682,18 +10737,19 @@ function uploadFileWithProgress(file, bar) {
     if (bar) {
       bar.classList.remove('uploading');
       bar.classList.add('active');
-      bar.style.width = '0%';
+      bar.style.width = base + '%';
     }
     if (xhr.upload) {
       xhr.upload.onprogress = (e) => {
         if (e.lengthComputable && bar) {
-          const pct = Math.round((e.loaded / e.total) * 100);
-          bar.style.width = Math.max(2, Math.min(99, pct)) + '%';
+          const frac = e.loaded / e.total;
+          const overall = base + frac * (next - base);
+          bar.style.width = Math.max(base + 1, Math.min(next - 0.5, overall)) + '%';
         }
       };
     }
     xhr.onload = () => {
-      if (bar) { bar.classList.remove('active'); bar.style.width = '100%'; }
+      if (bar) { bar.classList.remove('active'); bar.style.width = next + '%'; }
       try {
         const data = JSON.parse(xhr.responseText);
         if (xhr.status >= 200 && xhr.status < 300) { resolve(data); }
@@ -10722,18 +10778,21 @@ async function doSendMessage(text, spoiler) {
     const bar = $('file-preview-bar');
     bar.classList.remove('uploading');
     bar.style.width = '0%';
+    const total = 1 + pendingFiles.length;
     try {
-      const data = await uploadFileWithProgress(pendingFile, bar);
+      const data = await uploadFileWithProgress(pendingFile, bar, 0, total);
       fileData = data.file;
-      bar.style.width = '100%';
+      bar.style.width = ((1 / total) * 100) + '%';
     } catch (err) { toast((err && err.error) || 'File upload failed. Please try again.', 'error'); clearPendingFile(); setSendButtonUploading('send-btn', false); return; }
   }
   // Upload any additional multi-file attachments before sending.
   let extraFileData = [];
   if (pendingFiles.length > 0) {
-    for (const f of pendingFiles) {
+    const total = 1 + pendingFiles.length;
+    for (let i = 0; i < pendingFiles.length; i++) {
+      const f = pendingFiles[i];
       try {
-        const data = await uploadFileWithProgress(f, $('file-preview-bar'));
+        const data = await uploadFileWithProgress(f, $('file-preview-bar'), i + 1, total);
         extraFileData.push(data.file);
       } catch (err) { toast('Upload failed for file "' + f.name + '". Please try again.', 'error'); break; }
     }
@@ -12579,6 +12638,8 @@ function appendGroupMessage(msg, silent) {
   const group = document.createElement('div');
   group.className = 'message-group' + (isOwn ? ' own' : '');
   group.dataset.groupMsgId = msg.id;
+  group.setAttribute('data-sender', msg.from);
+  group.setAttribute('data-ts', String(msg.timestamp || 0));
 
   // For other users' messages, show an avatar + name (like public chat)
   if (!isOwn) {
@@ -12677,6 +12738,7 @@ function appendGroupMessage(msg, silent) {
   }
   group.appendChild(wrap);
   container.appendChild(group);
+  markContinuation(group, container, msg.from, msg.timestamp);
 }
 
 function scrollToBottomGroup() {
@@ -12757,7 +12819,7 @@ function updateGroupSend() { groupSendBtn.disabled = !groupInputEl.value.trim() 
 groupInputEl.addEventListener('input', () => {
   updateGroupSend();
   groupInputEl.style.height = 'auto';
-  groupInputEl.style.height = Math.min(groupInputEl.scrollHeight, 200) + 'px';
+  groupInputEl.style.height = Math.min(groupInputEl.scrollHeight, 120) + 'px';
   if (!isGroupTyping && groupInputEl.value.trim() && activeGroupId) { isGroupTyping = true; socket.emit('group-typing', { groupId: activeGroupId, typing: true }); }
   clearTimeout(groupTypingTimeout);
   groupTypingTimeout = setTimeout(() => { isGroupTyping = false; if (activeGroupId) socket.emit('group-typing', { groupId: activeGroupId, typing: false }); }, 1500);
@@ -12820,13 +12882,15 @@ async function sendGroupWithFile(text, spoiler) {
   groupSendBtn.disabled = true;
   setSendButtonUploading('group-send-btn', true);
   if (bar) { bar.classList.remove('uploading'); bar.style.width = '0%'; }
+  const groupTotal = 1 + pendingGroupFiles.length;
   try {
-    const data = await uploadFileWithProgress(file, bar);
+    const data = await uploadFileWithProgress(file, bar, 0, groupTotal);
     const fileData = data.file;
     let extraFileData = [];
     if (pendingGroupFiles.length > 0) {
-      for (const f of pendingGroupFiles) {
-        try { const d2 = await uploadFileWithProgress(f, bar); extraFileData.push(d2.file); }
+      for (let i = 0; i < pendingGroupFiles.length; i++) {
+        const f = pendingGroupFiles[i];
+        try { const d2 = await uploadFileWithProgress(f, bar, i + 1, groupTotal); extraFileData.push(d2.file); }
         catch (err) { toast('Upload failed for file "' + f.name + '".', 'error'); break; }
       }
     }
@@ -13255,6 +13319,8 @@ function appendDMMessage(msg, silent) {
   const group = document.createElement('div');
   group.className = 'message-group' + (isOwn ? ' own' : '');
   group.dataset.dmId = msg.id;
+  group.setAttribute('data-sender', msg.from);
+  group.setAttribute('data-ts', String(msg.timestamp || 0));
   const bubble = document.createElement('div');
   bubble.className = 'message-bubble dm-bubble' + (msg.deleted ? ' deleted' : '');
   if (msg.deleted) {
@@ -13340,6 +13406,7 @@ function appendDMMessage(msg, silent) {
   }
   group.appendChild(wrap);
   container.appendChild(group);
+  markContinuation(group, container, msg.from, msg.timestamp);
 }
 function startEditDM(msgId, bubble) {
   const msg = dmMessages.find(m => m.id === msgId);
@@ -13394,7 +13461,7 @@ function updateDMSend() { dmSendBtn.disabled = !dmInputEl.value.trim() && !pendi
 dmInputEl.addEventListener('input', () => {
   updateDMSend();
   dmInputEl.style.height = 'auto';
-  dmInputEl.style.height = Math.min(dmInputEl.scrollHeight, 200) + 'px';
+  dmInputEl.style.height = Math.min(dmInputEl.scrollHeight, 120) + 'px';
   if (!isDMTyping && dmInputEl.value.trim()) { isDMTyping = true; socket.emit('dm-typing', { to: activeDMUser, typing: true }); }
   clearTimeout(dmTypingTimeout);
   dmTypingTimeout = setTimeout(() => { isDMTyping = false; socket.emit('dm-typing', { to: activeDMUser, typing: false }); }, 1500);
@@ -13501,7 +13568,7 @@ function insertDMMention(username) {
   hideDMMentionDropdown();
   updateDMSend();
   dmInputEl.style.height = 'auto';
-  dmInputEl.style.height = Math.min(dmInputEl.scrollHeight, 200) + 'px';
+  dmInputEl.style.height = Math.min(dmInputEl.scrollHeight, 120) + 'px';
 }
 
 dmInputEl.addEventListener('input', () => {
@@ -13731,15 +13798,17 @@ async function sendDMWithFile(text, spoiler) {
   setSendButtonUploading('dm-send-btn', true);
   bar.classList.remove('uploading');
   bar.style.width = '0%';
+  const dmTotal = 1 + pendingDMFiles.length;
   try {
-    const data = await uploadFileWithProgress(file, bar);
+    const data = await uploadFileWithProgress(file, bar, 0, dmTotal);
     const fileData = data.file;
     // Upload any additional DM multi-file attachments
     let extraFileData = [];
     if (pendingDMFiles.length > 0) {
-      for (const f of pendingDMFiles) {
+      for (let i = 0; i < pendingDMFiles.length; i++) {
+        const f = pendingDMFiles[i];
         try {
-          const d2 = await uploadFileWithProgress(f, bar);
+          const d2 = await uploadFileWithProgress(f, bar, i + 1, dmTotal);
           extraFileData.push(d2.file);
         } catch (err) { toast('Upload failed for file "' + f.name + '". Please try again.', 'error'); break; }
       }
