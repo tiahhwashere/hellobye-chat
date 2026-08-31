@@ -3467,26 +3467,28 @@ body.no-anim .friend-item { animation: none !important; }
 }
 .cw-wrap.mini { gap: 11px; padding: 11px 10px 10px; border-radius: 13px; }
 .cw-canvas {
-  display: block; width: 220px; height: 220px; max-width: 100%;
-  cursor: crosshair; border-radius: 50%;
-  background: radial-gradient(circle at 50% 45%, rgba(255,255,255,0.06), transparent 70%), var(--bg-darkest);
+  display: block; width: 300px; height: 188px; max-width: 100%; height: auto;
+  aspect-ratio: 320 / 200;
+  cursor: crosshair; border-radius: 12px;
+  background: var(--bg-darkest);
   touch-action: none; -webkit-user-select: none; user-select: none;
-  filter: drop-shadow(0 4px 14px rgba(0,0,0,0.45)) drop-shadow(0 0 1px rgba(255,255,255,0.08));
+  filter: drop-shadow(0 4px 14px rgba(0,0,0,0.45));
   transition: filter 0.25s cubic-bezier(0.4,0,0.2,1), transform 0.25s cubic-bezier(0.4,0,0.2,1);
   will-change: filter;
 }
 .cw-canvas:hover {
-  filter: drop-shadow(0 6px 22px rgba(0,0,0,0.55)) drop-shadow(0 0 2px rgba(255,255,255,0.12));
-  transform: scale(1.015);
+  filter: drop-shadow(0 6px 20px rgba(0,0,0,0.55));
+  transform: scale(1.01);
 }
-.cw-canvas:active { transform: scale(0.992); }
+.cw-canvas:active { transform: scale(0.994); }
 .cw-wrap.mini .cw-canvas {
-  width: 180px; height: 180px;
-  filter: drop-shadow(0 3px 10px rgba(0,0,0,0.32)) drop-shadow(0 0 1px rgba(255,255,255,0.06));
+  width: 250px;
+  aspect-ratio: 280 / 180;
+  filter: drop-shadow(0 3px 10px rgba(0,0,0,0.32));
 }
 .cw-wrap.mini .cw-canvas:hover {
-  filter: drop-shadow(0 4px 16px rgba(0,0,0,0.42)) drop-shadow(0 0 2px rgba(255,255,255,0.1));
-  transform: scale(1.012);
+  filter: drop-shadow(0 4px 16px rgba(0,0,0,0.42));
+  transform: scale(1.008);
 }
 .cw-row {
   display: flex; align-items: center; gap: 12px; width: 100%;
@@ -3731,46 +3733,46 @@ body.no-anim .friend-item { animation: none !important; }
   min-height: 20px;
 }
 .pv-hidden-notice {
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  text-align: center; gap: 14px; padding: 36px 32px 32px;
-  background: linear-gradient(180deg, var(--bg-medium) 0%, var(--bg-light) 100%);
-  border: 1px solid var(--border-light); border-radius: var(--radius-md);
+  display: flex; flex-direction: row; align-items: center; gap: 16px;
+  text-align: left; padding: 20px 24px;
+  background:
+    linear-gradient(105deg, rgba(255,255,255,0.035) 0%, transparent 55%),
+    var(--bg-medium);
+  border: 1px solid var(--border-light); border-left: 3px solid var(--accent);
+  border-radius: var(--radius-md);
   margin: 0 0 20px; width: 100%; box-sizing: border-box;
   position: relative; overflow: hidden;
 }
-.pv-hidden-notice::before {
-  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
-  background: linear-gradient(90deg, transparent, var(--accent), transparent);
-  opacity: 0.5;
+.pv-hidden-notice::after {
+  content: ''; position: absolute; right: -30px; top: -30px; width: 90px; height: 90px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(74,158,255,0.10), transparent 70%);
+  pointer-events: none;
 }
-.pv-hidden-icon-wrap {
-  width: 56px; height: 56px; border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  background: var(--bg-lighter);
-  border: 1px solid var(--border-light);
-  position: relative; flex-shrink: 0;
+.pv-hidden-text-wrap {
+  display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 0;
 }
-.pv-hidden-icon-wrap::after {
-  content: ''; position: absolute; inset: -6px; border-radius: 50%;
-  background: radial-gradient(circle, rgba(74,158,255,0.18), transparent 70%);
-  pointer-events: none; z-index: -1;
-}
-.pv-hidden-icon-wrap svg { width: 26px; height: 26px; color: var(--text-secondary); }
 .pv-hidden-title {
-  font-size: 17px; font-weight: 700; color: var(--text-primary);
-  letter-spacing: 0.2px; text-transform: none;
+  font-size: 15px; font-weight: 700; color: var(--text-primary);
+  letter-spacing: 0.15px; text-transform: none; line-height: 1.3;
   padding: 0; border: none; background: transparent;
+  display: flex; align-items: center; gap: 9px;
+}
+.pv-hidden-title-dot {
+  width: 7px; height: 7px; border-radius: 50%; background: var(--accent);
+  flex-shrink: 0; box-shadow: 0 0 0 3px rgba(74,158,255,0.16);
 }
 .pv-hidden-sub {
-  font-size: 13.5px; color: var(--text-muted); line-height: 1.65; max-width: 460px;
+  font-size: 12.5px; color: var(--text-muted); line-height: 1.55;
   white-space: normal; font-weight: 400;
 }
 .pv-hidden-badge {
   display: inline-flex; align-items: center; gap: 6px;
-  font-size: 11px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase;
+  font-size: 10px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase;
   color: var(--text-muted);
-  padding: 5px 12px; border-radius: 100px;
+  padding: 6px 13px; border-radius: 8px;
   background: var(--bg-lighter); border: 1px solid var(--border-light);
+  flex-shrink: 0; white-space: nowrap;
 }
 .pv-hidden-badge-dot {
   width: 6px; height: 6px; border-radius: 50%;
@@ -5874,7 +5876,7 @@ body.no-anim .friend-item { animation: none !important; }
             <!-- Panel: Wheel -->
             <div class="cs-panel active" id="mini-panel-wheel">
               <div class="cw-wrap mini" id="mini-color-wheel-wrap">
-                <canvas class="cw-canvas" id="mini-color-wheel" width="400" height="400"></canvas>
+                <canvas class="cw-canvas" id="mini-color-wheel" width="280" height="180"></canvas>
                 <div class="cw-row">
                   <span class="cw-label">Brightness</span>
                   <input type="range" class="cw-value-slider" id="mini-cw-value" min="0" max="100" value="100">
@@ -6171,7 +6173,6 @@ body.no-anim .friend-item { animation: none !important; }
   <div class="modal-overlay" id="welcome-modal">
     <div class="modal welcome-modal">
       <div class="welcome-modal-glow"></div>
-      <div class="welcome-modal-badge">hellobye</div>
       <h2 class="welcome-modal-title">Welcome to hellobye</h2>
       <p class="welcome-modal-subtitle">Thanks for joining us.</p>
       <div class="welcome-modal-body">
@@ -6523,7 +6524,7 @@ body.no-anim .friend-item { animation: none !important; }
           <!-- Panel: Wheel -->
           <div class="cs-panel active" id="profile-panel-wheel">
             <div class="cw-wrap" id="profile-color-wheel-wrap">
-              <canvas class="cw-canvas" id="profile-color-wheel" width="480" height="480"></canvas>
+              <canvas class="cw-canvas" id="profile-color-wheel" width="320" height="200"></canvas>
               <div class="cw-row">
                 <span class="cw-label">Brightness</span>
                 <input type="range" class="cw-value-slider" id="profile-cw-value" min="0" max="100" value="100">
@@ -8971,6 +8972,11 @@ function showWelcomeModal() {
     if (currentUser && currentUser.username && localStorage.getItem(seenKey) === '1') return;
     if (currentUser && currentUser.username) localStorage.setItem(seenKey, '1');
   } catch (e) {}
+  // Personalize the greeting with the new user's username.
+  const titleEl = modal.querySelector('.welcome-modal-title');
+  if (titleEl && currentUser && currentUser.username) {
+    titleEl.textContent = 'Welcome to hellobye, @' + currentUser.username;
+  }
   modal.classList.add('show');
   const btn = $('welcome-modal-get-started');
   if (btn) {
@@ -15897,7 +15903,7 @@ function applyProfileViewPanelColor(u) {
     '.pv-extra-label', '.pv-extra-value', '.pv-status',
     '.profile-view-status-msg', '.status-msg-bubble', '.sm-text',
     '.profile-view-banner-placeholder',
-    '.pv-hidden-title', '.pv-hidden-sub', '.pv-hidden-badge',
+    '.pv-hidden-title', '.pv-hidden-sub', '.pv-hidden-badge', '.pv-hidden-text-wrap',
     '.pv-displayname-text'
   ].join(', ');
   // Elements with their own background that need a dark overlay.
@@ -15907,7 +15913,7 @@ function applyProfileViewPanelColor(u) {
     '.pv-copy-id-btn', '.pv-copy-id-menu', '.pv-copy-id-menu-item',
     '.pv-copy-id-menu-name', '.pv-copy-id-menu-id', '.pv-copy-id-menu-header',
     '.pv-copy-id-menu-empty',
-    '.pv-hidden-notice', '.pv-hidden-icon-wrap', '.pv-hidden-badge'
+    '.pv-hidden-notice', '.pv-hidden-badge'
   ].join(', ');
 
   // Reset any previously-applied inline styles first.
@@ -16181,7 +16187,7 @@ function applyProfileViewPanelColor(u) {
     });
 
     // Hidden-profile notice \u2014 title uses full readable color, subtitle & badge
-    // use muted readable color, and the lock icon uses readable color so the
+    // use muted readable color, and the title-dot uses the accent color so the
     // revamped private-profile notice blends with the panel color.
     const pvHiddenTitle = modal.querySelector('.pv-hidden-title');
     if (pvHiddenTitle) pvHiddenTitle.style.setProperty('color', vtxt, 'important');
@@ -16189,8 +16195,8 @@ function applyProfileViewPanelColor(u) {
     if (pvHiddenSub) pvHiddenSub.style.setProperty('color', mutedTxt3, 'important');
     const pvHiddenBadge = modal.querySelector('.pv-hidden-badge');
     if (pvHiddenBadge) pvHiddenBadge.style.setProperty('color', mutedTxt3, 'important');
-    const pvHiddenIcon = modal.querySelector('.pv-hidden-icon-wrap svg');
-    if (pvHiddenIcon) pvHiddenIcon.style.setProperty('color', vtxt, 'important');
+    const pvHiddenTitleDot = modal.querySelector('.pv-hidden-title-dot');
+    if (pvHiddenTitleDot && color) pvHiddenTitleDot.style.setProperty('background', color, 'important');
   }
 }
 
@@ -16378,11 +16384,10 @@ function renderProfileView(data) {
   // Bio — show a professional hidden-profile notice when the profile is hidden
   if (isHidden) {
     $('pv-bio').innerHTML = '<div class="pv-hidden-notice">' +
-      '<div class="pv-hidden-icon-wrap">' +
-        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>' +
+      '<div class="pv-hidden-text-wrap">' +
+        '<div class="pv-hidden-title"><span class="pv-hidden-title-dot"></span>This Profile is Private</div>' +
+        '<div class="pv-hidden-sub">This account\u2019s profile details are private and not available to view.</div>' +
       '</div>' +
-      '<div class="pv-hidden-title">This Profile is Private</div>' +
-      '<div class="pv-hidden-sub">This user has made their profile private.</div>' +
       '<div class="pv-hidden-badge"><span class="pv-hidden-badge-dot"></span>Private Account</div>' +
       '</div>';
   } else {
@@ -17366,182 +17371,181 @@ class ColorWheel {
     this.valueSlider = opts.valueSlider || null;
     this.hexInput = opts.hexInput || null;
     this.onPick = opts.onPick || function () {};
-    this.size = this.canvas.width;            // internal pixel size
-    this.cx = this.size / 2; this.cy = this.size / 2;
-    this.outerR = this.size / 2 - 2;          // outer edge of hue ring
-    this.ringW = Math.max(14, this.size * 0.10); // hue ring thickness
-    this.innerR = this.outerR - this.ringW - 4;  // inner square half-size
+    // Layout: a rectangular SV square on the left + a vertical hue bar on the right.
+    // Geometry is derived from the canvas internal pixel size.
+    this.size = this.canvas.width;            // internal pixel width
+    this.hgt = this.canvas.height;            // internal pixel height
+    this.pad = Math.max(6, Math.round(this.size * 0.02));  // outer padding
+    this.hueW = Math.max(16, Math.round(this.size * 0.075)); // hue bar width
+    this.gap = Math.max(8, Math.round(this.size * 0.03));    // gap between SV + hue
+    // SV square bounds
+    this.svX = this.pad;
+    this.svY = this.pad;
+    this.svW = this.size - this.pad * 2 - this.hueW - this.gap;
+    this.svH = this.hgt - this.pad * 2;
+    // Hue bar bounds
+    this.hueX = this.svX + this.svW + this.gap;
+    this.hueY = this.pad;
+    this.hueH = this.svH;
     this.h = 210; this.s = 0.62; this.v = 1;   // default-ish (matches #4a9eff-ish)
     this._dragging = false;
     this._suppress = false;                   // avoid feedback loops on programmatic set
     this.ctx = this.canvas.getContext('2d');
-    this._buildHueRing();
+    this._buildHueBar();
     this._bind();
     this.render();
   }
-  _buildHueRing() {
-    // Pre-render the hue ring to an offscreen canvas once (it never changes).
-    // Use 2x supersampling for a crisp, smooth ring.
-    const SS = 2;
+
+  // Pre-render the vertical hue gradient bar once (it never changes).
+  _buildHueBar() {
+    const SS = 2; // supersample for crispness
     const c = document.createElement('canvas');
-    c.width = this.size * SS; c.height = this.size * SS;
+    c.width = this.hueW * SS; c.height = this.hueH * SS;
     const cx = c.getContext('2d');
     cx.scale(SS, SS);
-    const steps = 720; // double resolution for smoother gradient
-    const oR = this.outerR, iR = this.innerR;
-    for (let i = 0; i < steps; i++) {
-      const a0 = (i / steps) * Math.PI * 2 - Math.PI / 2;
-      const a1 = ((i + 1.5) / steps) * Math.PI * 2 - Math.PI / 2;
-      cx.beginPath();
-      cx.moveTo(this.cx + Math.cos(a0) * oR, this.cy + Math.sin(a0) * oR);
-      cx.arc(this.cx, this.cy, oR, a0, a1);
-      cx.arc(this.cx, this.cy, iR, a1, a0, true);
-      cx.closePath();
-      const col = hsvToRgb((i / steps) * 360, 1, 1);
-      cx.fillStyle = 'rgb(' + col.r + ',' + col.g + ',' + col.b + ')';
-      cx.fill();
+    // Vertical gradient: red(0) -> yellow -> green -> cyan -> blue -> magenta -> red(360)
+    const grad = cx.createLinearGradient(0, 0, 0, this.hueH);
+    for (let i = 0; i <= 6; i++) {
+      const col = hsvToRgb((i / 6) * 360, 1, 1);
+      grad.addColorStop(i / 6, 'rgb(' + col.r + ',' + col.g + ',' + col.b + ')');
     }
-    // Add subtle inner + outer edge bevels for a premium polished look.
-    cx.save();
-    cx.beginPath(); cx.arc(this.cx, this.cy, oR, 0, Math.PI * 2);
-    cx.lineWidth = 1.5; cx.strokeStyle = 'rgba(255,255,255,0.18)'; cx.stroke();
-    cx.beginPath(); cx.arc(this.cx, this.cy, iR, 0, Math.PI * 2);
-    cx.lineWidth = 1.5; cx.strokeStyle = 'rgba(0,0,0,0.45)'; cx.stroke();
-    cx.restore();
-    this._hueRing = c;
+    cx.fillStyle = grad;
+    // rounded rect
+    const r = Math.min(8, this.hueW / 2);
+    this._roundRectPath(cx, 0, 0, this.hueW, this.hueH, r);
+    cx.fill();
+    // subtle border
+    cx.lineWidth = 1; cx.strokeStyle = 'rgba(0,0,0,0.4)';
+    this._roundRectPath(cx, 0, 0, this.hueW, this.hueH, r);
+    cx.stroke();
+    this._hueBar = c;
   }
+
+  _roundRectPath(ctx, x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+  }
+
   render() {
     const ctx = this.ctx;
-    ctx.clearRect(0, 0, this.size, this.size);
-    // Hue ring
-    ctx.imageSmoothingEnabled = true;
-    ctx.imageSmoothingQuality = 'high';
-    ctx.drawImage(this._hueRing, 0, 0, this.size, this.size);
-    // Inner SV square (inscribed). Saturation horizontal, Value vertical.
-    const half = this.innerR;
-    const x0 = this.cx - half, y0 = this.cy - half, w = half * 2;
-    const r = half * 0.16; // rounded corner radius for the SV square
-    // Draw rounded-rect clip for the SV square
+    ctx.clearRect(0, 0, this.size, this.hgt);
+    // ── SV square ──
+    const x0 = this.svX, y0 = this.svY, w = this.svW, h = this.svH;
+    const r = Math.min(10, w * 0.05);
     ctx.save();
-    ctx.beginPath();
-    ctx.moveTo(x0 + r, y0);
-    ctx.arcTo(x0 + w, y0, x0 + w, y0 + w, r);
-    ctx.arcTo(x0 + w, y0 + w, x0, y0 + w, r);
-    ctx.arcTo(x0, y0 + w, x0, y0, r);
-    ctx.arcTo(x0, y0, x0 + w, y0, r);
-    ctx.closePath();
+    this._roundRectPath(ctx, x0, y0, w, h, r);
     ctx.clip();
-    // Pure hue color at full sat/val (top-right corner base).
+    // base pure-hue color
     const pure = hsvToRgb(this.h, 1, 1);
-    // Horizontal gradient: white (s=0) -> pure hue (s=1)
+    // horizontal: white -> pure hue (saturation)
     const gH = ctx.createLinearGradient(x0, 0, x0 + w, 0);
     gH.addColorStop(0, '#ffffff');
     gH.addColorStop(1, 'rgb(' + pure.r + ',' + pure.g + ',' + pure.b + ')');
-    ctx.fillStyle = gH;
-    ctx.fillRect(x0, y0, w, w);
-    // Vertical gradient: transparent (v=1) -> black (v=0)
-    const gV = ctx.createLinearGradient(0, y0, 0, y0 + w);
+    ctx.fillStyle = gH; ctx.fillRect(x0, y0, w, h);
+    // vertical: transparent -> black (value)
+    const gV = ctx.createLinearGradient(0, y0, 0, y0 + h);
     gV.addColorStop(0, 'rgba(0,0,0,0)');
     gV.addColorStop(1, 'rgba(0,0,0,1)');
-    ctx.fillStyle = gV;
-    ctx.fillRect(x0, y0, w, w);
-    // Subtle inner shadow vignette inside the SV square for depth.
-    const vGrad = ctx.createRadialGradient(this.cx, this.cy, w * 0.2, this.cx, this.cy, w * 0.72);
-    vGrad.addColorStop(0, 'rgba(0,0,0,0)');
-    vGrad.addColorStop(1, 'rgba(0,0,0,0.18)');
-    ctx.fillStyle = vGrad;
-    ctx.fillRect(x0, y0, w, w);
+    ctx.fillStyle = gV; ctx.fillRect(x0, y0, w, h);
     ctx.restore();
-    // Rounded border around the SV square for a clean, premium edge.
+    // border around SV square
     ctx.save();
-    ctx.beginPath();
-    ctx.moveTo(x0 + r, y0);
-    ctx.arcTo(x0 + w, y0, x0 + w, y0 + w, r);
-    ctx.arcTo(x0 + w, y0 + w, x0, y0 + w, r);
-    ctx.arcTo(x0, y0 + w, x0, y0, r);
-    ctx.arcTo(x0, y0, x0 + w, y0, r);
-    ctx.closePath();
-    ctx.lineWidth = 1.5;
-    ctx.strokeStyle = 'rgba(0,0,0,0.35)';
+    this._roundRectPath(ctx, x0, y0, w, h, r);
+    ctx.lineWidth = 1.5; ctx.strokeStyle = 'rgba(0,0,0,0.4)';
     ctx.stroke();
     ctx.restore();
-    // Selection marker on the hue ring (dual-ring premium look)
-    const ang = this.h * Math.PI / 180 - Math.PI / 2;
-    const mr = (this.outerR + this.innerR) / 2;
-    const mx = this.cx + Math.cos(ang) * mr, my = this.cy + Math.sin(ang) * mr;
-    const markerR = Math.max(6, this.ringW * 0.36);
-    // Outer glow ring
-    ctx.save();
-    ctx.shadowColor = 'rgba(0,0,0,0.8)'; ctx.shadowBlur = 6;
-    ctx.beginPath(); ctx.arc(mx, my, markerR + 1.5, 0, Math.PI * 2);
-    ctx.lineWidth = 2.5; ctx.strokeStyle = '#fff'; ctx.stroke();
-    ctx.restore();
-    // Inner colored fill matching the hue
-    const mc = hsvToRgb(this.h, 1, 1);
-    ctx.beginPath(); ctx.arc(mx, my, markerR - 2, 0, Math.PI * 2);
-    ctx.fillStyle = 'rgb(' + mc.r + ',' + mc.g + ',' + mc.b + ')';
-    ctx.fill();
-    // Tiny specular highlight
-    ctx.beginPath(); ctx.arc(mx - markerR * 0.28, my - markerR * 0.28, markerR * 0.28, 0, Math.PI * 2);
-    ctx.fillStyle = 'rgba(255,255,255,0.55)'; ctx.fill();
-    // Selection marker inside the SV square (dual-ring premium look)
+    // ── Hue bar ──
+    ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(this._hueBar, this.hueX, this.hueY, this.hueW, this.hueH);
+    // ── SV marker (crosshair circle) ──
     const px = x0 + this.s * w;
-    const py = y0 + (1 - this.v) * w;
+    const py = y0 + (1 - this.v) * h;
     const darkInside = (this.v > 0.5 && this.s < 0.5);
     const ringCol = darkInside ? '#000' : '#fff';
-    // Outer glow
     ctx.save();
     ctx.shadowColor = darkInside ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.8)';
     ctx.shadowBlur = 6;
     ctx.beginPath(); ctx.arc(px, py, 7.5, 0, Math.PI * 2);
     ctx.lineWidth = 2.5; ctx.strokeStyle = ringCol; ctx.stroke();
     ctx.restore();
-    // Inner accent dot
     ctx.beginPath(); ctx.arc(px, py, 3, 0, Math.PI * 2);
     ctx.fillStyle = darkInside ? 'rgba(0,0,0,0.85)' : 'rgba(255,255,255,0.95)';
     ctx.fill();
-    // Specular highlight on SV marker
     ctx.beginPath(); ctx.arc(px - 2, py - 2, 1.4, 0, Math.PI * 2);
     ctx.fillStyle = darkInside ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.7)';
     ctx.fill();
+    // ── Hue marker (horizontal indicator on the bar) ──
+    const hy = this.hueY + (this.h / 360) * this.hueH;
+    const hx = this.hueX, hw = this.hueW;
+    ctx.save();
+    ctx.shadowColor = 'rgba(0,0,0,0.8)'; ctx.shadowBlur = 5;
+    // pointer triangle on the left + right + a thin line across
+    ctx.fillStyle = '#fff';
+    ctx.strokeStyle = 'rgba(0,0,0,0.6)'; ctx.lineWidth = 1;
+    // left triangle
+    ctx.beginPath();
+    ctx.moveTo(hx - 3, hy); ctx.lineTo(hx + 5, hy - 5); ctx.lineTo(hx + 5, hy + 5);
+    ctx.closePath(); ctx.fill(); ctx.stroke();
+    // right triangle
+    ctx.beginPath();
+    ctx.moveTo(hx + hw + 3, hy); ctx.lineTo(hx + hw - 5, hy - 5); ctx.lineTo(hx + hw - 5, hy + 5);
+    ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.restore();
+    // white indicator line across the hue bar
+    ctx.save();
+    ctx.beginPath(); ctx.moveTo(hx, hy); ctx.lineTo(hx + hw, hy);
+    ctx.lineWidth = 2; ctx.strokeStyle = '#fff';
+    ctx.shadowColor = 'rgba(0,0,0,0.7)'; ctx.shadowBlur = 4;
+    ctx.stroke();
+    ctx.restore();
   }
+
   _pos(e) {
     const rect = this.canvas.getBoundingClientRect();
-    const sx = this.size / rect.width, sy = this.size / rect.height;
+    const sx = this.size / rect.width, sy = this.hgt / rect.height;
     const t = (e.touches && e.touches[0]) ? e.touches[0] : e;
     return { x: (t.clientX - rect.left) * sx, y: (t.clientY - rect.top) * sy };
   }
+
   _hit(p) {
-    const dx = p.x - this.cx, dy = p.y - this.cy;
-    const dist = Math.sqrt(dx * dx + dy * dy);
-    if (dist > this.innerR + 2) return 'ring';
-    return 'square';
+    if (p.x >= this.hueX && p.x <= this.hueX + this.hueW &&
+        p.y >= this.hueY - 4 && p.y <= this.hueY + this.hueH + 4) return 'hue';
+    if (p.x >= this.svX && p.x <= this.svX + this.svW &&
+        p.y >= this.svY && p.y <= this.svY + this.svH) return 'sv';
+    return null;
   }
+
   _apply(p) {
     const region = this._hit(p);
-    if (region === 'ring') {
-      let ang = Math.atan2(p.y - this.cy, p.x - this.cx) * 180 / Math.PI + 90;
-      if (ang < 0) ang += 360;
-      this.h = ang;
-    } else {
-      const half = this.innerR, w = half * 2;
-      const sx = (p.x - (this.cx - half)) / w;
-      const sy = (p.y - (this.cy - half)) / w;
+    if (region === 'hue') {
+      let frac = (p.y - this.hueY) / this.hueH;
+      frac = Math.max(0, Math.min(1, frac));
+      this.h = frac * 360;
+      this._emit(true);
+    } else if (region === 'sv') {
+      const sx = (p.x - this.svX) / this.svW;
+      const sy = (p.y - this.svY) / this.svH;
       this.s = Math.max(0, Math.min(1, sx));
       this.v = Math.max(0, Math.min(1, 1 - sy));
+      this._emit(true);
     }
-    this._emit(true);
   }
+
   _emit(fromUI) {
     const hex = hsvToHex(this.h, this.s, this.v);
     this.render();
-    // Keep the brightness slider + hex input in sync (without re-triggering).
     this._suppress = true;
     if (this.valueSlider) this.valueSlider.value = Math.round(this.v * 100);
     if (this.hexInput) this.hexInput.value = hex.toUpperCase();
     this._suppress = false;
     this.onPick(hex, { fromUI: fromUI });
   }
+
   _bind() {
     const start = (e) => {
       e.preventDefault();
@@ -17576,7 +17580,6 @@ class ColorWheel {
           this.setHex(v, true);
           this.onPick(v.toLowerCase(), { fromUI: true });
         } else {
-          // restore
           this._suppress = true;
           this.hexInput.value = hsvToHex(this.h, this.s, this.v).toUpperCase();
           this._suppress = false;
@@ -17584,13 +17587,14 @@ class ColorWheel {
       });
     }
   }
+
   // Programmatic update from an external hex (e.g. preset click / native picker).
   setHex(hex, suppressPick) {
     if (!hex) return;
-    const { h, s, v } = hexToHsv(hex);
-    this.h = h; this.s = s; this.v = v;
+    const hsv = hexToHsv(hex);
+    this.h = hsv.h; this.s = hsv.s; this.v = hsv.v;
     this._suppress = true;
-    if (this.valueSlider) this.valueSlider.value = Math.round(v * 100);
+    if (this.valueSlider) this.valueSlider.value = Math.round(this.v * 100);
     if (this.hexInput) this.hexInput.value = hex.toUpperCase();
     this._suppress = false;
     this.render();
