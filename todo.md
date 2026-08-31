@@ -60,3 +60,14 @@
 - [x] 3. Restore resize/scroll reposition handlers for dropdowns
 - [x] 4. Keep dropdown HTML with single "Upload File" item (GIF URL option stays removed)
 - [x] 5. Syntax check, commit, push, wait for Render auto-deploy, verify live
+
+
+# Round 6 — Share-in-Chat UI, upload loading, 5-file limit, duplicate-file bug, profile buttons blend
+
+## Tasks
+- [ ] 1. Redesign "Share in Chat" media-send modal: cleaner, more basic yet professional UI + rename "Share in Chat" → "Send Attachment" (and DM/group variants)
+- [ ] 2. Fix uploading-on-send loading UI: show a clear spinner/loading state on the send button + preview bar while files upload
+- [ ] 3. Enforce max 5 files at one time (both main chat + DM): hard cap, block adding beyond 5 (not just slice)
+- [ ] 4. Fix duplicate-file bug: when a user uploads multiple files, the first file no longer renders twice (file + files overlap)
+- [ ] 5. Profile view: Send Message / Add Friend / Block buttons auto-blend with the user's panel/profile color (auto-blind in)
+- [ ] 6. Syntax check, commit, push to GitHub, deploy to Render, verify live (no data wiped)

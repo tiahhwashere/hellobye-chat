@@ -2150,6 +2150,18 @@ body.no-anim .friend-item { animation: none !important; }
 .send-btn:active:not(:disabled) { transform: translateY(0) scale(0.96); }
 .send-btn:disabled { opacity: 0.35; cursor: not-allowed; box-shadow: none; transform: none; }
 .send-btn svg { width: 18px; height: 18px; }
+/* Uploading-on-send loading state: swap the paper-plane icon for a spinner
+   and disable the button so the user sees clear feedback while their file(s)
+   upload. The preview progress bar animates alongside this. */
+.send-btn.uploading { cursor: progress; opacity: 1; }
+.send-btn.uploading svg { display: none; }
+.send-btn .send-spinner {
+  display: none; width: 18px; height: 18px;
+  border: 2.5px solid rgba(255,255,255,0.4); border-top-color: #fff;
+  border-radius: 50%; animation: sendSpin 0.7s linear infinite;
+}
+.send-btn.uploading .send-spinner { display: inline-block; }
+@keyframes sendSpin { to { transform: rotate(360deg); } }
 
 /* ============================================
    MODALS
@@ -3872,33 +3884,32 @@ body.no-anim .friend-item { animation: none !important; }
 .url-preview-loading { font-size: 13px; color: var(--text-muted); }
 
 /* ============================================
-   MEDIA SEND CONFIRM MODAL — revamped, advanced design
+   MEDIA SEND CONFIRM MODAL — clean, professional design
    ============================================ */
 #media-send-modal { z-index: 380 !important; }
 .media-send-modal {
-  max-width: 500px; text-align: left;
-  border-radius: 16px; overflow: hidden;
+  max-width: 460px; text-align: left;
+  border-radius: 14px; overflow: hidden;
 }
 .media-send-header {
-  display: flex; align-items: center; gap: 14px;
-  margin-bottom: 4px;
+  display: flex; align-items: center; gap: 12px;
+  margin-bottom: 6px;
 }
 .media-send-header-icon {
-  width: 42px; height: 42px; border-radius: 10px;
+  width: 38px; height: 38px; border-radius: 9px;
   background: var(--accent-dim); color: var(--accent);
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
 }
-.media-send-header-icon svg { width: 22px; height: 22px; }
+.media-send-header-icon svg { width: 20px; height: 20px; }
 .media-send-header-text { flex: 1; min-width: 0; }
-.media-send-header-text h3 { margin: 0 0 2px; font-size: 18px; font-weight: 700; }
-.media-send-header-text .setting-hint { margin: 0; font-size: 13px; }
+.media-send-header-text h3 { margin: 0 0 2px; font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
+.media-send-header-text .setting-hint { margin: 0; font-size: 12.5px; }
 .media-send-preview {
-  margin: 18px 0 14px; background: var(--bg-darkest);
+  margin: 16px 0 12px; background: var(--bg-darkest);
   border: 1px solid rgba(255,255,255,0.05); border-radius: 10px;
   padding: 14px; display: flex; align-items: center; justify-content: center;
   min-height: 80px; max-height: 320px; overflow: hidden;
-  box-shadow: inset 0 1px 3px rgba(0,0,0,0.2);
 }
 .media-send-preview img { max-width: 100%; max-height: 260px; border-radius: 8px; object-fit: contain; }
 .media-send-preview video { max-width: 100%; max-height: 260px; border-radius: 8px; }
@@ -3909,11 +3920,18 @@ body.no-anim .friend-item { animation: none !important; }
   border: 1px solid rgba(255,255,255,0.05);
 }
 .media-send-preview .media-file-card .file-icon { width: 44px; height: 44px; font-size: 13px; }
-.media-send-caption-row { margin-bottom: 14px; }
+/* Multi-file count chip shown in the preview area */
+.media-send-extra-count {
+  position: absolute; bottom: 10px; right: 10px;
+  background: rgba(0,0,0,0.62); color: #fff;
+  font-size: 11px; font-weight: 600; padding: 3px 8px;
+  border-radius: 20px; backdrop-filter: blur(4px);
+}
+.media-send-caption-row { margin-bottom: 12px; }
 .media-send-caption-row textarea {
-  width: 100%; box-sizing: border-box; padding: 12px 14px; resize: vertical;
+  width: 100%; box-sizing: border-box; padding: 11px 13px; resize: vertical;
   background: var(--bg-darkest); border: 1px solid var(--border);
-  border-radius: 8px; color: var(--text-primary); font-size: 14px;
+  border-radius: 9px; color: var(--text-primary); font-size: 14px;
   font-family: inherit; transition: border-color 0.2s ease, box-shadow 0.2s ease;
   line-height: 1.5;
 }
@@ -3923,17 +3941,28 @@ body.no-anim .friend-item { animation: none !important; }
 }
 /* Spoiler toggle option row */
 .media-send-options {
-  margin-bottom: 18px;
+  margin-bottom: 16px;
 }
 .media-send-spoiler-toggle {
   display: flex; align-items: center; gap: 10px;
-  padding: 12px 14px; background: var(--bg-darkest);
-  border: 1px solid var(--border); border-radius: 10px;
+  padding: 11px 13px; background: var(--bg-darkest);
+  border: 1px solid var(--border); border-radius: 9px;
   cursor: pointer; transition: border-color 0.2s ease, background 0.2s ease;
   user-select: none;
 }
 .media-send-spoiler-toggle:hover { border-color: rgba(255,255,255,0.12); background: rgba(255,255,255,0.03); }
 .media-send-spoiler-toggle input[type="checkbox"] { display: none; }
+/* Confirm button loading (spinner) state while files upload on send */
+.media-send-confirm.sending { pointer-events: none; opacity: 0.85; }
+.media-send-confirm .ms-spinner {
+  display: none; width: 15px; height: 15px; margin-right: 7px;
+  border: 2px solid rgba(255,255,255,0.35); border-top-color: #fff;
+  border-radius: 50%; animation: msSpin 0.7s linear infinite;
+  vertical-align: -2px;
+}
+.media-send-confirm.sending .ms-spinner { display: inline-block; }
+.media-send-confirm.sending .ms-send-label { opacity: 0.85; }
+@keyframes msSpin { to { transform: rotate(360deg); } }
 .spoiler-toggle-track {
   width: 38px; height: 22px; border-radius: 11px;
   background: rgba(255,255,255,0.1); position: relative;
@@ -5884,6 +5913,7 @@ body.no-anim .friend-item { animation: none !important; }
           <textarea class="chat-textarea" id="chat-input" placeholder="Message" rows="1"></textarea>
           <button class="send-btn" id="send-btn" disabled>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            <span class="send-spinner"></span>
           </button>
         </div>
       </div>
@@ -7225,6 +7255,7 @@ body.no-anim .friend-item { animation: none !important; }
           <textarea class="chat-textarea" id="dm-input" placeholder="Message @user" rows="1"></textarea>
           <button class="send-btn" id="dm-send-btn" disabled>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            <span class="send-spinner"></span>
           </button>
         </div>
       </div>
@@ -7290,6 +7321,7 @@ body.no-anim .friend-item { animation: none !important; }
           <textarea class="chat-textarea" id="group-input" placeholder="Message the group" rows="1"></textarea>
           <button class="send-btn" id="group-send-btn" disabled>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            <span class="send-spinner"></span>
           </button>
         </div>
       </div>
@@ -7408,14 +7440,14 @@ body.no-anim .friend-item { animation: none !important; }
     <div class="modal media-send-modal">
       <div class="media-send-header">
         <div class="media-send-header-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
         </div>
         <div class="media-send-header-text">
-          <h3 id="media-send-title">Share Attachment</h3>
-          <p class="setting-hint" id="media-send-subtitle">Add a caption below, then confirm to share.</p>
+          <h3 id="media-send-title">Send Attachment</h3>
+          <p class="setting-hint" id="media-send-subtitle">Add a caption below, then confirm to send.</p>
         </div>
       </div>
-      <div class="media-send-preview" id="media-send-preview"></div>
+      <div class="media-send-preview" id="media-send-preview" style="position:relative;"></div>
       <div class="media-send-caption-row">
         <textarea id="media-send-caption" placeholder="Add a caption (optional)" rows="2" maxlength="500"></textarea>
       </div>
@@ -7433,8 +7465,8 @@ body.no-anim .friend-item { animation: none !important; }
       <div class="modal-actions">
         <button class="modal-btn" id="media-send-cancel">Cancel</button>
         <button class="modal-btn primary" id="media-send-confirm">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:4px;"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-          Share
+          <span class="ms-spinner"></span>
+          <span class="ms-send-label">Send</span>
         </button>
       </div>
     </div>
@@ -9699,11 +9731,7 @@ function appendMessage(msg, silent) {
       // Embed links
       textSpan.querySelectorAll('.link-embed').forEach(el => fetchEmbed(el.dataset.url, el));
     }
-    if (msg.file) { contentParent.appendChild(createFileElement(msg.file)); }
-    // Multi-file attachments
-    if (msg.files && Array.isArray(msg.files) && msg.files.length > 0) {
-      msg.files.forEach(f => { if (f) contentParent.appendChild(createFileElement(f)); });
-    }
+    appendMessageFiles(contentParent, msg);
     if (spoilerWrap) bubble.appendChild(spoilerWrap.wrapper);
     // Media-only bubbles (no text, no reply) get a flat/transparent style so
     // images & videos aren't wrapped in an accent-colored box.
@@ -9809,6 +9837,29 @@ function createSpoilerWrapper() {
   return { wrapper, content };
 }
 
+// Append a message's file attachment(s) to a parent element, deduplicating
+// the legacy case where the first file was stored in BOTH `file` and `files`.
+// This guarantees each attached picture/file renders exactly once even for
+// older messages that still carry the duplicate. `file` is only rendered on
+// its own when there is no `files` array; when `files` exists (multi-file),
+// every file — including what used to be `file` — comes from `files`.
+function appendMessageFiles(parent, msg) {
+  if (!parent || !msg) return;
+  const hasFiles = Array.isArray(msg.files) && msg.files.length > 0;
+  if (hasFiles) {
+    // Dedup by url (and by name+size as a fallback) so no file shows twice.
+    const seen = new Set();
+    msg.files.forEach(f => {
+      if (!f) return;
+      const key = (f.url || '') + '|' + (f.name || '') + '|' + (f.size || 0);
+      if (seen.has(key)) return;
+      seen.add(key);
+      parent.appendChild(createFileElement(f));
+    });
+  } else if (msg.file) {
+    parent.appendChild(createFileElement(msg.file));
+  }
+}
 function createFileElement(file) {
   const wrapper = document.createElement('div');
   wrapper.className = 'message-file';
@@ -10293,6 +10344,7 @@ async function sendMessage() {
       file: pendingFile,
       context: 'chat',
       initialCaption: text,
+      extraCount: pendingFiles.length,
       onConfirm: (caption, spoiler) => {
         chatInput.value = ''; updateSendButton();
         doSendMessage(caption, spoiler);
@@ -10306,6 +10358,16 @@ async function sendMessage() {
 // ---------- Upload with real progress (XHR) ----------
 // fetch() does not expose upload progress, so we use XMLHttpRequest to
 // animate the preview bar with actual bytes-uploaded percentage.
+// Toggle the circular send button into an "uploading" loading state so the
+// user sees clear feedback while their file(s) upload on send. Pass the
+// button element (or its id) and true/false. Keeps the button disabled and
+// shows a spinner in place of the paper-plane icon.
+function setSendButtonUploading(btn, on) {
+  const el = typeof btn === 'string' ? $(btn) : btn;
+  if (!el) return;
+  if (on) { el.classList.add('uploading'); el.disabled = true; }
+  else { el.classList.remove('uploading'); }
+}
 function uploadFileWithProgress(file, bar) {
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
@@ -10351,6 +10413,10 @@ async function doSendMessage(text, spoiler) {
     toast('Please wait ' + remaining + ' second(s) before sending another message.', 'error');
     return;
   }
+  // Show a clear uploading-on-send loading state on the send button + preview
+  // bar while the file(s) upload so the user gets immediate feedback.
+  const hasMulti = pendingFiles.length > 0;
+  if (pendingFile) setSendButtonUploading('send-btn', true);
   let fileData = null;
   if (pendingFile) {
     const bar = $('file-preview-bar');
@@ -10360,7 +10426,7 @@ async function doSendMessage(text, spoiler) {
       const data = await uploadFileWithProgress(pendingFile, bar);
       fileData = data.file;
       bar.style.width = '100%';
-    } catch (err) { toast((err && err.error) || 'File upload failed. Please try again.', 'error'); clearPendingFile(); return; }
+    } catch (err) { toast((err && err.error) || 'File upload failed. Please try again.', 'error'); clearPendingFile(); setSendButtonUploading('send-btn', false); return; }
   }
   // Upload any additional multi-file attachments before sending.
   let extraFileData = [];
@@ -10372,15 +10438,23 @@ async function doSendMessage(text, spoiler) {
       } catch (err) { toast('Upload failed for file "' + f.name + '". Please try again.', 'error'); break; }
     }
   }
-  // Build the files array (all files in a single message) — max 5 total
+  // Build the files array (all files in a single message) — max 5 total.
+  // IMPORTANT (duplicate-file fix): when multiple files are sent we put EVERY
+  // file (including the first) into `files` and leave `file` null. Previously
+  // the first file was sent in BOTH `file` and `files`, so it rendered twice.
+  // Now there is a single source of truth, so each picture shows exactly once.
   let allFiles = null;
+  let singleFile = null;
   if (fileData && extraFileData.length > 0) {
     allFiles = [fileData, ...extraFileData].slice(0, 5);
   } else if (extraFileData.length > 0) {
     allFiles = extraFileData.slice(0, 5);
+  } else if (fileData) {
+    singleFile = fileData;
   }
+  setSendButtonUploading('send-btn', false);
   // Send the message (text + all files in one message)
-  socket.emit('send-message', { text, file: fileData, files: allFiles, reply: replyingTo, spoiler: !!spoiler }, (res) => {
+  socket.emit('send-message', { text, file: singleFile, files: allFiles, reply: replyingTo, spoiler: !!spoiler }, (res) => {
     if (res && res.error) {
       toast(res.error, 'error');
       if (res.muted) {
@@ -10756,7 +10830,9 @@ gifFileInput.addEventListener('change', (e) => {
   const files = Array.from(e.target.files || []);
   if (files.length === 0) return;
   if (files.length > MAX_FILES) {
-    toast('You can only upload up to ' + MAX_FILES + ' files at a time. Only the first ' + MAX_FILES + ' will be sent.', 'error');
+    toast('You can only attach up to ' + MAX_FILES + ' files at a time. Please select ' + MAX_FILES + ' or fewer.', 'error');
+    gifFileInput.value = '';
+    return;
   }
   const selected = files.slice(0, MAX_FILES);
   for (const f of selected) {
@@ -10821,9 +10897,12 @@ const MAX_FILES = 5;
 fileInput.addEventListener('change', (e) => {
   const files = Array.from(e.target.files || []);
   if (files.length === 0) return;
-  // Enforce max 5 files at a time
+  // Enforce a HARD max of 5 files at a time — reject the whole batch if the
+  // user selected more than 5 (rather than silently dropping the extras).
   if (files.length > MAX_FILES) {
-    toast('You can only upload up to ' + MAX_FILES + ' files at a time. Only the first ' + MAX_FILES + ' will be sent.', 'error');
+    toast('You can only attach up to ' + MAX_FILES + ' files at a time. Please select ' + MAX_FILES + ' or fewer.', 'error');
+    fileInput.value = '';
+    return;
   }
   const selected = files.slice(0, MAX_FILES);
   // Validate size for all selected files
@@ -12256,10 +12335,7 @@ function appendGroupMessage(msg, silent) {
       attachMentionEvents(textSpan);
       textSpan.querySelectorAll('.link-embed').forEach(el => fetchEmbed(el.dataset.url, el));
     }
-    if (msg.file) contentParent.appendChild(createFileElement(msg.file));
-    if (msg.files && Array.isArray(msg.files) && msg.files.length > 0) {
-      msg.files.forEach(f => { if (f) contentParent.appendChild(createFileElement(f)); });
-    }
+    appendMessageFiles(contentParent, msg);
     if (spoilerWrap) bubble.appendChild(spoilerWrap.wrapper);
     const hasMedia = !!(msg.file || (msg.files && msg.files.length));
     if (hasMedia && !msg.text && !msg.reply) bubble.classList.add('media-only');
@@ -12401,6 +12477,7 @@ function sendGroupMessage() {
       file: pendingGroupFile,
       context: 'group',
       initialCaption: text,
+      extraCount: pendingGroupFiles.length,
       onConfirm: (caption, spoiler) => {
         groupInputEl.value = ''; groupInputEl.style.height = 'auto'; updateGroupSend();
         doSendGroup(caption, spoiler);
@@ -12441,6 +12518,7 @@ async function sendGroupWithFile(text, spoiler) {
   const file = pendingGroupFile;
   const bar = $('dm-file-preview-bar'); // reuse the DM progress bar element
   groupSendBtn.disabled = true;
+  setSendButtonUploading('group-send-btn', true);
   if (bar) { bar.classList.remove('uploading'); bar.style.width = '0%'; }
   try {
     const data = await uploadFileWithProgress(file, bar);
@@ -12452,10 +12530,15 @@ async function sendGroupWithFile(text, spoiler) {
         catch (err) { toast('Upload failed for file "' + f.name + '".', 'error'); break; }
       }
     }
+    // Duplicate-file fix: when multiple files are sent, put every file in
+    // `files` and leave `file` null so the first file doesn't render twice.
     let allFiles = null;
+    let singleFile = null;
     if (fileData && extraFileData.length > 0) allFiles = [fileData, ...extraFileData].slice(0, 5);
     else if (extraFileData.length > 0) allFiles = extraFileData.slice(0, 5);
-    socket.emit('group-send', { groupId: activeGroupId, text, file: fileData, files: allFiles, reply: replyingToGroup, spoiler: !!spoiler }, (res) => {
+    else if (fileData) singleFile = fileData;
+    setSendButtonUploading('group-send-btn', false);
+    socket.emit('group-send', { groupId: activeGroupId, text, file: singleFile, files: allFiles, reply: replyingToGroup, spoiler: !!spoiler }, (res) => {
       if (res && res.error) { toast(res.error, 'error'); if (res.cooldown) startGroupCooldown(res.cooldown); return; }
       if (res && res.message) {
         if (!groupMessages.some(m => m.id === res.message.id)) {
@@ -12468,7 +12551,7 @@ async function sendGroupWithFile(text, spoiler) {
         if (!isExempt) startGroupCooldown(0.3);
       }
     });
-  } catch(err) { toast((err && err.error) || 'File upload failed.', 'error'); }
+  } catch(err) { toast((err && err.error) || 'File upload failed.', 'error'); setSendButtonUploading('group-send-btn', false); }
   clearGroupPendingFile();
   groupInputEl.value = ''; groupInputEl.style.height = 'auto';
   updateGroupSend();
@@ -12510,7 +12593,9 @@ function handleGroupFileSelect(e, inputEl) {
   const files = Array.from(e.target.files || []);
   if (files.length === 0) return;
   if (files.length > MAX_FILES) {
-    toast('You can only upload up to ' + MAX_FILES + ' files at a time. Only the first ' + MAX_FILES + ' will be sent.', 'error');
+    toast('You can only attach up to ' + MAX_FILES + ' files at a time. Please select ' + MAX_FILES + ' or fewer.', 'error');
+    inputEl.value = '';
+    return;
   }
   const selected = files.slice(0, MAX_FILES);
   for (const f of selected) {
@@ -12896,11 +12981,7 @@ function appendDMMessage(msg, silent) {
       attachMentionEvents(textSpan);
       textSpan.querySelectorAll('.link-embed').forEach(el => fetchEmbed(el.dataset.url, el));
     }
-    if (msg.file) contentParent.appendChild(createFileElement(msg.file));
-    // Multi-file attachments
-    if (msg.files && Array.isArray(msg.files) && msg.files.length > 0) {
-      msg.files.forEach(f => { if (f) contentParent.appendChild(createFileElement(f)); });
-    }
+    appendMessageFiles(contentParent, msg);
     if (spoilerWrap) bubble.appendChild(spoilerWrap.wrapper);
     const hasMediaDM = !!(msg.file || (msg.files && msg.files.length));
     if (hasMediaDM && !msg.text && !msg.reply) bubble.classList.add('media-only');
@@ -13205,7 +13286,9 @@ dmFileInput.addEventListener('change', (e) => {
   const files = Array.from(e.target.files || []);
   if (files.length === 0) return;
   if (files.length > MAX_FILES) {
-    toast('You can only upload up to ' + MAX_FILES + ' files at a time. Only the first ' + MAX_FILES + ' will be sent.', 'error');
+    toast('You can only attach up to ' + MAX_FILES + ' files at a time. Please select ' + MAX_FILES + ' or fewer.', 'error');
+    dmFileInput.value = '';
+    return;
   }
   const selected = files.slice(0, MAX_FILES);
   for (const f of selected) {
@@ -13239,7 +13322,9 @@ if (dmGifFileInput) dmGifFileInput.addEventListener('change', (e) => {
   const files = Array.from(e.target.files || []);
   if (files.length === 0) return;
   if (files.length > MAX_FILES) {
-    toast('You can only upload up to ' + MAX_FILES + ' files at a time. Only the first ' + MAX_FILES + ' will be sent.', 'error');
+    toast('You can only attach up to ' + MAX_FILES + ' files at a time. Please select ' + MAX_FILES + ' or fewer.', 'error');
+    dmGifFileInput.value = '';
+    return;
   }
   const selected = files.slice(0, MAX_FILES);
   for (const f of selected) {
@@ -13306,6 +13391,7 @@ function sendDM() {
       file: pendingDMFile,
       context: 'dm',
       initialCaption: text,
+      extraCount: pendingDMFiles.length,
       onConfirm: (caption, spoiler) => {
         dmInputEl.value = ''; dmInputEl.style.height = 'auto'; updateDMSend();
         doSendDM(caption, spoiler);
@@ -13342,6 +13428,7 @@ async function sendDMWithFile(text, spoiler) {
   const bar = $('dm-file-preview-bar');
   const sendBtn = $('dm-send-btn');
   sendBtn.disabled = true;
+  setSendButtonUploading('dm-send-btn', true);
   bar.classList.remove('uploading');
   bar.style.width = '0%';
   try {
@@ -13357,14 +13444,20 @@ async function sendDMWithFile(text, spoiler) {
         } catch (err) { toast('Upload failed for file "' + f.name + '". Please try again.', 'error'); break; }
       }
     }
-    // Build files array (all files in one DM message) — max 5 total
+    // Build files array (all files in one DM message) — max 5 total.
+    // Duplicate-file fix: when multiple files are sent, put every file in
+    // `files` and leave `file` null so the first file doesn't render twice.
     let allFiles = null;
+    let singleFile = null;
     if (fileData && extraFileData.length > 0) {
       allFiles = [fileData, ...extraFileData].slice(0, 5);
     } else if (extraFileData.length > 0) {
       allFiles = extraFileData.slice(0, 5);
+    } else if (fileData) {
+      singleFile = fileData;
     }
-    socket.emit('dm-send', { to: activeDMUser, text, file: fileData, files: allFiles, reply: replyingToDM, spoiler: !!spoiler }, (res) => {
+    setSendButtonUploading('dm-send-btn', false);
+    socket.emit('dm-send', { to: activeDMUser, text, file: singleFile, files: allFiles, reply: replyingToDM, spoiler: !!spoiler }, (res) => {
       if (res && res.error) { toast(res.error, 'error'); return; }
       if (res && res.message) {
         dmMessages.push(res.message);
@@ -13372,7 +13465,7 @@ async function sendDMWithFile(text, spoiler) {
         scrollToBottomDM();
       }
     });
-  } catch(err) { toast((err && err.error) || 'File upload failed. Please try again.', 'error'); }
+  } catch(err) { toast((err && err.error) || 'File upload failed. Please try again.', 'error'); setSendButtonUploading('dm-send-btn', false); }
   clearDMPendingFile();
   dmInputEl.value = ''; dmInputEl.style.height = 'auto';
   updateDMSend();
@@ -13410,17 +13503,28 @@ function downloadFile(file) {
 // ---------- Media Send Confirm Modal (caption + confirm before sending media) ----------
 let mediaSendCallback = null;
 let mediaSendContext = null;
+let mediaSendExtraCount = 0;
+// Toggle the confirm button into a "sending / uploading" loading state so the
+// user gets clear feedback while their file(s) upload on send. Pass true to
+// show the spinner, false to restore the normal Send label.
+function setMediaSendLoading(on) {
+  const btn = $('media-send-confirm');
+  if (!btn) return;
+  if (on) { btn.classList.add('sending'); btn.disabled = true; }
+  else { btn.classList.remove('sending'); btn.disabled = false; }
+}
 function openMediaSendModal(opts) {
-  // opts: { file, context: 'chat'|'dm', initialCaption, onConfirm }
+  // opts: { file, context: 'chat'|'dm', initialCaption, extraCount, onConfirm }
   const file = opts.file;
   mediaSendCallback = opts.onConfirm || null;
   mediaSendContext = opts.context || 'chat';
+  mediaSendExtraCount = Math.max(0, parseInt(opts.extraCount, 10) || 0);
   const previewWrap = $('media-send-preview');
   const captionEl = $('media-send-caption');
   const titleEl = $('media-send-title');
   previewWrap.innerHTML = '';
   captionEl.value = opts.initialCaption || '';
-  titleEl.textContent = opts.context === 'dm' ? 'Share in Direct Message' : opts.context === 'group' ? 'Share in Group' : 'Share in Chat';
+  titleEl.textContent = opts.context === 'dm' ? 'Send in Direct Message' : opts.context === 'group' ? 'Send in Group' : 'Send Attachment';
   const mt = file.type || '';
   if (mt.startsWith('image/')) {
     const img = document.createElement('img');
@@ -13456,14 +13560,31 @@ function openMediaSendModal(opts) {
     card.appendChild(icon); card.appendChild(info);
     previewWrap.appendChild(card);
   }
-  // Reset the spoiler checkbox each time the modal opens
+  // If more than one file is queued, show a small "+N more" chip on the preview
+  // so the user knows all their files will be sent together in one message.
+  if (mediaSendExtraCount > 0) {
+    const chip = document.createElement('div');
+    chip.className = 'media-send-extra-count';
+    chip.textContent = '+' + mediaSendExtraCount + ' more file' + (mediaSendExtraCount !== 1 ? 's' : '');
+    previewWrap.appendChild(chip);
+  }
+  // Reset the spoiler checkbox + loading state each time the modal opens
   const spoilerCb = $('media-send-spoiler');
   if (spoilerCb) spoilerCb.checked = false;
+  setMediaSendLoading(false);
   $('media-send-modal').classList.add('show');
   setTimeout(() => captionEl.focus(), 50);
 }
-$('media-send-cancel').addEventListener('click', () => { $('media-send-modal').classList.remove('show'); mediaSendCallback = null; });
-$('media-send-modal').addEventListener('click', (e) => { if (e.target === $('media-send-modal')) { $('media-send-modal').classList.remove('show'); mediaSendCallback = null; } });
+$('media-send-cancel').addEventListener('click', () => {
+  if ($('media-send-confirm').classList.contains('sending')) return; // don't cancel mid-upload
+  $('media-send-modal').classList.remove('show'); mediaSendCallback = null;
+});
+$('media-send-modal').addEventListener('click', (e) => {
+  if (e.target === $('media-send-modal')) {
+    if ($('media-send-confirm').classList.contains('sending')) return; // don't cancel mid-upload
+    $('media-send-modal').classList.remove('show'); mediaSendCallback = null;
+  }
+});
 $('media-send-caption').addEventListener('keydown', (e) => {
   if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); $('media-send-confirm').click(); }
 });
@@ -13481,6 +13602,7 @@ $('media-send-modal').addEventListener('keydown', (e) => {
   }
 });
 $('media-send-confirm').addEventListener('click', () => {
+  if ($('media-send-confirm').classList.contains('sending')) return; // already uploading
   const caption = $('media-send-caption').value.trim();
   const spoiler = $('media-send-spoiler') ? $('media-send-spoiler').checked : false;
   $('media-send-modal').classList.remove('show');
@@ -15805,25 +15927,53 @@ function applyProfileViewPanelColor(u) {
       closeBtn.style.setProperty('color', vtxt, 'important');
     }
 
-    // Action buttons: primary uses the accent color (with luminance-aware
-    // text via --accent-text); secondary/danger get a tinted overlay derived
-    // from the color so they BLEND instead of being grey boxes.
-    // NOTE: the PRIMARY button ("Send Message") is forced to WHITE BOLD so
-    // its label never overlaps / clashes with the profile color.
+    // Action buttons auto-blend with the user's Panel Theme Color so the
+    // Send Message, Add Friend / Accept / Cancel, and Block buttons all
+    // tint into the profile color instead of looking like generic grey/red
+    // boxes. Primary buttons are filled with the accent color (luminance-
+    // aware text so the label stays readable on every color); secondary
+    // buttons (Cancel/Decline) get a color-derived tinted overlay; the
+    // danger (Block/Unblock/Remove) button keeps a subtle red tint but its
+    // background still blends with the panel color.
     const secBg = blendOverlay(color, 0.22);
+    const secBgHover = blendOverlay(color, 0.34);
     modal.querySelectorAll('.profile-view-actions .modal-btn').forEach(el => {
       if (el.classList.contains('primary')) {
-        el.style.setProperty('color', '#ffffff', 'important');
-        el.style.setProperty('font-weight', '700', 'important');
+        // Filled with the accent color so it "binds in" with the profile.
+        el.style.setProperty('background', color, 'important');
+        el.style.setProperty('color', vtxt, 'important');
+        el.style.setProperty('font-weight', '600', 'important');
+        el.style.setProperty('border-color', color, 'important');
+        el.style.setProperty('box-shadow', '0 2px 8px ' + 'rgba(' + r + ',' + g + ',' + b + ',0.28)', 'important');
+        el.dataset.pvHover = lighten(color, 0.1);
       } else if (el.classList.contains('danger')) {
+        // Block / Unblock / Remove Friend: blend the background with the
+        // panel color (tinted overlay) while keeping a readable red label
+        // and a faint red border so the destructive intent is still clear.
         el.style.setProperty('background', secBg, 'important');
-        el.style.setProperty('color', '#ff6b6b', 'important');
-        el.style.setProperty('border-color', 'rgba(255,107,107,0.4)', 'important');
+        el.style.setProperty('color', '#ff7a7a', 'important');
+        el.style.setProperty('border-color', 'rgba(255,107,107,0.35)', 'important');
+        el.dataset.pvHover = secBgHover;
       } else {
+        // Secondary buttons (Cancel Request / Decline) blend fully.
         el.style.setProperty('background', secBg, 'important');
         el.style.setProperty('color', vtxt, 'important');
         el.style.setProperty('border-color', cardBorderSoft, 'important');
+        el.dataset.pvHover = secBgHover;
       }
+    });
+    // Hover handlers: swap to the blended hover background, then restore the
+    // blended base background on leave. Re-bound per render so new buttons
+    // pick up the effect; we store the base background to restore exactly.
+    modal.querySelectorAll('.profile-view-actions .modal-btn').forEach(el => {
+      const baseBg = el.style.getPropertyValue('background');
+      if (el._pvHoverBound) { el._pvBaseBg = baseBg; return; }
+      el._pvHoverBound = true;
+      el._pvBaseBg = baseBg;
+      const enter = () => { if (el.dataset.pvHover) el.style.setProperty('background', el.dataset.pvHover, 'important'); };
+      const leave = () => { el.style.setProperty('background', el._pvBaseBg, 'important'); };
+      el.addEventListener('mouseenter', enter);
+      el.addEventListener('mouseleave', leave);
     });
 
     // Blocked notice stays readable and blends with the panel color.
@@ -15884,25 +16034,11 @@ function updateProfileViewDMButton(u) {
   }
   // Replace the old button with the new one (preserves position in actions)
   existingBtn.replaceWith(dmBtn);
-  // Re-apply panel color styling to the new button so it matches the
-  // colored modal background. Uses luminance-aware text + a color-derived
-  // tinted overlay (blendOverlay) so the button BLENDS with the panel color
-  // instead of being a generic grey box — works for every Panel Theme Color.
-  const modal = document.querySelector('.profile-view-modal');
-  if (modal) {
-    const panelColor = modal.style.getPropertyValue('--accent');
-    if (panelColor) {
-      const isLight = luminance(panelColor) > 0.6;
-      if (dmBtn.classList.contains('primary')) {
-        dmBtn.style.setProperty('color', '#ffffff', 'important');
-        dmBtn.style.setProperty('font-weight', '700', 'important');
-      } else {
-        dmBtn.style.setProperty('background', blendOverlay(panelColor, 0.22), 'important');
-        dmBtn.style.setProperty('color', isLight ? 'rgba(26,26,46,0.85)' : 'rgba(255,255,255,0.7)', 'important');
-        dmBtn.style.setProperty('border-color', isLight ? 'rgba(0,0,0,0.15)' : 'rgba(255,255,255,0.2)', 'important');
-      }
-    }
-  }
+  // Re-apply the user's Panel Theme Color to ALL action buttons (including
+  // this freshly-swapped one) so every button — Send Message, Add Friend,
+  // Block — auto-blends with the profile color. This also re-binds the
+  // blended hover states for the new button.
+  applyProfileViewPanelColor(u);
 }
 
 // Re-render ONLY the profile-view action buttons from LOCAL state
