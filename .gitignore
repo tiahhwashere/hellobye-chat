@@ -14,3 +14,5 @@ __pycache__/
 # User-uploaded files added at runtime are ephemeral on Render free tier;
 # add a Render Disk mounted at /opt/render/project/src/uploads and .../data
 # for persistent user uploads and a growing DB.
+gmail-oauth-setup.js
+refresh_token.txt

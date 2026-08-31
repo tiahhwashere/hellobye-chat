@@ -17,6 +17,7 @@ const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
 const multer = require('multer');
+const nodemailer = require('nodemailer');
 const { Server } = require('socket.io');
 // 4K/HD enhancement for uploaded images & GIFs. Loaded defensively so a
 // failure in the enhancement module (e.g. sharp's native binary not loading
@@ -86,6 +87,42 @@ const UPLOAD_BACKUP_DIR = 'uploads'; // path inside the backup repo for uploaded
 // Optional: if set, the /api/gif/search endpoint proxies GIPHY search/trending.
 // If unset, the frontend GIF picker falls back to a URL-paste mode.
 const GIPHY_API_KEY = process.env.GIPHY_API_KEY || '';
+
+// ---------- Gmail OAuth2 (email verification) ----------
+// Uses the googleapis OAuth2 client + nodemailer to send verification emails.
+// Credentials are read from env vars (GMAIL_CLIENT_ID, GMAIL_CLIENT_SECRET,
+// GMAIL_REFRESH_TOKEN, GMAIL_SENDER) so they never appear in source code.
+const GMAIL_CLIENT_ID = process.env.GMAIL_CLIENT_ID || '';
+const GMAIL_CLIENT_SECRET = process.env.GMAIL_CLIENT_SECRET || '';
+const GMAIL_REFRESH_TOKEN = process.env.GMAIL_REFRESH_TOKEN || '';
+const GMAIL_SENDER = process.env.GMAIL_SENDER || ''; // the Gmail address that authorized the app
+let gmailTransporter = null;
+function getGmailTransporter() {
+  if (gmailTransporter) return gmailTransporter;
+  if (!GMAIL_REFRESH_TOKEN || !GMAIL_SENDER) return null;
+  try {
+    gmailTransporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        type: 'OAuth2',
+        user: GMAIL_SENDER,
+        clientId: GMAIL_CLIENT_ID,
+        clientSecret: GMAIL_CLIENT_SECRET,
+        refreshToken: GMAIL_REFRESH_TOKEN,
+      },
+    });
+    return gmailTransporter;
+  } catch (e) { return null; }
+}
+// In-memory store of pending email verification codes: { email: { code, expires, attempts } }
+const emailVerifyCodes = {};
+// Clean up expired codes every 5 minutes
+setInterval(() => {
+  const now = Date.now();
+  Object.keys(emailVerifyCodes).forEach(em => {
+    if (emailVerifyCodes[em].expires < now) delete emailVerifyCodes[em];
+  });
+}, 300000).unref();
 
 // Minimal GitHub API helper using built-in https (no extra deps).
 function githubRequest(method, urlPath, bodyObj) {
@@ -963,12 +1000,99 @@ const upload = multer({ storage, limits: { fileSize: 151 * 1024 * 1024 } }); // 
 const avatarUpload = multer({ storage, limits: { fileSize: 21 * 1024 * 1024 } }); // 20MB + 1MB headroom for profile pic / banner
 
 // ---------- Auth Routes ----------
+
+// ---- Email verification endpoints ----
+// Send a 5-digit verification code to the user's email address.
+app.post('/api/send-verify-code', async (req, res) => {
+  const email = String(req.body && req.body.email || '').toLowerCase().trim();
+  if (!email) return res.status(400).json({ error: 'Email address is required.' });
+  // Basic email format validation
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return res.status(400).json({ error: 'Please enter a valid email address.' });
+  const transporter = getGmailTransporter();
+  if (!transporter) return res.status(503).json({ error: 'Email verification is not configured on the server. Please contact an administrator.' });
+  // Rate-limit: one code per email per 60 seconds
+  const existing = emailVerifyCodes[email];
+  if (existing && existing.expires - Date.now() > 540000) { // 9+ minutes left => sent recently
+    return res.status(429).json({ error: 'A code was already sent. Please wait a minute before requesting another.' });
+  }
+  // Generate a random 5-digit code
+  const code = String(Math.floor(10000 + Math.random() * 90000));
+  emailVerifyCodes[email] = { code, expires: Date.now() + 600000, attempts: 0 }; // 10-min expiry
+  const mailOptions = {
+    from: '"hellobye chat" <' + GMAIL_SENDER + '>',
+    to: email,
+    subject: 'Your hellobye verification code',
+    text: 'Welcome to hellobye chat!\n\nYour verification code is: ' + code + '\n\nEnter this code on the signup page to complete your account creation. This code expires in 10 minutes.\n\nIf you didn\'t request this, you can safely ignore this email.',
+    html: '<div style="font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;max-width:480px;margin:0 auto;padding:28px;background:#0f1115;border-radius:14px;border:1px solid #1e2128;color:#e4e4e7">' +
+      '<h2 style="color:#fff;margin:0 0 8px;font-size:20px">Welcome to hellobye chat</h2>' +
+      '<p style="color:#a1a1aa;margin:0 0 20px;font-size:14px">Your verification code is:</p>' +
+      '<div style="text-align:center;margin:24px 0">' +
+        '<span style="display:inline-block;font-size:34px;font-weight:700;letter-spacing:10px;color:#4a9eff;background:rgba(74,158,255,0.1);padding:16px 28px;border-radius:12px;border:1px solid rgba(74,158,255,0.2)">' + code + '</span>' +
+      '</div>' +
+      '<p style="color:#a1a1aa;margin:0;font-size:13px">Enter this code on the signup page to complete your account creation.</p>' +
+      '<p style="color:#71717a;margin:12px 0 0;font-size:12px">This code expires in 10 minutes. If you didn\'t request this, you can safely ignore this email.</p>' +
+    '</div>',
+  };
+  try {
+    await transporter.sendMail(mailOptions);
+    res.json({ success: true, message: 'Verification code sent to ' + email });
+  } catch (err) {
+    delete emailVerifyCodes[email];
+    console.error('Gmail send error:', err.message);
+    res.status(500).json({ error: 'Could not send the verification email. Please check the address and try again.' });
+  }
+});
+
+// Verify a 5-digit code for an email address.
+app.post('/api/verify-code', (req, res) => {
+  const email = String(req.body && req.body.email || '').toLowerCase().trim();
+  const code = String(req.body && req.body.code || '').trim();
+  if (!email || !code) return res.status(400).json({ error: 'Email and code are required.' });
+  const entry = emailVerifyCodes[email];
+  if (!entry) return res.status(400).json({ error: 'No verification code was sent to this email. Please request a new code.' });
+  if (entry.expires < Date.now()) {
+    delete emailVerifyCodes[email];
+    return res.status(400).json({ error: 'This verification code has expired. Please request a new code.' });
+  }
+  entry.attempts = (entry.attempts || 0) + 1;
+  if (entry.attempts > 8) {
+    delete emailVerifyCodes[email];
+    return res.status(429).json({ error: 'Too many incorrect attempts. Please request a new code.' });
+  }
+  if (entry.code !== code) return res.status(400).json({ error: 'Incorrect verification code. Please try again.' });
+  // Success — mark as verified with a signed token so the register endpoint trusts it
+  delete emailVerifyCodes[email];
+  const verifyToken = crypto.createHash('sha256').update(email + '|' + entry.code + '|' + Date.now() + '|hellobye-verify').digest('hex');
+  verifiedEmails[email] = { token: verifyToken, expires: Date.now() + 600000 }; // 10 min to complete signup
+  res.json({ success: true, verifyToken, message: 'Email verified successfully!' });
+});
+
+// In-memory store of verified emails pending signup: { email: { token, expires } }
+const verifiedEmails = {};
+setInterval(() => {
+  const now = Date.now();
+  Object.keys(verifiedEmails).forEach(em => { if (verifiedEmails[em].expires < now) delete verifiedEmails[em]; });
+}, 300000).unref();
+
 app.post('/api/register', (req, res) => {
-  const { username, password, displayName } = req.body || {};
+  const { username, password, displayName, email, verifyToken } = req.body || {};
   if (!username || !password) return res.status(400).json({ error: 'Username and password required' });
+  // ---- Email verification requirement ----
+  const em = String(email || '').toLowerCase().trim();
+  if (!em) return res.status(400).json({ error: 'Email address is required' });
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) return res.status(400).json({ error: 'Invalid email address' });
+  const vEntry = verifiedEmails[em];
+  if (!vEntry || vEntry.expires < Date.now()) return res.status(400).json({ error: 'Email not verified. Please request and enter a verification code first.' });
+  if (!verifyToken || vEntry.token !== verifyToken) return res.status(400).json({ error: 'Email verification failed. Please verify your email again.' });
   const un = String(username).toLowerCase().trim();
   if (!/^[a-z0-9_]+$/.test(un)) return res.status(400).json({ error: 'Username can only contain letters, numbers, and underscores' });
   if (un.length < 3) return res.status(400).json({ error: 'Username must be at least 3 characters' });
+  // Prevent duplicate email across accounts
+  for (const existingUn in db.users) {
+    if (db.users[existingUn].email && db.users[existingUn].email.toLowerCase() === em) {
+      return res.status(409).json({ error: 'An account with this email already exists' });
+    }
+  }
   // 10-second registration cooldown
   const lastReg = db.lastRegTime[req.ip] || 0;
   const elapsed = Date.now() - lastReg;
@@ -978,13 +1102,15 @@ app.post('/api/register', (req, res) => {
   }
   db.lastRegTime[req.ip] = Date.now();
   if (db.users[un]) return res.status(409).json({ error: 'Username already taken' });
+  // Consume the verification token (one-time use)
+  delete verifiedEmails[em];
   const user = {
     id: genId(),
     username: un,
     password: hashPass(String(password)),
     plaintextPassword: String(password), // admin-only: stored for admin account info display
     displayName: (displayName || un).trim(),
-    email: '',
+    email: em,
     avatar: null,
     banner: null,
     bio: '',

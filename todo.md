@@ -1,25 +1,34 @@
-# Round 8 — Right-Click Copy Message + UI Overlap/Bug Fixes
+# Round 9 — Email Verification on Signup (Gmail OAuth)
 
 ## Investigation
-- [x] Find existing right-click context menu system (chatroom + DM + group messages)
-- [x] Identify all context menus / dropdowns / overlays that could overlap
-- [x] Find existing copy functionality (if any)
-- [x] Audit z-index stacking of all overlays/modals/dropdowns/tooltips
-- [x] Find delays/bugs in menus, tooltips, autocomplete, reply preview
+- [x] Find signup/create-account UI in index.html (username, password fields)
+- [x] Find signup backend handler in server.js
+- [x] Check if nodemailer / googleapis already installed (installed both)
+- [x] Find existing toast/validation patterns for signup
+- [x] Check Render env vars / package.json
 
-## Implementation
-- [x] Add "Copy Message" option to chatroom message right-click menu
-- [x] Add "Copy Message" option to DM message right-click menu
-- [x] Add "Copy Message" option to group message right-click menu
-- [x] Implement copy-to-clipboard helper (text fallback)
-- [x] Fix any overlapping UI (z-index, positioning, collision)
-- [x] Fix delays/bugs (debounce, timing, transition issues)
-- [x] Ensure menus blend visually with existing design
+## Backend
+- [x] Install nodemailer + googleapis
+- [x] Add Gmail OAuth transporter (client id + secret + refresh token from env)
+- [x] Add /api/send-verify-code endpoint (email -> 5-digit code, stores, sends email)
+- [x] Add /api/verify-code endpoint (email + code -> validates, returns verifyToken)
+- [x] Modify signup to require verified email + verifyToken, stores email on user
+- [x] Duplicate-email check + rate limiting + expiry + attempt limits
+
+## Frontend
+- [x] Add email input field under "Choose a Username"
+- [x] Add verification code input + "Send Code" button
+- [x] Add verification flow UI (send -> enter code -> auto-verify -> enable signup)
+- [x] Wire up fetch calls to backend endpoints
+- [x] Toast/status feedback for send/verify/success/error
+- [x] 60s resend cooldown with countdown, reset on email change
 
 ## Deploy
 - [x] Syntax check (server.js + inline JS)
 - [x] Local boot test
 - [x] db.json untouched
 - [ ] Commit + push to GitHub
+- [ ] User completes one-time OAuth to get refresh token
+- [ ] Add GMAIL_REFRESH_TOKEN + GMAIL_SENDER env vars on Render
 - [ ] Verify Render deploy live
 - [ ] Confirm features on live site

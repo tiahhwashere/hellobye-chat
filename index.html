@@ -281,6 +281,24 @@ html.has-session #chat-app { display: grid; } /* show chat grid immediately */
 .username-check .check-icon-ok::before { content: '\2713'; font-weight: bold; }
 .username-check .check-icon-bad::before { content: '\2715'; font-weight: bold; }
 .username-check .check-icon-warn::before { content: '!'; font-weight: bold; display: inline-flex; width: 14px; height: 14px; align-items: center; justify-content: center; background: currentColor; color: var(--bg-darker); border-radius: 50%; font-size: 10px; }
+/* Email verification row on signup */
+.email-verify-row {
+  display: flex; gap: 8px; margin-top: 8px; align-items: stretch;
+}
+.email-verify-row .email-code-input {
+  flex: 0 0 130px; text-align: center; letter-spacing: 3px; font-weight: 600;
+}
+.email-verify-row .email-code-input::placeholder { letter-spacing: 0; font-weight: 400; }
+.btn-verify-send {
+  flex: 1; padding: 11px 14px;
+  background: var(--bg-medium); color: var(--text-primary);
+  border: 1px solid var(--border-light); border-radius: var(--radius-sm);
+  font-size: 13px; font-weight: 600; cursor: pointer;
+  transition: var(--transition); white-space: nowrap;
+}
+.btn-verify-send:hover:not(:disabled) { background: var(--bg-hover); border-color: var(--accent); color: var(--accent); }
+.btn-verify-send:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-verify-send.verified { background: rgba(59,165,93,0.15); border-color: rgba(59,165,93,0.4); color: #5fd583; }
 .spinner {
   width: 12px; height: 12px; border: 2px solid var(--border-light);
   border-top-color: var(--accent); border-radius: 50%;
@@ -5966,6 +5984,15 @@ body.no-anim .friend-item { animation: none !important; }
             <input type="text" class="form-input" id="signup-username" placeholder="3–20 characters: letters, numbers, underscore" autocomplete="username" spellcheck="false">
             <div class="username-check" id="username-check"></div>
           </div>
+          <div class="form-field full">
+            <label>Email Address</label>
+            <input type="email" class="form-input" id="signup-email" placeholder="you@example.com" autocomplete="email" spellcheck="false">
+            <div class="email-verify-row">
+              <input type="text" class="form-input email-code-input" id="signup-verify-code" placeholder="5-digit code" inputmode="numeric" maxlength="5" autocomplete="one-time-code" spellcheck="false">
+              <button type="button" class="btn-verify-send" id="send-verify-btn">Send Code</button>
+            </div>
+            <div class="username-check" id="email-verify-status"></div>
+          </div>
           <div class="form-field">
             <label>Password</label>
             <div class="pwd-field">
@@ -8827,16 +8854,137 @@ $('signin-form').addEventListener('submit', async (e) => {
 });
 
 // ---------- Sign Up ----------
+// ---- Email verification state + handlers ----
+let emailVerifiedToken = null; // set when email is successfully verified
+let verifyCooldownTimer = null;
+
+function setEmailVerifyStatus(msg, type) {
+  const el = $('email-verify-status');
+  if (!msg) { el.classList.remove('show', 'available', 'taken', 'checking'); el.innerHTML = ''; return; }
+  el.className = 'username-check show ' + (type || 'checking');
+  const icon = type === 'available' ? '<span class="check-icon-ok"></span> '
+            : type === 'taken' ? '<span class="check-icon-bad"></span> '
+            : type === 'checking' ? '<span class="spinner"></span> ' : '';
+  el.innerHTML = icon + escapeHtml(msg);
+}
+
+$('send-verify-btn').addEventListener('click', async () => {
+  const email = $('signup-email').value.trim().toLowerCase();
+  const btn = $('send-verify-btn');
+  if (!email) { setEmailVerifyStatus('Please enter your email address first.', 'taken'); return; }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { setEmailVerifyStatus('Please enter a valid email address.', 'taken'); return; }
+  // If already verified, allow resend only if email changed
+  btn.disabled = true;
+  setEmailVerifyStatus('Sending verification code...', 'checking');
+  try {
+    const res = await fetch(API_BASE + '/api/send-verify-code', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email })
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      setEmailVerifyStatus(data.error || 'Could not send code.', 'taken');
+      btn.disabled = false; btn.textContent = 'Send Code';
+      return;
+    }
+    setEmailVerifyStatus('A 5-digit code was sent to ' + email + '. Check your inbox (and spam folder).', 'available');
+    emailVerifiedToken = null;
+    btn.classList.remove('verified');
+    $('signup-verify-code').value = '';
+    // 60-second cooldown with countdown
+    let secs = 60;
+    btn.textContent = 'Resend in ' + secs + 's';
+    clearInterval(verifyCooldownTimer);
+    verifyCooldownTimer = setInterval(() => {
+      secs--;
+      if (secs <= 0) {
+        clearInterval(verifyCooldownTimer);
+        btn.disabled = false; btn.textContent = 'Resend Code';
+      } else {
+        btn.textContent = 'Resend in ' + secs + 's';
+      }
+    }, 1000);
+  } catch (err) {
+    setEmailVerifyStatus('Network error. Please try again.', 'taken');
+    btn.disabled = false; btn.textContent = 'Send Code';
+  }
+});
+
+// Auto-verify when 5 digits are entered
+$('signup-verify-code').addEventListener('input', async (e) => {
+  const code = e.target.value.replace(/\D/g, '').slice(0, 5);
+  e.target.value = code;
+  if (code.length === 5) {
+    const email = $('signup-email').value.trim().toLowerCase();
+    if (!email) { setEmailVerifyStatus('Enter your email address first.', 'taken'); return; }
+    setEmailVerifyStatus('Verifying code...', 'checking');
+    try {
+      const res = await fetch(API_BASE + '/api/verify-code', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, code })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setEmailVerifyStatus(data.error || 'Verification failed.', 'taken');
+        emailVerifiedToken = null;
+        $('send-verify-btn').classList.remove('verified');
+        return;
+      }
+      emailVerifiedToken = data.verifyToken;
+      setEmailVerifyStatus('Email verified! You can now create your account.', 'available');
+      $('send-verify-btn').classList.add('verified');
+      $('send-verify-btn').textContent = 'Verified ✓';
+      $('send-verify-btn').disabled = true;
+    } catch (err) {
+      setEmailVerifyStatus('Network error during verification.', 'taken');
+      emailVerifiedToken = null;
+    }
+  } else if (code.length === 0) {
+    if (emailVerifiedToken) {
+      emailVerifiedToken = null;
+      $('send-verify-btn').classList.remove('verified');
+      $('send-verify-btn').textContent = 'Send Code';
+      $('send-verify-btn').disabled = false;
+      setEmailVerifyStatus('', '');
+    }
+  } else {
+    setEmailVerifyStatus('', '');
+  }
+});
+
+// If the user changes their email after verifying, reset the verified state
+$('signup-email').addEventListener('input', () => {
+  if (emailVerifiedToken) {
+    emailVerifiedToken = null;
+    $('send-verify-btn').classList.remove('verified');
+    $('send-verify-btn').textContent = 'Send Code';
+    $('send-verify-btn').disabled = false;
+    $('signup-verify-code').value = '';
+    setEmailVerifyStatus('Email changed — please verify again.', 'taken');
+  }
+});
+
 $('signup-form').addEventListener('submit', async (e) => {
   e.preventDefault();
   const username = $('signup-username').value.trim().toLowerCase();
   const password = $('signup-password').value;
   const confirm = $('signup-confirm').value;
+  const email = $('signup-email').value.trim().toLowerCase();
   const errEl = $('signup-error');
   const btn = $('signup-btn');
   errEl.classList.remove('show');
   if (!username || !password) {
     errEl.textContent = 'Please fill in all fields.';
+    errEl.classList.add('show');
+    return;
+  }
+  if (!email) {
+    errEl.textContent = 'Please enter your email address.';
+    errEl.classList.add('show');
+    return;
+  }
+  if (!emailVerifiedToken) {
+    errEl.textContent = 'Please verify your email address before creating an account.';
     errEl.classList.add('show');
     return;
   }
@@ -8854,7 +9002,7 @@ $('signup-form').addEventListener('submit', async (e) => {
   try {
     const res = await fetch(API_BASE + '/api/register', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password })
+      body: JSON.stringify({ username, password, email, verifyToken: emailVerifiedToken })
     });
     const data = await res.json();
     if (!res.ok) {
