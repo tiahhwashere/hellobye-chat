@@ -13526,19 +13526,16 @@ function executeDeleteModal() {
   if (pendingDeleteMsgId) {
     socket.emit('delete-message', { id: pendingDeleteMsgId }, (res) => {
       if (res && res.error) toast(res.error, 'error');
-      else toast('Message deleted successfully.', 'success');
     });
     pendingDeleteMsgId = null;
   } else if (pendingDeleteDM) {
     socket.emit('dm-delete', { id: pendingDeleteDM, to: activeDMUser }, (res) => {
       if (res && res.error) toast(res.error, 'error');
-      else toast('Message deleted successfully.', 'success');
     });
     pendingDeleteDM = null;
   } else if (pendingDeleteGroup) {
     socket.emit('group-delete', { id: pendingDeleteGroup, groupId: activeGroupId }, (res) => {
       if (res && res.error) toast(res.error, 'error');
-      else toast('Message deleted successfully.', 'success');
     });
     pendingDeleteGroup = null;
   }
@@ -23057,6 +23054,16 @@ async function loadAdminData() {
     if (adminData.welcomeTitle && $('admin-welcome-title-current')) {
       $('admin-welcome-title-current').innerHTML = linkifyBio(adminData.welcomeTitle);
     }
+    // If a welcome-title cooldown is still active, show the countdown + disable
+    // the button immediately so the admin knows they must wait before changing
+    // the title again (prevents the "title not changing" confusion that happens
+    // when the admin clicks during an active cooldown with no visible indicator).
+    const wtCooldownMs = adminData.welcomeTitleCooldown || 20000;
+    const wtLastChanged = adminData.welcomeTitleLastChanged || 0;
+    const wtRemaining = wtCooldownMs - (Date.now() - wtLastChanged);
+    if (wtRemaining > 0) {
+      startWelcomeTitleCooldown(wtCooldownMs, wtRemaining);
+    }
   } catch (e) {
     console.error('Admin data load error', e);
   }
@@ -23702,7 +23709,6 @@ async function doAdminDeleteMessage() {
     });
     const data = await res.json();
     if (data.success) {
-      toast('Message deleted successfully.', 'success');
       adminMessagesCache = adminMessagesCache.filter(m => m.id !== id);
       renderAdminMessages();
     } else { toast(data.error || 'Unable to delete the message. Please try again.', 'error'); }
@@ -23751,6 +23757,7 @@ async function adminSetWelcomeTitle() {
   if (!title) { toast('Please enter a welcome title.', 'error'); return; }
   const btn = $('admin-welcome-title-btn');
   if (btn) { btn.disabled = true; btn.textContent = 'Updating...'; }
+  let cooldownActive = false;
   try {
     const res = await fetch(API_BASE + '/api/admin/set-welcome-title', {
       method: 'POST', headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
@@ -23763,17 +23770,22 @@ async function adminSetWelcomeTitle() {
       if (currentView === 'public') $('chat-title').innerHTML = linkifyBio(data.title);
       if ($('admin-welcome-title-input')) $('admin-welcome-title-input').value = '';
       if ($('admin-welcome-title-current')) $('admin-welcome-title-current').innerHTML = linkifyBio(data.title);
-      // Start cooldown display
+      // Start cooldown display (button stays disabled until countdown ends)
+      cooldownActive = true;
       startWelcomeTitleCooldown(adminData ? (adminData.welcomeTitleCooldown || 20000) : 20000);
       loadAdminData();
     } else if (data.error === 'Cooldown active') {
       toast('The cooldown is still active. Please wait before trying again.', 'error');
+      cooldownActive = true;
       startWelcomeTitleCooldown(adminData ? (adminData.welcomeTitleCooldown || 20000) : 20000, data.remainingMs);
     } else {
       toast(data.error || 'Unable to update the welcome title. Please try again.', 'error');
     }
   } catch (e) { toast('A network error occurred. Please try again.', 'error'); }
-  if (btn) { btn.disabled = false; btn.textContent = 'Update Title'; }
+  // Only re-enable the button if no cooldown is active — otherwise the
+  // cooldown timer (started above) owns the button's disabled state and
+  // will re-enable it automatically once the countdown reaches zero.
+  if (btn && !cooldownActive) { btn.disabled = false; btn.textContent = 'Update Title'; }
 }
 function startWelcomeTitleCooldown(cooldownMs, remainingMs) {
   const cooldownEl = $('admin-welcome-title-cooldown');
