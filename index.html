@@ -952,13 +952,14 @@ body.no-anim .friend-item { animation: none !important; }
 .message-avatar.clickable:hover { opacity: 0.92; transform: scale(1.05); }
 .message-sender.clickable:hover { color: var(--accent); }
 
-.message-bubble-wrap { min-width: 0; display: flex; flex-direction: column; }
+.message-bubble-wrap { min-width: 0; display: flex; flex-direction: column; max-width: 100%; }
 .message-group.own .message-bubble-wrap { align-items: flex-end; }
 
 .message-sender {
   font-size: 13px; font-weight: 500; color: var(--text-secondary);
   margin-bottom: 3px; padding: 0 2px;
   display: flex; align-items: center; gap: 6px;
+  max-width: 100%; min-width: 0;
 }
 .sender-displayname { color: var(--text-primary); font-weight: 600; font-size: 14px; }
 .sender-handle { color: var(--text-muted); font-size: 12px; opacity: 0.7; font-weight: 500; }
@@ -967,7 +968,15 @@ body.no-anim .friend-item { animation: none !important; }
   background: var(--bg-medium); padding: 10px 14px;
   border-radius: 12px;
   font-size: 16.5px; line-height: 1.5; word-break: break-word; position: relative;
-  max-width: 100%;
+  /* Constrain the bubble so long messages / copy-pasted walls of text don't
+     take over the entire chatroom, DM, or groupchat. The group is already
+     capped at 94% width; the bubble itself is capped to a comfortable
+     reading width that wraps long content instead of stretching endlessly.
+     min-width:0 lets flexbox shrink it properly; overflow-wrap handles
+     extremely long unbroken strings (e.g. URLs pasted without spaces). */
+  max-width: min(680px, 100%);
+  min-width: 0;
+  overflow-wrap: anywhere;
   border: 1px solid var(--border);
   transition: border-color 0.15s ease, background 0.15s ease, transform 0.12s ease;
 }
@@ -990,9 +999,9 @@ body.no-anim .friend-item { animation: none !important; }
 }
 /* DM bubbles now match the normal public-chat message size (no oversized
    max-width) so DM messages look the same as regular chat messages. */
-.message-bubble.dm-bubble { max-width: 100%; }
+.message-bubble.dm-bubble { max-width: min(680px, 100%); min-width: 0; overflow-wrap: anywhere; }
 
-.message-text { display: inline; white-space: pre-line; word-break: break-word; overflow-wrap: break-word; }
+.message-text { display: inline; white-space: pre-line; word-break: break-word; overflow-wrap: anywhere; max-width: 100%; }
 .inline-link { color: inherit; text-decoration: underline; text-underline-offset: 2px; text-decoration-color: rgba(255,255,255,0.25); }
 .message-group:not(.own) .inline-link { text-decoration-color: rgba(var(--accent-rgb), 0.4); }
 
@@ -1539,35 +1548,35 @@ body.no-anim .friend-item { animation: none !important; }
 .msg-more-files .message-file { margin-top: 0; }
 
 .message-file img {
-  max-width: 360px; max-height: 360px; border-radius: 8px; display: block; cursor: pointer;
+  max-width: 380px; max-height: 380px; border-radius: 14px; display: block; cursor: pointer;
   object-fit: cover; image-rendering: -webkit-optimize-contrast;
-  border: 1px solid rgba(255,255,255,0.06);
-  transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+  border: 1px solid rgba(255,255,255,0.08);
+  transition: border-color 0.22s ease, transform 0.22s ease, box-shadow 0.22s ease;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.28), 0 0 0 1px rgba(0,0,0,0.04);
 }
 /* Base responsive image container — ensures images never overflow the bubble */
-.message-image { max-width: 100%; border-radius: 8px; overflow: hidden; }
-.message-image img { max-width: 100%; max-height: 360px; object-fit: cover; border-radius: 8px; display: block; }
-.dm-message-image { max-width: 100%; border-radius: 8px; overflow: hidden; }
-.dm-message-image img { max-width: 100%; max-height: 360px; object-fit: cover; border-radius: 8px; display: block; }
+.message-image { max-width: 100%; border-radius: 14px; overflow: hidden; }
+.message-image img { max-width: 100%; max-height: 380px; object-fit: cover; border-radius: 14px; display: block; }
+.dm-message-image { max-width: 100%; border-radius: 14px; overflow: hidden; }
+.dm-message-image img { max-width: 100%; max-height: 380px; object-fit: cover; border-radius: 14px; display: block; }
 .message-file img:hover {
-  border-color: rgba(255,255,255,0.12); transform: scale(1.02);
-  box-shadow: 0 4px 14px rgba(0,0,0,0.35);
+  border-color: rgba(255,255,255,0.16); transform: scale(1.018);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.06);
 }
 /* 4K/HD enhancement: images are upscaled + sharpened on the server; this
    subtle display filter adds a final crispness/contrast pop when rendered. */
 .message-file img.hd-enhanced { filter: contrast(1.04) saturate(1.06) sharpen(1); }
 .message-file video {
-  max-width: 420px; max-height: 360px; border-radius: 10px;
+  max-width: 440px; max-height: 380px; border-radius: 14px;
   border: 1px solid rgba(255,255,255,0.08);
-  box-shadow: 0 2px 10px rgba(0,0,0,0.35); background: #000;
-  transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 3px 14px rgba(0,0,0,0.38); background: #000;
+  transition: border-color 0.22s ease, transform 0.22s ease, box-shadow 0.22s ease;
   outline: none;
   object-fit: contain;
 }
 .message-file video:hover {
-  border-color: rgba(255,255,255,0.16); transform: scale(1.015);
-  box-shadow: 0 6px 20px rgba(0,0,0,0.45);
+  border-color: rgba(255,255,255,0.18); transform: scale(1.012);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.48), 0 0 0 1px rgba(255,255,255,0.06);
 }
 /* HD enhancement filter for inline videos (server can't transcode video, so
    we apply a light sharpen/contrast/saturate pass at display time). */
@@ -1575,58 +1584,65 @@ body.no-anim .friend-item { animation: none !important; }
 
 /* Rich media player wrapper — frames videos & animated GIFs with metadata */
 .media-player-wrap {
-  position: relative; display: inline-block; max-width: 440px;
-  border-radius: 12px; overflow: hidden;
+  position: relative; display: inline-block; max-width: 460px;
+  border-radius: 14px; overflow: hidden;
   border: 1px solid rgba(255,255,255,0.08);
-  box-shadow: 0 2px 12px rgba(0,0,0,0.35);
+  box-shadow: 0 3px 16px rgba(0,0,0,0.4), 0 0 0 1px rgba(0,0,0,0.04);
   background: #000;
+  transition: box-shadow 0.22s ease, transform 0.22s ease;
+}
+.media-player-wrap:hover {
+  box-shadow: 0 8px 28px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.06);
+  transform: translateY(-1px);
 }
 .media-player-wrap video {
-  display: block; max-width: 440px; max-height: 380px;
-  width: 100%; border-radius: 12px; object-fit: contain; background: #000;
+  display: block; max-width: 460px; max-height: 400px;
+  width: 100%; border-radius: 14px; object-fit: contain; background: #000;
   outline: none;
 }
 .media-player-wrap.is-gif video { cursor: pointer; }
 .media-player-wrap.is-gif video::-webkit-media-controls { display: none !important; }
 .media-player-badge {
-  position: absolute; top: 8px; left: 8px; z-index: 2;
-  font-size: 10px; font-weight: 800; letter-spacing: 0.5px; color: #fff;
-  background: rgba(0,0,0,0.62); backdrop-filter: blur(6px);
-  padding: 3px 8px; border-radius: 6px; pointer-events: none;
-  border: 1px solid rgba(255,255,255,0.14);
+  position: absolute; top: 10px; left: 10px; z-index: 2;
+  font-size: 10px; font-weight: 800; letter-spacing: 0.6px; color: #fff;
+  background: rgba(0,0,0,0.68); backdrop-filter: blur(8px);
+  padding: 4px 9px; border-radius: 7px; pointer-events: none;
+  border: 1px solid rgba(255,255,255,0.16);
+  text-shadow: 0 1px 2px rgba(0,0,0,0.5);
 }
 .media-player-meta {
   display: flex; align-items: center; justify-content: space-between; gap: 10px;
-  padding: 8px 12px; background: rgba(0,0,0,0.55); backdrop-filter: blur(4px);
-  font-size: 11.5px; color: rgba(255,255,255,0.82);
+  padding: 9px 13px; background: rgba(0,0,0,0.62); backdrop-filter: blur(6px);
+  font-size: 11.5px; color: rgba(255,255,255,0.85);
 }
 .media-player-name {
   font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden;
-  text-overflow: ellipsis; max-width: 240px;
+  text-overflow: ellipsis; max-width: 260px;
 }
-.media-player-info { color: rgba(255,255,255,0.6); white-space: nowrap; flex-shrink: 0; }
-.message-file audio { width: 400px; border-radius: 6px; }
+.media-player-info { color: rgba(255,255,255,0.62); white-space: nowrap; flex-shrink: 0; }
+.message-file audio { width: 400px; border-radius: 8px; }
 .message-file-attachment {
   display: flex; align-items: center; gap: 12px;
-  padding: 12px 16px; background: rgba(255,255,255,0.03);
-  border: 1px solid rgba(255,255,255,0.07); border-radius: 6px;
+  padding: 13px 16px; background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08); border-radius: 12px;
   text-decoration: none; color: var(--text-primary);
-  transition: border-color 0.2s ease, background 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+  transition: border-color 0.22s ease, background 0.22s ease, transform 0.18s ease, box-shadow 0.22s ease;
   max-width: 480px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.22);
 }
 .message-group.own .message-file-attachment { background: rgba(0,0,0,0.18); border-color: rgba(255,255,255,0.10); }
 .message-file-attachment:hover {
-  border-color: rgba(255,255,255,0.14); background: rgba(255,255,255,0.06);
-  transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  border-color: rgba(255,255,255,0.16); background: rgba(255,255,255,0.07);
+  transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0,0,0,0.34);
 }
 .message-group.own .message-file-attachment:hover { background: rgba(0,0,0,0.25); }
 .file-icon {
-  width: 42px; height: 42px; border-radius: 6px;
+  width: 44px; height: 44px; border-radius: 10px;
   background: var(--accent-dim); color: #fff;
   display: flex; align-items: center; justify-content: center;
   font-size: 10px; font-weight: 700; flex-shrink: 0;
   letter-spacing: 0.3px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.25);
 }
 .message-group.own .file-icon { background: rgba(255,255,255,0.20); }
 .file-info { flex: 1; min-width: 0; }
@@ -3473,7 +3489,7 @@ body.no-anim .friend-item { animation: none !important; }
   background: var(--bg-lighter); color: var(--text-primary);
   border: 1px solid var(--border-light); transition: var(--transition);
 }
-.profile-avatar-edit svg, .profile-avatar-remove svg { width: 13px; height: 13px; flex-shrink: 0; }
+.profile-avatar-edit svg, .profile-avatar-remove svg { width: 14px; height: 14px; flex-shrink: 0; }
 .profile-avatar-edit:hover { background: var(--accent-dim); color: #fff; border-color: var(--accent); }
 .profile-avatar-remove { color: var(--danger); }
 .profile-avatar-remove:hover { background: rgba(216,58,58,0.15); border-color: var(--danger); }
@@ -4534,7 +4550,8 @@ body.no-anim .friend-item { animation: none !important; }
 /* ============================================
    IMAGE SCALE MODAL
    ============================================ */
-.image-scale-modal { max-width: 560px; text-align: left; }
+/* ── Revamped preview: bigger, fills the modal width, modern dark stage ── */
+.image-scale-modal { max-width: 680px; text-align: left; }
 #image-scale-modal { z-index: 400 !important; }
 .image-scale-modal h3 { font-size: 18px; margin-bottom: 4px; font-weight: 700; letter-spacing: -0.2px; }
 /* ── Revamped preview: bigger, fills the modal width, modern dark stage ── */
@@ -4546,12 +4563,12 @@ body.no-anim .friend-item { animation: none !important; }
     linear-gradient(135deg, rgba(255,255,255,0.02), rgba(0,0,0,0.25)),
     var(--bg-darkest);
   border: 1px solid var(--border);
-  border-radius: var(--radius); padding: 18px;
+  border-radius: var(--radius); padding: 22px;
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
   overflow: hidden;
   position: relative;
   width: 100%; box-sizing: border-box;
-  height: 300px;            /* consistent height for BOTH avatar and banner */
+  height: 400px;            /* taller stage for a bigger, clearer preview */
 }
 .image-scale-frame {
   position: relative; overflow: hidden; border-radius: var(--radius-sm);
@@ -4561,8 +4578,9 @@ body.no-anim .friend-item { animation: none !important; }
   border: none;
   box-shadow: 0 6px 22px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.04) inset;
 }
-/* Avatar: capped square, centered — never dominates the screen */
-.image-scale-frame.avatar { aspect-ratio: 1 / 1; width: 264px; max-width: 100%; height: auto; }
+/* Avatar: bigger square, centered — gives much more space to see and
+   adjust the full profile picture without it seeming cramped or cropped. */
+.image-scale-frame.avatar { aspect-ratio: 1 / 1; width: 360px; max-width: 100%; height: auto; }
 /* Banner: wide banner ratio, capped to the same stage width */
 .image-scale-frame.banner  { aspect-ratio: 19 / 8; width: 100%; max-width: 100%; height: auto; }
 .image-scale-frame img {
@@ -7353,11 +7371,11 @@ body.no-anim .friend-item { animation: none !important; }
             </div>
             <div class="profile-avatar-actions">
               <button class="profile-avatar-edit" id="avatar-edit-btn" title="Change profile picture">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/><line x1="9" y1="2" x2="15" y2="2"/></svg>
                 Change Picture
               </button>
               <button class="profile-avatar-remove" id="avatar-remove-btn" style="display:none;" title="Remove picture">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
                 Remove Picture
               </button>
             </div>
@@ -8485,7 +8503,7 @@ body.no-anim .friend-item { animation: none !important; }
       </div>
       <div class="image-scale-controls">
         <label>Scale</label>
-        <input type="range" id="image-scale-range" min="100" max="300" value="100">
+        <input type="range" id="image-scale-range" min="50" max="300" value="100">
         <span id="image-scale-value">100%</span>
       </div>
       <div class="image-scale-extras">
@@ -10392,8 +10410,8 @@ function prompt2SVPassword(title, message) {
         '<input type="password" class="form-input" id="twosv-prompt-pw" placeholder="Enter your password" autocomplete="current-password" style="width:100%;">' +
       '</div>' +
       '<div style="display:flex;gap:8px;justify-content:flex-end;">' +
-        '<button class="setting-save-btn no-checkmark" id="twosv-prompt-cancel" style="width:auto;margin-top:0;">Cancel</button>' +
-        '<button class="btn-primary" id="twosv-prompt-confirm" style="width:auto;padding:10px 20px;">Confirm</button>' +
+        '<button class="setting-save-btn no-checkmark" id="twosv-prompt-cancel" style="width:auto;margin-top:0;padding:10px 20px;min-width:100px;font-size:14px;">Cancel</button>' +
+        '<button class="btn-primary" id="twosv-prompt-confirm" style="width:auto;padding:10px 20px;min-width:100px;font-size:14px;">Confirm</button>' +
       '</div>' +
     '</div>';
     document.body.appendChild(modal);
@@ -10441,8 +10459,8 @@ function prompt2SVCodeVerify(newCode) {
         '<input type="text" class="twosv-code-input" id="twosv-verify-input" placeholder="Type your new code to confirm" maxlength="30" autocomplete="off" spellcheck="false" inputmode="text" style="width:100%;">' +
       '</div>' +
       '<div style="display:flex;gap:8px;justify-content:flex-end;">' +
-        '<button class="setting-save-btn no-checkmark" id="twosv-verify-skip" style="width:auto;margin-top:0;">Skip</button>' +
-        '<button class="btn-primary" id="twosv-verify-confirm" style="width:auto;padding:10px 20px;">Verify Code</button>' +
+        '<button class="setting-save-btn no-checkmark" id="twosv-verify-skip" style="width:auto;margin-top:0;padding:10px 20px;min-width:100px;font-size:14px;">Skip</button>' +
+        '<button class="btn-primary" id="twosv-verify-confirm" style="width:auto;padding:10px 20px;min-width:100px;font-size:14px;">Verify Code</button>' +
       '</div>' +
     '</div>';
     document.body.appendChild(modal);
@@ -12849,10 +12867,31 @@ function getReactions(msg) {
 // reaction bug where the client's optimistic toggle and the server's
 // independent toggle diverged (e.g. the server re-added a reaction the user
 // had just removed, and the broadcast overwrote the local state).
+// In-flight reaction guard: prevents the "stuck" reaction bug caused by
+// rapid double-clicks / double-taps on a reaction badge. Without this guard,
+// two toggle requests fire back-to-back (remove → re-add) and the second
+// request races with the server's broadcast, leaving the reaction stuck in
+// an inconsistent state. We track pending toggles per message+emoji+scope
+// and ignore any second call while the first is still pending the server ack.
+const _reactionInFlight = new Set();
+function _reactionKey(msg, emoji, scope) {
+  return msg.id + '|' + emoji + '|' + scope;
+}
+
 function toggleReaction(msg, emoji, scope, extra) {
   if (!currentUser || !currentUser.username) return;
+  // ── In-flight guard ── If a toggle for this exact message+emoji+scope is
+  // already pending (waiting for the server ack), ignore the duplicate call.
+  // This stops a rapid double-click from sending remove→re-add and getting
+  // the reaction "stuck". The badge visually toggles on the server's ack,
+  // so the user still sees responsive feedback from the first click.
+  const rkey = _reactionKey(msg, emoji, scope);
+  if (_reactionInFlight.has(rkey)) return;
+  _reactionInFlight.add(rkey);
+
   // Callback that applies the authoritative reactions map from the server.
   const applyAck = (res) => {
+    _reactionInFlight.delete(rkey);
     if (res && res.reactions) {
       msg.reactions = res.reactions;
       refreshReactionsDisplay(msg, scope);
@@ -12867,6 +12906,10 @@ function toggleReaction(msg, emoji, scope, extra) {
   } else if (scope === 'group') {
     socket.emit('group-react', { groupId: extra, id: msg.id, emoji }, applyAck);
   }
+  // Safety timeout: if the server ack never fires within 4s (network drop,
+  // server restart, etc.), release the in-flight lock so the user can react
+  // again instead of being permanently blocked.
+  setTimeout(() => { _reactionInFlight.delete(rkey); }, 4000);
 }
 
 // Re-render the reactions row + react button for a specific message DOM group
@@ -18918,7 +18961,7 @@ function applyImageScaleTransform() {
     // Normalize trackpad high-resolution deltas.
     if (Math.abs(ev.deltaY) > 40) delta = delta * 2;
     let ns = pendingImageEdit.scale + delta;
-    ns = Math.max(100, Math.min(300, Math.round(ns)));
+    ns = Math.max(50, Math.min(300, Math.round(ns)));
     if (ns === pendingImageEdit.scale) return;
     pendingImageEdit.scale = ns;
     const slider = $('image-scale-range');
@@ -22801,7 +22844,8 @@ function applyMiniProfileColor() {
     '.status-option-label', '.bio-counter',
     '.mini-toggle-row', '.cs-preview-hex',
     '.mini-open-full-btn', '.mini-save-btn .save-btn-text',
-    '.cs-reset-btn', '.mini-dirty-indicator'
+    '.cs-reset-btn', '.mini-dirty-indicator',
+    '.mini-statusmsg-hint', '.cw-label', '.cs-slider-value'
   ].join(', ');
 
   // Luminance-aware readable text color so the blend works for every color.
@@ -22968,6 +23012,40 @@ function applyMiniProfileColor() {
     pop.querySelectorAll('.cs-rgb-slider').forEach(el => {
       el.style.setProperty('border-color', inputBorder, 'important');
     });
+    // ── Brightness (value) slider ── This range input has an intrinsic
+    // black→gray→white gradient track (it represents brightness 0..100).
+    // The WHITE end of that gradient is the "whiteish part" that clashes
+    // with a dark Panel Theme Color. We can't change the functional gradient
+    // (it shows the value the user is picking), but we give the slider a
+    // border + subtle box-shadow derived from the panel color so it blends
+    // into the popover instead of looking like a floating white strip.
+    pop.querySelectorAll('.cw-value-slider').forEach(el => {
+      el.style.setProperty('border-color', cardBorder, 'important');
+      el.style.setProperty('box-shadow', 'inset 0 2px 4px rgba(0,0,0,0.5), 0 0 0 1px ' + (luminance(color) > 0.6 ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.06)'), 'important');
+    });
+    // ── RGB sliders (Sliders tab) ── give them a tinted track background
+    // derived from the panel color so they don't keep the default dark box
+    // look that clashes with a bright panel color.
+    pop.querySelectorAll('.cs-rgb-slider').forEach(el => {
+      el.style.setProperty('background', blendOverlay(color, 0.26), 'important');
+    });
+    // ── Slider rows / group container ── blend with the panel.
+    pop.querySelectorAll('.cs-slider-row, .cs-slider-group').forEach(el => {
+      el.style.setProperty('background', 'transparent', 'important');
+    });
+    // ── RGB slider value readouts ── keep readable.
+    pop.querySelectorAll('.cs-slider-value').forEach(el => {
+      el.style.setProperty('color', mtxt, 'important');
+    });
+    // ── "Brightness" / "HEX" labels ── muted readable (override the
+    // var(--text-muted) default which doesn't blend with a colored panel).
+    pop.querySelectorAll('.cw-label').forEach(el => {
+      el.style.setProperty('color', luminance(color) > 0.6 ? 'rgba(26,26,46,0.6)' : 'rgba(255,255,255,0.6)', 'important');
+    });
+    // ── Status message hint ── muted readable (was var(--text-muted)).
+    pop.querySelectorAll('.mini-statusmsg-hint').forEach(el => {
+      el.style.setProperty('color', luminance(color) > 0.6 ? 'rgba(26,26,46,0.55)' : 'rgba(255,255,255,0.55)', 'important');
+    });
     // The accent-section-card wrapper for the studio blends like other cards.
     pop.querySelectorAll('#mini-color-studio.accent-section-card').forEach(el => {
       el.style.setProperty('background', cardBg, 'important');
@@ -23108,6 +23186,18 @@ function applyMiniProfileColor() {
     pop.querySelectorAll('.cs-preview-bar, .cs-tabs, .cs-panel, .cw-wrap, .cw-canvas, .cw-hex-input, .cs-hex-row, .cs-swatch, .cs-rgb-slider, #mini-color-studio.accent-section-card, .mini-dirty-indicator').forEach(el => {
       el.style.removeProperty('background');
       el.style.removeProperty('border-color');
+      el.style.removeProperty('color');
+    });
+    // Reset the Bug-2 additions: brightness slider, RGB slider track,
+    // slider rows/group, slider values, cw-labels, statusmsg-hint.
+    pop.querySelectorAll('.cw-value-slider').forEach(el => {
+      el.style.removeProperty('border-color');
+      el.style.removeProperty('box-shadow');
+    });
+    pop.querySelectorAll('.cs-slider-row, .cs-slider-group').forEach(el => {
+      el.style.removeProperty('background');
+    });
+    pop.querySelectorAll('.cs-slider-value, .cw-label, .mini-statusmsg-hint').forEach(el => {
       el.style.removeProperty('color');
     });
     pop.querySelectorAll('.save-btn-text, .save-spinner').forEach(el => {

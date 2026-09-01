@@ -1,12 +1,18 @@
-# Hellobye-Chat — Remove fine print + Fix Unknown device labels
+# Hellobye-Chat — Bug Fixes & UI Improvements
 
-## Context
-User request: "remove the 'Protected sessions · Encrypted credentials · v2.0' fine print and fix the Active Unknown and the Unknown show the actual device and actual other useful info"
+## Bugs to Fix
+- [x] 1. Emoji reaction remove bug: reacting with emoji then removing it gets stuck (add in-flight guard)
+- [x] 2. Mini profile: whiteish part shows when changing Panel Theme Color (cover .cw-value-slider + .mini-statusmsg-hint)
+- [x] 3. File/image/video/gif embed layout — make it look even better
+- [x] 4. Message spacing/sizing: long messages or copy-paste shouldn't take over the whole chatroom/DM/groupchat (constrain .message-bubble max-width + min-width:0)
+- [x] 5. Regenerate Recovery Code UI: make Cancel button same size as Confirm button (prompt2SVPassword)
+- [x] 6. Revoke Trusted Devices UI: same fix (prompt2SVPassword)
+- [x] 7. View Recovery Code UI: same fix (prompt2SVPassword)
+- [x] 8. Better icons for "change picture" and "remove picture" in Profile Settings
+- [x] 9. "Adjust profile picture" preview: bigger/wider, more space, show full profile picture without seeming cropped (object-fit: contain + bigger frame)
 
-## Changes Needed
-- [x] index.html: Remove the "Protected sessions · Encrypted credentials · v2.0" auth footer
-- [x] server.js: Enrich legacy sessions with metadata (browser/os/ip/deviceType) when accessed via getSession() — so old sessions show real device info instead of "Unknown"
-- [x] index.html: Fix deviceCardHTML to show useful info instead of "Unknown browser · Unknown" and "Active Unknown" — use fallback labels that are still informative
-- [x] Syntax check both files
-- [x] Test locally
-- [x] Restore db.json, commit, push, deploy, verify live
+## Deploy
+- [ ] Commit & push to GitHub
+- [ ] Deploy to Render
+- [ ] Verify live at https://hellobye-chat.onrender.com/
+- [ ] Ensure no data deleted/removed
