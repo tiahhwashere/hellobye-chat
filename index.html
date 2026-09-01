@@ -1413,7 +1413,7 @@ body.no-anim .friend-item { animation: none !important; }
 .link-embed {
   margin-top: 10px; border: 1px solid var(--border);
   border-radius: 12px; overflow: hidden;
-  max-width: 860px; background: var(--bg-darker);
+  max-width: 520px; min-width: 0; width: 100%; background: var(--bg-darker);
   transition: border-color 0.15s ease, background 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
   box-shadow: 0 1px 3px rgba(0,0,0,0.18);
 }
@@ -1430,7 +1430,7 @@ body.no-anim .friend-item { animation: none !important; }
   display: flex; text-decoration: none; color: inherit;
 }
 .link-embed-image {
-  width: 210px; min-height: 140px; flex-shrink: 0;
+  width: 180px; min-height: 120px; flex-shrink: 0;
   background-size: cover; background-position: center;
   background-color: var(--bg-dark);
   image-rendering: -webkit-optimize-contrast;
@@ -1511,6 +1511,11 @@ body.no-anim .friend-item { animation: none !important; }
   transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
   box-shadow: 0 1px 3px rgba(0,0,0,0.25);
 }
+/* Base responsive image container — ensures images never overflow the bubble */
+.message-image { max-width: 100%; border-radius: 8px; overflow: hidden; }
+.message-image img { max-width: 100%; max-height: 360px; object-fit: cover; border-radius: 8px; display: block; }
+.dm-message-image { max-width: 100%; border-radius: 8px; overflow: hidden; }
+.dm-message-image img { max-width: 100%; max-height: 360px; object-fit: cover; border-radius: 8px; display: block; }
 .message-file img:hover {
   border-color: rgba(255,255,255,0.12); transform: scale(1.02);
   box-shadow: 0 4px 14px rgba(0,0,0,0.35);
@@ -1524,6 +1529,7 @@ body.no-anim .friend-item { animation: none !important; }
   box-shadow: 0 2px 10px rgba(0,0,0,0.35); background: #000;
   transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
   outline: none;
+  object-fit: contain;
 }
 .message-file video:hover {
   border-color: rgba(255,255,255,0.16); transform: scale(1.015);
@@ -5592,6 +5598,9 @@ body.no-anim .friend-item { animation: none !important; }
   
   /* Larger touch targets for header icons */
   .chat-header-actions .icon-btn { width: 36px; height: 36px; }
+  /* Ensure the header actions row never overflows on narrow screens */
+  .chat-header-actions { gap: 4px; flex-shrink: 0; flex-wrap: nowrap; }
+  .chat-header-info { min-width: 0; flex: 1; }
   
   /* Message bubbles: allow wider on mobile */
   .message-group { max-width: 90%; }
@@ -5762,6 +5771,8 @@ body.no-anim .friend-item { animation: none !important; }
 @media (max-width: 360px) {
   .sidebar { width: 260px; max-width: 88vw; }
   .chat-header-text p { display: none; } /* hide member count entirely */
+  .chat-header-actions .icon-btn { width: 32px; height: 32px; }
+  .chat-header-actions .icon-btn svg { width: 17px; height: 17px; }
   .message-group { max-width: 95%; }
   .status-options { gap: 6px; }
   .status-option { padding: 8px 8px; }
@@ -12910,44 +12921,77 @@ if ($('sidebar-toggle-btn')) $('sidebar-toggle-btn').addEventListener('click', (
   window.addEventListener('orientationchange', function() { setTimeout(setVH, 200); });
 
   // 2. Long-press context menu for messages on touch devices
+  //    Targets the whole message-group (bubble, avatar, sender) so users
+  //    can long-press anywhere on a message to get the context dropdown.
   if (isTouch) {
     var longPressTimer = null;
-    var longPressTarget = null;
+    var longPressFired = false;
+    var longPressTouchX = 0, longPressTouchY = 0;
 
     document.addEventListener('touchstart', function(e) {
-      var msgBubble = e.target.closest('.message-bubble');
-      if (!msgBubble) return;
-      longPressTarget = msgBubble;
+      // Find the closest message-group (covers bubble, avatar, sender, media)
+      var msgGroup = e.target.closest('.message-group');
+      if (!msgGroup) return;
+      // Don't trigger on form elements inside messages (e.g. code copy buttons)
+      var tag = e.target.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'BUTTON' || e.target.isContentEditable) return;
+      var touch = e.touches[0];
+      longPressTouchX = touch.clientX;
+      longPressTouchY = touch.clientY;
+      longPressFired = false;
       longPressTimer = setTimeout(function() {
-        // Trigger context menu by simulating a right-click / contextmenu event
-        var rect = msgBubble.getBoundingClientRect();
+        longPressFired = true;
+        // Dispatch a contextmenu event at the touch point so the existing
+        // custom context-menu handlers build the right menu for whatever
+        // element was pressed (bubble, avatar, sender, image, etc.).
         var evt = new MouseEvent('contextmenu', {
           bubbles: true, cancelable: true,
-          clientX: rect.left + rect.width / 2,
-          clientY: rect.top + rect.height / 2
+          clientX: longPressTouchX,
+          clientY: longPressTouchY
         });
-        msgBubble.dispatchEvent(evt);
+        e.target.dispatchEvent(evt);
         // Haptic feedback if available
         if (navigator.vibrate) navigator.vibrate(50);
         longPressTimer = null;
-      }, 500);
+      }, 450);
     }, { passive: true });
 
-    document.addEventListener('touchmove', function() {
-      if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
+    document.addEventListener('touchmove', function(e) {
+      if (longPressTimer) {
+        // Cancel if the finger moved more than a few px (it's a scroll, not a hold)
+        var touch = e.touches[0];
+        var dx = touch.clientX - longPressTouchX;
+        var dy = touch.clientY - longPressTouchY;
+        if (dx * dx + dy * dy > 100) { // 10px threshold
+          clearTimeout(longPressTimer);
+          longPressTimer = null;
+        }
+      }
     }, { passive: true });
 
-    document.addEventListener('touchend', function() {
+    document.addEventListener('touchend', function(e) {
       if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
+      // If the long-press just fired, suppress the subsequent click/tap
+      // so it doesn't immediately close the context menu we just opened.
+      if (longPressFired) {
+        e.preventDefault();
+        e.stopPropagation();
+        longPressFired = false;
+      }
+    }, { passive: false });
+
+    document.addEventListener('touchcancel', function() {
+      if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
+      longPressFired = false;
     }, { passive: true });
   }
 
-  // 3. Close context menu on touch outside
+  // 3. Close context menu on touch outside (but not on the menu itself)
   if (isTouch) {
     document.addEventListener('touchstart', function(e) {
       var ctxMenu = $('context-menu');
       if (ctxMenu && ctxMenu.style.display === 'block') {
-        if (!e.target.closest('#context-menu') && !e.target.closest('.message-bubble')) {
+        if (!e.target.closest('#context-menu')) {
           ctxMenu.style.display = 'none';
         }
       }
@@ -13374,7 +13418,10 @@ async function sendFriendRequest(username) {
       }
       return;
     }
-    loadFriends(); // refresh from server to sync state (non-blocking)
+    // Success — optimistic UI already shows the pending request. No re-fetch
+    // needed (that would cause a flicker/delay). Only sync DM conversations
+    // so future DMs with this user are ready.
+    loadDMConversations();
   } catch(e) {
     // Revert on network error
     friendRequests.sent = friendRequests.sent.filter(f => f.username !== username);
@@ -13404,8 +13451,9 @@ async function acceptFriendRequest(username) {
       renderFriendsList();
       toast(data.error || 'Unable to complete the request. Please try again.', 'error'); return;
     }
-    // Sync from server in background (non-blocking)
-    loadFriends();
+    // Optimistic update already moved the user from "received" to "friends"
+    // instantly. Only sync DM conversations (non-blocking) — do NOT call
+    // loadFriends() which would re-fetch + re-render and cause a flicker.
     loadDMConversations();
   } catch(e) {
     if (req) friendRequests.received.unshift(req);
@@ -13414,24 +13462,33 @@ async function acceptFriendRequest(username) {
   }
 }
 async function declineFriendRequest(username) {
-  // Optimistic UI
+  // Optimistic UI — remove immediately, no delay, no flicker
   friendRequests.received = friendRequests.received.filter(f => f.username !== username);
   renderFriendsList();
   updateFriendBadge();
-  // Fire network request in background (non-blocking)
+  // Fire network request in background (non-blocking). Only re-sync on
+  // error so the UI stays instant.
   fetch(API_BASE + '/api/friends/decline', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username }) }).then(() => {
-    loadFriends();
-  }).catch(() => {});
+    // Success — optimistic update already handled everything.
+  }).catch(() => {
+    loadFriends(); // Error — re-sync to restore correct state.
+  });
 }
 async function cancelFriendRequest(username) {
-  // Optimistic UI
+  // Optimistic UI — remove immediately, no delay, no flicker
   friendRequests.sent = friendRequests.sent.filter(f => f.username !== username);
   renderFriendsList();
+  updateFriendBadge();
   toast('Friend request cancelled.', 'success');
-  // Fire network request in background (non-blocking)
+  // Fire network request in background (non-blocking). Only re-sync on
+  // error so the UI stays instant. On success the optimistic update is
+  // already correct — no need to re-fetch + re-render (which caused a delay).
   fetch(API_BASE + '/api/friends/cancel', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username }) }).then(() => {
+    // Success — optimistic update already handled everything. Do nothing.
+  }).catch(() => {
+    // Error — re-sync from server to restore the correct state.
     loadFriends();
-  }).catch(() => {});
+  });
 }
 let pendingRemoveFriend = null;
 function promptRemoveFriend(username) {
@@ -13453,11 +13510,16 @@ async function removeFriend(username) {
   // Optimistic UI
   friends = friends.filter(f => f.username !== username);
   renderFriendsList();
+  updateFriendBadge();
   toast('@' + username + ' has been removed from your friends list.', 'success');
-  // Fire network request in background (non-blocking)
+  // Fire network request in background (non-blocking). Only re-sync on error
+  // so the UI stays instant — the optimistic update is already correct.
   fetch(API_BASE + '/api/friends/remove', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username }) }).then(() => {
+    // Success — optimistic update already handled everything. Do nothing.
+  }).catch(() => {
+    // Error — re-sync from server to restore the correct state.
     loadFriends();
-  }).catch(() => {});
+  });
 }
 
 // ---------- Blocked Users List ----------
@@ -13548,9 +13610,9 @@ async function blockUser(username) {
   try {
     const res = await fetch(API_BASE + '/api/block', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username }) });
     const data = await res.json();
-    if (!res.ok) { toast(data.error || 'Unable to block this user. Please try again.', 'error'); return; }
-    // Sync from server in background (non-blocking)
-    loadFriends();
+    if (!res.ok) { toast(data.error || 'Unable to block this user. Please try again.', 'error'); loadFriends(); loadBlockedUsers(); return; }
+    // Success — optimistic UI already handled everything. Only refresh DM
+    // conversation list (cheap, non-flicker) so stale DM threads disappear.
     loadDMConversations();
   } catch(e) { toast('Unable to block this user. Please try again.', 'error'); }
 }
@@ -15926,8 +15988,21 @@ function showContextMenu(x, y, items) {
   // Position off-screen first so we can measure without a 0,0 flash
   ctxMenu.style.left = '-9999px';
   ctxMenu.style.top = '0';
+  ctxMenu.style.bottom = '';
+  ctxMenu.style.right = '';
   ctxMenu.style.display = 'block';
   const rect = ctxMenu.getBoundingClientRect();
+  // On touch / small screens the CSS turns the menu into a full-width bottom
+  // sheet (bottom:10px; left:10px; right:10px; top:auto).  Let that layout win
+  // instead of forcing inline pixel coords that would override it.
+  var isMobileSheet = window.matchMedia('(hover: none) and (pointer: coarse)').matches
+                      && window.innerWidth <= 768;
+  if (isMobileSheet) {
+    ctxMenu.style.left = '';
+    ctxMenu.style.top = '';
+    // CSS handles bottom/left/right — just make sure it's visible
+    return;
+  }
   let px = x, py = y;
   if (px + rect.width > window.innerWidth) px = window.innerWidth - rect.width - 8;
   if (py + rect.height > window.innerHeight) py = window.innerHeight - rect.height - 8;
@@ -16462,17 +16537,14 @@ function initMiniProfileListeners() {
   if (picker) picker.addEventListener('input', (e) => {
     studioPickColor(e.target.value, { fromNative: 'mini' });
   });
-  // Accent reset
+  // Accent reset — restores the ORIGINAL panel appearance (dark theme),
+  // NOT the light-blue #4a9eff. We clear the saved color, apply the null
+  // state (which removes all inline overrides), sync to server, then ONLY
+  // reset the UI controls (wheels, pickers, hex readouts, swatches) WITHOUT
+  // calling studioPickColor (which would re-save + re-apply a color).
   const revertBtn = $('mini-accent-revert');
   if (revertBtn) revertBtn.addEventListener('click', () => {
-    const def = '#4a9eff';
-    saveProfileColor(null);
-    applyProfileColor();
-    applyMiniProfileColor();
-    syncProfileColorToServer(null);
-    if (profileColorWheel) profileColorWheel.setHex(def, true);
-    if (miniColorWheel) miniColorWheel.setHex(def, true);
-    studioPickColor(def, { fromNative: 'mini' });
+    resetPanelColorUI();
     toast('Profile panel color has been reverted to the default.', 'success');
   });
   // Save button
@@ -20013,6 +20085,42 @@ function rgbSlidersToHex(scope) {
 
 // The shared handler for when ANY color source changes the Panel Theme Color.
 // Mirrors wheelPickColor but also syncs the Color Studio sliders + preview.
+// Reset the Panel Theme Color to the ORIGINAL default (no color = dark theme).
+// This clears the saved color, applies the null state (removes all inline
+// overrides so the panel returns to its original appearance), syncs the
+// null to the server, and resets ALL UI controls (wheels, pickers, hex
+// readouts, sliders, swatches) to the default WITHOUT re-saving/re-applying
+// any color. The key difference from studioPickColor: we do NOT call
+// saveProfileColor with a hex value, so the panel keeps its original look.
+function resetPanelColorUI() {
+  saveProfileColor(null);
+  applyProfileColor();
+  applyMiniProfileColor();
+  syncProfileColorToServer(null);
+  // Reset native color pickers to the default accent (visual only).
+  const pp = $('profile-accent-picker'); if (pp) pp.value = defaultAccent;
+  const mp = $('mini-accent-picker'); if (mp) mp.value = defaultAccent;
+  // Reset hex readouts to show the default.
+  const ph = $('profile-accent-hex'); if (ph) ph.textContent = defaultAccent;
+  const mh = $('mini-accent-hex'); if (mh) mh.textContent = defaultAccent;
+  // Reset preview swatches to the default accent (visual only).
+  const pSw = $('profile-preview-swatch'); if (pSw) pSw.style.background = defaultAccent;
+  const mSw = $('mini-preview-swatch'); if (mSw) mSw.style.background = defaultAccent;
+  // Reset color wheels to the default (silent — no onPick callback).
+  if (profileColorWheel) profileColorWheel.setHex(defaultAccent, true);
+  if (miniColorWheel) miniColorWheel.setHex(defaultAccent, true);
+  // Reset RGB sliders to the default.
+  syncRGBSliders('profile', defaultAccent);
+  syncRGBSliders('mini', defaultAccent);
+  // Reset slider-panel hex inputs.
+  const phx = $('profile-cs-hex'); if (phx) { phx._csSilent = true; phx.value = defaultAccent.toUpperCase(); phx._csSilent = false; }
+  const mhx = $('mini-cs-hex'); if (mhx) { mhx._csSilent = true; mhx.value = defaultAccent.toUpperCase(); mhx._csSilent = false; }
+  // Clear swatch active state (no swatch is active when reset to default).
+  document.querySelectorAll('#profile-accent-presets .cs-swatch, #mini-accent-presets .cs-swatch').forEach(p => {
+    p.classList.remove('active');
+  });
+}
+
 function studioPickColor(hex, opts) {
   opts = opts || {};
   saveProfileColor(hex);
@@ -21052,14 +21160,7 @@ if ($('profile-accent-picker')) {
 }
 if ($('profile-accent-revert')) {
   $('profile-accent-revert').addEventListener('click', () => {
-    const def = defaultAccent;
-    saveProfileColor(null);
-    applyProfileColor();
-    applyMiniProfileColor();
-    syncProfileColorToServer(null);
-    if (profileColorWheel) profileColorWheel.setHex(def, true);
-    if (miniColorWheel) miniColorWheel.setHex(def, true);
-    studioPickColor(def, { fromNative: 'profile' });
+    resetPanelColorUI();
     toast('Profile panel color has been reverted to the default.', 'success');
   });
 }
