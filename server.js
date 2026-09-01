@@ -1018,13 +1018,40 @@ function getSession(req) {
   const entry = db.sessions[sid];
   const username = sessionUsername(entry);
   if (!username || !db.users[username]) return null;
-  // Update lastActive timestamp on the session (throttled — at most once
-  // per 30 seconds per session to avoid excessive DB writes).
-  if (typeof entry === 'object' && entry) {
-    const now = Date.now();
+  const now = Date.now();
+  // Upgrade legacy sessions (bare strings or objects missing device metadata)
+  // to the full session record using the current request's User-Agent. This
+  // ensures old sessions show real device info in the "Logged in Devices"
+  // panel instead of "Unknown".
+  if (typeof entry === 'string') {
+    const rec = createSessionRecord(username, req);
+    rec.createdAt = rec.createdAt; // now
+    db.sessions[sid] = rec;
+    saveDB();
+  } else if (typeof entry === 'object' && entry) {
+    let needsUpgrade = false;
+    if (!entry.browser || entry.browser === 'Unknown') needsUpgrade = true;
+    if (!entry.os || entry.os === 'Unknown') needsUpgrade = true;
+    if (!entry.deviceType) needsUpgrade = true;
+    if (!entry.ip) needsUpgrade = true;
+    if (!entry.createdAt) needsUpgrade = true;
+    if (needsUpgrade) {
+      const parsed = parseUserAgent(req.headers['user-agent'] || '');
+      const ip = (req.headers['x-forwarded-for'] || req.ip || '').split(',')[0].trim();
+      if (!entry.browser || entry.browser === 'Unknown') entry.browser = parsed.browser;
+      if (!entry.os || entry.os === 'Unknown') entry.os = parsed.os;
+      if (!entry.deviceType) entry.deviceType = parsed.deviceType;
+      if (entry.deviceModel === undefined || entry.deviceModel === '') entry.deviceModel = parsed.deviceModel || '';
+      if (!entry.ip) entry.ip = ip || '';
+      if (!entry.createdAt) entry.createdAt = now;
+    }
+    // Update lastActive timestamp on the session (throttled — at most once
+    // per 30 seconds per session to avoid excessive DB writes).
     if (!entry.lastActive || (now - entry.lastActive) > 30000) {
       entry.lastActive = now;
       saveDB(); // debounced
+    } else if (needsUpgrade) {
+      saveDB();
     }
   }
   return { sid, username, user: db.users[username] };

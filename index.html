@@ -6584,9 +6584,6 @@ body.no-anim .friend-item { animation: none !important; }
           <button type="submit" class="btn-primary" id="signup-btn" disabled>Create Account</button>
         </form>
       </div>
-      <div class="auth-footer">
-        Protected sessions &middot; Encrypted credentials &middot; v2.0
-      </div>
       </div>
     </div>
   </div>
@@ -10280,17 +10277,41 @@ async function renderDevicesList() {
 
 function deviceCardHTML(s, currentSid) {
   const isCurrent = s.isCurrent || s.sessionId === currentSid;
-  // Build a friendly device label
-  let label = s.browser || 'Unknown browser';
-  if (s.os && s.os !== 'Unknown') label += ' · ' + s.os;
-  // Sub-line: device type / model + IP + last active
+  // Build a friendly device label — prefer browser · OS, but fall back to
+  // device type if browser/OS are unknown so the user always sees something
+  // useful instead of "Unknown browser · Unknown".
+  const browser = (s.browser && s.browser !== 'Unknown') ? s.browser : '';
+  const os = (s.os && s.os !== 'Unknown') ? s.os : '';
+  const deviceType = s.deviceType || 'Desktop';
+  const deviceModel = s.deviceModel || '';
+  let label;
+  if (browser && os) {
+    label = browser + ' · ' + os;
+  } else if (browser) {
+    label = browser;
+  } else if (os) {
+    label = os;
+  } else {
+    // No browser or OS detected — use device type as the primary label.
+    // For legacy sessions with no metadata at all, show a clear, friendly name.
+    label = deviceType === 'Mobile' ? 'Mobile Device' :
+            deviceType === 'Tablet' ? 'Tablet' : 'Desktop Device';
+  }
+  // If we have NO useful info at all (legacy session), append a hint.
+  const hasNoInfo = !browser && !os && !deviceModel && !s.ip && !s.lastActive;
+  if (hasNoInfo && !isCurrent) {
+    label += ' (older session)';
+  }
+  // Sub-line: device type / model + IP + sign-in date — only include non-empty values.
   const parts = [];
-  if (s.deviceType && s.deviceType !== 'Desktop') parts.push(s.deviceType);
-  else if (s.deviceType === 'Desktop') parts.push('Desktop');
-  if (s.deviceModel) parts.push(s.deviceModel);
+  if (deviceType && deviceType !== 'Desktop') parts.push(deviceType);
+  if (deviceModel) parts.push(deviceModel);
   if (s.ip) parts.push(s.ip);
+  if (s.createdAt) parts.push('Signed in ' + formatRelativeTime(s.createdAt));
   const subLine = parts.join(' · ');
-  const lastActiveText = s.lastActive ? formatRelativeTime(s.lastActive) : 'Unknown';
+  // Last active text — fall back to "Recently" if we don't have a timestamp,
+  // which is more user-friendly than "Unknown".
+  const lastActiveText = s.lastActive ? formatRelativeTime(s.lastActive) : 'Recently';
   // Pick an icon based on device type
   let iconSvg;
   if (s.deviceType === 'Mobile') {
@@ -10308,7 +10329,7 @@ function deviceCardHTML(s, currentSid) {
         (isCurrent ? '<span class="device-current-badge">This device</span>' : '') +
       '</div>' +
       '<div class="device-meta">' +
-        '<span>' + escapeHtml(subLine || '—') + '</span>' +
+        '<span>' + escapeHtml(subLine || deviceType) + '</span>' +
         '<span class="sep">·</span>' +
         '<span>Active ' + escapeHtml(lastActiveText) + '</span>' +
       '</div>' +
@@ -10343,7 +10364,7 @@ async function logoutDevice(targetSid, btn) {
 // Format a timestamp (ms) as a human-readable relative time (e.g. "just now",
 // "5m ago", "2h ago", "3d ago").
 function formatRelativeTime(ms) {
-  if (!ms) return 'unknown';
+  if (!ms) return 'Recently';
   const diff = Date.now() - ms;
   if (diff < 0) return 'just now';
   const s = Math.floor(diff / 1000);
