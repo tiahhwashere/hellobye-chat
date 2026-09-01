@@ -1,18 +1,12 @@
-# Hellobye-Chat — Bug Fixes & UI Improvements
+# Hellobye-Chat — Round 2 Bug Fixes & Improvements
 
 ## Bugs to Fix
-- [x] 1. Emoji reaction remove bug: reacting with emoji then removing it gets stuck (add in-flight guard)
-- [x] 2. Mini profile: whiteish part shows when changing Panel Theme Color (cover .cw-value-slider + .mini-statusmsg-hint)
-- [x] 3. File/image/video/gif embed layout — make it look even better
-- [x] 4. Message spacing/sizing: long messages or copy-paste shouldn't take over the whole chatroom/DM/groupchat (constrain .message-bubble max-width + min-width:0)
-- [x] 5. Regenerate Recovery Code UI: make Cancel button same size as Confirm button (prompt2SVPassword)
-- [x] 6. Revoke Trusted Devices UI: same fix (prompt2SVPassword)
-- [x] 7. View Recovery Code UI: same fix (prompt2SVPassword)
-- [x] 8. Better icons for "change picture" and "remove picture" in Profile Settings
-- [x] 9. "Adjust profile picture" preview: bigger/wider, more space, show full profile picture without seeming cropped (object-fit: contain + bigger frame)
+- [x] A. "No video with supported format and MIME type found" — fix video playback (add explicit MIME type to video elements + ensure server returns correct Content-Type)
+- [x] B. Reaction emoji still gets stuck sometimes after user removes it — strengthen the in-flight guard / fix server-side race
+- [x] C. .txt file sent in chat: show file contents inline with a download button + copy button
 
 ## Deploy
-- [x] Commit & push to GitHub
-- [x] Deploy to Render (autoDeploy triggered, deploy live)
-- [x] Verify live at https://hellobye-chat.onrender.com/
-- [x] Ensure no data deleted/removed (db.json restored to clean state; production DB untouched)
+- [ ] Commit & push to GitHub
+- [ ] Deploy to Render (autoDeploy)
+- [ ] Verify live at https://hellobye-chat.onrender.com/
+- [ ] Ensure no data deleted/removed

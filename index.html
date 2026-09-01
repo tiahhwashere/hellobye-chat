@@ -1651,6 +1651,65 @@ body.no-anim .friend-item { animation: none !important; }
 .message-file-attachment .file-dl-icon { color: var(--text-muted); flex-shrink: 0; transition: color 0.15s ease; }
 .message-file-attachment:hover .file-dl-icon { color: var(--accent); }
 
+/* ── .txt inline text preview ── */
+.message-file-txt {
+  max-width: 480px; border-radius: 12px; overflow: hidden;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.22);
+  transition: border-color 0.22s ease, box-shadow 0.22s ease;
+}
+.message-group.own .message-file-txt { background: rgba(0,0,0,0.18); border-color: rgba(255,255,255,0.10); }
+.message-file-txt:hover { border-color: rgba(255,255,255,0.16); box-shadow: 0 6px 18px rgba(0,0,0,0.34); }
+.message-file-txt-header {
+  display: flex; align-items: center; gap: 12px;
+  padding: 13px 16px; text-decoration: none; color: var(--text-primary);
+  cursor: default;
+}
+.message-file-txt-header .file-icon {
+  width: 44px; height: 44px; border-radius: 10px;
+  background: var(--accent-dim); color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 700; flex-shrink: 0; letter-spacing: 0.3px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+}
+.message-group.own .message-file-txt-header .file-icon { background: rgba(255,255,255,0.20); }
+.message-file-txt-header .file-info { flex: 1; min-width: 0; }
+.message-file-txt-header .file-name { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text-primary); }
+.message-file-txt-header .file-size { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+.message-file-txt-actions { display: flex; gap: 6px; flex-shrink: 0; }
+.message-file-txt-btn {
+  width: 34px; height: 34px; border-radius: 8px; border: none;
+  background: rgba(255,255,255,0.08); color: var(--text-muted);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: background 0.15s ease, color 0.15s ease, transform 0.12s ease;
+  flex-shrink: 0;
+}
+.message-group.own .message-file-txt-btn { background: rgba(255,255,255,0.12); }
+.message-file-txt-btn:hover { background: var(--accent-dim); color: #fff; transform: scale(1.08); }
+.message-file-txt-btn:active { transform: scale(0.94); }
+.message-file-txt-btn.copied { background: #22c55e; color: #fff; }
+.message-file-txt-content {
+  margin: 0 16px 14px; padding: 12px 14px;
+  background: rgba(0,0,0,0.22);
+  border: 1px solid rgba(255,255,255,0.06); border-radius: 8px;
+  font-family: 'SF Mono', 'Monaco', 'Cascadia Code', 'Roboto Mono', 'Consolas', monospace;
+  font-size: 12.5px; line-height: 1.5; color: var(--text-secondary);
+  white-space: pre-wrap; word-break: break-word; overflow-wrap: break-word;
+  max-height: 300px; overflow-y: auto;
+  tab-size: 4;
+}
+.message-group.own .message-file-txt-content { background: rgba(0,0,0,0.30); }
+.message-file-txt-loading { padding: 10px 14px; font-size: 12px; color: var(--text-muted); font-style: italic; }
+.message-file-txt-error { padding: 10px 14px; font-size: 12px; color: #f87171; font-style: italic; }
+@media (max-width: 768px) {
+  .message-file-txt { max-width: 340px; }
+  .message-file-txt-header { padding: 10px 13px; gap: 10px; }
+  .message-file-txt-header .file-icon { width: 38px; height: 38px; font-size: 13px; }
+  .message-file-txt-header .file-name { font-size: 12px; }
+  .message-file-txt-content { font-size: 11.5px; max-height: 240px; margin: 0 13px 12px; }
+}
+
 .message-actions {
   display: flex; gap: 4px; margin-top: 6px;
   opacity: 0; transition: opacity 0.15s ease;
@@ -12874,6 +12933,11 @@ function getReactions(msg) {
 // an inconsistent state. We track pending toggles per message+emoji+scope
 // and ignore any second call while the first is still pending the server ack.
 const _reactionInFlight = new Set();
+// Per-message reaction sequence counter. Incremented on every toggle we
+// initiate. When the server's ack arrives, we only apply the result if its
+// sequence matches our latest — this guarantees a late broadcast or ack
+// from an earlier toggle can never overwrite the state from a newer toggle.
+const _reactionSeq = new Map(); // msg.id -> latest seq number
 function _reactionKey(msg, emoji, scope) {
   return msg.id + '|' + emoji + '|' + scope;
 }
@@ -12888,13 +12952,24 @@ function toggleReaction(msg, emoji, scope, extra) {
   const rkey = _reactionKey(msg, emoji, scope);
   if (_reactionInFlight.has(rkey)) return;
   _reactionInFlight.add(rkey);
+  // Assign a monotonically increasing sequence number for this message so
+  // we can discard stale acks from earlier toggles.
+  const seq = (_reactionSeq.get(msg.id) || 0) + 1;
+  _reactionSeq.set(msg.id, seq);
 
+  let ackDone = false;
   // Callback that applies the authoritative reactions map from the server.
   const applyAck = (res) => {
+    if (ackDone) return; // dedupe — ack should only fire once
+    ackDone = true;
     _reactionInFlight.delete(rkey);
     if (res && res.reactions) {
-      msg.reactions = res.reactions;
-      refreshReactionsDisplay(msg, scope);
+      // Only apply if this is still the latest toggle for this message.
+      // A newer toggle (higher seq) means our result is stale — discard it.
+      if (_reactionSeq.get(msg.id) === seq) {
+        msg.reactions = res.reactions;
+        refreshReactionsDisplay(msg, scope);
+      }
     }
     // If the server reports an error (e.g. message not found), do nothing —
     // the broadcast (if any) will correct the local state.
@@ -12909,7 +12984,10 @@ function toggleReaction(msg, emoji, scope, extra) {
   // Safety timeout: if the server ack never fires within 4s (network drop,
   // server restart, etc.), release the in-flight lock so the user can react
   // again instead of being permanently blocked.
-  setTimeout(() => { _reactionInFlight.delete(rkey); }, 4000);
+  setTimeout(() => {
+    _reactionInFlight.delete(rkey);
+    if (!ackDone) ackDone = true; // mark done so a very late ack is ignored
+  }, 4000);
 }
 
 // Re-render the reactions row + react button for a specific message DOM group
@@ -13314,10 +13392,21 @@ function createReactButton(msg, scope, extra) {
 function applyRemoteReaction(msgList, data, scope) {
   if (!data || !data.id) return;
   const msg = msgList.find(m => m.id === data.id);
-  if (msg) {
-    msg.reactions = data.reactions || {};
-    refreshReactionsDisplay(msg, scope);
+  if (!msg) return;
+  // ── Race-condition guard ──
+  // If the current user has an in-flight reaction toggle for THIS message
+  // (any emoji), ignore the broadcast. The user's own ack callback
+  // (applyAck) will deliver the authoritative reactions map once the
+  // server responds, and that is the state we want — not a potentially
+  // stale broadcast that raced with the user's click. Without this guard,
+  // a broadcast from an earlier toggle can arrive AFTER the user's latest
+  // ack and overwrite the correct state, leaving the reaction "stuck"
+  // (showing as reacted when the user just removed it, or vice-versa).
+  for (const key of _reactionInFlight) {
+    if (key.startsWith(msg.id + '|')) return; // skip — our own toggle is pending
   }
+  msg.reactions = data.reactions || {};
+  refreshReactionsDisplay(msg, scope);
 }
 
 function appendMessage(msg, silent) {
@@ -13655,10 +13744,19 @@ function createFileElement(file) {
       // Animated GIF: render as a looping, muted <video> so it always plays
       // smoothly (browsers handle GIF-in-video well) with a GIF badge.
       const video = document.createElement('video');
-      video.src = file.url; video.autoplay = true; video.loop = true;
+      video.autoplay = true; video.loop = true;
       video.muted = true; video.playsInline = true;
       video.setAttribute('aria-label', file.name);
       video.classList.add('hd-enhanced');
+      // Use an explicit <source> element with the correct MIME type so the
+      // browser knows exactly how to decode the media. Setting only video.src
+      // can cause "No video with supported format and MIME type found" when
+      // the server's Content-Type header doesn't match what the browser
+      // expects for the file extension.
+      const src = document.createElement('source');
+      src.src = file.url;
+      src.type = mt || 'video/mp4';
+      video.appendChild(src);
       // Allow unmute on click for GIFs that have audio
       video.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -13680,10 +13778,23 @@ function createFileElement(file) {
     } else {
       // Video: a styled, framed player with native controls + metadata bar.
       const video = document.createElement('video');
-      video.src = file.url; video.controls = true; video.preload = 'metadata';
+      video.controls = true; video.preload = 'metadata';
       video.playsInline = true;
       video.classList.add('hd-enhanced');
       video.setAttribute('aria-label', file.name);
+      // Use an explicit <source> element with the correct MIME type so the
+      // browser knows exactly how to decode the media. Setting only video.src
+      // can cause "No video with supported format and MIME type found" when
+      // the server's Content-Type header doesn't match what the browser
+      // expects, or when the file extension isn't a recognised video type.
+      // Remap video/quicktime (.mov) to video/mp4 — most .mov files are
+      // H.264/AAC and play perfectly as MP4 in all modern browsers.
+      let videoType = mt || '';
+      if (videoType === 'video/quicktime') videoType = 'video/mp4';
+      const src = document.createElement('source');
+      src.src = file.url;
+      src.type = videoType || 'video/mp4';
+      video.appendChild(src);
       video.addEventListener('contextmenu', (e) => {
         e.preventDefault(); e.stopPropagation();
         showContextMenu(e.clientX, e.clientY, [
@@ -13719,6 +13830,106 @@ function createFileElement(file) {
       ]);
     });
     wrapper.appendChild(audio);
+  } else if ((/\.txt$/i).test(file.name || '') || mt === 'text/plain' || mt === 'text/markdown') {
+    // ── .txt inline preview ──
+    // Instead of a generic download card, show the text content inline with
+    // a download button and a copy button alongside it.
+    const card = document.createElement('div');
+    card.className = 'message-file-txt';
+
+    // Header row: file icon + name/size + action buttons
+    const header = document.createElement('div');
+    header.className = 'message-file-txt-header';
+
+    const icon = document.createElement('div');
+    icon.className = 'file-icon';
+    const ext = (file.name.split('.').pop() || 'TXT').slice(0, 4).toUpperCase();
+    icon.textContent = ext;
+
+    const info = document.createElement('div');
+    info.className = 'file-info';
+    const name = document.createElement('div');
+    name.className = 'file-name'; name.textContent = file.name;
+    const size = document.createElement('div');
+    size.className = 'file-size'; size.textContent = formatFileSize(file.size);
+    info.appendChild(name); info.appendChild(size);
+
+    const actions = document.createElement('div');
+    actions.className = 'message-file-txt-actions';
+
+    // Copy button
+    const copyBtn = document.createElement('button');
+    copyBtn.className = 'message-file-txt-btn';
+    copyBtn.title = 'Copy text';
+    copyBtn.setAttribute('aria-label', 'Copy text to clipboard');
+    copyBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+    copyBtn.addEventListener('click', (e) => {
+      e.preventDefault(); e.stopPropagation();
+      const contentEl = card.querySelector('.message-file-txt-content');
+      const text = contentEl ? contentEl.textContent : '';
+      if (text) {
+        navigator.clipboard.writeText(text).then(() => {
+          copyBtn.classList.add('copied');
+          copyBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>';
+          setTimeout(() => {
+            copyBtn.classList.remove('copied');
+            copyBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+          }, 2000);
+          toast('Text copied to clipboard', 'success');
+        }).catch(() => toast('Failed to copy text', 'error'));
+      }
+    });
+
+    // Download button
+    const dlBtn = document.createElement('button');
+    dlBtn.className = 'message-file-txt-btn';
+    dlBtn.title = 'Download file';
+    dlBtn.setAttribute('aria-label', 'Download file');
+    dlBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>';
+    dlBtn.addEventListener('click', (e) => {
+      e.preventDefault(); e.stopPropagation();
+      downloadFile(file);
+    });
+
+    actions.appendChild(copyBtn);
+    actions.appendChild(dlBtn);
+    header.appendChild(icon);
+    header.appendChild(info);
+    header.appendChild(actions);
+    card.appendChild(header);
+
+    // Content area: fetch and display the text inline
+    const contentArea = document.createElement('div');
+    contentArea.className = 'message-file-txt-loading';
+    contentArea.textContent = 'Loading text…';
+    card.appendChild(contentArea);
+
+    // Fetch the file contents asynchronously
+    (async () => {
+      try {
+        const resp = await fetch(file.url);
+        if (!resp.ok) throw new Error('HTTP ' + resp.status);
+        // Limit to 50KB to avoid rendering enormous files in the DOM
+        const maxBytes = 50000;
+        const text = await resp.text();
+        const truncated = text.length > maxBytes;
+        const displayText = truncated ? text.slice(0, maxBytes) : text;
+
+        contentArea.className = 'message-file-txt-content';
+        contentArea.textContent = displayText;
+        if (truncated) {
+          const note = document.createElement('div');
+          note.style.cssText = 'padding: 8px 14px 14px; font-size: 11px; color: var(--text-muted); font-style: italic;';
+          note.textContent = '… (' + formatFileSize(text.length) + ' total, showing first ' + formatFileSize(maxBytes) + ')';
+          card.appendChild(note);
+        }
+      } catch (err) {
+        contentArea.className = 'message-file-txt-error';
+        contentArea.textContent = 'Could not load text: ' + (err.message || 'unknown error');
+      }
+    })();
+
+    wrapper.appendChild(card);
   } else {
     const link = document.createElement('a');
     link.className = 'message-file-attachment';

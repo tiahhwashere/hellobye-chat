@@ -1091,6 +1091,28 @@ app.use((req, res, next) => {
 // from the backup repo on-demand, caches them locally, and serves them — so
 // avatars/banners/GIFs always load for other users even after a redeploy.
 const uploadFallbackLocks = new Set(); // prevent concurrent fetches of same file
+
+// Ensure browsers can play uploaded videos by serving the correct Content-Type.
+// express.static uses the `mime` package internally, which maps .mov →
+// video/quicktime — a type most browsers refuse to play ("No video with
+// supported format and MIME type found"). Since virtually all .mov files
+// uploaded from phones are H.264/AAC, remapping to video/mp4 makes them
+// playable. We also cover .mkv and .avi as best-effort (browsers that
+// support the underlying codec will play them).
+function uploadSetHeaders(res, filePath) {
+  const ext = path.extname(filePath).toLowerCase();
+  const videoTypeMap = {
+    '.mov': 'video/mp4',
+    '.m4v': 'video/mp4',
+    '.mkv': 'video/x-matroska',
+    '.avi': 'video/x-msvideo',
+    '.ogv': 'video/ogg',
+    '.3gp': 'video/3gpp',
+  };
+  if (videoTypeMap[ext]) {
+    res.setHeader('Content-Type', videoTypeMap[ext]);
+  }
+}
 app.use('/uploads', async (req, res, next) => {
   // Extract the clean filename (strip query string used for cache-busting).
   const filename = decodeURIComponent(req.path.split('/').pop());
@@ -1108,7 +1130,7 @@ app.use('/uploads', async (req, res, next) => {
   }
   // Fast path: file exists locally — serve it with static-like headers.
   if (fs.existsSync(localPath)) {
-    return express.static(UPLOAD_DIR, { maxAge: '7d' })(req, res, next);
+    return express.static(UPLOAD_DIR, { maxAge: '7d', setHeaders: uploadSetHeaders })(req, res, next);
   }
   // Slow path: file missing — try to fetch from GitHub backup repo.
   if (!BACKUP_ENABLED) return res.status(404).end();
@@ -1117,7 +1139,7 @@ app.use('/uploads', async (req, res, next) => {
     // Wait briefly and re-check.
     await new Promise(r => setTimeout(r, 500));
     if (fs.existsSync(localPath)) {
-      return express.static(UPLOAD_DIR, { maxAge: '7d' })(req, res, next);
+      return express.static(UPLOAD_DIR, { maxAge: '7d', setHeaders: uploadSetHeaders })(req, res, next);
     }
     return res.status(404).end();
   }
@@ -1129,7 +1151,7 @@ app.use('/uploads', async (req, res, next) => {
       try { fs.writeFileSync(localPath, buf); } catch (e) { /* ignore write errors */ }
       console.log(`[backup] On-demand restored upload ${filename} (${buf.length} bytes).`);
       // Now serve the freshly-restored file.
-      return express.static(UPLOAD_DIR, { maxAge: '7d' })(req, res, next);
+      return express.static(UPLOAD_DIR, { maxAge: '7d', setHeaders: uploadSetHeaders })(req, res, next);
     }
     // Not in backup either — genuine 404.
     return res.status(404).end();
@@ -1154,7 +1176,10 @@ const storage = multer.diskStorage({
         'image/gif': '.gif', 'image/png': '.png', 'image/jpeg': '.jpg',
         'image/webp': '.webp', 'image/bmp': '.bmp', 'image/svg+xml': '.svg',
         'video/mp4': '.mp4', 'video/webm': '.webm', 'video/ogg': '.ogv',
+        'video/quicktime': '.mov', 'video/x-matroska': '.mkv',
+        'video/x-msvideo': '.avi', 'video/3gpp': '.3gp',
         'audio/mpeg': '.mp3', 'audio/ogg': '.ogg', 'audio/wav': '.wav',
+        'audio/mp4': '.m4a', 'audio/aac': '.aac', 'audio/flac': '.flac',
       };
       ext = byMime[file.mimetype] || '';
     }
