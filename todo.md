@@ -1,52 +1,35 @@
-# Hellobye-Chat — Custom CAPTCHA (replaced Cloudflare Turnstile)
+# Hellobye-Chat — Logged in Devices feature (2SV settings)
 
 ## Context
-User request: "replace the Cloudflare CAPTCHA with a custom ui that alines with the site and acutally make sure it works"
-Constraint: Do NOT modify `data/db.json` (md5 99761e4c34b3b0dd84d8952dfef8efd0).
+User request: "whenever users enables 2 step verfication beside the revoke trusted devices add another option that says Logged in devices and when clicked it will show the devices, browser and other useful things and also give the user an option to log out that device"
+Constraint: Do NOT modify or wipe `data/db.json`.
 
-## Backend (server.js) — DONE
-- [x] Remove all Cloudflare Turnstile code (config, verifyTurnstileToken, /api/turnstile-sitekey)
-- [x] Add custom CAPTCHA: HMAC-SHA256 signed challenges (stateless, no external deps)
-- [x] Add GET /api/captcha-challenge endpoint (issues signed challenge + target position)
-- [x] Add verifyCaptchaToken() with nonce replay protection + tolerance checking
-- [x] Update /api/register to verify captchaToken + captchaAnswer (always required)
-- [x] node -c server.js passes
-- [x] Server-side unit tests: valid/replay/wrong-answer/no-token/tampered/tolerance — all pass
+## Code Changes — DONE
+- [x] server.js: parseUserAgent() helper (browser/OS/deviceType/deviceModel from UA, no deps)
+- [x] server.js: createSessionRecord(username, req) — session objects with metadata
+- [x] server.js: sessionUsername() + sessionView() — backward compatible (string vs object)
+- [x] server.js: getSession() updated — throttled lastActive update (30s)
+- [x] server.js: all 3 session-creation points use createSessionRecord (register/login/verify-2sv/reactivate)
+- [x] server.js: all db.sessions access points updated to sessionUsername (rename, delete, disable, admin sessionCount, ban, admin rename, socket auth)
+- [x] server.js: GET /api/sessions — list current user's sessions with device metadata
+- [x] server.js: DELETE /api/sessions/:sid — log out a device + force-logout socket event
+- [x] server.js: node --check passes
+- [x] index.html: "Logged in Devices" button in 2SV settings
+- [x] index.html: devices modal HTML + CSS (device cards, icons, badges)
+- [x] index.html: JS — openDevicesModal, renderDevicesList, deviceCardHTML, logoutDevice, formatRelativeTime
+- [x] index.html: force-logout socket handler (clears session, shows toast, returns to auth)
+- [x] index.html: node --check on inline JS passes
 
-## Frontend (index.html) — DONE
-- [x] Remove Turnstile script tag and all Turnstile JS
-- [x] Remove old captcha-field CSS and HTML
-- [x] Add custom CAPTCHA CSS (slider widget, dark theme, verified/error states, shake animation)
-- [x] Add custom CAPTCHA HTML (slider track, handle, fill, refresh button)
-- [x] Add custom CAPTCHA JS (fetch challenge, slider drag logic, verify, callbacks)
-- [x] Mouse + touch + keyboard (arrow keys + Enter) support
-- [x] Tab switching shows/hides captcha field + initializes widget
-- [x] Update signup submit handler: requires captchaVerified, sends captchaToken + captchaAnswer
-- [x] Widget resets after failed registration and network errors
-- [x] Syntax-check inline JS (both blocks pass node -c)
-
-## Deploy & Test — DONE
-- [x] Verify data/db.json untouched (md5 99761e4c34b3b0dd84d8952dfef8efd0)
-- [x] Commit + push to GitHub (commit 349c82e)
-- [x] Render deploy live
-- [x] Remove old TURNSTILE_SECRET_KEY env var on Render
-- [x] API tests live:
-  - [x] /api/captcha-challenge returns signed challenge + target
-  - [x] Register WITHOUT captcha → 403 (rejected)
-  - [x] Register WITH valid captcha → 200 (account created)
-  - [x] Register WITH wrong answer → 403 (rejected)
-- [x] Browser visual tests:
-  - [x] Custom slider renders in dark theme matching site design
-  - [x] Slider drag to correct position → "Verified" (green checkmark)
-  - [x] Slider drag to wrong position → error shake + auto-reset
-  - [x] Refresh button fetches new challenge
-  - [x] Full signup with CAPTCHA → account created, welcome modal shown
-  - [x] Full signup after refresh → account created successfully
-
-## Notes
-- CAPTCHA is always required (no graceful degradation — every signup must pass)
-- HMAC-SHA256 signed challenges are stateless (no session storage needed)
-- Nonce replay protection prevents token reuse
-- 5-minute challenge expiry
-- ±5% tolerance on slider position for human imprecision
-- data/db.json md5 confirmed unchanged: 99761e4c34b3b0dd84d8952dfef8efd0
+## Test & Deploy — IN PROGRESS
+- [x] Test locally (server + browser): create user, enable 2SV, open devices modal, verify device list, test logout device
+- [x] Fix: force-logout handler now checks payload.sessionId vs current session (was broadcasting to all sockets, kicking out the wrong browser)
+- [x] Verified: UA parser detects Chrome/Linux/Safari/iOS/Android/Firefox/Edge correctly
+- [x] Verified: API endpoints (GET /api/sessions, DELETE /api/sessions/:sid) work
+- [x] Verified: Browser — "Logged in Devices" button appears beside "Revoke Trusted Devices" when 2SV enabled
+- [x] Verified: Devices modal shows device cards with browser/OS/IP/last-active, "THIS DEVICE" badge for current session
+- [x] Verified: Log out button works — target session is killed, browser stays logged in
+- [x] Verified: Current session's logout button is disabled (shows "Current")
+- [x] Verified: Legacy string sessions are backward-compatible (show with empty metadata)
+- [ ] Restore data/db.json (undo local testing changes) — verify md5 unchanged
+- [ ] Commit and push to GitHub (only server.js + index.html, NO data files)
+- [ ] Verify Render auto-deploy + live site

@@ -1349,6 +1349,44 @@ body.no-anim .friend-item { animation: none !important; }
 .twosv-actions .setting-save-btn { width: auto; margin-top: 0; }
 .twosv-actions .setting-save-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
+/* Logged-in devices modal — device card list */
+#devices-modal { z-index: 380; }
+#devices-modal .modal { padding: 24px 26px; }
+.device-card {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--bg-darker); border: 1px solid var(--border);
+  border-radius: 12px; padding: 13px 14px;
+  transition: border-color 0.15s ease;
+}
+.device-card:hover { border-color: var(--border-light); }
+.device-card.current { border-color: rgba(var(--accent-rgb), 0.4); background: rgba(var(--accent-rgb), 0.06); }
+.device-icon {
+  width: 38px; height: 38px; border-radius: 10px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--bg-dark); color: var(--text-secondary);
+}
+.device-icon svg { width: 20px; height: 20px; }
+.device-info { flex: 1; min-width: 0; }
+.device-name-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.device-name { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+.device-current-badge {
+  font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
+  color: var(--accent); background: rgba(var(--accent-rgb), 0.15);
+  padding: 2px 7px; border-radius: 5px;
+}
+.device-meta { font-size: 11px; color: var(--text-muted); margin-top: 3px; line-height: 1.5; }
+.device-meta span { white-space: nowrap; }
+.device-meta .sep { opacity: 0.4; margin: 0 5px; }
+.device-logout-btn {
+  flex-shrink: 0; font-size: 11px; padding: 6px 14px;
+  border-radius: 8px; border: 1px solid rgba(216,58,58,0.3);
+  color: var(--danger); background: transparent; cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease; font-weight: 600;
+}
+.device-logout-btn:hover { background: rgba(216,58,58,0.12); border-color: var(--danger); }
+.device-logout-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.devices-empty { text-align: center; color: var(--text-muted); padding: 30px 0; font-size: 13px; }
+
 /* Reset Name modal — confirm resetting a username to a random handle.
    z-index lifted so it sits above the admin slide-panel and its sub-overlays. */
 #reset-name-modal { z-index: 380; }
@@ -7087,6 +7125,20 @@ body.no-anim .friend-item { animation: none !important; }
     </div>
   </div>
 
+  <!-- ===================== LOGGED IN DEVICES MODAL ===================== -->
+  <div class="modal-overlay" id="devices-modal">
+    <div class="modal" style="max-width:520px; text-align:left;">
+      <h3 style="font-size:18px; margin-bottom:6px;">Logged in Devices</h3>
+      <p style="color:var(--text-secondary); font-size:12.5px; line-height:1.5; margin-bottom:16px;">These are the devices currently signed in to your account. If you see something unfamiliar, log it out immediately.</p>
+      <div id="devices-list" style="display:flex; flex-direction:column; gap:10px; max-height:380px; overflow-y:auto; padding-right:4px;">
+        <div style="text-align:center; color:var(--text-muted); padding:30px 0; font-size:13px;">Loading devices…</div>
+      </div>
+      <div class="modal-actions" style="margin-top:18px;">
+        <button class="modal-btn" id="devices-close-btn">Close</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ===================== ADMIN RESET NAME MODAL ===================== -->
   <div class="modal-overlay" id="reset-name-modal">
     <div class="modal">
@@ -7840,6 +7892,7 @@ body.no-anim .friend-item { animation: none !important; }
                   <button class="setting-save-btn no-checkmark" id="twosv-view-code-btn">View Code</button>
                   <button class="setting-save-btn no-checkmark" id="twosv-regenerate-btn">Regenerate Code</button>
                   <button class="setting-save-btn no-checkmark danger-btn" id="twosv-revoke-btn">Revoke Trusted Devices</button>
+                  <button class="setting-save-btn no-checkmark" id="twosv-devices-btn">Logged in Devices</button>
                 </div>
               </div>
             </div>
@@ -10151,6 +10204,140 @@ $('twosv-revoke-btn').addEventListener('click', async () => {
   }
 });
 
+// ==================== Logged in Devices ====================
+// Opens the devices modal and fetches the list of active sessions.
+const twosvDevicesBtn = $('twosv-devices-btn');
+if (twosvDevicesBtn) {
+  twosvDevicesBtn.addEventListener('click', openDevicesModal);
+}
+const devicesCloseBtn = $('devices-close-btn');
+if (devicesCloseBtn) {
+  devicesCloseBtn.addEventListener('click', () => {
+    const m = $('devices-modal');
+    if (m) m.classList.remove('show');
+  });
+}
+// Close devices modal on overlay click (outside the card)
+const devicesModalEl = $('devices-modal');
+if (devicesModalEl) {
+  devicesModalEl.addEventListener('click', (e) => {
+    if (e.target === devicesModalEl) devicesModalEl.classList.remove('show');
+  });
+}
+
+async function openDevicesModal() {
+  const modal = $('devices-modal');
+  const list = $('devices-list');
+  if (!modal || !list) return;
+  modal.classList.add('show');
+  list.innerHTML = '<div style="text-align:center; color:var(--text-muted); padding:30px 0; font-size:13px;">Loading devices…</div>';
+  await renderDevicesList();
+}
+
+async function renderDevicesList() {
+  const list = $('devices-list');
+  if (!list) return;
+  try {
+    const res = await fetch(API_BASE + '/api/sessions', { headers: getAuthHeaders() });
+    if (!res.ok) {
+      list.innerHTML = '<div class="devices-empty">Unable to load devices. Please try again.</div>';
+      return;
+    }
+    const data = await res.json();
+    const sessions = data.sessions || [];
+    if (!sessions.length) {
+      list.innerHTML = '<div class="devices-empty">No active sessions found.</div>';
+      return;
+    }
+    list.innerHTML = sessions.map(s => deviceCardHTML(s, data.currentSessionId)).join('');
+    // Wire up logout buttons
+    list.querySelectorAll('.device-logout-btn').forEach(btn => {
+      btn.addEventListener('click', () => logoutDevice(btn.dataset.sid, btn));
+    });
+  } catch (err) {
+    list.innerHTML = '<div class="devices-empty">A network error occurred. Please try again.</div>';
+  }
+}
+
+function deviceCardHTML(s, currentSid) {
+  const isCurrent = s.isCurrent || s.sessionId === currentSid;
+  // Build a friendly device label
+  let label = s.browser || 'Unknown browser';
+  if (s.os && s.os !== 'Unknown') label += ' · ' + s.os;
+  // Sub-line: device type / model + IP + last active
+  const parts = [];
+  if (s.deviceType && s.deviceType !== 'Desktop') parts.push(s.deviceType);
+  else if (s.deviceType === 'Desktop') parts.push('Desktop');
+  if (s.deviceModel) parts.push(s.deviceModel);
+  if (s.ip) parts.push(s.ip);
+  const subLine = parts.join(' · ');
+  const lastActiveText = s.lastActive ? formatRelativeTime(s.lastActive) : 'Unknown';
+  // Pick an icon based on device type
+  let iconSvg;
+  if (s.deviceType === 'Mobile') {
+    iconSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="2"/><line x1="11" y1="18" x2="13" y2="18"/></svg>';
+  } else if (s.deviceType === 'Tablet') {
+    iconSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><line x1="11" y1="18" x2="13" y2="18"/></svg>';
+  } else {
+    iconSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="18" x2="12" y2="21"/></svg>';
+  }
+  return '<div class="device-card' + (isCurrent ? ' current' : '') + '">' +
+    '<div class="device-icon">' + iconSvg + '</div>' +
+    '<div class="device-info">' +
+      '<div class="device-name-row">' +
+        '<span class="device-name">' + escapeHtml(label) + '</span>' +
+        (isCurrent ? '<span class="device-current-badge">This device</span>' : '') +
+      '</div>' +
+      '<div class="device-meta">' +
+        '<span>' + escapeHtml(subLine || '—') + '</span>' +
+        '<span class="sep">·</span>' +
+        '<span>Active ' + escapeHtml(lastActiveText) + '</span>' +
+      '</div>' +
+    '</div>' +
+    (isCurrent
+      ? '<button class="device-logout-btn" disabled title="Use Log Out to sign out of this device">Current</button>'
+      : '<button class="device-logout-btn" data-sid="' + escapeHtml(s.sessionId) + '">Log out</button>') +
+  '</div>';
+}
+
+async function logoutDevice(targetSid, btn) {
+  if (!targetSid) return;
+  if (btn) { btn.disabled = true; btn.textContent = 'Logging out…'; }
+  try {
+    const res = await fetch(API_BASE + '/api/sessions/' + encodeURIComponent(targetSid), {
+      method: 'DELETE', headers: getAuthHeaders()
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      toast(data.error || 'Unable to log out this device. Please try again.', 'error');
+      if (btn) { btn.disabled = false; btn.textContent = 'Log out'; }
+      return;
+    }
+    toast('Device has been logged out.', 'success');
+    await renderDevicesList(); // refresh the list
+  } catch (err) {
+    toast('A network error occurred. Please try again.', 'error');
+    if (btn) { btn.disabled = false; btn.textContent = 'Log out'; }
+  }
+}
+
+// Format a timestamp (ms) as a human-readable relative time (e.g. "just now",
+// "5m ago", "2h ago", "3d ago").
+function formatRelativeTime(ms) {
+  if (!ms) return 'unknown';
+  const diff = Date.now() - ms;
+  if (diff < 0) return 'just now';
+  const s = Math.floor(diff / 1000);
+  if (s < 60) return 'just now';
+  const m = Math.floor(s / 60);
+  if (m < 60) return m + 'm ago';
+  const h = Math.floor(m / 60);
+  if (h < 24) return h + 'h ago';
+  const d = Math.floor(h / 24);
+  if (d < 30) return d + 'd ago';
+  return formatTimestamp(ms);
+}
+
 // Password prompt modal for 2SV actions
 function prompt2SVPassword(title, message) {
   return new Promise((resolve) => {
@@ -10580,6 +10767,25 @@ function connectSocket() {
     setTimeout(() => {
       showBannedScreen(reason, bannedUntil);
     }, 300);
+  });
+
+  // Force-logout — the session was ended from another device (via the
+  // "Logged in Devices" panel). Disconnect and return to the login screen.
+  // Only act if the event targets THIS session (the server broadcasts to all
+  // sockets; each client must check whether it is the one being logged out).
+  socket.on('force-logout', (payload) => {
+    const targetSid = (payload && payload.sessionId) ? payload.sessionId : null;
+    const mySid = sessionSocketId || localStorage.getItem('hellobye_sid') || null;
+    if (targetSid && mySid && targetSid !== mySid) return; // not our session — ignore
+    const reason = (payload && payload.reason) ? payload.reason : 'Your session was ended from another device.';
+    sessionSocketId = null;
+    localStorage.removeItem('hellobye_sid');
+    const pp = $('profile-panel'); if (pp) pp.classList.remove('show');
+    const sp = $('settings-panel'); if (sp) sp.classList.remove('show');
+    document.querySelectorAll('.modal-overlay.show').forEach(m => m.classList.remove('show'));
+    if (socket) { try { socket.io.opts.reconnection = false; socket.disconnect(); } catch (e) {} }
+    if (typeof toast === 'function') toast(reason, 'error');
+    setTimeout(() => { showAuth(); }, 400);
   });
 
   // Muted by an admin — update local user state and notify

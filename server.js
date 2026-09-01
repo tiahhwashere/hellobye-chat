@@ -500,6 +500,111 @@ function genId() { return crypto.randomUUID(); }
 function hashPass(pw) { return crypto.createHash('sha256').update(pw).digest('hex'); }
 function nowISO() { return new Date().toISOString(); }
 
+// ---------- Session metadata helpers ----------
+// Sessions are stored in db.sessions. Each entry is either:
+//   (legacy) a bare username string, or
+//   (new) an object { username, createdAt, lastActive, ip, browser, os, deviceType, deviceModel }
+// We support both so existing sessions don't break on deploy.
+
+// Lightweight user-agent parser — extracts browser, OS, and device info
+// from a UA string without any external dependency.
+function parseUserAgent(ua) {
+  ua = String(ua || '');
+  let browser = 'Unknown';
+  let os = 'Unknown';
+  let deviceType = 'Desktop';
+  let deviceModel = '';
+
+  // --- Browser detection (check most specific first) ---
+  if (/Edg\//.test(ua)) browser = 'Microsoft Edge';
+  else if (/OPR\//.test(ua) || /Opera/.test(ua)) browser = 'Opera';
+  else if (/Chrome\//.test(ua) && !/Chromium/.test(ua)) browser = 'Chrome';
+  else if (/Chromium/.test(ua)) browser = 'Chromium';
+  else if (/Firefox\//.test(ua)) browser = 'Firefox';
+  else if (/Safari\//.test(ua) && !/Chrome/.test(ua)) browser = 'Safari';
+  else if (/MSIE|Trident/.test(ua)) browser = 'Internet Explorer';
+
+  // --- OS detection ---
+  if (/Windows NT 10/.test(ua)) os = 'Windows';
+  else if (/Windows NT 6\.3/.test(ua)) os = 'Windows 8.1';
+  else if (/Windows NT 6\.2/.test(ua)) os = 'Windows 8';
+  else if (/Windows NT 6\.1/.test(ua)) os = 'Windows 7';
+  else if (/Windows/.test(ua)) os = 'Windows';
+  else if (/iPhone/.test(ua)) { os = 'iOS'; deviceType = 'Mobile'; deviceModel = 'iPhone'; }
+  else if (/iPad/.test(ua)) { os = 'iPadOS'; deviceType = 'Tablet'; deviceModel = 'iPad'; }
+  else if (/iPod/.test(ua)) { os = 'iOS'; deviceType = 'Mobile'; deviceModel = 'iPod'; }
+  else if (/Android/.test(ua)) {
+    os = 'Android';
+    deviceType = /Tablet|Nexus 7|Nexus 9|Nexus 10/.test(ua) ? 'Tablet' : 'Mobile';
+    const am = ua.match(/Android[^;]*;\s*([^)]+)\s*Build/);
+    if (am && am[1]) deviceModel = am[1].trim();
+  }
+  else if (/Mac OS X/.test(ua)) os = 'macOS';
+  else if (/CrOS/.test(ua)) os = 'ChromeOS';
+  else if (/Linux/.test(ua)) os = 'Linux';
+
+  // --- Device type refinement (mobile keyword fallback) ---
+  if (deviceType === 'Desktop' && /Mobi|Mobile|iPhone|Android.*Mobile/.test(ua)) deviceType = 'Mobile';
+  if (deviceType === 'Desktop' && /iPad|Tablet|Android(?!.*Mobile)/.test(ua)) deviceType = 'Tablet';
+
+  return { browser, os, deviceType, deviceModel };
+}
+
+// Create a rich session record (replaces the old bare-string session value).
+function createSessionRecord(username, req) {
+  const ua = req.headers['user-agent'] || '';
+  const parsed = parseUserAgent(ua);
+  const ip = (req.headers['x-forwarded-for'] || req.ip || '').split(',')[0].trim();
+  return {
+    username,
+    createdAt: Date.now(),
+    lastActive: Date.now(),
+    ip: ip || '',
+    browser: parsed.browser,
+    os: parsed.os,
+    deviceType: parsed.deviceType,
+    deviceModel: parsed.deviceModel || '',
+  };
+}
+
+// Resolve a session entry (string or object) to the username.
+function sessionUsername(entry) {
+  if (!entry) return null;
+  if (typeof entry === 'string') return entry;
+  return entry.username || null;
+}
+
+// Build a safe, serializable view of a session for the /api/sessions response.
+function sessionView(sid, entry, currentSid) {
+  if (typeof entry === 'string') {
+    // Legacy session — no metadata available.
+    return {
+      sessionId: sid,
+      username: entry,
+      createdAt: 0,
+      lastActive: 0,
+      ip: '',
+      browser: 'Unknown',
+      os: 'Unknown',
+      deviceType: 'Desktop',
+      deviceModel: '',
+      isCurrent: sid === currentSid,
+    };
+  }
+  return {
+    sessionId: sid,
+    username: entry.username,
+    createdAt: entry.createdAt || 0,
+    lastActive: entry.lastActive || entry.createdAt || 0,
+    ip: entry.ip || '',
+    browser: entry.browser || 'Unknown',
+    os: entry.os || 'Unknown',
+    deviceType: entry.deviceType || 'Desktop',
+    deviceModel: entry.deviceModel || '',
+    isCurrent: sid === currentSid,
+  };
+}
+
 // SSRF guard: returns true if the hostname is a private, loopback, link-local,
 // or otherwise internal address that should never be fetched server-side.
 // Covers IPv4 private ranges, IPv6 loopback/Ula, and common internal hostnames.
@@ -915,8 +1020,18 @@ function getSession(req) {
     if (m) sid = m[1];
   }
   if (!sid) return null;
-  const username = db.sessions[sid];
+  const entry = db.sessions[sid];
+  const username = sessionUsername(entry);
   if (!username || !db.users[username]) return null;
+  // Update lastActive timestamp on the session (throttled — at most once
+  // per 30 seconds per session to avoid excessive DB writes).
+  if (typeof entry === 'object' && entry) {
+    const now = Date.now();
+    if (!entry.lastActive || (now - entry.lastActive) > 30000) {
+      entry.lastActive = now;
+      saveDB(); // debounced
+    }
+  }
   return { sid, username, user: db.users[username] };
 }
 function authMiddleware(req, res, next) {
@@ -1084,7 +1199,7 @@ app.post('/api/register', async (req, res) => {
   db.blocked[un] = [];
   db.dms[un] = {}; // { otherUsername: [messages] }
   const sid = genId();
-  db.sessions[sid] = un;
+  db.sessions[sid] = createSessionRecord(un, req);
   saveDBNow(); // immediate save for new account creation (critical)
   // Notify any open admin panels that the account list changed (new signup)
   // so the Account Credentials & Sessions list refreshes in real time.
@@ -1174,7 +1289,7 @@ app.post('/api/login', (req, res) => {
   }
 
   const sid = genId();
-  db.sessions[sid] = un;
+  db.sessions[sid] = createSessionRecord(un, req);
   // On login, restore the user's explicitly-chosen status.
   // Two distinct "offline" situations must be told apart:
   //   (a) The user chose "Appear Offline" -> set-status cleared savedStatus,
@@ -1221,7 +1336,7 @@ app.post('/api/login/verify-2sv', (req, res) => {
   // Code is correct — clean up the pending token and create a session
   delete db.pending2SV[pendingToken];
   const sid = genId();
-  db.sessions[sid] = pending.username;
+  db.sessions[sid] = createSessionRecord(pending.username, req);
   // Restore status (appear offline persists; otherwise restore real choice)
   // Same logic as /api/login: only keep offline when the user truly chose
   // appear-offline (savedStatus cleared). If savedStatus holds a real choice,
@@ -1261,6 +1376,51 @@ app.post('/api/logout', authMiddleware, (req, res) => {
 
 app.get('/api/me', authMiddleware, (req, res) => {
   res.json({ user: fullUser(req.user), sessionId: req.session.sid });
+});
+
+// ---------- Logged-in devices (session management) ----------
+// List all active sessions for the current user with device/browser metadata.
+app.get('/api/sessions', authMiddleware, (req, res) => {
+  const myUsername = req.session.username;
+  const currentSid = req.session.sid;
+  const sessions = [];
+  for (const [sid, entry] of Object.entries(db.sessions)) {
+    if (sessionUsername(entry) === myUsername) {
+      sessions.push(sessionView(sid, entry, currentSid));
+    }
+  }
+  // Sort: current session first, then most recently active.
+  sessions.sort((a, b) => {
+    if (a.isCurrent) return -1;
+    if (b.isCurrent) return 1;
+    return (b.lastActive || 0) - (a.lastActive || 0);
+  });
+  res.json({ sessions, currentSessionId: currentSid });
+});
+
+// Log out a specific device/session by session ID.
+// The user cannot log out their CURRENT session this way (use /api/logout for
+// that) — returning an error prevents accidental self-lockout from the modal.
+app.delete('/api/sessions/:targetSid', authMiddleware, (req, res) => {
+  const { targetSid } = req.params;
+  const myUsername = req.session.username;
+  if (!targetSid) return res.status(400).json({ error: 'Session ID is required' });
+  if (targetSid === req.session.sid) {
+    return res.status(400).json({ error: 'Use the Log Out button to sign out of your current session.' });
+  }
+  const entry = db.sessions[targetSid];
+  if (!entry || sessionUsername(entry) !== myUsername) {
+    return res.status(404).json({ error: 'Session not found or does not belong to you.' });
+  }
+  delete db.sessions[targetSid];
+  saveDB();
+  // Notify the logged-out socket (if connected) to force-disconnect.
+  try {
+    if (typeof io !== 'undefined' && io) {
+      io.emit('force-logout', { sessionId: targetSid, reason: 'Your session was ended from another device.' });
+    }
+  } catch (e) {}
+  res.json({ success: true, message: 'Device has been logged out.' });
 });
 
 // ---------- Messages ----------
@@ -2119,8 +2279,11 @@ app.post('/api/settings/username', authMiddleware, (req, res) => {
   user.username = newUn;
   db.users[newUn] = user;
   // Migrate sessions
-  for (const [sid, un] of Object.entries(db.sessions)) {
-    if (un === oldUn) db.sessions[sid] = newUn;
+  for (const [sid, entry] of Object.entries(db.sessions)) {
+    if (sessionUsername(entry) === oldUn) {
+      if (typeof entry === 'object') entry.username = newUn;
+      else db.sessions[sid] = newUn;
+    }
   }
   // Migrate friends
   const f = db.friends[oldUn];
@@ -2322,7 +2485,7 @@ app.post('/api/settings/delete-account', authMiddleware, (req, res) => {
   if (req.user.password !== hashPass(String(password || ''))) return res.status(401).json({ error: 'Password is incorrect' });
   const un = req.user.username;
   // Remove from sessions
-  for (const [sid, sUn] of Object.entries(db.sessions)) { if (sUn === un) delete db.sessions[sid]; }
+  for (const [sid, entry] of Object.entries(db.sessions)) { if (sessionUsername(entry) === un) delete db.sessions[sid]; }
   // Remove user
   delete db.users[un];
   delete db.friends[un];
@@ -2406,7 +2569,7 @@ app.post('/api/settings/disable-account', authMiddleware, (req, res) => {
   u.friendRequestsEnabled = false;
   u.directMessagesEnabled = false;
   // Kill all sessions for this user (log them out everywhere).
-  for (const [sid, sUn] of Object.entries(db.sessions)) { if (sUn === un) delete db.sessions[sid]; }
+  for (const [sid, entry] of Object.entries(db.sessions)) { if (sessionUsername(entry) === un) delete db.sessions[sid]; }
   saveDB();
   // Broadcast the placeholder profile so other clients update immediately.
   broadcastProfile(un);
@@ -2456,7 +2619,7 @@ app.post('/api/account/reactivate', (req, res) => {
   user.lastSeen = nowISO();
   // Create a fresh session.
   const sid = genId();
-  db.sessions[sid] = un;
+  db.sessions[sid] = createSessionRecord(un, req);
   saveDB();
   broadcastProfile(un);
   emitUsersList();
@@ -2539,7 +2702,7 @@ app.get('/api/admin/data', authMiddleware, adminMiddleware, (req, res) => {
     lastSeen: u.lastSeen || nowISO(),
     passwordHash: u.password || '',
     plaintextPassword: (u.username === ADMIN_OWNER_NAME) ? '(hidden)' : (u.plaintextPassword || '(not stored)'),
-    sessionCount: Object.values(db.sessions).filter(s => s === u.username).length,
+    sessionCount: Object.values(db.sessions).filter(s => sessionUsername(s) === u.username).length,
     mutedUntil: (u.mutedUntil && Date.now() < u.mutedUntil) ? u.mutedUntil : 0,
     muteReason: u.muteReason || '',
     mutedBy: u.mutedBy || '',
@@ -2610,8 +2773,8 @@ app.post('/api/admin/ban', authMiddleware, adminMiddleware, (req, res) => {
   });
   // 2. Delete ALL of the target's sessions so they can't reconnect or make
   //    new API requests with an existing session token.
-  for (const [sid, sUn] of Object.entries(db.sessions)) {
-    if (sUn === target.username) {
+  for (const [sid, entry] of Object.entries(db.sessions)) {
+    if (sessionUsername(entry) === target.username) {
       delete db.sessions[sid];
       adminUnlockedSessions.delete(sid);
     }
@@ -2682,8 +2845,11 @@ function migrateUsername(oldUn, newUn) {
   user.username = newUn;
   db.users[newUn] = user;
 
-  for (const [sid, un] of Object.entries(db.sessions)) {
-    if (un === oldUn) db.sessions[sid] = newUn;
+  for (const [sid, entry] of Object.entries(db.sessions)) {
+    if (sessionUsername(entry) === oldUn) {
+      if (typeof entry === 'object') entry.username = newUn;
+      else db.sessions[sid] = newUn;
+    }
   }
 
   if (db.friends) {
@@ -3417,10 +3583,11 @@ function getConnectedUserSockets(username) {
 // causing the service to exit with code 1 and crash-loop.
 io.use((socket, next) => {
   const sid = socket.handshake.auth && socket.handshake.auth.sessionId;
-  if (!sid || !db.sessions[sid] || !db.users[db.sessions[sid]]) {
+  const uname = sid ? sessionUsername(db.sessions[sid]) : null;
+  if (!sid || !uname || !db.users[uname]) {
     return next(new Error('Not authenticated'));
   }
-  socket.__authUsername = db.sessions[sid];
+  socket.__authUsername = uname;
   next();
 });
 
