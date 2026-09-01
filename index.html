@@ -10323,6 +10323,10 @@ async function initChat(existingMeData) {
   // so the empty/broken chat UI is never flashed during sign-in, sign-up,
   // or page refresh.
   ensureLoadingOverlay();
+  // Wrap the entire init in try/catch/finally so that if ANY render or
+  // listener-binding function throws, we STILL hide the loading overlay
+  // (in finally) instead of leaving the user stuck on "Loading…" forever.
+  try {
   let meData = existingMeData;
   if (!meData) {
     const meRes = await fetch(API_BASE + '/api/me');
@@ -10381,9 +10385,16 @@ async function initChat(existingMeData) {
   loadGroupChats();
   initAdminTab(); // Pre-show admin nav tab if user is admin (owner or whitelisted)
   initAdminEventListeners(); // Wire up all admin panel button event listeners
-
+  } catch (initErr) {
+    // If anything threw during init, log it and show a user-facing toast
+    // so the problem is visible instead of a silent stuck loading screen.
+    console.error('initChat error:', initErr);
+    try { toast('Something went wrong while loading. Please refresh the page.', 'error'); } catch (e) {}
+  } finally {
   // Hide the loading overlay now that all data has been fetched and rendered.
   // This prevents the empty/broken UI flash during sign-in, sign-up, and refresh.
+  // ALWAYS runs — even if something above threw — so the user is never stuck
+  // on the "Loading…" screen.
   const overlay = document.getElementById('chat-loading-overlay');
   if (overlay) {
     overlay.classList.add('hidden');
@@ -10399,6 +10410,7 @@ async function initChat(existingMeData) {
       document.body.classList.remove('no-anim');
     });
   });
+  }
 }
 
 function showAuth() {
@@ -24126,6 +24138,7 @@ function initAdminEventListeners() {
   const banConfirmBtn = $('admin-ban-confirm-btn');
   if (banConfirmBtn) banConfirmBtn.addEventListener('click', adminBanUser);
   // Clear admin activity log
+  const clearActivityBtn = $('admin-clear-activity-btn');
   if (clearActivityBtn) {
     clearActivityBtn.addEventListener('click', async () => {
       // Guard against re-entry: if a clear request is already in flight,
