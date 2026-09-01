@@ -894,6 +894,7 @@ body.loading-session #chat-app.active::after { content: none; }
 }
 .chat-header-icon svg { width: 20px; height: 20px; }
 .chat-header-text h3 { font-size: 15px; font-weight: 600; }
+.chat-header-text h3 a { color: var(--accent); text-decoration: underline; word-break: break-all; }
 .chat-header-text p { font-size: 12px; color: var(--text-muted); }
 .chat-header-actions { display: flex; gap: 6px; }
 .icon-btn {
@@ -10640,7 +10641,7 @@ function connectSocket() {
   socket.on('welcome-title-changed', (data) => {
     if (data && data.title) {
       welcomeTitle = data.title;
-      if (currentView === 'public') $('chat-title').textContent = data.title;
+      if (currentView === 'public') $('chat-title').innerHTML = linkifyBio(data.title);
     }
   });
   // Custom roles updated — re-render the member sidebar to show custom role groups
@@ -12486,38 +12487,36 @@ function getReactions(msg) {
   return msg.reactions;
 }
 
-// Toggle the current user's reaction on a message (locally + via socket)
+// Toggle the current user's reaction on a message via the server.
 // scope: 'chat' | 'dm' | 'group'
+//
+// IMPORTANT: We do NOT mutate msg.reactions optimistically here. The server is
+// the single source of truth — it toggles its own copy and broadcasts the
+// authoritative reactions map back to every client (including this one) via
+// the reaction socket event, and also returns the updated map in the ack
+// callback. We apply the ack result immediately for responsive feedback and
+// let the broadcast keep other clients in sync. This avoids the "stuck"
+// reaction bug where the client's optimistic toggle and the server's
+// independent toggle diverged (e.g. the server re-added a reaction the user
+// had just removed, and the broadcast overwrote the local state).
 function toggleReaction(msg, emoji, scope, extra) {
   if (!currentUser || !currentUser.username) return;
-  const reactions = getReactions(msg);
-  const me = currentUser.username;
-  let changed = false;
-  if (reactions[emoji] && Array.isArray(reactions[emoji])) {
-    const idx = reactions[emoji].indexOf(me);
-    if (idx >= 0) {
-      reactions[emoji].splice(idx, 1);
-      if (reactions[emoji].length === 0) delete reactions[emoji];
-      changed = true;
-    } else {
-      reactions[emoji].push(me);
-      changed = true;
+  // Callback that applies the authoritative reactions map from the server.
+  const applyAck = (res) => {
+    if (res && res.reactions) {
+      msg.reactions = res.reactions;
+      refreshReactionsDisplay(msg, scope);
     }
-  } else {
-    reactions[emoji] = [me];
-    changed = true;
-  }
-  if (!changed) return;
-  // Emit to server for persistence + broadcast
+    // If the server reports an error (e.g. message not found), do nothing —
+    // the broadcast (if any) will correct the local state.
+  };
   if (scope === 'chat') {
-    socket.emit('react-message', { id: msg.id, emoji });
+    socket.emit('react-message', { id: msg.id, emoji }, applyAck);
   } else if (scope === 'dm') {
-    socket.emit('dm-react', { id: msg.id, to: extra, emoji });
+    socket.emit('dm-react', { id: msg.id, to: extra, emoji }, applyAck);
   } else if (scope === 'group') {
-    socket.emit('group-react', { groupId: extra, id: msg.id, emoji });
+    socket.emit('group-react', { groupId: extra, id: msg.id, emoji }, applyAck);
   }
-  // Update the visual display for this message group
-  refreshReactionsDisplay(msg, scope);
 }
 
 // Re-render the reactions row + react button for a specific message DOM group
@@ -14458,7 +14457,7 @@ function switchSidebarView(view) {
   const subtitleMap = { public: 'chat', dms: 'messages', friends: 'friends', blocked: 'blocked' };
   if ($('sidebar-subtitle')) $('sidebar-subtitle').textContent = subtitleMap[view] || 'chat';
   // Chat header
-  if (view === 'public') { $('chat-title').textContent = welcomeTitle || 'welcome - to the safe place'; renderUserList(); }
+  if (view === 'public') { $('chat-title').innerHTML = linkifyBio(welcomeTitle || 'welcome - to the safe place'); renderUserList(); }
   // Close mobile sidebar after switching view
   closeMobileSidebar();
 }
@@ -17886,7 +17885,6 @@ $('logout-confirm').addEventListener('click', async () => {
   localStorage.removeItem('hellobye_sid');
   // Delete the session cookie by setting it to expire in the past
   document.cookie = 'hellobye_session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-  toast('Logged out successfully.', 'success');
   // Revert client-side background & color settings (they'll restore on next login)
   clearClientSettings();
   // Close all panels and overlays
@@ -23057,7 +23055,7 @@ async function loadAdminData() {
     renderAdminMutedList();
     // Update welcome title display in admin panel
     if (adminData.welcomeTitle && $('admin-welcome-title-current')) {
-      $('admin-welcome-title-current').textContent = adminData.welcomeTitle;
+      $('admin-welcome-title-current').innerHTML = linkifyBio(adminData.welcomeTitle);
     }
   } catch (e) {
     console.error('Admin data load error', e);
@@ -23762,9 +23760,9 @@ async function adminSetWelcomeTitle() {
     if (data.success) {
       toast('Welcome title has been updated.', 'success');
       welcomeTitle = data.title;
-      if (currentView === 'public') $('chat-title').textContent = data.title;
+      if (currentView === 'public') $('chat-title').innerHTML = linkifyBio(data.title);
       if ($('admin-welcome-title-input')) $('admin-welcome-title-input').value = '';
-      if ($('admin-welcome-title-current')) $('admin-welcome-title-current').textContent = data.title;
+      if ($('admin-welcome-title-current')) $('admin-welcome-title-current').innerHTML = linkifyBio(data.title);
       // Start cooldown display
       startWelcomeTitleCooldown(adminData ? (adminData.welcomeTitleCooldown || 20000) : 20000);
       loadAdminData();
