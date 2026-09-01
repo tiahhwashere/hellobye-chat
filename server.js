@@ -3362,6 +3362,26 @@ function emitUsersListDebounced() {
   }, 80);
 }
 
+// Debounced activity broadcast: when a user is actively typing, their client
+// fires 'activity' frequently. We only persist to disk + broadcast the
+// updated lastSeen at most once per ~4s per user. This keeps "Last seen"
+// stamps fresh for everyone (ALL users, not just @lore) without thrashing
+// saveDB on every keystroke. Each user gets its own timer so activity from
+// different users doesn't collide.
+const activityTimers = new Map(); // username -> timer
+function debouncedActivityBroadcast(username) {
+  if (activityTimers.has(username)) return; // already scheduled
+  const t = setTimeout(() => {
+    activityTimers.delete(username);
+    const u = db.users[username];
+    if (!u) return;
+    saveDB();
+    broadcastProfile(username);
+    emitUsersListDebounced();
+  }, 4000);
+  activityTimers.set(username, t);
+}
+
 function emitUsersList() {
   // Build a set of usernames that belong to any custom role — these should
   // always appear in the list (with their real status) so the custom role
@@ -3969,8 +3989,14 @@ io.on('connection', (socket) => {
   });
 
   // ---- Activity ----
+  // Updates lastSeen in memory immediately, then debounces the expensive
+  // save+broadcast so it only fires at most once every few seconds — even if
+  // the user is typing continuously. This ensures every user's "Last seen"
+  // stamp updates for ALL other clients (not just @lore), while avoiding
+  // hammering saveDB / broadcastProfile / emitUsersList on every keystroke.
   socket.on('activity', () => {
     user.lastSeen = nowISO();
+    debouncedActivityBroadcast(username);
   });
 
   // ---- Disconnect ----

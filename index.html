@@ -30,7 +30,9 @@
   --accent: #4a9eff;
   --accent-hover: #5aabff;
   --accent-dim: #2d6cc0;
-  --accent-glow: rgba(74, 158, 255, 0.12);
+  --accent-light: #7ab8ff;
+  --accent-glow: rgba(var(--accent-rgb), 0.12);
+  --accent-rgb: 74, 158, 255;
   --accent-text: #fff;
   --online: #3ba55d;
   --idle: #d4a017;
@@ -139,12 +141,12 @@ html.has-session #chat-app { display: grid; } /* show chat grid immediately */
 .auth-brand {
   flex: 0 0 38%; text-align: left; margin-bottom: 0;
   padding: 40px 36px; display: flex; flex-direction: column; justify-content: center;
-  background: linear-gradient(160deg, rgba(74,158,255,0.10) 0%, rgba(20,22,24,0.6) 60%, var(--bg-darker) 100%);
+  background: linear-gradient(160deg, rgba(var(--accent-rgb), 0.10) 0%, rgba(20,22,24,0.6) 60%, var(--bg-darker) 100%);
   border-right: 1px solid var(--border);
 }
 .auth-brand-mark {
   display: inline-flex; margin-bottom: 18px;
-  filter: drop-shadow(0 4px 16px rgba(74,158,255,0.2));
+  filter: drop-shadow(0 4px 16px rgba(var(--accent-rgb), 0.2));
 }
 .auth-brand h1 {
   font-size: 32px; font-weight: 600; letter-spacing: -0.5px;
@@ -188,7 +190,7 @@ html.has-session #chat-app { display: grid; } /* show chat grid immediately */
 }
 .auth-brand-mark {
   display: inline-flex; margin-bottom: 14px;
-  filter: drop-shadow(0 4px 16px rgba(74,158,255,0.2));
+  filter: drop-shadow(0 4px 16px rgba(var(--accent-rgb), 0.2));
 }
 .auth-brand h1 {
   font-size: 28px; font-weight: 600; letter-spacing: -0.5px;
@@ -304,10 +306,10 @@ html.has-session #chat-app { display: grid; } /* show chat grid immediately */
 .captcha-slider-wrap { position: relative; width: 100%; height: 46px; border-radius: 11px; background: var(--bg-darker); border: 1px solid var(--border); overflow: hidden; user-select: none; -webkit-user-select: none; transition: border-color 0.2s ease; }
 .captcha-slider-wrap:hover { border-color: var(--border-light); }
 .captcha-slider-track { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 500; color: var(--text-muted); letter-spacing: 0.3px; transition: color 0.2s; pointer-events: none; }
-.captcha-slider-fill { position: absolute; top: 0; left: 0; height: 100%; width: 0; background: linear-gradient(90deg, rgba(74,158,255,0.18), rgba(74,158,255,0.32)); transition: width 0.05s linear; }
+.captcha-slider-fill { position: absolute; top: 0; left: 0; height: 100%; width: 0; background: linear-gradient(90deg, rgba(var(--accent-rgb), 0.18), rgba(var(--accent-rgb), 0.32)); transition: width 0.05s linear; }
 .captcha-slider-handle { position: absolute; top: 4px; left: 0; width: 38px; height: 38px; border-radius: 9px; background: linear-gradient(180deg, var(--bg-medium), var(--bg-darker)); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; cursor: grab; transition: border-color 0.2s, box-shadow 0.2s; z-index: 2; touch-action: none; }
 .captcha-slider-handle:hover { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
-.captcha-slider-handle:active, .captcha-slider-handle.dragging { cursor: grabbing; border-color: var(--accent); box-shadow: 0 0 0 4px rgba(74,158,255,0.2); }
+.captcha-slider-handle:active, .captcha-slider-handle.dragging { cursor: grabbing; border-color: var(--accent); box-shadow: 0 0 0 4px rgba(var(--accent-rgb), 0.2); }
 .captcha-slider-handle svg { width: 20px; height: 20px; fill: var(--text-muted); transition: fill 0.2s, transform 0.3s; }
 .captcha-slider-handle:hover svg { fill: var(--accent); }
 .captcha-slider-wrap.verified .captcha-slider-fill { background: linear-gradient(90deg, rgba(59,165,93,0.22), rgba(59,165,93,0.42)); width: 100% !important; }
@@ -986,11 +988,11 @@ body.no-anim .friend-item { animation: none !important; }
 
 .message-text { display: inline; white-space: pre-line; word-break: break-word; overflow-wrap: break-word; }
 .inline-link { color: inherit; text-decoration: underline; text-underline-offset: 2px; text-decoration-color: rgba(255,255,255,0.25); }
-.message-group:not(.own) .inline-link { text-decoration-color: rgba(74,158,255,0.4); }
+.message-group:not(.own) .inline-link { text-decoration-color: rgba(var(--accent-rgb), 0.4); }
 
 /* Mention highlight in messages */
 .mention-highlight {
-  background: rgba(74,158,255,0.10);
+  background: rgba(var(--accent-rgb), 0.10);
   color: var(--accent);
   padding: 1px 6px;
   border-radius: 4px;
@@ -1002,7 +1004,7 @@ body.no-anim .friend-item { animation: none !important; }
   border: none;
 }
 .mention-highlight:hover {
-  background: rgba(74,158,255,0.18);
+  background: rgba(var(--accent-rgb), 0.18);
 }
 .mention-highlight.mention-self {
   background: rgba(250,204,21,0.14);
@@ -1082,10 +1084,10 @@ body.no-anim .friend-item { animation: none !important; }
   position: relative;
 }
 .mention-dropdown-item:hover, .mention-dropdown-item.active {
-  background: rgba(74,158,255,0.14);
+  background: rgba(var(--accent-rgb), 0.14);
 }
 .mention-dropdown-item.active {
-  background: rgba(74,158,255,0.22);
+  background: rgba(var(--accent-rgb), 0.22);
   box-shadow: inset 3px 0 0 var(--accent);
 }
 .mention-dropdown-item:active { transform: scale(0.98); }
@@ -1202,7 +1204,7 @@ body.no-anim .friend-item { animation: none !important; }
 }
 .twosv-icon::after {
   content: ''; position: absolute; inset: -6px; border-radius: var(--radius-sm);
-  border: 1px solid rgba(74,158,255,0.12); pointer-events: none;
+  border: 1px solid rgba(var(--accent-rgb), 0.12); pointer-events: none;
 }
 .twosv-icon svg { width: 22px; height: 22px; }
 .twosv-title {
@@ -1256,7 +1258,7 @@ body.no-anim .friend-item { animation: none !important; }
   /* Checkmark icon removed \u2014 the button label ("Verify & Sign In") is enough. */
   content: none;
 }
-.twosv-btn:hover:not(:disabled) { background: var(--accent-hover); box-shadow: 0 2px 8px rgba(74,158,255,0.24); }
+.twosv-btn:hover:not(:disabled) { background: var(--accent-hover); box-shadow: 0 2px 8px rgba(var(--accent-rgb), 0.24); }
 .twosv-btn:active:not(:disabled) { transform: translateY(1px); }
 .twosv-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 .twosv-back-btn {
@@ -1292,8 +1294,8 @@ body.no-anim .friend-item { animation: none !important; }
   transition: var(--transition);
 }
 .twosv-status-icon.enabled {
-  background: rgba(74,158,255,0.1); color: var(--accent);
-  border: 1px solid rgba(74,158,255,0.22);
+  background: rgba(var(--accent-rgb), 0.1); color: var(--accent);
+  border: 1px solid rgba(var(--accent-rgb), 0.22);
 }
 .twosv-status-icon.disabled {
   background: var(--bg-darker); color: var(--text-muted);
@@ -1583,7 +1585,7 @@ body.no-anim .friend-item { animation: none !important; }
   border-radius: 8px; color: var(--text-primary); font-size: 13px;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
-.edit-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(74,158,255,0.12); }
+.edit-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.12); }
 .edit-confirm, .edit-cancel {
   padding: 6px 13px; font-size: 11px; font-weight: 600; border-radius: 8px;
   transition: transform 0.1s ease, background 0.15s ease;
@@ -1656,6 +1658,81 @@ body.no-anim .friend-item { animation: none !important; }
 }
 .emoji-react-picker .erp-emoji:hover { background: var(--bg-medium); transform: scale(1.2); }
 .emoji-react-picker .erp-emoji:active { transform: scale(0.9); }
+.emoji-react-picker .erp-plus {
+  font-size: 18px; line-height: 1; padding: 4px 7px; margin-left: 2px;
+  border-radius: 8px; cursor: pointer; border: none; background: transparent;
+  color: var(--text-secondary); border-left: 1px solid var(--border-light); padding-left: 8px;
+  transition: background 0.12s ease, transform 0.1s ease, color 0.12s ease;
+}
+.emoji-react-picker .erp-plus:hover { background: var(--bg-medium); transform: scale(1.15); color: var(--accent); }
+.emoji-react-picker .erp-plus:active { transform: scale(0.9); }
+
+/* Full emoji board overlay for custom reactions */
+.emoji-board-overlay {
+  position: fixed; inset: 0; z-index: 10001;
+  background: rgba(0,0,0,0.5); backdrop-filter: blur(2px);
+  display: flex; align-items: center; justify-content: center;
+  animation: emojiBoardFade 0.15s ease;
+}
+@keyframes emojiBoardFade { from { opacity: 0; } to { opacity: 1; } }
+.emoji-board {
+  width: 420px; max-width: 92vw; max-height: 70vh;
+  background: var(--bg-dark); border: 1px solid var(--border-light);
+  border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+  display: flex; flex-direction: column; overflow: hidden;
+  animation: emojiBoardPop 0.18s ease;
+}
+@keyframes emojiBoardPop { from { opacity: 0; transform: scale(0.92) translateY(10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+.emoji-board-header {
+  padding: 12px 16px 8px; display: flex; align-items: center; gap: 8px;
+  border-bottom: 1px solid var(--border);
+}
+.emoji-board-search {
+  flex: 1; padding: 7px 12px; border-radius: 8px; border: 1px solid var(--border-light);
+  background: var(--bg-medium); color: var(--text-primary); font-size: 13px; outline: none;
+}
+.emoji-board-search:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.14); }
+.emoji-board-close {
+  width: 30px; height: 30px; border-radius: 8px; border: none; cursor: pointer;
+  background: var(--bg-medium); color: var(--text-secondary); font-size: 16px; line-height: 1;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+.emoji-board-close:hover { background: var(--bg-hover); color: var(--text-primary); }
+.emoji-board-tabs {
+  display: flex; gap: 2px; padding: 0 12px; border-bottom: 1px solid var(--border);
+  overflow-x: auto; scrollbar-width: none;
+}
+.emoji-board-tabs::-webkit-scrollbar { display: none; }
+.emoji-board-tab {
+  padding: 8px 10px; font-size: 18px; line-height: 1; border: none; cursor: pointer;
+  background: transparent; border-bottom: 2px solid transparent; transition: border-color 0.12s ease, transform 0.1s ease;
+  flex-shrink: 0;
+}
+.emoji-board-tab:hover { transform: scale(1.15); }
+.emoji-board-tab.active { border-bottom-color: var(--accent); }
+.emoji-board-body {
+  flex: 1; overflow-y: auto; padding: 10px 14px;
+  scrollbar-width: thin; scrollbar-color: var(--border-light) transparent;
+}
+.emoji-board-body::-webkit-scrollbar { width: 6px; }
+.emoji-board-body::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 3px; }
+.emoji-board-category-label {
+  font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;
+  margin: 8px 0 6px; font-weight: 600;
+}
+.emoji-board-grid {
+  display: grid; grid-template-columns: repeat(8, 1fr); gap: 2px;
+}
+.emoji-board-item {
+  font-size: 22px; line-height: 1; text-align: center; padding: 6px 0;
+  border-radius: 8px; cursor: pointer; border: none; background: transparent;
+  transition: background 0.1s ease, transform 0.1s ease;
+}
+.emoji-board-item:hover { background: var(--bg-medium); transform: scale(1.25); }
+.emoji-board-item:active { transform: scale(0.85); }
+.emoji-board-empty {
+  padding: 30px 16px; text-align: center; color: var(--text-muted); font-size: 13px;
+}
 
 .typing-indicator {
   padding: 4px 24px 8px; font-size: 12px; color: var(--text-muted);
@@ -1725,13 +1802,13 @@ body.no-anim .friend-item { animation: none !important; }
 /* When someone replies to YOUR message, your original message gets a soft
    accent tint + left bar so you notice the reply. */
 .message-group.replied-to-me .message-bubble {
-  box-shadow: 0 0 0 1px rgba(74,158,255,0.25);
+  box-shadow: 0 0 0 1px rgba(var(--accent-rgb), 0.25);
   animation: reply-flash 2s ease;
 }
 @keyframes reply-flash {
-  0%   { box-shadow: 0 0 0 2px rgba(74,158,255,0.5), 0 0 16px rgba(74,158,255,0.15); }
-  60%  { box-shadow: 0 0 0 1.5px rgba(74,158,255,0.3), 0 0 10px rgba(74,158,255,0.08); }
-  100% { box-shadow: 0 0 0 1px rgba(74,158,255,0.12); }
+  0%   { box-shadow: 0 0 0 2px rgba(var(--accent-rgb), 0.5), 0 0 16px rgba(var(--accent-rgb), 0.15); }
+  60%  { box-shadow: 0 0 0 1.5px rgba(var(--accent-rgb), 0.3), 0 0 10px rgba(var(--accent-rgb), 0.08); }
+  100% { box-shadow: 0 0 0 1px rgba(var(--accent-rgb), 0.12); }
 }
 /* Persistent subtle indicator (after flash ends) */
 .message-group.replied-to-me::before {
@@ -1783,7 +1860,7 @@ body.no-anim .friend-item { animation: none !important; }
 .reply-preview-body .mention {
   font-weight: 700; border-radius: 3px; padding: 0 2px;
 }
-.reply-preview-body .mention-self { background: rgba(74,158,255,0.18); color: #8ab8ff; }
+.reply-preview-body .mention-self { background: rgba(var(--accent-rgb), 0.18); color: var(--accent-light); }
 .reply-preview-body .mention { background: rgba(255,255,255,0.08); color: var(--text-primary); }
 .reply-preview-body a { color: var(--accent); text-decoration: none; }
 .reply-preview-body a:hover { text-decoration: underline; }
@@ -1826,7 +1903,7 @@ body.no-anim .friend-item { animation: none !important; }
 .search-msg-header {
   padding: 20px 22px 16px; border-bottom: 1px solid var(--border);
   display: flex; align-items: center; gap: 12px; flex-shrink: 0;
-  background: linear-gradient(180deg, rgba(74,158,255,0.06) 0%, transparent 100%);
+  background: linear-gradient(180deg, rgba(var(--accent-rgb), 0.06) 0%, transparent 100%);
 }
 .search-msg-header h3 {
   font-size: 16px; font-weight: 700; color: var(--text-primary);
@@ -1859,7 +1936,7 @@ body.no-anim .friend-item { animation: none !important; }
   color: var(--text-primary); font-size: 14.5px; outline: none;
   transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
 }
-.search-msg-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(74,158,255,0.16); background: var(--bg-dark); }
+.search-msg-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.16); background: var(--bg-dark); }
 .search-msg-input::placeholder { color: var(--text-muted); }
 /* Search scope toggle — clean segmented control */
 .search-msg-scope {
@@ -1874,7 +1951,7 @@ body.no-anim .friend-item { animation: none !important; }
 .search-msg-scope button:hover { color: var(--text-primary); background: var(--bg-medium); }
 .search-msg-scope button.active {
   background: var(--accent); color: #fff; border-color: var(--accent);
-  box-shadow: 0 2px 10px rgba(74,158,255,0.25);
+  box-shadow: 0 2px 10px rgba(var(--accent-rgb), 0.25);
 }
 .search-msg-results {
   flex: 1; overflow-y: auto; padding: 8px 16px 20px;
@@ -1917,7 +1994,7 @@ body.no-anim .friend-item { animation: none !important; }
 }
 @keyframes searchResultIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 .search-result-item:hover {
-  background: var(--bg-medium); border-color: rgba(74,158,255,0.4);
+  background: var(--bg-medium); border-color: rgba(var(--accent-rgb), 0.4);
   transform: translateY(-1px); box-shadow: 0 6px 18px rgba(0,0,0,0.22);
 }
 .search-result-head {
@@ -1933,7 +2010,7 @@ body.no-anim .friend-item { animation: none !important; }
 .search-result-name { font-size: 13px; font-weight: 600; color: var(--text-primary); }
 .search-result-badge {
   font-size: 10px; font-weight: 700; color: var(--accent);
-  background: rgba(74,158,255,0.12); border: 1px solid rgba(74,158,255,0.22);
+  background: rgba(var(--accent-rgb), 0.12); border: 1px solid rgba(var(--accent-rgb), 0.22);
   padding: 1px 7px; border-radius: 5px; letter-spacing: 0.3px; text-transform: uppercase;
 }
 .search-result-time { font-size: 11px; color: var(--text-muted); margin-left: auto; font-variant-numeric: tabular-nums; white-space: nowrap; }
@@ -1973,11 +2050,11 @@ body.no-anim .friend-item { animation: none !important; }
 .members-bg-head {
   position: relative; padding: 22px 24px 18px; border-bottom: 1px solid var(--border);
   display: flex; align-items: center; gap: 10px;
-  background: linear-gradient(135deg, rgba(74,158,255,0.08) 0%, rgba(99,102,241,0.05) 50%, transparent 100%);
+  background: linear-gradient(135deg, rgba(var(--accent-rgb), 0.08) 0%, rgba(99,102,241,0.05) 50%, transparent 100%);
 }
 .members-bg-head::after {
   content: ''; position: absolute; left: 24px; right: 24px; bottom: -1px; height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(74,158,255,0.35), transparent);
+  background: linear-gradient(90deg, transparent, rgba(var(--accent-rgb), 0.35), transparent);
 }
 .members-bg-head h3 {
   font-size: 16px; font-weight: 600; color: var(--text-primary); margin: 0; flex: 1;
@@ -1985,7 +2062,7 @@ body.no-anim .friend-item { animation: none !important; }
 }
 .members-bg-head h3 svg {
   width: 20px; height: 20px; color: var(--accent);
-  stroke-width: 1.8; filter: drop-shadow(0 2px 6px rgba(74,158,255,0.35));
+  stroke-width: 1.8; filter: drop-shadow(0 2px 6px rgba(var(--accent-rgb), 0.35));
 }
 .members-bg-head .search-msg-close {
   width: 30px; height: 30px; border-radius: 8px; display: inline-flex;
@@ -2079,10 +2156,10 @@ body.no-anim .friend-item { animation: none !important; }
 }
 #members-bg-save {
   margin-top: 6px; font-size: 13px; font-weight: 600;
-  background: linear-gradient(180deg, rgba(74,158,255,0.16), rgba(74,158,255,0.10)) !important;
-  border-color: rgba(74,158,255,0.4) !important;
+  background: linear-gradient(180deg, rgba(var(--accent-rgb), 0.16), rgba(var(--accent-rgb), 0.10)) !important;
+  border-color: rgba(var(--accent-rgb), 0.4) !important;
 }
-#members-bg-save:hover { background: linear-gradient(180deg, rgba(74,158,255,0.24), rgba(74,158,255,0.16)) !important; border-color: var(--accent) !important; }
+#members-bg-save:hover { background: linear-gradient(180deg, rgba(var(--accent-rgb), 0.24), rgba(var(--accent-rgb), 0.16)) !important; border-color: var(--accent) !important; }
 
 /* Unsaved-changes banner inside the Members List Background modal. Appears
    whenever the draft differs from the currently-applied background. */
@@ -2188,7 +2265,7 @@ body.no-anim .friend-item { animation: none !important; }
   transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
 @keyframes notifIn { from { opacity: 0; transform: translateY(16px) scale(0.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
-.in-app-notif:hover { border-color: rgba(74,158,255,0.3); transform: translateY(-2px); box-shadow: 0 14px 48px rgba(0,0,0,0.55); }
+.in-app-notif:hover { border-color: rgba(var(--accent-rgb), 0.3); transform: translateY(-2px); box-shadow: 0 14px 48px rgba(0,0,0,0.55); }
 .in-app-notif-avatar {
   width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0; overflow: hidden;
   background: var(--bg-medium); display: flex; align-items: center; justify-content: center;
@@ -2212,7 +2289,7 @@ body.no-anim .friend-item { animation: none !important; }
   display: flex; align-items: center; justify-content: center;
 }
 .in-app-notif.mention .in-app-notif-icon { background: rgba(34,197,94,0.14); color: var(--success); }
-.in-app-notif.message .in-app-notif-icon { background: rgba(74,158,255,0.14); color: var(--accent); }
+.in-app-notif.message .in-app-notif-icon { background: rgba(var(--accent-rgb), 0.14); color: var(--accent); }
 .in-app-notif.dm .in-app-notif-icon { background: rgba(168,85,247,0.14); color: #a855f7; }
 .in-app-notif.reply .in-app-notif-icon { background: rgba(250,204,21,0.14); color: #facc15; }
 .in-app-notif.fade-out { animation: notifOut 0.3s ease forwards; }
@@ -2477,7 +2554,7 @@ body.no-anim .friend-item { animation: none !important; }
 .welcome-modal-glow {
   position: absolute; top: -60px; left: 50%; transform: translateX(-50%);
   width: 220px; height: 120px; border-radius: 50%;
-  background: radial-gradient(ellipse at center, rgba(74,158,255,0.18), transparent 70%);
+  background: radial-gradient(ellipse at center, rgba(var(--accent-rgb), 0.18), transparent 70%);
   pointer-events: none;
 }
 .welcome-modal-badge {
@@ -3341,7 +3418,7 @@ body.no-anim .friend-item { animation: none !important; }
 }
 .profile-save-btn:hover:not(:disabled), .setting-save-btn:hover:not(:disabled) {
   background: var(--accent-hover);
-  box-shadow: 0 2px 8px rgba(74,158,255,0.22);
+  box-shadow: 0 2px 8px rgba(var(--accent-rgb), 0.22);
 }
 .profile-save-btn:active:not(:disabled), .setting-save-btn:active:not(:disabled) {
   box-shadow: 0 1px 3px rgba(0,0,0,0.18);
@@ -3534,7 +3611,7 @@ body.no-anim .friend-item { animation: none !important; }
 .accent-adv-swatch {
   position: relative; width: 72px; height: 72px; border-radius: 14px;
   flex-shrink: 0; cursor: pointer; overflow: hidden;
-  background: #4a9eff;
+  background: var(--accent);
   border: 2px solid rgba(255,255,255,0.12);
   box-shadow: 0 4px 16px rgba(0,0,0,0.4), inset 0 0 0 1px rgba(0,0,0,0.2),
               inset 0 2px 10px rgba(255,255,255,0.18);
@@ -3624,7 +3701,7 @@ body.no-anim .friend-item { animation: none !important; }
   cursor: pointer; box-shadow: 0 0 0 1px var(--border-light), 0 2px 6px rgba(0,0,0,0.3);
   transition: box-shadow 0.18s ease, transform 0.18s ease;
   padding: 0; appearance: none; -webkit-appearance: none; flex-shrink: 0;
-  background-color: #4a9eff; background-image: none;
+  background-color: var(--accent); background-image: none;
 }
 .accent-swatch-large:hover {
   box-shadow: 0 0 0 1px var(--text-muted), 0 3px 10px rgba(0,0,0,0.4);
@@ -3688,7 +3765,7 @@ body.no-anim .friend-item { animation: none !important; }
 }
 .cs-preview-swatch {
   width: 44px; height: 44px; border-radius: 10px; flex-shrink: 0;
-  background: #4a9eff; cursor: pointer; position: relative;
+  background: var(--accent); cursor: pointer; position: relative;
   border: 2px solid rgba(255,255,255,0.12);
   box-shadow: 0 2px 8px rgba(0,0,0,0.3), inset 0 0 0 1px rgba(0,0,0,0.2);
   transition: transform 0.15s ease, box-shadow 0.15s ease;
@@ -3921,32 +3998,54 @@ body.no-anim .friend-item { animation: none !important; }
 .mini-btn { padding: 7px 12px !important; font-size: 11px !important; opacity: 1; }
 .mini-btn:hover { opacity: 1; }
 
-/* ---- Quick presets row ---- */
+/* ---- Quick presets row (advanced) ---- */
 .custom-bg-presets { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--border); }
 .custom-bg-label {
   font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px;
   color: var(--text-muted); margin-bottom: 10px;
 }
+.bg-preset-category-tabs {
+  display: flex; gap: 4px; margin-bottom: 12px; flex-wrap: wrap;
+}
+.bg-preset-cat-tab {
+  padding: 4px 11px; border-radius: 7px; border: 1px solid var(--border-light);
+  background: var(--bg-medium); color: var(--text-secondary); font-size: 11px; font-weight: 600;
+  cursor: pointer; transition: var(--transition); white-space: nowrap;
+}
+.bg-preset-cat-tab:hover { border-color: var(--text-muted); color: var(--text-primary); }
+.bg-preset-cat-tab.active { background: var(--accent); border-color: var(--accent); color: var(--accent-text); }
 .bg-preset-row { display: flex; gap: 9px; flex-wrap: wrap; }
 .bg-preset-chip {
   position: relative; padding: 0; border-radius: var(--radius-sm);
-  border: 1px solid var(--border);
+  border: 2px solid var(--border);
   font-size: 11px; font-weight: 600; color: #fff; cursor: pointer;
-  background: var(--bg-darker); text-shadow: 0 1px 3px rgba(0,0,0,0.6); transition: var(--transition);
-  min-width: 78px; height: 38px; box-shadow: none;
+  background: var(--bg-darker); text-shadow: 0 1px 3px rgba(0,0,0,0.7); transition: var(--transition);
+  min-width: 84px; height: 44px; box-shadow: none;
   display: inline-flex; align-items: center; justify-content: center; gap: 6px;
   overflow: hidden;
 }
 .bg-preset-chip::after {
   content: ''; position: absolute; inset: 0;
-  background: linear-gradient(180deg, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.45) 100%);
+  background: linear-gradient(180deg, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.5) 100%);
   pointer-events: none; transition: var(--transition);
 }
 .bg-preset-chip span, .bg-preset-chip { position: relative; z-index: 1; }
-.bg-preset-chip:hover { border-color: var(--text-muted); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.4); }
-.bg-preset-chip:hover::after { background: linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.55) 100%); }
-.bg-preset-chip.active { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(74,158,255,0.25), 0 4px 12px rgba(0,0,0,0.4); }
-.bg-preset-chip.active::after { background: linear-gradient(180deg, rgba(74,158,255,0.08) 0%, rgba(0,0,0,0.45) 100%); }
+.bg-preset-chip:hover { border-color: var(--text-muted); transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.45); }
+.bg-preset-chip:hover::after { background: linear-gradient(180deg, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.55) 100%); }
+.bg-preset-chip.active { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(var(--accent-rgb), 0.3), 0 4px 14px rgba(0,0,0,0.45); }
+.bg-preset-chip.active::after { background: linear-gradient(180deg, rgba(var(--accent-rgb), 0.08) 0%, rgba(0,0,0,0.45) 100%); }
+.bg-preset-chip .bg-check {
+  position: absolute; top: 3px; right: 4px; z-index: 2; font-size: 10px;
+  color: var(--accent); text-shadow: 0 0 4px rgba(0,0,0,0.8); display: none;
+}
+.bg-preset-chip.active .bg-check { display: block; }
+.bg-preset-clear {
+  padding: 0 14px; border-radius: var(--radius-sm); border: 1px dashed var(--border-light);
+  background: transparent; color: var(--text-muted); font-size: 11px; font-weight: 600;
+  cursor: pointer; height: 44px; transition: var(--transition);
+  display: inline-flex; align-items: center; justify-content: center; gap: 5px;
+}
+.bg-preset-clear:hover { border-color: var(--danger); color: var(--danger); border-style: solid; }
 
 .info-row {
   display: flex; justify-content: space-between; align-items: center;
@@ -4052,7 +4151,7 @@ body.no-anim .friend-item { animation: none !important; }
 }
 .pv-hidden-title-dot {
   width: 7px; height: 7px; border-radius: 50%; background: var(--accent);
-  flex-shrink: 0; box-shadow: 0 0 0 3px rgba(74,158,255,0.16);
+  flex-shrink: 0; box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.16);
 }
 .pv-hidden-sub {
   font-size: 12.5px; color: var(--text-muted); line-height: 1.55;
@@ -4220,7 +4319,7 @@ body.no-anim .friend-item { animation: none !important; }
   border-radius: 9px; border: 1px solid var(--border); background: var(--bg-dark);
   color: var(--text-primary); font-size: 13px; outline: none; transition: var(--transition);
 }
-.dm-search-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(74,158,255,0.16); }
+.dm-search-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.16); }
 .dm-search-input::placeholder { color: var(--text-muted); }
 .dm-search-results { overflow-y: auto; padding: 4px 8px 10px; flex: 1; display: flex; flex-direction: column; gap: 6px; }
 .dm-search-results::-webkit-scrollbar { width: 6px; }
@@ -4242,7 +4341,7 @@ body.no-anim .friend-item { animation: none !important; }
 .dm-search-result-name { font-size: 11px; font-weight: 600; color: var(--text-secondary); }
 .dm-search-result-time { margin-left: auto; font-size: 10px; color: var(--text-muted); }
 .dm-search-result-text { font-size: 12.5px; line-height: 1.42; color: var(--text-primary); word-break: break-word; overflow-wrap: break-word; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
-.dm-search-result-text mark { background: rgba(74,158,255,0.22); color: inherit; border-radius: 3px; padding: 0 1px; }
+.dm-search-result-text mark { background: rgba(var(--accent-rgb), 0.22); color: inherit; border-radius: 3px; padding: 0 1px; }
 
 /* Pinned-message indicator on the bubble itself */
 .message-bubble.is-pinned { box-shadow: inset 3px 0 0 var(--accent); }
@@ -4467,7 +4566,7 @@ body.no-anim .friend-item { animation: none !important; }
 .media-send-preview .media-video-icon {
   width: 34px; height: 34px; border-radius: 8px; flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
-  background: rgba(74,158,255,0.14); color: var(--accent);
+  background: rgba(var(--accent-rgb), 0.14); color: var(--accent);
 }
 .media-send-preview .media-video-info { flex: 1; min-width: 0; overflow: hidden; }
 .media-send-preview .media-video-name {
@@ -4660,7 +4759,7 @@ body.no-anim .friend-item { animation: none !important; }
 .toast.error .toast-icon { color: var(--danger); background: rgba(216,58,58,0.1); }
 .toast.error .toast-progress { background: var(--danger); opacity: 0.45; }
 .toast.info { border-left: 3px solid var(--accent); }
-.toast.info .toast-icon { color: var(--accent); background: rgba(74,158,255,0.1); }
+.toast.info .toast-icon { color: var(--accent); background: rgba(var(--accent-rgb), 0.1); }
 .toast.info .toast-progress { background: var(--accent); opacity: 0.45; }
 .toast.warning { border-left: 3px solid #d4a017; }
 .toast.warning .toast-icon { color: #d4a017; background: rgba(212,160,23,0.1); }
@@ -7418,6 +7517,7 @@ body.no-anim .friend-item { animation: none !important; }
             </div>
             <div class="custom-bg-presets">
               <div class="custom-bg-label">Quick Presets</div>
+              <div class="bg-preset-category-tabs" id="bg-preset-cat-tabs"></div>
               <div class="bg-preset-row" id="bg-preset-row"></div>
             </div>
           </div>
@@ -7581,9 +7681,6 @@ body.no-anim .friend-item { animation: none !important; }
           </div>
           <div id="admin-access-denied" class="admin-access-denied" style="display:none;">
             <div class="admin-access-card">
-              <div class="admin-access-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-              </div>
               <h3>Administrator Access Required</h3>
               <p>Enter the access code below to unlock the panel.</p>
               <div class="admin-access-form">
@@ -7591,7 +7688,6 @@ body.no-anim .friend-item { animation: none !important; }
                 <button class="setting-save-btn no-checkmark" id="admin-code-submit">Unlock Panel</button>
                 <p id="admin-code-error" style="display:none;"></p>
               </div>
-              <div class="admin-access-owner">Owner: <strong>@lore</strong></div>
             </div>
           </div>
           <div id="admin-panel-content" style="display:none;">
@@ -10853,6 +10949,64 @@ function getUserByUsername(username) {
 // The system works across chatroom, DMs, and group chats. Each context uses
 // its own socket event + server handler but shares these UI helpers.
 const REACT_EMOJIS = ['👍', '❤️', '😂', '😮', '😢', '🔥', '🎉', '👏'];
+const EMOJI_BOARD_CATEGORIES = [
+  { icon: '😀', label: 'Smileys', emojis: [
+    '😀','😁','😂','😃','😄','😅','😆','😉','😊','😋','😎','😍','😘','😗','😙','😚',
+    '☺','🙂','🤗','🤩','🤔','🤨','😐','😑','😶','🙄','😏','😣','😥','😮','🤐','😯',
+    '😪','😫','😴','😌','😛','😜','😝','🤤','😒','😓','😔','😕','🙃','🫠','🫡','🤐',
+    '🤑','🤠','😵','🤯','😳','🥵','🥶','😱','😨','😰','😥','😓','🤗','🤔','🤫','🤬',
+    '😠','😡','🥺','😢','😭','😤','😟','😞','🥹','😿','😭','😡','😎','🤓','🧐','😕',
+    '🙁','😖','😕','🙁','☹','😮','😨','😰','😱','😳','🥵','🥶','😠','😡','🤬','😈'
+  ]},
+  { icon: '❤️', label: 'Hearts', emojis: [
+    '❤️','🧡','💛','💚','💙','💜','🖤','🤍','🤎','💔','❣️','💕','💞','💓','💗','💖',
+    '💘','💝','💟','♥','💌','❤️‍🔥','❤️‍🩹','💯','💢','💥','💫','💦','💨','🕳','💤','👁',
+    '👀',' 👅','👄','🦷','骨骼','🧠','🫀','🫁','🩸','💧','💦','💨','🔥','✨','⭐','🌟'
+  ]},
+  { icon: '👍', label: 'Gestures', emojis: [
+    '👍','👎','👊','✊','🤛','🤜','👏','🙌','👐','🤲','🤝','🙏','✍','💪','🦾','🦿',
+    '🦵','🦶','👂','🦻','👃','🧠','🫀','🫁','🦷','🦴','👀','👁','👅','👄','💋','🩸',
+    '👍','👎','👌','🤌','🤏','✌','🤞','🤟','🤘','🤙','👈','👉','👆','👇','☝','✋',
+    '🤚','🖐','🖖','👋','🤝','💪','🫲','🫱','🫳','🫴','🫵','🫶','👏','🙌','👐','🤲'
+  ]},
+  { icon: '🐶', label: 'Animals', emojis: [
+    '🐶','🐱','🐭','🐹','🐰','🦊','🐻','🐼','🐨','🐯','🦁','🐮','🐷','🐽','🐸','🐵',
+    '🙈','🙉','🙊','🐒','🐔','🐧','🐦','🐤','🐣','🐥','🦆','🦅','🦉','🦇','🐺','🐗',
+    '🐴','🦄','🐝','🐛','🦋','🐌','🐞','🐜','🪰','🪲','🪳','🦟','🦗','🕷','🕸','🦂',
+    '🐢','🐍','🦎','🦖','🦕','🐙','🦑','🦐','🦞','🦀','🐡','🐠','🐟','🐬','🐳','🐋'
+  ]},
+  { icon: '🎉', label: 'Activities', emojis: [
+    '🎉','🎊','🎈','🎂','🎁','🎀','🎄','🎃','🎆','🎇','🧨','✨','🎉','🎊','🎋','🎍',
+    '🎎','🎏','🎐','🎑','🧧','🏆','🥇','🥈','🥉','🏅','🎖','🏵','🎗','🎫','🎟','🎪',
+    '🤹','🎭','🩰','🎨','🎬','🎤','🎧','🎼','🎹','🥁','🎷','🎺','🎸','🪕','🎻','🎲',
+    '♟','🎯','🎳','🎮','🎰','🧩','⚽','🏀','🏈','⚾','🥎','🎾','🏐','🏉','🥏','🎱'
+  ]},
+  { icon: '🍎', label: 'Food', emojis: [
+    '🍎','🍐','🍊','🍋','🍌','🍉','🍇','🍓','🫐','🍈','🍒','🍑','🥭','🍍','🥥','🥝',
+    '🍅','🍆','🥑','🥦','🥬','🥒','🌶','🫑','🌽','🥕','🫒','🧄','🧅','🥔','🍠','🥐',
+    '🥯','🍞','🥖','🥨','🧀','🥚','🍳','🧈','🥞','🧇','🥓','🥩','🍗','🍖','🦴','🌭',
+    '🍔','🍟','🍕','🥪','🥙','🧆','🌮','🌯','🫔','🥗','🥘','🫕','🥫','🍝','🍜','🍲'
+  ]},
+  { icon: '🌸', label: 'Nature', emojis: [
+    '🌸','🌺','🌻','🌹','🥀','🌷','🌼','🌷','🌱','🪴','🌲','🌳','🌴','🌵','🌾','🌿',
+    '☘','🍀','🍁','🍂','🍃','🍄','🐚','🪨','💐','🌷','🌹','🥀','🌺','🌸','🌼','🌻',
+    '🌞','🌝','🌚','🌒','🌓','🌔','🌕','🌖','🌗','🌘','🌙','🌎','🌍','🌏','🪐','💫',
+    '⭐','🌟','✨','⚡','☄','💥','🔥','🌪','🌈','☀','⛅','☁','🌧','⛈','🌩','🌨'
+  ]},
+  { icon: '🚀', label: 'Objects', emojis: [
+    '🚀','🛸','🚁','🚂','🚃','🚄','🚅','🚆','🚇','🚈','🚉','🚊','🚝','🚞','🚋','🚌',
+    '🚍','🚎','🚏','🚐','🚑','🚒','🚓','🚔','🚕','🚖','🚗','🚘','🚙','🚚','🚛','🚜',
+    '🏎','🏍','🛵','🦽','🦼','🛺','🚲','🛴','🛹','🛼','🚏','🛣','🛤','🛢','⛽','🚨',
+    '🚥','🚦','🛑','⚓','⛵','🛶','🚤','🛳','⛴','🚢','✈','🛩','🛫','🛬','🪂','💺'
+  ]},
+  { icon: '💡', label: 'Symbols', emojis: [
+    '💡','🔦','🕯','🪔','🧯','🛢','💸','💵','💴','💶','💷','🪙','💰','💳','💎','⚖',
+    '🪜','🧰','🔧','🪛','🔩','⚙','🪤','🧱','⛓','🧲','🔫','💣','🧨','🪓','🔪','🗡',
+    '⚔','🛡','🚬','⚰','🪦','⚱','🏺','🔮','📿','🧿','💈','⚗','🔭','🔬','🕳','🩹',
+    '🩺','💊','💉','🩸','🧬','🦠','🧫','🧬','🔬','🔭','📡','🔋','🪫','🔌','💻','🖥'
+  ]}
+];
+let _activeEmojiBoard = null;
 let _activeReactPicker = null;
 
 // Get the reactions map from a message (initialises if missing)
@@ -10947,6 +11101,17 @@ function showReactPicker(anchorEl, msg, scope, extra) {
     });
     picker.appendChild(btn);
   });
+  // "+" button — opens the full emoji board for custom reactions
+  const plusBtn = document.createElement('button');
+  plusBtn.className = 'erp-plus';
+  plusBtn.textContent = '+';
+  plusBtn.title = 'More emojis';
+  plusBtn.addEventListener('click', (ev) => {
+    ev.stopPropagation();
+    closeReactPicker();
+    openEmojiBoard(msg, scope, extra);
+  });
+  picker.appendChild(plusBtn);
   document.body.appendChild(picker);
   _activeReactPicker = picker;
   // Position the picker above the anchor button
@@ -10970,13 +11135,171 @@ function closeReactPicker() {
     _activeReactPicker = null;
   }
 }
+
+// Full emoji board overlay — lets users pick ANY emoji as a reaction
+let _emojiBoardContext = null; // { msg, scope, extra }
+let _emojiBoardActiveCat = 0;
+
+function openEmojiBoard(msg, scope, extra) {
+  closeEmojiBoard();
+  _emojiBoardContext = { msg, scope, extra };
+  _emojiBoardActiveCat = 0;
+
+  const overlay = document.createElement('div');
+  overlay.className = 'emoji-board-overlay';
+
+  const board = document.createElement('div');
+  board.className = 'emoji-board';
+  overlay.appendChild(board);
+
+  // Header with search + close
+  const header = document.createElement('div');
+  header.className = 'emoji-board-header';
+  const search = document.createElement('input');
+  search.type = 'text';
+  search.className = 'emoji-board-search';
+  search.placeholder = 'Search emojis...';
+  const closeBtn = document.createElement('button');
+  closeBtn.className = 'emoji-board-close';
+  closeBtn.textContent = '\u2715';
+  closeBtn.title = 'Close';
+  closeBtn.onclick = (ev) => { ev.stopPropagation(); closeEmojiBoard(); };
+  header.appendChild(search);
+  header.appendChild(closeBtn);
+  board.appendChild(header);
+
+  // Category tabs
+  const tabs = document.createElement('div');
+  tabs.className = 'emoji-board-tabs';
+  board.appendChild(tabs);
+
+  // Body (scrollable grid)
+  const body = document.createElement('div');
+  body.className = 'emoji-board-body';
+  board.appendChild(body);
+
+  function renderCategory(idx) {
+    _emojiBoardActiveCat = idx;
+    // Update tab active states
+    [...tabs.children].forEach((t, i) => t.classList.toggle('active', i === idx));
+    const cat = EMOJI_BOARD_CATEGORIES[idx];
+    body.innerHTML = '';
+    const label = document.createElement('div');
+    label.className = 'emoji-board-category-label';
+    label.textContent = cat.label;
+    body.appendChild(label);
+    const grid = document.createElement('div');
+    grid.className = 'emoji-board-grid';
+    cat.emojis.forEach(emoji => {
+      const item = document.createElement('button');
+      item.className = 'emoji-board-item';
+      item.textContent = emoji;
+      item.addEventListener('click', (ev) => {
+        ev.stopPropagation();
+        if (_emojiBoardContext) {
+          const c = _emojiBoardContext;
+          toggleReaction(c.msg, emoji, c.scope, c.extra);
+        }
+        closeEmojiBoard();
+      });
+      grid.appendChild(item);
+    });
+    body.appendChild(grid);
+    body.scrollTop = 0;
+  }
+
+  function renderSearch(query) {
+    const q = query.trim().toLowerCase();
+    body.innerHTML = '';
+    tabs.style.display = q ? 'none' : 'flex';
+    if (!q) {
+      renderCategory(_emojiBoardActiveCat);
+      return;
+    }
+    // Simple search: match category label or just show all emojis from all cats
+    const all = [];
+    EMOJI_BOARD_CATEGORIES.forEach(cat => {
+      cat.emojis.forEach(e => all.push(e));
+    });
+    // Since we don't have keyword data, show all unique emojis when searching
+    const unique = [...new Set(all)];
+    const grid = document.createElement('div');
+    grid.className = 'emoji-board-grid';
+    unique.forEach(emoji => {
+      const item = document.createElement('button');
+      item.className = 'emoji-board-item';
+      item.textContent = emoji;
+      item.addEventListener('click', (ev) => {
+        ev.stopPropagation();
+        if (_emojiBoardContext) {
+          const c = _emojiBoardContext;
+          toggleReaction(c.msg, emoji, c.scope, c.extra);
+        }
+        closeEmojiBoard();
+      });
+      grid.appendChild(item);
+    });
+    if (unique.length === 0) {
+      const empty = document.createElement('div');
+      empty.className = 'emoji-board-empty';
+      empty.textContent = 'No emojis found';
+      body.appendChild(empty);
+    } else {
+      body.appendChild(grid);
+    }
+  }
+
+  // Build tabs
+  EMOJI_BOARD_CATEGORIES.forEach((cat, i) => {
+    const tab = document.createElement('button');
+    tab.className = 'emoji-board-tab' + (i === 0 ? ' active' : '');
+    tab.textContent = cat.icon;
+    tab.title = cat.label;
+    tab.addEventListener('click', (ev) => {
+      ev.stopPropagation();
+      search.value = '';
+      renderCategory(i);
+    });
+    tabs.appendChild(tab);
+  });
+
+  // Search handler
+  let searchTimer = null;
+  search.addEventListener('input', () => {
+    if (searchTimer) clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => renderSearch(search.value), 150);
+  });
+
+  // Close on overlay click
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) closeEmojiBoard();
+  });
+
+  // Initial render
+  renderCategory(0);
+
+  document.body.appendChild(overlay);
+  _activeEmojiBoard = overlay;
+  // Focus search after animation
+  setTimeout(() => { try { search.focus(); } catch(_) {} }, 100);
+}
+
+function closeEmojiBoard() {
+  if (_activeEmojiBoard) {
+    _activeEmojiBoard.remove();
+    _activeEmojiBoard = null;
+  }
+  _emojiBoardContext = null;
+}
 // Close the picker when clicking elsewhere or pressing Escape
 document.addEventListener('click', (e) => {
-  if (_activeReactPicker && !_activeReactPicker.contains(e.target) && !e.target.classList.contains('msg-react-btn')) {
+  if (_activeReactPicker && !_activeReactPicker.contains(e.target) && !e.target.classList.contains('msg-react-btn') && !e.target.classList.contains('erp-plus')) {
     closeReactPicker();
   }
 });
-document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeReactPicker(); });
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') { closeReactPicker(); closeEmojiBoard(); }
+});
 
 // Create a "React" action button to be appended to a message's .message-actions
 function createReactButton(msg, scope, extra) {
@@ -19068,42 +19391,134 @@ if ($('bg-reset-adjust-btn')) {
   });
 }
 
-// Background quick presets (curated built-in backgrounds + curated gradients)
-const bgPresets = [
-  { name: 'Aurora', type: 'gradient', value: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' },
-  { name: 'Sunset', type: 'gradient', value: 'linear-gradient(135deg, #ff9a9e 0%, #fad0c4 50%, #fbc2eb 100%)' },
-  { name: 'Ocean', type: 'gradient', value: 'linear-gradient(135deg, #2E3192 0%, #1BFFFF 100%)' },
-  { name: 'Forest', type: 'gradient', value: 'linear-gradient(135deg, #134E5E 0%, #71B280 100%)' },
-  { name: 'Midnight', type: 'gradient', value: 'linear-gradient(135deg, #0F2027 0%, #203A43 50%, #2C5364 100%)' },
-  { name: 'Peach', type: 'gradient', value: 'linear-gradient(135deg, #FFB75E 0%, #ED8F03 100%)' },
-  { name: 'Noir', type: 'gradient', value: 'linear-gradient(135deg, #232526 0%, #414345 100%)' },
-  { name: 'Candy', type: 'gradient', value: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)' },
+// Background quick presets — categorized, with active-state detection
+const bgPresetCategories = [
+  { name: 'Gradients', presets: [
+    { name: 'Aurora', value: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' },
+    { name: 'Sunset', value: 'linear-gradient(135deg, #ff9a9e 0%, #fad0c4 50%, #fbc2eb 100%)' },
+    { name: 'Ocean', value: 'linear-gradient(135deg, #2E3192 0%, #1BFFFF 100%)' },
+    { name: 'Forest', value: 'linear-gradient(135deg, #134E5E 0%, #71B280 100%)' },
+    { name: 'Midnight', value: 'linear-gradient(135deg, #0F2027 0%, #203A43 50%, #2C5364 100%)' },
+    { name: 'Peach', value: 'linear-gradient(135deg, #FFB75E 0%, #ED8F03 100%)' },
+    { name: 'Candy', value: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)' },
+    { name: 'Mango', value: 'linear-gradient(135deg, #ffe259 0%, #ffa751 100%)' },
+  ]},
+  { name: 'Vibrant', presets: [
+    { name: 'Fire', value: 'linear-gradient(135deg, #f12711 0%, #f5af19 100%)' },
+    { name: 'Berry', value: 'linear-gradient(135deg, #c31432 0%, #240b36 100%)' },
+    { name: 'Lime', value: 'linear-gradient(135deg, #a8ff78 0%, #78ffd6 100%)' },
+    { name: 'Rose', value: 'linear-gradient(135deg, #ee9ca7 0%, #ffdde1 100%)' },
+    { name: 'Sky', value: 'linear-gradient(135deg, #2980b9 0%, #6dd5fa 100%)' },
+    { name: 'Grape', value: 'linear-gradient(135deg, #654ea3 0%, #eaafc8 100%)' },
+    { name: 'Coral', value: 'linear-gradient(135deg, #ff6a00 0%, #ee0979 100%)' },
+    { name: 'Mint', value: 'linear-gradient(135deg, #00b09b 0%, #96c93d 100%)' },
+  ]},
+  { name: 'Dark', presets: [
+    { name: 'Noir', value: 'linear-gradient(135deg, #232526 0%, #414345 100%)' },
+    { name: 'Carbon', value: 'linear-gradient(135deg, #1f1c2c 0%, #928dab 100%)' },
+    { name: 'Shadow', value: 'linear-gradient(135deg, #0b0b0d 0%, #1a1a2e 100%)' },
+    { name: 'Steel', value: 'linear-gradient(135deg, #2c3e50 0%, #4ca1af 100%)' },
+    { name: 'Obsidian', value: 'linear-gradient(135deg, #000000 0%, #434343 100%)' },
+    { name: 'Eclipse', value: 'linear-gradient(135deg, #200122 0%, #6f0000 100%)' },
+  ]},
+  { name: 'Solids', presets: [
+    { name: 'Slate', value: 'linear-gradient(135deg, #37474f 0%, #37474f 100%)' },
+    { name: 'Indigo', value: 'linear-gradient(135deg, #3f51b5 0%, #3f51b5 100%)' },
+    { name: 'Teal', value: 'linear-gradient(135deg, #00897b 0%, #00897b 100%)' },
+    { name: 'Plum', value: 'linear-gradient(135deg, #6a1b9a 0%, #6a1b9a 100%)' },
+    { name: 'Crimson', value: 'linear-gradient(135deg, #c62828 0%, #c62828 100%)' },
+    { name: 'Amber', value: 'linear-gradient(135deg, #ff8f00 0%, #ff8f00 100%)' },
+  ]},
 ];
+
+let _bgPresetActiveCat = 0;
+
+function _getCurrentBgGradientString() {
+  // Returns the gradient CSS string if the current bg is a gradient preset, else null
+  const s = getBgSettings();
+  if (!s || !s.url || typeof s.url !== 'string') return null;
+  if (s.url.indexOf('__gradient__') === 0) return s.url.substring('__gradient__'.length);
+  return null;
+}
+
 function initBgPresets() {
   const row = $('bg-preset-row');
+  const tabsContainer = $('bg-preset-cat-tabs');
   if (!row) return;
-  row.innerHTML = '';
-  bgPresets.forEach(p => {
-    const el = document.createElement('button');
-    el.type = 'button';
-    el.className = 'bg-preset-chip';
-    el.style.background = p.value; // gradient shows through the ::after overlay
-    el.title = p.name;
-    const label = document.createElement('span');
-    label.textContent = p.name;
-    el.appendChild(label);
-    el.addEventListener('click', () => {
+
+  // Build category tabs
+  if (tabsContainer) {
+    tabsContainer.innerHTML = '';
+    // Detect which category the current preset belongs to
+    const currentGrad = _getCurrentBgGradientString();
+    bgPresetCategories.forEach((cat, i) => {
+      if (currentGrad && cat.presets.some(p => p.value === currentGrad)) _bgPresetActiveCat = i;
+    });
+    bgPresetCategories.forEach((cat, i) => {
+      const tab = document.createElement('button');
+      tab.type = 'button';
+      tab.className = 'bg-preset-cat-tab' + (i === _bgPresetActiveCat ? ' active' : '');
+      tab.textContent = cat.name;
+      tab.addEventListener('click', () => {
+        _bgPresetActiveCat = i;
+        [...tabsContainer.children].forEach((t, j) => t.classList.toggle('active', j === i));
+        renderPresetChips();
+      });
+      tabsContainer.appendChild(tab);
+    });
+  }
+
+  function renderPresetChips() {
+    row.innerHTML = '';
+    const currentGrad = _getCurrentBgGradientString();
+    const cat = bgPresetCategories[_bgPresetActiveCat];
+    cat.presets.forEach(p => {
+      const el = document.createElement('button');
+      el.type = 'button';
+      el.className = 'bg-preset-chip' + (currentGrad === p.value ? ' active' : '');
+      el.style.background = p.value;
+      el.title = p.name;
+      const check = document.createElement('span');
+      check.className = 'bg-check';
+      check.textContent = '\u2713';
+      el.appendChild(check);
+      const label = document.createElement('span');
+      label.textContent = p.name;
+      el.appendChild(label);
+      el.addEventListener('click', () => {
+        const s = getCurrentBgSettings();
+        s.url = '__gradient__' + p.value;
+        s.mode = 'cover';
+        s.scale = 100; s.posX = 50; s.posY = 50;
+        saveBgSettings(s);
+        applyBgSettings();
+        updateBgPreview();
+        // Update active states without full rebuild
+        row.querySelectorAll('.bg-preset-chip').forEach(c => c.classList.remove('active'));
+        el.classList.add('active');
+        toast('Background set to ' + p.name + '.', 'success');
+      });
+      row.appendChild(el);
+    });
+    // Add a "Clear" button at the end
+    const clearBtn = document.createElement('button');
+    clearBtn.type = 'button';
+    clearBtn.className = 'bg-preset-clear';
+    clearBtn.textContent = '\u2715 Clear Background';
+    clearBtn.title = 'Remove background';
+    clearBtn.addEventListener('click', () => {
       const s = getCurrentBgSettings();
-      s.url = '__gradient__' + p.value; // special marker — applyBgSettings handles gradients
-      s.mode = 'cover';
-      s.scale = 100; s.posX = 50; s.posY = 50;
+      s.url = null;
       saveBgSettings(s);
       applyBgSettings();
       updateBgPreview();
-      toast('Background has been set to ' + p.name + '.', 'success');
+      row.querySelectorAll('.bg-preset-chip').forEach(c => c.classList.remove('active'));
+      toast('Background cleared.', 'info');
     });
-    row.appendChild(el);
-  });
+    row.appendChild(clearBtn);
+  }
+
+  renderPresetChips();
 }
 initBgPresets();
 
