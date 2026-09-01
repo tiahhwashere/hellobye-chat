@@ -9,4 +9,4 @@ User request: "remove the 'Protected sessions · Encrypted credentials · v2.0' 
 - [x] index.html: Fix deviceCardHTML to show useful info instead of "Unknown browser · Unknown" and "Active Unknown" — use fallback labels that are still informative
 - [x] Syntax check both files
 - [x] Test locally
-- [ ] Restore db.json, commit, push, deploy, verify live
+- [x] Restore db.json, commit, push, deploy, verify live
