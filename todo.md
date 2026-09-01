@@ -14,4 +14,4 @@ User request: "for the 2-Step Verification whenever the Next Auto-Regen is due n
 - [x] index.html: Update regenerate prompt text — remove "limited to once every 48 hours"
 - [x] Syntax check both files
 - [x] Test locally (API + browser UI verified)
-- [ ] Restore db.json, commit, push, deploy, verify live
+- [x] Restore db.json, commit, push, deploy, verify live
