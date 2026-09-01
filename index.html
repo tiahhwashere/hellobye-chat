@@ -6384,6 +6384,57 @@ body.no-anim .friend-item { animation: none !important; }
   .sender-displayname { font-size: 12px; }
 }
 
+/* ============================================
+   ADDITIONAL MOBILE SUPPORT — anti-lag & anti-bug
+   ============================================ */
+/* Prevent horizontal page scroll / overflow on mobile (a common cause of
+   the whole app feeling "laggy" / draggable sideways). Everything that can
+   stick out is clipped to the viewport. */
+@media (max-width: 768px) {
+  html, body { overflow-x: hidden; max-width: 100vw; overscroll-behavior-x: none; }
+  #chat-app { max-width: 100vw; overflow-x: hidden; }
+  /* Keep scroll containers smooth + momentum on iOS without layout thrash */
+  .messages-container, .dm-messages, .sidebar-view,
+  .settings-v2-content, .profile-v2-body {
+    -webkit-overflow-scrolling: touch;
+    overflow-y: auto;
+    contain: content; /* isolate layout/paint to reduce jank while scrolling */
+  }
+  /* Guarantee a comfortable 40px+ tap target for every interactive control
+     on touch screens so no button is too small to tap reliably. */
+  @media (hover: none) and (pointer: coarse) {
+    button, .btn-primary, .btn-secondary, .modal-btn, .icon-btn,
+    .sidebar-nav-btn, .mini-btn, .msg-action-btn, .ctx-item,
+    .setting-save-btn, .admin-btn, .toast-close {
+      min-height: 40px; min-width: 40px;
+    }
+  }
+  /* Toast: slightly larger text + safer bottom offset on mobile so it never
+     overlaps the chat input bar, and ensure it never exceeds viewport width. */
+  .toast-container { width: min(440px, calc(100vw - 24px)); }
+  .toast { font-size: 13px; padding: 12px 14px; word-break: break-word; }
+  /* Modals: never exceed the viewport and always scroll internally on mobile
+     so the close button + action buttons stay reachable above the keyboard. */
+  .modal, .settings-modal-v2, .profile-modal-v2 {
+    max-width: calc(100vw - 16px); max-height: 100dvh;
+    margin: auto;
+  }
+  /* Inputs inside modals: prevent iOS zoom-on-focus by using >=16px font. */
+  .modal input, .modal textarea, .modal select,
+  .settings-v2-content input, .settings-v2-content textarea,
+  .profile-v2-body input, .profile-v2-body textarea,
+  #chat-input, #dm-input, #group-input { font-size: 16px; }
+}
+
+/* Very small screens: keep the admin Clear button + small action buttons
+   usable even at 360px by preventing text wrap from shrinking the tap area. */
+@media (max-width: 480px) {
+  #admin-clear-activity-btn,
+  .setting-save-btn.no-checkmark { white-space: nowrap; flex-shrink: 0; }
+  /* Toasts: cap width a touch tighter and keep them above the iOS home bar. */
+  .toast-container { bottom: calc(84px + env(safe-area-inset-bottom, 0px)); }
+}
+
 </style>
   <link rel="icon" type="image/jpeg" href="/uploads/favicon.jpg">
   <link rel="apple-touch-icon" href="/uploads/favicon.jpg">
@@ -8694,8 +8745,23 @@ const chatApp = $('chat-app');
 // ---------- Toast ----------
 function toast(msg, type = '', opts = {}) {
   const container = $('toast-container');
+  if (!container) return;
+  const msgStr = String(msg);
+  // ---- Duplicate-toast suppression ----
+  // If an identical toast (same message + same type) is already visible
+  // right now, don't create another one. This is a global safety net that
+  // eliminates duplicate/doubled toast UI anywhere in the app (e.g. when a
+  // direct call and a socket-driven call both fire for the same action, or
+  // when a handler runs more than once). We use a short fingerprint keyed on
+  // message+type and only suppress within the active lifetime of the
+  // existing toast so genuinely repeated notifications later still show.
+  const fp = type + '|' + msgStr;
+  if (container.querySelector('.toast:not(.fade-out)[data-toast-fp="' + cssAttrEscape(fp) + '"]')) {
+    return;
+  }
   const el = document.createElement('div');
   el.className = 'toast ' + type;
+  el.setAttribute('data-toast-fp', fp);
   // opts.noIcon suppresses the leading SVG icon for this toast (keeps the
   // colored accent bar). Used for the "Password is required." validation
   // toast so it shows as a clean text message without the error icon.
@@ -8931,6 +8997,24 @@ function escapeHtml(text) {
   const div = document.createElement('div');
   div.textContent = text;
   return div.innerHTML;
+}
+// Escape a string so it is safe to embed inside a CSS [attr="..."] selector
+// (used by the toast duplicate-suppression fingerprint query). Doubles
+// quotes and backslashes per the CSS string-escaping rules.
+function cssAttrEscape(s) {
+  return String(s).replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+}
+// Simple debounce: returns a wrapper that delays invoking `fn` until
+// `wait` ms have elapsed since the last call. Trailing-edge only. Used to
+// throttle expensive re-renders (user/admin message search filtering) that
+// would otherwise run on every keystroke and cause UI lag.
+function debounce(fn, wait) {
+  let t = null;
+  return function () {
+    const ctx = this, args = arguments;
+    if (t) clearTimeout(t);
+    t = setTimeout(() => { t = null; fn.apply(ctx, args); }, wait || 150);
+  };
 }
 // Normalize message text before sending/rendering so that:
 //  - leading spaces on each line are removed (stops 'space then type'
@@ -10429,6 +10513,14 @@ function startAuthCooldown(type, seconds, btn, normalText) {
 
 // ---------- Socket Connection ----------
 function connectSocket() {
+  // Safety: if a previous socket is still alive (e.g. initChat ran again
+  // without a clean logout), disconnect it first. Otherwise BOTH sockets
+  // would receive the same events and double-fire handlers (duplicate
+  // messages, duplicate toasts, duplicate ping sounds).
+  if (socket && typeof socket.disconnect === 'function') {
+    try { socket.disconnect(); } catch (e) {}
+    socket = null;
+  }
   const sid = sessionSocketId || getCookie('hellobye_session');
   socket = io(SOCKET_URL, { auth: { sessionId: sid }, transports: ['polling', 'websocket'], upgrade: true, rememberUpgrade: true });
 
@@ -14332,8 +14424,12 @@ window.addEventListener('resize', () => {
   const gdd = $('group-attach-dropdown');
   if (gdd && gdd.classList.contains('show')) positionAttachDropdown(gdd, $('group-attach-btn'));
   /* Re-apply the members-list background so its height-anchored sizing tracks
-     the sidebar's new height after a browser zoom or viewport change. */
-  if (typeof applyMembersBg === 'function') applyMembersBg();
+     the sidebar's new height after a browser zoom or viewport change.
+     Debounced so the (relatively heavy) reflow only runs once at the end of a
+     burst of resize events — important on mobile where an orientation change
+     or keyboard open/close can fire many resize events in quick succession. */
+  if (typeof _applyMembersBgTimer !== 'undefined') clearTimeout(_applyMembersBgTimer);
+  _applyMembersBgTimer = setTimeout(() => { if (typeof applyMembersBg === 'function') applyMembersBg(); }, 120);
 });
 window.addEventListener('orientationchange', () => { setTimeout(() => { if (typeof applyMembersBg === 'function') applyMembersBg(); }, 220); });
 window.addEventListener('scroll', () => {
@@ -14904,7 +15000,10 @@ function attachUserListListeners() {
     });
   });
 }
-$('user-search').addEventListener('input', renderUserList);
+// Debounced so rapid typing in the member search doesn't re-render the
+// entire user list on every keystroke (which caused sidebar lag with many
+// members). renderUserListDebounced coalesces to one render per ~60ms.
+$('user-search').addEventListener('input', renderUserListDebounced);
 
 // ---------- Sidebar Self ----------
 function updateSidebarSelf() {
@@ -18104,6 +18203,13 @@ async function saveMiniProfile(silent) {
 
 // Wire up all the mini popover event listeners (called once on DOM ready)
 function initMiniProfileListeners() {
+  // Guard: called on every initChat() via applyClientSettings(). The mini
+  // profile inputs (bio/pronouns/status) and especially the bio auto-save
+  // (mouseup/touchend on document) must only be bound ONCE. Re-binding added
+  // a new document touchend+mouseup handler per login, which stacked up and
+  // caused noticeable lag/jank on mobile (every touch fired N handlers).
+  if (window._miniProfileListenersBound) return;
+  window._miniProfileListenersBound = true;
   // Bio input → dirty + counter
   const bioInput = $('mini-bio-input');
   if (bioInput) {
@@ -21822,6 +21928,12 @@ function buildSwatchGrid(containerId) {
 
 // Wire up tab switching for ALL Color Studio instances on the page.
 function initColorStudioTabs() {
+  // Guard: this is called on every initChat() via applyClientSettings() →
+  // initColorStudio(). The .cs-tab buttons are static DOM, so re-binding
+  // here stacked duplicate click handlers and made tab clicks fire N times
+  // (visual lag + redundant applyProfileColor calls). Bind once only.
+  if (window._csTabsBound) return;
+  window._csTabsBound = true;
   document.querySelectorAll('.cs-tabs').forEach(tabBar => {
     tabBar.querySelectorAll('.cs-tab').forEach(tab => {
       tab.addEventListener('click', () => {
@@ -21846,6 +21958,13 @@ function initColorStudioTabs() {
 
 // Wire up the RGB sliders + slider-hex inputs for a scope.
 function initRGBSliders(scope) {
+  // Guard per scope: called on every initChat() via applyClientSettings() →
+  // initColorStudio(). Sliders are static DOM; re-binding stacked duplicate
+  // 'input' handlers so dragging a slider fired onSlide N times per frame →
+  // jittery/laggy color updates. Bind each scope exactly once.
+  const boundKey = '_csRGBBound_' + scope;
+  if (window[boundKey]) return;
+  window[boundKey] = true;
   const prefix = scope === 'mini' ? 'mini-cs' : 'profile-cs';
   const r = $(prefix + '-r'), g = $(prefix + '-g'), b = $(prefix + '-b');
   const rv = $(prefix + '-r-val'), gv = $(prefix + '-g-val'), bv = $(prefix + '-b-val');
@@ -23971,7 +24090,16 @@ async function adminRemoveCooldownExempt(username) {
 }
 
 // Wire up admin event listeners
+// IMPORTANT: this function is called on every initChat() (login / signup /
+// refresh / reactivate). The admin panel DOM is static (the buttons are
+// declared once in HTML and never recreated), so re-binding here every time
+// would stack MULTIPLE click handlers on the same buttons. That is the root
+// cause of the "Admin activity log has been cleared" DOUBLE TOAST and the
+// "stuck" Clear button (several async handlers racing over disabled/text).
+// We guard with a one-time flag so the listeners are bound exactly once.
 function initAdminEventListeners() {
+  if (window._adminListenersBound) return;
+  window._adminListenersBound = true;
   // Admin code prompt (unlock the panel)
   const adminCodeSubmit = $('admin-code-submit');
   if (adminCodeSubmit) adminCodeSubmit.addEventListener('click', submitAdminCode);
@@ -23998,11 +24126,15 @@ function initAdminEventListeners() {
   const banConfirmBtn = $('admin-ban-confirm-btn');
   if (banConfirmBtn) banConfirmBtn.addEventListener('click', adminBanUser);
   // Clear admin activity log
-  const clearActivityBtn = $('admin-clear-activity-btn');
   if (clearActivityBtn) {
     clearActivityBtn.addEventListener('click', async () => {
+      // Guard against re-entry: if a clear request is already in flight,
+      // ignore further clicks so we never fire a duplicate request (which
+      // was producing the duplicate "activity log has been cleared" toast)
+      // and never leave the button stuck disabled.
+      if (clearActivityBtn.dataset.clearing === '1') return;
+      clearActivityBtn.dataset.clearing = '1';
       clearActivityBtn.disabled = true;
-      const prev = clearActivityBtn.textContent;
       clearActivityBtn.textContent = 'Clearing…';
       try {
         const res = await fetch(API_BASE + '/api/admin/clear-activity', { method: 'POST', headers: getAuthHeaders() });
@@ -24015,9 +24147,13 @@ function initAdminEventListeners() {
         }
       } catch (e) {
         toast('Unable to clear the activity log. Please try again.', 'error');
+      } finally {
+        // Always restore the button, even on error/timeout, so it can never
+        // get stuck in the disabled "Clearing…" state.
+        clearActivityBtn.dataset.clearing = '0';
+        clearActivityBtn.disabled = false;
+        clearActivityBtn.textContent = 'Clear';
       }
-      clearActivityBtn.disabled = false;
-      clearActivityBtn.textContent = prev;
     });
   }
   // Mute search
@@ -24091,11 +24227,13 @@ function initAdminEventListeners() {
   if (msgRefreshBtn) msgRefreshBtn.addEventListener('click', loadAdminMessages);
   const msgSearchInput = $('admin-msg-search');
   if (msgSearchInput) {
-    msgSearchInput.addEventListener('input', () => renderAdminMessages());
+    // Debounced so fast typing doesn't rebuild the whole admin message list
+    // on every keystroke (lag with many messages).
+    msgSearchInput.addEventListener('input', debounce(renderAdminMessages, 150));
   }
   const msgUserSearchInput = $('admin-msg-user-search');
   if (msgUserSearchInput) {
-    msgUserSearchInput.addEventListener('input', () => renderAdminMessages());
+    msgUserSearchInput.addEventListener('input', debounce(renderAdminMessages, 150));
   }
   // Broadcast
   const bcSendBtn = $('admin-broadcast-send-btn');
@@ -24173,12 +24311,29 @@ if (_dmInputEl) {
   _dmInputEl.addEventListener('focus', () => scrollOnFocus('dm-messages'));
 }
 
-// Prevent double-tap zoom on mobile for buttons (improves UX)
+// Prevent double-tap zoom on mobile for tappable controls (improves UX).
+// We only act on interactive elements (buttons, links, [role=button], etc.)
+// and leave plain text / inputs / scroll areas alone so this never interferes
+// with normal scrolling, text selection, or typing. The CSS rule
+// `touch-action: manipulation` on buttons already handles most cases; this is
+// a JS safety net for dynamically-added tappable elements. Kept passive-safe:
+// we only preventDefault when the target is actually tappable.
 let lastTouchTime = 0;
+let lastTouchTarget = null;
 document.addEventListener('touchend', (e) => {
+  const t = e.target;
+  if (!t || t === document.body) return;
+  // Only guard elements that are genuinely tappable controls.
+  const tag = t.tagName;
+  const isTappable = tag === 'BUTTON' || tag === 'A' || tag === 'INPUT' || tag === 'SELECT' ||
+    t.getAttribute('role') === 'button' || t.closest('button, a, .icon-btn, .sidebar-nav-btn, .mini-btn, .msg-action-btn, .ctx-item');
+  if (!isTappable) return;
   const now = Date.now();
-  if (now - lastTouchTime <= 300) { e.preventDefault(); }
+  if (now - lastTouchTime <= 300 && lastTouchTarget === t) {
+    e.preventDefault();
+  }
   lastTouchTime = now;
+  lastTouchTarget = t;
 }, { passive: false });
 
 // Smooth scroll-to-bottom for messages container (works better on mobile)
@@ -24230,7 +24385,5 @@ function init() {
 init();
 
 </script>
-</body>
-</html>
 </body>
 </html>
