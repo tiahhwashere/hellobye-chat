@@ -6664,13 +6664,6 @@ body.no-anim .friend-item { animation: none !important; }
               <span class="toggle-slider"></span>
             </span>
           </label>
-          <label class="toggle-row mini-toggle-row">
-            <span>Show online status</span>
-            <span class="toggle-switch">
-              <input type="checkbox" id="mini-show-online-toggle">
-              <span class="toggle-slider"></span>
-            </span>
-          </label>
         </div>
 
         <!-- Panel Theme Color (compact) -->
@@ -7287,13 +7280,6 @@ body.no-anim .friend-item { animation: none !important; }
           <span>Hide last online timestamp</span>
           <span class="toggle-switch">
             <input type="checkbox" id="hide-lastseen-toggle">
-            <span class="toggle-slider"></span>
-          </span>
-        </label>
-        <label class="toggle-row">
-          <span>Show online status to others</span>
-          <span class="toggle-switch">
-            <input type="checkbox" id="show-online-toggle">
             <span class="toggle-slider"></span>
           </span>
         </label>
@@ -17843,7 +17829,6 @@ function updateMiniProfile() {
   }
   // Privacy toggles
   $('mini-hide-lastseen-toggle').checked = !!u.hideLastSeen;
-  $('mini-show-online-toggle').checked = u.showOnlineStatus !== false;
   // Accent color
   const color = getProfileColor();
   const picker = $('mini-accent-picker');
@@ -17937,7 +17922,6 @@ async function saveMiniProfile(silent) {
   const bio = $('mini-bio-input').value.trim();
   const hideLastSeen = $('mini-hide-lastseen-toggle').checked;
   const pronouns = $('mini-pronouns-input').value.trim();
-  const showOnlineStatus = $('mini-show-online-toggle').checked;
   // hideProfile toggle was removed from the mini popover — preserve the
   // existing value from currentUser so saving from mini doesn't reset it.
   const hideProfile = currentUser.hideProfile || false;
@@ -17950,7 +17934,7 @@ async function saveMiniProfile(silent) {
   try {
     const res = await fetch(API_BASE + '/api/profile', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ bio, hideLastSeen, pronouns, showOnlineStatus, panelColor, statusMessage, hideProfile })
+      body: JSON.stringify({ bio, hideLastSeen, pronouns, panelColor, statusMessage, hideProfile })
     });
     const data = await res.json();
     if (res.ok) {
@@ -17966,13 +17950,12 @@ async function saveMiniProfile(silent) {
       currentUser.bio = bio;
       currentUser.hideLastSeen = hideLastSeen;
       currentUser.pronouns = pronouns;
-      currentUser.showOnlineStatus = showOnlineStatus;
       currentUser.hideProfile = hideProfile;
       currentUser.panelColor = panelColor;
       const uIdx = users.findIndex(x => x.username === currentUser.username);
       if (uIdx >= 0) {
         users[uIdx].bio = bio; users[uIdx].pronouns = pronouns;
-        users[uIdx].showOnlineStatus = showOnlineStatus; users[uIdx].panelColor = panelColor;
+        users[uIdx].panelColor = panelColor;
         users[uIdx].hideProfile = hideProfile;
       }
       clearMiniProfileDirty();
@@ -18037,8 +18020,6 @@ function initMiniProfileListeners() {
   // Privacy toggles → dirty
   const hideToggle = $('mini-hide-lastseen-toggle');
   if (hideToggle) hideToggle.addEventListener('change', markMiniProfileDirty);
-  const showToggle = $('mini-show-online-toggle');
-  if (showToggle) showToggle.addEventListener('change', markMiniProfileDirty);
   // Status options → immediate status change (same as full panel)
   document.querySelectorAll('#mini-status-options .status-option').forEach(opt => {
     opt.addEventListener('click', () => {
@@ -18088,7 +18069,6 @@ function initMiniProfileListeners() {
     if ($('pronouns-input')) $('pronouns-input').value = $('mini-pronouns-input').value;
     if ($('hide-lastseen-toggle')) $('hide-lastseen-toggle').checked = $('mini-hide-lastseen-toggle').checked;
     if ($('hide-lastseen-settings-toggle')) $('hide-lastseen-settings-toggle').checked = $('mini-hide-lastseen-toggle').checked;
-    if ($('show-online-toggle')) $('show-online-toggle').checked = $('mini-show-online-toggle').checked;
     // Carry dirty state to the full panel
     if (miniProfileDirty) markProfileDirty();
     closeMiniProfile();
@@ -18204,7 +18184,6 @@ function updateProfilePanel() {
   // New profile settings fields
   if ($('pronouns-input')) $('pronouns-input').value = u.pronouns || '';
   if ($('statusmsg-input')) { $('statusmsg-input').value = u.statusMessage || ''; $('statusmsg-count').textContent = (u.statusMessage || '').length; }
-  if ($('show-online-toggle')) $('show-online-toggle').checked = u.showOnlineStatus !== false;
   if ($('friend-requests-toggle')) $('friend-requests-toggle').checked = u.friendRequestsEnabled !== false;
   if ($('direct-messages-toggle')) $('direct-messages-toggle').checked = u.directMessagesEnabled !== false;
   if ($('hide-lastseen-settings-toggle')) $('hide-lastseen-settings-toggle').checked = !!u.hideLastSeen;
@@ -18264,7 +18243,6 @@ $('hide-lastseen-toggle').addEventListener('change', function() {
 });
 if ($('pronouns-input')) $('pronouns-input').addEventListener('input', markProfileDirty);
 if ($('statusmsg-input')) $('statusmsg-input').addEventListener('input', (e) => { $('statusmsg-count').textContent = e.target.value.length; markProfileDirty(); });
-if ($('show-online-toggle')) $('show-online-toggle').addEventListener('change', markProfileDirty);
 if ($('hide-profile-toggle')) $('hide-profile-toggle').addEventListener('change', markProfileDirty);
 if ($('friend-requests-toggle')) $('friend-requests-toggle').addEventListener('change', function() {
   markProfileDirty();
@@ -18732,7 +18710,6 @@ async function saveProfileNow(silent) {
   const hideLastSeen = $('hide-lastseen-settings-toggle') ? $('hide-lastseen-settings-toggle').checked : ($('hide-lastseen-toggle') ? $('hide-lastseen-toggle').checked : false);
   const pronouns = $('pronouns-input') ? $('pronouns-input').value.trim() : '';
   const statusMessage = $('statusmsg-input') ? $('statusmsg-input').value.trim() : '';
-  const showOnlineStatus = $('show-online-toggle') ? $('show-online-toggle').checked : true;
   const friendRequestsEnabled = $('friend-requests-toggle') ? $('friend-requests-toggle').checked : true;
   const directMessagesEnabled = $('direct-messages-toggle') ? $('direct-messages-toggle').checked : true;
   const hideProfile = $('hide-profile-toggle') ? $('hide-profile-toggle').checked : false;
@@ -18744,7 +18721,7 @@ async function saveProfileNow(silent) {
   const txtEl = btn.querySelector('.save-btn-text');
   if (txtEl) txtEl.textContent = 'Saving…';
   try {
-    const res = await fetch(API_BASE + '/api/profile', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ bio, hideLastSeen, pronouns, statusMessage, showOnlineStatus, panelColor, friendRequestsEnabled, directMessagesEnabled, hideProfile }) });
+    const res = await fetch(API_BASE + '/api/profile', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ bio, hideLastSeen, pronouns, statusMessage, panelColor, friendRequestsEnabled, directMessagesEnabled, hideProfile }) });
     const data = await res.json();
     if (res.ok) {
       // Commit a pending banner removal (the user clicked Remove but hadn't
@@ -18767,14 +18744,13 @@ async function saveProfileNow(silent) {
       currentUser.hideLastSeen = hideLastSeen;
       currentUser.pronouns = pronouns;
       currentUser.statusMessage = statusMessage;
-      currentUser.showOnlineStatus = showOnlineStatus;
       currentUser.friendRequestsEnabled = friendRequestsEnabled;
       currentUser.directMessagesEnabled = directMessagesEnabled;
       currentUser.hideProfile = hideProfile;
       currentUser.panelColor = panelColor;
       // Update in users array
       const uIdx = users.findIndex(x => x.username === currentUser.username);
-      if (uIdx >= 0) { users[uIdx].bio = bio; users[uIdx].pronouns = pronouns; users[uIdx].statusMessage = statusMessage; users[uIdx].showOnlineStatus = showOnlineStatus; users[uIdx].panelColor = panelColor; users[uIdx].friendRequestsEnabled = friendRequestsEnabled; users[uIdx].directMessagesEnabled = directMessagesEnabled; users[uIdx].hideProfile = hideProfile; }
+      if (uIdx >= 0) { users[uIdx].bio = bio; users[uIdx].pronouns = pronouns; users[uIdx].statusMessage = statusMessage; users[uIdx].panelColor = panelColor; users[uIdx].friendRequestsEnabled = friendRequestsEnabled; users[uIdx].directMessagesEnabled = directMessagesEnabled; users[uIdx].hideProfile = hideProfile; }
       // Profile saved successfully — clear dirty flag + hide indicator.
       clearProfileDirty();
       // After a save, the current avatar/banner are the new saved baseline,

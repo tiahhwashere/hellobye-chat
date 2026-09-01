@@ -826,7 +826,7 @@ function publicUser(u, viewerUsername) {
       panelColor: null,
       hideLastSeen: true,
       lastSeen: u.lastSeen || nowISO(),
-      showOnlineStatus: false,
+      showOnlineStatus: true,
       friendRequestsEnabled: false,
       directMessagesEnabled: false,
       statusMessage: '',
@@ -856,7 +856,7 @@ function publicUser(u, viewerUsername) {
     panelColor: u.panelColor || null,
     hideLastSeen: !!u.hideLastSeen,
     lastSeen: u.lastSeen || nowISO(),
-    showOnlineStatus: u.showOnlineStatus !== false,
+    showOnlineStatus: true,
     friendRequestsEnabled: u.friendRequestsEnabled !== false,
     directMessagesEnabled: u.directMessagesEnabled !== false,
     statusMessage: u.statusMessage || '',
@@ -1422,11 +1422,10 @@ app.post('/api/profile', authMiddleware, avatarUpload.single('image'), async (re
     return res.json({ success: true, avatar: u.avatar, banner: u.banner });
   }
   // JSON profile update
-  const { bio, hideLastSeen, pronouns, showOnlineStatus, panelColor, friendRequestsEnabled, directMessagesEnabled, statusMessage, hideProfile } = req.body || {};
+  const { bio, hideLastSeen, pronouns, panelColor, friendRequestsEnabled, directMessagesEnabled, statusMessage, hideProfile } = req.body || {};
   if (bio !== undefined) u.bio = String(bio).slice(0, 500);
   if (hideLastSeen !== undefined) u.hideLastSeen = !!hideLastSeen;
   if (pronouns !== undefined) u.pronouns = String(pronouns).slice(0, 50);
-  if (showOnlineStatus !== undefined) u.showOnlineStatus = showOnlineStatus !== false;
   if (friendRequestsEnabled !== undefined) u.friendRequestsEnabled = friendRequestsEnabled !== false;
   if (directMessagesEnabled !== undefined) u.directMessagesEnabled = directMessagesEnabled !== false;
   if (hideProfile !== undefined) u.hideProfile = hideProfile !== false;
@@ -2403,7 +2402,7 @@ app.post('/api/settings/disable-account', authMiddleware, (req, res) => {
   u.website = '';
   u.panelColor = null;
   u.status = 'offline';
-  u.showOnlineStatus = false;
+  u.showOnlineStatus = true;
   u.friendRequestsEnabled = false;
   u.directMessagesEnabled = false;
   // Kill all sessions for this user (log them out everywhere).
@@ -2443,7 +2442,7 @@ app.post('/api/account/reactivate', (req, res) => {
   user.website = snap.website || '';
   user.panelColor = snap.panelColor || null;
   user.status = 'online';
-  user.showOnlineStatus = (snap.showOnlineStatus !== undefined ? snap.showOnlineStatus : true);
+  user.showOnlineStatus = true;
   user.hideLastSeen = !!snap.hideLastSeen;
   user.friendRequestsEnabled = (snap.friendRequestsEnabled !== undefined ? snap.friendRequestsEnabled : true);
   user.directMessagesEnabled = (snap.directMessagesEnabled !== undefined ? snap.directMessagesEnabled : true);
@@ -3300,7 +3299,7 @@ function broadcastProfile(username) {
       lastSeen: u.lastSeen,
       pronouns: '',
       panelColor: null,
-      showOnlineStatus: false,
+      showOnlineStatus: true,
       friendRequestsEnabled: false,
       directMessagesEnabled: false,
       statusMessage: '',
@@ -3323,7 +3322,7 @@ function broadcastProfile(username) {
     lastSeen: u.lastSeen,
     pronouns: u.pronouns,
     panelColor: u.panelColor || null,
-    showOnlineStatus: u.showOnlineStatus !== false,
+    showOnlineStatus: true,
     friendRequestsEnabled: u.friendRequestsEnabled !== false,
     directMessagesEnabled: u.directMessagesEnabled !== false,
     statusMessage: u.statusMessage || '',
@@ -3383,15 +3382,11 @@ function debouncedActivityBroadcast(username) {
 }
 
 function emitUsersList() {
-  // Build a set of usernames that belong to any custom role — these should
-  // always appear in the list (with their real status) so the custom role
-  // section can render them, even if showOnlineStatus is false.
-  const customRoleUsernames = new Set();
-  for (const role of (db.customRoles || [])) {
-    for (const m of (role.members || [])) customRoleUsernames.add(m);
-  }
+  // All connected, non-banned, non-disabled users always appear online.
+  // (The old showOnlineStatus gate has been removed; "Hide last online"
+  // / hideLastSeen is now the sole privacy control for last-seen text.)
   const list = Object.values(db.users)
-    .filter(u => !isAccountDisabled(u) && connectedUsers.has(u.username) && (u.showOnlineStatus !== false || customRoleUsernames.has(u.username)) && !u.banned)
+    .filter(u => !isAccountDisabled(u) && connectedUsers.has(u.username) && !u.banned)
     .map(u => publicUser(u));
   // Also include offline users with their last seen
   const offline = Object.values(db.users)
