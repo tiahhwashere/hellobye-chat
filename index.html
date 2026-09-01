@@ -17521,6 +17521,9 @@ function applyProfileViewPanelColor(u) {
   if (bn) bn.style.removeProperty('background');
   const bph = modal.querySelector('.profile-view-banner-placeholder');
   if (bph) { bph.style.removeProperty('color'); bph.style.removeProperty('background'); }
+  // Reset the X close button inline styles (color + blended background).
+  const pvClose = modal.querySelector('.modal-close-corner');
+  if (pvClose) { pvClose.style.removeProperty('color'); pvClose.style.removeProperty('background'); }
   // Remove any previously-created accent bar.
   const oldBar = modal.querySelector('.panel-accent-bar');
   if (oldBar) oldBar.remove();
@@ -17603,10 +17606,16 @@ function applyProfileViewPanelColor(u) {
     // keeps the panel color showing through so nothing looks "grey".
     const cardBg = blendOverlay(color, 0.18);
     modal.querySelectorAll(
-      '.profile-view-bio, .profile-view-status, .profile-view-extra, .profile-view-status-msg'
+      '.profile-view-bio, .profile-view-status, .profile-view-extra, .profile-view-status-msg, .pv-hidden-notice'
     ).forEach(el => {
       el.style.setProperty('background', cardBg, 'important');
       el.style.setProperty('border-color', cardBorder, 'important');
+    });
+    // pv-hidden-badge (the "Private Account" pill) — blend its background
+    // with the panel color too so it doesn't stay a dark box.
+    modal.querySelectorAll('.pv-hidden-badge').forEach(el => {
+      el.style.setProperty('background', blendOverlay(color, 0.25), 'important');
+      el.style.setProperty('border-color', cardBorderSoft, 'important');
     });
 
     // ── Status Message bubble: BLEND it fully with the Panel Theme Color ──
@@ -17693,10 +17702,12 @@ function applyProfileViewPanelColor(u) {
       bannerPlaceholder.style.setProperty('background', blendOverlay(color, 0.2), 'important');
     }
 
-    // The X close button uses the readable color so it blends.
+    // The X close button uses the readable color + a blended background so
+    // the dark rgba(0,0,0,0.4) circle doesn't clash on light panel colors.
     const closeBtn = modal.querySelector('.modal-close-corner');
     if (closeBtn) {
       closeBtn.style.setProperty('color', vtxt, 'important');
+      closeBtn.style.setProperty('background', blendOverlay(color, 0.3), 'important');
     }
 
     // Action buttons auto-blend with the user's Panel Theme Color so the
@@ -19679,6 +19690,75 @@ function applyProfileColor() {
         el.style.setProperty('background', luminance(color) > 0.6 ? 'rgba(0,0,0,0.22)' : 'rgba(0,0,0,0.3)', 'important');
       });
 
+      // ── Color Studio components BLEND with the panel color ──
+      // Previously these kept their default dark backgrounds (var(--bg-darkest),
+      // var(--bg-darker)) and appeared as dark boxes that clashed with the
+      // chosen Panel Theme Color. Now every Color Studio surface derives a
+      // tinted overlay from the panel color so the whole studio blends.
+      const studioPanelBg = blendOverlay(color, 0.30);
+      modal.querySelectorAll('.cs-preview-bar').forEach(el => {
+        el.style.setProperty('background', studioPanelBg, 'important');
+        el.style.setProperty('border-color', cardBorder, 'important');
+      });
+      modal.querySelectorAll('.cs-tabs').forEach(el => {
+        el.style.setProperty('background', studioPanelBg, 'important');
+        el.style.setProperty('border-color', cardBorder, 'important');
+      });
+      // cs-panel panels themselves stay transparent (the card already has bg).
+      modal.querySelectorAll('.cs-panel').forEach(el => {
+        el.style.setProperty('background', 'transparent', 'important');
+      });
+      // cw-wrap (the wheel container) — transparent bg + matching border.
+      modal.querySelectorAll('.cw-wrap').forEach(el => {
+        el.style.setProperty('background', 'transparent', 'important');
+        el.style.setProperty('border-color', cardBorder, 'important');
+      });
+      // cw-canvas (the color wheel square) — tinted bg so it blends.
+      modal.querySelectorAll('.cw-canvas').forEach(el => {
+        el.style.setProperty('background', inputBg, 'important');
+        el.style.setProperty('border-color', inputBorder, 'important');
+      });
+      // cw-hex-input — same tinted treatment as other inputs.
+      modal.querySelectorAll('.cw-hex-input').forEach(el => {
+        el.style.setProperty('background', inputBg, 'important');
+        el.style.setProperty('color', txt, 'important');
+        el.style.setProperty('border-color', inputBorder, 'important');
+      });
+      // cs-hex-row top border blends.
+      modal.querySelectorAll('.cs-hex-row').forEach(el => {
+        el.style.setProperty('border-color', cardBorder, 'important');
+      });
+      // cs-swatch borders get a subtle blend ring.
+      modal.querySelectorAll('.cs-swatch').forEach(el => {
+        el.style.setProperty('border-color', luminance(color) > 0.6 ? 'rgba(0,0,0,0.15)' : 'rgba(255,255,255,0.15)', 'important');
+      });
+      // cs-rgb-slider track border blends.
+      modal.querySelectorAll('.cs-rgb-slider').forEach(el => {
+        el.style.setProperty('border-color', inputBorder, 'important');
+      });
+
+      // ── Other profile-panel surfaces that previously stayed dark ──
+      // Section dividers (border-top on .profile-section) blend with the
+      // panel color instead of being a generic dark-grey line.
+      modal.querySelectorAll('.profile-section').forEach(el => {
+        el.style.setProperty('border-color', cardBorder, 'important');
+      });
+      // profile-fields-grid gap containers — no bg, but field labels already
+      // covered by textSelector. Field-group wrappers stay transparent.
+      modal.querySelectorAll('.profile-field-group, .profile-fields-grid').forEach(el => {
+        el.style.setProperty('background', 'transparent', 'important');
+      });
+      // The profile-dirty-indicator (amber "unsaved changes" pill) — blend
+      // its background with the panel color while keeping the amber text.
+      modal.querySelectorAll('.profile-dirty-indicator').forEach(el => {
+        el.style.setProperty('background', btnBg, 'important');
+        el.style.setProperty('border-color', cardBorder, 'important');
+      });
+      // The save-btn-text / save-spinner inherit readable text.
+      modal.querySelectorAll('.save-btn-text, .save-spinner').forEach(el => {
+        el.style.setProperty('color', txt, 'important');
+      });
+
       // Bio counter stays a muted readable color.
       const bioCounter = modal.querySelector('.bio-counter');
       if (bioCounter) {
@@ -19808,6 +19888,15 @@ function applyProfileColor() {
       }
       modal.querySelectorAll('.toggle-slider').forEach(el => {
         el.style.removeProperty('background');
+      });
+      // Reset Color Studio component inline styles (added for blending).
+      modal.querySelectorAll('.cs-preview-bar, .cs-tabs, .cs-panel, .cw-wrap, .cw-canvas, .cw-hex-input, .cs-hex-row, .cs-swatch, .cs-rgb-slider, .profile-section, .profile-field-group, .profile-fields-grid, .profile-dirty-indicator').forEach(el => {
+        el.style.removeProperty('background');
+        el.style.removeProperty('border-color');
+        el.style.removeProperty('color');
+      });
+      modal.querySelectorAll('.save-btn-text, .save-spinner').forEach(el => {
+        el.style.removeProperty('color');
       });
       const bioCounter = modal.querySelector('.bio-counter');
       if (bioCounter) bioCounter.style.removeProperty('color');
@@ -19987,6 +20076,60 @@ function applyMiniProfileColor() {
       el.style.setProperty('background', luminance(color) > 0.6 ? 'rgba(0,0,0,0.22)' : 'rgba(0,0,0,0.3)', 'important');
     });
 
+    // ── Color Studio components BLEND with the panel color ──
+    // Previously these kept their default dark backgrounds and appeared as
+    // dark boxes that clashed with the chosen Panel Theme Color. Now every
+    // Color Studio surface derives a tinted overlay from the panel color.
+    const miniStudioBg = blendOverlay(color, 0.30);
+    const miniBtnBg = blendOverlay(color, 0.2);
+    pop.querySelectorAll('.cs-preview-bar').forEach(el => {
+      el.style.setProperty('background', miniStudioBg, 'important');
+      el.style.setProperty('border-color', cardBorder, 'important');
+    });
+    pop.querySelectorAll('.cs-tabs').forEach(el => {
+      el.style.setProperty('background', miniStudioBg, 'important');
+      el.style.setProperty('border-color', cardBorder, 'important');
+    });
+    pop.querySelectorAll('.cs-panel').forEach(el => {
+      el.style.setProperty('background', 'transparent', 'important');
+    });
+    pop.querySelectorAll('.cw-wrap').forEach(el => {
+      el.style.setProperty('background', 'transparent', 'important');
+      el.style.setProperty('border-color', cardBorder, 'important');
+    });
+    pop.querySelectorAll('.cw-canvas').forEach(el => {
+      el.style.setProperty('background', inputBg, 'important');
+      el.style.setProperty('border-color', inputBorder, 'important');
+    });
+    pop.querySelectorAll('.cw-hex-input').forEach(el => {
+      el.style.setProperty('background', inputBg, 'important');
+      el.style.setProperty('color', mtxt, 'important');
+      el.style.setProperty('border-color', inputBorder, 'important');
+    });
+    pop.querySelectorAll('.cs-hex-row').forEach(el => {
+      el.style.setProperty('border-color', cardBorder, 'important');
+    });
+    pop.querySelectorAll('.cs-swatch').forEach(el => {
+      el.style.setProperty('border-color', luminance(color) > 0.6 ? 'rgba(0,0,0,0.15)' : 'rgba(255,255,255,0.15)', 'important');
+    });
+    pop.querySelectorAll('.cs-rgb-slider').forEach(el => {
+      el.style.setProperty('border-color', inputBorder, 'important');
+    });
+    // The accent-section-card wrapper for the studio blends like other cards.
+    pop.querySelectorAll('#mini-color-studio.accent-section-card').forEach(el => {
+      el.style.setProperty('background', cardBg, 'important');
+      el.style.setProperty('border-color', cardBorder, 'important');
+    });
+    // mini-dirty-indicator (amber pill) — blend bg, keep amber-ish readable.
+    pop.querySelectorAll('.mini-dirty-indicator').forEach(el => {
+      el.style.setProperty('background', miniBtnBg, 'important');
+      el.style.setProperty('border-color', cardBorder, 'important');
+    });
+    // save-spinner / save-btn-text inherit readable text.
+    pop.querySelectorAll('.save-btn-text, .save-spinner').forEach(el => {
+      el.style.setProperty('color', mtxt, 'important');
+    });
+
     // Bio counter stays a muted readable color.
     pop.querySelectorAll('.bio-counter').forEach(el => {
       el.style.setProperty('color', luminance(color) > 0.6 ? 'rgba(26,26,46,0.6)' : 'rgba(255,255,255,0.7)', 'important');
@@ -20107,6 +20250,15 @@ function applyMiniProfileColor() {
     if (header) header.style.removeProperty('border-color');
     pop.querySelectorAll('.toggle-slider').forEach(el => {
       el.style.removeProperty('background');
+    });
+    // Reset Color Studio component + missing element inline styles.
+    pop.querySelectorAll('.cs-preview-bar, .cs-tabs, .cs-panel, .cw-wrap, .cw-canvas, .cw-hex-input, .cs-hex-row, .cs-swatch, .cs-rgb-slider, #mini-color-studio.accent-section-card, .mini-dirty-indicator').forEach(el => {
+      el.style.removeProperty('background');
+      el.style.removeProperty('border-color');
+      el.style.removeProperty('color');
+    });
+    pop.querySelectorAll('.save-btn-text, .save-spinner').forEach(el => {
+      el.style.removeProperty('color');
     });
     pop.querySelectorAll('.bio-counter').forEach(el => {
       el.style.removeProperty('color');
