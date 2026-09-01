@@ -466,17 +466,29 @@ body.loading-session #chat-app.active::after { content: none; }
 /* Sidebar toggle button */
 .sidebar-toggle-btn {
   position: absolute; top: 50%; right: 0; transform: translateY(-50%);
-  width: 24px; height: 48px; border-radius: 8px 0 0 8px;
+  width: 22px; height: 52px; border-radius: 10px 0 0 10px;
   background: var(--bg-darker); border: 1px solid var(--border); border-right: none;
   color: var(--text-muted); cursor: pointer; z-index: 50;
   display: flex; align-items: center; justify-content: center;
-  transition: opacity 0.2s ease, color 0.2s ease, background 0.2s ease, transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  opacity: 0.6;
+  transition: opacity 0.2s ease, color 0.2s ease, background 0.2s ease, transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.2s ease, border-color 0.2s ease;
+  opacity: 0.5;
 }
-.sidebar-toggle-btn:hover { opacity: 1; color: var(--accent); background: var(--bg-medium); }
-.sidebar-toggle-btn svg { width: 14px; height: 14px; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+.sidebar-toggle-btn::before {
+  content: ''; position: absolute; left: 2px; top: 50%; transform: translateY(-50%);
+  width: 3px; height: 20px; border-radius: 3px; background: var(--border-light);
+  transition: background 0.2s ease, height 0.2s ease;
+}
+.sidebar-toggle-btn:hover { opacity: 1; color: var(--accent); background: var(--bg-medium); width: 26px; border-color: var(--accent-dim); }
+.sidebar-toggle-btn:hover::before { background: var(--accent); height: 28px; }
+.sidebar-toggle-btn svg { width: 13px; height: 13px; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); margin-left: 4px; }
 /* Rotate the chevron icon as the sidebar collapses/expands for a polished toggle effect */
-.sidebar-toggle-btn.collapsed svg { transform: rotate(180deg); }
+.sidebar-toggle-btn.collapsed svg { transform: rotate(180deg); margin-left: 0; margin-right: 4px; }
+.sidebar-toggle-btn.collapsed { opacity: 0.7; animation: sidebarTogglePulse 3s ease-in-out infinite; }
+@keyframes sidebarTogglePulse {
+  0%, 100% { opacity: 0.5; border-color: var(--border); }
+  50% { opacity: 0.85; border-color: var(--accent-dim); }
+}
+.sidebar-toggle-btn.collapsed:hover { animation: none; }
 .chat-main { position: relative; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
 
 /* ============================================
@@ -3356,7 +3368,15 @@ body.no-anim .friend-item { animation: none !important; }
   cursor: pointer; transition: var(--transition);
 }
 .status-option:hover { background: var(--bg-light); border-color: var(--border-light); }
-.status-option.active { border-color: var(--accent); background: var(--accent-glow); }
+.status-option.active { border-color: var(--accent); background: var(--accent-glow); box-shadow: 0 0 0 1px rgba(var(--accent-rgb), 0.3), 0 2px 8px rgba(var(--accent-rgb), 0.12); }
+.status-option.active .status-option-label { color: var(--text-primary); font-weight: 600; }
+.status-option .status-option-check {
+  margin-left: auto; width: 16px; height: 16px; border-radius: 50%;
+  background: var(--accent); color: var(--accent-text);
+  display: none; align-items: center; justify-content: center; font-size: 10px; font-weight: 700;
+  flex-shrink: 0;
+}
+.status-option.active .status-option-check { display: flex; }
 .status-option-dot { width: 16px; height: 16px; border-radius: 50%; flex-shrink: 0; background-size: contain; background-repeat: no-repeat; background-position: center; }
 .status-option-dot.online { background-image: url('online.png'); border-radius: 4px; }
 .status-option-dot.idle { background-image: url('idle.png'); }
@@ -5279,6 +5299,30 @@ body.no-anim .friend-item { animation: none !important; }
 .sidebar-footer-status.dnd { color: var(--dnd); }
 .sidebar-footer-status.offline { color: var(--text-muted); }
 
+/* "Visible to others" status bubble — shows when Online/Idle/DND, hidden when Offline */
+.sidebar-visible-bubble {
+  display: none; align-items: center; gap: 5px;
+  margin-top: 4px; padding: 2px 9px 2px 7px;
+  border-radius: 20px; font-size: 10px; font-weight: 600;
+  background: rgba(var(--accent-rgb), 0.12); color: var(--accent);
+  border: 1px solid rgba(var(--accent-rgb), 0.25);
+  white-space: nowrap; width: fit-content;
+  animation: visibleBubblePop 0.2s ease;
+}
+@keyframes visibleBubblePop {
+  from { opacity: 0; transform: scale(0.8); }
+  to { opacity: 1; transform: scale(1); }
+}
+.sidebar-visible-bubble.show { display: inline-flex; }
+.sidebar-visible-bubble .vb-dot {
+  width: 6px; height: 6px; border-radius: 50%; background: var(--accent);
+  animation: visibleBubblePulse 2s ease-in-out infinite;
+}
+@keyframes visibleBubblePulse {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.3); }
+}
+
 /* ============================================
    MINI PROFILE SETTINGS POPOVER
    Compact dropdown anchored to the sidebar footer.
@@ -5398,6 +5442,7 @@ body.no-anim .friend-item { animation: none !important; }
 }
 .mini-status-options .status-option-label { font-size: 12px; }
 .mini-status-options .status-option-dot { width: 14px; height: 14px; }
+.mini-status-options .status-option .status-option-check { width: 14px; height: 14px; font-size: 9px; }
 
 /* Compact bio textarea */
 .mini-bio {
@@ -6469,6 +6514,7 @@ body.no-anim .friend-item { animation: none !important; }
         <div class="sidebar-footer-info">
           <div class="sidebar-footer-name" id="sidebar-self-name">@username</div>
           <div class="sidebar-footer-status" id="sidebar-self-statustext">Online</div>
+          <div class="sidebar-visible-bubble" id="sidebar-visible-bubble"><span class="vb-dot"></span>Visible to others</div>
         </div>
       </div>
     </aside>
@@ -6496,18 +6542,22 @@ body.no-anim .friend-item { animation: none !important; }
             <div class="status-option" data-status="online">
               <div class="status-option-dot online"></div>
               <div class="status-option-label">Online</div>
+              <div class="status-option-check">✓</div>
             </div>
             <div class="status-option" data-status="idle">
               <div class="status-option-dot idle"></div>
               <div class="status-option-label">Idle</div>
+              <div class="status-option-check">✓</div>
             </div>
             <div class="status-option" data-status="dnd">
               <div class="status-option-dot dnd"></div>
               <div class="status-option-label">Do Not Disturb</div>
+              <div class="status-option-check">✓</div>
             </div>
             <div class="status-option" data-status="offline">
               <div class="status-option-dot offline"></div>
               <div class="status-option-label">Offline</div>
+              <div class="status-option-check">✓</div>
             </div>
           </div>
         </div>
@@ -7127,18 +7177,22 @@ body.no-anim .friend-item { animation: none !important; }
           <div class="status-option" data-status="online">
             <div class="status-option-dot online"></div>
             <div class="status-option-label">Online</div>
+            <div class="status-option-check">✓</div>
           </div>
           <div class="status-option" data-status="idle">
             <div class="status-option-dot idle"></div>
             <div class="status-option-label">Idle</div>
+            <div class="status-option-check">✓</div>
           </div>
           <div class="status-option" data-status="dnd">
             <div class="status-option-dot dnd"></div>
             <div class="status-option-label">Do Not Disturb</div>
+            <div class="status-option-check">✓</div>
           </div>
           <div class="status-option" data-status="offline">
             <div class="status-option-dot offline"></div>
             <div class="status-option-label">Offline</div>
+            <div class="status-option-check">✓</div>
           </div>
         </div>
       </div>
@@ -13187,6 +13241,12 @@ function updateSidebarSelf() {
   $('sidebar-self-name').innerHTML = (currentUser.displayName ? '<span class="user-displayname">' + escapeHtml(currentUser.displayName) + ' </span>' : '') + '<span class="user-handle">@' + escapeHtml(currentUser.username) + '</span>';
   $('sidebar-self-statustext').textContent = getStatusText(currentUser.status || 'online');
   $('sidebar-self-statustext').className = 'sidebar-footer-status ' + (currentUser.status || 'online');
+  // "Visible to others" bubble — shown when Online/Idle/DND, hidden when Offline
+  const vb = $('sidebar-visible-bubble');
+  if (vb) {
+    const st = currentUser.status || 'online';
+    vb.classList.toggle('show', st === 'online' || st === 'idle' || st === 'dnd');
+  }
 }
 
 // ---------- Friends List ----------
@@ -15886,6 +15946,24 @@ function showContextMenu(x, y, items) {
 function hideContextMenu() { ctxMenu.style.display = 'none'; }
 document.addEventListener('click', hideContextMenu);
 document.addEventListener('scroll', () => { hideContextMenu(); try { hideReplyPreview(); } catch(e){} try { hideMentionTooltip(); } catch(e){} }, true);
+
+// Suppress the browser's native right-click context menu inside the chat app.
+// The custom context-menu handlers (on messages, avatars, nav buttons, etc.)
+// already call e.preventDefault() + showContextMenu() to build their own menu,
+// so this global listener is redundant for those — it only kills the native
+// "Save image / Copy / Inspect" menu on areas that DON'T have a custom handler.
+// We skip inputs/textareas so users can still right-click to copy/paste text.
+document.addEventListener('contextmenu', function(e) {
+  // Don't interfere outside the chat app (login/register pages)
+  const app = document.getElementById('chat-app');
+  if (!app || !app.classList.contains('active')) return;
+  // Allow native context menu on form inputs so copy/paste/select still works
+  const tag = e.target.tagName;
+  if (tag === 'INPUT' || tag === 'TEXTAREA' || e.target.isContentEditable) return;
+  // Otherwise suppress the native menu. Custom handlers have already run
+  // (they fire in registration order) and called their own preventDefault.
+  e.preventDefault();
+}, false);
 
 /* ---------- Generic confirmation modal (replaces native confirm()) ----------
  * Usage: showGenericConfirm({ title, body, confirmText, cancelText, danger })
