@@ -6415,7 +6415,7 @@ body.no-anim .friend-item { animation: none !important; }
     <div class="auth-container">
       <div class="auth-brand">
         <h1>hellobye</h1>
-        <p>Secure real-time communication for professionals. Send encrypted messages, share files, and connect with end-to-end protected direct messages. hellobye is a private chatting website — your conversations stay between you and the people you trust. No public feeds, no strangers, no noise. Just clean, encrypted, one-to-one and group chats in a space built for privacy.</p>
+        <p>hellobye is a private chatting website. Your conversations stay between you and the people you trust — no public feeds, no strangers, no noise. Just clean, encrypted, one-to-one and group chats in a space built for privacy.</p>
       </div>
       <div class="auth-form-wrap">
       <div class="auth-card">
@@ -7488,7 +7488,7 @@ body.no-anim .friend-item { animation: none !important; }
               <div class="identity-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
               <div class="identity-card-title">Username</div>
             </div>
-            <p class="identity-card-hint">Your @name — what everyone calls you on here. <span class="id-hint-note" id="username-cooldown-text"></span></p>
+            <p class="identity-card-hint">Your @name is what others see you as on hellobye. <span class="id-hint-note" id="username-cooldown-text"></span></p>
             <div class="identity-field">
               <input type="text" class="form-input" id="new-username-input" placeholder="Enter your new username" spellcheck="false">
             </div>
@@ -9638,7 +9638,6 @@ $('signin-form').addEventListener('submit', async (e) => {
       show2SVOverlay(data.pendingToken, { username, password });
       return;
     }
-    toast('Welcome back.', 'success');
     sessionSocketId = data.sessionId;
     localStorage.setItem('hellobye_sid', data.sessionId);
     document.documentElement.classList.add('has-session');
@@ -9802,7 +9801,6 @@ async function submit2SVVerification() {
     }
     // Success — proceed to chat
     hide2SVOverlay();
-    toast('Welcome back.', 'success');
     sessionSocketId = data.sessionId;
     localStorage.setItem('hellobye_sid', data.sessionId);
     document.documentElement.classList.add('has-session');
