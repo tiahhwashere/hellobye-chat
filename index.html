@@ -122,7 +122,9 @@ html.has-session #chat-app { display: grid; } /* show chat grid immediately */
 .auth-container {
   width: 100%; max-width: 820px;
   padding: 24px;
-  animation: fadeUp 0.4s ease;
+  animation: fadeUp 0.25s ease;
+  will-change: transform, opacity;
+  contain: layout paint;
 }
 @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
 
@@ -186,28 +188,7 @@ html.has-session #chat-app { display: grid; } /* show chat grid immediately */
 .auth-form.active { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 18px; }
 .auth-form.active .auth-error { grid-column: span 2; }
 .auth-form.active .form-field.full { grid-column: span 2; }
-.auth-form.active .btn-primary { grid-column: span 2; }.auth-brand {
-  text-align: center; margin-bottom: 28px;
-}
-.auth-brand-mark {
-  display: inline-flex; margin-bottom: 14px;
-  filter: drop-shadow(0 4px 16px rgba(var(--accent-rgb), 0.2));
-}
-.auth-brand h1 {
-  font-size: 28px; font-weight: 600; letter-spacing: -0.5px;
-  color: var(--text-primary); margin-bottom: 6px;
-}
-.auth-brand p {
-  font-size: 13px; color: var(--text-secondary); font-weight: 400;
-}
-
-.auth-card {
-  background: var(--bg-dark);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  box-shadow: var(--shadow-lg);
-}
+.auth-form.active .btn-primary { grid-column: span 2; }
 .auth-tabs {
   display: flex; border-bottom: 1px solid var(--border);
 }
@@ -1552,6 +1533,39 @@ body.no-anim .friend-item { animation: none !important; }
 /* HD enhancement filter for inline videos (server can't transcode video, so
    we apply a light sharpen/contrast/saturate pass at display time). */
 .message-file video.hd-enhanced { filter: contrast(1.05) saturate(1.08) brightness(1.02); }
+
+/* Rich media player wrapper — frames videos & animated GIFs with metadata */
+.media-player-wrap {
+  position: relative; display: inline-block; max-width: 440px;
+  border-radius: 12px; overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.08);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.35);
+  background: #000;
+}
+.media-player-wrap video {
+  display: block; max-width: 440px; max-height: 380px;
+  width: 100%; border-radius: 12px; object-fit: contain; background: #000;
+  outline: none;
+}
+.media-player-wrap.is-gif video { cursor: pointer; }
+.media-player-wrap.is-gif video::-webkit-media-controls { display: none !important; }
+.media-player-badge {
+  position: absolute; top: 8px; left: 8px; z-index: 2;
+  font-size: 10px; font-weight: 800; letter-spacing: 0.5px; color: #fff;
+  background: rgba(0,0,0,0.62); backdrop-filter: blur(6px);
+  padding: 3px 8px; border-radius: 6px; pointer-events: none;
+  border: 1px solid rgba(255,255,255,0.14);
+}
+.media-player-meta {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 8px 12px; background: rgba(0,0,0,0.55); backdrop-filter: blur(4px);
+  font-size: 11.5px; color: rgba(255,255,255,0.82);
+}
+.media-player-name {
+  font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden;
+  text-overflow: ellipsis; max-width: 240px;
+}
+.media-player-info { color: rgba(255,255,255,0.6); white-space: nowrap; flex-shrink: 0; }
 .message-file audio { width: 400px; border-radius: 6px; }
 .message-file-attachment {
   display: flex; align-items: center; gap: 12px;
@@ -1636,20 +1650,21 @@ body.no-anim .friend-item { animation: none !important; }
   display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px;
 }
 .reaction-badge {
-  display: inline-flex; align-items: center; gap: 4px;
-  padding: 3px 8px; font-size: 12px; line-height: 1.4;
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 4px 9px; font-size: 13px; line-height: 1.4;
   background: var(--bg-medium); border: 1px solid var(--border);
-  border-radius: 13px; cursor: pointer; user-select: none;
+  border-radius: 14px; cursor: pointer; user-select: none;
   transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+  position: relative;
 }
 .reaction-badge:hover { background: var(--bg-light); border-color: var(--border-light); }
 .reaction-badge:active { transform: scale(0.92); }
 .reaction-badge.reacted {
   background: var(--accent-dim); border-color: var(--accent);
 }
-.reaction-badge .reaction-emoji { font-size: 13px; }
+.reaction-badge .reaction-emoji { font-size: 18px; line-height: 1; }
 .reaction-badge .reaction-count {
-  font-size: 11px; font-weight: 600; color: var(--text-secondary);
+  font-size: 12px; font-weight: 600; color: var(--text-secondary);
   font-variant-numeric: tabular-nums;
 }
 .reaction-badge.reacted .reaction-count { color: var(--accent-text); }
@@ -1658,6 +1673,23 @@ body.no-anim .friend-item { animation: none !important; }
 .message-group.own .reaction-badge.reacted { background: rgba(255,255,255,0.22); border-color: rgba(255,255,255,0.45); }
 .message-group.own .reaction-badge .reaction-count { color: rgba(255,255,255,0.7); }
 .message-group.own .reaction-badge.reacted .reaction-count { color: #fff; }
+
+/* Reaction hover tooltip — shows who reacted */
+.reaction-tooltip {
+  position: fixed; z-index: 10001;
+  background: var(--bg-darker); border: 1px solid var(--border-light);
+  border-radius: 9px; padding: 8px 11px;
+  box-shadow: 0 6px 22px rgba(0,0,0,0.55);
+  font-size: 12px; color: var(--text-primary); line-height: 1.45;
+  max-width: 220px; pointer-events: none;
+  opacity: 0; transform: translateY(4px);
+  transition: opacity 0.14s ease, transform 0.14s ease;
+  white-space: normal; word-break: break-word;
+}
+.reaction-tooltip.show { opacity: 1; transform: translateY(0); }
+.reaction-tooltip-emoji { font-size: 15px; margin-right: 5px; vertical-align: -1px; }
+.reaction-tooltip-names { display: block; margin-top: 3px; color: var(--text-secondary); font-weight: 500; }
+.reaction-tooltip-names b { color: var(--text-primary); font-weight: 600; }
 
 /* React button (opens the emoji picker) */
 .msg-react-btn {
@@ -1674,21 +1706,23 @@ body.no-anim .friend-item { animation: none !important; }
 /* Emoji reaction picker popover */
 .emoji-react-picker {
   position: absolute; z-index: 9999;
-  display: flex; gap: 2px; padding: 6px 8px;
+  display: flex; gap: 4px; padding: 7px 9px;
   background: var(--bg-lighter); border: 1px solid var(--border-light);
   border-radius: 14px; box-shadow: 0 8px 24px rgba(0,0,0,0.4);
   animation: reactPickerPop 0.16s ease;
+  contain: layout;
 }
 @keyframes reactPickerPop {
   from { opacity: 0; transform: scale(0.85) translateY(4px); }
   to   { opacity: 1; transform: scale(1) translateY(0); }
 }
 .emoji-react-picker .erp-emoji {
-  font-size: 20px; line-height: 1; padding: 4px 5px;
+  font-size: 22px; line-height: 1; padding: 5px 6px;
   border-radius: 8px; cursor: pointer; border: none; background: transparent;
   transition: background 0.12s ease, transform 0.1s ease;
+  flex-shrink: 0;
 }
-.emoji-react-picker .erp-emoji:hover { background: var(--bg-medium); transform: scale(1.2); }
+.emoji-react-picker .erp-emoji:hover { background: var(--bg-medium); transform: scale(1.18); }
 .emoji-react-picker .erp-emoji:active { transform: scale(0.9); }
 .emoji-react-picker .erp-plus {
   font-size: 18px; line-height: 1; padding: 4px 7px; margin-left: 2px;
@@ -6381,7 +6415,7 @@ body.no-anim .friend-item { animation: none !important; }
     <div class="auth-container">
       <div class="auth-brand">
         <h1>hellobye</h1>
-        <p>Secure real-time communication for professionals. Send encrypted messages, share files, and connect with end-to-end protected direct messages.</p>
+        <p>Secure real-time communication for professionals. Send encrypted messages, share files, and connect with end-to-end protected direct messages. hellobye is a private chatting website — your conversations stay between you and the people you trust. No public feeds, no strangers, no noise. Just clean, encrypted, one-to-one and group chats in a space built for privacy.</p>
       </div>
       <div class="auth-form-wrap">
       <div class="auth-card">
@@ -6585,7 +6619,7 @@ body.no-anim .friend-item { animation: none !important; }
         <div class="sidebar-footer-info">
           <div class="sidebar-footer-name" id="sidebar-self-name">@username</div>
           <div class="sidebar-footer-status" id="sidebar-self-statustext">Online</div>
-          <div class="sidebar-visible-bubble" id="sidebar-visible-bubble"><span class="vb-dot"></span>Visible to others</div>
+          <div class="sidebar-visible-bubble" id="sidebar-visible-bubble"><span class="vb-dot"></span>updates underway</div>
         </div>
       </div>
     </aside>
@@ -7271,7 +7305,7 @@ body.no-anim .friend-item { animation: none !important; }
         <div class="profile-section-title">Status Message</div>
         <input type="text" class="form-input" id="statusmsg-input" placeholder="Set a custom status message..." maxlength="25" autocomplete="off">
         <div class="bio-counter"><span id="statusmsg-count">0</span> / 25</div>
-        <p class="setting-hint">Visible to others as a status bubble while you're Online, Idle, or Do Not Disturb, and automatically cleared when you go offline.</p>
+        <p class="setting-hint">updates underway as a status bubble while you're Online, Idle, or Do Not Disturb, and automatically cleared when you go offline.</p>
       </div>
 
       <div class="profile-section">
@@ -12519,9 +12553,54 @@ function refreshReactionsDisplay(msg, scope) {
       ev.stopPropagation();
       toggleReaction(msg, emoji, scope, scope === 'dm' ? activeDMUser : (scope === 'group' ? activeGroupId : null));
     });
+    // Hover tooltip: show who reacted with this emoji
+    badge.addEventListener('mouseenter', () => showReactionTooltip(badge, emoji, reactions[emoji]));
+    badge.addEventListener('mouseleave', () => hideReactionTooltip());
+    badge.addEventListener('mousemove', (ev) => positionReactionTooltip(ev));
     row.appendChild(badge);
   });
   bubble.appendChild(row);
+}
+
+// ---------- Reaction hover tooltip (shows usernames of who reacted) ----------
+let reactionTooltipEl = null;
+function ensureReactionTooltip() {
+  if (reactionTooltipEl && document.body.contains(reactionTooltipEl)) return reactionTooltipEl;
+  reactionTooltipEl = document.createElement('div');
+  reactionTooltipEl.className = 'reaction-tooltip';
+  document.body.appendChild(reactionTooltipEl);
+  return reactionTooltipEl;
+}
+function showReactionTooltip(badge, emoji, usernames) {
+  const el = ensureReactionTooltip();
+  const names = (Array.isArray(usernames) ? usernames : []).map(un => {
+    const u = getUserByUsername(un);
+    const dn = (u && u.displayName) ? u.displayName : un;
+    return dn || un;
+  });
+  // Highlight the current user's own name; cap at 12 then "+N more"
+  const nameHtml = names.slice(0, 12).map(n => '<b>' + escapeHtml(n) + '</b>').join(', ');
+  const extra = names.length > 12 ? ' & +' + (names.length - 12) + ' more' : '';
+  el.innerHTML = '<span class="reaction-tooltip-emoji">' + emoji + '</span>'
+    + (names.length === 1 ? '1 reaction' : names.length + ' reactions')
+    + '<span class="reaction-tooltip-names">' + nameHtml + escapeHtml(extra) + '</span>';
+  el.classList.add('show');
+  positionReactionTooltip({ clientX: badge.getBoundingClientRect().left, clientY: badge.getBoundingClientRect().top });
+}
+function positionReactionTooltip(ev) {
+  if (!reactionTooltipEl || !reactionTooltipEl.classList.contains('show')) return;
+  const pad = 10;
+  let x = ev.clientX + 12;
+  let y = ev.clientY - 8;
+  const r = reactionTooltipEl.getBoundingClientRect();
+  if (x + r.width + pad > window.innerWidth) x = window.innerWidth - r.width - pad;
+  if (y + r.height + pad > window.innerHeight) y = window.innerHeight - r.height - pad;
+  if (y < pad) y = pad;
+  reactionTooltipEl.style.left = x + 'px';
+  reactionTooltipEl.style.top = y + 'px';
+}
+function hideReactionTooltip() {
+  if (reactionTooltipEl) reactionTooltipEl.classList.remove('show');
 }
 
 // Show the emoji reaction picker popover near a button element
@@ -13161,7 +13240,7 @@ function createFileElement(file) {
   // Accept either so GIFs / images / videos render inline instead of breaking
   // into a generic file card.
   const mt = ((file && (file.mimetype || file.type)) || '').toLowerCase();
-  if (mt.startsWith('image/')) {
+  if (mt.startsWith('image/') && mt !== 'image/gif') {
     const img = document.createElement('img');
     img.src = file.url; img.alt = file.name; img.loading = 'lazy';
     img.classList.add('hd-enhanced'); // server upscales/sharpens to 4K/HD
@@ -13175,17 +13254,71 @@ function createFileElement(file) {
       ]);
     });
     wrapper.appendChild(img);
-  } else if (mt.startsWith('video/')) {
-    const video = document.createElement('video');
-    video.src = file.url; video.controls = true;
-    video.classList.add('hd-enhanced'); // client-side HD display enhancement for video
-    video.addEventListener('contextmenu', (e) => {
-      e.preventDefault(); e.stopPropagation();
-      showContextMenu(e.clientX, e.clientY, [
-        { label: 'Download video', icon: 'download', action: () => downloadFile(file) }
-      ]);
-    });
-    wrapper.appendChild(video);
+  } else if (mt.startsWith('video/') || mt === 'image/gif') {
+    // Animated GIFs and videos share a rich, framed media player.
+    const isGif = mt === 'image/gif' || (/\.gif$/i).test(file.name || '');
+    const player = document.createElement('div');
+    player.className = 'media-player-wrap';
+    if (isGif) player.classList.add('is-gif');
+
+    if (isGif) {
+      // Animated GIF: render as a looping, muted <video> so it always plays
+      // smoothly (browsers handle GIF-in-video well) with a GIF badge.
+      const video = document.createElement('video');
+      video.src = file.url; video.autoplay = true; video.loop = true;
+      video.muted = true; video.playsInline = true;
+      video.setAttribute('aria-label', file.name);
+      video.classList.add('hd-enhanced');
+      // Allow unmute on click for GIFs that have audio
+      video.addEventListener('click', (e) => {
+        e.stopPropagation();
+        video.muted = !video.muted;
+        if (!video.muted && video.paused) video.play().catch(() => {});
+      });
+      video.addEventListener('contextmenu', (e) => {
+        e.preventDefault(); e.stopPropagation();
+        showContextMenu(e.clientX, e.clientY, [
+          { label: 'Open in new tab', icon: 'user', action: () => window.open(file.url, '_blank') },
+          { label: 'Download GIF', icon: 'download', action: () => downloadFile(file) }
+        ]);
+      });
+      player.appendChild(video);
+      const badge = document.createElement('div');
+      badge.className = 'media-player-badge';
+      badge.textContent = 'GIF';
+      player.appendChild(badge);
+    } else {
+      // Video: a styled, framed player with native controls + metadata bar.
+      const video = document.createElement('video');
+      video.src = file.url; video.controls = true; video.preload = 'metadata';
+      video.playsInline = true;
+      video.classList.add('hd-enhanced');
+      video.setAttribute('aria-label', file.name);
+      video.addEventListener('contextmenu', (e) => {
+        e.preventDefault(); e.stopPropagation();
+        showContextMenu(e.clientX, e.clientY, [
+          { label: 'Open in new tab', icon: 'user', action: () => window.open(file.url, '_blank') },
+          { label: 'Download video', icon: 'download', action: () => downloadFile(file) }
+        ]);
+      });
+      player.appendChild(video);
+      // Metadata bar: name + resolution + duration
+      const meta = document.createElement('div');
+      meta.className = 'media-player-meta';
+      meta.innerHTML = '<span class="media-player-name"></span><span class="media-player-info"></span>';
+      meta.querySelector('.media-player-name').textContent = file.name;
+      meta.querySelector('.media-player-info').textContent = formatFileSize(file.size) + ' · video';
+      player.appendChild(meta);
+      video.addEventListener('loadedmetadata', () => {
+        const dur = video.duration, w = video.videoWidth, h = video.videoHeight;
+        const parts = [];
+        if (isFinite(dur) && dur > 0) parts.push(formatDuration(dur));
+        if (w && h) parts.push(w + '×' + h);
+        const info = meta.querySelector('.media-player-info');
+        if (info) info.textContent = (parts.length ? parts.join(' · ') + ' · ' : '') + formatFileSize(file.size) + ' · video';
+      });
+    }
+    wrapper.appendChild(player);
   } else if (mt.startsWith('audio/')) {
     const audio = document.createElement('audio');
     audio.src = file.url; audio.controls = true;
