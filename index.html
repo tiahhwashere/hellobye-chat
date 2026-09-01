@@ -984,7 +984,7 @@ body.no-anim .friend-item { animation: none !important; }
    max-width) so DM messages look the same as regular chat messages. */
 .message-bubble.dm-bubble { max-width: 100%; }
 
-.message-text { display: inline; white-space: pre-wrap; word-break: break-word; overflow-wrap: break-word; }
+.message-text { display: inline; white-space: pre-line; word-break: break-word; overflow-wrap: break-word; }
 .inline-link { color: inherit; text-decoration: underline; text-underline-offset: 2px; text-decoration-color: rgba(255,255,255,0.25); }
 .message-group:not(.own) .inline-link { text-decoration-color: rgba(74,158,255,0.4); }
 
@@ -1715,7 +1715,7 @@ body.no-anim .friend-item { animation: none !important; }
 .reply-preview-body {
   font-size: 13px; line-height: 1.5; color: var(--text-secondary);
   max-height: 160px; overflow-y: auto;
-  word-break: break-word; white-space: pre-wrap;
+  word-break: break-word; white-space: pre-line;
 }
 .reply-preview-body .mention-self,
 .reply-preview-body .mention {
@@ -8627,6 +8627,35 @@ function escapeHtml(text) {
   div.textContent = text;
   return div.innerHTML;
 }
+// Normalize message text before sending/rendering so that:
+//  - leading spaces on each line are removed (stops 'space then type'
+//    from inflating the message / adding big left indentation)
+//  - 3+ consecutive blank lines collapse to at most 1 blank line
+//    (stops copy-pasted lists from becoming very tall)
+//  - total line breaks are capped so a giant paste stays compact
+//  - the whole thing is trimmed of leading/trailing whitespace
+// white-space:pre-line in CSS collapses remaining inline spaces.
+function normalizeMessageText(text) {
+  if (!text) return text;
+  let t = String(text).replace(/\r\n?/g, '\n');
+  // Trim trailing spaces on every line (keeps intentional indentation
+  // inside a line but removes accidental trailing whitespace).
+  t = t.replace(/[ \t]+\n/g, '\n');
+  // Trim leading spaces/tabs on every line (fixes 'space first' issue).
+  t = t.replace(/(^|\n)[ \t]+/g, '$1');
+  // Collapse 3+ consecutive newlines (>=2 blank lines) into a single
+  // blank line (two newlines).
+  t = t.replace(/\n{3,}/g, '\n\n');
+  // Cap total newlines so even a very large paste stays compact (max
+  // 8 line breaks -> at most 9 visible lines).
+  const MAX_NEWLINES = 8;
+  const nlCount = (t.match(/\n/g) || []).length;
+  if (nlCount > MAX_NEWLINES) {
+    const parts = t.split('\n');
+    t = parts.slice(0, MAX_NEWLINES + 1).join('\n');
+  }
+  return t.trim();
+}
 // Escape for use inside single-quoted HTML/CSS attribute contexts such as
 // style="background-image:url('...')". escapeHtml alone does NOT escape the
 // single quote, so a URL containing ' could break out of the url('...') wrapper
@@ -10219,7 +10248,7 @@ function connectSocket() {
     if (group) {
       const textSpan = group.querySelector('.message-text');
       if (textSpan && msg) {
-        textSpan.innerHTML = highlightMentions(linkifyAndEmbed(escapeHtml(msg.text)));
+        textSpan.innerHTML = highlightMentions(linkifyAndEmbed(escapeHtml(normalizeMessageText(msg.text))));
         attachMentionEvents(textSpan);
         textSpan.querySelectorAll('.link-embed').forEach(el => fetchEmbed(el.dataset.url, el));
       }
@@ -10825,7 +10854,7 @@ function appendMessage(msg, silent) {
     if (msg.text) {
       const textSpan = document.createElement('span');
       textSpan.className = 'message-text';
-      textSpan.innerHTML = highlightMentions(linkifyAndEmbed(escapeHtml(msg.text)));
+      textSpan.innerHTML = highlightMentions(linkifyAndEmbed(escapeHtml(normalizeMessageText(msg.text))));
       contentParent.appendChild(textSpan);
       // Add pinged class if this message mentions the current user
       if (msg.pingedForMe) bubble.classList.add('pinged-msg');
@@ -11245,7 +11274,7 @@ function startEditMessage(msgId, bubble) {
   const cancel = document.createElement('button');
   cancel.className = 'edit-cancel'; cancel.textContent = 'Cancel';
   const doSave = () => {
-    const newText = input.value.trim();
+    const newText = normalizeMessageText(input.value);
     if (newText && newText !== msg.text) {
       socket.emit('edit-message', { id: msgId, text: newText }, (res) => { if (res && res.error) toast(res.error, 'error'); });
     }
@@ -11506,7 +11535,7 @@ chatInput.addEventListener('blur', () => {
 });
 
 async function sendMessage() {
-  const text = chatInput.value.trim();
+  const text = normalizeMessageText(chatInput.value);
   if (!text && !pendingFile) return;
   // Cooldown check (skip for exempt users)
   const isExempt = !!(currentUser && currentUser.cooldownExempt);
@@ -13751,7 +13780,7 @@ function appendGroupMessage(msg, silent) {
     if (msg.text) {
       const textSpan = document.createElement('span');
       textSpan.className = 'message-text';
-      textSpan.innerHTML = highlightMentions(linkifyAndEmbed(escapeHtml(msg.text)));
+      textSpan.innerHTML = highlightMentions(linkifyAndEmbed(escapeHtml(normalizeMessageText(msg.text))));
       contentParent.appendChild(textSpan);
       if (msg.pingedForMe) bubble.classList.add('pinged-msg');
       attachMentionEvents(textSpan);
@@ -13851,7 +13880,7 @@ function startEditGroup(msgId, bubble) {
   const confirm = document.createElement('button'); confirm.className = 'edit-confirm'; confirm.textContent = 'Save';
   const cancel = document.createElement('button'); cancel.className = 'edit-cancel'; cancel.textContent = 'Cancel';
   const doSave = () => {
-    const newText = input.value.trim();
+    const newText = normalizeMessageText(input.value);
     if (newText && newText !== msg.text) {
       socket.emit('group-edit', { id: msgId, groupId: activeGroupId, text: newText }, (res) => { if (res && res.error) toast(res.error, 'error'); });
     }
@@ -14057,7 +14086,7 @@ document.addEventListener('click', (e) => {
 groupInputEl.addEventListener('blur', () => { setTimeout(() => hideGroupMentionDropdown(), 150); });
 
 function sendGroupMessage() {
-  const text = groupInputEl.value.trim();
+  const text = normalizeMessageText(groupInputEl.value);
   if (!text && !pendingGroupFile) return;
   // Note: group cooldown is now 0.3s (server-enforced) — too short for a visible client-side indicator.
   if (pendingGroupFile) {
@@ -14567,7 +14596,7 @@ function appendDMMessage(msg, silent) {
     if (msg.text) {
       const textSpan = document.createElement('span');
       textSpan.className = 'message-text';
-      textSpan.innerHTML = highlightMentions(linkifyAndEmbed(escapeHtml(msg.text)));
+      textSpan.innerHTML = highlightMentions(linkifyAndEmbed(escapeHtml(normalizeMessageText(msg.text))));
       contentParent.appendChild(textSpan);
       if (msg.pingedForMe) bubble.classList.add('pinged-msg');
       attachMentionEvents(textSpan);
@@ -14659,7 +14688,7 @@ function startEditDM(msgId, bubble) {
   const cancel = document.createElement('button');
   cancel.className = 'edit-cancel'; cancel.textContent = 'Cancel';
   const doSave = () => {
-    const newText = input.value.trim();
+    const newText = normalizeMessageText(input.value);
     if (newText && newText !== msg.text) {
       socket.emit('dm-edit', { id: msgId, to: activeDMUser, text: newText }, (res) => { if (res && res.error) toast(res.error, 'error'); });
     }
@@ -14986,7 +15015,7 @@ function clearDMPendingFile() {
 }
 $('dm-remove-attachment').addEventListener('click', () => { clearDMPendingFile(); updateDMSend(); });
 function sendDM() {
-  const text = dmInputEl.value.trim();
+  const text = normalizeMessageText(dmInputEl.value);
   if (!text && !pendingDMFile) return;
   // If there's a pending file, show the media caption + confirm modal first
   if (pendingDMFile) {
@@ -15449,7 +15478,7 @@ function showReplyPreview(anchor, reply) {
     ? '<img src="' + escapeHtml(replyUser.avatar) + '" alt="">'
     : escapeHtml(getInitials(reply.displayName || reply.username));
   const textHtml = reply.text
-    ? highlightMentions(linkifyAndEmbed(escapeHtml(reply.text)))
+    ? highlightMentions(linkifyAndEmbed(escapeHtml(normalizeMessageText(reply.text))))
     : '<span style="color:var(--text-muted);font-style:italic;">[File attachment]</span>';
   tip.innerHTML =
     '<div class="reply-preview-head">' +
