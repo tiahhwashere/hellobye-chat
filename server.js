@@ -3852,6 +3852,96 @@ io.on('connection', (socket) => {
     }
   });
 
+  // ---- Emoji Reaction: Chatroom ----
+  // Toggles the current user's reaction (emoji) on a public chat message.
+  // Reactions are stored on the message as msg.reactions = { emoji: [usernames] }.
+  // The updated reactions map is broadcast to ALL connected clients.
+  socket.on('react-message', ({ id, emoji }, ack) => {
+    try {
+      const msg = db.messages.find(m => m.id === id);
+      if (!msg) { if (typeof ack === 'function') ack({ error: 'Message not found' }); return; }
+      if (!msg.reactions || typeof msg.reactions !== 'object') msg.reactions = {};
+      const e = String(emoji || '').slice(0, 10);
+      if (!e) { if (typeof ack === 'function') ack({ error: 'Invalid emoji' }); return; }
+      if (!Array.isArray(msg.reactions[e])) msg.reactions[e] = [];
+      const idx = msg.reactions[e].indexOf(username);
+      if (idx >= 0) {
+        msg.reactions[e].splice(idx, 1);
+        if (msg.reactions[e].length === 0) delete msg.reactions[e];
+      } else {
+        msg.reactions[e].push(username);
+      }
+      saveDB();
+      io.emit('message-reaction', { id: msg.id, reactions: msg.reactions });
+      if (typeof ack === 'function') ack({ success: true, reactions: msg.reactions });
+    } catch (e) {
+      if (typeof ack === 'function') ack({ error: 'Failed to react' });
+    }
+  });
+
+  // ---- Emoji Reaction: DM ----
+  // Toggles the current user's reaction on a DM message. The message lives in
+  // BOTH users' DM stores (db.dms[sender][recipient] and db.dms[recipient][sender])
+  // — the same message object reference is pushed to both arrays at send time,
+  // so updating one updates both. The updated reactions are emitted to both
+  // the sender and the recipient.
+  socket.on('dm-react', ({ id, to, emoji }, ack) => {
+    try {
+      const target = to ? to.toLowerCase() : '';
+      const myDMs = db.dms[username] || {};
+      const conv = myDMs[target] || [];
+      const msg = conv.find(m => m.id === id);
+      if (!msg) { if (typeof ack === 'function') ack({ error: 'Message not found' }); return; }
+      if (!msg.reactions || typeof msg.reactions !== 'object') msg.reactions = {};
+      const e = String(emoji || '').slice(0, 10);
+      if (!e) { if (typeof ack === 'function') ack({ error: 'Invalid emoji' }); return; }
+      if (!Array.isArray(msg.reactions[e])) msg.reactions[e] = [];
+      const idx = msg.reactions[e].indexOf(username);
+      if (idx >= 0) {
+        msg.reactions[e].splice(idx, 1);
+        if (msg.reactions[e].length === 0) delete msg.reactions[e];
+      } else {
+        msg.reactions[e].push(username);
+      }
+      saveDB();
+      // Notify both participants
+      io.to('user:' + username).emit('dm-reaction', { id: msg.id, from: target, reactions: msg.reactions });
+      if (target && target !== username) io.to('user:' + target).emit('dm-reaction', { id: msg.id, from: username, reactions: msg.reactions });
+      if (typeof ack === 'function') ack({ success: true, reactions: msg.reactions });
+    } catch (e) {
+      if (typeof ack === 'function') ack({ error: 'Failed to react' });
+    }
+  });
+
+  // ---- Emoji Reaction: Group Chat ----
+  // Toggles the current user's reaction on a group chat message. The updated
+  // reactions are broadcast to every member of the group.
+  socket.on('group-react', ({ groupId, id, emoji }, ack) => {
+    try {
+      const g = findGroup(groupId);
+      if (!g) { if (typeof ack === 'function') ack({ error: 'Group not found' }); return; }
+      if (!(g.members || []).includes(username)) { if (typeof ack === 'function') ack({ error: 'Not a member' }); return; }
+      const msg = (g.messages || []).find(m => m.id === id);
+      if (!msg) { if (typeof ack === 'function') ack({ error: 'Message not found' }); return; }
+      if (!msg.reactions || typeof msg.reactions !== 'object') msg.reactions = {};
+      const e = String(emoji || '').slice(0, 10);
+      if (!e) { if (typeof ack === 'function') ack({ error: 'Invalid emoji' }); return; }
+      if (!Array.isArray(msg.reactions[e])) msg.reactions[e] = [];
+      const idx = msg.reactions[e].indexOf(username);
+      if (idx >= 0) {
+        msg.reactions[e].splice(idx, 1);
+        if (msg.reactions[e].length === 0) delete msg.reactions[e];
+      } else {
+        msg.reactions[e].push(username);
+      }
+      saveDB();
+      for (const mem of (g.members || [])) io.to('user:' + mem).emit('group-reaction', { groupId: g.id, id: msg.id, reactions: msg.reactions });
+      if (typeof ack === 'function') ack({ success: true, reactions: msg.reactions });
+    } catch (e) {
+      if (typeof ack === 'function') ack({ error: 'Failed to react' });
+    }
+  });
+
   // ---- Set status ----
   socket.on('set-status', (status) => {
     if (!['online', 'idle', 'dnd', 'offline'].includes(status)) return;

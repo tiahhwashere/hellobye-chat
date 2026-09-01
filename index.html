@@ -1595,6 +1595,68 @@ body.no-anim .friend-item { animation: none !important; }
 .edit-cancel:hover { background: var(--bg-hover); }
 .edit-cancel:active { transform: scale(0.96); }
 
+/* ============================================
+   EMOJI REACTION SYSTEM
+   ============================================ */
+.reactions-row {
+  display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px;
+}
+.reaction-badge {
+  display: inline-flex; align-items: center; gap: 3px;
+  padding: 2px 7px; font-size: 12px; line-height: 1.4;
+  background: var(--bg-medium); border: 1px solid var(--border);
+  border-radius: 12px; cursor: pointer; user-select: none;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+}
+.reaction-badge:hover { background: var(--bg-light); border-color: var(--border-light); }
+.reaction-badge:active { transform: scale(0.92); }
+.reaction-badge.reacted {
+  background: var(--accent-dim); border-color: var(--accent);
+}
+.reaction-badge .reaction-emoji { font-size: 13px; }
+.reaction-badge .reaction-count {
+  font-size: 11px; font-weight: 600; color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+.reaction-badge.reacted .reaction-count { color: var(--accent-text); }
+.message-group.own .reaction-badge { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.12); }
+.message-group.own .reaction-badge:hover { background: rgba(255,255,255,0.14); }
+.message-group.own .reaction-badge.reacted { background: rgba(255,255,255,0.22); border-color: rgba(255,255,255,0.45); }
+.message-group.own .reaction-badge .reaction-count { color: rgba(255,255,255,0.7); }
+.message-group.own .reaction-badge.reacted .reaction-count { color: #fff; }
+
+/* React button (opens the emoji picker) */
+.msg-react-btn {
+  padding: 3px 8px; font-size: 13px; line-height: 1;
+  background: transparent; color: var(--text-muted);
+  border-radius: 5px; border: none; cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.message-group.own .msg-react-btn { color: rgba(255,255,255,0.6); }
+.msg-react-btn:hover { background: rgba(255,255,255,0.06); color: var(--text-primary); }
+.message-group.own .msg-react-btn:hover { background: rgba(255,255,255,0.12); color: #fff; }
+.msg-react-btn:active { transform: scale(0.92); }
+
+/* Emoji reaction picker popover */
+.emoji-react-picker {
+  position: absolute; z-index: 9999;
+  display: flex; gap: 2px; padding: 6px 8px;
+  background: var(--bg-lighter); border: 1px solid var(--border-light);
+  border-radius: 14px; box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  animation: reactPickerPop 0.16s ease;
+}
+@keyframes reactPickerPop {
+  from { opacity: 0; transform: scale(0.85) translateY(4px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+.emoji-react-picker .erp-emoji {
+  font-size: 20px; line-height: 1; padding: 4px 5px;
+  border-radius: 8px; cursor: pointer; border: none; background: transparent;
+  transition: background 0.12s ease, transform 0.1s ease;
+}
+.emoji-react-picker .erp-emoji:hover { background: var(--bg-medium); transform: scale(1.2); }
+.emoji-react-picker .erp-emoji:active { transform: scale(0.9); }
+
 .typing-indicator {
   padding: 4px 24px 8px; font-size: 12px; color: var(--text-muted);
   font-style: italic; min-height: 22px; flex-shrink: 0;
@@ -6838,7 +6900,7 @@ body.no-anim .friend-item { animation: none !important; }
   <div id="members-bg-modal">
     <div class="members-bg-card">
       <div class="members-bg-head">
-        <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg> Members List Background</h3>
+        <h3>Members List Background</h3>
         <button class="search-msg-close" id="members-bg-close" title="Close">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
@@ -8396,13 +8458,14 @@ function toast(msg, type = '', opts = {}) {
   // colored accent bar). Used for the "Password is required." validation
   // toast so it shows as a clean text message without the error icon.
   const skipIcon = !!(opts && opts.noIcon);
-  // Icons for each toast type (success/confirm have no icon — green checkmark removed)
+  // All SVG icons have been removed from toast notifications per request.
+  // Toasts now show as clean text messages with the colored accent bar only.
   const icons = {
     success: '',
     confirm: '',
-    error: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>',
-    info: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>',
-    warning: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
+    error: '',
+    info: '',
+    warning: '',
     '': '',
   };
   const iconHtml = skipIcon ? '' : (icons[type] || icons['']);
@@ -10321,6 +10384,10 @@ function connectSocket() {
       renderMessages(); // fallback
     }
   });
+  // ---- Emoji reaction update (chatroom) ----
+  socket.on('message-reaction', (data) => {
+    applyRemoteReaction(messages, data, 'chat');
+  });
   socket.on('users-list', (list) => { users = list; renderUserListDebounced(); });
   // Welcome title changed by admin — update the chat header in real-time
   socket.on('welcome-title-changed', (data) => {
@@ -10544,6 +10611,12 @@ function connectSocket() {
   socket.on('dm-typing', (data) => {
     if (activeDMUser === data.from) showDMTyping(data.typing, data.displayName || data.from);
   });
+  // ---- Emoji reaction update (DM) ----
+  socket.on('dm-reaction', (data) => {
+    if (activeDMUser === data.from || (currentUser && data.from === currentUser.username)) {
+      applyRemoteReaction(dmMessages, data, 'dm');
+    }
+  });
 
   // Friend events
   socket.on('friend-request', (data) => {
@@ -10734,6 +10807,12 @@ function connectSocket() {
       showGroupTyping(false);
     }
   });
+  // ---- Emoji reaction update (group chat) ----
+  socket.on('group-reaction', (data) => {
+    if (activeGroupId === data.groupId) {
+      applyRemoteReaction(groupMessages, data, 'group');
+    }
+  });
 
 }
 
@@ -10763,6 +10842,171 @@ function isUserBlocked(username) {
 function hideEmptyState() { const es = $('empty-state'); if (es) es.remove(); }
 function getUserByUsername(username) {
   return users.find(u => u.username === username) || { username, avatar: null, status: 'offline', displayName: '' };
+}
+
+// ============================================
+// EMOJI REACTION SYSTEM
+// ============================================
+// Reactions are stored on each message object as `msg.reactions`, a map of
+// emoji → array of usernames who reacted with that emoji.
+//   e.g.  msg.reactions = { '👍': ['alice','bob'], '❤️': ['alice'] }
+// The system works across chatroom, DMs, and group chats. Each context uses
+// its own socket event + server handler but shares these UI helpers.
+const REACT_EMOJIS = ['👍', '❤️', '😂', '😮', '😢', '🔥', '🎉', '👏'];
+let _activeReactPicker = null;
+
+// Get the reactions map from a message (initialises if missing)
+function getReactions(msg) {
+  if (!msg.reactions || typeof msg.reactions !== 'object') msg.reactions = {};
+  return msg.reactions;
+}
+
+// Toggle the current user's reaction on a message (locally + via socket)
+// scope: 'chat' | 'dm' | 'group'
+function toggleReaction(msg, emoji, scope, extra) {
+  if (!currentUser || !currentUser.username) return;
+  const reactions = getReactions(msg);
+  const me = currentUser.username;
+  let changed = false;
+  if (reactions[emoji] && Array.isArray(reactions[emoji])) {
+    const idx = reactions[emoji].indexOf(me);
+    if (idx >= 0) {
+      reactions[emoji].splice(idx, 1);
+      if (reactions[emoji].length === 0) delete reactions[emoji];
+      changed = true;
+    } else {
+      reactions[emoji].push(me);
+      changed = true;
+    }
+  } else {
+    reactions[emoji] = [me];
+    changed = true;
+  }
+  if (!changed) return;
+  // Emit to server for persistence + broadcast
+  if (scope === 'chat') {
+    socket.emit('react-message', { id: msg.id, emoji });
+  } else if (scope === 'dm') {
+    socket.emit('dm-react', { id: msg.id, to: extra, emoji });
+  } else if (scope === 'group') {
+    socket.emit('group-react', { groupId: extra, id: msg.id, emoji });
+  }
+  // Update the visual display for this message group
+  refreshReactionsDisplay(msg, scope);
+}
+
+// Re-render the reactions row + react button for a specific message DOM group
+function refreshReactionsDisplay(msg, scope) {
+  const groupEl = document.querySelector('.message-group[data-message-id="' + CSS.escape(msg.id) + '"]');
+  if (!groupEl) return;
+  const bubble = groupEl.querySelector('.message-bubble');
+  if (!bubble) return;
+  // Remove existing reactions row
+  const existing = bubble.querySelector('.reactions-row');
+  if (existing) existing.remove();
+  // Build new reactions row
+  const reactions = getReactions(msg);
+  const emojis = Object.keys(reactions).filter(e => reactions[e] && reactions[e].length > 0);
+  if (emojis.length === 0) return;
+  const me = currentUser ? currentUser.username : '';
+  const row = document.createElement('div');
+  row.className = 'reactions-row';
+  emojis.forEach(emoji => {
+    const badge = document.createElement('span');
+    badge.className = 'reaction-badge' + (reactions[emoji].includes(me) ? ' reacted' : '');
+    const emojiSpan = document.createElement('span');
+    emojiSpan.className = 'reaction-emoji';
+    emojiSpan.textContent = emoji;
+    const countSpan = document.createElement('span');
+    countSpan.className = 'reaction-count';
+    countSpan.textContent = String(reactions[emoji].length);
+    badge.appendChild(emojiSpan);
+    badge.appendChild(countSpan);
+    badge.addEventListener('click', (ev) => {
+      ev.stopPropagation();
+      toggleReaction(msg, emoji, scope, scope === 'dm' ? activeDMUser : (scope === 'group' ? activeGroupId : null));
+    });
+    row.appendChild(badge);
+  });
+  bubble.appendChild(row);
+}
+
+// Show the emoji reaction picker popover near a button element
+function showReactPicker(anchorEl, msg, scope, extra) {
+  closeReactPicker();
+  const picker = document.createElement('div');
+  picker.className = 'emoji-react-picker';
+  REACT_EMOJIS.forEach(emoji => {
+    const btn = document.createElement('button');
+    btn.className = 'erp-emoji';
+    btn.textContent = emoji;
+    btn.addEventListener('click', (ev) => {
+      ev.stopPropagation();
+      toggleReaction(msg, emoji, scope, extra);
+      closeReactPicker();
+    });
+    picker.appendChild(btn);
+  });
+  document.body.appendChild(picker);
+  _activeReactPicker = picker;
+  // Position the picker above the anchor button
+  requestAnimationFrame(() => {
+    const rect = anchorEl.getBoundingClientRect();
+    const pickerRect = picker.getBoundingClientRect();
+    let left = rect.left + rect.width / 2 - pickerRect.width / 2;
+    let top = rect.top - pickerRect.height - 6;
+    // Keep within viewport
+    if (left < 6) left = 6;
+    if (left + pickerRect.width > window.innerWidth - 6) left = window.innerWidth - pickerRect.width - 6;
+    if (top < 6) top = rect.bottom + 6; // flip below if no room above
+    picker.style.left = left + 'px';
+    picker.style.top = top + 'px';
+  });
+}
+
+function closeReactPicker() {
+  if (_activeReactPicker) {
+    _activeReactPicker.remove();
+    _activeReactPicker = null;
+  }
+}
+// Close the picker when clicking elsewhere or pressing Escape
+document.addEventListener('click', (e) => {
+  if (_activeReactPicker && !_activeReactPicker.contains(e.target) && !e.target.classList.contains('msg-react-btn')) {
+    closeReactPicker();
+  }
+});
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeReactPicker(); });
+
+// Create a "React" action button to be appended to a message's .message-actions
+function createReactButton(msg, scope, extra) {
+  const btn = document.createElement('button');
+  btn.className = 'msg-react-btn';
+  btn.textContent = '🙂';
+  btn.title = 'Add reaction';
+  btn.onclick = (ev) => {
+    ev.stopPropagation();
+    if (_activeReactPicker && _activeReactPicker._anchorMsgId === msg.id) {
+      closeReactPicker();
+    } else {
+      closeReactPicker();
+      showReactPicker(btn, msg, scope, extra);
+      if (_activeReactPicker) _activeReactPicker._anchorMsgId = msg.id;
+    }
+  };
+  return btn;
+}
+
+// Apply incoming reaction update from server to a local message object + DOM
+// msgList: the array to search (messages / dmMessages / groupMessages)
+// scope: 'chat' | 'dm' | 'group'
+function applyRemoteReaction(msgList, data, scope) {
+  if (!data || !data.id) return;
+  const msg = msgList.find(m => m.id === data.id);
+  if (msg) {
+    msg.reactions = data.reactions || {};
+    refreshReactionsDisplay(msg, scope);
+  }
 }
 
 function appendMessage(msg, silent) {
@@ -10896,7 +11140,7 @@ function appendMessage(msg, silent) {
     const delBtn = document.createElement('button');
     delBtn.className = 'msg-action-btn danger'; delBtn.textContent = 'Delete';
     delBtn.onclick = (ev) => { ev.stopPropagation(); confirmDeleteMessage(msg.id); };
-    actions.appendChild(replyBtn); actions.appendChild(editBtn); actions.appendChild(delBtn);
+    actions.appendChild(createReactButton(msg, 'chat')); actions.appendChild(replyBtn); actions.appendChild(editBtn); actions.appendChild(delBtn);
     bubble.appendChild(actions);
   } else if (!isOwn && !msg.deleted) {
     // For other users' messages, add reply context menu on bubble too
@@ -10921,10 +11165,12 @@ function appendMessage(msg, silent) {
     const replyBtn = document.createElement('button');
     replyBtn.className = 'msg-action-btn'; replyBtn.textContent = 'Reply';
     replyBtn.onclick = (ev) => { ev.stopPropagation(); startReply(msg); };
-    actions.appendChild(replyBtn);
+    actions.appendChild(createReactButton(msg, 'chat')); actions.appendChild(replyBtn);
     bubble.appendChild(actions);
   }
 
+  // Render existing reactions (if any) after the bubble is fully built
+  if (!msg.deleted) refreshReactionsDisplay(msg, 'chat');
   wrap.appendChild(bubble);
 
   if (!msg.deleted) {
@@ -13806,7 +14052,7 @@ function appendGroupMessage(msg, silent) {
     const replyBtn = document.createElement('button'); replyBtn.className = 'msg-action-btn'; replyBtn.textContent = 'Reply'; replyBtn.onclick = (ev) => { ev.stopPropagation(); startGroupReply(msg); };
     const editBtn = document.createElement('button'); editBtn.className = 'msg-action-btn'; editBtn.textContent = 'Edit'; editBtn.onclick = (ev) => { ev.stopPropagation(); startEditGroup(msg.id, bubble); };
     const delBtn = document.createElement('button'); delBtn.className = 'msg-action-btn danger'; delBtn.textContent = 'Delete'; delBtn.onclick = (ev) => { ev.stopPropagation(); confirmDeleteGroup(msg.id); };
-    actions.appendChild(replyBtn); actions.appendChild(editBtn); actions.appendChild(delBtn);
+    actions.appendChild(createReactButton(msg, 'group', activeGroupId)); actions.appendChild(replyBtn); actions.appendChild(editBtn); actions.appendChild(delBtn);
     bubble.appendChild(actions);
   } else if (!isOwn && !msg.deleted) {
     const ctxItems = [
@@ -13818,10 +14064,12 @@ function appendGroupMessage(msg, silent) {
     const actions = document.createElement('div');
     actions.className = 'message-actions';
     const replyBtn = document.createElement('button'); replyBtn.className = 'msg-action-btn'; replyBtn.textContent = 'Reply'; replyBtn.onclick = (ev) => { ev.stopPropagation(); startGroupReply(msg); };
-    actions.appendChild(replyBtn);
+    actions.appendChild(createReactButton(msg, 'group', activeGroupId)); actions.appendChild(replyBtn);
     bubble.appendChild(actions);
   }
   wrap.appendChild(bubble);
+  // Render existing reactions (if any) after the bubble is fully built
+  if (!msg.deleted) refreshReactionsDisplay(msg, 'group');
   if (!msg.deleted) {
     const meta = document.createElement('div');
     meta.className = 'message-meta';
@@ -14634,7 +14882,7 @@ function appendDMMessage(msg, silent) {
     const delBtn = document.createElement('button');
     delBtn.className = 'msg-action-btn danger'; delBtn.textContent = 'Delete';
     delBtn.onclick = (ev) => { ev.stopPropagation(); confirmDeleteDM(msg.id); };
-    actions.appendChild(replyBtn); actions.appendChild(pinBtn); actions.appendChild(editBtn); actions.appendChild(delBtn);
+    actions.appendChild(createReactButton(msg, 'dm', activeDMUser)); actions.appendChild(replyBtn); actions.appendChild(pinBtn); actions.appendChild(editBtn); actions.appendChild(delBtn);
     bubble.appendChild(actions);
   } else if (!isOwn && !msg.deleted) {
     const dmOtherCtxItems = [
@@ -14655,12 +14903,14 @@ function appendDMMessage(msg, silent) {
     const pinBtn = document.createElement('button');
     pinBtn.className = 'msg-action-btn' + (dmPinnedIds.has(msg.id) ? ' pin-active' : ''); pinBtn.textContent = dmPinnedIds.has(msg.id) ? 'Unpin' : 'Pin';
     pinBtn.onclick = (ev) => { ev.stopPropagation(); togglePinMessage(msg.id); };
-    actions.appendChild(replyBtn); actions.appendChild(pinBtn);
+    actions.appendChild(createReactButton(msg, 'dm', activeDMUser)); actions.appendChild(replyBtn); actions.appendChild(pinBtn);
     bubble.appendChild(actions);
   }
   const wrap = document.createElement('div');
   wrap.className = 'message-bubble-wrap';
   wrap.appendChild(bubble);
+  // Render existing reactions (if any) after the bubble is fully built
+  if (!msg.deleted) refreshReactionsDisplay(msg, 'dm');
   if (!msg.deleted) {
     const meta = document.createElement('div');
     meta.className = 'message-meta';
