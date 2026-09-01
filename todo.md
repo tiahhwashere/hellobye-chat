@@ -12,7 +12,7 @@
 - [x] 9. "Adjust profile picture" preview: bigger/wider, more space, show full profile picture without seeming cropped (object-fit: contain + bigger frame)
 
 ## Deploy
-- [ ] Commit & push to GitHub
-- [ ] Deploy to Render
-- [ ] Verify live at https://hellobye-chat.onrender.com/
-- [ ] Ensure no data deleted/removed
+- [x] Commit & push to GitHub
+- [x] Deploy to Render (autoDeploy triggered, deploy live)
+- [x] Verify live at https://hellobye-chat.onrender.com/
+- [x] Ensure no data deleted/removed (db.json restored to clean state; production DB untouched)
