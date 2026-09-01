@@ -6,7 +6,7 @@
 - [x] C. .txt file sent in chat: show file contents inline with a download button + copy button
 
 ## Deploy
-- [ ] Commit & push to GitHub
-- [ ] Deploy to Render (autoDeploy)
-- [ ] Verify live at https://hellobye-chat.onrender.com/
-- [ ] Ensure no data deleted/removed
+- [x] Commit & push to GitHub
+- [x] Deploy to Render (autoDeploy)
+- [x] Verify live at https://hellobye-chat.onrender.com/
+- [x] Ensure no data deleted/removed
