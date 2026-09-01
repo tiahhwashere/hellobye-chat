@@ -3964,7 +3964,12 @@ io.on('connection', (socket) => {
 
   // ---- Set status ----
   socket.on('set-status', (status) => {
-    if (!['online', 'idle', 'dnd', 'offline'].includes(status)) return;
+    // 'streaming' is an owner-exclusive status: ONLY @lore (the panel owner)
+    // is allowed to set it. Everyone else still SEES it on @lore, but they
+    // cannot choose it for themselves. Any non-owner attempting to set
+    // 'streaming' is silently ignored (their status is left unchanged).
+    if (status === 'streaming' && !isOwnerUser(user)) return;
+    if (!['online', 'idle', 'dnd', 'offline', 'streaming'].includes(status)) return;
     user.status = status;
     user.explicitStatus = true; // Mark as user-set (persists across reconnects)
     // If the user explicitly chose "offline" (appear offline), clear any

@@ -38,6 +38,7 @@
   --idle: #d4a017;
   --dnd: #d83a3a;
   --offline: #646b76;
+  --streaming: #9b59f0;
   --danger: #d83a3a;
   --danger-hover: #c02e2e;
   --success: #3ba55d;
@@ -712,6 +713,7 @@ body.loading-session #chat-app.active::after { content: none; }
 .status-dot.idle { background-image: url('idle.png'); }
 .status-dot.dnd { background-image: url('dnd.png'); }
 .status-dot.offline { background-image: url('offline.png'); }
+.status-dot.streaming { background-image: url('streaming.png'); }
 .user-info { flex: 1; min-width: 0; overflow: hidden; }
 .user-name {
   font-size: 13px; font-weight: 500; color: var(--text-primary);
@@ -726,6 +728,7 @@ body.loading-session #chat-app.active::after { content: none; }
 .user-status-text.online { color: var(--online); }
 .user-status-text.idle { color: var(--idle); }
 .user-status-text.dnd { color: var(--dnd); }
+.user-status-text.streaming { color: var(--streaming); }
 
 /* Status Message dream-bubble — shown on member list items & profile view.
    A little orb-icon on the left is visually "connected" to the bubble body:
@@ -794,6 +797,15 @@ body.loading-session #chat-app.active::after { content: none; }
 }
 .status-msg-bubble.dnd .sm-text {
   background: rgba(216,58,58,0.08); border-color: rgba(216,58,58,0.3); color: #e27878;
+}
+/* STREAMING — purple (owner-only status) */
+.status-msg-bubble.streaming .sm-icon {
+  background: radial-gradient(circle at 35% 30%, rgba(190,140,255,0.35), rgba(120,60,200,0.18) 70%);
+  border-color: rgba(120,60,200,0.55);
+  color: var(--streaming); box-shadow: 0 0 8px rgba(120,60,200,0.3), inset 0 1px 2px rgba(255,255,255,0.12);
+}
+.status-msg-bubble.streaming .sm-text {
+  background: rgba(120,60,200,0.08); border-color: rgba(120,60,200,0.3); color: #c39bff;
 }
 /* Hover — orb gently pulses, body brightens */
 .status-msg-bubble:hover .sm-icon { transform: scale(1.08); }
@@ -1127,6 +1139,7 @@ body.no-anim .friend-item { animation: none !important; }
 .mention-dropdown-status.idle { background: #facc15; }
 .mention-dropdown-status.dnd { background: #ef4444; }
 .mention-dropdown-status.offline { background: #6b7280; }
+.mention-dropdown-status.streaming { background: #9b59f0; }
 .mention-dropdown-info { overflow: hidden; flex: 1; min-width: 0; }
 .mention-dropdown-name {
   font-size: 13px; font-weight: 600; color: var(--text-primary);
@@ -1181,6 +1194,7 @@ body.no-anim .friend-item { animation: none !important; }
 .mention-tooltip-status.idle { background: #facc15; }
 .mention-tooltip-status.dnd { background: #ef4444; }
 .mention-tooltip-status.offline { background: #6b7280; }
+.mention-tooltip-status.streaming { background: #9b59f0; }
 .mention-tooltip-info { flex: 1; min-width: 0; }
 .mention-tooltip-name {
   font-size: 14px; font-weight: 700; color: var(--text-primary);
@@ -2870,6 +2884,7 @@ body.no-anim .friend-item { animation: none !important; }
 .admin-user-card-status.idle { background: rgba(234,179,8,0.15); color: #eab308; }
 .admin-user-card-status.dnd { background: rgba(239,68,68,0.15); color: #ef4444; }
 .admin-user-card-status.offline { background: rgba(107,114,128,0.15); color: #6b7280; }
+.admin-user-card-status.streaming { background: rgba(155,89,240,0.15); color: #9b59f0; }
 .admin-user-card-status.banned { background: rgba(239,68,68,0.2); color: #ef4444; }
 
 .admin-activity-list { display: flex; flex-direction: column; gap: 8px; max-height: 340px; overflow-y: auto; padding: 2px; }
@@ -3389,8 +3404,14 @@ body.no-anim .friend-item { animation: none !important; }
 .status-option-dot.idle { background-image: url('idle.png'); }
 .status-option-dot.dnd { background-image: url('dnd.png'); }
 .status-option-dot.offline { background-image: url('offline.png'); }
+.status-option-dot.streaming { background-image: url('streaming.png'); }
 .status-option-label { font-size: 13px; font-weight: 500; color: var(--text-secondary); }
 .status-option.active .status-option-label { color: var(--text-primary); }
+/* "Streaming" is an owner-exclusive status (@lore only). The option is hidden
+   from everyone else by default; revealOwnerStreamingStatus() removes the
+   'hidden' style once the owner's session is confirmed client-side. */
+.status-option.owner-only-status { display: none; }
+.status-option.owner-only-status.owner-revealed { display: flex; }
 
 .bio-textarea {
   width: 100%; padding: 12px 14px; resize: vertical; min-height: 120px;
@@ -4246,6 +4267,7 @@ body.no-anim .friend-item { animation: none !important; }
 .dm-header-status.online { color: var(--online); }
 .dm-header-status.idle { color: var(--idle); }
 .dm-header-status.dnd { color: var(--dnd); }
+.dm-header-status.streaming { color: var(--streaming); }
 
 /* DM header tool buttons (Pinned + Search) sit left of the X close button.
    They reuse .icon-btn and add a relative anchor for the pin count badge. */
@@ -5305,6 +5327,7 @@ body.no-anim .friend-item { animation: none !important; }
 .sidebar-footer-status.idle { color: var(--idle); }
 .sidebar-footer-status.dnd { color: var(--dnd); }
 .sidebar-footer-status.offline { color: var(--text-muted); }
+.sidebar-footer-status.streaming { color: var(--streaming); }
 
 /* "Visible to others" status bubble — shows when Online/Idle/DND, hidden when Offline */
 .sidebar-visible-bubble {
@@ -5415,6 +5438,7 @@ body.no-anim .friend-item { animation: none !important; }
 .mini-profile-avatar-wrap .status-dot.idle { background-image: url('idle.png'); }
 .mini-profile-avatar-wrap .status-dot.dnd { background-image: url('dnd.png'); }
 .mini-profile-avatar-wrap .status-dot.offline { background-image: url('offline.png'); }
+.mini-profile-avatar-wrap .status-dot.streaming { background-image: url('streaming.png'); }
 .mini-profile-identity { flex: 1; min-width: 0; overflow: hidden; }
 .mini-profile-name {
   font-size: 15px; font-weight: 600; color: var(--text-primary);
@@ -5430,6 +5454,7 @@ body.no-anim .friend-item { animation: none !important; }
 .mini-profile-statustext.idle { color: var(--idle); }
 .mini-profile-statustext.dnd { color: var(--dnd); }
 .mini-profile-statustext.offline { color: var(--text-muted); }
+.mini-profile-statustext.streaming { color: var(--streaming); }
 
 /* Sections */
 .mini-profile-section {
@@ -6566,6 +6591,10 @@ body.no-anim .friend-item { animation: none !important; }
               <div class="status-option-dot offline"></div>
               <div class="status-option-label">Offline</div>
 </div>
+            <div class="status-option owner-only-status" data-status="streaming">
+              <div class="status-option-dot streaming"></div>
+              <div class="status-option-label">Streaming</div>
+</div>
           </div>
         </div>
 
@@ -7196,6 +7225,10 @@ body.no-anim .friend-item { animation: none !important; }
           <div class="status-option" data-status="offline">
             <div class="status-option-dot offline"></div>
             <div class="status-option-label">Offline</div>
+</div>
+          <div class="status-option owner-only-status" data-status="streaming">
+            <div class="status-option-dot streaming"></div>
+            <div class="status-option-label">Streaming</div>
 </div>
         </div>
       </div>
@@ -9027,7 +9060,7 @@ document.addEventListener('error', function(e) {
   }
 }, true); // capture phase to catch img error events
 function getStatusText(status) {
-  const map = { online: 'Online', idle: 'Idle', dnd: 'Do Not Disturb', offline: 'Offline' };
+  const map = { online: 'Online', idle: 'Idle', dnd: 'Do Not Disturb', offline: 'Offline', streaming: 'Streaming' };
   return map[status] || 'Offline';
 }
 function getRelativeLastSeen(ts) {
@@ -10154,6 +10187,8 @@ async function initChat(existingMeData) {
   if (!meData.user) { showAuth(); return; }
   currentUser = meData.user;
   currentStatus = currentUser.status || 'online';
+  // Reveal the owner-only "Streaming" status option for @lore (and only @lore).
+  applyOwnerStreamingVisibility();
   if (meData.sessionId) {
     sessionSocketId = meData.sessionId;
     localStorage.setItem('hellobye_sid', meData.sessionId);
@@ -10628,7 +10663,7 @@ function connectSocket() {
         const pvHidden = !!pvUser.hideProfile && currentUser && currentUser.username !== pvUser.username;
         {
           // Live-update the display name + inline status message bubble beside it
-          const showPvNameSm = pvUser.statusMessage && (pvUser.status === 'online' || pvUser.status === 'idle' || pvUser.status === 'dnd');
+          const showPvNameSm = pvUser.statusMessage && (pvUser.status === 'online' || pvUser.status === 'idle' || pvUser.status === 'dnd' || pvUser.status === 'streaming');
           const pvSmIcon = '<span class="sm-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><path d="M12 3.5c-1.4 0-2.7.5-3.7 1.4-.3-.1-.7-.1-1-.1-2.2 0-4 1.7-4 3.9 0 .6.1 1.1.4 1.6-.7.7-1.2 1.7-1.2 2.8 0 2.2 1.8 4 4 4 .4 0 .8-.1 1.2-.2.8 1 2 1.7 3.3 1.7 1.2 0 2.3-.5 3.1-1.4.5.2 1 .3 1.6.3 2.5 0 4.5-2 4.5-4.5 0-1.3-.5-2.4-1.3-3.3.4-.6.6-1.3.6-2.1 0-2.2-1.8-4-4-4-.3 0-.6 0-.9.1C14.6 4 13.4 3.5 12 3.5z" fill="currentColor" fill-opacity="0.28"/><circle cx="7" cy="20.5" r="1.4" fill="currentColor" fill-opacity="0.55"/><circle cx="4.5" cy="22.6" r="0.9" fill="currentColor" fill-opacity="0.4"/><circle cx="2.8" cy="23.6" r="0.5" fill="currentColor" fill-opacity="0.3"/></svg></span>';
           const pvNameSm = showPvNameSm
             ? '<span class="status-msg-bubble pv-name-sm ' + pvUser.status + '">' + pvSmIcon + '<span class="sm-text">' + escapeHtml(pvUser.statusMessage) + '</span></span>'
@@ -11999,7 +12034,24 @@ function statusDotClass(status) {
   if (!status || status === 'offline') return 'offline';
   if (status === 'idle') return 'idle';
   if (status === 'dnd') return 'dnd';
+  if (status === 'streaming') return 'streaming';
   return 'online';
+}
+
+// ---------- Owner-exclusive "Streaming" status ----------
+// The Streaming status option is hidden from everyone by default via the
+// .owner-only-status CSS rule. This reveals it ONLY for the panel owner
+// (@lore) so they can select it. Non-owners never see the option in their
+// own status picker, but they still SEE @lore's streaming dot everywhere
+// (member list, profile, mentions, etc.) because the icon CSS & status
+// text are always present. Returns true if the owner reveal was applied.
+function applyOwnerStreamingVisibility() {
+  const isOwner = !!(currentUser && (currentUser.isOwner || currentUser.isAdmin ||
+    (currentUser.username && String(currentUser.username).toLowerCase().trim() === 'lore')));
+  document.querySelectorAll('.status-option.owner-only-status').forEach(opt => {
+    opt.classList.toggle('owner-revealed', isOwner);
+  });
+  return isOwner;
 }
 
 // ---------- Mention dropdown for chat input ----------
@@ -13144,7 +13196,7 @@ function renderUserList() {
       for (const m of (role.members || [])) customRoleUsernames.add(m);
     }
   }
-  const online = users.filter(u => (u.status === 'online' || u.status === 'idle' || u.status === 'dnd') && !customRoleUsernames.has(u.username));
+  const online = users.filter(u => (u.status === 'online' || u.status === 'idle' || u.status === 'dnd' || u.status === 'streaming') && !customRoleUsernames.has(u.username));
   const offline = users.filter(u => u.status === 'offline' && !customRoleUsernames.has(u.username));
   online.sort((a, b) => a.username.localeCompare(b.username));
   offline.sort((a, b) => a.username.localeCompare(b.username));
@@ -13155,7 +13207,7 @@ function renderUserList() {
     // "online" includes both online and idle users (idle is treated as online
     // for the header summary so the stats always read the 3 expected labels).
     // Count ALL users (including custom-role members) in the header stats.
-    const allOnline = users.filter(u => u.status === 'online' || u.status === 'idle');
+    const allOnline = users.filter(u => u.status === 'online' || u.status === 'idle' || u.status === 'streaming');
     const allDnd = users.filter(u => u.status === 'dnd');
     const allOffline = users.filter(u => u.status === 'offline');
     let parts = [allOnline.length + ' online'];
@@ -13200,9 +13252,9 @@ function userListItemHTML(u) {
   const nameDisplay = u.displayName ? '<span class="user-displayname">' + escapeHtml(u.displayName) + ' </span>' : '';
   const handleDisplay = '<span class="user-handle">@' + escapeHtml(u.username) + '</span>';
   const statusText = u.status === 'offline' ? (u.hideLastSeen ? 'Offline' : 'Last seen ' + getRelativeLastSeen(u.lastSeen)) : getStatusText(u.status);
-  // Status message bubble — only visible when the user is online, idle, or dnd
-  // (not offline) and they have actually set a custom status message.
-  const showStatusMsg = u.statusMessage && (u.status === 'online' || u.status === 'idle' || u.status === 'dnd');
+  // Status message bubble — only visible when the user is online, idle, dnd,
+  // or streaming (not offline) and they have actually set a custom status message.
+  const showStatusMsg = u.statusMessage && (u.status === 'online' || u.status === 'idle' || u.status === 'dnd' || u.status === 'streaming');
   const smSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><path d="M12 3.5c-1.4 0-2.7.5-3.7 1.4-.3-.1-.7-.1-1-.1-2.2 0-4 1.7-4 3.9 0 .6.1 1.1.4 1.6-.7.7-1.2 1.7-1.2 2.8 0 2.2 1.8 4 4 4 .4 0 .8-.1 1.2-.2.8 1 2 1.7 3.3 1.7 1.2 0 2.3-.5 3.1-1.4.5.2 1 .3 1.6.3 2.5 0 4.5-2 4.5-4.5 0-1.3-.5-2.4-1.3-3.3.4-.6.6-1.3.6-2.1 0-2.2-1.8-4-4-4-.3 0-.6 0-.9.1C14.6 4 13.4 3.5 12 3.5z" fill="currentColor" fill-opacity="0.28"/><circle cx="7" cy="20.5" r="1.4" fill="currentColor" fill-opacity="0.55"/><circle cx="4.5" cy="22.6" r="0.9" fill="currentColor" fill-opacity="0.4"/><circle cx="2.8" cy="23.6" r="0.5" fill="currentColor" fill-opacity="0.3"/></svg>';
   const statusMsgBubble = showStatusMsg
     ? '<div class="status-msg-bubble ' + u.status + '"><span class="sm-icon">' + smSvg + '</span><span class="sm-text">' + escapeHtml(u.statusMessage) + '</span></div>'
@@ -13277,11 +13329,11 @@ function updateSidebarSelf() {
   $('sidebar-self-name').innerHTML = (currentUser.displayName ? '<span class="user-displayname">' + escapeHtml(currentUser.displayName) + ' </span>' : '') + '<span class="user-handle">@' + escapeHtml(currentUser.username) + '</span>';
   $('sidebar-self-statustext').textContent = getStatusText(currentUser.status || 'online');
   $('sidebar-self-statustext').className = 'sidebar-footer-status ' + (currentUser.status || 'online');
-  // "Visible to others" bubble — shown when Online/Idle/DND, hidden when Offline
+  // "Visible to others" bubble — shown when Online/Idle/DND/Streaming, hidden when Offline
   const vb = $('sidebar-visible-bubble');
   if (vb) {
     const st = currentUser.status || 'online';
-    vb.classList.toggle('show', st === 'online' || st === 'idle' || st === 'dnd');
+    vb.classList.toggle('show', st === 'online' || st === 'idle' || st === 'dnd' || st === 'streaming');
   }
 }
 
@@ -16328,6 +16380,8 @@ function updateMiniProfile() {
   document.querySelectorAll('#mini-status-options .status-option').forEach(opt => {
     opt.classList.toggle('active', opt.dataset.status === curStatus);
   });
+  // Ensure the owner-only Streaming option is visible for @lore.
+  applyOwnerStreamingVisibility();
   // Accent presets active state
   document.querySelectorAll('#mini-accent-presets .cs-swatch').forEach(p => {
     p.classList.toggle('active', p.dataset.color === (color || ''));
@@ -16682,6 +16736,8 @@ function updateProfilePanel() {
   if ($('hide-profile-toggle')) $('hide-profile-toggle').checked = !!u.hideProfile;
   currentStatus = u.status || 'online';
   document.querySelectorAll('#profile-panel .status-option').forEach(opt => opt.classList.toggle('active', opt.dataset.status === currentStatus));
+  // Ensure the owner-only Streaming option is visible for @lore.
+  applyOwnerStreamingVisibility();
   // Owner account protection: the owner (@lore) cannot disable their own account.
   // Visually disable the button (greyed out, not clickable) instead of just toast-on-click.
   const disableBtn = $('disable-account-btn');
@@ -18649,7 +18705,7 @@ function renderProfileView(data) {
   // Name — with optional status message bubble beside the display name.
   // The status message is shown even for hidden profiles: it's a lightweight
   // presence indicator (the dream-bubble), not a sensitive profile detail.
-  const showPvNameSm = u.statusMessage && (u.status === 'online' || u.status === 'idle' || u.status === 'dnd');
+  const showPvNameSm = u.statusMessage && (u.status === 'online' || u.status === 'idle' || u.status === 'dnd' || u.status === 'streaming');
   const pvSmIcon = '<span class="sm-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><path d="M12 3.5c-1.4 0-2.7.5-3.7 1.4-.3-.1-.7-.1-1-.1-2.2 0-4 1.7-4 3.9 0 .6.1 1.1.4 1.6-.7.7-1.2 1.7-1.2 2.8 0 2.2 1.8 4 4 4 .4 0 .8-.1 1.2-.2.8 1 2 1.7 3.3 1.7 1.2 0 2.3-.5 3.1-1.4.5.2 1 .3 1.6.3 2.5 0 4.5-2 4.5-4.5 0-1.3-.5-2.4-1.3-3.3.4-.6.6-1.3.6-2.1 0-2.2-1.8-4-4-4-.3 0-.6 0-.9.1C14.6 4 13.4 3.5 12 3.5z" fill="currentColor" fill-opacity="0.28"/><circle cx="7" cy="20.5" r="1.4" fill="currentColor" fill-opacity="0.55"/><circle cx="4.5" cy="22.6" r="0.9" fill="currentColor" fill-opacity="0.4"/><circle cx="2.8" cy="23.6" r="0.5" fill="currentColor" fill-opacity="0.3"/></svg></span>';
   const pvNameSm = showPvNameSm
     ? '<span class="status-msg-bubble pv-name-sm ' + u.status + '">' + pvSmIcon + '<span class="sm-text">' + escapeHtml(u.statusMessage) + '</span></span>'
