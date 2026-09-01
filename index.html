@@ -7871,7 +7871,7 @@ body.no-anim .friend-item { animation: none !important; }
                   <div class="twosv-code-value" id="twosv-code-value">--------</div>
                   <div class="twosv-code-warning">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:1px;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-                    <span>Store this code in a secure location. It will be required each time you sign in and automatically refreshes every 48 hours, at which point the previous code becomes invalid.</span>
+                    <span>Store this code in a secure location. It will be required each time you sign in. Your code stays valid until you generate a new one — generating a new code immediately invalidates the previous one.</span>
                   </div>
                 </div>
                 <div class="twosv-code-meta">
@@ -7880,7 +7880,7 @@ body.no-anim .friend-item { animation: none !important; }
                     <div class="twosv-meta-value" id="twosv-gen-time">--</div>
                   </div>
                   <div class="twosv-meta-item">
-                    <div class="twosv-meta-label">Next Auto-Regen</div>
+                    <div class="twosv-meta-label">Code Age</div>
                     <div class="twosv-meta-value" id="twosv-regen-time">--</div>
                   </div>
                   <div class="twosv-meta-item">
@@ -9976,6 +9976,24 @@ function formatCountdown(targetTs) {
   return mins + 'm';
 }
 
+// Format how long ago a timestamp was (code age). e.g. "just now", "5m",
+// "2h", "3d", "1w".
+function formatCodeAge(generatedTs) {
+  if (!generatedTs) return '--';
+  const diff = Date.now() - generatedTs;
+  if (diff < 0) return 'just now';
+  const s = Math.floor(diff / 1000);
+  if (s < 60) return 'just now';
+  const m = Math.floor(s / 60);
+  if (m < 60) return m + 'm';
+  const h = Math.floor(m / 60);
+  if (h < 24) return h + 'h';
+  const d = Math.floor(h / 24);
+  if (d < 7) return d + 'd';
+  const w = Math.floor(d / 7);
+  return w + 'w';
+}
+
 let twosvNextRegenTs = 0;
 let twosvCountdownTimer = null;
 
@@ -10008,21 +10026,22 @@ function render2SVStatus(data) {
     labelEl.textContent = '2-Step Verification is ON';
     descEl.textContent = 'Your account requires a recovery code at sign-in.';
     genTimeEl.textContent = formatTimestamp(data.generatedAt);
-    twosvNextRegenTs = data.nextRegenAt;
+    twosvNextRegenTs = data.nextRegenAt || 0;
     deviceCountEl.textContent = data.trustedDeviceCount;
-    // Start countdown timer for next regen
+    // Show code age (time since the code was generated). The code does NOT
+    // auto-expire — it stays valid until the user manually regenerates it.
     if (twosvCountdownTimer) clearInterval(twosvCountdownTimer);
     const updateCountdown = () => {
-      regenTimeEl.textContent = formatCountdown(twosvNextRegenTs);
-      // Enable/disable regenerate button based on cooldown
+      regenTimeEl.textContent = formatCodeAge(data.generatedAt);
+      // Regenerate button is always enabled — no cooldown. The user can
+      // generate a new code at any time (the old one is then invalidated).
       if (regenBtn) {
-        const onCooldown = twosvNextRegenTs > Date.now();
-        regenBtn.disabled = onCooldown;
-        regenBtn.title = onCooldown ? 'Available in ' + formatCountdown(twosvNextRegenTs) : 'Generate a new recovery code (invalidates the current one)';
+        regenBtn.disabled = false;
+        regenBtn.title = 'Generate a new recovery code (invalidates the current one)';
       }
     };
     updateCountdown();
-    twosvCountdownTimer = setInterval(updateCountdown, 5000);
+    twosvCountdownTimer = setInterval(updateCountdown, 30000);
   } else {
     toggle.checked = false;
     details.style.display = 'none';
@@ -10145,7 +10164,7 @@ $('twosv-view-code-btn').addEventListener('click', async () => {
 
 // Regenerate Code button
 $('twosv-regenerate-btn').addEventListener('click', async () => {
-  const password = await prompt2SVPassword('Regenerate Recovery Code', "Enter your password to generate a new recovery code. The previous code will be invalidated. Manual regeneration is limited to once every 48 hours.");
+  const password = await prompt2SVPassword('Regenerate Recovery Code', "Enter your password to generate a new recovery code. The previous code will be immediately invalidated.");
   if (!password) {
     if (password === null) return; // cancelled
     toast('Password is required.', 'error', { noIcon: true });

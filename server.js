@@ -654,24 +654,19 @@ function gen2SVCode() {
 function genTrustedDeviceToken() {
   return crypto.randomBytes(32).toString('hex');
 }
-// 48 hours in milliseconds — codes auto-regenerate after this period.
+// 48 hours in milliseconds — kept for reference. Codes no longer auto-regenerate;
+// the user controls when a new code is issued via the "Regenerate Code" button.
 const TWO_SV_REGEN_INTERVAL = 48 * 60 * 60 * 1000;
 // 30 days in milliseconds — trusted device tokens last this long.
 const TRUSTED_DEVICE_DURATION = 30 * 24 * 60 * 60 * 1000;
 
-// Check if the user's 2SV code needs regeneration (older than 48h).
-// If so, regenerate and invalidate the old code. Returns the (possibly new) code.
+// Return the user's current 2SV code. The code does NOT auto-expire — it
+// remains valid indefinitely until the user manually regenerates it via the
+// "Regenerate Code" button, at which point the old code is invalidated and
+// the new one takes its place.
 function refresh2SVCode(user) {
   if (!user.twoFactorEnabled) return null;
-  const now = Date.now();
-  const generated = user.twoFactorCodeGenerated || 0;
-  if (!user.twoFactorCode || (now - generated) >= TWO_SV_REGEN_INTERVAL) {
-    user.twoFactorCode = gen2SVCode();
-    user.twoFactorCodeGenerated = now;
-    console.log('[2SV] Code auto-regenerated for @' + user.username + ' (48h cycle).');
-    return user.twoFactorCode;
-  }
-  return user.twoFactorCode;
+  return user.twoFactorCode || null;
 }
 
 // Validate a trusted-device cookie token against the user's stored trusted devices.
@@ -1255,11 +1250,10 @@ app.post('/api/login', (req, res) => {
   // prompt. Otherwise, return a 2SV-required response with a pending token
   // that the client uses to submit the verification code.
   if (user.twoFactorEnabled) {
-    // The recovery code is NOT auto-regenerated at login. The user controls
-    // when a new code is issued via the "Regenerate Code" button (available
-    // after the 48-hour cooldown). The current code remains valid until the
-    // user manually regenerates it, so they can always sign in with the code
-    // they have saved.
+    // The recovery code does NOT auto-expire. The user controls when a new
+    // code is issued via the "Regenerate Code" button. The current code
+    // remains valid indefinitely until the user manually regenerates it,
+    // so they can always sign in with the code they have saved.
 
     // Check trusted device cookie
     let trustedToken = null;
@@ -2389,17 +2383,9 @@ app.post('/api/settings/2sv/regenerate', authMiddleware, (req, res) => {
   if (!req.user.twoFactorEnabled) {
     return res.status(400).json({ error: '2-Step Verification is not enabled' });
   }
-  // Enforce 48-hour cooldown between manual regenerations.
-  const generated = req.user.twoFactorCodeGenerated || 0;
-  const elapsed = Date.now() - generated;
-  const remaining = TWO_SV_REGEN_INTERVAL - elapsed;
-  if (remaining > 0) {
-    const hoursLeft = Math.ceil(remaining / (60 * 60 * 1000));
-    return res.status(429).json({
-      error: 'Recovery code can only be regenerated once every 48 hours. Please try again in ' + hoursLeft + ' hour' + (hoursLeft > 1 ? 's' : '') + '.',
-      cooldownRemaining: remaining,
-    });
-  }
+  // The recovery code does NOT expire on its own. The user can regenerate it
+  // at any time — the old code stays valid until a new one is generated, at
+  // which point the old code is immediately invalidated.
   req.user.twoFactorCode = gen2SVCode();
   req.user.twoFactorCodeGenerated = Date.now();
   // Regenerating also clears trusted devices (forces re-verification on all devices)
@@ -2415,7 +2401,8 @@ app.post('/api/settings/2sv/regenerate', authMiddleware, (req, res) => {
 });
 
 // View current code: requires password, returns the current code + generation time.
-// Also auto-regenerates if the code is older than 48 hours.
+// The code does NOT auto-regenerate — it remains valid until the user manually
+// clicks "Regenerate Code".
 app.post('/api/settings/2sv/view-code', authMiddleware, (req, res) => {
   const { password } = req.body || {};
   if (req.user.password !== hashPass(String(password || ''))) {
@@ -2436,18 +2423,14 @@ app.post('/api/settings/2sv/view-code', authMiddleware, (req, res) => {
 
 // Get 2SV status (no password required, just session auth).
 app.get('/api/settings/2sv/status', authMiddleware, (req, res) => {
-  // Note: we intentionally do NOT auto-regenerate here. The code is only
-  // regenerated when the user manually clicks "Regenerate Code" (after the
-  // 48-hour cooldown expires) or at login time (refresh2SVCode). This lets the
-  // "Regenerate Code" button actually unblock once 48 hours have passed,
-  // giving the user control over when a new code is issued.
+  // The recovery code does NOT auto-expire. It stays valid until the user
+  // manually regenerates it. There is no auto-regeneration deadline.
   res.json({
     enabled: !!req.user.twoFactorEnabled,
     generatedAt: req.user.twoFactorCodeGenerated || 0,
     trustedDeviceCount: (req.user.twoFactorTrustedDevices || []).length,
-    nextRegenAt: req.user.twoFactorEnabled
-      ? (req.user.twoFactorCodeGenerated || 0) + TWO_SV_REGEN_INTERVAL
-      : 0,
+    // No auto-regen — the code is valid indefinitely until manual regeneration.
+    nextRegenAt: 0,
   });
 });
 

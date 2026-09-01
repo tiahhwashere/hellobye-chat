@@ -1,35 +1,17 @@
-# Hellobye-Chat — Logged in Devices feature (2SV settings)
+# Hellobye-Chat — 2SV Code: No Auto-Expiry
 
 ## Context
-User request: "whenever users enables 2 step verfication beside the revoke trusted devices add another option that says Logged in devices and when clicked it will show the devices, browser and other useful things and also give the user an option to log out that device"
-Constraint: Do NOT modify or wipe `data/db.json`.
+User request: "for the 2-Step Verification whenever the Next Auto-Regen is due now do NOT expire the last code keep it active and let users use it to login until they generate another code then make the old one invalid and the new one valid"
 
-## Code Changes — DONE
-- [x] server.js: parseUserAgent() helper (browser/OS/deviceType/deviceModel from UA, no deps)
-- [x] server.js: createSessionRecord(username, req) — session objects with metadata
-- [x] server.js: sessionUsername() + sessionView() — backward compatible (string vs object)
-- [x] server.js: getSession() updated — throttled lastActive update (30s)
-- [x] server.js: all 3 session-creation points use createSessionRecord (register/login/verify-2sv/reactivate)
-- [x] server.js: all db.sessions access points updated to sessionUsername (rename, delete, disable, admin sessionCount, ban, admin rename, socket auth)
-- [x] server.js: GET /api/sessions — list current user's sessions with device metadata
-- [x] server.js: DELETE /api/sessions/:sid — log out a device + force-logout socket event
-- [x] server.js: node --check passes
-- [x] index.html: "Logged in Devices" button in 2SV settings
-- [x] index.html: devices modal HTML + CSS (device cards, icons, badges)
-- [x] index.html: JS — openDevicesModal, renderDevicesList, deviceCardHTML, logoutDevice, formatRelativeTime
-- [x] index.html: force-logout socket handler (clears session, shows toast, returns to auth)
-- [x] index.html: node --check on inline JS passes
-
-## Test & Deploy — IN PROGRESS
-- [x] Test locally (server + browser): create user, enable 2SV, open devices modal, verify device list, test logout device
-- [x] Fix: force-logout handler now checks payload.sessionId vs current session (was broadcasting to all sockets, kicking out the wrong browser)
-- [x] Verified: UA parser detects Chrome/Linux/Safari/iOS/Android/Firefox/Edge correctly
-- [x] Verified: API endpoints (GET /api/sessions, DELETE /api/sessions/:sid) work
-- [x] Verified: Browser — "Logged in Devices" button appears beside "Revoke Trusted Devices" when 2SV enabled
-- [x] Verified: Devices modal shows device cards with browser/OS/IP/last-active, "THIS DEVICE" badge for current session
-- [x] Verified: Log out button works — target session is killed, browser stays logged in
-- [x] Verified: Current session's logout button is disabled (shows "Current")
-- [x] Verified: Legacy string sessions are backward-compatible (show with empty metadata)
-- [ ] Restore data/db.json (undo local testing changes) — verify md5 unchanged
-- [ ] Commit and push to GitHub (only server.js + index.html, NO data files)
-- [ ] Verify Render auto-deploy + live site
+## Changes Needed
+- [x] server.js: Remove 48h cooldown on /api/settings/2sv/regenerate — allow regeneration anytime
+- [x] server.js: Remove/disable refresh2SVCode auto-regeneration (keep function but make it a no-op or remove)
+- [x] server.js: Update /api/settings/2sv/status — remove nextRegenAt or repurpose it (no more auto-regen deadline)
+- [x] server.js: Update regenerate endpoint message — no more "once every 48 hours" text
+- [x] index.html: Update 2SV description text — remove "automatically refreshes every 48 hours, at which point the previous code becomes invalid"
+- [x] index.html: Remove/repurpose "Next Auto-Regen" countdown — replace with "Code Age" or remove the cooldown-based button disabling
+- [x] index.html: Regenerate button should always be enabled (no cooldown)
+- [x] index.html: Update regenerate prompt text — remove "limited to once every 48 hours"
+- [x] Syntax check both files
+- [x] Test locally (API + browser UI verified)
+- [ ] Restore db.json, commit, push, deploy, verify live
