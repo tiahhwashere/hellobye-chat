@@ -24,5 +24,10 @@ The orb was overlapping the middle of the profile picture. Repositioned to botto
   - Body x=608-749 extends to the right past the avatar
   - Standalone test page confirmed "teal bubble positioned at lower right of profile picture"
 - [x] E. Commit & push to GitHub
-- [ ] F. Wait for Render autoDeploy & verify live
+- [x] F. Wait for Render autoDeploy & verify live
+  - Deploy status: live (finished at 09:31:52, commit 87b745b)
+  - Verified live: cssMarginLeft=-50.4px, cssMarginTop=31px (new values present)
+  - Orb center (605, 423), avatar center (537, 338), distance=109 > radius=84 (orb outside circle)
+  - rightOfCenter=true, belowCenter=true (orb at bottom-right of avatar)
+  - Body x=608-749 extends to the right past the avatar
 - [x] G. Ensure no data deleted/removed (CSS margin values + comments only, no data modifications)
