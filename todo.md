@@ -8,7 +8,7 @@
   - Cleaned up leftover CSS comment referencing the removed "Visible to others" status bubble
 
 ## Deploy
-- [ ] Commit & push to GitHub
-- [ ] Deploy to Render (autoDeploy)
-- [ ] Verify live at https://hellobye-chat.onrender.com/
-- [ ] Ensure no data deleted/removed
+- [x] Commit & push to GitHub
+- [x] Deploy to Render (autoDeploy)
+- [x] Verify live at https://hellobye-chat.onrender.com/
+- [x] Ensure no data deleted/removed
