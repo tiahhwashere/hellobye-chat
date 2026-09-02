@@ -1,26 +1,28 @@
-# Hellobye-Chat — Round 4: Dream Bubble Alignment Fix
+# Hellobye-Chat — Round 5: Dream Bubble Position in Profile View
+
+## Context
+Round 4 aligned the dream bubble orb with the avatar's LEFT edge (margin-left: -188px).
+User feedback: "fix the status messenger overlaying in the middle of the profile picture make it a little to the right bottomish of the profile picture"
+The orb was overlapping the middle of the profile picture. Repositioned to bottom-right area.
 
 ## Tasks
-- [x] A. Investigate dream bubble alignment on live site (member list + profile view)
-  - Measured: In member list, orb starts at text left edge (x=77), avatar at x=18 — orb is 59px right of avatar
-  - Measured: In profile view, orb starts at text left edge (x=640.5), avatar at x=452.5 — orb is 188px right of avatar
-  - Conclusion: Dream bubble orb does NOT align with the avatar/profile picture; it only aligns with the text
-- [x] B. Fix dream bubble alignment in member list so orb aligns with avatar
-  - Added --hb-avatar-w and --hb-gap CSS variables to .user-item (default: 38px, 11px)
-  - Added margin-left: calc(-1 * (var(--hb-avatar-w) + var(--hb-gap))) to .user-info .status-msg-bubble
-  - Overrode variables in breakpoints: ≥1100px (46px, 13px), ≤768px (34px), ≤480px (32px)
-  - Changed .user-info overflow: hidden → visible (text elements have own overflow: hidden)
-- [x] C. Fix dream bubble alignment in profile view so orb aligns with avatar
-  - Added --pv-avatar-w and --pv-gap CSS variables to .profile-view-main (default: 168px, 20px)
-  - Changed .pv-name-sm margin-left from 0 to calc(-1 * (var(--pv-avatar-w) + var(--pv-gap)))
-  - Overrode variables in breakpoints: ≤768px (120px, 14px), ≤480px (92px, 12px), ≤360px (80px, 10px)
-  - Changed .profile-view-info overflow: hidden → visible (also fixes pv-copy-id-menu dropdown clipping)
-- [x] D. Delete test_bubble.html (cleanup before deploy)
-- [x] E. Verify alignment fix on live site via JS injection (orb left edge = avatar left edge, diff=0 in both contexts)
-- [x] F. Commit & push to GitHub (commit 7407ef7)
-- [x] G. Wait for Render autoDeploy & verify live
-  - Deploy status: live (finished at 09:10:10)
-  - Verified member list: avatarLeft=18, orbLeft=18, diff=0 ✓
-  - Verified profile view: avatarLeft=452.5, orbLeft=452.5, diff=0 ✓
-  - CSS variables present on live site: --hb-avatar-w=46px, --pv-avatar-w=168px ✓
-- [x] H. Ensure no data deleted/removed (only CSS changes, no data modifications)
+- [x] A. Update todo.md for Round 5
+- [x] B. Navigate to live site, open profile view, take screenshot + measurements to confirm overlap
+  - Measured: orb left=453, avatar left=452.5 (orb at avatar's left edge, overlapping center)
+  - Orb center at (468, 411), avatar center at (537, 349) — orb was in lower-left quadrant, overlapping avatar
+  - Bubble body x=471-612 was entirely within avatar span (452.5-620.5)
+- [x] C. Adjust `.pv-name-sm` CSS so the bubble sits near bottom-right of the avatar
+  - Changed margin-left from calc(-1 * (var(--pv-avatar-w) + var(--pv-gap))) [-188px] to calc(-1 * var(--pv-avatar-w) * 0.30) [-50.4px]
+    → orb now starts at ~70% across the avatar (right portion), not the left edge
+  - Changed margin-top from 8px to max(8px, calc(var(--pv-avatar-w) / 2 - 53px))
+    → positions orb near avatar bottom edge (31px for 168px avatar), clamped to 8px min for small avatars
+  - Updated comments on .pv-name-sm and .profile-view-main
+  - Responsive breakpoints already set --pv-avatar-w at 168/120/92/80px — formulas scale automatically
+- [x] D. Verify visually via JS injection on live site
+  - Orb center (605, 423), avatar center (537, 338), distance=109 > radius=84 (orb outside circle)
+  - rightOfCenter=true, belowCenter=true — orb is at bottom-right of avatar
+  - Body x=608-749 extends to the right past the avatar
+  - Standalone test page confirmed "teal bubble positioned at lower right of profile picture"
+- [x] E. Commit & push to GitHub
+- [ ] F. Wait for Render autoDeploy & verify live
+- [x] G. Ensure no data deleted/removed (CSS margin values + comments only, no data modifications)

@@ -813,12 +813,19 @@ body.loading-session #chat-app.active::after { content: none; }
 
 /* Status message bubble in the profile view — displayed on its own line
    below the display name so it is neatly set up and never crowds the name
-   or the @handle. Applied only when a bubble is actually present. */
+   or the @handle. Applied only when a bubble is actually present.
+   The orb (sm-icon) sits at the bottom-right area of the profile picture
+   like a speech bubble emanating from the lower-right corner, with the
+   bubble body extending to the right. margin-left pulls the orb to ~70%
+   across the avatar (right portion); margin-top positions it near the
+   avatar's bottom edge (clamped to 8px minimum so small avatars don't
+   overlap the display name). */
 .profile-view-info h3:has(.pv-name-sm) { line-height: 1.4; margin-bottom: 4px; }
 .status-msg-bubble.pv-name-sm {
   display: inline-flex; vertical-align: middle;
-  margin-left: calc(-1 * (var(--pv-avatar-w, 168px) + var(--pv-gap, 20px)));
-  margin-top: 8px; margin-bottom: 4px;
+  margin-left: calc(-1 * var(--pv-avatar-w, 168px) * 0.30);
+  margin-top: max(8px, calc(var(--pv-avatar-w, 168px) / 2 - 53px));
+  margin-bottom: 4px;
   font-size: 14px; font-weight: 500;
   max-width: 100%;
 }
@@ -4332,10 +4339,10 @@ body.no-anim .friend-item { animation: none !important; }
 .profile-view-main {
   display: flex; align-items: flex-start; gap: 20px;
   padding: 0 32px; flex-wrap: nowrap;
-  /* Avatar width + gap — used by the dream bubble to align its orb
-     with the avatar's left edge so the bubble visually connects to
-     the user's profile picture. Override --pv-avatar-w / --pv-gap in
-     breakpoints that change the avatar size or gap. */
+  /* Avatar width — used by the dream bubble (.pv-name-sm) to position its
+     orb at the bottom-right area of the profile picture. --pv-gap is kept
+     for reference. Override --pv-avatar-w in breakpoints that change the
+     avatar size. */
   --pv-avatar-w: 168px;
   --pv-gap: 20px;
 }
