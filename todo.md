@@ -17,6 +17,10 @@
   - Changed .profile-view-info overflow: hidden → visible (also fixes pv-copy-id-menu dropdown clipping)
 - [x] D. Delete test_bubble.html (cleanup before deploy)
 - [x] E. Verify alignment fix on live site via JS injection (orb left edge = avatar left edge, diff=0 in both contexts)
-- [ ] F. Commit & push to GitHub
-- [ ] G. Wait for Render autoDeploy & verify live
-- [ ] H. Ensure no data deleted/removed
+- [x] F. Commit & push to GitHub (commit 7407ef7)
+- [x] G. Wait for Render autoDeploy & verify live
+  - Deploy status: live (finished at 09:10:10)
+  - Verified member list: avatarLeft=18, orbLeft=18, diff=0 ✓
+  - Verified profile view: avatarLeft=452.5, orbLeft=452.5, diff=0 ✓
+  - CSS variables present on live site: --hb-avatar-w=46px, --pv-avatar-w=168px ✓
+- [x] H. Ensure no data deleted/removed (only CSS changes, no data modifications)
