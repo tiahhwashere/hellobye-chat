@@ -1065,8 +1065,8 @@ function authMiddleware(req, res, next) {
 }
 
 // ---------- Middleware ----------
-app.use(express.json({ limit: '150mb' }));
-app.use(express.urlencoded({ extended: true, limit: '150mb' }));
+app.use(express.json({ limit: '260mb' }));
+app.use(express.urlencoded({ extended: true, limit: '260mb' }));
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
@@ -1186,7 +1186,7 @@ const storage = multer.diskStorage({
     cb(null, genId() + ext);
   },
 });
-const upload = multer({ storage, limits: { fileSize: 151 * 1024 * 1024 } }); // 150MB + 1MB headroom for chat attachments
+const upload = multer({ storage, limits: { fileSize: 251 * 1024 * 1024 } }); // 250MB + 1MB headroom for chat attachments
 const avatarUpload = multer({ storage, limits: { fileSize: 21 * 1024 * 1024 } }); // 20MB + 1MB headroom for profile pic / banner
 
 // ---------- Auth Routes ----------
@@ -4246,7 +4246,7 @@ app.use((err, req, res, next) => {
   if (err && err.code === 'LIMIT_FILE_SIZE') {
     // Determine which limit applies based on the route
     const isAvatar = req.originalUrl && req.originalUrl.includes('/api/profile');
-    const limit = isAvatar ? '20MB' : '150MB';
+    const limit = isAvatar ? '20MB' : '250MB';
     return res.status(413).json({ error: 'File exceeds the ' + limit + ' size limit.' });
   }
   if (err && err.message && err.message.includes('Multipart')) {
@@ -4355,7 +4355,7 @@ server.listen(PORT, '0.0.0.0', () => {
   console.log(`Local: http://localhost:${PORT}`);
 });
 
-// Allow large file uploads (150MB) without timeout issues
+// Allow large file uploads (250MB) without timeout issues
 server.timeout = 300000;       // 5 minutes for request timeout
 server.keepAliveTimeout = 120000; // 2 minutes keep-alive
 server.requestTimeout = 300000;   // 5 minutes for full request

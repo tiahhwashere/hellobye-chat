@@ -1,12 +1,14 @@
-# Hellobye-Chat — Round 2 Bug Fixes & Improvements
+# Hellobye-Chat — Round 3 Bug Fixes & Improvements
 
-## Bugs to Fix
-- [x] A. "No video with supported format and MIME type found" — fix video playback (add explicit MIME type to video elements + ensure server returns correct Content-Type)
-- [x] B. Reaction emoji still gets stuck sometimes after user removes it — strengthen the in-flight guard / fix server-side race
-- [x] C. .txt file sent in chat: show file contents inline with a download button + copy button
+## Tasks
+- [x] A. Remove "updates underway" from the mini profile
+- [x] B. Change 150MB file upload limit to 250MB
+- [x] C. Fix any other bugs found around the website
+  - Fixed: dismissNotifsForUser used CSS.escape (for CSS identifiers) instead of cssAttrEscape (for attribute selector string values) — now uses the correct escape function
+  - Cleaned up leftover CSS comment referencing the removed "Visible to others" status bubble
 
 ## Deploy
-- [x] Commit & push to GitHub
-- [x] Deploy to Render (autoDeploy)
-- [x] Verify live at https://hellobye-chat.onrender.com/
-- [x] Ensure no data deleted/removed
+- [ ] Commit & push to GitHub
+- [ ] Deploy to Render (autoDeploy)
+- [ ] Verify live at https://hellobye-chat.onrender.com/
+- [ ] Ensure no data deleted/removed
