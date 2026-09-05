@@ -673,12 +673,6 @@ body.loading-session #chat-app.active::after { content: none; }
   padding: 8px; border-radius: var(--radius-sm);
   cursor: pointer; transition: var(--transition);
   position: relative;
-  /* Avatar width + gap — used by the dream bubble to align its orb
-     with the avatar's left edge so the bubble visually connects to
-     the user's profile picture. Override --hb-avatar-w in breakpoints
-     that change .user-avatar width. */
-  --hb-avatar-w: 38px;
-  --hb-gap: 11px;
 }
 .user-item:hover { background: var(--bg-medium); }
 .user-avatar-wrap { position: relative; flex-shrink: 0; }
@@ -798,11 +792,28 @@ body.loading-session #chat-app.active::after { content: none; }
 .status-msg-bubble:hover .sm-icon { transform: scale(1.08); }
 .status-msg-bubble:hover .sm-text { border-color: var(--border-light); }
 
-/* Member-list dream bubble — shift left so the orb's left edge aligns
-   with the avatar's left edge, making the bubble visually connect to
-   the user's profile picture instead of just aligning with the text. */
+/* Member-list dream bubble — compact variant. Sits in the text column
+   below the status text, aligned with the name (margin-left: 0), so the
+   avatar / profile picture is never overlaid or covered. Smaller orb,
+   smaller text and tighter padding keep the bubble from making rows
+   too tall, especially on mobile. */
 .user-info .status-msg-bubble:not(.pv-name-sm) {
-  margin-left: calc(-1 * (var(--hb-avatar-w) + var(--hb-gap)));
+  margin-left: 0;
+  margin-top: 4px;
+  font-size: 12px; line-height: 1.2;
+}
+.user-info .status-msg-bubble:not(.pv-name-sm) .sm-icon {
+  width: 20px; height: 20px;
+}
+.user-info .status-msg-bubble:not(.pv-name-sm) .sm-icon svg {
+  width: 12px; height: 12px;
+}
+.user-info .status-msg-bubble:not(.pv-name-sm) .sm-text {
+  margin-left: -7px;
+  padding: 3px 10px 3px 13px;
+  font-size: 12px;
+  border-radius: 0 10px 10px 16px;
+  max-width: calc(100% - 14px);
 }
 
 /* Mini-profile status message input */
@@ -5255,7 +5266,6 @@ body.no-anim .friend-item { animation: none !important; }
   .toast { left: 12px; right: 12px; max-width: none; }
   .sidebar-footer { padding: 10px 12px; }
   .user-avatar { width: 32px; height: 32px; font-size: 13px; }
-  .user-item { --hb-avatar-w: 32px; }
 
   .settings-modal .slide-panel-body { padding: 16px; }
   .profile-banner-section { height: 200px; margin-bottom: 40px; }
@@ -5390,7 +5400,6 @@ body.no-anim .friend-item { animation: none !important; }
   .user-name { font-size: 14px; }
   .user-handle { font-size: 12.5px; }
   .dm-item .dm-preview { font-size: 12px; }
-  .user-item { --hb-avatar-w: 46px; --hb-gap: 13px; }
 
   /* --- Search panel: slightly wider on desktop --- */
   #search-msg-panel { width: min(520px, 100vw); }
@@ -5905,7 +5914,7 @@ body.no-anim .friend-item { animation: none !important; }
   
   /* Chat header: smaller padding, hide some icons */
   .chat-header { padding: 10px 12px; }
-  .chat-header-text h3 { font-size: 14px; }
+  .chat-header-text h3 { font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 55vw; }
   .chat-header-text p { font-size: 10px; max-width: 30vw; }
   
   /* Message bubbles: compact */
@@ -5950,7 +5959,6 @@ body.no-anim .friend-item { animation: none !important; }
   
   /* User list items: compact */
   .user-avatar { width: 34px; height: 34px; font-size: 13px; }
-  .user-item { --hb-avatar-w: 34px; }
   .user-name { font-size: 13px; }
   
   /* Friend action buttons: larger touch targets */
