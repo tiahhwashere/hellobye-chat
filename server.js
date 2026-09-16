@@ -59,6 +59,7 @@ const io = new Server(server, {
 });
 
 const PORT = process.env.PORT || 3000;
+const SERVER_STARTED_AT = Date.now();
 const DATA_DIR = path.join(__dirname, 'data');
 const UPLOAD_DIR = path.join(__dirname, 'uploads');
 if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
@@ -971,6 +972,10 @@ function publicUser(u, viewerUsername) {
     isOwner: isOwnerUser(u),
     disabled: false,
     hideProfile: !!u.hideProfile,
+    // End-to-end encryption: the user's PUBLIC key (JWK) is shared so other
+    // clients can derive a shared secret for DMs. The private key never
+    // leaves the user's browser (stored in localStorage).
+    e2ePublicKey: u.e2ePublicKey || null,
   };
   return applyProfileHiding(pub, u, viewerUsername);
 }
@@ -2508,10 +2513,42 @@ app.post('/api/settings/preferences', authMiddleware, (req, res) => {
   if (p.messageSounds !== undefined) req.user.messageSounds = !!p.messageSounds;
   if (p.compactMode !== undefined) req.user.compactMode = !!p.compactMode;
   if (p.allowGroupAdd !== undefined) req.user.allowGroupAdd = !!p.allowGroupAdd;
+  if (p.completenessSkipped !== undefined) req.user.completenessSkipped = !!p.completenessSkipped;
   if (p.theme) req.user.theme = p.theme;
   req.user.preferences = p;
   saveDB();
   res.json({ success: true });
+});
+
+// ---------- End-to-end encryption: public key registry ----------
+// Stores each user's PUBLIC key (JWK) so peers can derive a shared secret.
+// The private key is generated in the browser and NEVER sent to the server.
+app.post('/api/e2e/register-key', authMiddleware, (req, res) => {
+  const { publicKey } = req.body || {};
+  if (!publicKey || typeof publicKey !== 'object' || publicKey.kty !== 'EC') {
+    return res.status(400).json({ error: 'Invalid public key' });
+  }
+  req.user.e2ePublicKey = publicKey;
+  saveDB();
+  res.json({ success: true });
+});
+// Fetch a single user's public key (used to encrypt a DM to them).
+app.get('/api/e2e/key/:username', authMiddleware, (req, res) => {
+  const un = String(req.params.username || '').toLowerCase();
+  const u = db.users[un];
+  if (!u) return res.status(404).json({ error: 'User not found' });
+  res.json({ username: un, publicKey: u.e2ePublicKey || null });
+});
+// Bulk fetch public keys for a set of usernames (used for group encryption).
+app.post('/api/e2e/keys', authMiddleware, (req, res) => {
+  const names = Array.isArray((req.body || {}).usernames) ? req.body.usernames : [];
+  const out = {};
+  names.forEach(n => {
+    const un = String(n || '').toLowerCase();
+    const u = db.users[un];
+    if (u) out[un] = u.e2ePublicKey || null;
+  });
+  res.json({ keys: out });
 });
 
 app.post('/api/settings/delete-account', authMiddleware, (req, res) => {
@@ -3467,6 +3504,31 @@ function decodeEntities(s) {
     .replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&#x27;/g, "'");
 }
 
+// ---------- Build / Version endpoint ----------
+// Returns a stable build id derived from the deployed index.html + server.js
+// contents. The client polls this; when the id changes (i.e. a new deploy
+// landed) it shows the "update available" popup and auto-refreshes after a
+// countdown so users always run the latest frontend without a hard reload.
+function computeBuildId() {
+  try {
+    const h = crypto.createHash('sha1');
+    for (const f of ['index.html', 'server.js']) {
+      try { h.update(fs.readFileSync(path.join(__dirname, f))); } catch (e) {}
+    }
+    return h.digest('hex').slice(0, 12);
+  } catch (e) {
+    return 'unknown';
+  }
+}
+let BUILD_ID = computeBuildId();
+// Recompute periodically so a hot-swapped index.html (e.g. a deploy that
+// replaces files in place) is detected even without a server restart.
+setInterval(() => { try { BUILD_ID = computeBuildId(); } catch (e) {} }, 60 * 1000);
+app.get('/api/version', (req, res) => {
+  res.set('Cache-Control', 'no-store');
+  res.json({ buildId: BUILD_ID, startedAt: SERVER_STARTED_AT });
+});
+
 // ---------- Serve Frontend (SPA) ----------
 // Cache root static assets (favicon, icons, etc.) for a day. index.html is
 // served fresh via the catch-all below with no-cache so new deploys are seen
@@ -3832,7 +3894,7 @@ io.on('connection', (socket) => {
   });
 
   // ---- DM send ----
-  socket.on('dm-send', ({ to, text, file, files, reply, spoiler }, ack) => {
+  socket.on('dm-send', ({ to, text, e2e, file, files, reply, spoiler }, ack) => {
     try {
       const target = to ? to.toLowerCase() : '';
       if (!db.users[target]) { if (typeof ack === 'function') ack({ error: 'User not found' }); return; }
@@ -3854,6 +3916,10 @@ io.on('connection', (socket) => {
       // stacked under the sender's caption and to skip the duplicate sound.
       const textStr = String(text || '').slice(0, 5000);
       const hasFiles = !!(file || (Array.isArray(files) && files.length));
+      // End-to-end encryption envelope (optional). When present, the server
+      // stores ONLY the ciphertext for the text body; the plaintext `text`
+      // field is blanked so the server never persists readable content.
+      const e2eEnv = (e2e && typeof e2e === 'object' && e2e.iv && e2e.ct) ? e2e : null;
       const base = {
         from: username,
         username,
@@ -3866,12 +3932,15 @@ io.on('connection', (socket) => {
         deletedAt: null,
         read: false,
       };
+      // When E2E is active, the stored text is blanked (ciphertext only).
+      const storedText = e2eEnv ? '' : textStr;
       let msgs;
       if (textStr && hasFiles) {
         msgs = [
           Object.assign({}, base, {
             id: genId(),
-            text: textStr,
+            text: storedText,
+            e2e: e2eEnv,
             file: null,
             files: null,
             reply: reply || null,
@@ -3890,7 +3959,8 @@ io.on('connection', (socket) => {
       } else {
         msgs = [Object.assign({}, base, {
           id: genId(),
-          text: textStr,
+          text: storedText,
+          e2e: e2eEnv,
           file: file || null,
           files: Array.isArray(files) ? files.slice(0, 5) : null,
           reply: reply || null,
@@ -3926,12 +3996,14 @@ io.on('connection', (socket) => {
       // Emit to recipient (both messages if the split happened)
       msgs.forEach(m => io.to(`user:${target}`).emit('dm-receive', { message: m }));
       // ---- DM Reply highlight notification ----
+      // Use the transient plaintext (textStr) for the preview since the
+      // recipient is an authorized party to this conversation.
       if (msg.reply && msg.reply.id && msg.reply.username && msg.reply.username === target) {
         io.to('user:' + target).emit('dm-replied-to', {
           messageId: msg.reply.id,
           by: username,
           replyId: msg.id,
-          text: msg.text.slice(0, 200),
+          text: textStr.slice(0, 200),
         });
       }
       // ---- DM Ping/mention notification ----
@@ -3943,7 +4015,7 @@ io.on('connection', (socket) => {
         io.to('user:' + target).emit('dm-pinged', {
           from: username,
           messageId: msg.id,
-          text: msg.text.slice(0, 200),
+          text: textStr.slice(0, 200),
         });
       }
       if (typeof ack === 'function') ack({ success: true, message: msg, mediaMessage: msgs.length > 1 ? msgs[1] : null });
@@ -3954,7 +4026,7 @@ io.on('connection', (socket) => {
   });
 
   // ---- DM edit ----
-  socket.on('dm-edit', ({ id, text }, ack) => {
+  socket.on('dm-edit', ({ id, text, e2e }, ack) => {
     try {
       // Find message in DM store where this user is sender
       const myDMs = db.dms[username] || {};
@@ -3964,11 +4036,13 @@ io.on('connection', (socket) => {
         if (m) { found = m; break; }
       }
       if (!found) { if (typeof ack === 'function') ack({ error: 'Message not found' }); return; }
-      found.text = String(text || '').slice(0, 5000);
+      const e2eEnv = (e2e && typeof e2e === 'object') ? e2e : null;
+      if (e2eEnv) { found.text = ''; found.e2e = e2eEnv; }
+      else { found.text = String(text || '').slice(0, 5000); delete found.e2e; }
       found.edited = true;
       found.editedAt = nowISO();
       saveDB();
-      io.to(`user:${found.to}`).emit('dm-edited', { id: found.id, from: username, text: found.text, edited: true, editedAt: found.editedAt });
+      io.to(`user:${found.to}`).emit('dm-edited', { id: found.id, from: username, text: found.text, e2e: found.e2e || null, edited: true, editedAt: found.editedAt });
       if (typeof ack === 'function') ack({ success: true });
     } catch (e) {
       if (typeof ack === 'function') ack({ error: 'Failed' });
@@ -4013,7 +4087,7 @@ io.on('connection', (socket) => {
   });
 
   // ---- Group chat send ----
-  socket.on('group-send', ({ groupId, text, file, files, reply, spoiler }, ack) => {
+  socket.on('group-send', ({ groupId, text, e2e, e2eKeys, file, files, reply, spoiler }, ack) => {
     try {
       const g = findGroup(groupId);
       if (!g) { if (typeof ack === 'function') ack({ error: 'Group not found' }); return; }
@@ -4039,6 +4113,9 @@ io.on('connection', (socket) => {
       // skip the duplicate sound.
       const textStr = String(text || '').slice(0, 5000);
       const hasFiles = !!(file || (Array.isArray(files) && files.length));
+      // End-to-end encryption envelope + per-member wrapped group keys.
+      const e2eEnv = (e2e && typeof e2e === 'object' && e2e.iv && e2e.ct) ? e2e : null;
+      const e2eKeysMap = (e2eKeys && typeof e2eKeys === 'object') ? e2eKeys : null;
       const base = {
         from: username,
         username,
@@ -4049,12 +4126,15 @@ io.on('connection', (socket) => {
         deleted: false,
         deletedAt: null,
       };
+      const storedText = e2eEnv ? '' : textStr;
       let msgs;
       if (textStr && hasFiles) {
         msgs = [
           Object.assign({}, base, {
             id: genId(),
-            text: textStr,
+            text: storedText,
+            e2e: e2eEnv,
+            e2eKeys: e2eKeysMap,
             file: null,
             files: null,
             reply: reply || null,
@@ -4073,7 +4153,9 @@ io.on('connection', (socket) => {
       } else {
         msgs = [Object.assign({}, base, {
           id: genId(),
-          text: textStr,
+          text: storedText,
+          e2e: e2eEnv,
+          e2eKeys: e2eKeysMap,
           file: file || null,
           files: Array.isArray(files) ? files.slice(0, 5) : null,
           reply: reply || null,
@@ -4097,7 +4179,7 @@ io.on('connection', (socket) => {
             messageId: msg.reply.id,
             by: username,
             replyId: msg.id,
-            text: msg.text.slice(0, 200),
+            text: textStr.slice(0, 200),
           });
         }
       }
@@ -4115,7 +4197,7 @@ io.on('connection', (socket) => {
             groupId: g.id,
             from: username,
             messageId: msg.id,
-            text: msg.text.slice(0, 200),
+            text: textStr.slice(0, 200),
           });
         }
       });
@@ -4127,17 +4209,19 @@ io.on('connection', (socket) => {
   });
 
   // ---- Group chat edit ----
-  socket.on('group-edit', ({ groupId, id, text }, ack) => {
+  socket.on('group-edit', ({ groupId, id, text, e2e, e2eKeys }, ack) => {
     try {
       const g = findGroup(groupId);
       if (!g) { if (typeof ack === 'function') ack({ error: 'Group not found' }); return; }
       const m = (g.messages || []).find(x => x.id === id && x.username === username);
       if (!m) { if (typeof ack === 'function') ack({ error: 'Message not found' }); return; }
-      m.text = String(text || '').slice(0, 5000);
+      const e2eEnv = (e2e && typeof e2e === 'object') ? e2e : null;
+      if (e2eEnv) { m.text = ''; m.e2e = e2eEnv; if (e2eKeys && typeof e2eKeys === 'object') m.e2eKeys = e2eKeys; }
+      else { m.text = String(text || '').slice(0, 5000); delete m.e2e; delete m.e2eKeys; }
       m.edited = true;
       m.editedAt = nowISO();
       saveDB();
-      for (const mem of (g.members || [])) io.to('user:' + mem).emit('group-edited', { groupId: g.id, id: m.id, from: username, text: m.text, edited: true, editedAt: m.editedAt });
+      for (const mem of (g.members || [])) io.to('user:' + mem).emit('group-edited', { groupId: g.id, id: m.id, from: username, text: m.text, e2e: m.e2e || null, e2eKeys: m.e2eKeys || null, edited: true, editedAt: m.editedAt });
       if (typeof ack === 'function') ack({ success: true });
     } catch (e) {
       if (typeof ack === 'function') ack({ error: 'Failed' });

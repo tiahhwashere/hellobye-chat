@@ -51,6 +51,75 @@
   --transition: 0.18s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* ============================================================
+   LIGHT THEME
+   Activated by <html data-theme="light">. Redefines every core
+   surface/text/border variable so the whole app flips to a light
+   palette, then overrides the handful of hardcoded dark surfaces
+   (toasts, popovers, scrims, auth brand) that don't use variables.
+   ============================================================ */
+[data-theme="light"] {
+  --bg-darkest: #eef0f4;
+  --bg-darker: #ffffff;
+  --bg-dark: #ffffff;
+  --bg-medium: #f1f3f6;
+  --bg-light: #e7eaef;
+  --bg-lighter: #dde1e8;
+  --bg-hover: #d2d7df;
+  --border: #e3e6ec;
+  --border-light: #cfd4dc;
+  --text-primary: #16181d;
+  --text-secondary: #545b66;
+  --text-muted: #838a95;
+  --accent-text: #fff;
+  --shadow: 0 4px 20px rgba(15, 20, 30, 0.10);
+  --shadow-lg: 0 12px 40px rgba(15, 20, 30, 0.16);
+}
+/* Scrollbars: dark thumbs on a light track. */
+[data-theme="light"] ::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.18); }
+[data-theme="light"] ::-webkit-scrollbar-thumb:hover { background: rgba(0, 0, 0, 0.28); }
+/* Auth brand panel: light gradient instead of the dark one. */
+[data-theme="light"] .auth-brand {
+  background: linear-gradient(160deg, rgba(var(--accent-rgb), 0.12) 0%, rgba(240, 242, 246, 0.7) 60%, var(--bg-darker) 100%);
+}
+/* Toasts / popovers / dropdowns / reply previews: light surfaces. */
+[data-theme="light"] .toast,
+[data-theme="light"] .toast.confirm {
+  background: rgba(255, 255, 255, 0.96);
+  border-color: rgba(0, 0, 0, 0.08);
+  box-shadow: 0 8px 32px rgba(15, 20, 30, 0.16), 0 2px 8px rgba(15, 20, 30, 0.10);
+}
+[data-theme="light"] .toast:hover { border-color: rgba(0, 0, 0, 0.14); }
+[data-theme="light"] .toast-close:hover { background: rgba(0, 0, 0, 0.06); }
+[data-theme="light"] .in-app-notif { background: rgba(255, 255, 255, 0.96); border-color: rgba(0, 0, 0, 0.08); }
+[data-theme="light"] .mention-dropdown,
+[data-theme="light"] .reply-preview,
+[data-theme="light"] .search-msg-results { background: rgba(255, 255, 255, 0.98); border-color: rgba(0, 0, 0, 0.08); }
+[data-theme="light"] .reply-quote { background: rgba(0, 0, 0, 0.04); }
+[data-theme="light"] .reply-quote:hover { background: rgba(0, 0, 0, 0.07); }
+[data-theme="light"] .reply-preview-body .mention { background: rgba(0, 0, 0, 0.07); }
+[data-theme="light"] .sidebar-footer:hover { background: rgba(0, 0, 0, 0.04); }
+/* Message action / react buttons hover on light bubbles. */
+[data-theme="light"] .msg-action-btn:hover,
+[data-theme="light"] .msg-react-btn:hover { background: rgba(0, 0, 0, 0.06); color: var(--text-primary); }
+[data-theme="light"] .message-group.own .msg-action-btn:hover,
+[data-theme="light"] .message-group.own .msg-react-btn:hover { background: rgba(255, 255, 255, 0.22); color: #fff; }
+/* Members-list / chat-bar scrims: lighten instead of darken so dark text reads. */
+[data-theme="light"] .chat-header.members-bg-on::after {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.62) 0%, rgba(255, 255, 255, 0.42) 100%);
+}
+[data-theme="light"] .chat-input-area.members-bg-on::after {
+  background: linear-gradient(0deg, rgba(255, 255, 255, 0.68) 0%, rgba(255, 255, 255, 0.42) 100%);
+}
+[data-theme="light"] .sidebar-header::before {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.66) 0%, rgba(255, 255, 255, 0.0) 100%);
+}
+[data-theme="light"] .sidebar-footer::before {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.0) 0%, rgba(255, 255, 255, 0.72) 100%);
+}
+/* Custom website background dim overlay reads as a light veil in light mode. */
+[data-theme="light"] #custom-bg-layer .custom-bg-dim { background: rgba(255, 255, 255, 0.5); }
+
 * { margin: 0; padding: 0; box-sizing: border-box; }
 html, body { height: 100%; overflow: hidden; }
 html { height: 100dvh; }
@@ -565,6 +634,36 @@ body.loading-session #chat-app.active::after { content: none; }
 /* The chat-input-area uses a bottom scrim so the input reads well */
 .chat-input-area.members-bg-on::after {
   background: linear-gradient(0deg, rgba(10,11,13,0.50) 0%, rgba(10,11,13,0.30) 100%);
+}
+/* ---- Members-list background readability scrim ----
+   When a members-list background image is active, a uniform scrim sits
+   between the image and the sidebar content so member names, DM/group
+   names, nav labels and the search box stay legible over ANY image
+   (bright, busy, or low-contrast). The scrim is theme-aware: a dark veil
+   in dark mode and a light veil in light mode, so text always contrasts. */
+.sidebar.members-bg-on::after {
+  content: "";
+  position: absolute; inset: 0;
+  background: rgba(10, 11, 13, 0.42);
+  pointer-events: none;
+  z-index: 0;
+}
+[data-theme="light"] .sidebar.members-bg-on::after {
+  background: rgba(255, 255, 255, 0.58);
+}
+/* Sidebar nav / search / view rows get a faint per-row surface so labels
+   never sit directly on a busy image even at the scrim edges. */
+.sidebar.members-bg-on .sidebar-nav-btn:hover,
+.sidebar.members-bg-on .user-item:hover,
+.sidebar.members-bg-on .dm-list-item:hover,
+.sidebar.members-bg-on .group-item:hover {
+  background: rgba(28, 31, 36, 0.55);
+}
+[data-theme="light"] .sidebar.members-bg-on .sidebar-nav-btn:hover,
+[data-theme="light"] .sidebar.members-bg-on .user-item:hover,
+[data-theme="light"] .sidebar.members-bg-on .dm-list-item:hover,
+[data-theme="light"] .sidebar.members-bg-on .group-item:hover {
+  background: rgba(0, 0, 0, 0.06);
 }
 .sidebar-header {
   display: flex; align-items: center; gap: 11px;
@@ -4408,6 +4507,8 @@ body.no-anim .friend-item { animation: none !important; }
 .completeness-bar { flex: 1; height: 10px; background: var(--bg-lighter); border-radius: 100px; overflow: hidden; border: 1px solid var(--border-light); }
 .completeness-fill { height: 100%; background: var(--accent); border-radius: 100px; transition: width 0.4s cubic-bezier(0.16,1,0.3,1); }
 .completeness-fill.full { background: #22c55e; box-shadow: 0 0 12px rgba(34,197,94,0.35); }
+.completeness-actions { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+.completeness-actions .setting-save-btn { font-size: 12px; padding: 7px 12px; }
 
 /* ============================================
    PROFILE VIEW MODAL
@@ -5141,6 +5242,60 @@ body.no-anim .friend-item { animation: none !important; }
 @keyframes toastIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes toastOut { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(12px); } }
 @keyframes toastProgress { from { width: 100%; } to { width: 0%; } }
+
+/* ===== Update Available popup (middle-bottom, soft) =====
+   Shown when a new deploy is detected. A soft, non-blocking card with a
+   countdown ring + "Refresh now" button. If the user doesn't click, the
+   page auto-refreshes when the countdown reaches zero. */
+.update-popup {
+  pointer-events: auto;
+  width: 100%; box-sizing: border-box;
+  padding: 14px 16px;
+  background: rgba(20, 20, 24, 0.94);
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-left: 3px solid var(--accent);
+  border-radius: 12px;
+  color: var(--text-primary);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55), 0 3px 10px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  animation: toastIn 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex; align-items: center; gap: 13px;
+  position: relative; overflow: hidden;
+}
+.update-popup.fade-out { animation: toastOut 0.25s ease forwards; }
+.update-popup-icon {
+  flex-shrink: 0; width: 38px; height: 38px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(var(--accent-rgb), 0.14); color: var(--accent);
+  position: relative;
+}
+.update-popup-icon svg { width: 20px; height: 20px; }
+.update-popup-body { flex: 1; min-width: 0; }
+.update-popup-title { font-size: 13.5px; font-weight: 700; letter-spacing: 0.01em; margin-bottom: 2px; }
+.update-popup-text { font-size: 12.5px; color: var(--text-secondary); line-height: 1.42; }
+.update-popup-text b { color: var(--accent); font-weight: 700; }
+.update-popup-actions { flex-shrink: 0; display: flex; align-items: center; gap: 8px; }
+.update-popup-refresh {
+  padding: 8px 14px; border-radius: 8px; font-size: 12.5px; font-weight: 600;
+  background: var(--accent); color: #fff; border: none; cursor: pointer;
+  transition: transform 0.15s ease, filter 0.15s ease; white-space: nowrap;
+}
+.update-popup-refresh:hover { filter: brightness(1.08); transform: translateY(-1px); }
+.update-popup-refresh:active { transform: translateY(0); }
+.update-popup-progress {
+  position: absolute; bottom: 0; left: 0; height: 2px;
+  background: var(--accent); opacity: 0.5;
+}
+[data-theme="light"] .update-popup {
+  background: rgba(255, 255, 255, 0.97);
+  border-color: rgba(0, 0, 0, 0.08);
+  box-shadow: 0 12px 40px rgba(15, 20, 30, 0.18), 0 3px 10px rgba(15, 20, 30, 0.10);
+}
+@media (max-width: 560px) {
+  .update-popup { flex-wrap: wrap; }
+  .update-popup-actions { width: 100%; }
+  .update-popup-refresh { width: 100%; }
+}
 
 /* ===== System Broadcast Alert (top-center, 5s then fade) ===== */
 .system-alert-container {
@@ -6680,6 +6835,19 @@ body.no-anim .friend-item { animation: none !important; }
   } catch(e) {}
 })();
 </script>
+<script>
+/* Early theme application — runs before <body> paints so there is no flash of
+   the wrong theme. The authoritative value is the user's saved preference
+   (localStorage mirror, kept in sync with the server). Defaults to dark. */
+(function() {
+  try {
+    var t = localStorage.getItem('hellobye_theme');
+    if (t === 'light' || t === 'dark') {
+      document.documentElement.setAttribute('data-theme', t);
+    }
+  } catch(e) {}
+})();
+</script>
 </head>
 <body>
 
@@ -7823,9 +7991,13 @@ body.no-anim .friend-item { animation: none !important; }
             <div class="completeness-card">
               <div class="completeness-top">
                 <span class="completeness-pct" id="settings-profile-complete">0%</span>
-                <span class="completeness-hint">Add a photo, bio and details to complete your profile</span>
+                <span class="completeness-hint" id="settings-profile-complete-hint">Add a photo, bio and details to complete your profile</span>
               </div>
               <div class="completeness-bar"><div class="completeness-fill" id="settings-profile-complete-bar" style="width:0%;"></div></div>
+              <div class="completeness-actions">
+                <button class="setting-save-btn no-checkmark" id="completeness-skip-btn" type="button">Skip &amp; set to 100%</button>
+                <button class="setting-save-btn no-checkmark" id="completeness-undo-skip-btn" type="button" style="display:none;">Undo skip</button>
+              </div>
             </div>
           </div>
         </section>
@@ -7868,6 +8040,14 @@ body.no-anim .friend-item { animation: none !important; }
 
           <div class="profile-section">
             <div class="profile-section-title">Appearance</div>
+            <label class="toggle-row">
+              <span>Light mode</span>
+              <span class="toggle-switch">
+                <input type="checkbox" id="lightmode-toggle">
+                <span class="toggle-slider"></span>
+              </span>
+            </label>
+            <p class="setting-hint" style="margin-top:8px;">Switch between the dark and light color themes. Only visible to you.</p>
             <label class="toggle-row">
               <span>Compact message mode</span>
               <span class="toggle-switch">
@@ -8853,6 +9033,272 @@ function getAuthHeaders() {
 // ---------- State ----------
 let currentUser = null;
 let socket = null;
+// ============================================================
+// END-TO-END ENCRYPTION (E2E)
+// ------------------------------------------------------------
+// Each user generates an ECDH P-256 keypair in the browser. The PUBLIC key
+// is registered with the server; the PRIVATE key never leaves the device
+// (kept in localStorage). DMs are encrypted with AES-GCM using a shared
+// secret derived from the sender's private key + recipient's public key.
+// Group messages use a random AES-GCM group key that is wrapped (encrypted)
+// separately for every member's public key. The server only ever stores
+// ciphertext, so it cannot read message contents.
+// ============================================================
+const E2E_PRIV_KEY_STORE = 'hellobye_e2e_privkey';   // localStorage: our private JWK
+const E2E_PUB_KEY_STORE = 'hellobye_e2e_pubkey';     // localStorage: our public JWK
+const E2E_GROUP_KEY_STORE = 'hellobye_e2e_groupkeys'; // localStorage: { groupId: base64 raw key }
+let __e2eKeyPair = null;          // CryptoKeyPair (in-memory)
+let __e2eReady = false;           // true once keys are loaded/generated
+let __e2ePeerKeyCache = {};       // username -> CryptoKey (public)
+let __e2eGroupKeyCache = {};      // groupId -> CryptoKey (AES-GCM)
+let __e2eGroupKeyRaw = {};        // groupId -> base64 raw key (for wrapping to new members)
+
+function e2eSupported() {
+  return !!(window.crypto && window.crypto.subtle && window.isSecureContext);
+}
+function b64encode(buf) {
+  const bytes = new Uint8Array(buf);
+  let bin = '';
+  for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+  return btoa(bin);
+}
+function b64decode(str) {
+  const bin = atob(str);
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  return bytes;
+}
+// Load the persisted keypair, or generate + register a fresh one.
+async function e2eInit() {
+  if (!e2eSupported()) { __e2eReady = false; return false; }
+  try {
+    let privJwk = null, pubJwk = null;
+    try {
+      const p = localStorage.getItem(E2E_PRIV_KEY_STORE);
+      const q = localStorage.getItem(E2E_PUB_KEY_STORE);
+      if (p && q) { privJwk = JSON.parse(p); pubJwk = JSON.parse(q); }
+    } catch (e) {}
+    if (privJwk && pubJwk) {
+      const priv = await crypto.subtle.importKey('jwk', privJwk, { name: 'ECDH', namedCurve: 'P-256' }, true, ['deriveKey', 'deriveBits']);
+      const pub = await crypto.subtle.importKey('jwk', pubJwk, { name: 'ECDH', namedCurve: 'P-256' }, true, []);
+      __e2eKeyPair = { privateKey: priv, publicKey: pub };
+    } else {
+      __e2eKeyPair = await crypto.subtle.generateKey({ name: 'ECDH', namedCurve: 'P-256' }, true, ['deriveKey', 'deriveBits']);
+      privJwk = await crypto.subtle.exportKey('jwk', __e2eKeyPair.privateKey);
+      pubJwk = await crypto.subtle.exportKey('jwk', __e2eKeyPair.publicKey);
+      try {
+        localStorage.setItem(E2E_PRIV_KEY_STORE, JSON.stringify(privJwk));
+        localStorage.setItem(E2E_PUB_KEY_STORE, JSON.stringify(pubJwk));
+      } catch (e) {}
+    }
+    __e2eReady = true;
+    // Register our public key with the server (idempotent).
+    try {
+      await fetch(API_BASE + '/api/e2e/register-key', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ publicKey: pubJwk })
+      });
+    } catch (e) {}
+    return true;
+  } catch (e) {
+    console.warn('[e2e] init failed', e);
+    __e2eReady = false;
+    return false;
+  }
+}
+// Fetch + cache a peer's public key as a CryptoKey.
+async function e2eGetPeerKey(username) {
+  const un = String(username || '').toLowerCase();
+  if (__e2ePeerKeyCache[un]) return __e2ePeerKeyCache[un];
+  // Prefer a key already present on the user object (from /api/users).
+  let jwk = null;
+  const u = (users || []).find(x => x.username === un);
+  if (u && u.e2ePublicKey) jwk = u.e2ePublicKey;
+  if (!jwk) {
+    try {
+      const res = await fetch(API_BASE + '/api/e2e/key/' + encodeURIComponent(un));
+      const data = await res.json();
+      jwk = data && data.publicKey;
+    } catch (e) {}
+  }
+  if (!jwk) return null;
+  try {
+    const key = await crypto.subtle.importKey('jwk', jwk, { name: 'ECDH', namedCurve: 'P-256' }, true, []);
+    __e2ePeerKeyCache[un] = key;
+    return key;
+  } catch (e) { return null; }
+}
+// Derive the AES-GCM shared key for a DM with `peerUsername`.
+async function e2eDeriveDMKey(peerUsername) {
+  if (!__e2eReady || !__e2eKeyPair) return null;
+  const peerKey = await e2eGetPeerKey(peerUsername);
+  if (!peerKey) return null;
+  try {
+    return await crypto.subtle.deriveKey(
+      { name: 'ECDH', public: peerKey },
+      __e2eKeyPair.privateKey,
+      { name: 'AES-GCM', length: 256 },
+      false, ['encrypt', 'decrypt']
+    );
+  } catch (e) { return null; }
+}
+// Encrypt a plaintext string with an AES-GCM key. Returns { iv, ct } base64.
+async function e2eEncryptWithKey(key, plaintext) {
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const enc = new TextEncoder().encode(String(plaintext));
+  const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, enc);
+  return { iv: b64encode(iv), ct: b64encode(ct) };
+}
+// Decrypt an { iv, ct } payload with an AES-GCM key. Returns plaintext or null.
+async function e2eDecryptWithKey(key, payload) {
+  if (!key || !payload || !payload.iv || !payload.ct) return null;
+  try {
+    const iv = b64decode(payload.iv);
+    const ct = b64decode(payload.ct);
+    const pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, ct);
+    return new TextDecoder().decode(pt);
+  } catch (e) { return null; }
+}
+// Encrypt a DM payload for a peer. Returns the e2e envelope or null.
+async function e2eEncryptDM(peerUsername, plaintext) {
+  const key = await e2eDeriveDMKey(peerUsername);
+  if (!key) return null;
+  const { iv, ct } = await e2eEncryptWithKey(key, plaintext);
+  return { v: 1, alg: 'ECDH-P256-AESGCM', iv, ct };
+}
+// Decrypt a DM payload from a peer.
+async function e2eDecryptDM(peerUsername, envelope) {
+  const key = await e2eDeriveDMKey(peerUsername);
+  if (!key) return null;
+  return e2eDecryptWithKey(key, envelope);
+}
+// ---- Group keys ----
+function e2eLoadGroupKeys() {
+  try {
+    const raw = localStorage.getItem(E2E_GROUP_KEY_STORE);
+    if (raw) __e2eGroupKeyRaw = JSON.parse(raw) || {};
+  } catch (e) { __e2eGroupKeyRaw = {}; }
+}
+function e2eSaveGroupKeys() {
+  try { localStorage.setItem(E2E_GROUP_KEY_STORE, JSON.stringify(__e2eGroupKeyRaw)); } catch (e) {}
+}
+// Get (or lazily create) the raw AES-GCM group key for a group.
+async function e2eGetGroupKeyRaw(groupId) {
+  if (__e2eGroupKeyRaw[groupId]) return __e2eGroupKeyRaw[groupId];
+  const raw = crypto.getRandomValues(new Uint8Array(32));
+  const b64 = b64encode(raw);
+  __e2eGroupKeyRaw[groupId] = b64;
+  e2eSaveGroupKeys();
+  return b64;
+}
+async function e2eImportGroupKey(b64) {
+  try {
+    return await crypto.subtle.importKey('raw', b64decode(b64), { name: 'AES-GCM' }, false, ['encrypt', 'decrypt']);
+  } catch (e) { return null; }
+}
+// Wrap (encrypt) the group key for a single member's public key.
+async function e2eWrapGroupKeyFor(memberUsername, rawB64) {
+  const peerKey = await e2eGetPeerKey(memberUsername);
+  if (!peerKey) return null;
+  try {
+    const wrapKey = await crypto.subtle.deriveKey(
+      { name: 'ECDH', public: peerKey }, __e2eKeyPair.privateKey,
+      { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']
+    );
+    const { iv, ct } = await e2eEncryptWithKey(wrapKey, rawB64);
+    return { iv, ct };
+  } catch (e) { return null; }
+}
+// Unwrap a group key that was wrapped for us.
+async function e2eUnwrapGroupKey(fromUsername, wrapped) {
+  const peerKey = await e2eGetPeerKey(fromUsername);
+  if (!peerKey) return null;
+  try {
+    const wrapKey = await crypto.subtle.deriveKey(
+      { name: 'ECDH', public: peerKey }, __e2eKeyPair.privateKey,
+      { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']
+    );
+    return await e2eDecryptWithKey(wrapKey, wrapped);
+  } catch (e) { return null; }
+}
+// Encrypt a group message with the group key. Returns envelope or null.
+async function e2eEncryptGroup(groupId, plaintext) {
+  const rawB64 = await e2eGetGroupKeyRaw(groupId);
+  const key = await e2eImportGroupKey(rawB64);
+  if (!key) return null;
+  const { iv, ct } = await e2eEncryptWithKey(key, plaintext);
+  return { v: 1, alg: 'AESGCM-GROUP', iv, ct };
+}
+// Decrypt a group message. Tries the local group key; if absent, attempts to
+// unwrap the sender-provided wrapped key (for members who joined later).
+async function e2eDecryptGroup(groupId, envelope, wrappedForMe, fromUsername) {
+  let key = null;
+  if (__e2eGroupKeyRaw[groupId]) key = await e2eImportGroupKey(__e2eGroupKeyRaw[groupId]);
+  if (!key && wrappedForMe && fromUsername) {
+    const raw = await e2eUnwrapGroupKey(fromUsername, wrappedForMe);
+    if (raw) {
+      __e2eGroupKeyRaw[groupId] = raw;
+      e2eSaveGroupKeys();
+      key = await e2eImportGroupKey(raw);
+    }
+  }
+  if (!key) return null;
+  return e2eDecryptWithKey(key, envelope);
+}
+// Build the per-member wrapped-key map for a group message.
+async function e2eBuildGroupWrappedKeys(groupId, members) {
+  const rawB64 = await e2eGetGroupKeyRaw(groupId);
+  const out = {};
+  for (const m of (members || [])) {
+    const un = String(m || '').toLowerCase();
+    if (!un || un === (currentUser && currentUser.username)) continue;
+    const wrapped = await e2eWrapGroupKeyFor(un, rawB64);
+    if (wrapped) out[un] = wrapped;
+  }
+  return out;
+}
+// Attach an e2e envelope to a message object (used on send + on receive).
+function e2eEnvelopeOf(msg) {
+  if (!msg) return null;
+  if (msg.e2e && msg.e2e.iv && msg.e2e.ct) return msg.e2e;
+  return null;
+}
+// Decrypt a message's text in place (DM or group). Returns true if decrypted.
+async function e2eDecryptMessage(msg, opts) {
+  const env = e2eEnvelopeOf(msg);
+  if (!env) return false;
+  opts = opts || {};
+  let plain = null;
+  if (opts.kind === 'group') {
+    const wrappedForMe = (msg.e2eKeys && currentUser) ? msg.e2eKeys[currentUser.username] : null;
+    plain = await e2eDecryptGroup(opts.groupId, env, wrappedForMe, msg.from || msg.username);
+  } else {
+    const peer = opts.peer || msg.from || msg.username;
+    plain = await e2eDecryptDM(peer, env);
+  }
+  if (plain != null) {
+    msg.text = plain;
+    msg.__e2eDecrypted = true;
+    return true;
+  }
+  // Couldn't decrypt (e.g. peer key not available yet). Show a lock
+  // placeholder rather than a blank bubble; never show raw ciphertext.
+  if (!msg.text) msg.text = '\uD83D\uDD12 Encrypted message';
+  return false;
+}
+// Decrypt an array of messages (best-effort, in parallel).
+async function e2eDecryptAll(list, opts) {
+  if (!__e2eReady || !Array.isArray(list)) return;
+  await Promise.all(list.map(m => e2eDecryptMessage(m, opts).catch(() => false)));
+}
+// Display text for a message: the decrypted plaintext, or a lock placeholder
+// when the message is encrypted but we couldn't decrypt it (e.g. the sender's
+// public key isn't available yet). Never leaks ciphertext into the UI.
+function e2eDisplayText(msg) {
+  if (!msg) return '';
+  if (msg.e2e && !msg.__e2eDecrypted && !msg.text) return '\uD83D\uDD12 Encrypted message';
+  return msg.text || '';
+}
 let messages = [];
 let users = [];
 let welcomeTitle = 'welcome - to the safe place';
@@ -9033,6 +9479,83 @@ function toast(msg, type = '', opts = {}) {
   el.addEventListener('click', dismiss);
   // Auto-dismiss after 4 seconds
   dismissTimer = setTimeout(dismiss, 4000);
+}
+
+// ---------- Update Available popup + auto-refresh ----------
+// Polls /api/version for the deployed build id. When it changes (a new
+// deploy landed) a soft popup appears at the middle-bottom of the screen
+// with a countdown. The user can refresh immediately, otherwise the page
+// auto-refreshes when the countdown ends so everyone runs the latest build.
+let __updatePopupShown = false;
+let __updateCountdownTimer = null;
+let __updatePollTimer = null;
+let __knownBuildId = null;
+const UPDATE_COUNTDOWN_SECONDS = 20;
+
+function showUpdatePopup() {
+  if (__updatePopupShown) return;
+  __updatePopupShown = true;
+  const container = $('toast-container');
+  if (!container) { window.location.reload(); return; }
+  const el = document.createElement('div');
+  el.className = 'update-popup';
+  el.innerHTML =
+    '<span class="update-popup-icon">' +
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+        '<path d="M21 12a9 9 0 1 1-3-6.7"/><polyline points="21 3 21 9 15 9"/>' +
+      '</svg>' +
+    '</span>' +
+    '<div class="update-popup-body">' +
+      '<div class="update-popup-title">A new update is available</div>' +
+      '<div class="update-popup-text">HelloBye will refresh automatically in <b id="update-countdown">' + UPDATE_COUNTDOWN_SECONDS + '</b>s to apply the latest changes.</div>' +
+    '</div>' +
+    '<div class="update-popup-actions">' +
+      '<button class="update-popup-refresh" id="update-refresh-btn" type="button">Refresh now</button>' +
+    '</div>' +
+    '<span class="update-popup-progress" id="update-progress"></span>';
+  container.appendChild(el);
+  // Animate the progress bar over the countdown duration.
+  const prog = el.querySelector('#update-progress');
+  if (prog) {
+    prog.style.transition = 'width ' + UPDATE_COUNTDOWN_SECONDS + 's linear';
+    requestAnimationFrame(() => { prog.style.width = '0%'; });
+    prog.style.width = '100%';
+  }
+  const doRefresh = () => {
+    clearInterval(__updateCountdownTimer);
+    try { sessionStorage.setItem('hellobye_updated_at', String(Date.now())); } catch (e) {}
+    window.location.reload();
+  };
+  const btn = el.querySelector('#update-refresh-btn');
+  if (btn) btn.addEventListener('click', doRefresh);
+  // Countdown → auto-refresh when it reaches zero.
+  let remaining = UPDATE_COUNTDOWN_SECONDS;
+  const cdEl = el.querySelector('#update-countdown');
+  __updateCountdownTimer = setInterval(() => {
+    remaining -= 1;
+    if (cdEl) cdEl.textContent = String(Math.max(0, remaining));
+    if (remaining <= 0) { clearInterval(__updateCountdownTimer); doRefresh(); }
+  }, 1000);
+}
+
+// Poll the version endpoint. First successful response just records the
+// current build id (no popup). Any later change triggers the popup.
+async function pollVersion() {
+  try {
+    const res = await fetch(API_BASE + '/api/version', { cache: 'no-store' });
+    if (!res.ok) return;
+    const data = await res.json();
+    if (!data || !data.buildId) return;
+    if (__knownBuildId === null) { __knownBuildId = data.buildId; return; }
+    if (data.buildId !== __knownBuildId) { showUpdatePopup(); }
+  } catch (e) { /* network hiccup — try again next tick */ }
+}
+function startVersionPolling() {
+  if (__updatePollTimer) return;
+  pollVersion();
+  __updatePollTimer = setInterval(pollVersion, 30000);
+  // Also re-check when the tab regains focus (user returns after a deploy).
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) pollVersion(); });
 }
 
 // ---------- System Broadcast Alert (top-center, 5s then fades) ----------
@@ -10790,6 +11313,21 @@ async function initChat(existingMeData) {
   // Apply compact mode
   chatApp.classList.toggle('compact', !!currentUser.compactMode);
 
+  // Apply the saved color theme (light/dark) as early as possible.
+  applyTheme(currentUser.theme || 'dark');
+
+  // Start polling for new deploys so users get the update popup + auto-refresh.
+  startVersionPolling();
+
+  // Initialize end-to-end encryption (generate/load keypair, register public
+  // key). Runs in the background so it never blocks the UI.
+  e2eLoadGroupKeys();
+  e2eInit().then(() => {
+    // Re-render open conversations so any ciphertext decrypts once keys are ready.
+    try { if (activeDMUser) { e2eDecryptAll(dmMessages, { peer: activeDMUser }).then(renderDMMessages); } } catch (e) {}
+    try { if (activeGroupId) { e2eDecryptAll(groupMessages, { kind: 'group', groupId: activeGroupId }).then(renderGroupMessages); } } catch (e) {}
+  });
+
   // Apply client-side background & color settings (only visible to this user)
   applyClientSettings();
 
@@ -11307,11 +11845,16 @@ function connectSocket() {
   socket.on('user-typing', (data) => showTypingIndicator(data.username, data.typing));
 
   // DM events
-  socket.on('dm-receive', (data) => {
+  socket.on('dm-receive', async (data) => {
     const msg = data.message;
     const from = msg.from;
     // Filter blocked users
     if (blockedUsers.some(u => u.username === from)) return;
+    // End-to-end encrypted DM: decrypt before processing so the conversation
+    // preview, mention detection and render all use plaintext.
+    if (e2eEnvelopeOf(msg) && __e2eReady) {
+      try { await e2eDecryptMessage(msg, { peer: from }); } catch (e) {}
+    }
     // Optimistically update the DM conversation list so the conversation
     // (and its latest message preview) appears in the Messages tab
     // immediately - even before the loadDMConversations() fetch round-trip
@@ -11386,10 +11929,14 @@ function connectSocket() {
     }
   });
 
-  socket.on('dm-edited', (data) => {
+  socket.on('dm-edited', async (data) => {
     if (activeDMUser === data.from) {
       const m = dmMessages.find(x => x.id === data.id);
-      if (m) { m.text = data.text; m.edited = data.edited; m.editedAt = data.editedAt; }
+      if (m) {
+        m.text = data.text; m.edited = data.edited; m.editedAt = data.editedAt;
+        if (data.e2e) { m.e2e = data.e2e; try { await e2eDecryptMessage(m, { peer: data.from }); } catch (e) {} }
+        else { delete m.e2e; }
+      }
       renderDMMessages();
     }
   });
@@ -11453,9 +12000,14 @@ function connectSocket() {
   // ============================================================
   // GROUP CHAT SOCKET EVENT LISTENERS (moved inside connectSocket)
   // ============================================================
-  socket.on('group-message', (data) => {
+  socket.on('group-message', async (data) => {
     const msg = data.message;
     const gid = data.groupId || (msg && msg.groupId);
+    // End-to-end encrypted group message: decrypt before processing so the
+    // sidebar preview, mention detection and render all use plaintext.
+    if (e2eEnvelopeOf(msg) && __e2eReady) {
+      try { await e2eDecryptMessage(msg, { kind: 'group', groupId: gid }); } catch (e) {}
+    }
     // Update sidebar preview + unread
     const convIdx = groupConvs.findIndex(g => g.id === gid);
     if (convIdx >= 0) {
@@ -11577,16 +12129,22 @@ function connectSocket() {
     renderMessagesList();
   });
 
-  socket.on('group-edited', (data) => {
-    if (activeGroupId === data.groupId || activeGroupId === (data.group && data.group.id)) {
+  socket.on('group-edited', async (data) => {
+    const gid = data.groupId || (data.group && data.group.id);
+    if (activeGroupId === gid) {
       const m = groupMessages.find(x => x.id === data.id);
-      if (m) { m.text = data.text; m.edited = data.edited; m.editedAt = data.editedAt; }
+      if (m) {
+        m.text = data.text; m.edited = data.edited; m.editedAt = data.editedAt;
+        if (data.e2e) { m.e2e = data.e2e; if (data.e2eKeys) m.e2eKeys = data.e2eKeys; try { await e2eDecryptMessage(m, { kind: 'group', groupId: gid }); } catch (e) {} }
+        else { delete m.e2e; delete m.e2eKeys; }
+      }
       renderGroupMessages();
     }
     // Update preview
-    const cIdx = groupConvs.findIndex(g => g.id === (data.groupId || (data.group && data.group.id)));
+    const cIdx = groupConvs.findIndex(g => g.id === gid);
     if (cIdx >= 0 && groupConvs[cIdx].lastMessage && groupConvs[cIdx].lastMessage.id === data.id) {
       groupConvs[cIdx].lastMessage.text = data.text;
+      if (data.e2e) { groupConvs[cIdx].lastMessage.e2e = data.e2e; if (data.e2eKeys) groupConvs[cIdx].lastMessage.e2eKeys = data.e2eKeys; try { await e2eDecryptMessage(groupConvs[cIdx].lastMessage, { kind: 'group', groupId: gid }); } catch (e) {} }
       renderMessagesList();
     }
   });
@@ -16159,6 +16717,14 @@ async function loadDMConversations() {
     }
     dmConversations = merged;
     closedDMs = data.closed || [];
+    // Decrypt encrypted last-message previews so the sidebar shows plaintext.
+    if (__e2eReady) {
+      for (const c of dmConversations) {
+        if (c.lastMessage && e2eEnvelopeOf(c.lastMessage)) {
+          try { await e2eDecryptMessage(c.lastMessage, { peer: c.user && c.user.username }); } catch (e) {}
+        }
+      }
+    }
     renderMessagesList();
     updateDMNavBadge();
   } catch(e) {}
@@ -16248,6 +16814,8 @@ async function openDM(username) {
     const res = await fetch(API_BASE + '/api/dms/' + encodeURIComponent(username));
     const data = await res.json();
     dmMessages = data.messages || [];
+    // Decrypt any end-to-end encrypted messages before rendering.
+    if (__e2eReady) { try { await e2eDecryptAll(dmMessages, { peer: username }); } catch (e) {} }
     renderDMMessages();
     scrollToBottomDM();
   } catch(e) { dmMessages = []; renderDMMessages(); }
@@ -16856,6 +17424,8 @@ async function openGroup(groupId) {
       updateGroupHeader(data.group);
     }
     groupMessages = data.messages || [];
+    // Decrypt any end-to-end encrypted messages before rendering.
+    if (__e2eReady) { try { await e2eDecryptAll(groupMessages, { kind: 'group', groupId }); } catch (e) {} }
     renderGroupMessages();
     scrollToBottomGroup();
   } catch(e) { groupMessages = []; renderGroupMessages(); }
@@ -17070,10 +17640,21 @@ function startEditGroup(msgId, bubble) {
   input.className = 'edit-input'; input.value = msg.text;
   const confirm = document.createElement('button'); confirm.className = 'edit-confirm'; confirm.textContent = 'Save';
   const cancel = document.createElement('button'); cancel.className = 'edit-cancel'; cancel.textContent = 'Cancel';
-  const doSave = () => {
+  const doSave = async () => {
     const newText = normalizeMessageText(input.value);
     if (newText && newText !== msg.text) {
-      socket.emit('group-edit', { id: msgId, groupId: activeGroupId, text: newText }, (res) => { if (res && res.error) toast(res.error, 'error'); });
+      let payload = { id: msgId, groupId: activeGroupId, text: newText };
+      try {
+        if (__e2eReady) {
+          const env = await e2eEncryptGroup(activeGroupId, newText);
+          if (env) {
+            payload.e2e = env;
+            const g = groupChats.find(x => x.id === activeGroupId) || groupConvs.find(x => x.id === activeGroupId);
+            payload.e2eKeys = await e2eBuildGroupWrappedKeys(activeGroupId, (g && g.members) ? g.members : []);
+          }
+        }
+      } catch (e) {}
+      socket.emit('group-edit', payload, (res) => { if (res && res.error) toast(res.error, 'error'); });
     }
     editingGroupMsgId = null; renderGroupMessages();
   };
@@ -17296,12 +17877,24 @@ function sendGroupMessage() {
   doSendGroup(text);
 }
 
-function doSendGroup(text, spoiler) {
+async function doSendGroup(text, spoiler) {
   if (!text && !pendingGroupFile) return;
   if (pendingGroupFile) { sendGroupWithFile(text, spoiler); return; }
-  socket.emit('group-send', { groupId: activeGroupId, text, reply: replyingToGroup }, (res) => {
+  // End-to-end encrypt the group message with the shared group key, and wrap
+  // that key for every member so they can decrypt it.
+  let e2e = null, e2eKeys = null;
+  if (text && __e2eReady) {
+    try {
+      e2e = await e2eEncryptGroup(activeGroupId, text);
+      const g = groupChats.find(x => x.id === activeGroupId) || groupConvs.find(x => x.id === activeGroupId);
+      const members = (g && g.members) ? g.members : [];
+      e2eKeys = await e2eBuildGroupWrappedKeys(activeGroupId, members);
+    } catch (e) { e2e = null; e2eKeys = null; }
+  }
+  socket.emit('group-send', { groupId: activeGroupId, text, e2e, e2eKeys, reply: replyingToGroup }, (res) => {
     if (res && res.error) { toast(res.error, 'error'); if (res.cooldown) startGroupCooldown(res.cooldown); return; }
     if (res && res.message) {
+      res.message.text = text;
       // Dedup: the server also broadcasts group-message to all members
       // (including us), so this message may already be in groupMessages.
       if (!groupMessages.some(m => m.id === res.message.id)) {
@@ -17348,12 +17941,23 @@ async function sendGroupWithFile(text, spoiler) {
     else if (extraFileData.length > 0) allFiles = extraFileData.slice(0, 5);
     else if (fileData) singleFile = fileData;
     setSendButtonUploading('group-send-btn', false);
+    // End-to-end encrypt the caption text + wrap the group key for members.
+    let e2e = null, e2eKeys = null;
+    if (text && __e2eReady) {
+      try {
+        e2e = await e2eEncryptGroup(activeGroupId, text);
+        const g = groupChats.find(x => x.id === activeGroupId) || groupConvs.find(x => x.id === activeGroupId);
+        const members = (g && g.members) ? g.members : [];
+        e2eKeys = await e2eBuildGroupWrappedKeys(activeGroupId, members);
+      } catch (e) { e2e = null; e2eKeys = null; }
+    }
     // Caption + files split into TWO messages server-side: the text first,
     // then the media as its own little follow-up message. Both arrive via
     // the group broadcast too, so dedup by id.
-    socket.emit('group-send', { groupId: activeGroupId, text, file: singleFile, files: allFiles, reply: replyingToGroup, spoiler: !!spoiler }, (res) => {
+    socket.emit('group-send', { groupId: activeGroupId, text, e2e, e2eKeys, file: singleFile, files: allFiles, reply: replyingToGroup, spoiler: !!spoiler }, (res) => {
       if (res && res.error) { toast(res.error, 'error'); if (res.cooldown) startGroupCooldown(res.cooldown); return; }
       if (res && res.message) {
+        res.message.text = text;
         if (!groupMessages.some(m => m.id === res.message.id)) {
           groupMessages.push(res.message);
           appendGroupMessage(res.message);
@@ -17899,10 +18503,17 @@ function startEditDM(msgId, bubble) {
   confirm.className = 'edit-confirm'; confirm.textContent = 'Save';
   const cancel = document.createElement('button');
   cancel.className = 'edit-cancel'; cancel.textContent = 'Cancel';
-  const doSave = () => {
+  const doSave = async () => {
     const newText = normalizeMessageText(input.value);
     if (newText && newText !== msg.text) {
-      socket.emit('dm-edit', { id: msgId, to: activeDMUser, text: newText }, (res) => { if (res && res.error) toast(res.error, 'error'); });
+      let payload = { id: msgId, to: activeDMUser, text: newText };
+      try {
+        if (__e2eReady) {
+          const env = await e2eEncryptDM(activeDMUser, newText);
+          if (env) payload.e2e = env;
+        }
+      } catch (e) {}
+      socket.emit('dm-edit', payload, (res) => { if (res && res.error) toast(res.error, 'error'); });
     }
     editingDMMessageId = null; renderDMMessages();
   };
@@ -18245,16 +18856,23 @@ function sendDM() {
   }
   doSendDM(text);
 }
-function doSendDM(text, spoiler) {
+async function doSendDM(text, spoiler) {
   if (!text && !pendingDMFile) return;
   // If we have a file, upload it first
   if (pendingDMFile) {
     sendDMWithFile(text, spoiler);
     return;
   }
-  socket.emit('dm-send', { to: activeDMUser, text, reply: replyingToDM }, (res) => {
+  // End-to-end encrypt the DM text before it leaves the device.
+  let e2e = null;
+  if (text && __e2eReady) {
+    try { e2e = await e2eEncryptDM(activeDMUser, text); } catch (e) { e2e = null; }
+  }
+  socket.emit('dm-send', { to: activeDMUser, text, e2e, reply: replyingToDM }, (res) => {
     if (res && res.error) { toast(res.error, 'error'); return; }
     if (res && res.message) {
+      // Keep the plaintext locally so our own bubble shows readable text.
+      res.message.text = text;
       dmMessages.push(res.message);
       appendDMMessage(res.message);
       scrollToBottomDM();
@@ -18303,12 +18921,18 @@ async function sendDMWithFile(text, spoiler) {
       singleFile = fileData;
     }
     setSendButtonUploading('dm-send-btn', false);
+    // End-to-end encrypt the caption text before sending.
+    let e2e = null;
+    if (text && __e2eReady) {
+      try { e2e = await e2eEncryptDM(activeDMUser, text); } catch (e) { e2e = null; }
+    }
     // Caption + files split into TWO messages server-side: the text first,
     // then the media as its own little follow-up message. Render both here
     // (the recipient gets them via 'dm-receive').
-    socket.emit('dm-send', { to: activeDMUser, text, file: singleFile, files: allFiles, reply: replyingToDM, spoiler: !!spoiler }, (res) => {
+    socket.emit('dm-send', { to: activeDMUser, text, e2e, file: singleFile, files: allFiles, reply: replyingToDM, spoiler: !!spoiler }, (res) => {
       if (res && res.error) { toast(res.error, 'error'); return; }
       if (res && res.message) {
+        res.message.text = text;
         dmMessages.push(res.message);
         appendDMMessage(res.message);
         if (res.mediaMessage) {
@@ -20307,7 +20931,9 @@ function updateSettingsPanel() {
       const v = currentUser[f];
       return v && String(v).trim().length > 0;
     }).length;
-    const pct = Math.round((filled / fields.length) * 100);
+    // If the user chose to skip completeness, force 100% regardless of fields.
+    const skipped = !!currentUser.completenessSkipped;
+    const pct = skipped ? 100 : Math.round((filled / fields.length) * 100);
     $('settings-profile-complete').textContent = pct + '%';
     const bar = $('settings-profile-complete-bar');
     if (bar) {
@@ -20315,12 +20941,25 @@ function updateSettingsPanel() {
       // Green "complete" state at 100% for satisfying feedback.
       bar.classList.toggle('full', pct >= 100);
     }
+    // Hint + skip/undo button visibility.
+    const hint = $('settings-profile-complete-hint');
+    if (hint) {
+      hint.textContent = skipped
+        ? 'Completeness skipped — your profile is marked complete.'
+        : 'Add a photo, bio and details to complete your profile';
+    }
+    const skipBtn = $('completeness-skip-btn');
+    const undoBtn = $('completeness-undo-skip-btn');
+    if (skipBtn) skipBtn.style.display = skipped ? 'none' : '';
+    if (undoBtn) undoBtn.style.display = skipped ? '' : 'none';
   }
   // New settings toggles
   if ($('notif-toggle')) $('notif-toggle').checked = currentUser.notificationsEnabled !== false;
   if ($('sound-toggle')) $('sound-toggle').checked = currentUser.messageSounds !== false;
   if ($('compact-toggle')) $('compact-toggle').checked = !!currentUser.compactMode;
   if ($('group-add-toggle')) $('group-add-toggle').checked = currentUser.allowGroupAdd !== false;
+  // Theme (light/dark) — reflect the saved preference in the Appearance toggle.
+  if ($('lightmode-toggle')) $('lightmode-toggle').checked = (currentUser.theme === 'light');
   // Cooldown
   const changedAt = currentUser.usernameChangedAt || 0;
   if (changedAt) {
@@ -20452,6 +21091,21 @@ $('password-save').addEventListener('click', async () => {
 });
 
 // ---------- Preferences: Notifications, Sounds, Compact Mode, Group Add ----------
+// Apply the chosen color theme to the document root. 'light' activates the
+// [data-theme="light"] variable overrides; 'dark' (default) removes the attr.
+function applyTheme(theme) {
+  const t = (theme === 'light') ? 'light' : 'dark';
+  if (t === 'light') document.documentElement.setAttribute('data-theme', 'light');
+  else document.documentElement.removeAttribute('data-theme');
+  try { localStorage.setItem('hellobye_theme', t); } catch(e) {}
+  // Keep the Appearance toggle in sync wherever it is rendered.
+  const lt = $('lightmode-toggle');
+  if (lt) lt.checked = (t === 'light');
+  // Re-apply custom backgrounds so their theme-aware readability veils
+  // (dark in dark mode, light in light mode) update immediately on toggle.
+  try { if (typeof applyBgSettings === 'function') applyBgSettings(); } catch(e) {}
+  try { if (typeof applyMembersBg === 'function') applyMembersBg(); } catch(e) {}
+}
 function savePreferences(feedback) {
   const payload = {
     notificationsEnabled: $('notif-toggle').checked,
@@ -20495,6 +21149,30 @@ if ($('sound-toggle')) $('sound-toggle').addEventListener('change', (e) => {
 if ($('compact-toggle')) $('compact-toggle').addEventListener('change', (e) => {
   savePreferences(e.target.checked ? 'Compact message mode is now enabled.' : 'Compact message mode is now disabled.');
 });
+if ($('lightmode-toggle')) $('lightmode-toggle').addEventListener('change', (e) => {
+  const theme = e.target.checked ? 'light' : 'dark';
+  currentUser.theme = theme;
+  applyTheme(theme);
+  savePreferences(theme === 'light' ? 'Light mode is now on.' : 'Dark mode is now on.');
+});
+
+// ---------- Profile Completeness: skip / undo ----------
+function setCompletenessSkipped(skipped) {
+  currentUser.completenessSkipped = !!skipped;
+  fetch(API_BASE + '/api/settings/preferences', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ completenessSkipped: !!skipped })
+  }).then(r => r.json()).then(data => {
+    if (data && data.success) {
+      updateSettingsPanel();
+      toast(skipped ? 'Profile completeness skipped — set to 100%.' : 'Profile completeness restored.', 'success');
+    } else {
+      toast('Unable to save your changes. Please try again.', 'error');
+    }
+  }).catch(() => toast('Unable to save your changes. Please try again.', 'error'));
+}
+if ($('completeness-skip-btn')) $('completeness-skip-btn').addEventListener('click', () => setCompletenessSkipped(true));
+if ($('completeness-undo-skip-btn')) $('completeness-undo-skip-btn').addEventListener('click', () => setCompletenessSkipped(false));
 if ($('group-add-toggle')) $('group-add-toggle').addEventListener('change', (e) => {
   savePreferences(e.target.checked ? 'Others can now add you to group chats.' : 'Others can no longer add you to group chats.');
 });
@@ -21525,6 +22203,18 @@ function syncProfileColorToServer(color) {
 }
 
 // ---------- Background Application (uses an <img> element so GIFs animate) ----------
+// Returns true when the light theme is currently active. Used so custom
+// website backgrounds get a light readability veil (instead of a dark one)
+// and the chat bars dim toward white rather than black in light mode.
+function themeIsLight() {
+  return document.documentElement.getAttribute('data-theme') === 'light';
+}
+// Returns the base RGB triple used for the semi-transparent chat-bar /
+// messages veil over a custom website background. Dark theme dims toward
+// near-black; light theme dims toward white so dark text stays readable.
+function bgVeilRgb() {
+  return themeIsLight() ? '255, 255, 255' : '16, 17, 19';
+}
 function ensureBgLayer() {
   let layer = document.getElementById('custom-bg-layer');
   if (!layer) {
@@ -21595,9 +22285,10 @@ function applyBgSettings(override) {
       const inputArea = chatMain.querySelector('.chat-input-area');
       const msgContainer = chatMain.querySelector('.messages-container');
       const dim = (s.opacity || 100) / 100 * 0.85;
-      if (header) header.style.background = 'rgba(16, 17, 19, ' + dim + ')';
-      if (inputArea) inputArea.style.background = 'rgba(16, 17, 19, ' + dim + ')';
-      if (msgContainer) msgContainer.style.background = 'transparent';
+      const veil = bgVeilRgb();
+      if (header) header.style.background = 'rgba(' + veil + ', ' + dim + ')';
+      if (inputArea) inputArea.style.background = 'rgba(' + veil + ', ' + dim + ')';
+      if (msgContainer) msgContainer.style.background = 'rgba(' + veil + ', 0.30)';
       Array.from(chatMain.children).forEach(child => {
         if (child.id !== 'custom-bg-layer' && child.id !== 'sidebar-toggle-btn') { child.style.position = 'relative'; child.style.zIndex = '2'; }
       });
@@ -21692,9 +22383,10 @@ function applyBgSettings(override) {
     const inputArea = chatMain.querySelector('.chat-input-area');
     const msgContainer = chatMain.querySelector('.messages-container');
     const dim = (s.opacity || 100) / 100 * 0.85;
-    if (header) header.style.background = 'rgba(16, 17, 19, ' + dim + ')';
-    if (inputArea) inputArea.style.background = 'rgba(16, 17, 19, ' + dim + ')';
-    if (msgContainer) msgContainer.style.background = 'transparent';
+    const veil = bgVeilRgb();
+    if (header) header.style.background = 'rgba(' + veil + ', ' + dim + ')';
+    if (inputArea) inputArea.style.background = 'rgba(' + veil + ', ' + dim + ')';
+    if (msgContainer) msgContainer.style.background = 'rgba(' + veil + ', 0.30)';
     // Ensure content sits above the bg layer
     Array.from(chatMain.children).forEach(child => {
       if (child.id !== 'custom-bg-layer' && child.id !== 'sidebar-toggle-btn') { child.style.position = 'relative'; child.style.zIndex = '2'; }
