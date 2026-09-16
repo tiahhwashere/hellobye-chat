@@ -26,6 +26,14 @@ exit the UI.
 - [x] H. Frontend: socket listeners for real-time encryption events
 - [x] I. Frontend: show button only when friends (updateDMHeader)
 - [x] J. Verify locally (server boots, endpoints respond, no data loss)
-- [ ] K. Commit & push to GitHub
-- [ ] L. Trigger Render deploy & verify live site
-- [ ] M. Confirm no data deleted/removed
+- [x] K. Commit & push to GitHub
+- [x] L. Trigger Render deploy & verify live site (deploy dep-daldel15efls73bb3du0 = live)
+- [x] M. Confirm no data deleted/removed (live restored 5 users/4 msgs/5 DMs/5 friends/1 group from backup)
+
+## Round 7b — Fix: server error in encryption chat (post-deploy)
+- [x] N. Root cause: remote DB restore replaced `db` with a backup lacking `encryptionChats` → `db.encryptionChats[id]` threw "Cannot read properties of undefined (reading 'hi::lore')"
+- [x] O. Fix: defensive guard in `getEncChat` + re-ensure `encryptionChats`/`groupChats` in remote-restore block
+- [x] P. Fix: generic error handler no longer mislabels all errors as "Server error during upload."
+- [x] Q. Verify: full encryption flow passes with a db lacking `encryptionChats` (status/invite/join/verify/return all 200)
+- [ ] R. Commit & push fix
+- [ ] S. Verify live deploy + no data loss

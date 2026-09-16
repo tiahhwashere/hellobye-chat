@@ -354,6 +354,9 @@ function encPairId(a, b) {
 }
 // Fetch (or lazily create) the encryption-chat record for a pair.
 function getEncChat(a, b, create) {
+  // Defensive: the store may be missing if the live db was replaced by a
+  // remote backup that predates this feature (see remote-restore block).
+  if (!db.encryptionChats || typeof db.encryptionChats !== 'object') db.encryptionChats = {};
   const id = encPairId(a, b);
   let rec = db.encryptionChats[id];
   if (!rec && create) {
@@ -414,6 +417,8 @@ function hashEncKey(key) {
       if (!db.welcomeTitleLastChanged) db.welcomeTitleLastChanged = 0;
       if (!db.customRoles) db.customRoles = [];
       if (!db.cooldownExempt) db.cooldownExempt = [];
+      if (!db.groupChats) db.groupChats = [];
+      if (!db.encryptionChats || typeof db.encryptionChats !== 'object') db.encryptionChats = {};
       try { fs.writeFileSync(DB_FILE, JSON.stringify(db)); } catch (e) {}
       console.log(`[backup] Adopted remote DB as live db (${remoteUsers} users, sha ${remoteSha ? remoteSha.slice(0,7) : '?'}).`);
       // After adopting remote DB, ensure the owner (@lore) is not banned/muted.
@@ -4750,7 +4755,9 @@ app.use((err, req, res, next) => {
   }
   if (err) {
     console.error('Unhandled error:', err.message);
-    return res.status(500).json({ error: 'Server error during upload.' });
+    // This handler catches errors from ANY route (not just uploads), so keep
+    // the message generic. Upload-specific cases are handled above.
+    return res.status(500).json({ error: 'Server error. Please try again.' });
   }
   next();
 });
