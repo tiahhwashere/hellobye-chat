@@ -1974,7 +1974,9 @@ app.get('/api/dm-conversations', authMiddleware, (req, res) => {
     if (!msgs.length) continue;
     if (closedDMs.includes(other)) continue; // skip closed conversations
     const last = msgs[msgs.length - 1];
-    const unread = msgs.filter(m => m.username !== req.user.username && !m.read).length;
+    // Split media follow-ups (caption+file sent together) don't count as a
+    // separate unread message — the caption already did.
+    const unread = msgs.filter(m => m.username !== req.user.username && !m.read && !m.followup).length;
     conversations.push({ user: publicUser(db.users[other]), lastMessage: last, unread });
   }
   res.json({ conversations, closed: closedDMs });
@@ -3695,25 +3697,60 @@ io.on('connection', (socket) => {
         }
       }
       lastMessageTime[username] = Date.now();
-      const msg = {
-        id: genId(),
+      // ---- Attachment split (Round 34) ----
+      // When a message has BOTH a caption and attachment(s), send them as TWO
+      // separate messages: the text first, then the media as its own compact
+      // "follow-up" message (media-only bubble). The followup flag lets every
+      // client render it tightly under the sender's caption without a repeat
+      // avatar/header, and skip the duplicate "new message" sound.
+      const textStr = String(text || '').slice(0, 5000);
+      const hasFiles = !!(file || (Array.isArray(files) && files.length));
+      const base = {
         username,
-        text: String(text || '').slice(0, 5000),
-        file: file || null,
-        files: Array.isArray(files) ? files.slice(0, 5) : null,
-        reply: reply || null,
+        displayName: user.displayName,
         timestamp: nowISO(),
         edited: false,
         editedAt: null,
         deleted: false,
         deletedAt: null,
-        displayName: user.displayName,
-        spoiler: !!spoiler,
       };
-      db.messages.push(msg);
+      let msgs;
+      if (textStr && hasFiles) {
+        msgs = [
+          Object.assign({}, base, {
+            id: genId(),
+            text: textStr,
+            file: null,
+            files: null,
+            reply: reply || null,
+            spoiler: false,
+          }),
+          Object.assign({}, base, {
+            id: genId(),
+            text: '',
+            file: file || null,
+            files: Array.isArray(files) ? files.slice(0, 5) : null,
+            reply: null,
+            spoiler: !!spoiler,
+            followup: true,
+          }),
+        ];
+      } else {
+        msgs = [Object.assign({}, base, {
+          id: genId(),
+          text: textStr,
+          file: file || null,
+          files: Array.isArray(files) ? files.slice(0, 5) : null,
+          reply: reply || null,
+          spoiler: !!spoiler,
+        })];
+      }
+      msgs.forEach(m => db.messages.push(m));
       if (db.messages.length > 1000) db.messages = db.messages.slice(-1000);
       saveDB();
-      io.emit('new-message', msg);
+      const msg = msgs[0];
+      const mediaMsg = msgs.length > 1 ? msgs[1] : null;
+      msgs.forEach(m => io.emit('new-message', m));
       // ---- Reply highlight notification ----
       // When a message is a reply, notify the original message's author so
       // their client can highlight the message that was replied to.
@@ -3743,7 +3780,7 @@ io.on('connection', (socket) => {
           });
         }
       });
-      if (typeof ack === 'function') ack({ success: true, id: msg.id });
+      if (typeof ack === 'function') ack({ success: true, id: msg.id, message: msg, mediaMessage: mediaMsg });
     } catch (e) {
       console.error('send-message error', e);
       if (typeof ack === 'function') ack({ error: 'Failed to send message' });
@@ -3810,31 +3847,66 @@ io.on('connection', (socket) => {
         return;
       }
       // DM cooldown removed entirely (Round 30) — no rate limit on DMs.
-      const msg = {
-        id: genId(),
+      // ---- Attachment split (Round 34) ----
+      // Caption + attachment(s) become TWO messages: the text first, then the
+      // media as its own compact follow-up message (its own little bubble
+      // beside the user). The followup flag tells clients to render it tightly
+      // stacked under the sender's caption and to skip the duplicate sound.
+      const textStr = String(text || '').slice(0, 5000);
+      const hasFiles = !!(file || (Array.isArray(files) && files.length));
+      const base = {
         from: username,
         username,
         to: target,
-        text: String(text || '').slice(0, 5000),
-        file: file || null,
-        files: Array.isArray(files) ? files.slice(0, 5) : null,
-        reply: reply || null,
+        displayName: user.displayName,
         timestamp: nowISO(),
         edited: false,
         editedAt: null,
         deleted: false,
         deletedAt: null,
-        displayName: user.displayName,
         read: false,
-        spoiler: !!spoiler,
       };
+      let msgs;
+      if (textStr && hasFiles) {
+        msgs = [
+          Object.assign({}, base, {
+            id: genId(),
+            text: textStr,
+            file: null,
+            files: null,
+            reply: reply || null,
+            spoiler: false,
+          }),
+          Object.assign({}, base, {
+            id: genId(),
+            text: '',
+            file: file || null,
+            files: Array.isArray(files) ? files.slice(0, 5) : null,
+            reply: null,
+            spoiler: !!spoiler,
+            followup: true,
+          }),
+        ];
+      } else {
+        msgs = [Object.assign({}, base, {
+          id: genId(),
+          text: textStr,
+          file: file || null,
+          files: Array.isArray(files) ? files.slice(0, 5) : null,
+          reply: reply || null,
+          spoiler: !!spoiler,
+        })];
+      }
+      const msg = msgs[0];
       // Store in both users' DM maps
       const myDMs = db.dms[username] || (db.dms[username] = {});
       if (!myDMs[target]) myDMs[target] = [];
-      myDMs[target].push(msg);
       const theirDMs = db.dms[target] || (db.dms[target] = {});
       if (!theirDMs[username]) theirDMs[username] = [];
-      theirDMs[username].push(msg);
+      msgs.forEach(m => {
+        myDMs[target].push(m);
+        theirDMs[username].push(m);
+      });
       if (myDMs[target].length > 1000) myDMs[target] = myDMs[target].slice(-1000);
       if (theirDMs[username].length > 1000) theirDMs[username] = theirDMs[username].slice(-1000);
       // Auto-reopen: a new incoming DM should ALWAYS surface the conversation
@@ -3851,8 +3923,8 @@ io.on('connection', (socket) => {
         }
       } catch (e) {}
       saveDB();
-      // Emit to recipient
-      io.to(`user:${target}`).emit('dm-receive', { message: msg });
+      // Emit to recipient (both messages if the split happened)
+      msgs.forEach(m => io.to(`user:${target}`).emit('dm-receive', { message: m }));
       // ---- DM Reply highlight notification ----
       if (msg.reply && msg.reply.id && msg.reply.username && msg.reply.username === target) {
         io.to('user:' + target).emit('dm-replied-to', {
@@ -3874,7 +3946,7 @@ io.on('connection', (socket) => {
           text: msg.text.slice(0, 200),
         });
       }
-      if (typeof ack === 'function') ack({ success: true, message: msg });
+      if (typeof ack === 'function') ack({ success: true, message: msg, mediaMessage: msgs.length > 1 ? msgs[1] : null });
     } catch (e) {
       console.error('dm-send error', e);
       if (typeof ack === 'function') ack({ error: 'Failed to send DM' });
@@ -3960,28 +4032,62 @@ io.on('connection', (socket) => {
         lastGroupTime[gkey] = Date.now();
       }
       if (!Array.isArray(g.messages)) g.messages = [];
-      const msg = {
-        id: genId(),
+      // ---- Attachment split (Round 34) ----
+      // Caption + attachment(s) become TWO messages: the text first, then the
+      // media as its own compact follow-up message. The followup flag tells
+      // clients to render it tightly stacked under the sender's caption and
+      // skip the duplicate sound.
+      const textStr = String(text || '').slice(0, 5000);
+      const hasFiles = !!(file || (Array.isArray(files) && files.length));
+      const base = {
         from: username,
         username,
-        text: String(text || '').slice(0, 5000),
-        file: file || null,
-        files: Array.isArray(files) ? files.slice(0, 5) : null,
-        reply: reply || null,
+        displayName: user.displayName,
         timestamp: nowISO(),
         edited: false,
         editedAt: null,
         deleted: false,
         deletedAt: null,
-        displayName: user.displayName,
-        spoiler: !!spoiler,
       };
-      g.messages.push(msg);
+      let msgs;
+      if (textStr && hasFiles) {
+        msgs = [
+          Object.assign({}, base, {
+            id: genId(),
+            text: textStr,
+            file: null,
+            files: null,
+            reply: reply || null,
+            spoiler: false,
+          }),
+          Object.assign({}, base, {
+            id: genId(),
+            text: '',
+            file: file || null,
+            files: Array.isArray(files) ? files.slice(0, 5) : null,
+            reply: null,
+            spoiler: !!spoiler,
+            followup: true,
+          }),
+        ];
+      } else {
+        msgs = [Object.assign({}, base, {
+          id: genId(),
+          text: textStr,
+          file: file || null,
+          files: Array.isArray(files) ? files.slice(0, 5) : null,
+          reply: reply || null,
+          spoiler: !!spoiler,
+        })];
+      }
+      const msg = msgs[0];
+      msgs.forEach(m => g.messages.push(m));
       if (g.messages.length > 2000) g.messages = g.messages.slice(-2000);
       saveDB();
       // Emit to every member of the group (including the sender, so their own
-      // message appears instantly without a refetch).
-      for (const m of (g.members || [])) io.to('user:' + m).emit('group-message', { groupId: g.id, message: msg });
+      // message appears instantly without a refetch). Both messages when split.
+      const emitToMembers = (m) => { for (const mem of (g.members || [])) io.to('user:' + mem).emit('group-message', { groupId: g.id, message: m }); };
+      msgs.forEach(emitToMembers);
       // ---- Group reply highlight notification ----
       if (msg.reply && msg.reply.id && msg.reply.username && msg.reply.username !== username) {
         const replyTarget = String(msg.reply.username).toLowerCase();
@@ -4013,7 +4119,7 @@ io.on('connection', (socket) => {
           });
         }
       });
-      if (typeof ack === 'function') ack({ success: true, message: msg });
+      if (typeof ack === 'function') ack({ success: true, message: msg, mediaMessage: msgs.length > 1 ? msgs[1] : null });
     } catch (e) {
       console.error('group-send error', e);
       if (typeof ack === 'function') ack({ error: 'Failed to send group message' });
@@ -4073,6 +4179,7 @@ io.on('connection', (socket) => {
   // Toggles the current user's reaction (emoji) on a public chat message.
   // Reactions are stored on the message as msg.reactions = { emoji: [usernames] }.
   // The updated reactions map is broadcast to ALL connected clients.
+  // A message can have at most 5 DISTINCT reaction emojis.
   socket.on('react-message', ({ id, emoji }, ack) => {
     try {
       const msg = db.messages.find(m => m.id === id);
@@ -4086,6 +4193,13 @@ io.on('connection', (socket) => {
         msg.reactions[e].splice(idx, 1);
         if (msg.reactions[e].length === 0) delete msg.reactions[e];
       } else {
+        // Limit: max 5 distinct emojis per message. Users can still remove
+        // existing reactions or add themselves to an existing emoji.
+        const distinct = Object.keys(msg.reactions).filter(k => msg.reactions[k] && msg.reactions[k].length > 0);
+        if (distinct.length >= 5 && !msg.reactions[e].length) {
+          if (typeof ack === 'function') ack({ error: 'This message already has 5 different reactions', limit: true, reactions: msg.reactions });
+          return;
+        }
         msg.reactions[e].push(username);
       }
       saveDB();
@@ -4118,6 +4232,12 @@ io.on('connection', (socket) => {
         msg.reactions[e].splice(idx, 1);
         if (msg.reactions[e].length === 0) delete msg.reactions[e];
       } else {
+        // Limit: max 5 distinct emojis per message.
+        const distinct = Object.keys(msg.reactions).filter(k => msg.reactions[k] && msg.reactions[k].length > 0);
+        if (distinct.length >= 5 && !msg.reactions[e].length) {
+          if (typeof ack === 'function') ack({ error: 'This message already has 5 different reactions', limit: true, reactions: msg.reactions });
+          return;
+        }
         msg.reactions[e].push(username);
       }
       saveDB();
@@ -4149,6 +4269,12 @@ io.on('connection', (socket) => {
         msg.reactions[e].splice(idx, 1);
         if (msg.reactions[e].length === 0) delete msg.reactions[e];
       } else {
+        // Limit: max 5 distinct emojis per message.
+        const distinct = Object.keys(msg.reactions).filter(k => msg.reactions[k] && msg.reactions[k].length > 0);
+        if (distinct.length >= 5 && !msg.reactions[e].length) {
+          if (typeof ack === 'function') ack({ error: 'This message already has 5 different reactions', limit: true, reactions: msg.reactions });
+          return;
+        }
         msg.reactions[e].push(username);
       }
       saveDB();

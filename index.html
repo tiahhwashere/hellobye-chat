@@ -970,6 +970,21 @@ body.no-anim .dm-list-item,
 body.no-anim .friend-item { animation: none !important; }
 .message-group.own { flex-direction: row-reverse; margin-left: auto; }
 
+/* ---- Attachment split follow-up (Round 34) ----
+   When a caption + attachment are sent together they split into TWO
+   messages: the text bubble, then the media as its own little message
+   beside the user. The follow-up stacks tightly under the sender's
+   caption — no repeated avatar / sender header — so it reads as one
+   compact unit while still being its own independent message (own
+   reactions, actions, timestamp). */
+.message-group.followup { padding-top: 0; }
+.message-group.followup .message-avatar { visibility: hidden; }
+.message-group.followup .message-sender { display: none; }
+.message-group.followup .message-bubble-wrap { margin-top: -2px; }
+.message-group.followup .message-bubble.media-only { margin-top: 0; }
+.message-group.followup .message-meta { opacity: 0.75; }
+#chat-app.compact .message-group.followup .message-avatar { visibility: hidden; width: 26px; }
+
 .message-avatar {
   width: 40px; height: 40px; border-radius: 50%;
   background: var(--bg-lighter); color: var(--text-secondary);
@@ -1006,7 +1021,7 @@ body.no-anim .friend-item { animation: none !important; }
      reading width that wraps long content instead of stretching endlessly.
      min-width:0 lets flexbox shrink it properly; overflow-wrap handles
      extremely long unbroken strings (e.g. URLs pasted without spaces). */
-  max-width: min(680px, 100%);
+  max-width: min(520px, 100%);
   min-width: 0;
   overflow-wrap: anywhere;
   border: 1px solid var(--border);
@@ -1024,6 +1039,22 @@ body.no-anim .friend-item { animation: none !important; }
    sits cleanly on the chat surface with a subtle border instead. */
 .message-bubble.media-only { background: transparent !important; padding: 2px 0; border-radius: 12px; border-color: transparent !important; }
 .message-group.own .message-bubble.media-only { background: transparent !important; color: var(--text-primary); }
+/* Link-only messages (Round 34): a bare link with no other text renders as
+   its own little embed card beside the user — no big text bubble around it.
+   The bubble padding collapses so just the preview card shows. With
+   embedOnly the inline anchor is skipped, so the text span contains ONLY
+   the embed card itself. */
+.message-bubble.link-only-bubble {
+  background: transparent !important;
+  border-color: transparent !important;
+  padding: 2px 0;
+}
+.message-bubble.link-only-bubble .message-actions { margin-top: 2px; }
+.message-bubble.link-only-bubble .link-embed { margin-top: 0; }
+.message-bubble.link-only-bubble .link-embed-fallback { padding: 10px 14px; }
+/* If the preview fails, give the fallback card a visible surface so the
+   message isn't just floating text. */
+.message-bubble.link-only-bubble .link-embed-fallback { background: var(--bg-darker); border: 1px solid var(--border); border-radius: 12px; margin-top: 2px; }
 .message-bubble.deleted {
   background: transparent; border: 1px dashed var(--border-light);
   color: var(--text-muted); font-style: italic; font-size: 13px;
@@ -1031,7 +1062,37 @@ body.no-anim .friend-item { animation: none !important; }
 }
 /* DM bubbles now match the normal public-chat message size (no oversized
    max-width) so DM messages look the same as regular chat messages. */
-.message-bubble.dm-bubble { max-width: min(680px, 100%); min-width: 0; overflow-wrap: anywhere; }
+.message-bubble.dm-bubble { max-width: min(520px, 100%); min-width: 0; overflow-wrap: anywhere; }
+
+/* ── Long-text clamp ── Walls of text (e.g. copy-pasted pages) get clamped
+   to a max height with a smooth gradient fade + "Show more" toggle, so a
+   single message can never take over the whole screen for everyone. */
+.message-text-block {
+  display: block;
+  position: relative;
+  max-width: 100%;
+}
+.message-text-block.clamped { max-height: 300px; overflow: hidden; }
+.message-text-block.clamped::after {
+  content: '';
+  position: absolute; left: 0; right: 0; bottom: 0;
+  height: 72px;
+  background: linear-gradient(to bottom, transparent, var(--bg-medium));
+  pointer-events: none;
+}
+.message-group.own .message-text-block.clamped::after {
+  background: linear-gradient(to bottom, transparent, var(--accent-dim));
+}
+.msg-more-text-btn {
+  display: inline-flex; align-items: center; gap: 4px;
+  margin-top: 6px; padding: 4px 10px;
+  background: var(--bg-light); border: 1px solid var(--border-light);
+  color: var(--accent); font-size: 12px; font-weight: 600;
+  border-radius: 100px; cursor: pointer; user-select: none;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+}
+.msg-more-text-btn:hover { background: var(--bg-lighter); border-color: var(--accent); }
+.msg-more-text-btn:active { transform: scale(0.95); }
 
 .message-text { display: inline; white-space: pre-line; word-break: break-word; overflow-wrap: anywhere; max-width: 100%; }
 .inline-link { color: inherit; text-decoration: underline; text-underline-offset: 2px; text-decoration-color: rgba(255,255,255,0.25); }
@@ -1496,9 +1557,16 @@ body.no-anim .friend-item { animation: none !important; }
   border-color: var(--border-light); background: var(--bg-dark);
   transform: translateY(-1px); box-shadow: 0 4px 14px rgba(0,0,0,0.28);
 }
+.link-embed { animation: mediaFadeIn 0.24s ease both; }
 .message-group.own .link-embed { background: rgba(0,0,0,0.14); border-color: rgba(255,255,255,0.08); }
 .message-group.own .link-embed:hover { background: rgba(0,0,0,0.22); border-color: rgba(255,255,255,0.14); }
-.link-embed-loading { padding: 14px 18px; font-size: 14px; color: var(--text-muted); }
+.link-embed-loading { padding: 14px 18px; font-size: 14px; color: var(--text-muted); display: flex; align-items: center; gap: 9px; }
+.link-embed-loading::before {
+  content: ''; width: 13px; height: 13px; border-radius: 50%; flex-shrink: 0;
+  border: 2px solid var(--border-light); border-top-color: var(--accent);
+  animation: embedSpin 0.7s linear infinite;
+}
+@keyframes embedSpin { to { transform: rotate(360deg); } }
 .link-embed-fallback { padding: 14px 18px; font-size: 14px; }
 .link-embed-fallback a { color: var(--accent); word-break: break-all; }
 .link-embed-card {
@@ -1550,7 +1618,13 @@ body.no-anim .friend-item { animation: none !important; }
 }
 .link-embed-readtime::before { content: ''; width: 9px; height: 9px; border-radius: 50%; background: var(--text-muted); opacity: 0.5; flex-shrink: 0; }
 
-/* Message file attachments — modern, clean card style (not cartoony) */
+/* ────────────────────────────────────────────────────────────
+   MEDIA EMBEDS — clean, consistent layout
+   All media (images / GIFs / videos / file cards / link embeds)
+   share one design language: 12px radius, 1px hairline border,
+   one soft shadow, gentle hover lift, and a fade-in on load.
+   Images keep their natural aspect ratio (no cropping).
+   ──────────────────────────────────────────────────────────── */
 .message-file { margin-top: 8px; }
 .message-bubble.media-only .message-file:first-child { margin-top: 0; }
 
@@ -1579,36 +1653,39 @@ body.no-anim .friend-item { animation: none !important; }
 @keyframes msgMoreFade { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
 .msg-more-files .message-file { margin-top: 0; }
 
+/* Images — natural aspect ratio, never cropped, smooth fade-in on load */
 .message-file img {
-  max-width: 380px; max-height: 380px; border-radius: 14px; display: block; cursor: pointer;
-  object-fit: cover; image-rendering: -webkit-optimize-contrast;
+  max-width: 380px; max-height: 380px; border-radius: 12px; display: block; cursor: pointer;
+  object-fit: contain; image-rendering: -webkit-optimize-contrast;
   border: 1px solid rgba(255,255,255,0.08);
-  transition: border-color 0.22s ease, transform 0.22s ease, box-shadow 0.22s ease;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.28), 0 0 0 1px rgba(0,0,0,0.04);
+  transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.24);
+  opacity: 0; animation: mediaFadeIn 0.3s ease forwards;
 }
+@keyframes mediaFadeIn { from { opacity: 0; transform: scale(0.985); } to { opacity: 1; transform: scale(1); } }
 /* Base responsive image container — ensures images never overflow the bubble */
-.message-image { max-width: 100%; border-radius: 14px; overflow: hidden; }
-.message-image img { max-width: 100%; max-height: 380px; object-fit: cover; border-radius: 14px; display: block; }
-.dm-message-image { max-width: 100%; border-radius: 14px; overflow: hidden; }
-.dm-message-image img { max-width: 100%; max-height: 380px; object-fit: cover; border-radius: 14px; display: block; }
+.message-image { max-width: 100%; border-radius: 12px; overflow: hidden; }
+.message-image img { max-width: 100%; max-height: 380px; object-fit: contain; border-radius: 12px; display: block; }
+.dm-message-image { max-width: 100%; border-radius: 12px; overflow: hidden; }
+.dm-message-image img { max-width: 100%; max-height: 380px; object-fit: contain; border-radius: 12px; display: block; }
 .message-file img:hover {
-  border-color: rgba(255,255,255,0.16); transform: scale(1.018);
-  box-shadow: 0 6px 20px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.06);
+  border-color: rgba(255,255,255,0.16); transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.36);
 }
 /* 4K/HD enhancement: images are upscaled + sharpened on the server; this
    subtle display filter adds a final crispness/contrast pop when rendered. */
 .message-file img.hd-enhanced { filter: contrast(1.04) saturate(1.06) sharpen(1); }
 .message-file video {
-  max-width: 440px; max-height: 380px; border-radius: 14px;
+  max-width: 440px; max-height: 380px; border-radius: 12px;
   border: 1px solid rgba(255,255,255,0.08);
-  box-shadow: 0 3px 14px rgba(0,0,0,0.38); background: #000;
-  transition: border-color 0.22s ease, transform 0.22s ease, box-shadow 0.22s ease;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.24); background: #000;
+  transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
   outline: none;
   object-fit: contain;
 }
 .message-file video:hover {
-  border-color: rgba(255,255,255,0.18); transform: scale(1.012);
-  box-shadow: 0 8px 24px rgba(0,0,0,0.48), 0 0 0 1px rgba(255,255,255,0.06);
+  border-color: rgba(255,255,255,0.18); transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.36);
 }
 /* HD enhancement filter for inline videos (server can't transcode video, so
    we apply a light sharpen/contrast/saturate pass at display time). */
@@ -1616,20 +1693,20 @@ body.no-anim .friend-item { animation: none !important; }
 
 /* Rich media player wrapper — frames videos & animated GIFs with metadata */
 .media-player-wrap {
-  position: relative; display: inline-block; max-width: 460px;
-  border-radius: 14px; overflow: hidden;
+  position: relative; display: inline-block; max-width: 440px;
+  border-radius: 12px; overflow: hidden;
   border: 1px solid rgba(255,255,255,0.08);
-  box-shadow: 0 3px 16px rgba(0,0,0,0.4), 0 0 0 1px rgba(0,0,0,0.04);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.24);
   background: #000;
-  transition: box-shadow 0.22s ease, transform 0.22s ease;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
 }
 .media-player-wrap:hover {
-  box-shadow: 0 8px 28px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.06);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.36);
   transform: translateY(-1px);
 }
 .media-player-wrap video {
-  display: block; max-width: 460px; max-height: 400px;
-  width: 100%; border-radius: 14px; object-fit: contain; background: #000;
+  display: block; max-width: 440px; max-height: 400px;
+  width: 100%; border-radius: 12px; object-fit: contain; background: #000;
   outline: none;
 }
 .media-player-wrap.is-gif video { cursor: pointer; }
@@ -1658,14 +1735,14 @@ body.no-anim .friend-item { animation: none !important; }
   padding: 13px 16px; background: rgba(255,255,255,0.04);
   border: 1px solid rgba(255,255,255,0.08); border-radius: 12px;
   text-decoration: none; color: var(--text-primary);
-  transition: border-color 0.22s ease, background 0.22s ease, transform 0.18s ease, box-shadow 0.22s ease;
-  max-width: 480px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.22);
+  transition: border-color 0.2s ease, background 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+  max-width: 420px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.22);
 }
 .message-group.own .message-file-attachment { background: rgba(0,0,0,0.18); border-color: rgba(255,255,255,0.10); }
 .message-file-attachment:hover {
   border-color: rgba(255,255,255,0.16); background: rgba(255,255,255,0.07);
-  transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0,0,0,0.34);
+  transform: translateY(-1px); box-shadow: 0 6px 16px rgba(0,0,0,0.32);
 }
 .message-group.own .message-file-attachment:hover { background: rgba(0,0,0,0.25); }
 .file-icon {
@@ -1792,18 +1869,27 @@ body.no-anim .friend-item { animation: none !important; }
 /* ============================================
    EMOJI REACTION SYSTEM
    ============================================ */
+/* Reactions live OUTSIDE the bubble (directly under the text bubble, in the
+   message-bubble-wrap column). Keeping them out of the bubble guarantees the
+   bubble's own size NEVER grows when reactions are added — the badges simply
+   appear beneath it. */
 .reactions-row {
-  display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px;
+  display: flex; flex-wrap: wrap; gap: 4px;
+  margin-top: 3px;             /* small gap under the bubble */
+  max-width: min(560px, 100%); /* aligns with the bubble reading width */
+  animation: reactionsIn 0.2s cubic-bezier(0.16,1,0.3,1);
 }
+@keyframes reactionsIn { from { opacity: 0; transform: translateY(-2px); } to { opacity: 1; transform: translateY(0); } }
 .reaction-badge {
   display: inline-flex; align-items: center; gap: 5px;
   padding: 4px 9px; font-size: 13px; line-height: 1.4;
-  background: var(--bg-medium); border: 1px solid var(--border);
+  background: var(--bg-light); border: 1px solid var(--border-light);
   border-radius: 14px; cursor: pointer; user-select: none;
   transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
   position: relative;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.12);
 }
-.reaction-badge:hover { background: var(--bg-light); border-color: var(--border-light); }
+.reaction-badge:hover { background: var(--bg-lighter); border-color: var(--border-light); }
 .reaction-badge:active { transform: scale(0.92); }
 .reaction-badge.reacted {
   background: var(--accent-dim); border-color: var(--accent);
@@ -1814,11 +1900,13 @@ body.no-anim .friend-item { animation: none !important; }
   font-variant-numeric: tabular-nums;
 }
 .reaction-badge.reacted .reaction-count { color: var(--accent-text); }
-.message-group.own .reaction-badge { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.12); }
-.message-group.own .reaction-badge:hover { background: rgba(255,255,255,0.14); }
-.message-group.own .reaction-badge.reacted { background: rgba(255,255,255,0.22); border-color: rgba(255,255,255,0.45); }
-.message-group.own .reaction-badge .reaction-count { color: rgba(255,255,255,0.7); }
-.message-group.own .reaction-badge.reacted .reaction-count { color: #fff; }
+/* Own messages: badges sit outside the bubble now, so they use the same
+   neutral surface styling on both sides for a consistent look. */
+.message-group.own .reaction-badge { background: var(--bg-light); border-color: var(--border-light); }
+.message-group.own .reaction-badge:hover { background: var(--bg-lighter); }
+.message-group.own .reaction-badge.reacted { background: var(--accent-dim); border-color: var(--accent); }
+.message-group.own .reaction-badge .reaction-count { color: var(--text-secondary); }
+.message-group.own .reaction-badge.reacted .reaction-count { color: var(--accent-text); }
 
 /* Reaction hover tooltip — shows who reacted */
 .reaction-tooltip {
@@ -4317,8 +4405,9 @@ body.no-anim .friend-item { animation: none !important; }
 }
 .info-row:last-child { border-bottom: none; }
 .info-value { color: var(--text-primary); font-family: monospace; font-size: 12px; }
-.completeness-bar { flex: 1; height: 8px; background: var(--bg-medium); border-radius: 4px; overflow: hidden; }
-.completeness-fill { height: 100%; background: var(--accent); border-radius: 4px; transition: width 0.4s ease; }
+.completeness-bar { flex: 1; height: 10px; background: var(--bg-lighter); border-radius: 100px; overflow: hidden; border: 1px solid var(--border-light); }
+.completeness-fill { height: 100%; background: var(--accent); border-radius: 100px; transition: width 0.4s cubic-bezier(0.16,1,0.3,1); }
+.completeness-fill.full { background: #22c55e; box-shadow: 0 0 12px rgba(34,197,94,0.35); }
 
 /* ============================================
    PROFILE VIEW MODAL
@@ -9376,9 +9465,21 @@ function shortName(u) {
 
 // ---------- Embed Links ----------
 const EMBED_CACHE = {};
-function linkifyAndEmbed(html) {
+// True when a message's text is ONLY bare URL(s) — nothing else. Such
+// messages render as their own little link-embed card beside the user
+// instead of a big text bubble containing the link.
+function isLinkOnlyText(text) {
+  if (!text) return false;
+  const t = String(text).trim();
+  if (!t || !/^https?:\/\//.test(t)) return false;
+  return t.split(/\s+/).every(part => /^https?:\/\/[^\s<]+$/.test(part));
+}
+function linkifyAndEmbed(html, embedOnly) {
   // First, escape already done by caller; we operate on escaped text.
   // Replace URLs with embedded link cards.
+  // embedOnly: for link-only messages we skip the duplicate inline anchor —
+  // the embed card itself is the clickable surface, so the message reads as
+  // a clean little card instead of "url" + a card underneath it.
   const urlRegex = /(https?:\/\/[^\s<]+)/g;
   return html.replace(urlRegex, (url) => {
     const cleanUrl = url.replace(/[.,;:!?)]+$/, '');
@@ -9387,7 +9488,9 @@ function linkifyAndEmbed(html) {
     // prevent attribute-injection XSS — a URL containing " or < could
     // otherwise break out of the attribute and inject markup/script.
     const safeUrl = escapeHtml(cleanUrl);
-    return '<a href="' + safeUrl + '" target="_blank" rel="noopener noreferrer" class="inline-link">' + escapeHtml(cleanUrl) + '</a>' +
+    const inlineLink = embedOnly ? '' :
+      '<a href="' + safeUrl + '" target="_blank" rel="noopener noreferrer" class="inline-link">' + escapeHtml(cleanUrl) + '</a>';
+    return inlineLink +
       '<div class="link-embed" data-url="' + safeUrl + '"><div class="link-embed-loading">Loading preview...</div></div>' + trailing;
   });
 }
@@ -10965,6 +11068,9 @@ function connectSocket() {
     appendMessage(msg);
     hideEmptyState();
     scrollToBottom();
+    // Split media follow-up messages (caption + file sent together) play no
+    // second sound — the caption message already chimed.
+    if (msg.followup) return;
     if (msg.pingedForMe) playPingSound(); else playMessageSound();
     // System/desktop notifications for chatroom messages have been removed
     // per request. The unread sound above + in-app ping handling below are
@@ -11002,9 +11108,14 @@ function connectSocket() {
     if (group) {
       const textSpan = group.querySelector('.message-text');
       if (textSpan && msg) {
-        textSpan.innerHTML = highlightMentions(linkifyAndEmbed(escapeHtml(normalizeMessageText(msg.text))));
+        // Preserve the link-only presentation (bare link = just the embed
+        // card, no inline anchor) when a message is edited.
+        const linkOnly = isLinkOnlyText(msg.text);
+        textSpan.innerHTML = highlightMentions(linkifyAndEmbed(escapeHtml(normalizeMessageText(msg.text)), linkOnly));
         attachMentionEvents(textSpan);
         textSpan.querySelectorAll('.link-embed').forEach(el => fetchEmbed(el.dataset.url, el));
+        const bubble = group.querySelector('.message-bubble');
+        if (bubble) bubble.classList.toggle('link-only-bubble', linkOnly && !(msg.file || (msg.files && msg.files.length)) && !msg.reply);
       }
       const meta = group.querySelector('.message-meta');
       if (meta && msg && msg.edited) {
@@ -11214,7 +11325,8 @@ function connectSocket() {
       const conv = {
         user: u,
         lastMessage: msg,
-        unread: (existingIdx >= 0 ? (dmConversations[existingIdx].unread || 0) : 0) + (viewing ? 0 : 1)
+        // Split media follow-ups don't count as a second unread message.
+        unread: (existingIdx >= 0 ? (dmConversations[existingIdx].unread || 0) : 0) + (viewing || msg.followup ? 0 : 1)
       };
       if (existingIdx >= 0) {
         if (viewing) conv.unread = 0;
@@ -11256,7 +11368,8 @@ function connectSocket() {
       // update + updateDMNavBadge above) and the conversation appearing
       // in the Messages tab are the only signals. This works for friends
       // AND non-friends alike.
-      playMessageSound();
+      // Split media follow-up messages play no second sound.
+      if (!msg.followup) playMessageSound();
     }
     loadDMConversations();
   });
@@ -11347,8 +11460,9 @@ function connectSocket() {
     const convIdx = groupConvs.findIndex(g => g.id === gid);
     if (convIdx >= 0) {
       groupConvs[convIdx].lastMessage = msg;
-      if (activeGroupId !== gid) groupConvs[convIdx].unread = (groupConvs[convIdx].unread || 0) + 1;
-      else groupConvs[convIdx].unread = 0;
+      // Split media follow-ups don't count as a second unread message.
+      if (activeGroupId !== gid && !msg.followup) groupConvs[convIdx].unread = (groupConvs[convIdx].unread || 0) + 1;
+      else if (activeGroupId === gid) groupConvs[convIdx].unread = 0;
       renderMessagesList();
     } else {
       // Group not in our local list yet — reload
@@ -11370,7 +11484,8 @@ function connectSocket() {
       // Clear the typing indicator — a message just arrived in this group
       showGroupTyping(false);
     } else {
-      playMessageSound();
+      // Split media follow-up messages play no second sound.
+      if (!msg.followup) playMessageSound();
     }
   });
   // Pinged in a group — someone @mentioned you in a group chat.
@@ -12960,6 +13075,20 @@ function _reactionKey(msg, emoji, scope) {
 
 function toggleReaction(msg, emoji, scope, extra) {
   if (!currentUser || !currentUser.username) return;
+  // ── 5-emoji limit (client-side pre-check) ──
+  // Only applies when ADDING a brand-new distinct emoji (not when adding
+  // yourself to an existing emoji or removing your reaction). The server
+  // enforces the same limit authoritatively; this just avoids a pointless
+  // round-trip and gives instant feedback.
+  const rx = getReactions(msg);
+  const othersDistinct = Object.keys(rx).filter(k => rx[k] && rx[k].length > 0 && !rx[k].includes(currentUser.username));
+  const mineButEmpty = Object.keys(rx).filter(k => !rx[k] || rx[k].length === 0);
+  const isRemoving = rx[emoji] && rx[emoji].includes(currentUser.username);
+  const isJoining = rx[emoji] && rx[emoji].length > 0 && !isRemoving;
+  if (!isRemoving && !isJoining && (Object.keys(rx).filter(k => rx[k] && rx[k].length > 0).length - mineButEmpty.length) >= 5) {
+    toast('This message already has 5 different reactions', 'error');
+    return;
+  }
   // ── In-flight guard ── If a toggle for this exact message+emoji+scope is
   // already pending (waiting for the server ack), ignore the duplicate call.
   // This stops a rapid double-click from sending remove→re-add and getting
@@ -12979,13 +13108,22 @@ function toggleReaction(msg, emoji, scope, extra) {
     if (ackDone) return; // dedupe — ack should only fire once
     ackDone = true;
     _reactionInFlight.delete(rkey);
-    if (res && res.reactions) {
+    if (res && res.reactions && !res.error) {
       // Only apply if this is still the latest toggle for this message.
       // A newer toggle (higher seq) means our result is stale — discard it.
       if (_reactionSeq.get(msg.id) === seq) {
         msg.reactions = res.reactions;
         refreshReactionsDisplay(msg, scope);
       }
+    }
+    // Server rejected the reaction (e.g. 5-emoji limit reached) — tell the
+    // user clearly and sync the authoritative map that came back with it.
+    if (res && res.error) {
+      if (res.limit && res.reactions && _reactionSeq.get(msg.id) === seq) {
+        msg.reactions = res.reactions;
+        refreshReactionsDisplay(msg, scope);
+      }
+      toast(res.error, 'error');
     }
     // If the server reports an error (e.g. message not found), do nothing —
     // the broadcast (if any) will correct the local state.
@@ -13007,17 +13145,34 @@ function toggleReaction(msg, emoji, scope, extra) {
 }
 
 // Re-render the reactions row + react button for a specific message DOM group
-function refreshReactionsDisplay(msg, scope) {
-  const groupEl = document.querySelector('.message-group[data-message-id="' + CSS.escape(msg.id) + '"]');
+// The reactions row lives OUTSIDE the bubble (inserted directly under the
+// bubble element, before the timestamp meta) so reacting never changes the
+// bubble's own size — the message stays exactly as tall as its text.
+// groupElHint (optional): the message-group element when we already have it
+// in hand (initial render); avoids a document query for detached elements.
+function refreshReactionsDisplay(msg, scope, groupElHint) {
+  let groupEl = groupElHint || null;
+  if (!groupEl) {
+    // Fallback for live updates: match any of the three per-context id
+    // attributes (public: data-message-id, DM: data-dm-id, group:
+    // data-group-msg-id) so reaction rows refresh in every chat type.
+    const eid = CSS.escape(msg.id);
+    groupEl = document.querySelector(
+      '.message-group[data-message-id="' + eid + '"],' +
+      '.message-group[data-dm-id="' + eid + '"],' +
+      '.message-group[data-group-msg-id="' + eid + '"]'
+    );
+  }
   if (!groupEl) return;
   const bubble = groupEl.querySelector('.message-bubble');
   if (!bubble) return;
-  // Remove existing reactions row
-  const existing = bubble.querySelector('.reactions-row');
+  // Remove existing reactions row (it is a sibling of the bubble, not a child)
+  const existing = groupEl.querySelector('.reactions-row');
   if (existing) existing.remove();
   // Build new reactions row
   const reactions = getReactions(msg);
-  const emojis = Object.keys(reactions).filter(e => reactions[e] && reactions[e].length > 0);
+  // Limit rendered reaction emojis to 5 distinct emojis per message.
+  const emojis = Object.keys(reactions).filter(e => reactions[e] && reactions[e].length > 0).slice(0, 5);
   if (emojis.length === 0) return;
   const me = currentUser ? currentUser.username : '';
   const row = document.createElement('div');
@@ -13043,7 +13198,10 @@ function refreshReactionsDisplay(msg, scope) {
     badge.addEventListener('mousemove', (ev) => positionReactionTooltip(ev));
     row.appendChild(badge);
   });
-  bubble.appendChild(row);
+  // Insert the row directly UNDER the bubble (outside it) so the bubble's
+  // dimensions are never affected by reactions. insertBefore keeps it above
+  // the timestamp meta element.
+  bubble.insertAdjacentElement('afterend', row);
 }
 
 // ---------- Reaction hover tooltip (shows usernames of who reacted) ----------
@@ -13092,7 +13250,14 @@ function showReactPicker(anchorEl, msg, scope, extra) {
   closeReactPicker();
   const picker = document.createElement('div');
   picker.className = 'emoji-react-picker';
+  // 5-emoji limit: if the message already has 5 distinct reactions, only
+  // offer emojis that already exist (so users can join/remove) — the "+"
+  // board is hidden since a 6th distinct emoji is not allowed.
+  const rx = getReactions(msg);
+  const distinct = Object.keys(rx).filter(k => rx[k] && rx[k].length > 0);
+  const atLimit = distinct.length >= 5;
   REACT_EMOJIS.forEach(emoji => {
+    if (atLimit && !rx[emoji]) return; // cannot add a 6th distinct emoji
     const btn = document.createElement('button');
     btn.className = 'erp-emoji';
     btn.textContent = emoji;
@@ -13104,16 +13269,19 @@ function showReactPicker(anchorEl, msg, scope, extra) {
     picker.appendChild(btn);
   });
   // "+" button — opens the full emoji board for custom reactions
-  const plusBtn = document.createElement('button');
-  plusBtn.className = 'erp-plus';
-  plusBtn.textContent = '+';
-  plusBtn.title = 'More emojis';
-  plusBtn.addEventListener('click', (ev) => {
-    ev.stopPropagation();
-    closeReactPicker();
-    openEmojiBoard(msg, scope, extra);
-  });
-  picker.appendChild(plusBtn);
+  // (hidden when the message is already at the 5-emoji limit)
+  if (!atLimit) {
+    const plusBtn = document.createElement('button');
+    plusBtn.className = 'erp-plus';
+    plusBtn.textContent = '+';
+    plusBtn.title = 'More emojis';
+    plusBtn.addEventListener('click', (ev) => {
+      ev.stopPropagation();
+      closeReactPicker();
+      openEmojiBoard(msg, scope, extra);
+    });
+    picker.appendChild(plusBtn);
+  }
   document.body.appendChild(picker);
   _activeReactPicker = picker;
   // Position the picker above the anchor button
@@ -13430,7 +13598,7 @@ function appendMessage(msg, silent) {
   const isOwn = currentUser && msg.username === currentUser.username;
   const user = getUserByUsername(msg.username);
   const group = document.createElement('div');
-  group.className = 'message-group' + (isOwn ? ' own' : '');
+  group.className = 'message-group' + (isOwn ? ' own' : '') + (msg.followup ? ' followup' : '');
   group.dataset.messageId = msg.id;
   group.setAttribute('data-sender', msg.username);
   group.setAttribute('data-ts', String(msg.timestamp || 0));
@@ -13514,8 +13682,17 @@ function appendMessage(msg, silent) {
     if (msg.text) {
       const textSpan = document.createElement('span');
       textSpan.className = 'message-text';
-      textSpan.innerHTML = highlightMentions(linkifyAndEmbed(escapeHtml(normalizeMessageText(msg.text))));
-      contentParent.appendChild(textSpan);
+      // Link-only messages render as their own little embed card (no big
+      // text bubble) — embedOnly skips the redundant inline anchor.
+      const linkOnly = isLinkOnlyText(msg.text);
+      textSpan.innerHTML = highlightMentions(linkifyAndEmbed(escapeHtml(normalizeMessageText(msg.text)), linkOnly));
+      // Wrap the text in a clampable block so huge walls of text never take
+      // over the whole screen — they clamp to a max height with "Show more".
+      const textBlock = document.createElement('div');
+      textBlock.className = 'message-text-block';
+      textBlock.appendChild(textSpan);
+      if (linkOnly) textBlock.classList.add('link-only');
+      contentParent.appendChild(textBlock);
       // Add pinged class if this message mentions the current user
       if (msg.pingedForMe) bubble.classList.add('pinged-msg');
       // Make mention spans clickable to open profile + hover tooltip
@@ -13529,6 +13706,9 @@ function appendMessage(msg, silent) {
     // images & videos aren't wrapped in an accent-colored box.
     const hasMedia = !!(msg.file || (msg.files && msg.files.length));
     if (hasMedia && !msg.text && !msg.reply) bubble.classList.add('media-only');
+    // Link-only messages: the whole bubble becomes a clean embed card with
+    // no chat-bubble background — just the link preview beside the user.
+    if (!hasMedia && isLinkOnlyText(msg.text) && !msg.reply) bubble.classList.add('link-only-bubble');
   }
 
   // Right-click context for own messages
@@ -13585,9 +13765,13 @@ function appendMessage(msg, silent) {
     bubble.appendChild(actions);
   }
 
-  // Render existing reactions (if any) after the bubble is fully built
-  if (!msg.deleted) refreshReactionsDisplay(msg, 'chat');
+  // Attach the bubble into the wrap BEFORE rendering reactions so the
+  // reactions row can be inserted as a sibling directly under the bubble.
   wrap.appendChild(bubble);
+  // Render existing reactions (if any) after the bubble is fully built.
+  // The row is placed OUTSIDE the bubble (right under it), keeping the
+  // bubble's size independent of reactions.
+  if (!msg.deleted) refreshReactionsDisplay(msg, 'chat', group);
 
   if (!msg.deleted) {
     const meta = document.createElement('div');
@@ -13606,6 +13790,10 @@ function appendMessage(msg, silent) {
   group.appendChild(avatarDiv);
   group.appendChild(wrap);
   container.appendChild(group);
+  // Apply the long-text clamp AFTER the message is in the DOM so we can
+  // measure its real rendered height (needed to decide if it's a wall of
+  // text that should be clamped with a "Show more" button).
+  if (!msg.deleted && msg.text) clampMessageText(group);
   markContinuation(group, container, msg.username, msg.timestamp);
 }
 
@@ -13627,6 +13815,42 @@ function markContinuation(group, container, senderName, timestamp) {
       group.classList.add('continuation');
     }
   }
+}
+
+// ---------- Long-text clamp ("Show more") ----------
+// If a message's rendered text is taller than the clamp threshold, collapse
+// it to the max height with a gradient fade and a "Show more" button. This
+// keeps walls of text from taking over the whole screen for everyone.
+// Runs after the message is attached to the DOM so real heights can be
+// measured. Uses a double rAF so layout is guaranteed complete.
+const MSG_TEXT_CLAMP_PX = 300;
+const MSG_TEXT_CLAMP_CHARS = 600; // cheap pre-filter: skip measure for short texts
+function clampMessageText(groupEl) {
+  if (!groupEl) return;
+  const block = groupEl.querySelector('.message-text-block');
+  if (!block || block.dataset.clampChecked) return;
+  block.dataset.clampChecked = '1';
+  const text = (block.textContent || '').trim();
+  if (text.length < MSG_TEXT_CLAMP_CHARS) return; // too short to clamp
+  const applyClamp = () => {
+    if (!block.isConnected) return;
+    const h = block.scrollHeight;
+    if (h <= MSG_TEXT_CLAMP_PX + 40) return; // not tall enough visually
+    block.classList.add('clamped');
+    const btn = document.createElement('button');
+    btn.className = 'msg-more-text-btn';
+    btn.type = 'button';
+    btn.innerHTML = 'Show more <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>';
+    const toggle = () => {
+      const collapsed = block.classList.toggle('clamped');
+      btn.innerHTML = collapsed
+        ? 'Show more <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>'
+        : 'Show less <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>';
+    };
+    btn.addEventListener('click', (e) => { e.stopPropagation(); e.preventDefault(); toggle(); });
+    block.insertAdjacentElement('afterend', btn);
+  };
+  requestAnimationFrame(() => requestAnimationFrame(applyClamp));
 }
 
 // ---------- Spoiler Wrapper ----------
@@ -14522,7 +14746,10 @@ async function doSendMessage(text, spoiler) {
     singleFile = fileData;
   }
   setSendButtonUploading('send-btn', false);
-  // Send the message (text + all files in one message)
+  // Send the message. If BOTH a caption and files exist, the server splits
+  // them into two messages: the text first, then the media as its own little
+  // follow-up message. Both come back in the ack; both are also broadcast to
+  // us via 'new-message' — dedup by id keeps the display correct.
   socket.emit('send-message', { text, file: singleFile, files: allFiles, reply: replyingTo, spoiler: !!spoiler }, (res) => {
     if (res && res.error) {
       toast(res.error, 'error');
@@ -14536,6 +14763,9 @@ async function doSendMessage(text, spoiler) {
       if (fileData) { pendingFile = null; /* can't restore file easily */ }
       updateSendButton();
     } else {
+      // Optimistic render: add the caption message now if the broadcast
+      // hasn't arrived yet (dedup by id in appendMessage callers is handled
+      // by the 'new-message' listener pushing before the ack fires).
       // Start 2-second cooldown after successful send (skip for exempt users)
       if (!isExempt) startCooldown(2);
       cancelReply();
@@ -14788,6 +15018,10 @@ function sendGifAsDM(fileData) {
     if (res && res.message) {
       dmMessages.push(res.message);
       appendDMMessage(res.message);
+      if (res.mediaMessage) {
+        dmMessages.push(res.mediaMessage);
+        appendDMMessage(res.mediaMessage);
+      }
       scrollToBottomDM();
     }
   });
@@ -16670,7 +16904,7 @@ function appendGroupMessage(msg, silent) {
   const isOwn = currentUser && msg.from === currentUser.username;
   const user = getUserByUsername(msg.from);
   const group = document.createElement('div');
-  group.className = 'message-group' + (isOwn ? ' own' : '');
+  group.className = 'message-group' + (isOwn ? ' own' : '') + (msg.followup ? ' followup' : '');
   group.dataset.groupMsgId = msg.id;
   group.setAttribute('data-sender', msg.from);
   group.setAttribute('data-ts', String(msg.timestamp || 0));
@@ -16724,8 +16958,15 @@ function appendGroupMessage(msg, silent) {
     if (msg.text) {
       const textSpan = document.createElement('span');
       textSpan.className = 'message-text';
-      textSpan.innerHTML = highlightMentions(linkifyAndEmbed(escapeHtml(normalizeMessageText(msg.text))));
-      contentParent.appendChild(textSpan);
+      // Link-only messages render as their own little embed card.
+      const linkOnly = isLinkOnlyText(msg.text);
+      textSpan.innerHTML = highlightMentions(linkifyAndEmbed(escapeHtml(normalizeMessageText(msg.text)), linkOnly));
+      // Clampable text block (walls of text get a "Show more" toggle).
+      const textBlock = document.createElement('div');
+      textBlock.className = 'message-text-block';
+      textBlock.appendChild(textSpan);
+      if (linkOnly) textBlock.classList.add('link-only');
+      contentParent.appendChild(textBlock);
       if (msg.pingedForMe) bubble.classList.add('pinged-msg');
       attachMentionEvents(textSpan);
       textSpan.querySelectorAll('.link-embed').forEach(el => fetchEmbed(el.dataset.url, el));
@@ -16734,6 +16975,7 @@ function appendGroupMessage(msg, silent) {
     if (spoilerWrap) bubble.appendChild(spoilerWrap.wrapper);
     const hasMedia = !!(msg.file || (msg.files && msg.files.length));
     if (hasMedia && !msg.text && !msg.reply) bubble.classList.add('media-only');
+    if (!hasMedia && isLinkOnlyText(msg.text) && !msg.reply) bubble.classList.add('link-only-bubble');
   }
   // Context menu + action buttons
   if (isOwn && !msg.deleted) {
@@ -16766,8 +17008,9 @@ function appendGroupMessage(msg, silent) {
     bubble.appendChild(actions);
   }
   wrap.appendChild(bubble);
-  // Render existing reactions (if any) after the bubble is fully built
-  if (!msg.deleted) refreshReactionsDisplay(msg, 'group');
+  // Render existing reactions (if any) after the bubble is in the wrap so
+  // the row can be inserted as a sibling directly under the bubble.
+  if (!msg.deleted) refreshReactionsDisplay(msg, 'group', group);
   if (!msg.deleted) {
     const meta = document.createElement('div');
     meta.className = 'message-meta';
@@ -16778,6 +17021,8 @@ function appendGroupMessage(msg, silent) {
   }
   group.appendChild(wrap);
   container.appendChild(group);
+  // Clamp walls of text after the group message is attached (measureable).
+  if (!msg.deleted && msg.text) clampMessageText(group);
   markContinuation(group, container, msg.from, msg.timestamp);
 }
 
@@ -17103,6 +17348,9 @@ async function sendGroupWithFile(text, spoiler) {
     else if (extraFileData.length > 0) allFiles = extraFileData.slice(0, 5);
     else if (fileData) singleFile = fileData;
     setSendButtonUploading('group-send-btn', false);
+    // Caption + files split into TWO messages server-side: the text first,
+    // then the media as its own little follow-up message. Both arrive via
+    // the group broadcast too, so dedup by id.
     socket.emit('group-send', { groupId: activeGroupId, text, file: singleFile, files: allFiles, reply: replyingToGroup, spoiler: !!spoiler }, (res) => {
       if (res && res.error) { toast(res.error, 'error'); if (res.cooldown) startGroupCooldown(res.cooldown); return; }
       if (res && res.message) {
@@ -17111,7 +17359,12 @@ async function sendGroupWithFile(text, spoiler) {
           appendGroupMessage(res.message);
           scrollToBottomGroup();
         }
-        updateGroupConvPreview(activeGroupId, res.message);
+        if (res.mediaMessage && !groupMessages.some(m => m.id === res.mediaMessage.id)) {
+          groupMessages.push(res.mediaMessage);
+          appendGroupMessage(res.mediaMessage);
+          scrollToBottomGroup();
+        }
+        updateGroupConvPreview(activeGroupId, res.mediaMessage || res.message);
         const isExempt = !!(currentUser && currentUser.cooldownExempt);
         if (!isExempt) startGroupCooldown(0.3);
       }
@@ -17518,7 +17771,7 @@ function appendDMMessage(msg, silent) {
   const container = $('dm-messages');
   const isOwn = currentUser && msg.from === currentUser.username;
   const group = document.createElement('div');
-  group.className = 'message-group' + (isOwn ? ' own' : '');
+  group.className = 'message-group' + (isOwn ? ' own' : '') + (msg.followup ? ' followup' : '');
   group.dataset.dmId = msg.id;
   group.setAttribute('data-sender', msg.from);
   group.setAttribute('data-ts', String(msg.timestamp || 0));
@@ -17542,8 +17795,15 @@ function appendDMMessage(msg, silent) {
     if (msg.text) {
       const textSpan = document.createElement('span');
       textSpan.className = 'message-text';
-      textSpan.innerHTML = highlightMentions(linkifyAndEmbed(escapeHtml(normalizeMessageText(msg.text))));
-      contentParent.appendChild(textSpan);
+      // Link-only messages render as their own little embed card.
+      const linkOnly = isLinkOnlyText(msg.text);
+      textSpan.innerHTML = highlightMentions(linkifyAndEmbed(escapeHtml(normalizeMessageText(msg.text)), linkOnly));
+      // Clampable text block (walls of text get a "Show more" toggle).
+      const textBlock = document.createElement('div');
+      textBlock.className = 'message-text-block';
+      textBlock.appendChild(textSpan);
+      if (linkOnly) textBlock.classList.add('link-only');
+      contentParent.appendChild(textBlock);
       if (msg.pingedForMe) bubble.classList.add('pinged-msg');
       attachMentionEvents(textSpan);
       textSpan.querySelectorAll('.link-embed').forEach(el => fetchEmbed(el.dataset.url, el));
@@ -17552,6 +17812,7 @@ function appendDMMessage(msg, silent) {
     if (spoilerWrap) bubble.appendChild(spoilerWrap.wrapper);
     const hasMediaDM = !!(msg.file || (msg.files && msg.files.length));
     if (hasMediaDM && !msg.text && !msg.reply) bubble.classList.add('media-only');
+    if (!hasMediaDM && isLinkOnlyText(msg.text) && !msg.reply) bubble.classList.add('link-only-bubble');
   }
   if (isOwn && !msg.deleted) {
     const dmCtxItems = [
@@ -17607,8 +17868,9 @@ function appendDMMessage(msg, silent) {
   const wrap = document.createElement('div');
   wrap.className = 'message-bubble-wrap';
   wrap.appendChild(bubble);
-  // Render existing reactions (if any) after the bubble is fully built
-  if (!msg.deleted) refreshReactionsDisplay(msg, 'dm');
+  // Render existing reactions (if any) after the bubble is in the wrap so
+  // the row can be inserted as a sibling directly under the bubble.
+  if (!msg.deleted) refreshReactionsDisplay(msg, 'dm', group);
   if (!msg.deleted) {
     const meta = document.createElement('div');
     meta.className = 'message-meta';
@@ -17619,6 +17881,8 @@ function appendDMMessage(msg, silent) {
   }
   group.appendChild(wrap);
   container.appendChild(group);
+  // Clamp walls of text after the DM message is attached (measureable).
+  if (!msg.deleted && msg.text) clampMessageText(group);
   markContinuation(group, container, msg.from, msg.timestamp);
 }
 function startEditDM(msgId, bubble) {
@@ -18039,11 +18303,18 @@ async function sendDMWithFile(text, spoiler) {
       singleFile = fileData;
     }
     setSendButtonUploading('dm-send-btn', false);
+    // Caption + files split into TWO messages server-side: the text first,
+    // then the media as its own little follow-up message. Render both here
+    // (the recipient gets them via 'dm-receive').
     socket.emit('dm-send', { to: activeDMUser, text, file: singleFile, files: allFiles, reply: replyingToDM, spoiler: !!spoiler }, (res) => {
       if (res && res.error) { toast(res.error, 'error'); return; }
       if (res && res.message) {
         dmMessages.push(res.message);
         appendDMMessage(res.message);
+        if (res.mediaMessage) {
+          dmMessages.push(res.mediaMessage);
+          appendDMMessage(res.mediaMessage);
+        }
         scrollToBottomDM();
       }
     });
@@ -20039,7 +20310,11 @@ function updateSettingsPanel() {
     const pct = Math.round((filled / fields.length) * 100);
     $('settings-profile-complete').textContent = pct + '%';
     const bar = $('settings-profile-complete-bar');
-    if (bar) bar.style.width = pct + '%';
+    if (bar) {
+      bar.style.width = pct + '%';
+      // Green "complete" state at 100% for satisfying feedback.
+      bar.classList.toggle('full', pct >= 100);
+    }
   }
   // New settings toggles
   if ($('notif-toggle')) $('notif-toggle').checked = currentUser.notificationsEnabled !== false;
