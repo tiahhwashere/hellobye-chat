@@ -34,5 +34,14 @@ User requests for the mutual encryption chatroom:
       - socket send/media/delete OK; UI: no X button, Delete Key, media sender, delete msg OK;
       - fixed 2 bugs found in testing: duplicate own message (ack+echo race) & empty-state not removed;
       - CORS reflects Origin with credentials OK.
-- [ ] J. Commit & push
-- [ ] K. Verify live deploy + no data loss
+- [x] J. Commit & push
+- [x] K. Verify live deploy + no data loss
+      - Deploy dep-daleh23ncjis73e56hag status=live (commit d6c0412).
+      - Live index.html contains new code (enc-delete-key-btn, enc-attach-btn,
+        enc-file-input, encryption-delete, encryption-key-existing, encFetch,
+        encResolveFile) and NO enc-close-btn.
+      - Live routes: GET /api/encryption/status → 401 JSON; POST
+        /api/encryption/delete-key → 401 JSON (routes present).
+      - GitHub backup DB intact: 5 real users (lore, swirlpup, hi, pwonttalk,
+        zombie), 4 messages, 1 group chat, 1 encryption chat (hi::lore),
+        customRoles=1, welcomeTitle preserved. NO test data leaked.
