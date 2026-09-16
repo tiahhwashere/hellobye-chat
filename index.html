@@ -4909,6 +4909,18 @@ body.no-anim .friend-item { animation: none !important; }
 .enc-empty .empty-sub { font-size: 12px; line-height: 1.55; max-width: 320px; margin: 0 auto; display: block; }
 .enc-msg-lock { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; color: #7ee2a8; opacity: 0.85; margin-left: 6px; vertical-align: middle; }
 .enc-msg-lock svg { width: 10px; height: 10px; }
+/* Delete-key button in the encrypted chatroom header (danger accent). */
+.enc-delkey-btn { border-color: rgba(224,60,60,0.4); color: #ff9a9a; }
+.enc-delkey-btn:hover { background: rgba(224,60,60,0.14); border-color: rgba(224,60,60,0.7); color: #ffb3b3; }
+/* Encrypted media: a small lock chip overlaid on decrypted attachments. */
+.enc-file-lock {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 10px; font-weight: 700; color: #7ee2a8;
+  background: rgba(46,204,113,0.12); border: 1px solid rgba(46,204,113,0.3);
+  border-radius: 20px; padding: 2px 8px; margin-top: 6px;
+}
+.enc-file-lock svg { width: 10px; height: 10px; }
+.enc-decrypting { font-size: 12px; color: var(--text-muted); font-style: italic; padding: 6px 0; }
 @media (max-width: 640px) { .enc-overlay { padding: 0; } .enc-panel { max-height: 100%; border-radius: 0; } }
 
 /* Pinned-message indicator on the bubble itself */
@@ -8938,8 +8950,9 @@ body.no-anim .friend-item { animation: none !important; }
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 0 0-4-4H4"/></svg>
           <span class="enc-back-label">Back to Normal DMs</span>
         </button>
-        <button class="icon-btn" id="enc-close-btn" title="Close encrypted chatroom">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        <button class="enc-back-btn enc-delkey-btn" id="enc-delete-key-btn" title="Delete my encryption key">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+          <span class="enc-back-label">Delete Key</span>
         </button>
       </div>
       <div class="enc-banner">
@@ -8955,7 +8968,27 @@ body.no-anim .friend-item { animation: none !important; }
       </div>
       <div class="dm-typing" id="enc-typing"></div>
       <div class="dm-input-area">
+        <div class="file-attachment-preview" id="enc-file-preview">
+          <div class="file-icon" id="enc-file-preview-icon">FILE</div>
+          <div class="attachment-preview-info">
+            <div class="attachment-preview-name" id="enc-file-preview-name"></div>
+            <div class="attachment-preview-size" id="enc-file-preview-size"></div>
+            <div class="attachment-preview-progress"><div class="attachment-preview-bar" id="enc-file-preview-bar"></div></div>
+          </div>
+          <button class="remove-attachment" id="enc-remove-attachment">&times;</button>
+        </div>
         <div class="chat-input-wrap">
+          <button class="attach-btn" id="enc-attach-btn" title="Attach file (max 250MB)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+          </button>
+          <input type="file" id="enc-file-input" hidden multiple>
+          <div class="attach-dropdown" id="enc-attach-dropdown">
+            <div class="attach-dropdown-item" id="enc-attach-file-btn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+              <span class="attach-dropdown-label">Upload File</span>
+              <span class="attach-dropdown-hint">Image, video, or any file (max 250MB) — encrypted</span>
+            </div>
+          </div>
           <textarea class="chat-textarea" id="enc-input" placeholder="Encrypted message…" rows="1"></textarea>
           <button class="send-btn" id="enc-send-btn" disabled>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
@@ -12223,6 +12256,19 @@ function connectSocket() {
     showEncKeyModal(data.other, data.key);
     playMessageSound();
   });
+  // Both joined but an existing key is being reused (someone deleted their key) →
+  // prompt the user to enter the key they already saved.
+  socket.on('encryption-key-existing', (data) => {
+    if (!data || !data.other) return;
+    hideEncInviteModal();
+    showEncEnterModal(data.other);
+    playMessageSound();
+  });
+  // The other user deleted their saved key → let this user know.
+  socket.on('encryption-key-deleted', (data) => {
+    const who = data && data.by ? '@' + data.by : 'The other user';
+    toast(who + ' deleted their encryption key.', '');
+  });
   // Incoming encrypted message.
   socket.on('encryption-receive', async (data) => {
     if (!data || !data.message) return;
@@ -12231,13 +12277,18 @@ function connectSocket() {
     // Only decrypt/render if this room is open and we hold the key.
     if (encActiveUser && (from === encActiveUser || (currentUser && from === currentUser.username))) {
       const plain = await encDecrypt(encKey, msg.e2e);
-      const m = { ...msg, text: plain != null ? plain : '🔒 Encrypted message', __decrypted: plain != null };
+      const m = { ...msg, text: plain != null ? plain : (msg.e2e ? '🔒 Encrypted message' : ''), __decrypted: plain != null };
       // Avoid duplicating our own echoed message (already appended on send).
       if (!encMessages.some(x => x.id === m.id)) {
         encMessages.push(m);
         appendEncMessage(m);
       }
     }
+  });
+  // A message in the encrypted room was deleted (by its sender).
+  socket.on('encryption-deleted', (data) => {
+    if (!data || !data.id) return;
+    applyEncDeleted(data.id);
   });
   // Return-to-normal-DM request: BOTH users see the Accept / Deny popup.
   socket.on('encryption-return-request', (data) => {
@@ -17455,6 +17506,32 @@ let encPendingUser = null;       // user for a pending invite/key/return modal
 let encInviteStatus = null;      // last known status object for the pending pair
 let encTypingTimeout = null;
 let encIsTyping = false;
+let encPendingFile = null;       // first pending attachment in the encrypted room
+let encPendingFiles = [];        // additional pending attachments
+let encFileMetaCache = {};       // url -> decrypted {name,type,size} for rendered media
+
+// ---- Resilient fetch: retries transient failures (Render cold starts, 502/503)
+// so the user never sees a spurious "network error" on a momentary blip.
+async function encFetch(url, opts, tries) {
+  const maxTries = tries || 3;
+  let lastErr = null;
+  for (let i = 0; i < maxTries; i++) {
+    try {
+      const res = await fetch(url, opts);
+      // Retry only on gateway/transient server errors, never on 4xx.
+      if (res.status >= 500 && res.status < 600 && i < maxTries - 1) {
+        await new Promise(r => setTimeout(r, 600 * (i + 1)));
+        continue;
+      }
+      return res;
+    } catch (e) {
+      lastErr = e;
+      if (i < maxTries - 1) { await new Promise(r => setTimeout(r, 600 * (i + 1))); continue; }
+      throw lastErr;
+    }
+  }
+  throw lastErr || new Error('network');
+}
 
 // Derive an AES-GCM key from the 24-letter shared key (PBKDF2 with a fixed
 // salt derived from the pair id, so both users derive the identical key).
@@ -17489,6 +17566,22 @@ async function encDecrypt(key, env) {
     return new TextDecoder().decode(pt);
   } catch (e) { return null; }
 }
+// Encrypt raw bytes (ArrayBuffer) → { iv, ct } envelope (or null).
+async function encEncryptBytes(key, arrayBuffer) {
+  if (!key) return null;
+  try {
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, arrayBuffer);
+    return { v: 1, alg: 'PBKDF2-AESGCM', iv: b64encode(iv), ct: b64encode(ct) };
+  } catch (e) { return null; }
+}
+// Decrypt an { iv, ct } envelope → ArrayBuffer (or null).
+async function encDecryptBytes(key, env) {
+  if (!key || !env || !env.iv || !env.ct) return null;
+  try {
+    return await crypto.subtle.decrypt({ name: 'AES-GCM', iv: b64decode(env.iv) }, key, b64decode(env.ct));
+  } catch (e) { return null; }
+}
 
 // ---- Show/hide the "Encryption Chat" header button (friends only) ----
 function updateEncChatButton() {
@@ -17507,7 +17600,7 @@ async function startEncryptionChat() {
   // If a chatroom is already active for this pair, ask for the key to re-enter
   // instead of starting a brand-new invite.
   try {
-    const sres = await fetch(API_BASE + '/api/encryption/status/' + encodeURIComponent(other));
+    const sres = await encFetch(API_BASE + '/api/encryption/status/' + encodeURIComponent(other));
     const sdata = await sres.json();
     if (sres.ok && sdata.status && sdata.status.state === 'active') {
       showEncEnterModal(other);
@@ -17520,7 +17613,7 @@ async function startEncryptionChat() {
     }
   } catch (e) {}
   try {
-    const res = await fetch(API_BASE + '/api/encryption/invite/' + encodeURIComponent(other), { method: 'POST' });
+    const res = await encFetch(API_BASE + '/api/encryption/invite/' + encodeURIComponent(other), { method: 'POST' });
     const data = await res.json();
     if (!res.ok) { toast((data && data.error) || 'Could not start encryption chat.', 'error'); return; }
     // The server emits 'encryption-invite' to both users; show it locally too
@@ -17544,7 +17637,7 @@ async function respondEncInvite(action) {
   if (!other) { hideEncInviteModal(); return; }
   hideEncInviteModal();
   try {
-    const res = await fetch(API_BASE + '/api/encryption/respond/' + encodeURIComponent(other), {
+    const res = await encFetch(API_BASE + '/api/encryption/respond/' + encodeURIComponent(other), {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action })
     });
@@ -17615,7 +17708,7 @@ async function submitEncEnter() {
   if (key.length !== 24) { inp.classList.add('error'); if (st) st.textContent = 'The key must be exactly 24 letters.'; return; }
   if (st) st.textContent = 'Verifying…';
   try {
-    const res = await fetch(API_BASE + '/api/encryption/verify/' + encodeURIComponent(other), {
+    const res = await encFetch(API_BASE + '/api/encryption/verify/' + encodeURIComponent(other), {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ key })
     });
@@ -17638,7 +17731,7 @@ async function openEncChatroom(other, key, preloaded) {
   let cipherMsgs = preloaded;
   if (!cipherMsgs) {
     try {
-      const res = await fetch(API_BASE + '/api/encryption/verify/' + encodeURIComponent(other), {
+      const res = await encFetch(API_BASE + '/api/encryption/verify/' + encodeURIComponent(other), {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ key })
       });
@@ -17672,6 +17765,7 @@ function closeEncChatroom() {
   encMessages = [];
   encKey = null;
   encKeyRaw = null;
+  clearEncPendingFile();
 }
 function renderEncMessages() {
   const container = $('enc-messages');
@@ -17684,15 +17778,58 @@ function renderEncMessages() {
   encMessages.forEach(m => appendEncMessage(m, true));
   const c = $('enc-messages'); if (c) c.scrollTop = c.scrollHeight;
 }
+// Build the decrypted file object for an encrypted attachment. The bytes at
+// `url` are ciphertext; `meta` is an encrypted envelope holding the original
+// name/type/size. We decrypt the meta, then fetch + decrypt the bytes into a
+// blob URL so the browser can render it like a normal attachment.
+async function encResolveFile(entry) {
+  if (!entry || !entry.url || !entry.meta) return null;
+  const metaJson = await encDecrypt(encKey, entry.meta);
+  let meta = null;
+  try { meta = metaJson ? JSON.parse(metaJson) : null; } catch (e) { meta = null; }
+  if (!meta) return null;
+  const out = { url: entry.url, name: meta.name || 'file', type: meta.type || '', mimetype: meta.type || '', size: meta.size || 0, __encrypted: true };
+  // Decrypt the bytes into a blob URL (cached so re-renders don't re-fetch).
+  const cacheKey = entry.url;
+  if (encFileMetaCache[cacheKey]) { out.url = encFileMetaCache[cacheKey]; return out; }
+  try {
+    const res = await fetch(entry.url);
+    const buf = await res.arrayBuffer();
+    const plain = await encDecryptBytes(encKey, { iv: meta.iv, ct: b64encode(buf) });
+    if (plain) {
+      const blob = new Blob([plain], { type: meta.type || 'application/octet-stream' });
+      const blobUrl = URL.createObjectURL(blob);
+      encFileMetaCache[cacheKey] = blobUrl;
+      out.url = blobUrl;
+    }
+  } catch (e) { /* fall back to the raw (ciphertext) url */ }
+  return out;
+}
 function appendEncMessage(msg, silent) {
   const container = $('enc-messages');
   if (!container) return;
+  // Remove the empty-state placeholder once a real message is rendered.
+  const empty = $('enc-empty-state');
+  if (empty && empty.parentElement === container) empty.remove();
   const isOwn = currentUser && msg.from === currentUser.username;
   const group = document.createElement('div');
   group.className = 'message-group' + (isOwn ? ' own' : '');
   group.dataset.encId = msg.id;
   const bubble = document.createElement('div');
   bubble.className = 'message-bubble dm-bubble';
+  if (msg.deleted) {
+    const del = document.createElement('span');
+    del.className = 'message-text';
+    del.style.fontStyle = 'italic';
+    del.style.opacity = '0.6';
+    del.textContent = 'This message was deleted';
+    const tb = document.createElement('div'); tb.className = 'message-text-block'; tb.appendChild(del);
+    bubble.appendChild(tb);
+    group.appendChild(bubble);
+    container.appendChild(group);
+    if (!silent) { const c = $('enc-messages'); if (c) c.scrollTop = c.scrollHeight; }
+    return;
+  }
   const textSpan = document.createElement('span');
   textSpan.className = 'message-text';
   textSpan.innerHTML = highlightMentions(linkifyAndEmbed(escapeHtml(normalizeMessageText(msg.text || ''))));
@@ -17700,34 +17837,132 @@ function appendEncMessage(msg, silent) {
   textBlock.className = 'message-text-block';
   textBlock.appendChild(textSpan);
   bubble.appendChild(textBlock);
+  // Encrypted attachments: decrypt + render (async).
+  const entries = [];
+  if (Array.isArray(msg.files) && msg.files.length) entries.push(...msg.files);
+  else if (msg.file) entries.push(msg.file);
+  if (entries.length) {
+    const filesWrap = document.createElement('div');
+    filesWrap.className = 'message-files';
+    const placeholder = document.createElement('div');
+    placeholder.className = 'enc-decrypting';
+    placeholder.textContent = 'Decrypting attachment…';
+    filesWrap.appendChild(placeholder);
+    bubble.appendChild(filesWrap);
+    (async () => {
+      const resolved = [];
+      for (const e of entries) { const f = await encResolveFile(e); if (f) resolved.push(f); }
+      filesWrap.innerHTML = '';
+      if (!resolved.length) { filesWrap.innerHTML = '<div class="enc-decrypting">🔒 Could not decrypt attachment</div>'; return; }
+      resolved.forEach(f => {
+        try { filesWrap.appendChild(createFileElement(f)); } catch (e) {}
+      });
+      const chip = document.createElement('span');
+      chip.className = 'enc-file-lock';
+      chip.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>Encrypted';
+      filesWrap.appendChild(chip);
+      if (!silent) { const c = $('enc-messages'); if (c) c.scrollTop = c.scrollHeight; }
+    })();
+  }
   // Small lock marker to reinforce that this message is encrypted.
   const lock = document.createElement('span');
   lock.className = 'enc-msg-lock';
   lock.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>';
   bubble.appendChild(lock);
+  // Right-click / long-press context menu with a Delete option (own messages).
+  bubble.addEventListener('contextmenu', (e) => {
+    e.preventDefault(); e.stopPropagation();
+    const items = [];
+    if (msg.text) items.push({ label: 'Copy text', icon: 'copy', action: () => { try { navigator.clipboard.writeText(msg.text); toast('Copied.', 'success'); } catch (er) {} } });
+    if (isOwn) items.push({ label: 'Delete message', icon: 'trash', danger: true, action: () => confirmDeleteEncMessage(msg.id) });
+    if (items.length) showContextMenu(e.clientX, e.clientY, items);
+  });
   group.appendChild(bubble);
   container.appendChild(group);
   if (!silent) { const c = $('enc-messages'); if (c) c.scrollTop = c.scrollHeight; }
 }
-// ---- Send an encrypted message ----
+// ---- Delete an encrypted message (own only) ----
+function confirmDeleteEncMessage(id) {
+  if (!id || !encActiveUser) return;
+  if (!confirm('Delete this encrypted message for both of you?')) return;
+  socket.emit('encryption-delete', { id, to: encActiveUser }, (res) => {
+    if (res && res.error) { toast(res.error, 'error'); return; }
+    applyEncDeleted(id);
+  });
+}
+function applyEncDeleted(id) {
+  const m = encMessages.find(x => x.id === id);
+  if (m) { m.deleted = true; m.text = ''; m.e2e = null; m.file = null; m.files = null; }
+  const el = document.querySelector('[data-enc-id="' + id + '"]');
+  if (el) {
+    const bubble = el.querySelector('.message-bubble');
+    if (bubble) {
+      bubble.innerHTML = '';
+      const del = document.createElement('span');
+      del.className = 'message-text';
+      del.style.fontStyle = 'italic'; del.style.opacity = '0.6';
+      del.textContent = 'This message was deleted';
+      const tb = document.createElement('div'); tb.className = 'message-text-block'; tb.appendChild(del);
+      bubble.appendChild(tb);
+    }
+  }
+}
+// ---- Send an encrypted message (text and/or encrypted attachments) ----
 async function sendEncMessage() {
   const inp = $('enc-input');
   if (!inp || !encActiveUser || !encKey) return;
   const text = normalizeMessageText(inp.value);
-  if (!text) return;
-  const env = await encEncrypt(encKey, text);
-  if (!env) { toast('Could not encrypt the message.', 'error'); return; }
-  socket.emit('encryption-send', { to: encActiveUser, e2e: env }, (res) => {
-    if (res && res.error) { toast(res.error, 'error'); return; }
+  if (!text && !encPendingFile) return;
+  const sendBtn = $('enc-send-btn');
+  if (sendBtn) sendBtn.disabled = true;
+  // ---- Encrypt + upload attachments (ciphertext only) ----
+  let singleFile = null, multiFiles = null;
+  if (encPendingFile) {
+    const bar = $('enc-file-preview-bar');
+    const all = [encPendingFile, ...encPendingFiles];
+    const uploaded = [];
+    try {
+      for (let i = 0; i < all.length; i++) {
+        const f = all[i];
+        const buf = await f.arrayBuffer();
+        const env = await encEncryptBytes(encKey, buf);
+        if (!env) throw new Error('encrypt');
+        const meta = await encEncrypt(encKey, JSON.stringify({ name: f.name, type: f.type || '', size: f.size, iv: env.iv }));
+        // Upload the ciphertext bytes as a .bin file.
+        const blob = new Blob([b64decode(env.ct)], { type: 'application/octet-stream' });
+        const upFile = new File([blob], 'enc_' + Date.now() + '_' + i + '.bin', { type: 'application/octet-stream' });
+        const data = await uploadFileWithProgress(upFile, bar, i, all.length);
+        uploaded.push({ url: data.file.url, meta });
+      }
+    } catch (e) {
+      toast('Could not encrypt/upload the attachment. Please try again.', 'error');
+      if (sendBtn) sendBtn.disabled = false;
+      return;
+    }
+    if (uploaded.length === 1) singleFile = uploaded[0];
+    else multiFiles = uploaded.slice(0, 5);
+  }
+  // ---- Encrypt the caption text ----
+  let env = null;
+  if (text) {
+    env = await encEncrypt(encKey, text);
+    if (!env) { toast('Could not encrypt the message.', 'error'); if (sendBtn) sendBtn.disabled = false; return; }
+  }
+  socket.emit('encryption-send', { to: encActiveUser, e2e: env, file: singleFile, files: multiFiles }, (res) => {
+    if (res && res.error) { toast(res.error, 'error'); if (sendBtn) sendBtn.disabled = false; return; }
     if (res && res.message) {
       // Show our own plaintext locally (the server only stored ciphertext).
-      const m = { ...res.message, text, __decrypted: true };
-      encMessages.push(m);
-      appendEncMessage(m);
+      // Guard against the socket echo having already appended it.
+      if (!encMessages.some(x => x.id === res.message.id)) {
+        const m = { ...res.message, text, __decrypted: true };
+        encMessages.push(m);
+        appendEncMessage(m);
+      }
     }
   });
   inp.value = ''; inp.style.height = 'auto';
-  const sb = $('enc-send-btn'); if (sb) sb.disabled = true;
+  clearEncPendingFile();
+  if (sendBtn) sendBtn.disabled = true;
   encIsTyping = false;
 }
 // ---- Return-to-normal-DM flow ----
@@ -17735,7 +17970,7 @@ async function requestEncReturn() {
   if (!encActiveUser) return;
   const other = encActiveUser;
   try {
-    const res = await fetch(API_BASE + '/api/encryption/return-request/' + encodeURIComponent(other), { method: 'POST' });
+    const res = await encFetch(API_BASE + '/api/encryption/return-request/' + encodeURIComponent(other), { method: 'POST' });
     const data = await res.json();
     if (!res.ok) { toast((data && data.error) || 'Could not request a return.', 'error'); return; }
     showEncReturnModal(other);
@@ -17753,13 +17988,86 @@ async function respondEncReturn(action) {
   if (!other) { hideEncReturnModal(); return; }
   hideEncReturnModal();
   try {
-    const res = await fetch(API_BASE + '/api/encryption/return-respond/' + encodeURIComponent(other), {
+    const res = await encFetch(API_BASE + '/api/encryption/return-respond/' + encodeURIComponent(other), {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action })
     });
     const data = await res.json();
     if (!res.ok) { toast((data && data.error) || 'Could not respond.', 'error'); return; }
     // The server emits 'encryption-return-resolved' to both once both respond.
+  } catch (e) { toast('A network error occurred. Please try again.', 'error'); }
+}
+// ---- Encrypted attachment picker (mirrors the DM media sender) ----
+function showEncFilePreview(file) {
+  const preview = $('enc-file-preview');
+  if (!preview) return;
+  $('enc-file-preview-name').textContent = file.name;
+  $('enc-file-preview-size').textContent = formatFileSize(file.size) + ' - encrypted on send';
+  const ext = (file.name.split('.').pop() || 'FILE').slice(0, 4).toUpperCase();
+  $('enc-file-preview-icon').textContent = ext;
+  const mt = file.type || '';
+  if (mt.startsWith('image/')) $('enc-file-preview-icon').textContent = 'IMG';
+  else if (mt.startsWith('video/')) $('enc-file-preview-icon').textContent = 'VID';
+  else if (mt.startsWith('audio/')) $('enc-file-preview-icon').textContent = 'AUD';
+  const bar = $('enc-file-preview-bar');
+  bar.classList.remove('uploading'); bar.style.width = '';
+  void bar.offsetWidth; bar.classList.add('uploading');
+  preview.classList.add('show');
+}
+function clearEncPendingFile() {
+  encPendingFile = null;
+  encPendingFiles = [];
+  const preview = $('enc-file-preview');
+  if (preview) preview.classList.remove('show');
+  const bar = $('enc-file-preview-bar');
+  if (bar) { bar.classList.remove('uploading'); bar.style.width = '0%'; }
+  const badge = preview && preview.querySelector('.multi-file-badge');
+  if (badge) badge.remove();
+  const fi = $('enc-file-input'); if (fi) fi.value = '';
+}
+function updateEncSend() {
+  const inp = $('enc-input');
+  const sb = $('enc-send-btn');
+  if (sb) sb.disabled = !((inp && inp.value.trim()) || encPendingFile);
+}
+function handleEncFileSelect(e) {
+  const files = Array.from(e.target.files || []);
+  if (files.length === 0) return;
+  if (files.length > MAX_FILES) {
+    toast('You can only attach up to ' + MAX_FILES + ' files at a time.', 'error');
+    e.target.value = ''; return;
+  }
+  const selected = files.slice(0, MAX_FILES);
+  for (const f of selected) {
+    if (f.size > 250 * 1024 * 1024) { toast('File "' + f.name + '" exceeds 250MB limit', 'error'); e.target.value = ''; return; }
+  }
+  encPendingFile = selected[0];
+  encPendingFiles = selected.slice(1);
+  showEncFilePreview(selected[0]);
+  if (encPendingFiles.length) {
+    const preview = $('enc-file-preview');
+    let badge = preview.querySelector('.multi-file-badge');
+    if (!badge) {
+      badge = document.createElement('div');
+      badge.className = 'multi-file-badge';
+      badge.style.cssText = 'margin-left:8px; font-size:11px; color:var(--accent); font-weight:600; background:var(--accent-dim); padding:2px 8px; border-radius:6px;';
+      $('enc-file-preview-name').parentElement.appendChild(badge);
+    }
+    badge.textContent = '+' + encPendingFiles.length + ' more file' + (encPendingFiles.length !== 1 ? 's' : '');
+  }
+  updateEncSend();
+  e.target.value = '';
+}
+// ---- Delete my encryption key ----
+async function deleteEncKey() {
+  if (!encActiveUser) return;
+  if (!confirm('Delete your encryption key? You will not be able to re-enter this encrypted chatroom until a new key is issued. The other person keeps their key.')) return;
+  try {
+    const res = await encFetch(API_BASE + '/api/encryption/delete-key/' + encodeURIComponent(encActiveUser), { method: 'POST' });
+    const data = await res.json();
+    if (!res.ok) { toast((data && data.error) || 'Could not delete the key.', 'error'); return; }
+    toast('Your encryption key was deleted.', 'success');
+    closeEncChatroom();
   } catch (e) { toast('A network error occurred. Please try again.', 'error'); }
 }
 // ---- Wire up the encryption UI events ----
@@ -17778,13 +18086,29 @@ async function respondEncReturn(action) {
   on('enc-return-deny', 'click', () => respondEncReturn('deny'));
   on('enc-return-btn', 'click', requestEncReturn);
   on('enc-back', 'click', closeEncChatroom);
-  on('enc-close-btn', 'click', closeEncChatroom);
+  on('enc-delete-key-btn', 'click', deleteEncKey);
   on('enc-send-btn', 'click', sendEncMessage);
+  // Attachment picker
+  on('enc-attach-btn', 'click', (e) => {
+    e.stopPropagation();
+    const dd = $('enc-attach-dropdown');
+    if (!dd) return;
+    const isOpen = dd.classList.contains('show');
+    if (isOpen) { dd.classList.remove('show'); $('enc-attach-btn').classList.remove('active'); }
+    else { dd.classList.add('show'); $('enc-attach-btn').classList.add('active'); positionAttachDropdown(dd, $('enc-attach-btn')); }
+  });
+  on('enc-attach-file-btn', 'click', () => {
+    $('enc-attach-dropdown').classList.remove('show');
+    $('enc-attach-btn').classList.remove('active');
+    const fi = $('enc-file-input'); if (fi) fi.click();
+  });
+  on('enc-file-input', 'change', handleEncFileSelect);
+  on('enc-remove-attachment', 'click', () => { clearEncPendingFile(); updateEncSend(); });
   const inp = $('enc-input');
   if (inp) {
     inp.addEventListener('input', () => {
       inp.style.height = 'auto'; inp.style.height = Math.min(inp.scrollHeight, 160) + 'px';
-      const sb = $('enc-send-btn'); if (sb) sb.disabled = !inp.value.trim();
+      updateEncSend();
       if (!encIsTyping && inp.value.trim()) { encIsTyping = true; }
       clearTimeout(encTypingTimeout);
       encTypingTimeout = setTimeout(() => { encIsTyping = false; }, 1500);

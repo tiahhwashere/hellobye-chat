@@ -367,6 +367,7 @@ function getEncChat(a, b, create) {
       invites: {},
       keyHash: null,
       keyIssued: {},
+      keyDeleted: {},
       messages: [],
       createdAt: nowISO(),
       updatedAt: nowISO(),
@@ -1138,7 +1139,18 @@ function authMiddleware(req, res, next) {
 app.use(express.json({ limit: '260mb' }));
 app.use(express.urlencoded({ extended: true, limit: '260mb' }));
 app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
+  // Reflect the request Origin when present. The frontend sends
+  // credentials:'include' on every fetch, and browsers REJECT the combination
+  // of `Access-Control-Allow-Origin: *` with credentials — which surfaced as
+  // "A network error occurred. Please try again." on cross-origin requests.
+  // Echoing the exact origin (with Vary: Origin) is the correct, safe fix.
+  const reqOrigin = req.headers.origin;
+  if (reqOrigin) {
+    res.header('Access-Control-Allow-Origin', reqOrigin);
+    res.header('Vary', 'Origin');
+  } else {
+    res.header('Access-Control-Allow-Origin', '*');
+  }
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Content-Type, X-Session-Id, Authorization');
   res.header('Access-Control-Allow-Credentials', 'true');
@@ -2197,6 +2209,7 @@ function publicEncChat(rec, viewer) {
     myInvite: rec.invites ? (rec.invites[v] || null) : null,
     theirInvite: other && rec.invites ? (rec.invites[other] || null) : null,
     keyIssuedToMe: !!(rec.keyIssued && rec.keyIssued[v]),
+    keyDeletedByMe: !!(rec.keyDeleted && rec.keyDeleted[v]),
     hasKey: !!rec.keyHash,
     messageCount: (rec.messages || []).length,
   };
@@ -2221,12 +2234,12 @@ app.post('/api/encryption/invite/:username', authMiddleware, (req, res) => {
   if (other === me) return res.status(400).json({ error: 'Cannot start an encryption chat with yourself' });
   if (!areFriends(me, other)) return res.status(403).json({ error: 'You must be friends to use encryption chat' });
   const rec = getEncChat(me, other, true);
-  // Reset any previous session for a fresh invite.
+  // Reset the invite state for a fresh session. NOTE: we intentionally do NOT
+  // clear keyHash / messages here — the key-rotation decision is made when both
+  // users join (see respond handler), and keeping the history means the
+  // encrypted chatroom persists across sessions.
   rec.state = 'invited';
   rec.invites = { [me]: 'pending', [other]: 'pending' };
-  rec.keyHash = null;
-  rec.keyIssued = {};
-  rec.messages = [];
   rec.updatedAt = nowISO();
   saveDB();
   const payload = { pairId: encPairId(me, other), from: me, other, status: publicEncChat(rec, me) };
@@ -2270,17 +2283,44 @@ app.post('/api/encryption/respond/:username', authMiddleware, (req, res) => {
 
   if (bothJoined) {
     rec.state = 'active';
-    // Generate the one-time 24-letter key (only if not already active with a key).
-    const key = generateEncKey();
-    rec.keyHash = hashEncKey(key);
+    // ---- Key rotation policy ----
+    // A fresh, random 24-letter key is issued every time the pair (re)enters
+    // the chatroom — UNLESS a user has explicitly deleted their key, in which
+    // case we keep the existing key (and history) so the other user is not
+    // disrupted. Rotating the key starts a fresh message history (old
+    // ciphertext can no longer be decrypted with the new key).
+    const someoneDeletedKey = !!(rec.keyDeleted && (rec.keyDeleted[me] || rec.keyDeleted[other]));
+    let key = null;
+    if (!rec.keyHash) {
+      // First time ever: generate the initial key.
+      key = generateEncKey();
+      rec.keyHash = hashEncKey(key);
+      rec.messages = [];
+    } else if (someoneDeletedKey) {
+      // A user deleted their key: keep the existing key + history, do not rotate.
+      key = null;
+    } else {
+      // Normal re-entry: rotate to a fresh random key + fresh history.
+      key = generateEncKey();
+      rec.keyHash = hashEncKey(key);
+      rec.messages = [];
+    }
     rec.keyIssued = { [me]: true, [other]: true };
-    rec.messages = [];
+    // Clear the per-user "deleted key" flags so the NEXT re-entry rotates again.
+    rec.keyDeleted = {};
     saveDB();
     // Deliver the one-time key to EACH user exactly once. The key is NOT
     // persisted in plaintext anywhere — only its hash is stored server-side.
-    io.to('user:' + me).emit('encryption-key', { pairId: encPairId(me, other), other, key });
-    io.to('user:' + other).emit('encryption-key', { pairId: encPairId(me, other), other: me, key });
-    return res.json({ success: true, state: 'active', key });
+    // When we reused an existing key (key === null) we cannot re-send it (we
+    // never stored it), so the users must enter the key they already saved.
+    if (key) {
+      io.to('user:' + me).emit('encryption-key', { pairId: encPairId(me, other), other, key });
+      io.to('user:' + other).emit('encryption-key', { pairId: encPairId(me, other), other: me, key });
+    } else {
+      io.to('user:' + me).emit('encryption-key-existing', { pairId: encPairId(me, other), other });
+      io.to('user:' + other).emit('encryption-key-existing', { pairId: encPairId(me, other), other: me });
+    }
+    return res.json({ success: true, state: 'active', key: key || null, reused: !key });
   }
 
   // Only one has responded so far — let the other side know the progress.
@@ -2307,6 +2347,27 @@ app.post('/api/encryption/verify/:username', authMiddleware, (req, res) => {
   }
   // Admit: return the ciphertext-only message history (client decrypts locally).
   res.json({ success: true, messages: rec.messages || [], pairId: encPairId(me, other) });
+});
+
+// POST delete MY copy of the encryption key. This marks the user as having
+// deleted their key so the next time the pair enters the chatroom the key is
+// NOT rotated (the other user keeps working). The key itself is never stored
+// server-side, so "deleting" simply clears the client's saved copy and flags
+// the record. The user can no longer re-enter until a new key is issued.
+app.post('/api/encryption/delete-key/:username', authMiddleware, (req, res) => {
+  const me = req.user.username;
+  const other = String(req.params.username || '').toLowerCase();
+  if (!db.users[other]) return res.status(404).json({ error: 'User not found' });
+  if (!areFriends(me, other)) return res.status(403).json({ error: 'You must be friends to use encryption chat' });
+  const rec = getEncChat(me, other, false);
+  if (!rec) return res.status(400).json({ error: 'No encryption chat found' });
+  if (!rec.keyDeleted || typeof rec.keyDeleted !== 'object') rec.keyDeleted = {};
+  rec.keyDeleted[me] = true;
+  rec.updatedAt = nowISO();
+  saveDB();
+  // Let the other user know their partner deleted their key (informational).
+  io.to('user:' + other).emit('encryption-key-deleted', { pairId: encPairId(me, other), other: me });
+  res.json({ success: true });
 });
 
 // POST request to return to normal DMs. Notifies both users; both must accept.
@@ -4281,7 +4342,7 @@ io.on('connection', (socket) => {
   // The client sends ONLY a ciphertext envelope (AES-GCM). The server stores
   // and relays the ciphertext verbatim — it can never read the plaintext, and
   // neither can the owner/admin. Only the two friends in the pair can decrypt.
-  socket.on('encryption-send', ({ to, e2e, reply }, ack) => {
+  socket.on('encryption-send', ({ to, e2e, reply, file, files }, ack) => {
     try {
       const target = to ? String(to).toLowerCase() : '';
       if (!db.users[target]) { if (typeof ack === 'function') ack({ error: 'User not found' }); return; }
@@ -4289,7 +4350,21 @@ io.on('connection', (socket) => {
       const rec = getEncChat(username, target, false);
       if (!rec || rec.state !== 'active') { if (typeof ack === 'function') ack({ error: 'No active encryption chatroom' }); return; }
       const env = (e2e && typeof e2e === 'object' && e2e.iv && e2e.ct) ? e2e : null;
-      if (!env) { if (typeof ack === 'function') ack({ error: 'Encrypted payload required' }); return; }
+      // Encrypted attachments: each entry is { url, meta:{iv,ct} } where the
+      // file bytes at `url` are ciphertext and `meta` is an encrypted envelope
+      // holding the original name/type/size/iv. The server never sees plaintext.
+      const cleanFile = (f) => {
+        if (!f || typeof f !== 'object') return null;
+        const url = typeof f.url === 'string' ? f.url : '';
+        const meta = (f.meta && typeof f.meta === 'object' && f.meta.iv && f.meta.ct) ? { iv: f.meta.iv, ct: f.meta.ct } : null;
+        if (!url || !meta) return null;
+        return { url, meta };
+      };
+      const singleFile = cleanFile(file);
+      const multiFiles = Array.isArray(files) ? files.map(cleanFile).filter(Boolean).slice(0, 5) : null;
+      if (!env && !singleFile && !(multiFiles && multiFiles.length)) {
+        if (typeof ack === 'function') ack({ error: 'Encrypted payload required' }); return;
+      }
       const msg = {
         id: genId(),
         from: username,
@@ -4297,6 +4372,8 @@ io.on('connection', (socket) => {
         to: target,
         displayName: user.displayName,
         e2e: env,
+        file: singleFile,
+        files: (multiFiles && multiFiles.length) ? multiFiles : null,
         reply: reply || null,
         timestamp: nowISO(),
         edited: false,
@@ -4313,6 +4390,32 @@ io.on('connection', (socket) => {
     } catch (e) {
       console.error('encryption-send error', e);
       if (typeof ack === 'function') ack({ error: 'Failed to send encrypted message' });
+    }
+  });
+
+  // ---- Encrypted chatroom: delete a message ----
+  // Only the sender may delete their own encrypted message. We soft-delete
+  // (clear the ciphertext) and relay to both users so their open room updates.
+  socket.on('encryption-delete', ({ id, to }, ack) => {
+    try {
+      const target = to ? String(to).toLowerCase() : '';
+      const rec = getEncChat(username, target, false);
+      if (!rec || !Array.isArray(rec.messages)) { if (typeof ack === 'function') ack({ error: 'No active encryption chatroom' }); return; }
+      const msg = rec.messages.find(m => m.id === id);
+      if (!msg) { if (typeof ack === 'function') ack({ error: 'Message not found' }); return; }
+      if (msg.from !== username) { if (typeof ack === 'function') ack({ error: 'You can only delete your own messages' }); return; }
+      msg.deleted = true;
+      msg.deletedAt = nowISO();
+      msg.e2e = null;
+      msg.text = '';
+      rec.updatedAt = nowISO();
+      saveDB();
+      io.to('user:' + target).emit('encryption-deleted', { id: msg.id, from: username, other: username });
+      io.to('user:' + username).emit('encryption-deleted', { id: msg.id, from: username, other: target });
+      if (typeof ack === 'function') ack({ success: true });
+    } catch (e) {
+      console.error('encryption-delete error', e);
+      if (typeof ack === 'function') ack({ error: 'Failed to delete message' });
     }
   });
 

@@ -1,39 +1,38 @@
-# Hellobye-Chat — Round 7: Mutual Encryption Chatroom (E2E, key-gated)
+# Hellobye-Chat — Round 8: Encrypted chatroom upgrades
 
 ## Context
-User request: In DMs, ONLY when the two users are friends, add an "Encryption Chat"
-button right beside the Search Messages button. Clicking it sends BOTH users an
-encryption-chatroom invite popup (Join / Exit). Both Exit → UI exits. Both Join →
-each user gets a one-time 24-letter encryption key (copyable, shown once). Entering
-the correct key opens an end-to-end encrypted chatroom (same DM system/UI) that
-NOBODY but the two users can read — not even the owner. The chatroom has a
-"Back to Normal DMs" button; both accept → switch back to normal DM, both deny →
-exit the UI.
+User requests for the mutual encryption chatroom:
+1. Add the same media sender (files/images/videos/GIFs) to the encrypted chatroom.
+2. Make the 24-letter key random & different every time users enter the chatroom,
+   but only if the user hasn't deleted their key yet.
+3. Add an option to delete messages in the encrypted chatroom.
+4. Remove the X (close) button from the encrypted chatroom.
+5. Fix "A network error occurred. Please try again."
 
 ## Constraints
-- Do NOT wipe/delete any existing data (users, messages, DMs, friends, groups).
-- Additive-only DB changes (new `encryptionChats` field).
-- Encryption chat messages stored as ciphertext only; never exposed to admin/owner.
+- Do NOT wipe/delete any existing data. Additive-only DB changes.
+- Encrypted chat messages/files stay ciphertext-only; never exposed to admin/owner.
+
+## Findings (Task A)
+- Full encryption REST + socket flow reproduced locally with NO deterministic error.
+- Root cause of "network error": (a) invalid CORS combo — frontend sends
+  credentials:'include' while server returns Access-Control-Allow-Origin:'*',
+  which browsers reject cross-origin; (b) Render free-tier cold starts cause
+  transient fetch failures with no retry. Fix = reflect Origin + retry wrapper.
 
 ## Tasks
-- [x] A. Update todo.md for Round 7
-- [x] B. Server: add `db.encryptionChats` store + pair-key helpers (additive, no data loss)
-- [x] C. Server: REST endpoints (invite / respond / verify / return-request / return-respond / status)
-- [x] D. Server: socket handler `encryption-send` (store ciphertext, relay to peer)
-- [x] E. Frontend: CSS for encryption button, invite/key/return modals, encrypted chatroom overlay
-- [x] F. Frontend: HTML for the button, modals, and encrypted chatroom overlay
-- [x] G. Frontend: client JS (invite flow, one-time key, key entry, E2E encrypt/decrypt, return flow)
-- [x] H. Frontend: socket listeners for real-time encryption events
-- [x] I. Frontend: show button only when friends (updateDMHeader)
-- [x] J. Verify locally (server boots, endpoints respond, no data loss)
-- [x] K. Commit & push to GitHub
-- [x] L. Trigger Render deploy & verify live site (deploy dep-daldel15efls73bb3du0 = live)
-- [x] M. Confirm no data deleted/removed (live restored 5 users/4 msgs/5 DMs/5 friends/1 group from backup)
-
-## Round 7b — Fix: server error in encryption chat (post-deploy)
-- [x] N. Root cause: remote DB restore replaced `db` with a backup lacking `encryptionChats` → `db.encryptionChats[id]` threw "Cannot read properties of undefined (reading 'hi::lore')"
-- [x] O. Fix: defensive guard in `getEncChat` + re-ensure `encryptionChats`/`groupChats` in remote-restore block
-- [x] P. Fix: generic error handler no longer mislabels all errors as "Server error during upload."
-- [x] Q. Verify: full encryption flow passes with a db lacking `encryptionChats` (status/invite/join/verify/return all 200)
-- [ ] R. Commit & push fix
-- [ ] S. Verify live deploy + no data loss
+- [x] A. Reproduce the "network error" locally to find the real cause
+- [x] B. Server: `encryption-delete` socket handler (delete own enc messages, relay)
+- [x] C. Server: key rotation per session + `keyDeleted` + delete-key endpoint
+- [x] D. Frontend: media sender in enc chatroom (client-side encrypt file bytes, upload ciphertext, render decrypted)
+- [x] E. Frontend: delete-message option on enc messages
+- [x] F. Frontend: remove the X close button from the enc chatroom
+- [x] G. Frontend: "Delete Key" option
+- [x] H. Frontend: fix the network error (retry wrapper + CORS reflect)
+- [x] I. Verify locally (full flow + media + delete + key rotation)
+      - Full REST flow OK; key rotation OK (rotates each entry, keeps key when deleted);
+      - socket send/media/delete OK; UI: no X button, Delete Key, media sender, delete msg OK;
+      - fixed 2 bugs found in testing: duplicate own message (ack+echo race) & empty-state not removed;
+      - CORS reflects Origin with credentials OK.
+- [ ] J. Commit & push
+- [ ] K. Verify live deploy + no data loss
