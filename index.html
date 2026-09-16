@@ -4803,6 +4803,114 @@ body.no-anim .friend-item { animation: none !important; }
 .dm-search-result-text { font-size: 12.5px; line-height: 1.42; color: var(--text-primary); word-break: break-word; overflow-wrap: break-word; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
 .dm-search-result-text mark { background: rgba(var(--accent-rgb), 0.22); color: inherit; border-radius: 3px; padding: 0 1px; }
 
+/* ============================================================
+   MUTUAL ENCRYPTION CHATROOM (Round 7)
+   Friend-only, key-gated, end-to-end encrypted chatroom.
+   ============================================================ */
+/* The "Encryption Chat" header button (shown only between friends). */
+.enc-chat-btn {
+  display: none; align-items: center; gap: 6px;
+  height: 34px; padding: 0 12px; border-radius: 8px;
+  background: linear-gradient(135deg, rgba(88,101,242,0.18), rgba(88,101,242,0.08));
+  border: 1px solid rgba(88,101,242,0.4);
+  color: #a9b4ff; font-size: 12px; font-weight: 600;
+  transition: var(--transition); white-space: nowrap;
+}
+.enc-chat-btn.show { display: inline-flex; }
+.enc-chat-btn:hover { background: linear-gradient(135deg, rgba(88,101,242,0.3), rgba(88,101,242,0.14)); border-color: rgba(88,101,242,0.7); color: #c7ceff; }
+.enc-chat-btn svg { width: 15px; height: 15px; }
+.enc-chat-btn.active { background: linear-gradient(135deg, rgba(46,204,113,0.22), rgba(46,204,113,0.1)); border-color: rgba(46,204,113,0.55); color: #7ee2a8; }
+@media (max-width: 640px) { .enc-chat-btn .enc-chat-btn-label { display: none; } .enc-chat-btn { padding: 0 9px; } }
+
+/* Encryption invite / key / return modal accents */
+.enc-modal .modal-icon.enc { background: linear-gradient(135deg, rgba(88,101,242,0.22), rgba(88,101,242,0.08)); color: #a9b4ff; }
+.enc-modal .modal-icon.enc svg { width: 26px; height: 26px; }
+.enc-key-box {
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  margin: 4px 0 16px; padding: 16px 14px;
+  background: var(--bg-darker); border: 1px dashed rgba(88,101,242,0.5);
+  border-radius: 12px; position: relative;
+}
+.enc-key-value {
+  font-family: 'SFMono-Regular', ui-monospace, Menlo, Consolas, monospace;
+  font-size: 19px; font-weight: 700; letter-spacing: 3px;
+  color: #c7ceff; word-break: break-all; text-align: center; line-height: 1.5;
+}
+.enc-key-copy {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 14px; border-radius: 8px; font-size: 12px; font-weight: 600;
+  background: rgba(88,101,242,0.18); border: 1px solid rgba(88,101,242,0.4);
+  color: #a9b4ff; transition: var(--transition); white-space: nowrap;
+}
+.enc-key-copy:hover { background: rgba(88,101,242,0.3); color: #c7ceff; }
+.enc-key-copy svg { width: 14px; height: 14px; }
+.enc-key-warn {
+  font-size: 12px; color: var(--warning); line-height: 1.5;
+  background: rgba(212,160,23,0.08); border: 1px solid rgba(212,160,23,0.22);
+  border-radius: 9px; padding: 10px 12px; margin-bottom: 18px; text-align: left;
+}
+.enc-key-input {
+  width: 100%; padding: 14px 16px; margin-bottom: 16px;
+  background: var(--bg-darker); border: 1px solid var(--border-light);
+  border-radius: 10px; color: var(--text-primary);
+  font-family: 'SFMono-Regular', ui-monospace, Menlo, Consolas, monospace;
+  font-size: 17px; font-weight: 700; letter-spacing: 4px; text-align: center;
+  text-transform: uppercase;
+}
+.enc-key-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.16); }
+.enc-key-input.error { border-color: var(--danger); box-shadow: 0 0 0 3px rgba(224,60,60,0.16); }
+.enc-status-line { font-size: 12.5px; color: var(--text-muted); margin-bottom: 18px; line-height: 1.5; }
+.enc-status-line strong { color: var(--text-secondary); }
+
+/* Encrypted chatroom overlay reuses the DM panel look with a distinct accent. */
+.enc-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.55);
+  backdrop-filter: blur(3px); display: none;
+  align-items: center; justify-content: center; z-index: 195; padding: 30px;
+}
+.enc-overlay.show { display: flex; }
+.enc-panel {
+  position: relative; width: 100%; max-width: 760px; height: 100%; max-height: 760px;
+  background: var(--bg-dark); border: 1px solid rgba(88,101,242,0.35);
+  border-radius: var(--radius-lg); display: flex; flex-direction: column;
+  overflow: hidden; box-shadow: 0 0 0 1px rgba(88,101,242,0.15), var(--shadow-lg);
+}
+.enc-panel .dm-header { background: linear-gradient(180deg, rgba(88,101,242,0.12), var(--bg-darker)); border-bottom-color: rgba(88,101,242,0.25); }
+.enc-lock-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 10.5px; font-weight: 700; letter-spacing: 0.4px;
+  color: #7ee2a8; background: rgba(46,204,113,0.12);
+  border: 1px solid rgba(46,204,113,0.3); border-radius: 20px;
+  padding: 3px 9px; margin-top: 3px;
+}
+.enc-lock-badge svg { width: 11px; height: 11px; }
+.enc-banner {
+  display: flex; align-items: center; gap: 8px; justify-content: center;
+  padding: 8px 16px; font-size: 11.5px; color: #a9b4ff;
+  background: rgba(88,101,242,0.1); border-bottom: 1px solid rgba(88,101,242,0.2);
+  flex-shrink: 0; text-align: center;
+}
+.enc-banner svg { width: 13px; height: 13px; flex-shrink: 0; }
+.enc-back-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  height: 34px; padding: 0 12px; border-radius: 8px;
+  background: var(--bg-medium); border: 1px solid var(--border-light);
+  color: var(--text-secondary); font-size: 12px; font-weight: 600;
+  transition: var(--transition); white-space: nowrap;
+}
+.enc-back-btn:hover { background: var(--bg-lighter); color: var(--text-primary); }
+.enc-back-btn svg { width: 14px; height: 14px; }
+@media (max-width: 640px) { .enc-back-btn .enc-back-label { display: none; } .enc-back-btn { padding: 0 9px; } }
+.enc-empty {
+  text-align: center; padding: 40px 20px; color: var(--text-muted);
+}
+.enc-empty svg { width: 44px; height: 44px; margin: 0 auto 14px; opacity: 0.35; display: block; color: #a9b4ff; }
+.enc-empty .empty-title { font-size: 14px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px; display: block; }
+.enc-empty .empty-sub { font-size: 12px; line-height: 1.55; max-width: 320px; margin: 0 auto; display: block; }
+.enc-msg-lock { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; color: #7ee2a8; opacity: 0.85; margin-left: 6px; vertical-align: middle; }
+.enc-msg-lock svg { width: 10px; height: 10px; }
+@media (max-width: 640px) { .enc-overlay { padding: 0; } .enc-panel { max-height: 100%; border-radius: 0; } }
+
 /* Pinned-message indicator on the bubble itself */
 .message-bubble.is-pinned { box-shadow: inset 3px 0 0 var(--accent); }
 .pin-indicator {
@@ -8632,6 +8740,10 @@ body.no-anim .friend-item { animation: none !important; }
           <div class="dm-header-name" id="dm-header-name"></div>
           <div class="dm-header-status" id="dm-header-status"></div>
         </div>
+        <button class="enc-chat-btn" id="enc-chat-btn" title="Start an end-to-end encrypted chatroom (friends only)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          <span class="enc-chat-btn-label">Encryption Chat</span>
+        </button>
         <button class="icon-btn dm-header-tool" id="dm-search-btn" title="Search messages in this conversation">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         </button>
@@ -8728,6 +8840,124 @@ body.no-anim .friend-item { animation: none !important; }
           </div>
           <textarea class="chat-textarea" id="dm-input" placeholder="Message @user" rows="1"></textarea>
           <button class="send-btn" id="dm-send-btn" disabled>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            <span class="send-spinner"></span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== MUTUAL ENCRYPTION CHATROOM (Round 7) ===================== -->
+  <!-- Invite popup: shown to BOTH users when an encryption chat is requested. -->
+  <div class="modal-overlay" id="enc-invite-modal">
+    <div class="modal small enc-modal">
+      <div class="modal-icon enc">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      </div>
+      <h3>Encryption Chat Request</h3>
+      <p id="enc-invite-body">@user wants to start an end-to-end encrypted chatroom with you. If you both join, you'll each receive a one-time 24-letter key. Only the two of you will ever be able to read this chatroom.</p>
+      <div class="modal-actions">
+        <button class="modal-btn" id="enc-invite-exit">Exit</button>
+        <button class="modal-btn primary" id="enc-invite-join">Join</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- One-time key modal: shown ONCE to each user after both join. -->
+  <div class="modal-overlay" id="enc-key-modal">
+    <div class="modal enc-modal">
+      <div class="modal-icon enc">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+      </div>
+      <h3>Your One-Time Encryption Key</h3>
+      <p>This key is shown <strong>only once</strong>. Copy and save it somewhere safe — you'll need it every time you enter this encrypted chatroom.</p>
+      <div class="enc-key-box">
+        <span class="enc-key-value" id="enc-key-value">••••••••••••••••••••••••</span>
+      </div>
+      <button class="enc-key-copy" id="enc-key-copy">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        <span id="enc-key-copy-label">Copy Key</span>
+      </button>
+      <div class="enc-key-warn">⚠️ If you lose this key, you will not be able to re-enter the encrypted chatroom. It cannot be recovered.</div>
+      <div class="modal-actions">
+        <button class="modal-btn primary" id="enc-key-continue">Enter Chatroom</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Key entry modal: shown when a user needs to enter the key to enter. -->
+  <div class="modal-overlay" id="enc-enter-modal">
+    <div class="modal enc-modal">
+      <div class="modal-icon enc">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      </div>
+      <h3>Enter Encryption Key</h3>
+      <p>Enter the 24-letter key you saved to open the encrypted chatroom with <strong id="enc-enter-other">@user</strong>.</p>
+      <input type="text" class="enc-key-input" id="enc-enter-input" maxlength="24" placeholder="24-LETTER KEY" autocomplete="off" spellcheck="false">
+      <div class="enc-status-line" id="enc-enter-status"></div>
+      <div class="modal-actions">
+        <button class="modal-btn" id="enc-enter-cancel">Cancel</button>
+        <button class="modal-btn primary" id="enc-enter-submit">Unlock</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Return-to-normal-DM request popup: shown to BOTH users. -->
+  <div class="modal-overlay" id="enc-return-modal">
+    <div class="modal small enc-modal">
+      <div class="modal-icon enc">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 0 0-4-4H4"/></svg>
+      </div>
+      <h3>Return to Normal DMs?</h3>
+      <p id="enc-return-body">@user wants to leave the encrypted chatroom and return to normal direct messages. If you both accept, you'll switch back to the normal DM. If you both deny, the encrypted chatroom UI will close.</p>
+      <div class="modal-actions">
+        <button class="modal-btn" id="enc-return-deny">Deny</button>
+        <button class="modal-btn primary" id="enc-return-accept">Accept</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Encrypted chatroom overlay (same DM system/UI, distinct accent). -->
+  <div class="enc-overlay" id="enc-overlay">
+    <div class="enc-panel">
+      <div class="dm-header">
+        <button class="dm-back" id="enc-back">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <div class="dm-header-avatar" id="enc-header-avatar">U</div>
+        <div class="dm-header-info">
+          <div class="dm-header-name" id="enc-header-name"></div>
+          <div class="dm-header-status" id="enc-header-status"></div>
+          <span class="enc-lock-badge">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            End-to-End Encrypted
+          </span>
+        </div>
+        <button class="enc-back-btn" id="enc-return-btn" title="Return to normal DMs">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 0 0-4-4H4"/></svg>
+          <span class="enc-back-label">Back to Normal DMs</span>
+        </button>
+        <button class="icon-btn" id="enc-close-btn" title="Close encrypted chatroom">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="enc-banner">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        Messages here are end-to-end encrypted. No one — not even the site owner — can read them.
+      </div>
+      <div class="dm-messages" id="enc-messages">
+        <div class="enc-empty" id="enc-empty-state">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          <span class="empty-title">Encrypted chatroom ready</span>
+          <span class="empty-sub">Send your first encrypted message. Only you and the other person can read it.</span>
+        </div>
+      </div>
+      <div class="dm-typing" id="enc-typing"></div>
+      <div class="dm-input-area">
+        <div class="chat-input-wrap">
+          <textarea class="chat-textarea" id="enc-input" placeholder="Encrypted message…" rows="1"></textarea>
+          <button class="send-btn" id="enc-send-btn" disabled>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
             <span class="send-spinner"></span>
           </button>
@@ -11966,6 +12196,67 @@ function connectSocket() {
   socket.on('dm-reaction', (data) => {
     if (activeDMUser === data.from || (currentUser && data.from === currentUser.username)) {
       applyRemoteReaction(dmMessages, data, 'dm');
+    }
+  });
+
+  // ---- Mutual Encryption Chatroom events (Round 7) ----
+  // Invite: BOTH users receive this and see the Join / Exit popup.
+  socket.on('encryption-invite', (data) => {
+    if (!data || !data.other) return;
+    showEncInviteModal(data.other, data.status);
+    playMessageSound();
+  });
+  socket.on('encryption-invite-update', (data) => {
+    if (!data || !data.other) return;
+    encInviteStatus = data.status || null;
+  });
+  // Both exited → close any open encryption UI.
+  socket.on('encryption-exited', (data) => {
+    hideEncInviteModal();
+    if (encActiveUser && (!data || !data.other || data.other === encActiveUser)) closeEncChatroom();
+    toast('Encryption chat request closed.', '');
+  });
+  // Both joined → each user receives the one-time 24-letter key (shown once).
+  socket.on('encryption-key', (data) => {
+    if (!data || !data.key) return;
+    hideEncInviteModal();
+    showEncKeyModal(data.other, data.key);
+    playMessageSound();
+  });
+  // Incoming encrypted message.
+  socket.on('encryption-receive', async (data) => {
+    if (!data || !data.message) return;
+    const msg = data.message;
+    const from = msg.from;
+    // Only decrypt/render if this room is open and we hold the key.
+    if (encActiveUser && (from === encActiveUser || (currentUser && from === currentUser.username))) {
+      const plain = await encDecrypt(encKey, msg.e2e);
+      const m = { ...msg, text: plain != null ? plain : '🔒 Encrypted message', __decrypted: plain != null };
+      // Avoid duplicating our own echoed message (already appended on send).
+      if (!encMessages.some(x => x.id === m.id)) {
+        encMessages.push(m);
+        appendEncMessage(m);
+      }
+    }
+  });
+  // Return-to-normal-DM request: BOTH users see the Accept / Deny popup.
+  socket.on('encryption-return-request', (data) => {
+    if (!data || !data.other) return;
+    showEncReturnModal(data.other);
+    playMessageSound();
+  });
+  socket.on('encryption-return-update', () => {});
+  // Both responded → switch back to normal DMs (accepted) or exit the UI (denied).
+  socket.on('encryption-return-resolved', (data) => {
+    hideEncReturnModal();
+    const other = data && data.other;
+    const reason = data && data.reason;
+    closeEncChatroom();
+    if (reason === 'accepted') {
+      toast('Returned to normal direct messages.', 'success');
+      if (other) openDM(other);
+    } else {
+      toast('Encryption chatroom closed.', '');
     }
   });
 
@@ -16861,6 +17152,8 @@ function updateDMHeader() {
   // Update the DM input placeholder to show who you're messaging
   const dmInput = $('dm-input');
   if (dmInput) dmInput.placeholder = 'Message @' + u.username;
+  // Show the "Encryption Chat" button only when the two users are friends.
+  updateEncChatButton();
 }
 function closeDMOverlay() {
   $('dm-overlay').classList.remove('show');
@@ -17146,6 +17439,361 @@ document.querySelector('.sidebar-nav-btn[data-view="dms"]').addEventListener('co
   }));
   showContextMenu(e.clientX, e.clientY, items);
 });
+
+// ============================================================
+// MUTUAL ENCRYPTION CHATROOM — Frontend logic (Round 7)
+// Friend-only, key-gated, end-to-end encrypted chatroom. The
+// plaintext never leaves the browser: messages are encrypted with
+// AES-GCM using a key derived from the shared 24-letter key, and
+// only the ciphertext is sent to / stored on the server.
+// ============================================================
+let encActiveUser = null;        // the other user in the open encrypted chatroom
+let encMessages = [];            // decrypted messages of the active room
+let encKey = null;               // in-memory AES-GCM CryptoKey for the active room
+let encKeyRaw = null;            // the raw 24-letter key (in-memory only)
+let encPendingUser = null;       // user for a pending invite/key/return modal
+let encInviteStatus = null;      // last known status object for the pending pair
+let encTypingTimeout = null;
+let encIsTyping = false;
+
+// Derive an AES-GCM key from the 24-letter shared key (PBKDF2 with a fixed
+// salt derived from the pair id, so both users derive the identical key).
+async function encDeriveKey(rawKey, pairId) {
+  if (!e2eSupported()) return null;
+  try {
+    const enc = new TextEncoder();
+    const baseKey = await crypto.subtle.importKey('raw', enc.encode(String(rawKey).toUpperCase()), { name: 'PBKDF2' }, false, ['deriveKey']);
+    return await crypto.subtle.deriveKey(
+      { name: 'PBKDF2', salt: enc.encode('hellobye-enc:' + pairId), iterations: 100000, hash: 'SHA-256' },
+      baseKey, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']
+    );
+  } catch (e) { return null; }
+}
+function encPairIdOf(a, b) {
+  return [String(a || '').toLowerCase(), String(b || '').toLowerCase()].sort().join('::');
+}
+// Encrypt plaintext → { iv, ct } envelope (or null on failure).
+async function encEncrypt(key, plaintext) {
+  if (!key) return null;
+  try {
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, new TextEncoder().encode(String(plaintext)));
+    return { v: 1, alg: 'PBKDF2-AESGCM', iv: b64encode(iv), ct: b64encode(ct) };
+  } catch (e) { return null; }
+}
+// Decrypt an { iv, ct } envelope → plaintext (or null).
+async function encDecrypt(key, env) {
+  if (!key || !env || !env.iv || !env.ct) return null;
+  try {
+    const pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: b64decode(env.iv) }, key, b64decode(env.ct));
+    return new TextDecoder().decode(pt);
+  } catch (e) { return null; }
+}
+
+// ---- Show/hide the "Encryption Chat" header button (friends only) ----
+function updateEncChatButton() {
+  const btn = $('enc-chat-btn');
+  if (!btn) return;
+  if (!activeDMUser) { btn.classList.remove('show'); return; }
+  const isFriend = friends.some(f => f && f.username === activeDMUser);
+  if (isFriend) btn.classList.add('show');
+  else btn.classList.remove('show');
+}
+// ---- Start an encryption-chat invite (from the header button) ----
+async function startEncryptionChat() {
+  if (!activeDMUser) return;
+  const other = activeDMUser;
+  if (!friends.some(f => f && f.username === other)) { toast('You must be friends to use encryption chat.', 'error'); return; }
+  // If a chatroom is already active for this pair, ask for the key to re-enter
+  // instead of starting a brand-new invite.
+  try {
+    const sres = await fetch(API_BASE + '/api/encryption/status/' + encodeURIComponent(other));
+    const sdata = await sres.json();
+    if (sres.ok && sdata.status && sdata.status.state === 'active') {
+      showEncEnterModal(other);
+      return;
+    }
+    if (sres.ok && sdata.status && sdata.status.state === 'invited') {
+      // An invite is already pending — re-show the popup.
+      showEncInviteModal(other, sdata.status);
+      return;
+    }
+  } catch (e) {}
+  try {
+    const res = await fetch(API_BASE + '/api/encryption/invite/' + encodeURIComponent(other), { method: 'POST' });
+    const data = await res.json();
+    if (!res.ok) { toast((data && data.error) || 'Could not start encryption chat.', 'error'); return; }
+    // The server emits 'encryption-invite' to both users; show it locally too
+    // in case the socket echo is delayed.
+    showEncInviteModal(other, data.status);
+  } catch (e) { toast('A network error occurred. Please try again.', 'error'); }
+}
+// ---- Invite modal ----
+function showEncInviteModal(other, status) {
+  encPendingUser = other;
+  encInviteStatus = status || null;
+  const u = getUserByUsername(other);
+  const body = $('enc-invite-body');
+  if (body) body.innerHTML = '@' + escapeHtml(other) + ' wants to start an end-to-end encrypted chatroom with you. If you both join, you\'ll each receive a one-time 24-letter key. Only the two of you will ever be able to read this chatroom.';
+  $('enc-invite-modal').classList.add('show');
+}
+function hideEncInviteModal() { $('enc-invite-modal').classList.remove('show'); }
+// ---- Respond to an invite ----
+async function respondEncInvite(action) {
+  const other = encPendingUser;
+  if (!other) { hideEncInviteModal(); return; }
+  hideEncInviteModal();
+  try {
+    const res = await fetch(API_BASE + '/api/encryption/respond/' + encodeURIComponent(other), {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action })
+    });
+    const data = await res.json();
+    if (!res.ok) { toast((data && data.error) || 'Could not respond to the request.', 'error'); return; }
+    if (action === 'exit') {
+      // If both exited, the server emits 'encryption-exited'. Nothing else to do.
+      if (data && data.exited) toast('Encryption chat request closed.', '');
+    }
+    // On join: the server emits 'encryption-key' to both once both have joined.
+  } catch (e) { toast('A network error occurred. Please try again.', 'error'); }
+}
+// ---- One-time key modal ----
+function showEncKeyModal(other, key) {
+  encPendingUser = other;
+  encKeyRaw = key;
+  const el = $('enc-key-value');
+  if (el) el.textContent = key;
+  const lbl = $('enc-key-copy-label');
+  if (lbl) lbl.textContent = 'Copy Key';
+  $('enc-key-modal').classList.add('show');
+}
+function hideEncKeyModal() { $('enc-key-modal').classList.remove('show'); }
+async function copyEncKey() {
+  if (!encKeyRaw) return;
+  try {
+    await navigator.clipboard.writeText(encKeyRaw);
+    const lbl = $('enc-key-copy-label');
+    if (lbl) { lbl.textContent = 'Copied!'; setTimeout(() => { lbl.textContent = 'Copy Key'; }, 1800); }
+    toast('Encryption key copied to clipboard.', 'success');
+  } catch (e) {
+    // Fallback for browsers without clipboard API
+    try {
+      const ta = document.createElement('textarea');
+      ta.value = encKeyRaw; document.body.appendChild(ta); ta.select();
+      document.execCommand('copy'); document.body.removeChild(ta);
+      toast('Encryption key copied to clipboard.', 'success');
+    } catch (e2) { toast('Could not copy. Please select and copy the key manually.', 'error'); }
+  }
+}
+// ---- Enter the chatroom after the key modal ----
+async function enterEncChatroomFromKey() {
+  const other = encPendingUser;
+  const key = encKeyRaw;
+  hideEncKeyModal();
+  if (!other || !key) return;
+  await openEncChatroom(other, key);
+}
+// ---- Key entry modal (for re-entry) ----
+function showEncEnterModal(other) {
+  encPendingUser = other;
+  const o = $('enc-enter-other');
+  if (o) o.textContent = '@' + other;
+  const inp = $('enc-enter-input');
+  if (inp) { inp.value = ''; inp.classList.remove('error'); }
+  const st = $('enc-enter-status');
+  if (st) st.textContent = '';
+  $('enc-enter-modal').classList.add('show');
+  setTimeout(() => { const i = $('enc-enter-input'); if (i) i.focus(); }, 60);
+}
+function hideEncEnterModal() { $('enc-enter-modal').classList.remove('show'); }
+async function submitEncEnter() {
+  const other = encPendingUser;
+  const inp = $('enc-enter-input');
+  const st = $('enc-enter-status');
+  if (!other || !inp) return;
+  const key = String(inp.value || '').trim().toUpperCase();
+  if (key.length !== 24) { inp.classList.add('error'); if (st) st.textContent = 'The key must be exactly 24 letters.'; return; }
+  if (st) st.textContent = 'Verifying…';
+  try {
+    const res = await fetch(API_BASE + '/api/encryption/verify/' + encodeURIComponent(other), {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key })
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      inp.classList.add('error');
+      if (st) st.textContent = (data && data.error) || 'Incorrect encryption key.';
+      return;
+    }
+    hideEncEnterModal();
+    await openEncChatroom(other, key, data.messages || []);
+  } catch (e) { if (st) st.textContent = 'A network error occurred. Please try again.'; }
+}
+// ---- Open the encrypted chatroom ----
+async function openEncChatroom(other, key, preloaded) {
+  encActiveUser = other;
+  encKeyRaw = key;
+  encKey = await encDeriveKey(key, encPairIdOf(currentUser.username, other));
+  // Load ciphertext history (from verify response, or fetch by verifying again).
+  let cipherMsgs = preloaded;
+  if (!cipherMsgs) {
+    try {
+      const res = await fetch(API_BASE + '/api/encryption/verify/' + encodeURIComponent(other), {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key })
+      });
+      const data = await res.json();
+      cipherMsgs = (res.ok && data.messages) ? data.messages : [];
+    } catch (e) { cipherMsgs = []; }
+  }
+  // Decrypt each message locally.
+  encMessages = [];
+  for (const m of (cipherMsgs || [])) {
+    const plain = await encDecrypt(encKey, m.e2e);
+    encMessages.push({ ...m, text: plain != null ? plain : '🔒 Encrypted message', __decrypted: plain != null });
+  }
+  // Update header + render.
+  const u = getUserByUsername(other);
+  const av = $('enc-header-avatar');
+  if (av) { if (u.avatar) av.innerHTML = '<img src="' + u.avatar + '">'; else av.textContent = getInitials(u.username); }
+  const nm = $('enc-header-name');
+  if (nm) nm.innerHTML = (u.displayName ? '<span class="user-displayname">' + escapeHtml(u.displayName) + ' </span>' : '') + '<span class="user-handle">@' + u.username + '</span>' + buildUserBadges(u);
+  const stt = $('enc-header-status');
+  if (stt) { stt.textContent = 'Encrypted chatroom'; stt.className = 'dm-header-status online'; }
+  const inp = $('enc-input');
+  if (inp) inp.placeholder = 'Encrypted message to @' + u.username;
+  $('enc-overlay').classList.add('show');
+  renderEncMessages();
+  setTimeout(() => { const i = $('enc-input'); if (i) i.focus(); }, 80);
+}
+function closeEncChatroom() {
+  $('enc-overlay').classList.remove('show');
+  encActiveUser = null;
+  encMessages = [];
+  encKey = null;
+  encKeyRaw = null;
+}
+function renderEncMessages() {
+  const container = $('enc-messages');
+  if (!container) return;
+  container.innerHTML = '';
+  if (!encMessages.length) {
+    container.innerHTML = '<div class="enc-empty" id="enc-empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg><span class="empty-title">Encrypted chatroom ready</span><span class="empty-sub">Send your first encrypted message. Only you and the other person can read it.</span></div>';
+    return;
+  }
+  encMessages.forEach(m => appendEncMessage(m, true));
+  const c = $('enc-messages'); if (c) c.scrollTop = c.scrollHeight;
+}
+function appendEncMessage(msg, silent) {
+  const container = $('enc-messages');
+  if (!container) return;
+  const isOwn = currentUser && msg.from === currentUser.username;
+  const group = document.createElement('div');
+  group.className = 'message-group' + (isOwn ? ' own' : '');
+  group.dataset.encId = msg.id;
+  const bubble = document.createElement('div');
+  bubble.className = 'message-bubble dm-bubble';
+  const textSpan = document.createElement('span');
+  textSpan.className = 'message-text';
+  textSpan.innerHTML = highlightMentions(linkifyAndEmbed(escapeHtml(normalizeMessageText(msg.text || ''))));
+  const textBlock = document.createElement('div');
+  textBlock.className = 'message-text-block';
+  textBlock.appendChild(textSpan);
+  bubble.appendChild(textBlock);
+  // Small lock marker to reinforce that this message is encrypted.
+  const lock = document.createElement('span');
+  lock.className = 'enc-msg-lock';
+  lock.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>';
+  bubble.appendChild(lock);
+  group.appendChild(bubble);
+  container.appendChild(group);
+  if (!silent) { const c = $('enc-messages'); if (c) c.scrollTop = c.scrollHeight; }
+}
+// ---- Send an encrypted message ----
+async function sendEncMessage() {
+  const inp = $('enc-input');
+  if (!inp || !encActiveUser || !encKey) return;
+  const text = normalizeMessageText(inp.value);
+  if (!text) return;
+  const env = await encEncrypt(encKey, text);
+  if (!env) { toast('Could not encrypt the message.', 'error'); return; }
+  socket.emit('encryption-send', { to: encActiveUser, e2e: env }, (res) => {
+    if (res && res.error) { toast(res.error, 'error'); return; }
+    if (res && res.message) {
+      // Show our own plaintext locally (the server only stored ciphertext).
+      const m = { ...res.message, text, __decrypted: true };
+      encMessages.push(m);
+      appendEncMessage(m);
+    }
+  });
+  inp.value = ''; inp.style.height = 'auto';
+  const sb = $('enc-send-btn'); if (sb) sb.disabled = true;
+  encIsTyping = false;
+}
+// ---- Return-to-normal-DM flow ----
+async function requestEncReturn() {
+  if (!encActiveUser) return;
+  const other = encActiveUser;
+  try {
+    const res = await fetch(API_BASE + '/api/encryption/return-request/' + encodeURIComponent(other), { method: 'POST' });
+    const data = await res.json();
+    if (!res.ok) { toast((data && data.error) || 'Could not request a return.', 'error'); return; }
+    showEncReturnModal(other);
+  } catch (e) { toast('A network error occurred. Please try again.', 'error'); }
+}
+function showEncReturnModal(other) {
+  encPendingUser = other;
+  const body = $('enc-return-body');
+  if (body) body.innerHTML = '@' + escapeHtml(other) + ' wants to leave the encrypted chatroom and return to normal direct messages. If you both accept, you\'ll switch back to the normal DM. If you both deny, the encrypted chatroom UI will close.';
+  $('enc-return-modal').classList.add('show');
+}
+function hideEncReturnModal() { $('enc-return-modal').classList.remove('show'); }
+async function respondEncReturn(action) {
+  const other = encPendingUser;
+  if (!other) { hideEncReturnModal(); return; }
+  hideEncReturnModal();
+  try {
+    const res = await fetch(API_BASE + '/api/encryption/return-respond/' + encodeURIComponent(other), {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action })
+    });
+    const data = await res.json();
+    if (!res.ok) { toast((data && data.error) || 'Could not respond.', 'error'); return; }
+    // The server emits 'encryption-return-resolved' to both once both respond.
+  } catch (e) { toast('A network error occurred. Please try again.', 'error'); }
+}
+// ---- Wire up the encryption UI events ----
+(function wireEncryptionUI() {
+  const on = (id, ev, fn) => { const el = $(id); if (el) el.addEventListener(ev, fn); };
+  on('enc-chat-btn', 'click', startEncryptionChat);
+  on('enc-invite-join', 'click', () => respondEncInvite('join'));
+  on('enc-invite-exit', 'click', () => respondEncInvite('exit'));
+  on('enc-key-copy', 'click', copyEncKey);
+  on('enc-key-continue', 'click', enterEncChatroomFromKey);
+  on('enc-enter-cancel', 'click', hideEncEnterModal);
+  on('enc-enter-submit', 'click', submitEncEnter);
+  on('enc-enter-input', 'keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); submitEncEnter(); } });
+  on('enc-enter-input', 'input', (e) => { e.target.value = e.target.value.toUpperCase().replace(/[^A-Z]/g, ''); e.target.classList.remove('error'); });
+  on('enc-return-accept', 'click', () => respondEncReturn('accept'));
+  on('enc-return-deny', 'click', () => respondEncReturn('deny'));
+  on('enc-return-btn', 'click', requestEncReturn);
+  on('enc-back', 'click', closeEncChatroom);
+  on('enc-close-btn', 'click', closeEncChatroom);
+  on('enc-send-btn', 'click', sendEncMessage);
+  const inp = $('enc-input');
+  if (inp) {
+    inp.addEventListener('input', () => {
+      inp.style.height = 'auto'; inp.style.height = Math.min(inp.scrollHeight, 160) + 'px';
+      const sb = $('enc-send-btn'); if (sb) sb.disabled = !inp.value.trim();
+      if (!encIsTyping && inp.value.trim()) { encIsTyping = true; }
+      clearTimeout(encTypingTimeout);
+      encTypingTimeout = setTimeout(() => { encIsTyping = false; }, 1500);
+    });
+    inp.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendEncMessage(); }
+    });
+  }
+})();
 
 // ============================================================
 // GROUP CHAT SYSTEM — Frontend logic

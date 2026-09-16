@@ -1,17 +1,31 @@
-# Hellobye-Chat — Round 6: Member List Bubble Size/Overlay + Mobile Layout
+# Hellobye-Chat — Round 7: Mutual Encryption Chatroom (E2E, key-gated)
 
 ## Context
-User feedback: "fix the status messages on the member lists that looks a bit too big and overlying the users profile picture and fix the mobile layout if broken or sizes are too big"
-- Round 4 aligned the member list orb with the avatar's LEFT edge (margin-left: -49px), causing the bubble to overlay the avatar
-- Also need to audit/fix mobile layout (sizes too big or broken)
+User request: In DMs, ONLY when the two users are friends, add an "Encryption Chat"
+button right beside the Search Messages button. Clicking it sends BOTH users an
+encryption-chatroom invite popup (Join / Exit). Both Exit → UI exits. Both Join →
+each user gets a one-time 24-letter encryption key (copyable, shown once). Entering
+the correct key opens an end-to-end encrypted chatroom (same DM system/UI) that
+NOBODY but the two users can read — not even the owner. The chatroom has a
+"Back to Normal DMs" button; both accept → switch back to normal DM, both deny →
+exit the UI.
+
+## Constraints
+- Do NOT wipe/delete any existing data (users, messages, DMs, friends, groups).
+- Additive-only DB changes (new `encryptionChats` field).
+- Encryption chat messages stored as ciphertext only; never exposed to admin/owner.
 
 ## Tasks
-- [x] A. Update todo.md for Round 6
-- [x] B. Investigate member list bubble on live site (measurements + screenshots)
-- [x] C. Fix member list bubble: compact CSS applied (margin-left:0, 20px orb, 12px font, 3px/10px padding) — no longer overlays avatar
-- [x] D. Audit mobile layout (390/768/360px: chat, settings, profile view, header, input — no h-overflow; found clipped chat-header title at ≤480px)
-- [x] E. Fix mobile issues: chat-header-text h3 ellipsis truncation at ≤480px (was hard-clipped at 195px)
-- [ ] F. Verify fixes visually with fresh CSS (local server, desktop + mobile viewport)
-- [ ] G. Commit & push to GitHub
-- [ ] H. Wait for Render autoDeploy & verify live
-- [ ] I. Ensure no data deleted/removed
+- [x] A. Update todo.md for Round 7
+- [x] B. Server: add `db.encryptionChats` store + pair-key helpers (additive, no data loss)
+- [x] C. Server: REST endpoints (invite / respond / verify / return-request / return-respond / status)
+- [x] D. Server: socket handler `encryption-send` (store ciphertext, relay to peer)
+- [x] E. Frontend: CSS for encryption button, invite/key/return modals, encrypted chatroom overlay
+- [x] F. Frontend: HTML for the button, modals, and encrypted chatroom overlay
+- [x] G. Frontend: client JS (invite flow, one-time key, key entry, E2E encrypt/decrypt, return flow)
+- [x] H. Frontend: socket listeners for real-time encryption events
+- [x] I. Frontend: show button only when friends (updateDMHeader)
+- [x] J. Verify locally (server boots, endpoints respond, no data loss)
+- [ ] K. Commit & push to GitHub
+- [ ] L. Trigger Render deploy & verify live site
+- [ ] M. Confirm no data deleted/removed

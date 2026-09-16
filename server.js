@@ -330,6 +330,66 @@ if (!db.welcomeTitleLastChanged) db.welcomeTitleLastChanged = 0;
 if (!db.customRoles) db.customRoles = []; // [{ id, name, color, members: [username,...] }]
 if (!db.cooldownExempt) db.cooldownExempt = []; // [username, ...] — users exempt from chat cooldown
 if (!db.groupChats) db.groupChats = []; // [{ id, name, owner, icon, members:[username], messages:[], createdAt }]
+// ---- Mutual Encryption Chatrooms (Round 7) ----
+// A private, key-gated, end-to-end encrypted chatroom between exactly TWO
+// friends. The server only ever stores CIPHERTEXT for messages in these rooms
+// (the plaintext never reaches the server), so neither the server nor the
+// owner/admin can read them. Keyed by a canonical pair id "a::b" (sorted).
+//   db.encryptionChats[pairId] = {
+//     pair: [userA, userB],            // sorted usernames
+//     state: 'idle'|'invited'|'active'|'returning',
+//     invites: { [username]: 'pending'|'joined'|'exited' },
+//     keyHash: string|null,            // sha256 of the 24-letter key (never the key itself)
+//     keyIssued: { [username]: bool }, // whether that user has been shown the one-time key
+//     messages: [ { id, from, to, e2e:{iv,ct}, timestamp, ... } ],
+//     createdAt, updatedAt
+//   }
+if (!db.encryptionChats || typeof db.encryptionChats !== 'object') db.encryptionChats = {};
+
+// Canonical pair id for two usernames (order-independent).
+function encPairId(a, b) {
+  const x = String(a || '').toLowerCase();
+  const y = String(b || '').toLowerCase();
+  return [x, y].sort().join('::');
+}
+// Fetch (or lazily create) the encryption-chat record for a pair.
+function getEncChat(a, b, create) {
+  const id = encPairId(a, b);
+  let rec = db.encryptionChats[id];
+  if (!rec && create) {
+    const pair = [String(a || '').toLowerCase(), String(b || '').toLowerCase()].sort();
+    rec = {
+      pair,
+      state: 'idle',
+      invites: {},
+      keyHash: null,
+      keyIssued: {},
+      messages: [],
+      createdAt: nowISO(),
+      updatedAt: nowISO(),
+    };
+    db.encryptionChats[id] = rec;
+  }
+  return rec;
+}
+// Are two users friends? (mutual friendship list check)
+function areFriends(a, b) {
+  const x = String(a || '').toLowerCase();
+  const y = String(b || '').toLowerCase();
+  const fx = db.friends[x];
+  return !!(fx && Array.isArray(fx.friends) && fx.friends.includes(y));
+}
+// Generate a random 24-LETTER (A–Z) one-time encryption key.
+function generateEncKey() {
+  const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  const bytes = crypto.randomBytes(24);
+  let out = '';
+  for (let i = 0; i < 24; i++) out += letters[bytes[i] % 26];
+  return out;
+}
+function hashEncKey(key) {
+  return crypto.createHash('sha256').update(String(key || '').toUpperCase()).digest('hex');
+}
 
 // Attempt remote restore asynchronously. If remote has data (especially users),
 // it takes precedence over the (possibly empty/repo-seeded) local file. This is
@@ -2111,6 +2171,193 @@ app.get('/api/dms/:username/search', authMiddleware, (req, res) => {
   });
   results.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
   res.json({ results: results.slice(0, 50) });
+});
+
+// ---------- Mutual Encryption Chatrooms (Round 7) ----------
+// REST endpoints powering the friend-only, key-gated, end-to-end encrypted
+// chatroom. The server NEVER sees plaintext for these rooms: the client
+// encrypts with a key derived from the shared 24-letter key, and only the
+// ciphertext envelope is stored/relayed. The owner/admin has no access.
+
+// Public (safe) view of an encryption-chat record for a given viewer.
+function publicEncChat(rec, viewer) {
+  if (!rec) return null;
+  const v = String(viewer || '').toLowerCase();
+  const other = (rec.pair || []).find(u => u !== v) || null;
+  return {
+    pairId: encPairId(rec.pair[0], rec.pair[1]),
+    pair: rec.pair,
+    other,
+    state: rec.state,
+    myInvite: rec.invites ? (rec.invites[v] || null) : null,
+    theirInvite: other && rec.invites ? (rec.invites[other] || null) : null,
+    keyIssuedToMe: !!(rec.keyIssued && rec.keyIssued[v]),
+    hasKey: !!rec.keyHash,
+    messageCount: (rec.messages || []).length,
+  };
+}
+
+// GET current encryption-chat status for a friend pair.
+app.get('/api/encryption/status/:username', authMiddleware, (req, res) => {
+  const me = req.user.username;
+  const other = String(req.params.username || '').toLowerCase();
+  if (!db.users[other]) return res.status(404).json({ error: 'User not found' });
+  if (!areFriends(me, other)) return res.status(403).json({ error: 'You must be friends to use encryption chat' });
+  const rec = getEncChat(me, other, false);
+  res.json({ status: publicEncChat(rec, me) });
+});
+
+// POST start an encryption-chat invite. Notifies BOTH users (the initiator
+// included) so each sees the Join / Exit popup.
+app.post('/api/encryption/invite/:username', authMiddleware, (req, res) => {
+  const me = req.user.username;
+  const other = String(req.params.username || '').toLowerCase();
+  if (!db.users[other]) return res.status(404).json({ error: 'User not found' });
+  if (other === me) return res.status(400).json({ error: 'Cannot start an encryption chat with yourself' });
+  if (!areFriends(me, other)) return res.status(403).json({ error: 'You must be friends to use encryption chat' });
+  const rec = getEncChat(me, other, true);
+  // Reset any previous session for a fresh invite.
+  rec.state = 'invited';
+  rec.invites = { [me]: 'pending', [other]: 'pending' };
+  rec.keyHash = null;
+  rec.keyIssued = {};
+  rec.messages = [];
+  rec.updatedAt = nowISO();
+  saveDB();
+  const payload = { pairId: encPairId(me, other), from: me, other, status: publicEncChat(rec, me) };
+  io.to('user:' + me).emit('encryption-invite', { ...payload, status: publicEncChat(rec, me) });
+  io.to('user:' + other).emit('encryption-invite', { ...payload, status: publicEncChat(rec, other) });
+  res.json({ success: true, status: publicEncChat(rec, me) });
+});
+
+// POST respond to an invite: { action: 'join' | 'exit' }.
+//  - Both exit  → state 'idle', UI exits for both.
+//  - Both join  → state 'active', a one-time 24-letter key is generated and
+//                 delivered to EACH user exactly once (copyable, shown once).
+app.post('/api/encryption/respond/:username', authMiddleware, (req, res) => {
+  const me = req.user.username;
+  const other = String(req.params.username || '').toLowerCase();
+  const action = String((req.body && req.body.action) || '').toLowerCase();
+  if (!db.users[other]) return res.status(404).json({ error: 'User not found' });
+  if (!areFriends(me, other)) return res.status(403).json({ error: 'You must be friends to use encryption chat' });
+  if (action !== 'join' && action !== 'exit') return res.status(400).json({ error: 'Invalid action' });
+  const rec = getEncChat(me, other, true);
+  if (rec.state !== 'invited' && rec.state !== 'active') {
+    return res.status(400).json({ error: 'No active encryption chat invite' });
+  }
+  rec.invites[me] = (action === 'join') ? 'joined' : 'exited';
+  rec.updatedAt = nowISO();
+
+  const bothExited = rec.invites[me] === 'exited' && rec.invites[other] === 'exited';
+  const bothJoined = rec.invites[me] === 'joined' && rec.invites[other] === 'joined';
+
+  if (bothExited) {
+    rec.state = 'idle';
+    rec.invites = {};
+    rec.keyHash = null;
+    rec.keyIssued = {};
+    rec.messages = [];
+    saveDB();
+    io.to('user:' + me).emit('encryption-exited', { pairId: encPairId(me, other), other });
+    io.to('user:' + other).emit('encryption-exited', { pairId: encPairId(me, other), other: me });
+    return res.json({ success: true, state: 'idle', exited: true });
+  }
+
+  if (bothJoined) {
+    rec.state = 'active';
+    // Generate the one-time 24-letter key (only if not already active with a key).
+    const key = generateEncKey();
+    rec.keyHash = hashEncKey(key);
+    rec.keyIssued = { [me]: true, [other]: true };
+    rec.messages = [];
+    saveDB();
+    // Deliver the one-time key to EACH user exactly once. The key is NOT
+    // persisted in plaintext anywhere — only its hash is stored server-side.
+    io.to('user:' + me).emit('encryption-key', { pairId: encPairId(me, other), other, key });
+    io.to('user:' + other).emit('encryption-key', { pairId: encPairId(me, other), other: me, key });
+    return res.json({ success: true, state: 'active', key });
+  }
+
+  // Only one has responded so far — let the other side know the progress.
+  saveDB();
+  io.to('user:' + me).emit('encryption-invite-update', { pairId: encPairId(me, other), other, status: publicEncChat(rec, me) });
+  io.to('user:' + other).emit('encryption-invite-update', { pairId: encPairId(me, other), other: me, status: publicEncChat(rec, other) });
+  res.json({ success: true, state: rec.state, status: publicEncChat(rec, me) });
+});
+
+// POST verify the entered 24-letter key. On success the user is admitted to
+// the encrypted chatroom and receives the stored ciphertext history.
+app.post('/api/encryption/verify/:username', authMiddleware, (req, res) => {
+  const me = req.user.username;
+  const other = String(req.params.username || '').toLowerCase();
+  const key = String((req.body && req.body.key) || '').trim().toUpperCase();
+  if (!db.users[other]) return res.status(404).json({ error: 'User not found' });
+  if (!areFriends(me, other)) return res.status(403).json({ error: 'You must be friends to use encryption chat' });
+  const rec = getEncChat(me, other, false);
+  if (!rec || rec.state !== 'active' || !rec.keyHash) {
+    return res.status(400).json({ error: 'No active encryption chatroom' });
+  }
+  if (hashEncKey(key) !== rec.keyHash) {
+    return res.status(403).json({ error: 'Incorrect encryption key' });
+  }
+  // Admit: return the ciphertext-only message history (client decrypts locally).
+  res.json({ success: true, messages: rec.messages || [], pairId: encPairId(me, other) });
+});
+
+// POST request to return to normal DMs. Notifies both users; both must accept.
+app.post('/api/encryption/return-request/:username', authMiddleware, (req, res) => {
+  const me = req.user.username;
+  const other = String(req.params.username || '').toLowerCase();
+  if (!db.users[other]) return res.status(404).json({ error: 'User not found' });
+  if (!areFriends(me, other)) return res.status(403).json({ error: 'You must be friends to use encryption chat' });
+  const rec = getEncChat(me, other, false);
+  if (!rec || rec.state !== 'active') return res.status(400).json({ error: 'No active encryption chatroom' });
+  rec.state = 'returning';
+  rec.returnVotes = { [me]: 'pending', [other]: 'pending' };
+  rec.updatedAt = nowISO();
+  saveDB();
+  io.to('user:' + me).emit('encryption-return-request', { pairId: encPairId(me, other), from: me, other });
+  io.to('user:' + other).emit('encryption-return-request', { pairId: encPairId(me, other), from: me, other: me });
+  res.json({ success: true });
+});
+
+// POST respond to a return request: { action: 'accept' | 'deny' }.
+//  - Both accept → switch back to normal DMs (state 'idle').
+//  - Both deny   → exit the encryption UI (state 'idle').
+app.post('/api/encryption/return-respond/:username', authMiddleware, (req, res) => {
+  const me = req.user.username;
+  const other = String(req.params.username || '').toLowerCase();
+  const action = String((req.body && req.body.action) || '').toLowerCase();
+  if (!db.users[other]) return res.status(404).json({ error: 'User not found' });
+  if (!areFriends(me, other)) return res.status(403).json({ error: 'You must be friends to use encryption chat' });
+  if (action !== 'accept' && action !== 'deny') return res.status(400).json({ error: 'Invalid action' });
+  const rec = getEncChat(me, other, false);
+  if (!rec || rec.state !== 'returning') return res.status(400).json({ error: 'No pending return request' });
+  if (!rec.returnVotes) rec.returnVotes = {};
+  rec.returnVotes[me] = action;
+  rec.updatedAt = nowISO();
+
+  const bothAccept = rec.returnVotes[me] === 'accept' && rec.returnVotes[other] === 'accept';
+  const bothDeny = rec.returnVotes[me] === 'deny' && rec.returnVotes[other] === 'deny';
+
+  if (bothAccept || bothDeny) {
+    rec.state = 'idle';
+    rec.invites = {};
+    rec.returnVotes = {};
+    rec.keyHash = null;
+    rec.keyIssued = {};
+    rec.messages = [];
+    saveDB();
+    const reason = bothAccept ? 'accepted' : 'denied';
+    io.to('user:' + me).emit('encryption-return-resolved', { pairId: encPairId(me, other), other, reason });
+    io.to('user:' + other).emit('encryption-return-resolved', { pairId: encPairId(me, other), other: me, reason });
+    return res.json({ success: true, state: 'idle', reason });
+  }
+
+  saveDB();
+  io.to('user:' + me).emit('encryption-return-update', { pairId: encPairId(me, other), other, votes: rec.returnVotes });
+  io.to('user:' + other).emit('encryption-return-update', { pairId: encPairId(me, other), other: me, votes: rec.returnVotes });
+  res.json({ success: true, state: 'returning' });
 });
 
 // ---------- Group Chats ----------
@@ -4022,6 +4269,45 @@ io.on('connection', (socket) => {
     } catch (e) {
       console.error('dm-send error', e);
       if (typeof ack === 'function') ack({ error: 'Failed to send DM' });
+    }
+  });
+
+  // ---- Mutual Encryption Chatroom: send an encrypted message ----
+  // The client sends ONLY a ciphertext envelope (AES-GCM). The server stores
+  // and relays the ciphertext verbatim — it can never read the plaintext, and
+  // neither can the owner/admin. Only the two friends in the pair can decrypt.
+  socket.on('encryption-send', ({ to, e2e, reply }, ack) => {
+    try {
+      const target = to ? String(to).toLowerCase() : '';
+      if (!db.users[target]) { if (typeof ack === 'function') ack({ error: 'User not found' }); return; }
+      if (!areFriends(username, target)) { if (typeof ack === 'function') ack({ error: 'You must be friends to use encryption chat' }); return; }
+      const rec = getEncChat(username, target, false);
+      if (!rec || rec.state !== 'active') { if (typeof ack === 'function') ack({ error: 'No active encryption chatroom' }); return; }
+      const env = (e2e && typeof e2e === 'object' && e2e.iv && e2e.ct) ? e2e : null;
+      if (!env) { if (typeof ack === 'function') ack({ error: 'Encrypted payload required' }); return; }
+      const msg = {
+        id: genId(),
+        from: username,
+        username,
+        to: target,
+        displayName: user.displayName,
+        e2e: env,
+        reply: reply || null,
+        timestamp: nowISO(),
+        edited: false,
+        deleted: false,
+      };
+      rec.messages.push(msg);
+      if (rec.messages.length > 1000) rec.messages = rec.messages.slice(-1000);
+      rec.updatedAt = nowISO();
+      saveDB();
+      // Relay to the recipient (and echo to the sender's other tabs).
+      io.to('user:' + target).emit('encryption-receive', { message: msg, other: username });
+      io.to('user:' + username).emit('encryption-receive', { message: msg, other: target, self: true });
+      if (typeof ack === 'function') ack({ success: true, message: msg });
+    } catch (e) {
+      console.error('encryption-send error', e);
+      if (typeof ack === 'function') ack({ error: 'Failed to send encrypted message' });
     }
   });
 
