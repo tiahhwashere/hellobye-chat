@@ -3861,8 +3861,19 @@ body.no-anim .friend-item { animation: none !important; }
 .profile-avatar-edit:hover { background: var(--accent-dim); color: #fff; border-color: var(--accent); }
 .profile-avatar-remove { color: var(--danger); }
 .profile-avatar-remove:hover { background: rgba(216,58,58,0.15); border-color: var(--danger); }
-.profile-avatar-preview { color: var(--accent); }
-.profile-avatar-preview:hover { background: var(--accent-dim); color: #fff; border-color: var(--accent); }
+.profile-avatar-preview {
+  color: #fff;
+  background: linear-gradient(135deg, var(--accent), #6f7bff);
+  border-color: transparent;
+  box-shadow: 0 2px 10px rgba(88,101,242,0.35);
+}
+.profile-avatar-preview:hover {
+  background: linear-gradient(135deg, #6f7bff, var(--accent));
+  color: #fff; border-color: transparent;
+  box-shadow: 0 4px 16px rgba(88,101,242,0.55);
+  transform: translateY(-1px);
+}
+.profile-avatar-preview:active { transform: translateY(0); box-shadow: 0 2px 8px rgba(88,101,242,0.4); }
 .profile-username { font-size: 16px; font-weight: 600; margin-bottom: 2px; }
 .profile-username-handle { color: var(--text-primary); }
 .profile-userid { font-size: 11px; color: var(--text-primary); font-family: 'gg sans Mono', monospace; }
@@ -4724,16 +4735,6 @@ body.no-anim .friend-item { animation: none !important; }
   display: flex; gap: 10px; padding: 0 32px 24px;
 }
 .profile-view-actions .modal-btn { flex: 1; }
-.pv-preview-notice {
-  display: inline-flex; align-items: center; gap: 8px;
-  font-size: 12.5px; font-weight: 600; color: var(--text-secondary);
-  background: var(--bg-medium); border: 1px dashed var(--border-light);
-  border-radius: var(--radius-sm); padding: 10px 16px;
-}
-.pv-preview-dot {
-  width: 8px; height: 8px; border-radius: 50%; background: var(--accent);
-  box-shadow: 0 0 0 3px var(--accent-dim); flex-shrink: 0;
-}
 .modal-close-corner {
   position: absolute; top: 12px; right: 14px;
   width: 32px; height: 32px; border-radius: 50%;
@@ -4972,7 +4973,7 @@ body.no-anim .friend-item { animation: none !important; }
 }
 .enc-overlay.show { display: flex; }
 .enc-panel {
-  position: relative; width: 100%; max-width: 760px; height: 100%; max-height: 760px;
+  position: relative; width: 100%; max-width: 1080px; height: 100%; max-height: 860px;
   background: var(--bg-dark); border: 1px solid rgba(88,101,242,0.35);
   border-radius: var(--radius-lg); display: flex; flex-direction: column;
   overflow: hidden; box-shadow: 0 0 0 1px rgba(88,101,242,0.15), var(--shadow-lg);
@@ -11727,6 +11728,9 @@ async function initChat(existingMeData) {
   connectSocket();
   loadDMConversations();
   loadGroupChats();
+  // If the user had an encrypted chatroom open before a page refresh, re-enter
+  // it automatically (the key is kept in sessionStorage for this tab).
+  restoreEncRoomSession();
   initAdminTab(); // Pre-show admin nav tab if user is admin (owner or whitelisted)
   initAdminEventListeners(); // Wire up all admin panel button event listeners
   } catch (initErr) {
@@ -11780,6 +11784,8 @@ function showAuth() {
   document.querySelectorAll('.modal-overlay.show').forEach(m => m.classList.remove('show'));
   // Close the DM overlay if it's open.
   if (typeof closeDMOverlay === 'function') { try { closeDMOverlay(); } catch (e) {} }
+  // Drop any saved encrypted-chatroom session so a new login starts fresh.
+  if (typeof clearEncRoomSession === 'function') { try { clearEncRoomSession(); } catch (e) {} }
 }
 
 // Ensure the chat loading overlay exists inside #chat-app so that the
@@ -17913,11 +17919,59 @@ async function submitEncEnter() {
     await openEncChatroom(other, key, data.messages || []);
   } catch (e) { if (st) st.textContent = 'A network error occurred. Please try again.'; }
 }
+// ---- Persist the active encrypted chatroom across page refreshes ----
+// We store the other user + the raw 24-letter key in sessionStorage so that a
+// refresh re-opens the same encrypted chatroom automatically. sessionStorage
+// is per-tab and cleared when the tab closes, so the key never lingers beyond
+// the session. The key is only ever kept client-side (never sent to the server).
+const ENC_ROOM_SESSION_KEY = 'hellobye_enc_room';
+function saveEncRoomSession(other, key) {
+  try {
+    if (!other || !key) return;
+    sessionStorage.setItem(ENC_ROOM_SESSION_KEY, JSON.stringify({ other, key, ts: Date.now() }));
+  } catch (e) {}
+}
+function clearEncRoomSession() {
+  try { sessionStorage.removeItem(ENC_ROOM_SESSION_KEY); } catch (e) {}
+}
+function getEncRoomSession() {
+  try {
+    const raw = sessionStorage.getItem(ENC_ROOM_SESSION_KEY);
+    if (!raw) return null;
+    const obj = JSON.parse(raw);
+    if (!obj || !obj.other || !obj.key) return null;
+    return obj;
+  } catch (e) { return null; }
+}
+// Called after login/refresh: if a room was open before the reload, re-enter it.
+async function restoreEncRoomSession() {
+  const saved = getEncRoomSession();
+  if (!saved) return;
+  // Only restore if the other user is still a friend (the room is friends-only).
+  if (!friends.some(f => f && f.username === saved.other)) { clearEncRoomSession(); return; }
+  try {
+    // Verify the saved key is still valid before re-opening, so a stale key
+    // (e.g. after a reset/delete) doesn't open a broken room.
+    const res = await encFetch(API_BASE + '/api/encryption/verify/' + encodeURIComponent(saved.other), {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key: saved.key })
+    });
+    const data = await res.json();
+    if (!res.ok) { clearEncRoomSession(); return; }
+    await openEncChatroom(saved.other, saved.key, data.messages || []);
+  } catch (e) {
+    // Network error — keep the saved session so a later refresh can retry.
+  }
+}
+
 // ---- Open the encrypted chatroom ----
 async function openEncChatroom(other, key, preloaded) {
   encActiveUser = other;
   encKeyRaw = key;
   encKey = await encDeriveKey(key, encPairIdOf(currentUser.username, other));
+  // Persist the active room so a page refresh re-enters it automatically
+  // (sessionStorage: survives refresh, cleared when the tab closes).
+  saveEncRoomSession(other, key);
   // Load ciphertext history (from verify response, or fetch by verifying again).
   let cipherMsgs = preloaded;
   if (!cipherMsgs) {
@@ -17957,6 +18011,7 @@ function closeEncChatroom() {
   encKey = null;
   encKeyRaw = null;
   clearEncPendingFile();
+  clearEncRoomSession();
 }
 function renderEncMessages() {
   const container = $('enc-messages');
@@ -18385,6 +18440,9 @@ async function respondEncReset(action) {
   on('enc-reset-accept', 'click', () => respondEncReset('accept'));
   on('enc-reset-decline', 'click', () => respondEncReset('decline'));
   on('enc-reset-close', 'click', hideEncResetModal);
+  on('enc-delete-accept', 'click', () => respondEncDelete('accept'));
+  on('enc-delete-decline', 'click', () => respondEncDelete('decline'));
+  on('enc-delete-close', 'click', hideEncDeleteModal);
   on('enc-enter-input', 'keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); submitEncEnter(); } });
   on('enc-enter-input', 'input', (e) => { e.target.value = e.target.value.toUpperCase().replace(/[^A-Z]/g, ''); e.target.classList.remove('error'); });
   on('enc-return-accept', 'click', () => respondEncReturn('accept'));
@@ -23268,12 +23326,11 @@ function renderProfileView(data) {
   // Actions
   const actions = $('pv-actions');
   actions.innerHTML = '';
+  actions.style.display = '';
   if (profilePreviewMode) {
-    // Preview mode: show a notice instead of real action buttons.
-    const notice = document.createElement('div');
-    notice.className = 'pv-preview-notice';
-    notice.innerHTML = '<span class="pv-preview-dot"></span>This is how other members see your profile.';
-    actions.appendChild(notice);
+    // Preview mode: no action buttons (this is a read-only preview of how
+    // others see the profile). The actions row is simply left empty.
+    actions.style.display = 'none';
   } else if (data.isMe) {
     const b = document.createElement('button');
     b.className = 'modal-btn primary'; b.textContent = 'Edit My Profile';
