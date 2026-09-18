@@ -1147,6 +1147,26 @@ body.loading-session #chat-app.active::after { content: none; }
   padding: 2px 0;
 }
 @keyframes msgIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+/* ---- iPhone (iMessage) send animation ----
+   Newly sent/received messages pop in with the signature iMessage feel:
+   they start slightly smaller and lower, then spring up into place with a
+   gentle overshoot. Applied via the .imsg-in class on freshly appended
+   message groups (see markImsgIn). */
+@keyframes imsgSend {
+  0%   { opacity: 0; transform: translateY(14px) scale(0.82); }
+  55%  { opacity: 1; transform: translateY(-2px) scale(1.035); }
+  75%  { transform: translateY(1px) scale(0.995); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+.message-group.imsg-in {
+  animation: imsgSend 0.42s cubic-bezier(0.22, 1.2, 0.36, 1) both;
+  transform-origin: bottom center;
+}
+.message-group.own.imsg-in { transform-origin: bottom right; }
+.message-group:not(.own).imsg-in { transform-origin: bottom left; }
+/* Never animate during the initial bulk render (no-anim) or when the user
+   prefers reduced motion. */
+body.no-anim .message-group.imsg-in { animation: none !important; }
 /* During initial page load, suppress entrance animations so everything
    appears instantly instead of slowly fading/sliding in. The no-anim class
    is added to <body> before the first render and removed right after. */
@@ -10301,6 +10321,38 @@ function formatTime(ts) {
   const d = new Date(ts);
   return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
+// Time + date for a message, e.g. "14:32 · Jun 5". The year is only shown
+// when the message is from a different year than today, so recent messages
+// stay compact while older ones remain unambiguous.
+function formatMessageDateTime(ts) {
+  if (!ts) return '';
+  const d = new Date(ts);
+  if (isNaN(d.getTime())) return '';
+  const time = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const sameYear = d.getFullYear() === new Date().getFullYear();
+  const date = d.toLocaleDateString([], sameYear
+    ? { month: 'short', day: 'numeric' }
+    : { month: 'short', day: 'numeric', year: 'numeric' });
+  return time + ' \u00b7 ' + date;
+}
+// Play the iPhone (iMessage) pop-in animation on a freshly appended message
+// group. Skipped during the initial bulk render (silent) and when the user
+// prefers reduced motion.
+//
+// NOTE: call this BEFORE inserting the group into the DOM so the base
+// `.message-group` entrance animation (msgIn) never starts — the element is
+// born with the imsg-in class, so only the iPhone animation plays. The class
+// is intentionally left on the element (each message group is a unique node,
+// and removing it would revert the element to the base msgIn animation and
+// replay it). The animation uses fill-mode `both`, so it simply holds its
+// final (identity) state.
+function markImsgIn(groupEl, silent) {
+  if (!groupEl || silent) return;
+  try {
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  } catch (e) {}
+  groupEl.classList.add('imsg-in');
+}
 function formatFileSize(bytes) {
   if (bytes < 1024) return bytes + ' B';
   if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
@@ -14862,7 +14914,7 @@ function appendMessage(msg, silent) {
     const meta = document.createElement('div');
     meta.className = 'message-meta';
     const timeSpan = document.createElement('span');
-    timeSpan.textContent = formatTime(msg.timestamp);
+    timeSpan.textContent = formatMessageDateTime(msg.timestamp);
     meta.appendChild(timeSpan);
     if (msg.edited) {
       const t = document.createElement('span');
@@ -14874,6 +14926,7 @@ function appendMessage(msg, silent) {
 
   group.appendChild(avatarDiv);
   group.appendChild(wrap);
+  markImsgIn(group, silent);
   container.appendChild(group);
   // Apply the long-text clamp AFTER the message is in the DOM so we can
   // measure its real rendered height (needed to decide if it's a wall of
@@ -18071,7 +18124,10 @@ function appendEncMessage(msg, silent) {
     del.textContent = 'This message was deleted';
     const tb = document.createElement('div'); tb.className = 'message-text-block'; tb.appendChild(del);
     bubble.appendChild(tb);
-    group.appendChild(bubble);
+    const wrap = document.createElement('div'); wrap.className = 'message-bubble-wrap';
+    wrap.appendChild(bubble);
+    group.appendChild(wrap);
+    markImsgIn(group, silent);
     container.appendChild(group);
     if (!silent) { const c = $('enc-messages'); if (c) c.scrollTop = c.scrollHeight; }
     return;
@@ -18123,7 +18179,18 @@ function appendEncMessage(msg, silent) {
     if (isOwn) items.push({ label: 'Delete message', icon: 'trash', danger: true, action: () => confirmDeleteEncMessage(msg.id) });
     if (items.length) showContextMenu(e.clientX, e.clientY, items);
   });
-  group.appendChild(bubble);
+  const wrap = document.createElement('div');
+  wrap.className = 'message-bubble-wrap';
+  wrap.appendChild(bubble);
+  // Timestamp + date meta line (matches the rest of the app).
+  const meta = document.createElement('div');
+  meta.className = 'message-meta';
+  const timeSpan = document.createElement('span');
+  timeSpan.textContent = formatMessageDateTime(msg.timestamp);
+  meta.appendChild(timeSpan);
+  wrap.appendChild(meta);
+  group.appendChild(wrap);
+  markImsgIn(group, silent);
   container.appendChild(group);
   if (!silent) { const c = $('enc-messages'); if (c) c.scrollTop = c.scrollHeight; }
 }
@@ -18919,12 +18986,13 @@ function appendGroupMessage(msg, silent) {
   if (!msg.deleted) {
     const meta = document.createElement('div');
     meta.className = 'message-meta';
-    const t = document.createElement('span'); t.textContent = formatTime(msg.timestamp);
+    const t = document.createElement('span'); t.textContent = formatMessageDateTime(msg.timestamp);
     meta.appendChild(t);
     if (msg.edited) { const e2 = document.createElement('span'); e2.className = 'message-edited-tag'; e2.textContent = '(edited)'; meta.appendChild(e2); }
     wrap.appendChild(meta);
   }
   group.appendChild(wrap);
+  markImsgIn(group, silent);
   container.appendChild(group);
   // Clamp walls of text after the group message is attached (measureable).
   if (!msg.deleted && msg.text) clampMessageText(group);
@@ -19813,12 +19881,13 @@ function appendDMMessage(msg, silent) {
   if (!msg.deleted) {
     const meta = document.createElement('div');
     meta.className = 'message-meta';
-    const t = document.createElement('span'); t.textContent = formatTime(msg.timestamp);
+    const t = document.createElement('span'); t.textContent = formatMessageDateTime(msg.timestamp);
     meta.appendChild(t);
     if (msg.edited) { const e2 = document.createElement('span'); e2.className = 'message-edited-tag'; e2.textContent = '(edited)'; meta.appendChild(e2); }
     wrap.appendChild(meta);
   }
   group.appendChild(wrap);
+  markImsgIn(group, silent);
   container.appendChild(group);
   // Clamp walls of text after the DM message is attached (measureable).
   if (!msg.deleted && msg.text) clampMessageText(group);
