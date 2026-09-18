@@ -20,5 +20,9 @@
          - all 4 renderers show date meta + imsg-in class.
          - only imsgSend animation fires (no double msgIn).
          - silent bulk render does NOT animate.
-- [x] F. Commit & push.
-- [x] G. Verify live.
+- [x] F. Commit & push (a0eec38 on master).
+- [x] G. Verify live:
+         - live site HTTP 200.
+         - formatMessageDateTime present (5), imsgSend keyframe present (2),
+           markImsgIn present (7).
+         - GitHub backup DB (hellobye-chat-data/data/db.json) intact.
