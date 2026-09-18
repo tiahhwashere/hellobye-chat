@@ -1,14 +1,15 @@
-# Hellobye-Chat — Round 9: Key Reset Request + gg sans font
+# Hellobye-Chat — Round 10: Delete-Key UI + Profile Preview + Wider Profile + Remove E2E SVGs
 
 ## Context
 User requests:
-1. In the "Enter Encryption Key" modal, add a "Reset Key" button beside "Unlock".
-2. Clicking it sends a key reset request to the other user.
-3. The other user must Accept or Decline.
-4. If declined → tell the requesting user the other user declined.
-5. If accepted → reset the E2E key, invalidate the old key, delete all old
-   encrypted chats from the old key.
-6. Make all website text fonts "gg sans".
+1. Add a proper UI to the "Delete Key" button and make it send a REQUEST to the
+   other user (Accept / Decline) that actually works.
+2. Make the profile-view modal (when viewing another user) a bit WIDER
+   (not a square box).
+3. In Profile Settings, beside "Remove Picture", add a "Preview" button that
+   shows the profile POV others see when clicking your profile.
+4. "add a 30" — AMBIGUOUS; awaiting clarification (not implemented yet).
+5. Remove ALL SVG icons from the E2E encrypted UIs (enc modals + enc chatroom).
 
 ## Constraints
 - Do NOT wipe/delete any existing data (users, messages, groups, etc.).
@@ -16,25 +17,21 @@ User requests:
 - Encrypted chat messages/files stay ciphertext-only.
 
 ## Tasks
-- [x] A. Server: `reset-request` endpoint (state 'resetting', notify both)
-- [x] B. Server: `reset-respond` endpoint (accept → new key + wipe old ciphertext; decline → keep key)
-- [x] C. Frontend: "Reset Key" button in enc-enter-modal beside Unlock
-- [x] D. Frontend: reset request modal (Accept/Decline) + socket listeners
-- [x] E. Frontend: declined → notify requester; accepted → new key modal
-- [x] F. Fonts: apply "gg sans" across the whole site (self-hosted woff2)
-- [x] G. Verify locally (full reset flow + font)
-      - REST: request → resetting; self-respond blocked; decline keeps old key;
-        accept issues new key, old key 403, new key 200.
-      - Socket: encrypted msg stored (1) → after accept wiped (0).
-      - UI: Reset Key button beside Unlock; reset modal Accept/Decline;
-        requester waiting state (Close only). gg sans loaded + applied.
-- [x] H. Commit & push to GitHub (commit fe28df0)
-- [x] I. Verify live deploy + no data loss
-      - Deploy dep-damgmuou01pc738t9js0 status=live (commit fe28df0).
-      - Live index.html contains enc-reset-key-btn, enc-reset-modal,
-        encryption-reset-request/resolved, requestEncReset/respondEncReset,
-        gg sans (38 refs). Live /fonts/ggsans.woff2 → 200 (38156 bytes).
-      - Live routes reset-request / reset-respond → 401 JSON (present).
-      - GitHub backup DB intact: 5 users (hi, lore, pwonttalk, swirlpup,
-        zombie), 1 encryption chat (hi::lore), 1 group chat, 4 messages,
-        customRoles=1, welcomeTitle preserved. NO data loss.
+- [x] A. Server: `delete-request` + `delete-respond` endpoints (accept -> wipe key
+         + history; decline -> nothing changes). Add deleteBy/deletePending to
+         publicEncChat.
+- [x] B. Frontend: Delete-Key request modal (Accept/Decline/Close) + socket
+         listeners + wire the delete-key button to the request flow.
+- [x] C. Frontend: widen `.profile-view-modal` (760px -> 900px).
+- [x] D. Frontend: "Preview" button beside "Remove Picture" in Profile Settings
+         (renders the profile-view modal as others see it, from live inputs).
+         Fixed z-index so preview sits above the settings panel (z 400).
+- [x] E. Frontend: remove ALL SVG icons from the E2E encrypted UIs
+         (enc modals, enc chatroom overlay, enc-chat entry button).
+- [x] F. Verify locally (delete flow + preview + wider modal + no enc SVGs).
+         - delete flow: test_delete.js all pass (request/decline/accept).
+         - preview: renders on top, 900px, "This is how other members see..." notice.
+         - wider modal: 900px confirmed for other-user profile view.
+         - no enc SVGs: 0 in enc block, 0 in enc overlay, 0 in enc modals.
+- [ ] G. Commit & push to GitHub.
+- [ ] H. Verify live deploy + no data loss.

@@ -2214,6 +2214,8 @@ function publicEncChat(rec, viewer) {
     messageCount: (rec.messages || []).length,
     resetBy: rec.resetBy || null,
     resetPending: rec.state === 'resetting',
+    deleteBy: rec.deleteBy || null,
+    deletePending: rec.state === 'deleting',
   };
 }
 
@@ -2436,6 +2438,70 @@ app.post('/api/encryption/reset-respond/:username', authMiddleware, (req, res) =
   io.to('user:' + me).emit('encryption-reset-resolved', { pairId: encPairId(me, other), other, reason: 'accepted', key: newKey, by: me });
   io.to('user:' + other).emit('encryption-reset-resolved', { pairId: encPairId(me, other), other: me, reason: 'accepted', key: newKey, by: me });
   res.json({ success: true, reason: 'accepted', key: newKey });
+});
+
+// POST request a KEY DELETE. The requester asks the OTHER user to delete the
+// shared end-to-end encryption key. The other user must Accept or Decline.
+//  - Accept  -> the shared key is deleted (its hash cleared), the key is
+//               invalidated for BOTH users, and ALL encrypted messages are
+//               permanently deleted. The chatroom returns to 'idle'.
+//  - Decline -> nothing changes; the requester is told the other user declined.
+app.post('/api/encryption/delete-request/:username', authMiddleware, (req, res) => {
+  const me = req.user.username;
+  const other = String(req.params.username || '').toLowerCase();
+  if (!db.users[other]) return res.status(404).json({ error: 'User not found' });
+  if (!areFriends(me, other)) return res.status(403).json({ error: 'You must be friends to use encryption chat' });
+  const rec = getEncChat(me, other, false);
+  if (!rec || rec.state !== 'active') return res.status(400).json({ error: 'No active encryption chatroom' });
+  rec.state = 'deleting';
+  rec.deleteVotes = { [me]: 'requested', [other]: 'pending' };
+  rec.deleteBy = me;
+  rec.updatedAt = nowISO();
+  saveDB();
+  io.to('user:' + me).emit('encryption-delete-request', { pairId: encPairId(me, other), from: me, other, self: true });
+  io.to('user:' + other).emit('encryption-delete-request', { pairId: encPairId(me, other), from: me, other: me });
+  res.json({ success: true });
+});
+
+// POST respond to a key-delete request: { action: 'accept' | 'decline' }.
+// Only the OTHER user (the one who did not request) may respond.
+app.post('/api/encryption/delete-respond/:username', authMiddleware, (req, res) => {
+  const me = req.user.username;
+  const other = String(req.params.username || '').toLowerCase();
+  const action = String((req.body && req.body.action) || '').toLowerCase();
+  if (!db.users[other]) return res.status(404).json({ error: 'User not found' });
+  if (!areFriends(me, other)) return res.status(403).json({ error: 'You must be friends to use encryption chat' });
+  if (action !== 'accept' && action !== 'decline') return res.status(400).json({ error: 'Invalid action' });
+  const rec = getEncChat(me, other, false);
+  if (!rec || rec.state !== 'deleting') return res.status(400).json({ error: 'No pending key delete request' });
+  if (rec.deleteBy === me) return res.status(400).json({ error: 'You cannot respond to your own delete request' });
+
+  if (action === 'decline') {
+    // Nothing changes: keep the existing key + history, return to 'active'.
+    rec.state = 'active';
+    rec.deleteVotes = {};
+    rec.deleteBy = null;
+    rec.updatedAt = nowISO();
+    saveDB();
+    io.to('user:' + me).emit('encryption-delete-resolved', { pairId: encPairId(me, other), other, reason: 'declined', by: me });
+    io.to('user:' + other).emit('encryption-delete-resolved', { pairId: encPairId(me, other), other: me, reason: 'declined', by: me });
+    return res.json({ success: true, reason: 'declined' });
+  }
+
+  // ---- Accept: delete the shared key + wipe all encrypted history ----
+  rec.keyHash = null;                 // key invalidated for BOTH users
+  rec.messages = [];                  // delete all encrypted chats
+  rec.keyIssued = {};
+  rec.keyDeleted = {};
+  rec.invites = {};
+  rec.state = 'idle';
+  rec.deleteVotes = {};
+  rec.deleteBy = null;
+  rec.updatedAt = nowISO();
+  saveDB();
+  io.to('user:' + me).emit('encryption-delete-resolved', { pairId: encPairId(me, other), other, reason: 'accepted', by: me });
+  io.to('user:' + other).emit('encryption-delete-resolved', { pairId: encPairId(me, other), other: me, reason: 'accepted', by: me });
+  res.json({ success: true, reason: 'accepted' });
 });
 
 // POST request to return to normal DMs. Notifies both users; both must accept.
