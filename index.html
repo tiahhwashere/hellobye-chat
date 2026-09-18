@@ -4676,23 +4676,15 @@ body.no-anim .friend-item { animation: none !important; }
 .profile-view-id { font-size: 11px; color: #ffffff; font-weight: 700; font-family: 'gg sans Mono', monospace; margin-bottom: 10px; display: flex; align-items: center; justify-content: flex-start; gap: 6px; position: relative; }
 .pv-id-text { color: #ffffff; font-weight: 700; }
 /* Profile badge — small admin-assigned image shown under the "ID:" line.
-   Styled like a little profile badge: rounded pill with a subtle border,
-   soft shadow and a gentle sheen so it reads as a badge, not a raw image. */
+   Square, transparent (blends with the site), no border/outline, no label. */
 .profile-view-badge { display: flex; align-items: center; gap: 6px; margin: -4px 0 10px; }
 .profile-view-badge:empty { display: none; }
 .profile-badge-img {
-  display: inline-block; height: 22px; width: auto; max-width: 120px;
-  object-fit: contain; border-radius: 6px;
-  border: 1px solid rgba(255,255,255,0.35);
-  background: rgba(0,0,0,0.28);
-  padding: 2px 4px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.18);
-  vertical-align: middle;
-}
-.profile-badge-label {
-  font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
-  color: #ffffff; background: rgba(0,0,0,0.32); border: 1px solid rgba(255,255,255,0.28);
-  border-radius: 999px; padding: 2px 8px; line-height: 1.5;
+  display: inline-block; height: 30px; width: 30px;
+  object-fit: contain; border-radius: 0;
+  border: none; outline: none;
+  background: transparent; padding: 0;
+  box-shadow: none; vertical-align: middle;
 }
 .pv-copy-id-btn { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 4px; background: var(--bg-medium); color: var(--text-muted); border: 1px solid var(--border-light); cursor: pointer; transition: var(--transition); padding: 0; }
 .pv-copy-id-btn:hover { background: var(--bg-hover); color: var(--accent); border-color: var(--accent); }
@@ -7994,7 +7986,6 @@ body.no-anim .friend-item { animation: none !important; }
           <div class="profile-v2-idblock">
             <div class="profile-username" id="profile-username-display">@username</div>
             <div class="profile-userid" id="profile-userid"></div>
-            <div class="profile-view-badge" id="profile-own-badge"></div>
           </div>
         </div>
       </div>
@@ -12331,7 +12322,7 @@ function connectSocket() {
           if ($('pv-badge')) {
             const pb = pvUser.profileBadge;
             $('pv-badge').innerHTML = (pb && pb.url)
-              ? '<img src="' + escapeHtml(pb.url) + '" alt="' + escapeHtml(pb.name || 'Profile Badge') + '" class="profile-badge-img" title="' + escapeHtml(pb.name || 'Profile Badge') + '" />' + (pb.name ? '<span class="profile-badge-label">' + escapeHtml(pb.name) + '</span>' : '')
+              ? '<img src="' + escapeHtml(pb.url) + '" alt="' + escapeHtml(pb.name || 'Profile Badge') + '" class="profile-badge-img" title="' + escapeHtml(pb.name || 'Profile Badge') + '" />'
               : '';
           }
           // Live-update status text (but hide last-seen for hidden profiles)
@@ -21294,14 +21285,6 @@ function updateProfilePanel() {
   const u = users.find(x => x.username === currentUser.username) || currentUser;
   $('profile-username-display').innerHTML = (u.displayName ? '<span class="sender-displayname">' + escapeHtml(u.displayName) + ' </span>' : '') + '<span class="profile-username-handle">@</span>' + escapeHtml(u.username);
   $('profile-userid').textContent = 'ID: ' + (u.id || '—');
-  // Own profile badge (admin-assigned) — shown under the ID line.
-  const ownBadge = $('profile-own-badge');
-  if (ownBadge) {
-    const pb = u.profileBadge;
-    ownBadge.innerHTML = (pb && pb.url)
-      ? '<img src="' + escapeHtml(pb.url) + '" alt="' + escapeHtml(pb.name || 'Profile Badge') + '" class="profile-badge-img" title="' + escapeHtml(pb.name || 'Profile Badge') + '" />' + (pb.name ? '<span class="profile-badge-label">' + escapeHtml(pb.name) + '</span>' : '')
-      : '';
-  }
   const avatarDisplay = $('profile-avatar-display');
   if (u.avatar) { avatarDisplay.innerHTML = '<img src="' + u.avatar + '" alt="' + u.username + '">'; }
   else { avatarDisplay.innerHTML = ''; const span = document.createElement('span'); span.textContent = getInitials(u.username); avatarDisplay.appendChild(span); }
@@ -21809,6 +21792,7 @@ function previewMyProfile() {
     statusMessage: ($('statusmsg-input') ? $('statusmsg-input').value.trim() : (u.statusMessage || '')),
     createdAt: u.createdAt,
     id: u.id,
+    profileBadge: u.profileBadge || null,
     hideProfile: ($('hide-profile-toggle') ? $('hide-profile-toggle').checked : !!u.hideProfile),
     directMessagesEnabled: u.directMessagesEnabled !== false,
   };
@@ -23420,8 +23404,7 @@ function renderProfileView(data) {
   if (badgeEl) {
     const pb = u.profileBadge;
     if (pb && pb.url) {
-      badgeEl.innerHTML = '<img src="' + escapeHtml(pb.url) + '" alt="' + escapeHtml(pb.name || 'Profile Badge') + '" class="profile-badge-img" title="' + escapeHtml(pb.name || 'Profile Badge') + '" />' +
-        (pb.name ? '<span class="profile-badge-label">' + escapeHtml(pb.name) + '</span>' : '');
+      badgeEl.innerHTML = '<img src="' + escapeHtml(pb.url) + '" alt="' + escapeHtml(pb.name || 'Profile Badge') + '" class="profile-badge-img" title="' + escapeHtml(pb.name || 'Profile Badge') + '" />';
     } else {
       badgeEl.innerHTML = '';
     }
