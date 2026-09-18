@@ -20,5 +20,8 @@
          - silent bulk render: no animation (msgIn only).
          - animationstart event fires imsgSend in compact mode.
          - node --check passes.
-- [x] C. Commit & push.
-- [x] D. Verify live.
+- [x] C. Commit & push (7ca35fa on master).
+- [x] D. Verify live:
+         - live site HTTP 200.
+         - compact imsg rule present (1), imsgSend present (3).
+         - GitHub backup DB intact.
