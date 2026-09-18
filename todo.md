@@ -33,5 +33,8 @@ User requests:
          - preview: renders on top, 900px, "This is how other members see..." notice.
          - wider modal: 900px confirmed for other-user profile view.
          - no enc SVGs: 0 in enc block, 0 in enc overlay, 0 in enc modals.
-- [ ] G. Commit & push to GitHub.
-- [ ] H. Verify live deploy + no data loss.
+- [x] G. Commit & push to GitHub. (commit e953769 -> master)
+- [x] H. Verify live deploy + no data loss.
+         - Live site HTTP 200; new UI + JS functions present.
+         - Live endpoints return 401 (exist, auth-gated) not 404.
+         - GitHub backup DB intact: 5 users, all keys incl. encryptionChats.
