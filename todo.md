@@ -28,5 +28,13 @@ User requests:
       - Socket: encrypted msg stored (1) → after accept wiped (0).
       - UI: Reset Key button beside Unlock; reset modal Accept/Decline;
         requester waiting state (Close only). gg sans loaded + applied.
-- [ ] H. Commit & push to GitHub
-- [ ] I. Verify live deploy + no data loss
+- [x] H. Commit & push to GitHub (commit fe28df0)
+- [x] I. Verify live deploy + no data loss
+      - Deploy dep-damgmuou01pc738t9js0 status=live (commit fe28df0).
+      - Live index.html contains enc-reset-key-btn, enc-reset-modal,
+        encryption-reset-request/resolved, requestEncReset/respondEncReset,
+        gg sans (38 refs). Live /fonts/ggsans.woff2 → 200 (38156 bytes).
+      - Live routes reset-request / reset-respond → 401 JSON (present).
+      - GitHub backup DB intact: 5 users (hi, lore, pwonttalk, swirlpup,
+        zombie), 1 encryption chat (hi::lore), 1 group chat, 4 messages,
+        customRoles=1, welcomeTitle preserved. NO data loss.
