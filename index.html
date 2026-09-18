@@ -5917,7 +5917,11 @@ body.no-anim .friend-item { animation: none !important; }
    COMPACT MODE
    ============================================ */
 #chat-app.compact .messages-container { gap: 1px; padding: 10px 20px; }
+/* Compact mode suppresses the base entrance animation (msgIn) for a denser
+   feel, but the iPhone (iMessage) send animation must still play — so we
+   re-enable it explicitly for freshly appended groups. */
 #chat-app.compact .message-group { animation: none; padding: 1px 0; gap: 8px; max-width: 96%; }
+#chat-app.compact .message-group.imsg-in { animation: imsgSend 0.42s cubic-bezier(0.22, 1.2, 0.36, 1) both; }
 #chat-app.compact .message-avatar { width: 26px; height: 26px; font-size: 11px; }
 #chat-app.compact .message-sender { margin-bottom: 0; font-size: 12px; }
 #chat-app.compact .message-sender .sender-displayname { font-size: 12.5px; }

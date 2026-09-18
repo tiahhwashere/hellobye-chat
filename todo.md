@@ -1,28 +1,24 @@
-# Hellobye-Chat — Round 12
+# Hellobye-Chat — Round 13
 
-## Requests
-1. Whenever a user sends a message, show the DATE next to the time it was sent.
-2. Whenever a user sends a message, add the iPhone (iMessage) animation.
+## Request
+- Have the iPhone (iMessage) text animation also play in the chatroom.
 
-## Constraints
-- Do NOT wipe/delete any existing data.
-- Additive-only DB changes.
+## Root cause
+- The chatroom lives inside #chat-app, and compact mode disables ALL
+  animations on message groups:
+    #chat-app.compact .message-group { animation: none; ... }
+  That ID-selector rule overrode `.message-group.imsg-in`, so in compact mode
+  the iPhone animation played in DMs / groups / encrypted (which are OUTSIDE
+  #chat-app) but NOT in the chatroom.
 
 ## Tasks
-- [x] A. Add formatMessageDateTime() helper (time · date, year only if not current).
-- [x] B. Use it in chat/DM/group message meta; add a meta line to encrypted messages.
-- [x] C. Add iPhone-style @keyframes imsgSend + .message-group.imsg-in class.
-- [x] D. Apply .imsg-in to newly appended messages (send + receive) in all 4 renderers
-         (chat, DM, group, encrypted). Added before DOM insert so only imsgSend plays.
-- [x] E. Verify locally:
-         - node --check passes for all script blocks.
-         - formatMessageDateTime: "02:50 PM · Sep 18" (current yr) / "09:05 AM · Mar 14, 2023" (old).
-         - all 4 renderers show date meta + imsg-in class.
-         - only imsgSend animation fires (no double msgIn).
-         - silent bulk render does NOT animate.
-- [x] F. Commit & push (a0eec38 on master).
-- [x] G. Verify live:
-         - live site HTTP 200.
-         - formatMessageDateTime present (5), imsgSend keyframe present (2),
-           markImsgIn present (7).
-         - GitHub backup DB (hellobye-chat-data/data/db.json) intact.
+- [x] A. Re-enable the iPhone animation in compact mode:
+         #chat-app.compact .message-group.imsg-in { animation: imsgSend ... }
+- [x] B. Verify locally:
+         - normal mode: chatroom anim = imsgSend.
+         - compact mode: chatroom anim = imsgSend (was 'none' before fix).
+         - silent bulk render: no animation (msgIn only).
+         - animationstart event fires imsgSend in compact mode.
+         - node --check passes.
+- [x] C. Commit & push.
+- [x] D. Verify live.
