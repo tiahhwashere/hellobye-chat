@@ -328,6 +328,10 @@ const DISPLAY_NAME_COOLDOWN_MS = 5000;
 if (!db.welcomeTitle) db.welcomeTitle = 'welcome - to the safe place';
 if (!db.welcomeTitleLastChanged) db.welcomeTitleLastChanged = 0;
 if (!db.customRoles) db.customRoles = []; // [{ id, name, color, members: [username,...] }]
+// Profile Badges: admin-uploaded badge images assigned to individual users.
+// Stored per-user as `profileBadge` = { url, name, assignedAt, assignedBy }.
+// The badge renders small on the user's profile under the "ID:" line.
+// (No separate collection is needed — the badge lives on the user record.)
 if (!db.cooldownExempt) db.cooldownExempt = []; // [username, ...] — users exempt from chat cooldown
 if (!db.groupChats) db.groupChats = []; // [{ id, name, owner, icon, members:[username], messages:[], createdAt }]
 // ---- Mutual Encryption Chatrooms (Round 7) ----
@@ -1008,6 +1012,7 @@ function publicUser(u, viewerUsername) {
       isOwner: false,
       disabled: true,
       hideProfile: !!u.hideProfile,
+      profileBadge: null,
     };
   }
   const pub = {
@@ -1038,6 +1043,10 @@ function publicUser(u, viewerUsername) {
     isOwner: isOwnerUser(u),
     disabled: false,
     hideProfile: !!u.hideProfile,
+    // Admin-assigned profile badge (small image shown under the "ID:" line).
+    // Kept visible even for hidden profiles — it's a lightweight identity
+    // marker, not a sensitive profile detail.
+    profileBadge: u.profileBadge || null,
     // End-to-end encryption: the user's PUBLIC key (JWK) is shared so other
     // clients can derive a shared secret for DMs. The private key never
     // leaves the user's browser (stored in localStorage).
@@ -1270,6 +1279,7 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage, limits: { fileSize: 251 * 1024 * 1024 } }); // 250MB + 1MB headroom for chat attachments
 const avatarUpload = multer({ storage, limits: { fileSize: 21 * 1024 * 1024 } }); // 20MB + 1MB headroom for profile pic / banner
+const badgeUpload = multer({ storage, limits: { fileSize: 11 * 1024 * 1024 } }); // 10MB + 1MB headroom for admin profile-badge images
 
 // ---------- Auth Routes ----------
 
@@ -3216,6 +3226,7 @@ app.get('/api/admin/data', authMiddleware, adminMiddleware, (req, res) => {
     status: u.status || 'offline',
     role: u.role || 'user',
     badges: u.badges || [],
+    profileBadge: u.profileBadge || null,
     banned: !!u.banned,
     banReason: u.banReason || null,
     bannedAt: u.bannedAt || null,
@@ -3674,6 +3685,72 @@ app.post('/api/admin/custom-role-remove-member', authMiddleware, adminMiddleware
   res.json({ success: true, customRoles: db.customRoles });
 });
 
+// ---------- Admin: Profile Badges System ----------
+// Admins can upload any PNG/image as a "profile badge" and assign it to a
+// single user. The badge renders small on that user's profile, directly under
+// the "ID:" line, styled like a little profile badge. Each user holds at most
+// one profile badge (stored on the user record as `profileBadge`).
+app.post('/api/admin/profile-badge-upload', authMiddleware, adminMiddleware, badgeUpload.single('image'), async (req, res) => {
+  if (!req.file) return res.status(400).json({ error: 'No image provided' });
+  // Only accept image files — reject anything else so the badge slot can't be
+  // abused to host arbitrary content.
+  const isImage = /^image\//.test(req.file.mimetype || '');
+  if (!isImage) {
+    try { fs.unlinkSync(path.join(UPLOAD_DIR, req.file.filename)); } catch (e) {}
+    return res.status(400).json({ error: 'Only image files are allowed' });
+  }
+  // Best-effort HD enhance (capped small — badges render tiny). Failures fall
+  // back to the original file so uploads never break.
+  try { await enhanceWithTimeout(path.join(UPLOAD_DIR, req.file.filename), { skipAnimated: true, maxStatic: 512 }, 5000); }
+  catch (e) { console.error('[profile-badge] enhance error:', e.message); }
+  const url = '/uploads/' + req.file.filename;
+  backupUploadFile(req.file.filename);
+  if (!db.adminActivity) db.adminActivity = [];
+  db.adminActivity.push({ action: 'profile-badge-upload', admin: req.user.username, target: '', reason: req.file.originalname || req.file.filename, timestamp: nowISO() });
+  saveDB();
+  res.json({ success: true, url });
+});
+
+// Assign an uploaded badge image to a user (replaces any existing badge).
+app.post('/api/admin/profile-badge-assign', authMiddleware, adminMiddleware, (req, res) => {
+  const { username, url, name } = req.body || {};
+  if (!username || !url) return res.status(400).json({ error: 'Username and badge image required' });
+  const targetUn = String(username).toLowerCase().trim();
+  const target = db.users[targetUn];
+  if (!target) return res.status(404).json({ error: 'User not found' });
+  // Only accept our own /uploads/ paths (no arbitrary external URLs).
+  const safeUrl = String(url).split('?')[0];
+  if (!safeUrl.startsWith('/uploads/')) return res.status(400).json({ error: 'Invalid badge image path' });
+  target.profileBadge = {
+    url: safeUrl,
+    name: String(name || 'Profile Badge').slice(0, 40),
+    assignedAt: nowISO(),
+    assignedBy: req.user.username,
+  };
+  if (!db.adminActivity) db.adminActivity = [];
+  db.adminActivity.push({ action: 'profile-badge-assign', admin: req.user.username, target: targetUn, reason: target.profileBadge.name, timestamp: nowISO() });
+  saveDB();
+  broadcastProfile(targetUn);
+  emitUsersList();
+  res.json({ success: true, profileBadge: target.profileBadge });
+});
+
+// Remove a user's profile badge.
+app.post('/api/admin/profile-badge-remove', authMiddleware, adminMiddleware, (req, res) => {
+  const { username } = req.body || {};
+  if (!username) return res.status(400).json({ error: 'Username required' });
+  const targetUn = String(username).toLowerCase().trim();
+  const target = db.users[targetUn];
+  if (!target) return res.status(404).json({ error: 'User not found' });
+  target.profileBadge = null;
+  if (!db.adminActivity) db.adminActivity = [];
+  db.adminActivity.push({ action: 'profile-badge-remove', admin: req.user.username, target: targetUn, reason: '', timestamp: nowISO() });
+  saveDB();
+  broadcastProfile(targetUn);
+  emitUsersList();
+  res.json({ success: true });
+});
+
 // ---------- Cooldown exemption management ----------
 app.post('/api/admin/cooldown-exempt-add', authMiddleware, adminMiddleware, (req, res) => {
   const { username } = req.body || {};
@@ -4043,6 +4120,7 @@ function broadcastProfile(username) {
     banned: !!u.banned,
     disabled: false,
     hideProfile: !!u.hideProfile,
+    profileBadge: u.profileBadge || null,
   };
   // "Hide profile from others": every OTHER viewer receives a redacted
   // payload (sensitive details stripped; status message kept as a presence

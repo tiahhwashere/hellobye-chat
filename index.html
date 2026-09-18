@@ -4675,6 +4675,25 @@ body.no-anim .friend-item { animation: none !important; }
 .profile-view-handle { font-size: 17px; color: #ffffff; margin-bottom: 4px; font-weight: 700; word-break: break-word; overflow-wrap: break-word; }
 .profile-view-id { font-size: 11px; color: #ffffff; font-weight: 700; font-family: 'gg sans Mono', monospace; margin-bottom: 10px; display: flex; align-items: center; justify-content: flex-start; gap: 6px; position: relative; }
 .pv-id-text { color: #ffffff; font-weight: 700; }
+/* Profile badge — small admin-assigned image shown under the "ID:" line.
+   Styled like a little profile badge: rounded pill with a subtle border,
+   soft shadow and a gentle sheen so it reads as a badge, not a raw image. */
+.profile-view-badge { display: flex; align-items: center; gap: 6px; margin: -4px 0 10px; }
+.profile-view-badge:empty { display: none; }
+.profile-badge-img {
+  display: inline-block; height: 22px; width: auto; max-width: 120px;
+  object-fit: contain; border-radius: 6px;
+  border: 1px solid rgba(255,255,255,0.35);
+  background: rgba(0,0,0,0.28);
+  padding: 2px 4px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.18);
+  vertical-align: middle;
+}
+.profile-badge-label {
+  font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
+  color: #ffffff; background: rgba(0,0,0,0.32); border: 1px solid rgba(255,255,255,0.28);
+  border-radius: 999px; padding: 2px 8px; line-height: 1.5;
+}
 .pv-copy-id-btn { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 4px; background: var(--bg-medium); color: var(--text-muted); border: 1px solid var(--border-light); cursor: pointer; transition: var(--transition); padding: 0; }
 .pv-copy-id-btn:hover { background: var(--bg-hover); color: var(--accent); border-color: var(--accent); }
 .pv-copy-id-dropdown { position: relative; display: inline-block; }
@@ -7975,6 +7994,7 @@ body.no-anim .friend-item { animation: none !important; }
           <div class="profile-v2-idblock">
             <div class="profile-username" id="profile-username-display">@username</div>
             <div class="profile-userid" id="profile-userid"></div>
+            <div class="profile-view-badge" id="profile-own-badge"></div>
           </div>
         </div>
       </div>
@@ -8571,6 +8591,7 @@ body.no-anim .friend-item { animation: none !important; }
               <button class="admin-subtab" data-admin-subtab="broadcast">Broadcast</button>
               <button class="admin-subtab" data-admin-subtab="whitelist">Whitelist</button>
               <button class="admin-subtab" data-admin-subtab="customroles">Custom Roles</button>
+              <button class="admin-subtab" data-admin-subtab="profilebadges">Profile Badges</button>
             </div>
 
             <!-- Sub-tab: User Activity -->
@@ -8847,6 +8868,43 @@ body.no-anim .friend-item { animation: none !important; }
               </div>
             </div>
 
+            <!-- Sub-tab: Profile Badges -->
+            <div class="admin-subpane" data-admin-subpane="profilebadges">
+              <div class="profile-section">
+                <div class="profile-section-title">Upload a Profile Badge</div>
+                <p style="color:var(--text-muted); font-size:12px; margin-bottom:12px;">Upload any PNG or image to use as a profile badge. It will appear small on the user's profile, directly under their "ID:" line, styled like a little profile badge.</p>
+                <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:12px;">
+                  <input type="file" id="admin-profile-badge-file" accept="image/*" style="display:none;" />
+                  <button class="setting-save-btn no-checkmark" id="admin-profile-badge-upload-btn">Choose Image</button>
+                  <span id="admin-profile-badge-filename" style="font-size:12px; color:var(--text-muted);">No file chosen</span>
+                </div>
+                <div id="admin-profile-badge-preview" style="margin-bottom:8px;"></div>
+              </div>
+              <div class="profile-section">
+                <div class="profile-section-title">Assign Badge to a User</div>
+                <p style="color:var(--text-muted); font-size:12px; margin-bottom:12px;">Search for any user on the website, then give them the uploaded badge. Assigning a new badge replaces the user's current one.</p>
+                <div class="admin-ban-search-row">
+                  <input type="text" id="admin-profile-badge-search" class="admin-input" placeholder="Search by username or ID" />
+                  <button class="setting-save-btn no-checkmark" id="admin-profile-badge-search-btn">Search</button>
+                </div>
+                <div id="admin-profile-badge-results" class="admin-ban-results"></div>
+                <div id="admin-profile-badge-assign-form" style="display:none; margin-top:16px;">
+                  <div class="admin-ban-target-info" id="admin-profile-badge-target-info"></div>
+                  <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-top:10px;">
+                    <input type="text" id="admin-profile-badge-name" class="admin-input" placeholder="Badge label (optional)" maxlength="40" style="flex:1; min-width:160px;" />
+                    <button class="setting-save-btn no-checkmark" id="admin-profile-badge-assign-btn">Give Badge</button>
+                    <button class="setting-save-btn no-checkmark danger-btn" id="admin-profile-badge-remove-btn" style="display:none;">Remove Badge</button>
+                  </div>
+                </div>
+              </div>
+              <div class="profile-section">
+                <div class="profile-section-title">Users with Profile Badges</div>
+                <div id="admin-profile-badges-list" style="margin-top:8px;">
+                  <p style="color:var(--text-muted); padding:12px 0;">Loading profile badges...</p>
+                </div>
+              </div>
+            </div>
+
           </div>
         </section>
 
@@ -8869,6 +8927,7 @@ body.no-anim .friend-item { animation: none !important; }
           <h3 id="pv-displayname"></h3>
           <div class="profile-view-handle" id="pv-handle"></div>
           <div class="profile-view-id" id="pv-id"></div>
+          <div class="profile-view-badge" id="pv-badge"></div>
           <div class="profile-view-status" id="pv-status"></div>
           <div class="profile-view-extra" id="pv-extra"></div>
           <div class="profile-view-bio" id="pv-bio"></div>
@@ -12210,6 +12269,7 @@ function connectSocket() {
       if (data.statusMessage !== undefined) u.statusMessage = data.statusMessage;
       if (data.lastSeen !== undefined) u.lastSeen = data.lastSeen;
       if (data.hideProfile !== undefined) u.hideProfile = data.hideProfile;
+      if (data.profileBadge !== undefined) u.profileBadge = data.profileBadge;
       // Preload new avatar/banner so they render instantly when the UI updates
       if (data.avatar) preloadImage(data.avatar);
       if (data.banner) preloadImage(data.banner);
@@ -12232,6 +12292,7 @@ function connectSocket() {
       if (data.statusMessage !== undefined) merge.statusMessage = data.statusMessage;
       if (data.lastSeen !== undefined) merge.lastSeen = data.lastSeen;
       if (data.hideProfile !== undefined) merge.hideProfile = data.hideProfile;
+      if (data.profileBadge !== undefined) merge.profileBadge = data.profileBadge;
       currentUser = { ...currentUser, ...merge };
       updateProfilePanel();
       updateSettingsPanel();
@@ -12266,6 +12327,13 @@ function connectSocket() {
             ? '<span class="status-msg-bubble pv-name-sm ' + pvUser.status + '">' + pvSmIcon + '<span class="sm-text">' + escapeHtml(pvUser.statusMessage) + '</span></span>'
             : '';
           if ($('pv-displayname')) $('pv-displayname').innerHTML = '<span class="pv-displayname-text">' + escapeHtml(pvUser.displayName || pvUser.username) + '</span>' + pvNameSm;
+          // Live-update the profile badge (admin may have just assigned/removed it)
+          if ($('pv-badge')) {
+            const pb = pvUser.profileBadge;
+            $('pv-badge').innerHTML = (pb && pb.url)
+              ? '<img src="' + escapeHtml(pb.url) + '" alt="' + escapeHtml(pb.name || 'Profile Badge') + '" class="profile-badge-img" title="' + escapeHtml(pb.name || 'Profile Badge') + '" />' + (pb.name ? '<span class="profile-badge-label">' + escapeHtml(pb.name) + '</span>' : '')
+              : '';
+          }
           // Live-update status text (but hide last-seen for hidden profiles)
           const st = pvUser.status === 'offline' ? (pvHidden || pvUser.hideLastSeen ? 'Offline' : 'Last seen ' + getRelativeLastSeen(pvUser.lastSeen)) : getStatusText(pvUser.status);
           if ($('pv-status')) $('pv-status').innerHTML = '<span class="status-dot ' + pvUser.status + '"></span> ' + escapeHtml(st);
@@ -21226,6 +21294,14 @@ function updateProfilePanel() {
   const u = users.find(x => x.username === currentUser.username) || currentUser;
   $('profile-username-display').innerHTML = (u.displayName ? '<span class="sender-displayname">' + escapeHtml(u.displayName) + ' </span>' : '') + '<span class="profile-username-handle">@</span>' + escapeHtml(u.username);
   $('profile-userid').textContent = 'ID: ' + (u.id || '—');
+  // Own profile badge (admin-assigned) — shown under the ID line.
+  const ownBadge = $('profile-own-badge');
+  if (ownBadge) {
+    const pb = u.profileBadge;
+    ownBadge.innerHTML = (pb && pb.url)
+      ? '<img src="' + escapeHtml(pb.url) + '" alt="' + escapeHtml(pb.name || 'Profile Badge') + '" class="profile-badge-img" title="' + escapeHtml(pb.name || 'Profile Badge') + '" />' + (pb.name ? '<span class="profile-badge-label">' + escapeHtml(pb.name) + '</span>' : '')
+      : '';
+  }
   const avatarDisplay = $('profile-avatar-display');
   if (u.avatar) { avatarDisplay.innerHTML = '<img src="' + u.avatar + '" alt="' + u.username + '">'; }
   else { avatarDisplay.innerHTML = ''; const span = document.createElement('span'); span.textContent = getInitials(u.username); avatarDisplay.appendChild(span); }
@@ -23336,6 +23412,18 @@ function renderProfileView(data) {
       }).join('');
     } else {
       menu.innerHTML = '<div class="pv-copy-id-menu-empty">No other users online</div>';
+    }
+  }
+  // Profile badge — small admin-assigned image shown under the "ID:" line.
+  // Kept visible even for hidden profiles (it's a lightweight identity marker).
+  const badgeEl = $('pv-badge');
+  if (badgeEl) {
+    const pb = u.profileBadge;
+    if (pb && pb.url) {
+      badgeEl.innerHTML = '<img src="' + escapeHtml(pb.url) + '" alt="' + escapeHtml(pb.name || 'Profile Badge') + '" class="profile-badge-img" title="' + escapeHtml(pb.name || 'Profile Badge') + '" />' +
+        (pb.name ? '<span class="profile-badge-label">' + escapeHtml(pb.name) + '</span>' : '');
+    } else {
+      badgeEl.innerHTML = '';
     }
   }
   // Status
@@ -26145,12 +26233,14 @@ async function loadAdminData() {
     const res = await fetch(API_BASE + '/api/admin/data', { headers: getAuthHeaders() });
     if (!res.ok) return;
     adminData = await res.json();
+    initAdminProfileBadges();
     renderAdminActivity();
     renderAdminUserOverview();
     renderAdminAccounts();
     renderAdminBannedList();
     renderAdminWhitelist();
     renderAdminCustomRoles();
+    renderAdminProfileBadges();
     renderAdminCooldownExempt();
     renderAdminMutedList();
     // Update welcome title display in admin panel
@@ -27011,6 +27101,161 @@ async function adminRemoveCustomRoleMember(roleId, username) {
     const data = await res.json();
     if (data.success) { toast('User has been removed from the role.', 'success'); loadAdminData(); }
     else { toast(data.error || 'Unable to remove the member from the role. Please try again.', 'error'); }
+  } catch (e) { toast('A network error occurred. Please try again.', 'error'); }
+}
+
+// ---------- Admin: Profile Badges ----------
+// State for the currently-selected badge image (uploaded but not yet assigned)
+let adminProfileBadgeUrl = null;
+let adminProfileBadgeTarget = null;
+
+// Wire up the file input + buttons once the DOM is ready.
+function initAdminProfileBadges() {
+  const fileInput = $('admin-profile-badge-file');
+  const chooseBtn = $('admin-profile-badge-upload-btn');
+  if (chooseBtn && fileInput && !chooseBtn._wired) {
+    chooseBtn._wired = true;
+    chooseBtn.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', () => {
+      const f = fileInput.files && fileInput.files[0];
+      if ($('admin-profile-badge-filename')) $('admin-profile-badge-filename').textContent = f ? f.name : 'No file chosen';
+      if (f) adminUploadProfileBadge(f);
+    });
+  }
+  const searchBtn = $('admin-profile-badge-search-btn');
+  const searchInput = $('admin-profile-badge-search');
+  if (searchBtn && searchInput && !searchBtn._wired) {
+    searchBtn._wired = true;
+    searchBtn.addEventListener('click', () => adminSearchProfileBadgeUsers());
+    searchInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); adminSearchProfileBadgeUsers(); } });
+  }
+  const assignBtn = $('admin-profile-badge-assign-btn');
+  if (assignBtn && !assignBtn._wired) {
+    assignBtn._wired = true;
+    assignBtn.addEventListener('click', () => adminAssignProfileBadge());
+  }
+  const removeBtn = $('admin-profile-badge-remove-btn');
+  if (removeBtn && !removeBtn._wired) {
+    removeBtn._wired = true;
+    removeBtn.addEventListener('click', () => adminRemoveProfileBadge());
+  }
+}
+
+// Upload the chosen image and show a preview.
+async function adminUploadProfileBadge(file) {
+  const fd = new FormData();
+  fd.append('image', file);
+  const preview = $('admin-profile-badge-preview');
+  if (preview) preview.innerHTML = '<span style="font-size:12px; color:var(--text-muted);">Uploading\u2026</span>';
+  try {
+    const res = await fetch(API_BASE + '/api/admin/profile-badge-upload', { method: 'POST', headers: getAuthHeaders(), body: fd });
+    const data = await res.json();
+    if (!res.ok || !data.success) { toast(data.error || 'Upload failed. Please try again.', 'error'); if (preview) preview.innerHTML = ''; return; }
+    adminProfileBadgeUrl = data.url;
+    if (preview) {
+      preview.innerHTML = '<div style="display:flex; align-items:center; gap:10px; padding:10px 12px; background:var(--bg-medium); border:1px solid var(--border-light); border-radius:var(--radius-sm);">' +
+        '<img src="' + escapeHtml(data.url) + '" alt="Badge preview" style="height:26px; width:auto; max-width:140px; object-fit:contain; border-radius:6px; border:1px solid rgba(255,255,255,0.3); background:rgba(0,0,0,0.25); padding:2px 4px;" />' +
+        '<span style="font-size:12px; color:var(--text-muted);">Badge uploaded \u2014 now search for a user below to give it to them.</span>' +
+        '</div>';
+    }
+    toast('Badge image uploaded.', 'success');
+  } catch (e) { toast('Upload failed. Please try again.', 'error'); if (preview) preview.innerHTML = ''; }
+}
+
+// Search users for badge assignment.
+async function adminSearchProfileBadgeUsers() {
+  const input = $('admin-profile-badge-search');
+  const results = $('admin-profile-badge-results');
+  if (!input || !results) return;
+  await adminSearchUsers(input.value, results, adminSelectProfileBadgeUser);
+}
+
+// Called when a user is picked from the search results.
+function adminSelectProfileBadgeUser(cacheKey) {
+  const user = (window._adminSearchCache && window._adminSearchCache[cacheKey]) || null;
+  if (!user) return;
+  adminProfileBadgeTarget = user;
+  const form = $('admin-profile-badge-assign-form');
+  const info = $('admin-profile-badge-target-info');
+  if (form && info) {
+    form.style.display = '';
+    const avatarHtml = user.avatar ? '<img src="' + user.avatar + '" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">' : '<div style="width:32px;height:32px;border-radius:50%;background:var(--accent);color:var(--accent-text);display:flex;align-items:center;justify-content:center;font-weight:600;font-size:13px;">' + escapeHtml(getInitials(user.username)) + '</div>';
+    const hasBadge = user.profileBadge && user.profileBadge.url;
+    const badgeTag = hasBadge ? ' <span style="color:#22c55e;font-size:11px;">(Has a badge)</span>' : '';
+    info.innerHTML = avatarHtml + '<div><div class="at-name">' + escapeHtml(user.displayName || user.username) + badgeTag + ' @' + escapeHtml(user.username) + '</div><div class="at-meta">ID: ' + escapeHtml(user.id || 'N/A') + '</div></div>';
+    if ($('admin-profile-badge-name')) $('admin-profile-badge-name').value = hasBadge ? (user.profileBadge.name || '') : '';
+    const removeBtn = $('admin-profile-badge-remove-btn');
+    if (removeBtn) removeBtn.style.display = hasBadge ? '' : 'none';
+  }
+}
+
+// Assign the uploaded badge to the selected user.
+async function adminAssignProfileBadge() {
+  if (!adminProfileBadgeTarget) { toast('Please search for and select a user first.', 'error'); return; }
+  if (!adminProfileBadgeUrl) { toast('Please upload a badge image first.', 'error'); return; }
+  const name = ($('admin-profile-badge-name') && $('admin-profile-badge-name').value || '').trim();
+  try {
+    const res = await fetch(API_BASE + '/api/admin/profile-badge-assign', {
+      method: 'POST', headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: adminProfileBadgeTarget.username, url: adminProfileBadgeUrl, name }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      toast('Profile badge given to @' + adminProfileBadgeTarget.username + '.', 'success');
+      loadAdminData();
+    } else { toast(data.error || 'Unable to assign the badge. Please try again.', 'error'); }
+  } catch (e) { toast('A network error occurred. Please try again.', 'error'); }
+}
+
+// Remove the selected user's badge.
+async function adminRemoveProfileBadge() {
+  if (!adminProfileBadgeTarget) return;
+  try {
+    const res = await fetch(API_BASE + '/api/admin/profile-badge-remove', {
+      method: 'POST', headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: adminProfileBadgeTarget.username }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      toast('Profile badge removed from @' + adminProfileBadgeTarget.username + '.', 'success');
+      if ($('admin-profile-badge-remove-btn')) $('admin-profile-badge-remove-btn').style.display = 'none';
+      loadAdminData();
+    } else { toast(data.error || 'Unable to remove the badge. Please try again.', 'error'); }
+  } catch (e) { toast('A network error occurred. Please try again.', 'error'); }
+}
+
+// Render the list of users who currently have a profile badge.
+function renderAdminProfileBadges() {
+  const container = $('admin-profile-badges-list');
+  if (!container || !adminData) return;
+  const withBadge = (adminData.users || []).filter(u => u.profileBadge && u.profileBadge.url);
+  if (withBadge.length === 0) {
+    container.innerHTML = '<p style="color:var(--text-muted); padding:12px 0;">No users have a profile badge yet. Upload an image and assign it above.</p>';
+    return;
+  }
+  container.innerHTML = withBadge.map(u => {
+    const pb = u.profileBadge;
+    return '<div style="display:flex; align-items:center; gap:10px; padding:10px 12px; background:var(--bg-medium); border:1px solid var(--border-light); border-radius:var(--radius-sm); margin-bottom:8px;">' +
+      '<img src="' + escapeHtml(pb.url) + '" alt="' + escapeHtml(pb.name || 'Profile Badge') + '" style="height:24px; width:auto; max-width:120px; object-fit:contain; border-radius:6px; border:1px solid rgba(255,255,255,0.3); background:rgba(0,0,0,0.25); padding:2px 4px;" />' +
+      '<div style="flex:1; min-width:0;">' +
+        '<div style="font-size:13px; font-weight:600; color:var(--text-primary);">' + escapeHtml(u.displayName || u.username) + ' <span style="color:var(--text-muted); font-weight:400;">@' + escapeHtml(u.username) + '</span></div>' +
+        '<div style="font-size:11px; color:var(--text-muted);">' + escapeHtml(pb.name || 'Profile Badge') + (pb.assignedBy ? ' \u00b7 by @' + escapeHtml(pb.assignedBy) : '') + '</div>' +
+      '</div>' +
+      '<button class="setting-save-btn no-checkmark danger-btn" style="padding:4px 10px; font-size:11px;" onclick="adminRemoveProfileBadgeFor(&apos;' + escapeHtml(u.username) + '&apos;)">Remove</button>' +
+    '</div>';
+  }).join('');
+}
+
+// Remove a badge directly from the list (by username).
+async function adminRemoveProfileBadgeFor(username) {
+  try {
+    const res = await fetch(API_BASE + '/api/admin/profile-badge-remove', {
+      method: 'POST', headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username }),
+    });
+    const data = await res.json();
+    if (data.success) { toast('Profile badge removed from @' + username + '.', 'success'); loadAdminData(); }
+    else { toast(data.error || 'Unable to remove the badge. Please try again.', 'error'); }
   } catch (e) { toast('A network error occurred. Please try again.', 'error'); }
 }
 
