@@ -11,6 +11,94 @@
   <meta name="description" content="hellobye — little website we like to hangout at">
   <style>
 /* ============================================
+   gg sans — self-hosted brand font (all site text)
+   ============================================ */
+@font-face {
+  font-family: 'gg sans';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('fonts/ggsans.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'gg sans';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url('fonts/ggsansitalic.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'gg sans';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('fonts/ggsansmedium.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'gg sans';
+  font-style: italic;
+  font-weight: 500;
+  font-display: swap;
+  src: url('fonts/ggsansmediumitalic.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'gg sans';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('fonts/ggsanssemibold.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'gg sans';
+  font-style: italic;
+  font-weight: 600;
+  font-display: swap;
+  src: url('fonts/ggsanssemibolditalic.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'gg sans';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('fonts/ggsansbold.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'gg sans';
+  font-style: italic;
+  font-weight: 700;
+  font-display: swap;
+  src: url('fonts/ggsansbolditalic.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'gg sans';
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+  src: url('fonts/ggsansextrabold.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'gg sans';
+  font-style: italic;
+  font-weight: 800;
+  font-display: swap;
+  src: url('fonts/ggsansextrabolditalic.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'gg sans Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('fonts/ggsansmono.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'gg sans Mono';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('fonts/ggsansmonobold.woff2') format('woff2');
+}
+
+/* ============================================
    hellobye - Professional Dark Theme v2
    ============================================ */
 
@@ -124,7 +212,7 @@
 html, body { height: 100%; overflow: hidden; }
 html { height: 100dvh; }
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+  font-family: 'gg sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
   background: var(--bg-darkest);
   color: var(--text-primary);
   font-size: 14px;
@@ -1432,7 +1520,7 @@ body.no-anim .friend-item { animation: none !important; }
   text-align: center; letter-spacing: 3px; text-transform: uppercase;
   background: var(--bg-darker); border: 1px solid var(--border);
   border-radius: var(--radius); color: var(--text-primary);
-  font-family: 'SF Mono', 'Monaco', 'Cascadia Code', monospace;
+  font-family: 'gg sans Mono', 'SF Mono', 'Monaco', 'Cascadia Code', monospace;
   transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
   outline: none;
 }
@@ -1523,7 +1611,7 @@ body.no-anim .friend-item { animation: none !important; }
 }
 .twosv-code-value {
   font-size: 16px; font-weight: 700; letter-spacing: 1.4px;
-  font-family: 'SF Mono', 'Monaco', 'Cascadia Code', monospace;
+  font-family: 'gg sans Mono', 'SF Mono', 'Monaco', 'Cascadia Code', monospace;
   color: var(--text-primary); text-align: center; padding: 13px;
   background: var(--bg-medium); border-radius: var(--radius-sm);
   border: 1px solid var(--border);
@@ -1597,7 +1685,7 @@ body.no-anim .friend-item { animation: none !important; }
 }
 .reset-name-code {
   background: var(--bg-darkest); padding: 3px 9px; border-radius: 6px;
-  font-family: 'SF Mono', 'Monaco', 'Cascadia Code', monospace;
+  font-family: 'gg sans Mono', 'SF Mono', 'Monaco', 'Cascadia Code', monospace;
   font-size: 13px; color: var(--accent); white-space: nowrap;
 }
 .reset-name-warning {
@@ -1620,7 +1708,7 @@ body.no-anim .friend-item { animation: none !important; }
 }
 .reset-name-handle {
   font-size: 15px; font-weight: 700; color: var(--text-primary);
-  font-family: 'SF Mono', 'Monaco', 'Cascadia Code', monospace;
+  font-family: 'gg sans Mono', 'SF Mono', 'Monaco', 'Cascadia Code', monospace;
   letter-spacing: 0.3px; word-break: break-all; line-height: 1.4;
 }
 .reset-name-handle.random { color: var(--accent); }
@@ -1901,7 +1989,7 @@ body.no-anim .friend-item { animation: none !important; }
   margin: 0 16px 14px; padding: 12px 14px;
   background: rgba(0,0,0,0.22);
   border: 1px solid rgba(255,255,255,0.06); border-radius: 8px;
-  font-family: 'SF Mono', 'Monaco', 'Cascadia Code', 'Roboto Mono', 'Consolas', monospace;
+  font-family: 'gg sans Mono', 'SF Mono', 'Monaco', 'Cascadia Code', 'Roboto Mono', 'Consolas', monospace;
   font-size: 12.5px; line-height: 1.5; color: var(--text-secondary);
   white-space: pre-wrap; word-break: break-word; overflow-wrap: break-word;
   max-height: 300px; overflow-y: auto;
@@ -2662,7 +2750,7 @@ body.no-anim .friend-item { animation: none !important; }
 .members-bg-url-input {
   flex: 1; background: transparent; border: none; outline: none;
   padding: 11px 12px 11px 0; font-size: 13px; color: var(--text-primary);
-  font-family: 'SF Mono', 'Monaco', 'Cascadia Code', monospace;
+  font-family: 'gg sans Mono', 'SF Mono', 'Monaco', 'Cascadia Code', monospace;
 }
 .members-bg-url-input::placeholder { color: var(--text-muted); font-family: inherit; }
 .members-bg-url-actions { display: flex; gap: 8px; margin-top: 14px; }
@@ -3308,7 +3396,7 @@ body.no-anim .friend-item { animation: none !important; }
 .admin-account-row-id { font-size: 10px; color: var(--text-muted); }
 .admin-account-detail { font-size: 11px; color: var(--text-secondary); margin: 4px 0; word-break: break-all; line-height: 1.5; }
 .admin-account-detail .label { color: var(--text-muted); font-weight: 500; }
-.admin-account-detail .mono { font-family: 'Courier New', monospace; color: var(--accent); }
+.admin-account-detail .mono { font-family: 'gg sans Mono', 'Courier New', monospace; color: var(--accent); }
 
 .admin-banned-list { display: flex; flex-direction: column; gap: 10px; }
 .admin-banned-item {
@@ -3498,7 +3586,7 @@ body.no-anim .friend-item { animation: none !important; }
   padding: 14px 13px; background: var(--bg-medium);
   border: 1px solid var(--border); border-radius: var(--radius);
 }
-.settings-stat-num { font-size: 22px; font-weight: 700; color: var(--text-primary); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; line-height: 1; }
+.settings-stat-num { font-size: 22px; font-weight: 700; color: var(--text-primary); font-family: 'gg sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; line-height: 1; }
 .settings-stat-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.4px; }
 
 /* Completeness card */
@@ -3650,7 +3738,7 @@ body.no-anim .friend-item { animation: none !important; }
 .profile-v2-idblock .profile-userid {
   font-size: 11px;
   color: var(--text-primary);
-  font-family: 'SF Mono', 'Monaco', 'Cascadia Code', 'Roboto Mono', monospace;
+  font-family: 'gg sans Mono', 'SF Mono', 'Monaco', 'Cascadia Code', 'Roboto Mono', monospace;
   letter-spacing: 0.2px;
   word-break: break-all;
   overflow-wrap: break-word;
@@ -3773,7 +3861,7 @@ body.no-anim .friend-item { animation: none !important; }
 .profile-avatar-remove:hover { background: rgba(216,58,58,0.15); border-color: var(--danger); }
 .profile-username { font-size: 16px; font-weight: 600; margin-bottom: 2px; }
 .profile-username-handle { color: var(--text-primary); }
-.profile-userid { font-size: 11px; color: var(--text-primary); font-family: monospace; }
+.profile-userid { font-size: 11px; color: var(--text-primary); font-family: 'gg sans Mono', monospace; }
 
 .profile-section {
   padding: 18px 0; border-top: 1px solid var(--border);
@@ -3988,7 +4076,7 @@ body.no-anim .friend-item { animation: none !important; }
   text-transform: none; letter-spacing: 0;
   padding: 2px 7px; background: var(--bg-medium); border: 1px solid var(--border);
   border-radius: 5px; min-width: 48px; text-align: center;
-  font-family: 'SF Mono', 'Monaco', 'Cascadia Code', 'Roboto Mono', monospace;
+  font-family: 'gg sans Mono', 'SF Mono', 'Monaco', 'Cascadia Code', 'Roboto Mono', monospace;
 }
 /* Range sliders match the image-scale accent-colored thin track */
 .custom-range {
@@ -4084,7 +4172,7 @@ body.no-anim .friend-item { animation: none !important; }
 }
 .accent-adv-hex {
   font-size: 22px; font-weight: 800; color: var(--text-primary);
-  font-family: 'SF Mono', 'Monaco', 'Cascadia Code', monospace;
+  font-family: 'gg sans Mono', 'SF Mono', 'Monaco', 'Cascadia Code', monospace;
   letter-spacing: 0.5px; line-height: 1;
 }
 .accent-adv-rgb { display: flex; gap: 7px; flex-wrap: wrap; }
@@ -4094,7 +4182,7 @@ body.no-anim .friend-item { animation: none !important; }
   background: var(--bg-darkest); text-transform: uppercase; letter-spacing: 0.4px;
   display: inline-flex; align-items: center; gap: 4px;
 }
-.accent-adv-chip b { color: var(--text-primary); font-family: 'SF Mono', monospace; font-weight: 700; }
+.accent-adv-chip b { color: var(--text-primary); font-family: 'gg sans Mono', 'SF Mono', monospace; font-weight: 700; }
 .accent-adv-chip.r b { color: #f87171; }
 .accent-adv-chip.g b { color: #4ade80; }
 .accent-adv-chip.b b { color: #60a5fa; }
@@ -4110,7 +4198,7 @@ body.no-anim .friend-item { animation: none !important; }
 }
 .accent-adv-meta-val {
   font-size: 12px; font-weight: 700; color: var(--text-primary);
-  font-family: 'SF Mono', monospace; letter-spacing: 0.3px;
+  font-family: 'gg sans Mono', 'SF Mono', monospace; letter-spacing: 0.3px;
 }
 .accent-adv-meter-bar {
   height: 8px; border-radius: 5px; background: var(--bg-darkest);
@@ -4168,7 +4256,7 @@ body.no-anim .friend-item { animation: none !important; }
 }
 .accent-current-hex {
   font-size: 15px; color: var(--text-primary);
-  font-family: 'SF Mono', 'Monaco', 'Cascadia Code', 'Roboto Mono', monospace;
+  font-family: 'gg sans Mono', 'SF Mono', 'Monaco', 'Cascadia Code', 'Roboto Mono', monospace;
   font-weight: 600; letter-spacing: 0.5px;
 }
 /* Live-preview strip: muted, informative */
@@ -4233,7 +4321,7 @@ body.no-anim .friend-item { animation: none !important; }
 }
 .cs-preview-hex {
   font-size: 16px; color: var(--text-primary); font-weight: 700;
-  font-family: 'SF Mono', 'Monaco', 'Cascadia Code', monospace;
+  font-family: 'gg sans Mono', 'SF Mono', 'Monaco', 'Cascadia Code', monospace;
   letter-spacing: 0.5px; cursor: pointer; user-select: none;
   transition: color 0.15s ease;
 }
@@ -4342,7 +4430,7 @@ body.no-anim .friend-item { animation: none !important; }
 }
 .cw-hex-input {
   width: 104px; padding: 7px 10px; font-size: 13px; font-weight: 700;
-  font-family: 'SF Mono', 'Monaco', 'Cascadia Code', monospace;
+  font-family: 'gg sans Mono', 'SF Mono', 'Monaco', 'Cascadia Code', monospace;
   text-align: center; text-transform: uppercase; letter-spacing: 0.5px;
   background: linear-gradient(180deg, var(--bg-darkest), var(--bg-dark));
   color: var(--text-primary);
@@ -4426,7 +4514,7 @@ body.no-anim .friend-item { animation: none !important; }
 }
 .cs-slider-value {
   width: 34px; font-size: 11px; font-weight: 600; text-align: right;
-  color: var(--text-secondary); font-family: 'SF Mono', monospace; flex-shrink: 0;
+  color: var(--text-secondary); font-family: 'gg sans Mono', 'SF Mono', monospace; flex-shrink: 0;
 }
 .cs-hex-row {
   display: flex; align-items: center; gap: 8px; margin-top: 4px;
@@ -4503,7 +4591,7 @@ body.no-anim .friend-item { animation: none !important; }
   border-bottom: 1px solid var(--border);
 }
 .info-row:last-child { border-bottom: none; }
-.info-value { color: var(--text-primary); font-family: monospace; font-size: 12px; }
+.info-value { color: var(--text-primary); font-family: 'gg sans Mono', monospace; font-size: 12px; }
 .completeness-bar { flex: 1; height: 10px; background: var(--bg-lighter); border-radius: 100px; overflow: hidden; border: 1px solid var(--border-light); }
 .completeness-fill { height: 100%; background: var(--accent); border-radius: 100px; transition: width 0.4s cubic-bezier(0.16,1,0.3,1); }
 .completeness-fill.full { background: #22c55e; box-shadow: 0 0 12px rgba(34,197,94,0.35); }
@@ -4550,7 +4638,7 @@ body.no-anim .friend-item { animation: none !important; }
 .profile-view-info { padding: 14px 0 20px; text-align: left; flex: 1 1 auto; min-width: 0; overflow: visible; }
 .profile-view-info h3 { font-size: 19px; font-weight: 700; color: #ffffff; margin-bottom: 3px; word-break: break-word; overflow-wrap: break-word; }
 .profile-view-handle { font-size: 17px; color: #ffffff; margin-bottom: 4px; font-weight: 700; word-break: break-word; overflow-wrap: break-word; }
-.profile-view-id { font-size: 11px; color: #ffffff; font-weight: 700; font-family: monospace; margin-bottom: 10px; display: flex; align-items: center; justify-content: flex-start; gap: 6px; position: relative; }
+.profile-view-id { font-size: 11px; color: #ffffff; font-weight: 700; font-family: 'gg sans Mono', monospace; margin-bottom: 10px; display: flex; align-items: center; justify-content: flex-start; gap: 6px; position: relative; }
 .pv-id-text { color: #ffffff; font-weight: 700; }
 .pv-copy-id-btn { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 4px; background: var(--bg-medium); color: var(--text-muted); border: 1px solid var(--border-light); cursor: pointer; transition: var(--transition); padding: 0; }
 .pv-copy-id-btn:hover { background: var(--bg-hover); color: var(--accent); border-color: var(--accent); }
@@ -4561,7 +4649,7 @@ body.no-anim .friend-item { animation: none !important; }
 .pv-copy-id-menu-item { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 7px 8px; border-radius: 4px; cursor: pointer; transition: var(--transition); }
 .pv-copy-id-menu-item:hover { background: var(--bg-hover); }
 .pv-copy-id-menu-name { font-size: 12px; color: var(--text-primary); font-weight: 500; }
-.pv-copy-id-menu-id { font-size: 10px; color: var(--text-muted); font-family: monospace; }
+.pv-copy-id-menu-id { font-size: 10px; color: var(--text-muted); font-family: 'gg sans Mono', monospace; }
 .pv-copy-id-menu-empty { font-size: 11px; color: var(--text-muted); padding: 8px; text-align: center; }
 .profile-view-status { font-size: 12px; color: var(--text-secondary); display: flex; align-items: center; justify-content: flex-start; gap: 6px; margin-bottom: 14px; }
 .profile-view-status .status-dot { position: static; border: none; width: 16px; height: 16px; }
@@ -4832,7 +4920,7 @@ body.no-anim .friend-item { animation: none !important; }
   border-radius: 12px; position: relative;
 }
 .enc-key-value {
-  font-family: 'SFMono-Regular', ui-monospace, Menlo, Consolas, monospace;
+  font-family: 'gg sans Mono', 'SFMono-Regular', ui-monospace, Menlo, Consolas, monospace;
   font-size: 19px; font-weight: 700; letter-spacing: 3px;
   color: #c7ceff; word-break: break-all; text-align: center; line-height: 1.5;
 }
@@ -4853,7 +4941,7 @@ body.no-anim .friend-item { animation: none !important; }
   width: 100%; padding: 14px 16px; margin-bottom: 16px;
   background: var(--bg-darker); border: 1px solid var(--border-light);
   border-radius: 10px; color: var(--text-primary);
-  font-family: 'SFMono-Regular', ui-monospace, Menlo, Consolas, monospace;
+  font-family: 'gg sans Mono', 'SFMono-Regular', ui-monospace, Menlo, Consolas, monospace;
   font-size: 17px; font-weight: 700; letter-spacing: 4px; text-align: center;
   text-transform: uppercase;
 }
@@ -4912,6 +5000,10 @@ body.no-anim .friend-item { animation: none !important; }
 /* Delete-key button in the encrypted chatroom header (danger accent). */
 .enc-delkey-btn { border-color: rgba(224,60,60,0.4); color: #ff9a9a; }
 .enc-delkey-btn:hover { background: rgba(224,60,60,0.14); border-color: rgba(224,60,60,0.7); color: #ffb3b3; }
+/* Reset-key button in the key-entry modal (beside Unlock). */
+.enc-reset-key-btn { border-color: rgba(212,160,23,0.45); color: #e8c46a; }
+.enc-reset-key-btn:hover { background: rgba(212,160,23,0.14); border-color: rgba(212,160,23,0.75); color: #f0d488; }
+.enc-reset-key-btn:disabled { opacity: 0.55; cursor: default; }
 /* Encrypted media: a small lock chip overlaid on decrypted attachments. */
 .enc-file-lock {
   display: inline-flex; align-items: center; gap: 4px;
@@ -8910,7 +9002,25 @@ body.no-anim .friend-item { animation: none !important; }
       <div class="enc-status-line" id="enc-enter-status"></div>
       <div class="modal-actions">
         <button class="modal-btn" id="enc-enter-cancel">Cancel</button>
+        <button class="modal-btn enc-reset-key-btn" id="enc-reset-key-btn" title="Ask the other user to reset the encryption key">Reset Key</button>
         <button class="modal-btn primary" id="enc-enter-submit">Unlock</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Key reset request popup: shown to BOTH users. The other user must
+       Accept or Decline. Accept rotates the key + wipes old encrypted chats. -->
+  <div class="modal-overlay" id="enc-reset-modal">
+    <div class="modal small enc-modal">
+      <div class="modal-icon enc">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+      </div>
+      <h3>Reset Encryption Key?</h3>
+      <p id="enc-reset-body">@user wants to reset the end-to-end encryption key for this chatroom. If you accept, a brand-new key will be issued to both of you, the old key will stop working, and all messages encrypted with the old key will be permanently deleted. If you decline, nothing changes.</p>
+      <div class="modal-actions">
+        <button class="modal-btn" id="enc-reset-close" style="display:none">Close</button>
+        <button class="modal-btn" id="enc-reset-decline">Decline</button>
+        <button class="modal-btn primary" id="enc-reset-accept">Accept</button>
       </div>
     </div>
   </div>
@@ -11416,7 +11526,7 @@ function prompt2SVCodeVerify(newCode) {
       '<p style="margin:0 0 14px;font-size:13px;color:var(--text-muted);line-height:1.5;">Save this code in a secure location, then type it below to confirm. You will need it every time you sign in.</p>' +
       '<div style="margin-bottom:16px;padding:14px 16px;background:var(--bg-darker);border:1px solid var(--border);border-radius:10px;text-align:center;">' +
         '<div style="font-size:11px;color:var(--text-muted);margin-bottom:6px;letter-spacing:0.5px;">YOUR NEW RECOVERY CODE</div>' +
-        '<div style="font-size:18px;font-weight:700;color:var(--accent);letter-spacing:2px;font-family:monospace;word-break:break-all;">' + escapeHtml(formatted) + '</div>' +
+        '<div style="font-size:18px;font-weight:700;color:var(--accent);letter-spacing:2px;font-family:\'gg sans Mono\',monospace;word-break:break-all;">' + escapeHtml(formatted) + '</div>' +
       '</div>' +
       '<div class="twosv-error" id="twosv-verify-error" style="margin-bottom:12px;"></div>' +
       '<div class="twosv-input-wrap" style="margin-bottom:18px;">' +
@@ -12268,6 +12378,40 @@ function connectSocket() {
   socket.on('encryption-key-deleted', (data) => {
     const who = data && data.by ? '@' + data.by : 'The other user';
     toast(who + ' deleted their encryption key.', '');
+  });
+  // Key reset request: BOTH users see the popup. The requester sees a waiting
+  // state; the other user sees Accept / Decline.
+  socket.on('encryption-reset-request', (data) => {
+    if (!data || !data.other) return;
+    hideEncEnterModal();
+    showEncResetModal(data.other, !!data.self);
+    playMessageSound();
+  });
+  // Both responded → accepted (new key issued, old key + old chats wiped) or
+  // declined (nothing changed; tell the requester the other user declined).
+  socket.on('encryption-reset-resolved', (data) => {
+    hideEncResetModal();
+    const other = data && data.other;
+    const reason = data && data.reason;
+    if (reason === 'accepted') {
+      // The old key is now invalid and all old encrypted chats were deleted.
+      closeEncChatroom();
+      if (data && data.key) {
+        showEncKeyModal(other, data.key);
+        toast('Encryption key reset. Save your new key.', 'success');
+      } else {
+        toast('Encryption key was reset. Enter your new key to continue.', 'success');
+        if (other) showEncEnterModal(other);
+      }
+    } else if (reason === 'declined') {
+      // Tell the requester the other user declined.
+      const by = data && data.by;
+      if (by && currentUser && by === currentUser.username) {
+        toast('@' + other + ' declined your key reset request.', 'error');
+      } else {
+        toast('Key reset request declined.', '');
+      }
+    }
   });
   // Incoming encrypted message.
   socket.on('encryption-receive', async (data) => {
@@ -17611,6 +17755,12 @@ async function startEncryptionChat() {
       showEncInviteModal(other, sdata.status);
       return;
     }
+    if (sres.ok && sdata.status && sdata.status.state === 'resetting') {
+      // A key reset is already pending — show the waiting / respond popup.
+      const iAmRequester = !!(currentUser && sdata.status.resetBy === currentUser.username);
+      showEncResetModal(other, iAmRequester);
+      return;
+    }
   } catch (e) {}
   try {
     const res = await encFetch(API_BASE + '/api/encryption/invite/' + encodeURIComponent(other), { method: 'POST' });
@@ -18070,6 +18220,68 @@ async function deleteEncKey() {
     closeEncChatroom();
   } catch (e) { toast('A network error occurred. Please try again.', 'error'); }
 }
+
+// ---- Key reset request flow ----
+// The requester (from the key-entry modal) asks the other user to reset the
+// shared E2E key. The other user must Accept or Decline.
+let encResetPendingUser = null;   // the other user for a pending reset request
+let encResetIsRequester = false;  // true when WE sent the request (waiting state)
+
+async function requestEncReset() {
+  const other = encPendingUser || encActiveUser;
+  if (!other) return;
+  const btn = $('enc-reset-key-btn');
+  if (btn) btn.disabled = true;
+  try {
+    const res = await encFetch(API_BASE + '/api/encryption/reset-request/' + encodeURIComponent(other), { method: 'POST' });
+    const data = await res.json();
+    if (!res.ok) { toast((data && data.error) || 'Could not send the reset request.', 'error'); if (btn) btn.disabled = false; return; }
+    // Show the waiting state locally (the socket echo also triggers this).
+    hideEncEnterModal();
+    showEncResetModal(other, true);
+  } catch (e) { toast('A network error occurred. Please try again.', 'error'); if (btn) btn.disabled = false; }
+}
+
+function showEncResetModal(other, isRequester) {
+  encResetPendingUser = other;
+  encResetIsRequester = !!isRequester;
+  const body = $('enc-reset-body');
+  const accept = $('enc-reset-accept');
+  const decline = $('enc-reset-decline');
+  const close = $('enc-reset-close');
+  if (isRequester) {
+    if (body) body.innerHTML = 'Waiting for <strong>@' + escapeHtml(other) + '</strong> to accept or decline your key reset request. If they accept, a brand-new key will be issued to both of you, the old key will stop working, and all messages encrypted with the old key will be permanently deleted.';
+    if (accept) accept.style.display = 'none';
+    if (decline) decline.style.display = 'none';
+    if (close) close.style.display = '';
+  } else {
+    if (body) body.innerHTML = '<strong>@' + escapeHtml(other) + '</strong> wants to reset the end-to-end encryption key for this chatroom. If you accept, a brand-new key will be issued to both of you, the old key will stop working, and all messages encrypted with the old key will be permanently deleted. If you decline, nothing changes.';
+    if (accept) accept.style.display = '';
+    if (decline) decline.style.display = '';
+    if (close) close.style.display = 'none';
+  }
+  $('enc-reset-modal').classList.add('show');
+}
+function hideEncResetModal() {
+  $('enc-reset-modal').classList.remove('show');
+  const btn = $('enc-reset-key-btn');
+  if (btn) btn.disabled = false;
+}
+async function respondEncReset(action) {
+  const other = encResetPendingUser;
+  if (!other) { hideEncResetModal(); return; }
+  hideEncResetModal();
+  try {
+    const res = await encFetch(API_BASE + '/api/encryption/reset-respond/' + encodeURIComponent(other), {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action })
+    });
+    const data = await res.json();
+    if (!res.ok) { toast((data && data.error) || 'Could not respond to the reset request.', 'error'); return; }
+    // The server emits 'encryption-reset-resolved' to both users.
+  } catch (e) { toast('A network error occurred. Please try again.', 'error'); }
+}
+
 // ---- Wire up the encryption UI events ----
 (function wireEncryptionUI() {
   const on = (id, ev, fn) => { const el = $(id); if (el) el.addEventListener(ev, fn); };
@@ -18080,6 +18292,10 @@ async function deleteEncKey() {
   on('enc-key-continue', 'click', enterEncChatroomFromKey);
   on('enc-enter-cancel', 'click', hideEncEnterModal);
   on('enc-enter-submit', 'click', submitEncEnter);
+  on('enc-reset-key-btn', 'click', requestEncReset);
+  on('enc-reset-accept', 'click', () => respondEncReset('accept'));
+  on('enc-reset-decline', 'click', () => respondEncReset('decline'));
+  on('enc-reset-close', 'click', hideEncResetModal);
   on('enc-enter-input', 'keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); submitEncEnter(); } });
   on('enc-enter-input', 'input', (e) => { e.target.value = e.target.value.toUpperCase().replace(/[^A-Z]/g, ''); e.target.classList.remove('error'); });
   on('enc-return-accept', 'click', () => respondEncReturn('accept'));

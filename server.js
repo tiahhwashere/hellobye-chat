@@ -2212,6 +2212,8 @@ function publicEncChat(rec, viewer) {
     keyDeletedByMe: !!(rec.keyDeleted && rec.keyDeleted[v]),
     hasKey: !!rec.keyHash,
     messageCount: (rec.messages || []).length,
+    resetBy: rec.resetBy || null,
+    resetPending: rec.state === 'resetting',
   };
 }
 
@@ -2368,6 +2370,72 @@ app.post('/api/encryption/delete-key/:username', authMiddleware, (req, res) => {
   // Let the other user know their partner deleted their key (informational).
   io.to('user:' + other).emit('encryption-key-deleted', { pairId: encPairId(me, other), other: me });
   res.json({ success: true });
+});
+
+// POST request a KEY RESET. The requester asks the OTHER user to reset the
+// shared end-to-end encryption key. The other user must Accept or Decline.
+//  - Accept  -> a brand-new 24-letter key is generated, the OLD key is
+//               invalidated (its hash is replaced), and ALL messages that were
+//               encrypted with the old key are permanently deleted.
+//  - Decline -> nothing changes; the requester is told the other user declined.
+app.post('/api/encryption/reset-request/:username', authMiddleware, (req, res) => {
+  const me = req.user.username;
+  const other = String(req.params.username || '').toLowerCase();
+  if (!db.users[other]) return res.status(404).json({ error: 'User not found' });
+  if (!areFriends(me, other)) return res.status(403).json({ error: 'You must be friends to use encryption chat' });
+  const rec = getEncChat(me, other, false);
+  if (!rec || rec.state !== 'active') return res.status(400).json({ error: 'No active encryption chatroom' });
+  rec.state = 'resetting';
+  rec.resetVotes = { [me]: 'requested', [other]: 'pending' };
+  rec.resetBy = me;
+  rec.updatedAt = nowISO();
+  saveDB();
+  io.to('user:' + me).emit('encryption-reset-request', { pairId: encPairId(me, other), from: me, other, self: true });
+  io.to('user:' + other).emit('encryption-reset-request', { pairId: encPairId(me, other), from: me, other: me });
+  res.json({ success: true });
+});
+
+// POST respond to a key-reset request: { action: 'accept' | 'decline' }.
+// Only the OTHER user (the one who did not request) may respond.
+app.post('/api/encryption/reset-respond/:username', authMiddleware, (req, res) => {
+  const me = req.user.username;
+  const other = String(req.params.username || '').toLowerCase();
+  const action = String((req.body && req.body.action) || '').toLowerCase();
+  if (!db.users[other]) return res.status(404).json({ error: 'User not found' });
+  if (!areFriends(me, other)) return res.status(403).json({ error: 'You must be friends to use encryption chat' });
+  if (action !== 'accept' && action !== 'decline') return res.status(400).json({ error: 'Invalid action' });
+  const rec = getEncChat(me, other, false);
+  if (!rec || rec.state !== 'resetting') return res.status(400).json({ error: 'No pending key reset request' });
+  // The requester cannot respond to their own request.
+  if (rec.resetBy === me) return res.status(400).json({ error: 'You cannot respond to your own reset request' });
+
+  if (action === 'decline') {
+    // Nothing changes: keep the existing key + history, return to 'active'.
+    rec.state = 'active';
+    rec.resetVotes = {};
+    rec.resetBy = null;
+    rec.updatedAt = nowISO();
+    saveDB();
+    io.to('user:' + me).emit('encryption-reset-resolved', { pairId: encPairId(me, other), other, reason: 'declined', by: me });
+    io.to('user:' + other).emit('encryption-reset-resolved', { pairId: encPairId(me, other), other: me, reason: 'declined', by: me });
+    return res.json({ success: true, reason: 'declined' });
+  }
+
+  // ---- Accept: rotate the key, invalidate the old one, wipe old ciphertext ----
+  const newKey = generateEncKey();
+  rec.keyHash = hashEncKey(newKey);   // old key hash replaced -> old key invalid
+  rec.messages = [];                  // delete all chats encrypted with the old key
+  rec.keyIssued = { [me]: true, [other]: true };
+  rec.keyDeleted = {};
+  rec.state = 'active';
+  rec.resetVotes = {};
+  rec.resetBy = null;
+  rec.updatedAt = nowISO();
+  saveDB();
+  // Deliver the fresh one-time key to BOTH users (shown once, never stored).
+  io.to('user:' + me).emit('encryption-reset-resolved', { pairId: encPairId(me, other), other, reason: 'accepted', key: newKey, by: me });
+  io.to('user:' + other).emit('encryption-reset-resolved', { pairId: encPairId(me, other), other: me, reason: 'accepted', key: newKey, by: me });
+  res.json({ success: true, reason: 'accepted', key: newKey });
 });
 
 // POST request to return to normal DMs. Notifies both users; both must accept.
