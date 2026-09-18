@@ -25,5 +25,11 @@
          - enc panel 1080px confirmed.
          - delete accept/decline clicks fire respondEncDelete('accept'/'decline').
          - refresh re-opens the enc room (encShow true, encActiveUser restored).
-- [ ] G. Commit & push.
-- [ ] H. Verify live.
+- [x] G. Commit & push (135432f on master).
+- [x] H. Verify live:
+         - live site HTTP 200.
+         - restoreEncRoomSession present; enc-panel max-width 1080px.
+         - pv-preview-notice removed (0 occurrences).
+         - enc-delete-accept handlers present.
+         - delete-request/delete-respond endpoints return 401 (exist, auth-gated).
+         - GitHub backup DB (hellobye-chat-data/data/db.json) intact (17484 bytes).
