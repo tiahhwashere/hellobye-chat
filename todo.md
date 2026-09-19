@@ -85,3 +85,19 @@
 - [x] Server icon click (non-owner): leave server + copy server id
 - [x] Random 10-digit numeric SERVER id per server
 - [x] Syntax check + commit/push + verify deploy + confirm no data wiped
+
+## 10. Request G — UI fixes & bug fixes
+- [x] Move time/date directly under messages (not in header, not far apart)
+- [x] Hero buttons (Create/Join/Discovery): less shiny/cartoony, professional
+- [x] Server banner: take over whole box under member count, image fits, remove name off banner (keep at top)
+- [x] Remove emojis for Roles & Badges
+- [x] Server Settings: make shiny colorful buttons professional
+- [x] My Server Profile: wider, fix smushed elements, make it fit
+- [x] Remove right-click "My Server Profile" for whole website
+- [x] Fix channel edit button not working
+- [x] Fix server ID numbers not showing up
+- [x] Fix server right-click dropdown leave button + copy server id
+- [x] Verification Level: remove "Highest — verified phone number", replace
+- [x] Remove cartoony button from "display roles separately"
+- [x] Ensure Discoverable servers show in Discovery
+- [ ] Syntax check + commit/push + deploy + verify live + confirm no data wiped
