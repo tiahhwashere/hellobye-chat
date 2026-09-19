@@ -3657,8 +3657,8 @@ body.no-anim .friend-item { animation: none !important; }
    PROFILE V2 — HEADER CARD + STICKY FOOTER LAYOUT
    ============================================================ */
 .profile-modal-v2 {
-  max-width: 600px;
-  max-height: 86vh;
+  max-width: 1040px;
+  max-height: 90vh;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -3672,11 +3672,16 @@ body.no-anim .friend-item { animation: none !important; }
 .profile-modal-v2 .slide-panel-body.profile-v2-body {
   flex: 1 1 auto;
   overflow-y: auto;
-  padding: 18px 22px 14px;
-  display: block;
-  grid-template-columns: none;
-  gap: 0;
-  align-content: normal;
+  padding: 18px 26px 14px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 30px;
+  align-content: start;
+  align-items: start;
+}
+/* Header card (banner + identity) always spans the full width */
+.profile-modal-v2 .profile-v2-body > .profile-v2-header-card {
+  grid-column: 1 / -1;
 }
 
 /* --- Header card (banner + identity row) --- */
@@ -3691,7 +3696,7 @@ body.no-anim .friend-item { animation: none !important; }
 }
 /* Override banner for new card context: full-bleed, no big bottom margin */
 .profile-v2-header-card .profile-banner-section {
-  height: 240px;
+  height: 190px;
   margin-bottom: 0;
   border-radius: var(--radius) var(--radius) 0 0;
   border-bottom: 1px solid var(--border);
@@ -3771,7 +3776,13 @@ body.no-anim .friend-item { animation: none !important; }
 }
 
 /* Sections inside profile-v2-body keep their existing spacing */
-.profile-v2-body .profile-section { padding: 18px 0; }
+.profile-v2-body .profile-section { padding: 14px 0; }
+/* Override the legacy ".settings-modal .slide-panel-body .profile-section"
+   rule that forces every section to span 2 columns — in the profile modal we
+   want sections to flow into the 2-column grid so there's far less scrolling. */
+.settings-modal.profile-modal-v2 .profile-v2-body > .profile-section { grid-column: span 1; }
+/* Full-width sections (e.g. the color studio) span both columns */
+.settings-modal.profile-modal-v2 .profile-v2-body > .profile-section.profile-section-wide { grid-column: 1 / -1; }
 
 /* --- Additional Info 2-col grid --- */
 .profile-fields-grid {
@@ -3820,9 +3831,17 @@ body.no-anim .friend-item { animation: none !important; }
 .profile-dirty-indicator svg { flex-shrink: 0; }
 @keyframes dirtyIn { from { opacity: 0; transform: scale(0.92); } to { opacity: 1; transform: scale(1); } }
 
+@media (max-width: 860px) {
+  .settings-modal.profile-modal-v2 .profile-v2-body,
+  .profile-modal-v2 .slide-panel-body.profile-v2-body {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+}
+
 @media (max-width: 520px) {
   .profile-modal-v2 { max-height: 92vh; }
-  .profile-v2-body { padding: 14px 14px 10px; }
+  .profile-v2-body { padding: 14px 14px 10px; grid-template-columns: 1fr; gap: 0; }
   .profile-v2-identity { padding: 0 14px 14px; gap: 12px; }
   .profile-fields-grid { grid-template-columns: 1fr; }
   .profile-v2-footer { padding: 12px 14px; }
@@ -8058,7 +8077,7 @@ body.no-anim .friend-item { animation: none !important; }
         </div>
       </div>
 
-      <div class="profile-section">
+      <div class="profile-section profile-section-wide">
         <div class="profile-section-title">Panel Theme Color</div>
         <p class="setting-hint">Shown to other members when they view your profile.</p>
         <div class="accent-section-card cs-wrap" id="profile-color-studio">

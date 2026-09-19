@@ -1,27 +1,10 @@
-# Hellobye-Chat — Round 13
-
-## Request
-- Have the iPhone (iMessage) text animation also play in the chatroom.
-
-## Root cause
-- The chatroom lives inside #chat-app, and compact mode disables ALL
-  animations on message groups:
-    #chat-app.compact .message-group { animation: none; ... }
-  That ID-selector rule overrode `.message-group.imsg-in`, so in compact mode
-  the iPhone animation played in DMs / groups / encrypted (which are OUTSIDE
-  #chat-app) but NOT in the chatroom.
+# Round 6 — Wider Profile Settings UI (less scrolling)
 
 ## Tasks
-- [x] A. Re-enable the iPhone animation in compact mode:
-         #chat-app.compact .message-group.imsg-in { animation: imsgSend ... }
-- [x] B. Verify locally:
-         - normal mode: chatroom anim = imsgSend.
-         - compact mode: chatroom anim = imsgSend (was 'none' before fix).
-         - silent bulk render: no animation (msgIn only).
-         - animationstart event fires imsgSend in compact mode.
-         - node --check passes.
-- [x] C. Commit & push (7ca35fa on master).
-- [x] D. Verify live:
-         - live site HTTP 200.
-         - compact imsg rule present (1), imsgSend present (3).
-         - GitHub backup DB intact.
+- [ ] Widen `.profile-modal-v2` max-width (600px -> ~1040px)
+- [ ] Convert `.profile-v2-body` to 2-column grid on desktop (header card spans full width)
+- [ ] Keep single-column fallback on narrow screens (<860px)
+- [ ] Syntax check inline scripts
+- [ ] Commit & push to GitHub master
+- [ ] Verify Render deploy live
+- [ ] Confirm no data wiped
