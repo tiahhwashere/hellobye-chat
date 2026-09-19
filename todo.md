@@ -101,3 +101,13 @@
 - [x] Remove cartoony button from "display roles separately"
 - [x] Ensure Discoverable servers show in Discovery
 - [x] Syntax check + commit/push + deploy + verify live + confirm no data wiped
+
+## 11. Request H — banner box, member menu, advanced settings, bigger chat text
+- [x] Server banner: fill the whole small header box (not a spaced strip), name overlaid on banner
+- [x] Non-owner right-click on server profile picture → dropdown (leave, copy server ID, etc.)
+- [x] Server Settings UI: more advanced/better
+- [x] My Server Profile UI: more advanced/better
+- [x] My Server Profile: profile picture/banner not smushed
+- [x] Server Settings: add Website Accent Colors + effects visible to everyone (server-only)
+- [x] Chatroom/groupchats/DMs: messages/dates/profile pictures a bit bigger
+- [ ] Syntax check + commit/push + deploy + verify live + confirm no data wiped

@@ -122,8 +122,30 @@ input, textarea { font-family: inherit; }
 .server-empty-actions { display: flex; gap: 12px; margin-top: 8px; flex-wrap: wrap; justify-content: center; }
 
 /* ---------- Server view ---------- */
-.server-view { flex: 1; display: flex; min-width: 0; }
+.server-view { flex: 1; display: flex; min-width: 0; position: relative; }
 .server-view.view-in { animation: viewIn 0.26s cubic-bezier(0.16,1,0.3,1); }
+/* Server-wide visual effects (chosen in Server Settings, seen by everyone) */
+.server-view.fx-glow .server-header { box-shadow: inset 0 0 0 2px var(--accent), 0 0 26px rgba(var(--accent-rgb),0.45); }
+.server-view.fx-glow .channel-sidebar { box-shadow: inset -1px 0 0 rgba(var(--accent-rgb),0.35); }
+.server-view.fx-glow .server-input-wrap { box-shadow: 0 0 0 1px rgba(var(--accent-rgb),0.4), 0 0 22px rgba(var(--accent-rgb),0.22); }
+.server-view.fx-gradient::before {
+  content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 0;
+  background: linear-gradient(135deg, rgba(var(--accent-rgb),0.16), transparent 42%, rgba(var(--accent-rgb),0.10));
+}
+.server-view.fx-gradient > * { position: relative; z-index: 1; }
+.server-view.fx-aurora::before {
+  content: ''; position: absolute; inset: -30%; pointer-events: none; z-index: 0; opacity: 0.5;
+  background:
+    radial-gradient(38% 42% at 18% 22%, rgba(var(--accent-rgb),0.55), transparent 70%),
+    radial-gradient(34% 40% at 82% 30%, rgba(var(--accent-rgb),0.40), transparent 72%),
+    radial-gradient(40% 46% at 50% 88%, rgba(var(--accent-rgb),0.45), transparent 74%);
+  filter: blur(46px); animation: auroraDrift 16s ease-in-out infinite alternate;
+}
+.server-view.fx-aurora > * { position: relative; z-index: 1; }
+@keyframes auroraDrift {
+  0% { transform: translate3d(-3%, -2%, 0) scale(1.02); }
+  100% { transform: translate3d(3%, 2%, 0) scale(1.08); }
+}
 @keyframes viewIn {
   from { opacity: 0; transform: translateX(8px); }
   to { opacity: 1; transform: translateX(0); }
@@ -152,9 +174,13 @@ input, textarea { font-family: inherit; }
 }
 .server-header-icon img { width: 100%; height: 100%; object-fit: cover; }
 .server-header-info { flex: 1; min-width: 0; }
-.server-header-name { font-weight: 700; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.server-header-count { font-size: 11px; color: var(--text-muted); }
+.server-header-name { font-weight: 700; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.server-header-count { font-size: 11.5px; color: var(--text-muted); }
 .server-header svg { width: 16px; height: 16px; color: var(--text-muted); flex-shrink: 0; }
+/* When a banner is present, overlay text turns white with a shadow for contrast */
+.server-header.has-banner .server-header-name { color: #fff; text-shadow: 0 1px 4px rgba(0,0,0,0.85); }
+.server-header.has-banner .server-header-count { color: rgba(255,255,255,0.9); text-shadow: 0 1px 4px rgba(0,0,0,0.85); }
+.server-header.has-banner svg { color: rgba(255,255,255,0.9); }
 
 .channel-list { flex: 1; overflow-y: auto; padding: 12px 8px; }
 .channel-section-label {
@@ -216,20 +242,20 @@ input, textarea { font-family: inherit; }
 .msg-group:hover { background: rgba(0,0,0,0.12); }
 .msg-group.own { flex-direction: row-reverse; }
 .msg-avatar {
-  width: 38px; height: 38px; border-radius: 50%; background: var(--accent); flex-shrink: 0;
-  display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px;
+  width: 44px; height: 44px; border-radius: 50%; background: var(--accent); flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px;
   overflow: hidden; cursor: pointer;
 }
 .msg-avatar img { width: 100%; height: 100%; object-fit: cover; }
 .msg-body { flex: 1; min-width: 0; }
 .msg-group.own .msg-body { display: flex; flex-direction: column; align-items: flex-end; }
-.msg-head { display: flex; align-items: center; gap: 8px; margin-bottom: 2px; }
+.msg-head { display: flex; align-items: center; gap: 8px; margin-bottom: 3px; }
 .msg-group.own .msg-head { flex-direction: row-reverse; }
-.msg-author { font-weight: 700; font-size: 14px; }
-.msg-time { font-size: 11px; color: var(--text-muted); margin-top: 2px; display: block; }
+.msg-author { font-weight: 700; font-size: 15.5px; }
+.msg-time { font-size: 12px; color: var(--text-muted); margin-top: 3px; display: block; }
 .msg-group.own .msg-time { text-align: right; }
 .msg-role-badge { font-size: 10px; padding: 1px 6px; border-radius: 8px; font-weight: 700; }
-.msg-text { font-size: 14px; line-height: 1.5; word-wrap: break-word; white-space: pre-wrap; }
+.msg-text { font-size: 15.5px; line-height: 1.55; word-wrap: break-word; white-space: pre-wrap; }
 .msg-group.own .msg-text { text-align: right; }
 .msg-text a { color: var(--accent-light); }
 .msg-media { max-width: 320px; border-radius: var(--radius); margin-top: 4px; display: block; }
@@ -271,7 +297,7 @@ input, textarea { font-family: inherit; }
 .member-section-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); padding: 8px 8px 4px; }
 .member-item { display: flex; align-items: center; gap: 10px; padding: 6px 8px; border-radius: var(--radius-sm); cursor: pointer; transition: background var(--transition); }
 .member-item:hover { background: var(--bg-medium); }
-.member-item .mi-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; overflow: hidden; position: relative; flex-shrink: 0; }
+.member-item .mi-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; overflow: hidden; position: relative; flex-shrink: 0; }
 .member-item .mi-avatar img { width: 100%; height: 100%; object-fit: cover; }
 .member-item .mi-status { position: absolute; bottom: -1px; right: -1px; width: 11px; height: 11px; border-radius: 50%; border: 2px solid var(--bg-dark); }
 .member-item .mi-info { flex: 1; min-width: 0; }
@@ -411,28 +437,34 @@ input, textarea { font-family: inherit; }
 .member-profile-modal { max-width: 560px; padding: 0; overflow: hidden; text-align: left; }
 .member-profile-modal .modal-header { padding: 16px 20px 0; }
 .member-profile-banner {
-  height: 160px; background: var(--bg-medium);
+  height: 180px; background: var(--bg-medium);
   background-size: cover; background-position: center;
   border-radius: var(--radius-lg) var(--radius-lg) 0 0;
   position: relative;
+}
+.member-profile-banner::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(180deg, rgba(0,0,0,0.05) 40%, rgba(0,0,0,0.55));
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
 }
 .member-profile-banner-placeholder {
   width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
   color: var(--text-muted); font-size: 13px;
 }
-.member-profile-main { display: flex; align-items: flex-start; gap: 18px; padding: 0 24px; }
+.member-profile-main { display: flex; align-items: flex-start; gap: 22px; padding: 0 30px; }
 .member-profile-avatar {
-  width: 120px; height: 120px; border-radius: 50%; background: var(--bg-lighter);
+  width: 132px; height: 132px; border-radius: 50%; background: var(--bg-lighter);
   color: var(--text-secondary); display: flex; align-items: center; justify-content: center;
-  font-size: 44px; font-weight: 600; overflow: hidden; flex: 0 0 auto;
-  margin: -60px 0 0; position: relative; z-index: 1;
+  font-size: 48px; font-weight: 600; overflow: hidden; flex: 0 0 auto;
+  margin: -66px 0 0; position: relative; z-index: 2;
+  border: 5px solid var(--bg-dark); box-shadow: 0 8px 26px rgba(0,0,0,0.45);
 }
 .member-profile-avatar img { width: 100%; height: 100%; object-fit: cover; }
-.member-profile-info { padding: 14px 0 18px; flex: 1 1 auto; min-width: 0; }
-.member-profile-name { font-size: 19px; font-weight: 700; color: #fff; margin-bottom: 3px; word-break: break-word; }
-.member-profile-handle { font-size: 15px; color: #fff; font-weight: 700; margin-bottom: 4px; word-break: break-word; }
-.member-profile-id { font-size: 11px; color: #fff; font-weight: 700; font-family: 'gg sans Mono', monospace; margin-bottom: 10px; }
-.member-profile-status { font-size: 12px; color: var(--text-secondary); display: flex; align-items: center; gap: 6px; margin-bottom: 12px; }
+.member-profile-info { padding: 16px 0 22px; flex: 1 1 auto; min-width: 0; }
+.member-profile-name { font-size: 22px; font-weight: 800; color: #fff; margin-bottom: 4px; word-break: break-word; letter-spacing: -0.3px; }
+.member-profile-handle { font-size: 15px; color: var(--text-secondary); font-weight: 600; margin-bottom: 8px; word-break: break-word; }
+.member-profile-id { font-size: 11px; color: var(--text-muted); font-weight: 700; font-family: 'gg sans Mono', monospace; margin-bottom: 10px; letter-spacing: 0.5px; }
+.member-profile-status { font-size: 12.5px; color: var(--text-secondary); display: flex; align-items: center; gap: 6px; margin-bottom: 12px; }
 .member-profile-status .status-dot { position: static; border: none; width: 14px; height: 14px; }
 .status-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--offline); display: inline-block; flex-shrink: 0; }
 .status-dot.online { background: var(--online); }
@@ -440,13 +472,13 @@ input, textarea { font-family: inherit; }
 .status-dot.dnd { background: var(--dnd); }
 .status-dot.streaming { background: #9146ff; }
 .status-dot.offline { background: var(--offline); }
-.member-profile-extra { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 16px; margin-bottom: 14px; }
-.member-profile-extra .mp-extra-field { display: flex; flex-direction: column; gap: 2px; }
-.member-profile-extra .mp-extra-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.4px; color: #fff; font-weight: 700; }
-.member-profile-extra .mp-extra-value { font-size: 13px; color: #fff; font-weight: 700; }
-.member-profile-bio { font-size: 13px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 12px; }
-.member-profile-roles { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
-.member-profile-role { font-size: 11px; padding: 3px 10px; border-radius: 10px; font-weight: 700; }
+.member-profile-extra { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 20px; margin-bottom: 16px; }
+.member-profile-extra .mp-extra-field { display: flex; flex-direction: column; gap: 3px; }
+.member-profile-extra .mp-extra-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); font-weight: 800; }
+.member-profile-extra .mp-extra-value { font-size: 13.5px; color: var(--text-primary); font-weight: 600; }
+.member-profile-bio { font-size: 13.5px; color: var(--text-secondary); line-height: 1.65; margin-bottom: 14px; }
+.member-profile-roles { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+.member-profile-role { font-size: 11px; padding: 4px 11px; border-radius: 10px; font-weight: 700; }
 .member-profile-joined { font-size: 12px; color: var(--text-muted); }
 
 /* Discover list */
@@ -526,25 +558,20 @@ input, textarea { font-family: inherit; }
 .hero-join-btn:hover { background: var(--bg-hover); border-color: var(--accent); }
 .hero-join-btn:active { background: var(--bg-medium); }
 
-/* ---- Server header: banner strip under name/count ---- */
-.server-header { height: auto; min-height: 56px; flex-wrap: wrap; padding: 8px 16px; }
+/* ---- Server header: banner fills the whole box, name overlaid on it ---- */
+.server-header {
+  height: 72px; min-height: 72px; flex-wrap: nowrap; padding: 0 14px;
+  position: relative; overflow: hidden;
+  background-size: cover; background-position: center; background-repeat: no-repeat;
+}
+.server-header::after {
+  content: ''; position: absolute; inset: 0; z-index: 0;
+  background: linear-gradient(90deg, rgba(0,0,0,0.62), rgba(0,0,0,0.18));
+  pointer-events: none;
+}
 .server-header-banner { display: none; }
-.server-header-top { display: flex; align-items: center; gap: 10px; width: 100%; }
-.server-header-strip {
-  width: 100%; height: 34px; border-radius: 8px; margin-top: 6px;
-  background-size: cover; background-position: center; position: relative; overflow: hidden;
-  border: 1px solid var(--border-light);
-  animation: stripIn 0.4s cubic-bezier(0.16,1,0.3,1);
-}
-.server-header-strip::after {
-  content: ''; position: absolute; inset: 0;
-  background: linear-gradient(90deg, rgba(0,0,0,0.55), rgba(0,0,0,0.05));
-}
-.server-header-strip .shs-label {
-  position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
-  font-size: 11px; font-weight: 700; color: #fff; z-index: 1; text-shadow: 0 1px 3px rgba(0,0,0,0.8);
-  letter-spacing: 0.3px;
-}
+.server-header-top { display: flex; align-items: center; gap: 10px; width: 100%; position: relative; z-index: 1; }
+.server-header-strip { display: none !important; }
 @keyframes stripIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
 
 /* ---- Channel privacy / lock badges ---- */
@@ -602,6 +629,21 @@ input, textarea { font-family: inherit; }
 
 /* ---- Richer settings: cards ---- */
 .settings-card { background: var(--bg-dark); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 12px; }
+/* Server appearance: accent swatches + effect preview */
+.server-accent-swatches { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; }
+.server-accent-swatch { width: 30px; height: 30px; border-radius: 8px; cursor: pointer; border: 2px solid transparent; transition: transform var(--transition), border-color var(--transition); }
+.server-accent-swatch:hover { transform: scale(1.08); }
+.server-accent-swatch.selected { border-color: #fff; box-shadow: 0 0 0 2px rgba(255,255,255,0.25); }
+/* Live appearance preview */
+.server-appearance-preview { border: 1px solid var(--border-light); border-radius: 10px; overflow: hidden; margin: 4px 0 14px; background: var(--bg-darkest); }
+.server-appearance-preview .sap-bar { display: flex; gap: 5px; padding: 8px 10px; background: var(--bg-medium); }
+.server-appearance-preview .sap-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border-light); }
+.server-appearance-preview .sap-body { display: flex; gap: 10px; padding: 12px; }
+.server-appearance-preview .sap-side { width: 34%; display: flex; flex-direction: column; gap: 7px; }
+.server-appearance-preview .sap-main { flex: 1; display: flex; flex-direction: column; gap: 7px; }
+.server-appearance-preview .sap-line { height: 8px; border-radius: 4px; background: var(--bg-light); display: block; }
+.server-appearance-preview .sap-line.short { width: 60%; }
+.server-appearance-preview .sap-pill { height: 12px; width: 46%; border-radius: 6px; background: var(--accent); display: block; box-shadow: 0 0 12px rgba(var(--accent-rgb),0.5); }
 .settings-card .sc-title { font-size: 13px; font-weight: 800; margin-bottom: 4px; display: flex; align-items: center; gap: 7px; }
 .settings-card .sc-desc { font-size: 12px; color: var(--text-muted); line-height: 1.5; margin-bottom: 10px; }
 .settings-section-head { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 15px; margin-bottom: 12px; }
@@ -618,18 +660,19 @@ input, textarea { font-family: inherit; }
 
 /* ---- Better My Server Profile ---- */
 .msp-hero { position: relative; border-radius: var(--radius); overflow: hidden; margin-bottom: 16px; border: 1px solid var(--border); }
-.msp-hero-banner { height: 110px; background: linear-gradient(135deg,#6366f1,#4f46e5); background-size: cover; background-position: center; position: relative; cursor: pointer; }
-.msp-hero-banner .edit-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: #fff; opacity: 0; transition: opacity var(--transition); }
+.msp-hero-banner { height: 160px; background: linear-gradient(135deg,#6366f1,#4f46e5); background-size: cover; background-position: center; position: relative; cursor: pointer; }
+.msp-hero-banner::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg, rgba(0,0,0,0.02) 45%, rgba(0,0,0,0.5)); }
+.msp-hero-banner .edit-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: #fff; opacity: 0; transition: opacity var(--transition); z-index: 1; }
 .msp-hero-banner:hover .edit-overlay { opacity: 1; }
 .msp-hero-avatar {
-  width: 84px; height: 84px; border-radius: 50%; border: 4px solid var(--bg-dark); background: var(--accent);
-  display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 26px; overflow: hidden;
-  position: absolute; left: 18px; bottom: -42px; cursor: pointer; z-index: 2;
+  width: 96px; height: 96px; border-radius: 50%; border: 5px solid var(--bg-dark); background: var(--accent);
+  display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 30px; overflow: hidden;
+  position: absolute; left: 26px; top: 112px; cursor: pointer; z-index: 3; box-shadow: 0 8px 26px rgba(0,0,0,0.45);
 }
 .msp-hero-avatar img { width: 100%; height: 100%; object-fit: cover; }
 .msp-hero-avatar .edit-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.55); display: flex; align-items: center; justify-content: center; font-size: 18px; opacity: 0; transition: opacity var(--transition); }
 .msp-hero-avatar:hover .edit-overlay { opacity: 1; }
-.msp-hero-name { padding: 50px 18px 14px; }
+.msp-hero-name { padding: 66px 28px 20px; }
 .msp-hero-name .mhn-name { font-size: 18px; font-weight: 800; }
 .msp-hero-name .mhn-handle { font-size: 13px; color: var(--text-muted); }
 .msp-tabs { display: flex; gap: 6px; margin-bottom: 16px; background: var(--bg-darkest); padding: 4px; border-radius: 12px; border: 1px solid var(--border); }
@@ -685,8 +728,9 @@ input, textarea { font-family: inherit; }
 .member-profile-modal { max-width: 880px; width: 94vw; }
 .member-profile-modal .modal-body { padding: 26px 40px; }
 .msp-hero { margin-bottom: 24px; }
-.msp-hero-banner { height: 160px; }
-.msp-hero-name { padding: 58px 28px 20px; }
+.msp-hero-banner { height: 170px; }
+.msp-hero-avatar { width: 104px; height: 104px; top: 118px; left: 30px; font-size: 32px; }
+.msp-hero-name { padding: 74px 32px 22px; }
 .msp-hero-name .mhn-name { font-size: 22px; letter-spacing: -0.3px; }
 .msp-hero-name .mhn-handle { font-size: 14px; margin-top: 3px; }
 .msp-tabs { margin-bottom: 24px; }
@@ -698,11 +742,6 @@ input, textarea { font-family: inherit; }
 .msp-pane .field input[type=text], .msp-pane .field textarea { padding: 13px 16px; font-size: 14px; }
 .color-swatches { gap: 14px; }
 .color-swatch { width: 40px; height: 40px; border-radius: 12px; }
-
-/* Banner strip under the server name: image fills the whole box, no name overlay */
-.server-header-strip { height: 96px; border-radius: 10px; margin-top: 8px; }
-.server-header-strip::after { background: linear-gradient(180deg, rgba(0,0,0,0.05), rgba(0,0,0,0.18)); }
-.server-header-strip .shs-label { display: none; }
 
 /* Advanced E2E encryption badge (replaces lock emoji) */
 .msg-e2e-badge {
@@ -752,11 +791,6 @@ input, textarea { font-family: inherit; }
 .hero-discover-btn:hover { background: var(--bg-hover); border-color: var(--accent); }
 .hero-discover-btn:active { background: var(--bg-medium); }
 .hero-discover-btn .hc-emoji { display: inline-flex; }
-
-/* ---- Server banner strip: image fills the whole box, no name overlay ---- */
-.server-header-strip { height: 96px !important; border-radius: 10px !important; margin-top: 8px !important; background-size: cover !important; background-position: center !important; background-repeat: no-repeat !important; }
-.server-header-strip .shs-label { display: none !important; }
-.server-header-strip::after { background: linear-gradient(180deg, rgba(0,0,0,0.05), rgba(0,0,0,0.18)) !important; }
 
 /* ---- Wider, two-column Server Settings (no long scroll) ---- */
 .modal.wide { max-width: 900px; }
@@ -1061,6 +1095,29 @@ input, textarea { font-family: inherit; }
           <label class="switch"><input type="checkbox" id="set-discoverable"><span class="slider"></span></label>
         </div>
       </div>
+      <div class="settings-card">
+        <div class="sc-title"><svg class="ui-ic" viewBox="0 0 24 24"><circle cx="13.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="10.5" r="2.5"/><circle cx="8.5" cy="7.5" r="2.5"/><circle cx="6.5" cy="12.5" r="2.5"/><path d="M12 2a10 10 0 1 0 0 20c1.1 0 2-.9 2-2 0-.5-.2-1-.5-1.3-.3-.4-.5-.8-.5-1.2 0-1.1.9-2 2-2h2.3c2.6 0 4.7-2.1 4.7-4.7C22 5.6 17.5 2 12 2z"/></svg> Server Appearance</div>
+        <div class="sc-desc">A theme everyone in this server sees — accent color and a visual effect.</div>
+        <div class="server-appearance-preview" id="set-appearance-preview">
+          <div class="sap-bar"><span class="sap-dot"></span><span class="sap-dot"></span><span class="sap-dot"></span></div>
+          <div class="sap-body">
+            <div class="sap-side"><span class="sap-line"></span><span class="sap-line short"></span><span class="sap-line"></span></div>
+            <div class="sap-main"><span class="sap-pill"></span><span class="sap-line"></span><span class="sap-line short"></span></div>
+          </div>
+        </div>
+        <div class="field" style="margin-bottom:12px;"><label style="text-transform:none;font-size:12px;color:var(--text-secondary);">Accent color</label>
+          <div class="server-accent-swatches" id="set-accent-swatches"></div>
+        </div>
+        <div class="field" style="margin-bottom:12px;"><label style="text-transform:none;font-size:12px;color:var(--text-secondary);">Effect</label>
+          <div class="seg-control" id="set-effect-seg">
+            <button data-effect="none" class="selected">None</button>
+            <button data-effect="glow">Glow</button>
+            <button data-effect="gradient">Gradient</button>
+            <button data-effect="aurora">Aurora</button>
+          </div>
+        </div>
+        <button class="btn btn-ghost" id="set-appearance-reset" style="width:100%;font-size:12.5px;">Reset to default</button>
+      </div>
       </div>
       </div>
 
@@ -1289,6 +1346,11 @@ let displayRolesSeparately = localStorage.getItem('hb_roles_separate') === '1';
 let channelPings = {};        // channelId -> true when an unread @everyone/@here ping exists
 let chEditorPrivacy = 'public';
 let chEditorChat = 'none';
+// Server appearance (accent color + effect) — chosen in Server Settings,
+// visible to everyone in the server.
+const SERVER_ACCENTS = ['#5865f2','#4a9eff','#7c5cf0','#f0629f','#2fa457','#f0a92e','#e35d5d','#00c2b2','#ff7a45','#9b6bff','#3ba55d','#d4a017'];
+let setAccentColor = '#5865f2';
+let setEffect = 'none';
 let chEditorAllowedRoles = [];
 let chEditorAllowedMembers = [];
 
@@ -1665,6 +1727,13 @@ function renderRail() {
       // Non-owners get a small action menu (open / copy ID / leave).
       showRailMenu(btn, s);
     });
+    // Right-click on the server profile picture (non-owners) opens the same
+    // dropdown: open / copy server ID / leave server.
+    btn.addEventListener('contextmenu', (e) => {
+      if (s.isOwner) return;
+      e.preventDefault();
+      showRailMenu(btn, s);
+    });
     wrap.appendChild(btn);
   });
   // Re-trigger the icon pop animation on the newly-activated rail button
@@ -1713,6 +1782,11 @@ function showEmpty() {
   e.style.display = 'flex';
   e.classList.remove('view-in'); void e.offsetWidth; e.classList.add('view-in');
   $('server-view').style.display = 'none';
+  // Reset server-wide appearance so it doesn't leak into the empty state.
+  const root = document.documentElement;
+  ['--accent','--accent-hover','--accent-dim','--accent-light','--accent-rgb'].forEach(v => root.style.removeProperty(v));
+  const sv = $('server-view');
+  if (sv) sv.classList.remove('fx-glow', 'fx-gradient', 'fx-aurora');
 }
 function renderSelfFooter() {
   const av = $('sf-avatar');
@@ -1749,6 +1823,47 @@ async function loadServer(id, silent) {
     }
   } catch(e) { if (!silent) toast(e.message, 'error'); }
 }
+// Apply the server-wide accent color + effect so every member sees it.
+function applyServerAppearance() {
+  const root = document.documentElement;
+  const sv = $('server-view');
+  const accent = (activeServer && activeServer.accentColor) ? activeServer.accentColor : null;
+  const effect = (activeServer && activeServer.effect) ? activeServer.effect : 'none';
+  if (accent && /^#[0-9a-fA-F]{6}$/.test(accent)) {
+    root.style.setProperty('--accent', accent);
+    root.style.setProperty('--accent-hover', shadeColor(accent, 14));
+    root.style.setProperty('--accent-dim', shadeColor(accent, -22));
+    root.style.setProperty('--accent-light', shadeColor(accent, 28));
+    root.style.setProperty('--accent-rgb', hexToRgbStr(accent));
+  } else {
+    root.style.removeProperty('--accent');
+    root.style.removeProperty('--accent-hover');
+    root.style.removeProperty('--accent-dim');
+    root.style.removeProperty('--accent-light');
+    root.style.removeProperty('--accent-rgb');
+  }
+  if (sv) {
+    sv.classList.remove('fx-glow', 'fx-gradient', 'fx-aurora');
+    if (effect && effect !== 'none') sv.classList.add('fx-' + effect);
+  }
+}
+function hexToRgbStr(hex) {
+  const h = hex.replace('#', '');
+  const n = parseInt(h, 16);
+  return ((n >> 16) & 255) + ', ' + ((n >> 8) & 255) + ', ' + (n & 255);
+}
+function shadeColor(hex, percent) {
+  const h = hex.replace('#', '');
+  let r = parseInt(h.substring(0, 2), 16);
+  let g = parseInt(h.substring(2, 4), 16);
+  let b = parseInt(h.substring(4, 6), 16);
+  const t = percent < 0 ? 0 : 255;
+  const p = Math.abs(percent) / 100;
+  r = Math.round((t - r) * p) + r;
+  g = Math.round((t - g) * p) + g;
+  b = Math.round((t - b) * p) + b;
+  return '#' + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join('');
+}
 function renderServerView() {
   if (!activeServer) return;
   // Header
@@ -1757,16 +1872,12 @@ function renderServerView() {
   else headerIconEl.textContent = getInitials(activeServer.name);
   $('server-header-name').textContent = activeServer.name;
   $('server-header-count').textContent = activeServer.memberCount + ' member' + (activeServer.memberCount === 1 ? '' : 's');
-  const banner = $('server-header-banner');
-  banner.style.backgroundImage = activeServer.banner ? 'url(' + activeServer.banner + ')' : '';
-  // Banner strip under the server name / member count (in the header, not settings)
-  const strip = $('server-header-strip');
-  if (activeServer.banner) {
-    strip.style.display = '';
-    strip.style.backgroundImage = 'url(' + activeServer.banner + ')';
-  } else {
-    strip.style.display = 'none';
-  }
+  // The banner fills the whole server header box; the name/count overlay it.
+  const headerEl = $('server-header');
+  headerEl.style.backgroundImage = activeServer.banner ? 'url(' + activeServer.banner + ')' : '';
+  headerEl.classList.toggle('has-banner', !!activeServer.banner);
+  // Server-wide appearance (accent color + effect) — visible to every member.
+  applyServerAppearance();
   // Channels
   renderChannels();
   // Members
@@ -2237,6 +2348,30 @@ $('join-open-discover').addEventListener('click', () => { closeModal('join-modal
    ============================================================ */
 $('sch-settings-btn').addEventListener('click', openSettings);
 $('server-header').addEventListener('click', openSettings);
+function renderServerAccentSwatches() {
+  const wrap = $('set-accent-swatches');
+  if (!wrap) return;
+  setAccentColor = (activeServer && activeServer.accentColor) || '#5865f2';
+  wrap.innerHTML = SERVER_ACCENTS.map(c =>
+    '<div class="server-accent-swatch' + (c.toLowerCase() === setAccentColor.toLowerCase() ? ' selected' : '') + '" data-color="' + c + '" style="background:' + c + ';" title="' + c + '"></div>'
+  ).join('');
+  wrap.querySelectorAll('.server-accent-swatch').forEach(sw => sw.addEventListener('click', () => {
+    setAccentColor = sw.dataset.color;
+    wrap.querySelectorAll('.server-accent-swatch').forEach(x => x.classList.remove('selected'));
+    sw.classList.add('selected');
+    updateAppearancePreview();
+  }));
+}
+// Live preview of the chosen accent color + effect inside Server Settings.
+function updateAppearancePreview() {
+  const pv = $('set-appearance-preview');
+  if (!pv) return;
+  const accent = /^#[0-9a-fA-F]{6}$/.test(setAccentColor) ? setAccentColor : '#5865f2';
+  pv.style.setProperty('--accent', accent);
+  pv.style.setProperty('--accent-rgb', hexToRgbStr(accent));
+  pv.classList.remove('fx-glow', 'fx-gradient', 'fx-aurora');
+  if (setEffect && setEffect !== 'none') pv.classList.add('fx-' + setEffect);
+}
 function openSettings() {
   if (!activeServer) return;
   if (!(activeServer.isOwner || hasPerm('manageServer') || hasPerm('manageChannels') || hasPerm('manageRoles'))) {
@@ -2260,6 +2395,12 @@ function openSettings() {
   $('set-slowmode').value = String(activeServer.slowmodeSeconds || 0);
   $('set-welcome').value = activeServer.welcomeMessage || '';
   $('set-discoverable').checked = !!activeServer.discoverable;
+  // Server appearance: accent color + effect
+  renderServerAccentSwatches();
+  const eff = activeServer.effect || 'none';
+  setEffect = eff;
+  $('set-effect-seg').querySelectorAll('button').forEach(b => b.classList.toggle('selected', b.dataset.effect === eff));
+  updateAppearancePreview();
   renderSettingsChannels();
   renderSettingsRoles();
   renderActiveInvites();
@@ -2330,8 +2471,22 @@ $('set-notif-seg').querySelectorAll('button').forEach(b => b.addEventListener('c
   $('set-notif-seg').querySelectorAll('button').forEach(x => x.classList.remove('selected'));
   b.classList.add('selected');
 }));
+$('set-effect-seg').querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
+  $('set-effect-seg').querySelectorAll('button').forEach(x => x.classList.remove('selected'));
+  b.classList.add('selected');
+  setEffect = b.dataset.effect;
+  updateAppearancePreview();
+}));
+$('set-appearance-reset').addEventListener('click', () => {
+  setAccentColor = '#5865f2';
+  setEffect = 'none';
+  renderServerAccentSwatches();
+  $('set-effect-seg').querySelectorAll('button').forEach(x => x.classList.toggle('selected', x.dataset.effect === 'none'));
+  updateAppearancePreview();
+});
 $('settings-save').addEventListener('click', async () => {
   const notifBtn = $('set-notif-seg').querySelector('button.selected');
+  const effectBtn = $('set-effect-seg').querySelector('button.selected');
   try {
     const d = await api('/api/servers/' + activeServerId + '/settings', { method: 'POST', body: {
       name: $('set-name').value.trim(),
@@ -2342,6 +2497,8 @@ $('settings-save').addEventListener('click', async () => {
       slowmodeSeconds: Number($('set-slowmode').value),
       welcomeMessage: $('set-welcome').value.trim(),
       discoverable: $('set-discoverable').checked,
+      accentColor: setAccentColor,
+      effect: effectBtn ? effectBtn.dataset.effect : 'none',
     } });
     activeServer = d.server; renderServerView(); toast('Saved', 'success');
   } catch(e) { toast(e.message, 'error'); }

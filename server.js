@@ -2900,6 +2900,8 @@ function publicServer(s, viewerUsername) {
     welcomeMessage: s.welcomeMessage || '',
     discoverable: !!s.discoverable,
     slowmodeSeconds: s.slowmodeSeconds || 0,
+    accentColor: s.accentColor || null,
+    effect: s.effect || 'none',
     roles: (s.roles || []).map(r => ({ id: r.id, name: r.name, color: r.color, badge: r.badge || '', order: r.order || 0, system: !!r.system, permissions: r.permissions || {} })),
     channels: (s.channels || [])
       .filter(c => isOwner || canViewChannel(s, viewer, c))
@@ -3059,7 +3061,7 @@ app.post('/api/servers/:id/settings', authMiddleware, (req, res) => {
   const s = findServer(req.params.id);
   if (!s) return res.status(404).json({ error: 'Server not found' });
   if (!serverHasPerm(s, req.user.username, 'manageServer')) return res.status(403).json({ error: 'You do not have permission to manage this server' });
-  const { name, bio, systemChannelId, defaultNotifications, verificationLevel, welcomeMessage, discoverable, slowmodeSeconds } = req.body || {};
+  const { name, bio, systemChannelId, defaultNotifications, verificationLevel, welcomeMessage, discoverable, slowmodeSeconds, accentColor, effect } = req.body || {};
   if (name !== undefined) {
     const n = String(name).trim().slice(0, 40);
     if (!n) return res.status(400).json({ error: 'Server name is required' });
@@ -3083,6 +3085,14 @@ app.post('/api/servers/:id/settings', authMiddleware, (req, res) => {
   if (slowmodeSeconds !== undefined) {
     const v = Number(slowmodeSeconds);
     s.slowmodeSeconds = [0, 5, 10, 30, 60, 120, 300, 600, 900, 1800, 3600, 21600].includes(v) ? v : 0;
+  }
+  if (accentColor !== undefined) {
+    const c = String(accentColor || '').trim();
+    s.accentColor = /^#[0-9a-fA-F]{6}$/.test(c) ? c.toLowerCase() : null;
+  }
+  if (effect !== undefined) {
+    const e = String(effect || 'none');
+    s.effect = ['none', 'glow', 'gradient', 'aurora'].includes(e) ? e : 'none';
   }
   s.updatedAt = nowISO();
   saveDB();
