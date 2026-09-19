@@ -3696,7 +3696,7 @@ body.no-anim .friend-item { animation: none !important; }
 }
 /* Override banner for new card context: full-bleed, no big bottom margin */
 .profile-v2-header-card .profile-banner-section {
-  height: 190px;
+  height: 150px;
   margin-bottom: 0;
   border-radius: var(--radius) var(--radius) 0 0;
   border-bottom: 1px solid var(--border);
@@ -3712,8 +3712,8 @@ body.no-anim .friend-item { animation: none !important; }
 .profile-v2-identity {
   display: flex;
   align-items: flex-start;
-  gap: 16px;
-  padding: 0 20px 18px;
+  gap: 96px;
+  padding: 0 20px 18px 12px;
 }
 .profile-v2-avatar-wrap {
   flex: 0 0 auto;
@@ -3755,24 +3755,41 @@ body.no-anim .friend-item { animation: none !important; }
   overflow: hidden;
 }
 .profile-v2-idblock .profile-username {
-  font-size: 17px;
+  font-size: 19px;
   font-weight: 700;
-  margin-bottom: 3px;
+  margin-bottom: 4px;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 0;
   color: var(--text-primary);
   word-break: break-word;
   overflow-wrap: break-word;
   overflow: hidden;
 }
 .profile-v2-idblock .profile-userid {
-  font-size: 11px;
+  font-size: 13px;
   color: var(--text-primary);
   font-family: 'gg sans Mono', 'SF Mono', 'Monaco', 'Cascadia Code', 'Roboto Mono', monospace;
   letter-spacing: 0.2px;
   word-break: break-all;
   overflow-wrap: break-word;
+}
+/* Click-to-copy affordance for the username + user ID in Profile Settings */
+.profile-v2-idblock .profile-username,
+.profile-v2-idblock .profile-userid {
+  cursor: pointer;
+  border-radius: 4px;
+  transition: var(--transition);
+  width: fit-content;
+  max-width: 100%;
+}
+.profile-v2-idblock .profile-username:hover,
+.profile-v2-idblock .profile-userid:hover {
+  color: var(--accent);
+}
+.profile-v2-idblock .profile-username:active,
+.profile-v2-idblock .profile-userid:active {
+  opacity: 0.7;
 }
 
 /* Sections inside profile-v2-body keep their existing spacing */
@@ -3837,6 +3854,7 @@ body.no-anim .friend-item { animation: none !important; }
     grid-template-columns: 1fr;
     gap: 0;
   }
+  .profile-v2-identity { gap: 40px; }
 }
 
 @media (max-width: 520px) {
@@ -3847,7 +3865,7 @@ body.no-anim .friend-item { animation: none !important; }
   .profile-v2-footer { padding: 12px 14px; }
   .profile-v2-footer .profile-save-btn { width: 100%; }
   /* Keep the avatar fully visible on mobile: smaller banner + tighter overlap */
-  .profile-v2-header-card .profile-banner-section { height: 210px; }
+  .profile-v2-header-card .profile-banner-section { height: 130px; }
   .profile-v2-avatar-wrap { margin-top: -26px; }
   .profile-v2-avatar-wrap .profile-avatar-large { width: 108px; height: 108px; font-size: 38px; }
 }
@@ -21517,8 +21535,7 @@ if ($('hide-lastseen-settings-toggle')) $('hide-lastseen-settings-toggle').addEv
 });
 
 // ---------- Image Scale Modal (avatar & banner) ----------
-$('avatar-edit-btn').addEventListener('click', () => $('avatar-input').click());
-$('avatar-input').addEventListener('change', (e) => {
+$('avatar-edit-btn').addEventListener('click', () => $('avatar-input').click());$('avatar-input').addEventListener('change', (e) => {
   const file = e.target.files[0];
   if (!file) return;
   if (file.size > 20 * 1024 * 1024) { toast('Profile picture exceeds 20MB limit', 'error'); e.target.value = ''; return; }
@@ -21938,6 +21955,36 @@ function previewMyProfile() {
   $('profile-view-modal').classList.add('show');
 }
 $('avatar-preview-btn').addEventListener('click', previewMyProfile);
+// Click the username or user ID in Profile Settings to copy it to the clipboard.
+$('profile-username-display').addEventListener('click', () => {
+  const u = users.find(x => currentUser && x.username === currentUser.username) || currentUser;
+  if (!u) return;
+  const handle = '@' + u.username;
+  navigator.clipboard.writeText(handle).then(() => {
+    toast('Copied ' + handle, 'success');
+  }).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = handle; document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); toast('Copied ' + handle, 'success'); }
+    catch (e) { toast('Unable to copy username.', 'error'); }
+    document.body.removeChild(ta);
+  });
+});
+$('profile-userid').addEventListener('click', () => {
+  const u = users.find(x => currentUser && x.username === currentUser.username) || currentUser;
+  if (!u) return;
+  const id = userShortId(u);
+  if (!id) return;
+  navigator.clipboard.writeText(id).then(() => {
+    toast('Copied your user ID', 'success');
+  }).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = id; document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); toast('Copied your user ID', 'success'); }
+    catch (e) { toast('Unable to copy user ID.', 'error'); }
+    document.body.removeChild(ta);
+  });
+});
 $('banner-remove-btn').addEventListener('click', async () => {
   // LOCAL-ONLY PREVIEW: do NOT delete the banner server-side yet. We just
   // hide it locally and mark the profile dirty so the "You have unsaved
