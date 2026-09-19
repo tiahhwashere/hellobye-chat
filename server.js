@@ -571,6 +571,26 @@ function genId() { return crypto.randomUUID(); }
 function hashPass(pw) { return crypto.createHash('sha256').update(pw).digest('hex'); }
 function nowISO() { return new Date().toISOString(); }
 
+// Deterministic 12-digit "short ID" derived from a user's real UUID.
+// The underlying system ID (the UUID) is NEVER changed — this is purely a
+// friendlier display/search alias. It is stable (same UUID -> same 12 digits)
+// and collision-resistant enough for a small community. Users can still be
+// found by either their full UUID or this short ID.
+// NOTE: this algorithm MUST stay byte-for-byte identical to the client's
+// shortIdFor() in index.html so the displayed ID matches the searched ID.
+function shortIdFor(uuid) {
+  if (!uuid) return '';
+  const str = 'hellobye-shortid:' + String(uuid);
+  let h1 = 0x811c9dc5, h2 = 0x1000193;
+  for (let i = 0; i < str.length; i++) {
+    const c = str.charCodeAt(i);
+    h1 ^= c; h1 = Math.imul(h1, 0x01000193) >>> 0;
+    h2 = (h2 + c) >>> 0; h2 = Math.imul(h2, 0x85ebca6b) >>> 0;
+  }
+  const combined = (BigInt(h1) * 4294967296n + BigInt(h2)) % 1000000000000n;
+  return combined.toString().padStart(12, '0');
+}
+
 // ---------- Session metadata helpers ----------
 // Sessions are stored in db.sessions. Each entry is either:
 //   (legacy) a bare username string, or
@@ -1003,6 +1023,7 @@ function publicUser(u, viewerUsername) {
       statusMessage: '',
       createdAt: u.createdAt || nowISO(),
       id: u.id || null,
+      shortId: shortIdFor(u.id),
       role: 'user',
       badges: [],
       banned: false,
@@ -1034,6 +1055,7 @@ function publicUser(u, viewerUsername) {
     statusMessage: u.statusMessage || '',
     createdAt: u.createdAt || nowISO(),
     id: u.id || null,
+    shortId: shortIdFor(u.id),
     role: u.role || 'user',
     badges: u.badges || [],
     banned: !!u.banned,
@@ -1663,6 +1685,8 @@ app.get('/api/user/:username', authMiddleware, (req, res) => {
   // from everyone.
   const profileHidden = !!u.hideProfile && !isMe;
   const viewUser = publicUser(u, me.username);
+  const iBlockedThem = (db.blocked[me.username] || []).includes(u.username);
+  const theyBlockedMe = (db.blocked[u.username] || []).includes(me.username);
   res.json({
     user: viewUser,
     isMe,
@@ -1670,6 +1694,8 @@ app.get('/api/user/:username', authMiddleware, (req, res) => {
     outgoingRequest: myFriends.sent.includes(u.username),
     incomingRequest: myFriends.received.includes(u.username),
     profileHidden,
+    isBlocked: iBlockedThem,
+    isBlockedBy: theyBlockedMe,
   });
 });
 
@@ -1969,6 +1995,7 @@ app.post('/api/friends/request', authMiddleware, (req, res) => {
   const target = db.users[username ? username.toLowerCase() : ''];
   if (!target) return res.status(404).json({ error: 'User not found' });
   if (target.username === req.user.username) return res.status(400).json({ error: 'Cannot friend yourself' });
+  if (isBlockedBetween(req.user.username, target.username)) return res.status(403).json({ error: 'You cannot send a friend request to this user.' });
   if (target.friendRequestsEnabled === false) return res.status(403).json({ error: '@' + target.username + ' has friend requests turned off' });
   const me = db.friends[req.user.username] || (db.friends[req.user.username] = { friends: [], sent: [], received: [] });
   const them = db.friends[target.username] || (db.friends[target.username] = { friends: [], sent: [], received: [] });
@@ -2031,19 +2058,47 @@ app.post('/api/friends/remove', authMiddleware, (req, res) => {
 });
 
 // ---------- Blocking ----------
+// True if either user has blocked the other (blocking is one-directional in
+// storage but enforced both ways for messaging/friending).
+function isBlockedBetween(a, b) {
+  if (!a || !b) return false;
+  const aBlocksB = (db.blocked[a] || []).includes(b);
+  const bBlocksA = (db.blocked[b] || []).includes(a);
+  return aBlocksB || bBlocksA;
+}
 app.get('/api/blocked', authMiddleware, (req, res) => {
   const blocked = db.blocked[req.user.username] || [];
-  res.json({ blocked: blocked.map(un => publicUser(db.users[un])).filter(Boolean) });
+  // Also report who has blocked ME, so the client can hide their messages and
+  // disable friend/DM interactions from the blocked side too.
+  const blockedBy = Object.keys(db.blocked || {}).filter(un => (db.blocked[un] || []).includes(req.user.username));
+  res.json({
+    blocked: blocked.map(un => publicUser(db.users[un])).filter(Boolean),
+    blockedBy: blockedBy.map(un => publicUser(db.users[un])).filter(Boolean),
+  });
 });
 
 app.post('/api/block', authMiddleware, (req, res) => {
   const { username } = req.body || {};
   const target = username ? username.toLowerCase() : '';
   if (!db.users[target]) return res.status(404).json({ error: 'User not found' });
+  if (target === req.user.username) return res.status(400).json({ error: 'You cannot block yourself' });
   const bl = db.blocked[req.user.username] || (db.blocked[req.user.username] = []);
   if (!bl.includes(target)) bl.push(target);
+  // Blocking automatically removes any friendship AND clears any pending
+  // friend requests in BOTH directions, so a blocked user can never remain a
+  // friend or have an outstanding request.
+  const me = db.friends[req.user.username] || (db.friends[req.user.username] = { friends: [], sent: [], received: [] });
+  const them = db.friends[target] || (db.friends[target] = { friends: [], sent: [], received: [] });
+  me.friends = me.friends.filter(u => u !== target);
+  them.friends = them.friends.filter(u => u !== req.user.username);
+  me.sent = me.sent.filter(u => u !== target);
+  them.received = them.received.filter(u => u !== req.user.username);
+  me.received = me.received.filter(u => u !== target);
+  them.sent = them.sent.filter(u => u !== req.user.username);
   saveDB();
   io.to(`user:${target}`).emit('blocked', { by: req.user.username });
+  // Tell the blocker's own other sessions to refresh friend/blocked state too.
+  io.to(`user:${req.user.username}`).emit('friends-changed', {});
   res.json({ success: true });
 });
 
@@ -3869,7 +3924,7 @@ app.get('/api/admin/search', authMiddleware, adminMiddleware, (req, res) => {
   const q = String(req.query.q || '').toLowerCase().trim();
   if (!q) return res.json({ results: [] });
   const results = Object.values(db.users)
-    .filter(u => u.username.includes(q) || (u.id && u.id.includes(q)) || (u.displayName && u.displayName.toLowerCase().includes(q)))
+    .filter(u => u.username.includes(q) || (u.id && u.id.includes(q)) || shortIdFor(u.id).includes(q) || (u.displayName && u.displayName.toLowerCase().includes(q)))
     .map(u => publicUser(u));
   res.json({ results });
 });
@@ -4423,6 +4478,12 @@ io.on('connection', (socket) => {
     try {
       const target = to ? to.toLowerCase() : '';
       if (!db.users[target]) { if (typeof ack === 'function') ack({ error: 'User not found' }); return; }
+      // Blocking: if either party has blocked the other, DMs are refused
+      // entirely (server-side, so it cannot be bypassed by the client).
+      if (isBlockedBetween(username, target)) {
+        if (typeof ack === 'function') ack({ error: 'You cannot send messages to this user.', blocked: true });
+        return;
+      }
       // Direct Messages privacy: a user can turn off their own DMs.
       //  - If the RECIPIENT has DMs off, nobody can DM them.
       //  - The sender's own DM setting does NOT prevent them from sending

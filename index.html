@@ -3882,18 +3882,15 @@ body.no-anim .friend-item { animation: none !important; }
 .profile-avatar-remove { color: var(--danger); }
 .profile-avatar-remove:hover { background: rgba(216,58,58,0.15); border-color: var(--danger); }
 .profile-avatar-preview {
-  color: #fff;
-  background: linear-gradient(135deg, var(--accent), #6f7bff);
-  border-color: transparent;
-  box-shadow: 0 2px 10px rgba(88,101,242,0.35);
+  color: var(--text-primary);
+  background: var(--bg-lighter);
+  border-color: var(--border-light);
 }
 .profile-avatar-preview:hover {
-  background: linear-gradient(135deg, #6f7bff, var(--accent));
-  color: #fff; border-color: transparent;
-  box-shadow: 0 4px 16px rgba(88,101,242,0.55);
-  transform: translateY(-1px);
+  background: var(--accent-dim);
+  color: #fff; border-color: var(--accent);
 }
-.profile-avatar-preview:active { transform: translateY(0); box-shadow: 0 2px 8px rgba(88,101,242,0.4); }
+.profile-avatar-preview:active { transform: translateY(0); }
 .profile-username { font-size: 16px; font-weight: 600; margin-bottom: 2px; }
 .profile-username-handle { color: var(--text-primary); }
 .profile-userid { font-size: 11px; color: var(--text-primary); font-family: 'gg sans Mono', monospace; }
@@ -9797,6 +9794,7 @@ let replyingTo = null;      // { id, username, displayName, text } for public ch
 let replyingToDM = null;    // { id, username, text } for DMs
 // Block system
 let blockedUsers = [];
+let blockedByUsers = [];   // users who have blocked ME (hide their messages too)
 let pendingBlockUser = null;
 // Cooldown
 let chatCooldownEnds = 0;
@@ -10425,6 +10423,32 @@ function formatDuration(seconds) {
 function getInitials(username) {
   if (!username) return '?';
   return username.charAt(0).toUpperCase();
+}
+// Deterministic 12-digit "short ID" derived from a user's real UUID. Mirrors
+// the server's shortIdFor() exactly (same hash + modulo) so the displayed
+// short ID always matches what the server searches against. The real system
+// ID (the UUID) is never changed — this is only a friendlier display alias.
+function shortIdFor(uuid) {
+  if (!uuid) return '';
+  // Small synchronous FNV-1a style hash over the salted UUID, expanded to
+  // enough hex chars, then reduced to 12 digits. Must match the server.
+  const str = 'hellobye-shortid:' + String(uuid);
+  // Use a simple but stable 64-bit-ish hash via two 32-bit accumulators.
+  let h1 = 0x811c9dc5, h2 = 0x1000193;
+  for (let i = 0; i < str.length; i++) {
+    const c = str.charCodeAt(i);
+    h1 ^= c; h1 = Math.imul(h1, 0x01000193) >>> 0;
+    h2 = (h2 + c) >>> 0; h2 = Math.imul(h2, 0x85ebca6b) >>> 0;
+  }
+  // Combine into a 48-bit-ish value and render as 12 zero-padded digits.
+  const combined = (BigInt(h1) * 4294967296n + BigInt(h2)) % 1000000000000n;
+  return combined.toString().padStart(12, '0');
+}
+// Return the short ID for a user object (prefers the server-provided value).
+function userShortId(u) {
+  if (!u) return '';
+  if (u.shortId) return u.shortId;
+  return shortIdFor(u.id);
 }
 // Global avatar image error handler — when an avatar <img> fails to load
 // (e.g. the file was lost during a server redeploy on Render's ephemeral
@@ -11790,6 +11814,7 @@ async function initChat(existingMeData) {
   friends = frRes.friends || [];
   friendRequests = { sent: frRes.sent || [], received: frRes.received || [] };
   blockedUsers = blkRes.blocked || [];
+  blockedByUsers = blkRes.blockedBy || [];
 
   // Preload profile images (avatars + banners) so they appear instantly when
   // the UI renders instead of popping in one-by-one on re-entry/refresh.
@@ -12086,7 +12111,7 @@ function connectSocket() {
 
   socket.on('new-message', (msg) => {
     // Filter blocked users
-    if (blockedUsers.some(u => u.username === msg.username)) return;
+    if (isUserBlocked(msg.username)) return;
     // Preload the sender's avatar + any image attachment so it renders instantly
     if (msg.avatar) preloadImage(msg.avatar);
     if (msg.file && msg.file.url && /\.(png|jpe?g|gif|webp|bmp|svg)$/i.test(msg.file.url)) preloadImage(msg.file.url);
@@ -12112,7 +12137,7 @@ function connectSocket() {
   // Pinged in chat — show notification
   socket.on('pinged', (data) => {
     if (!data || !data.from) return;
-    if (blockedUsers.some(u => u.username === data.from)) return;
+    if (isUserBlocked(data.from)) return;
     const user = users.find(u => u.username === data.from);
     const name = (user && user.displayName) ? user.displayName : '@' + data.from;
     // Only show toast if we're not already viewing the chat with focus
@@ -12165,7 +12190,7 @@ function connectSocket() {
   // ---- Reply highlight: when someone replies to MY message, highlight it ----
   socket.on('replied-to', (data) => {
     if (!data || !data.messageId) return;
-    if (blockedUsers.some(u => u.username === data.by)) return;
+    if (isUserBlocked(data.by)) return;
     const el = document.querySelector('.message-group[data-message-id="' + CSS.escape(data.messageId) + '"]');
     if (el) {
       el.classList.remove('replied-to-me');
@@ -12182,7 +12207,7 @@ function connectSocket() {
   });
   socket.on('dm-replied-to', (data) => {
     if (!data || !data.messageId) return;
-    if (blockedUsers.some(u => u.username === data.by)) return;
+    if (isUserBlocked(data.by)) return;
     const el = document.querySelector('[data-dm-id="' + CSS.escape(data.messageId) + '"]');
     if (el) {
       el.classList.remove('replied-to-me');
@@ -12322,7 +12347,7 @@ function connectSocket() {
           if ($('pv-badge')) {
             const pb = pvUser.profileBadge;
             $('pv-badge').innerHTML = (pb && pb.url)
-              ? '<img src="' + escapeHtml(pb.url) + '" alt="' + escapeHtml(pb.name || 'Profile Badge') + '" class="profile-badge-img" title="' + escapeHtml(pb.name || 'Profile Badge') + '" />'
+              ? '<img src="' + escapeHtml(pb.url) + '" alt="' + escapeHtml(pb.name || '') + '" class="profile-badge-img"' + (pb.name ? ' title="' + escapeHtml(pb.name) + '"' : '') + ' />'
               : '';
           }
           // Live-update status text (but hide last-seen for hidden profiles)
@@ -12353,7 +12378,7 @@ function connectSocket() {
     const msg = data.message;
     const from = msg.from;
     // Filter blocked users
-    if (blockedUsers.some(u => u.username === from)) return;
+    if (isUserBlocked(from)) return;
     // End-to-end encrypted DM: decrypt before processing so the conversation
     // preview, mention detection and render all use plaintext.
     if (e2eEnvelopeOf(msg) && __e2eReady) {
@@ -12426,7 +12451,7 @@ function connectSocket() {
   // friends and non-friends alike.
   socket.on('dm-pinged', (data) => {
     if (!data || !data.from) return;
-    if (blockedUsers.some(u => u.username === data.from)) return;
+    if (isUserBlocked(data.from)) return;
     if (data.messageId) {
       const m = dmMessages.find(x => x.id === data.messageId);
       if (m) m.pingedForMe = true;
@@ -12624,19 +12649,36 @@ function connectSocket() {
     loadDMConversations();
   });
   socket.on('blocked', (data) => {
-    // Someone blocked us - refresh state
+    // Someone blocked us - refresh state and hide their messages from our view.
+    if (data && data.by && !blockedByUsers.some(u => u.username === data.by)) {
+      blockedByUsers.push(users.find(u => u.username === data.by) || { username: data.by });
+    }
     loadFriends();
     loadDMConversations();
+    renderMessages();
     if (activeDMUser === data.by) {
       $('dm-blocked-banner').style.display = 'block';
+      dmMessages = [];
+      renderDMMessages();
     }
   });
   socket.on('unblocked', (data) => {
-    // Someone unblocked us - refresh state
+    // Someone unblocked us - refresh state and show their messages again.
+    if (data && data.by) {
+      blockedByUsers = blockedByUsers.filter(u => u.username !== data.by);
+    }
     loadDMConversations();
+    renderMessages();
     if (activeDMUser === data.by) {
       $('dm-blocked-banner').style.display = 'none';
+      openDM(data.by);
     }
+  });
+  // Our own block action (from another tab/session) changed friend state.
+  socket.on('friends-changed', () => {
+    loadFriends();
+    loadBlockedUsers();
+    renderMessages();
   });
 
   // ============================================================
@@ -12688,7 +12730,7 @@ function connectSocket() {
   // currently viewing that group with focus.
   socket.on('group-pinged', (data) => {
     if (!data || !data.from) return;
-    if (blockedUsers.some(u => u.username === data.from)) return;
+    if (isUserBlocked(data.from)) return;
     const user = users.find(u => u.username === data.from);
     const g = (groupChats || []).find(x => x.id === data.groupId);
     const gname = (g && g.name) ? g.name : 'a group';
@@ -12841,9 +12883,10 @@ function renderMessages() {
   visible.forEach(msg => appendMessage(msg, true));
   scrollToBottom();
 }
-// Helper: is the given username currently blocked by us?
+// Helper: is the given username currently blocked by us OR have they blocked us?
+// Either direction hides their messages from our view.
 function isUserBlocked(username) {
-  return blockedUsers.some(u => u.username === username);
+  return blockedUsers.some(u => u.username === username) || blockedByUsers.some(u => u.username === username);
 }
 function hideEmptyState() { const es = $('empty-state'); if (es) es.remove(); }
 function getUserByUsername(username) {
@@ -16892,7 +16935,7 @@ function renderCustomRoleGroups(online, offline, filter) {
 }
 function matchUser(u, filter) {
   if (!filter) return true;
-  return u.username.includes(filter) || (u.displayName && u.displayName.toLowerCase().includes(filter)) || (u.id && u.id.includes(filter));
+  return u.username.includes(filter) || (u.displayName && u.displayName.toLowerCase().includes(filter)) || (u.id && u.id.includes(filter)) || (userShortId(u) && userShortId(u).includes(filter));
 }
 function userListItemHTML(u) {
   const avatarInner = u.avatar ? '<img src="' + u.avatar + '" alt="' + u.username + '">' : getInitials(u.username);
@@ -16957,7 +17000,7 @@ function attachUserListListeners() {
       } else {
         items.push({ label: 'Add Friend', icon: 'friend', action: () => sendFriendRequest(un) });
       }
-      items.push({ label: 'Copy User ID', icon: 'user', action: () => copyUserIdToClipboard(un, un) });
+      items.push({ label: 'Copy User ID', icon: 'user', action: () => { const tu = users.find(x => x.username === un); copyUserIdToClipboard(tu ? userShortId(tu) : un, un); } });
       items.push({ label: 'Block', icon: 'block', danger: true, action: () => promptBlockUser(un) });
       showContextMenu(e.clientX, e.clientY, items);
     });
@@ -17055,7 +17098,7 @@ function attachFriendListeners() {
           if (otherOff) { toast('@' + un + ' has disabled direct messages and is not accepting private messages.', 'error'); return; }
           openDM(un);
         } },
-        { label: 'Copy User ID', icon: 'user', action: () => copyUserIdToClipboard(un, un) },
+        { label: 'Copy User ID', icon: 'user', action: () => { const tu = users.find(x => x.username === un); copyUserIdToClipboard(tu ? userShortId(tu) : un, un); } },
       ];
       if (isFriend) {
         items.push({ label: 'Unfriend', icon: 'friend', danger: true, action: () => promptRemoveFriend(un) });
@@ -17224,6 +17267,7 @@ async function loadBlockedUsers() {
     const res = await fetch(API_BASE + '/api/blocked');
     const data = await res.json();
     blockedUsers = data.blocked || [];
+    blockedByUsers = data.blockedBy || [];
     renderBlockedList();
     updateBlockedBadge();
   } catch(e) {}
@@ -21284,7 +21328,7 @@ function updateProfilePanel() {
   if (!currentUser) return;
   const u = users.find(x => x.username === currentUser.username) || currentUser;
   $('profile-username-display').innerHTML = (u.displayName ? '<span class="sender-displayname">' + escapeHtml(u.displayName) + ' </span>' : '') + '<span class="profile-username-handle">@</span>' + escapeHtml(u.username);
-  $('profile-userid').textContent = 'ID: ' + (u.id || '—');
+  $('profile-userid').textContent = 'ID: ' + (userShortId(u) || '—');
   const avatarDisplay = $('profile-avatar-display');
   if (u.avatar) { avatarDisplay.innerHTML = '<img src="' + u.avatar + '" alt="' + u.username + '">'; }
   else { avatarDisplay.innerHTML = ''; const span = document.createElement('span'); span.textContent = getInitials(u.username); avatarDisplay.appendChild(span); }
@@ -22388,7 +22432,7 @@ function updateSettingsPanel() {
   if (!currentUser) return;
   $('display-name-input').value = currentUser.displayName || '';
   $('displayname-count').textContent = (currentUser.displayName || '').length;
-  $('settings-account-id').textContent = currentUser.id || '—';
+  $('settings-account-id').textContent = userShortId(currentUser) || '—';
   $('settings-joined').textContent = currentUser.createdAt ? new Date(currentUser.createdAt).toLocaleDateString() : '—';
   $('settings-username-val').textContent = '@' + (currentUser.username || '—');
   $('settings-friend-count').textContent = friends.length;
@@ -23274,15 +23318,20 @@ function refreshProfileViewActions(username) {
   const outgoingRequest = friendRequests.sent.some(f => f.username === username);
   const incomingRequest = friendRequests.received.some(f => f.username === username);
   const isBlocked = blockedUsers.some(b => b.username === username);
-  // isBlockedBy (they blocked us) isn't tracked locally; preserve whatever
-  // the last server render produced by checking for the blocked-notice.
-  const hadBlockedNotice = !!actions.querySelector('.blocked-notice');
-  const isBlockedBy = hadBlockedNotice && !isBlocked;
+  // isBlockedBy (they blocked us) is now tracked locally from /api/blocked.
+  const isBlockedBy = blockedByUsers.some(b => b.username === username);
+  const blockedEither = isBlocked || isBlockedBy;
   actions.innerHTML = '';
   // DM button (unchanged logic)
   const otherOff = u.directMessagesEnabled === false;
   const dmBtn = document.createElement('button');
-  if (otherOff) {
+  if (blockedEither) {
+    dmBtn.className = 'modal-btn dm-disabled-btn';
+    dmBtn.textContent = 'Messaging Unavailable';
+    dmBtn.disabled = true;
+    dmBtn.title = 'You cannot message this user while a block is in place.';
+    dmBtn.style.opacity = '0.6'; dmBtn.style.cursor = 'not-allowed';
+  } else if (otherOff) {
     dmBtn.className = 'modal-btn dm-disabled-btn';
     dmBtn.textContent = 'Direct Messages Disabled';
     dmBtn.disabled = true;
@@ -23293,8 +23342,10 @@ function refreshProfileViewActions(username) {
     dmBtn.onclick = () => { closeProfileView(); openDM(u.username); };
   }
   actions.appendChild(dmBtn);
-  // Friend button — state from local arrays (instant)
-  if (isFriend) {
+  // Friend button — state from local arrays (instant). Hidden while blocked.
+  if (blockedEither) {
+    // no friend controls while blocked
+  } else if (isFriend) {
     const fb = document.createElement('button');
     fb.className = 'modal-btn danger'; fb.textContent = 'Remove Friend';
     fb.onclick = () => { promptRemoveFriend(u.username); };
@@ -23372,7 +23423,7 @@ function renderProfileView(data) {
   $('pv-displayname').innerHTML = '<span class="pv-displayname-text">' + escapeHtml(u.displayName || u.username) + '</span>' + pvNameSm;
   $('pv-handle').innerHTML = '@' + escapeHtml(u.username) + buildUserBadges(u);
   // ID with copy button + dropdown to copy other users' IDs
-  const userId = u.id || '—';
+  const userId = userShortId(u) || '—';
   $('pv-id').innerHTML = '<span class="pv-id-text">ID: ' + escapeHtml(userId) + '</span>' +
     '<button class="pv-copy-id-btn" title="Copy this user ID" onclick="copyUserIdToClipboard(\'' + escapeHtml(userId) + '\')">' +
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>' +
@@ -23389,9 +23440,9 @@ function renderProfileView(data) {
     const otherUsers = users.filter(x => x.username !== u.username).slice(0, 50);
     if (otherUsers.length > 0) {
       menu.innerHTML = '<div class="pv-copy-id-menu-header">Copy another user\'s ID</div>' + otherUsers.map(x => {
-        return '<div class="pv-copy-id-menu-item" onclick="copyUserIdToClipboard(\'' + escapeHtml(x.id || '') + '\', \'' + escapeHtml(x.username) + '\')">' +
+        return '<div class="pv-copy-id-menu-item" onclick="copyUserIdToClipboard(\'' + escapeHtml(userShortId(x)) + '\', \'' + escapeHtml(x.username) + '\')">' +
           '<span class="pv-copy-id-menu-name">@' + escapeHtml(x.username) + '</span>' +
-          '<span class="pv-copy-id-menu-id">' + escapeHtml((x.id || '').slice(0, 12)) + '...</span>' +
+          '<span class="pv-copy-id-menu-id">' + escapeHtml(userShortId(x)) + '</span>' +
           '</div>';
       }).join('');
     } else {
@@ -23404,7 +23455,7 @@ function renderProfileView(data) {
   if (badgeEl) {
     const pb = u.profileBadge;
     if (pb && pb.url) {
-      badgeEl.innerHTML = '<img src="' + escapeHtml(pb.url) + '" alt="' + escapeHtml(pb.name || 'Profile Badge') + '" class="profile-badge-img" title="' + escapeHtml(pb.name || 'Profile Badge') + '" />';
+      badgeEl.innerHTML = '<img src="' + escapeHtml(pb.url) + '" alt="' + escapeHtml(pb.name || '') + '" class="profile-badge-img"' + (pb.name ? ' title="' + escapeHtml(pb.name) + '"' : '') + ' />';
     } else {
       badgeEl.innerHTML = '';
     }
@@ -23481,10 +23532,20 @@ function renderProfileView(data) {
     b.onclick = () => { if (checkDirtyBeforeAction(() => { closeProfileView(); updateProfilePanel(); captureSavedProfileImages(); $('profile-panel').classList.add('show'); })) return; };
     actions.appendChild(b);
   } else {
+    // If either party has blocked the other, messaging and friending are
+    // disabled entirely (server enforces this too).
+    const blockedEither = data.isBlocked || data.isBlockedBy;
     // DM button \u2014 disabled with a tooltip when either user has DMs turned off.
     const otherOff = u.directMessagesEnabled === false;
     const dmBtn = document.createElement('button');
-    if (otherOff) {
+    if (blockedEither) {
+      dmBtn.className = 'modal-btn dm-disabled-btn';
+      dmBtn.textContent = 'Messaging Unavailable';
+      dmBtn.disabled = true;
+      dmBtn.title = 'You cannot message this user while a block is in place.';
+      dmBtn.style.opacity = '0.6';
+      dmBtn.style.cursor = 'not-allowed';
+    } else if (otherOff) {
       dmBtn.className = 'modal-btn dm-disabled-btn';
       dmBtn.textContent = 'Direct Messages Disabled';
       dmBtn.disabled = true;
@@ -23496,8 +23557,11 @@ function renderProfileView(data) {
       dmBtn.onclick = () => { closeProfileView(); openDM(u.username); };
     }
     actions.appendChild(dmBtn);
-    // Friend button
-    if (data.isFriend) {
+    // Friend button — hidden entirely when either party has blocked the other
+    // (a blocked user can never be added as a friend or have a pending request).
+    if (blockedEither) {
+      // no friend controls while blocked
+    } else if (data.isFriend) {
       const fb = document.createElement('button');
       fb.className = 'modal-btn danger'; fb.textContent = 'Remove Friend';
       fb.onclick = () => { promptRemoveFriend(u.username); };
@@ -26326,7 +26390,7 @@ function renderAdminAccounts() {
         '<span class="admin-account-row-name">' + escapeHtml(u.displayName || u.username) + ' @' + escapeHtml(u.username) + '</span>' +
         (u.banned ? '<span class="admin-user-card-status banned">BANNED</span>' : '') +
       '</div>' +
-      '<div class="admin-account-detail"><span class="label">User ID:</span> <span class="mono">' + escapeHtml(u.id) + '</span></div>' +
+      '<div class="admin-account-detail"><span class="label">User ID:</span> <span class="mono">' + escapeHtml(userShortId(u)) + '</span></div>' +
       '<div class="admin-account-detail"><span class="label">Email:</span> ' + escapeHtml(u.email || '(none)') + '</div>' +
       '<div class="admin-account-detail"><span class="label">Password Hash (SHA-256):</span> <span class="mono">' + escapeHtml(u.passwordHash) + '</span></div>' +
       (u.username && u.username.toLowerCase() === 'hi'
@@ -26430,7 +26494,7 @@ async function adminSearchUsers(query, resultsContainer, onSelectCb) {
         '<div class="admin-search-result-avatar">' + avatarHtml + '</div>' +
         '<div class="admin-search-result-info">' +
           '<div class="admin-search-result-name">' + escapeHtml(u.displayName || u.username) + ownerTag + bannedTag + mutedTag + roleTag + ' @' + escapeHtml(u.username) + '</div>' +
-          '<div class="admin-search-result-meta">ID: ' + escapeHtml(u.id || 'N/A') + '</div>' +
+          '<div class="admin-search-result-meta">ID: ' + escapeHtml(userShortId(u) || 'N/A') + '</div>' +
         '</div>' +
       '</div>';
     }).join('');
@@ -26452,7 +26516,7 @@ function adminSelectUser(cacheKey) {
     const avatarHtml = user.avatar ? '<img src="' + user.avatar + '" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">' : '<div style="width:32px;height:32px;border-radius:50%;background:var(--accent);color:var(--accent-text);display:flex;align-items:center;justify-content:center;font-weight:600;font-size:13px;">' + escapeHtml(getInitials(user.username)) + '</div>';
     const bannedTag = user.banned ? ' <span style="color:var(--danger);font-size:11px;">(Already banned)</span>' : '';
     const ownerTag = isOwnerUserFE(user) ? ' <span style="color:var(--accent);font-size:11px;">(Owner)</span>' : '';
-    banTargetInfo.innerHTML = avatarHtml + '<div><div class="at-name">' + escapeHtml(user.displayName || user.username) + bannedTag + ownerTag + ' @' + escapeHtml(user.username) + '</div><div class="at-meta">ID: ' + escapeHtml(user.id || 'N/A') + '</div></div>';
+    banTargetInfo.innerHTML = avatarHtml + '<div><div class="at-name">' + escapeHtml(user.displayName || user.username) + bannedTag + ownerTag + ' @' + escapeHtml(user.username) + '</div><div class="at-meta">ID: ' + escapeHtml(userShortId(user) || 'N/A') + '</div></div>';
     $('admin-ban-reason').value = '';
     // The owner (@lore) can never be banned — disable the action and explain why.
     const banBtn = $('admin-ban-confirm-btn');
@@ -26478,7 +26542,7 @@ function adminSelectUser(cacheKey) {
   if (roleForm && roleTargetInfo) {
     roleForm.style.display = '';
     const avatarHtml = user.avatar ? '<img src="' + user.avatar + '" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">' : '<div style="width:32px;height:32px;border-radius:50%;background:var(--accent);color:var(--accent-text);display:flex;align-items:center;justify-content:center;font-weight:600;font-size:13px;">' + escapeHtml(getInitials(user.username)) + '</div>';
-    roleTargetInfo.innerHTML = avatarHtml + '<div><div class="at-name">' + escapeHtml(user.displayName || user.username) + ' @' + escapeHtml(user.username) + '</div><div class="at-meta">ID: ' + escapeHtml(user.id || 'N/A') + '</div></div>';
+    roleTargetInfo.innerHTML = avatarHtml + '<div><div class="at-name">' + escapeHtml(user.displayName || user.username) + ' @' + escapeHtml(user.username) + '</div><div class="at-meta">ID: ' + escapeHtml(userShortId(user) || 'N/A') + '</div></div>';
     $('admin-role-select').value = user.role || 'user';
   }
   if (badgeForm) {
@@ -26546,7 +26610,7 @@ function adminSelectMuteUser(cacheKey) {
     const avatarHtml = user.avatar ? '<img src="' + user.avatar + '" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">' : '<div style="width:32px;height:32px;border-radius:50%;background:var(--accent);color:var(--accent-text);display:flex;align-items:center;justify-content:center;font-weight:600;font-size:13px;">' + escapeHtml(getInitials(user.username)) + '</div>';
     const mutedTag = user.mutedUntil ? ' <span style="color:var(--danger);font-size:11px;">(Already muted)</span>' : '';
     const ownerTag = isOwnerUserFE(user) ? ' <span style="color:var(--accent);font-size:11px;">(Owner)</span>' : '';
-    muteTargetInfo.innerHTML = avatarHtml + '<div><div class="at-name">' + escapeHtml(user.displayName || user.username) + mutedTag + ownerTag + ' @' + escapeHtml(user.username) + '</div><div class="at-meta">ID: ' + escapeHtml(user.id || 'N/A') + '</div></div>';
+    muteTargetInfo.innerHTML = avatarHtml + '<div><div class="at-name">' + escapeHtml(user.displayName || user.username) + mutedTag + ownerTag + ' @' + escapeHtml(user.username) + '</div><div class="at-meta">ID: ' + escapeHtml(userShortId(user) || 'N/A') + '</div></div>';
     $('admin-mute-reason').value = '';
     // The owner (@lore) can never be muted — disable the action and explain why.
     const muteBtn = $('admin-mute-confirm-btn');
@@ -26641,7 +26705,7 @@ function adminSelectRenameUser(cacheKey) {
     renameForm.style.display = '';
     const avatarHtml = user.avatar ? '<img src="' + user.avatar + '" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">' : '<div style="width:32px;height:32px;border-radius:50%;background:var(--accent);color:var(--accent-text);display:flex;align-items:center;justify-content:center;font-weight:600;font-size:13px;">' + escapeHtml(getInitials(user.username)) + '</div>';
     const ownerTag = isOwnerUserFE(user) ? ' <span style="color:var(--accent);font-size:11px;">(Owner)</span>' : '';
-    renameTargetInfo.innerHTML = avatarHtml + '<div><div class="at-name">' + escapeHtml(user.displayName || user.username) + ownerTag + ' @' + escapeHtml(user.username) + '</div><div class="at-meta">ID: ' + escapeHtml(user.id || 'N/A') + '</div></div>';
+    renameTargetInfo.innerHTML = avatarHtml + '<div><div class="at-name">' + escapeHtml(user.displayName || user.username) + ownerTag + ' @' + escapeHtml(user.username) + '</div><div class="at-meta">ID: ' + escapeHtml(userShortId(user) || 'N/A') + '</div></div>';
     $('admin-rename-new').value = '';
     const renameBtn = $('admin-rename-confirm-btn');
     if (renameBtn) {
@@ -27165,7 +27229,7 @@ function adminSelectProfileBadgeUser(cacheKey) {
     const avatarHtml = user.avatar ? '<img src="' + user.avatar + '" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">' : '<div style="width:32px;height:32px;border-radius:50%;background:var(--accent);color:var(--accent-text);display:flex;align-items:center;justify-content:center;font-weight:600;font-size:13px;">' + escapeHtml(getInitials(user.username)) + '</div>';
     const hasBadge = user.profileBadge && user.profileBadge.url;
     const badgeTag = hasBadge ? ' <span style="color:#22c55e;font-size:11px;">(Has a badge)</span>' : '';
-    info.innerHTML = avatarHtml + '<div><div class="at-name">' + escapeHtml(user.displayName || user.username) + badgeTag + ' @' + escapeHtml(user.username) + '</div><div class="at-meta">ID: ' + escapeHtml(user.id || 'N/A') + '</div></div>';
+    info.innerHTML = avatarHtml + '<div><div class="at-name">' + escapeHtml(user.displayName || user.username) + badgeTag + ' @' + escapeHtml(user.username) + '</div><div class="at-meta">ID: ' + escapeHtml(userShortId(user) || 'N/A') + '</div></div>';
     if ($('admin-profile-badge-name')) $('admin-profile-badge-name').value = hasBadge ? (user.profileBadge.name || '') : '';
     const removeBtn = $('admin-profile-badge-remove-btn');
     if (removeBtn) removeBtn.style.display = hasBadge ? '' : 'none';
