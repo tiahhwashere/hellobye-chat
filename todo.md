@@ -37,3 +37,11 @@
 - [x] Use main site's black favicon (/uploads/favicon.jpg) on servers page
 - [x] Serve servers.html with no-cache headers (was cached 24h → stale page in browser)
 - [x] Deploy + verify live (buildId 9595227c9d14)
+
+## 6. Request C — UI polish & profile parity
+- [x] Remove computer/desktop emoji icon (🖥️) under "Your Servers" heading
+- [x] Make servers UI/animation flow match main chatroom/systems
+- [x] Show same profile details as main chat when viewing own/others' profile
+- [x] Server banner shows above the server's profile picture
+- [x] Syntax check + local test
+- [ ] Commit & push + verify deploy
