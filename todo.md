@@ -119,3 +119,9 @@
 - [x] Add a UI for the "delete server" button
 - [x] Server banner: make it taller (extend downward)
 - [x] Syntax check + commit/push + deploy + verify live + confirm no data wiped
+
+## 13. Request J — unsaved-changes UI, taller banner, name at top
+- [x] Add a proper UI to the "You have unsaved changes" indicator (icon + title/subtitle + pulsing dot)
+- [x] Server banner: taller (132px), extends further down
+- [x] Server name pinned to the top of the banner (not the bottom)
+- [x] Syntax check + commit/push + deploy + verify live + confirm no data wiped
