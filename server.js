@@ -215,6 +215,24 @@ function downloadFileBuffer(url) {
 // Fetch an upload file from the GitHub backup repo, handling both small files
 // (base64 content) and large files (>1MB, via download_url).
 // Returns a Buffer or null if the file could not be retrieved.
+// A short-lived in-memory cache of the backup directory listing lets us skip
+// the extra "does this file exist?" round-trip for files we already know are
+// backed up, so on-demand restores are noticeably faster.
+let _backupListingCache = { at: 0, names: null };
+async function getBackupListing() {
+  if (_backupListingCache.names && (Date.now() - _backupListingCache.at) < 5 * 60 * 1000) {
+    return _backupListingCache.names;
+  }
+  try {
+    const r = await githubRequest('GET', `/repos/${BACKUP_REPO}/contents/${encodeURIComponent(UPLOAD_BACKUP_DIR)}?ref=${encodeURIComponent(BACKUP_BRANCH)}`);
+    if (r.status === 200 && Array.isArray(r.data)) {
+      const names = new Set(r.data.filter(i => i.type === 'file').map(i => i.name));
+      _backupListingCache = { at: Date.now(), names };
+      return names;
+    }
+  } catch (e) { /* ignore \u2014 fall through to null */ }
+  return null;
+}
 async function fetchBackupFile(filename) {
   const get = await githubRequest('GET', `/repos/${BACKUP_REPO}/contents/${encodeURIComponent(UPLOAD_BACKUP_DIR + '/' + filename)}?ref=${encodeURIComponent(BACKUP_BRANCH)}`);
   if (get.status !== 200 || !get.data) return null;
@@ -1225,6 +1243,13 @@ function uploadSetHeaders(res, filePath) {
   if (videoTypeMap[ext]) {
     res.setHeader('Content-Type', videoTypeMap[ext]);
   }
+  // Every upload gets a unique, never-reused filename (genId()), so the bytes
+  // behind a given /uploads URL never change. That makes them safe to cache
+  // "immutably" for a year \u2014 the browser then serves avatars/banners/GIFs
+  // straight from its local cache with ZERO network round-trip on refresh,
+  // tab-out/tab-in, or re-login. Re-uploads use a brand-new filename (plus a
+  // ?t= cache-buster), so a changed picture is always fetched fresh.
+  res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
 }
 app.use('/uploads', async (req, res, next) => {
   // Extract the clean filename (strip query string used for cache-busting).
@@ -1247,6 +1272,10 @@ app.use('/uploads', async (req, res, next) => {
   }
   // Slow path: file missing — try to fetch from GitHub backup repo.
   if (!BACKUP_ENABLED) return res.status(404).end();
+  // Fast 404: if we have a fresh backup listing and this file isn't in it,
+  // skip the (slow) GitHub round-trip entirely.
+  const listing = await getBackupListing();
+  if (listing && !listing.has(filename)) return res.status(404).end();
   // Avoid concurrent fetches of the same file.
   if (uploadFallbackLocks.has(filename)) {
     // Wait briefly and re-check.
@@ -5180,8 +5209,8 @@ async function backupUploadFile(filename) {
 // startup can cause OOM crashes. We skip files larger than 5MB on startup —
 // they are fetched on-demand when a user accesses them (see /uploads fallback
 // above). We also cap total startup restore at 20MB to stay memory-safe.
-const STARTUP_RESTORE_MAX_FILE = 5 * 1024 * 1024; // 5MB per file
-const STARTUP_RESTORE_MAX_TOTAL = 20 * 1024 * 1024; // 20MB total
+const STARTUP_RESTORE_MAX_FILE = 12 * 1024 * 1024; // 12MB per file (covers large GIFs)
+const STARTUP_RESTORE_MAX_TOTAL = 48 * 1024 * 1024; // 48MB total
 async function restoreUploads() {
   if (!BACKUP_ENABLED) return;
   try {
@@ -5224,14 +5253,17 @@ async function restoreUploads() {
     console.error('[backup] restoreUploads error:', e);
   }
 }
-// Temporarily disabled startup bulk restore to diagnose OOM crash.
-// Files are still fetched on-demand via the /uploads fallback middleware.
-// restoreUploads();
-
 // ---------- Start ----------
 server.listen(PORT, '0.0.0.0', () => {
   console.log(`Hellobye backend running on port ${PORT}`);
   console.log(`Local: http://localhost:${PORT}`);
+  // Kick off the upload restore in the BACKGROUND (after the server is already
+  // accepting requests) so it never delays startup. It re-downloads avatars,
+  // banners and GIFs that were wiped by the previous deploy from the GitHub
+  // backup repo, so images render instantly instead of being fetched
+  // on-demand (which caused the visible delay). Memory-safe caps inside
+  // restoreUploads() keep it from OOM-ing the free tier.
+  setTimeout(() => { restoreUploads().catch(e => console.error('[backup] restoreUploads failed:', e)); }, 1500);
 });
 
 // Allow large file uploads (250MB) without timeout issues

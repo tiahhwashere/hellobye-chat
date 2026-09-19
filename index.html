@@ -1307,34 +1307,38 @@ body.no-anim .friend-item { animation: none !important; }
 
 /* Mention highlight in messages */
 .mention-highlight {
-  background: rgba(var(--accent-rgb), 0.10);
+  background: transparent;
   color: var(--accent);
-  padding: 1px 6px;
-  border-radius: 4px;
+  padding: 0;
+  border-radius: 0;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.15s ease;
-  display: inline-block;
+  transition: color 0.15s ease;
+  display: inline;
   text-decoration: none;
   border: none;
 }
 .mention-highlight:hover {
-  background: rgba(var(--accent-rgb), 0.18);
+  background: transparent;
+  text-decoration: underline;
 }
 .mention-highlight.mention-self {
-  background: rgba(250,204,21,0.14);
+  background: transparent;
   color: #facc15;
   border: none;
-  border-radius: 4px;
-  padding: 1px 6px;
+  border-radius: 0;
+  padding: 0;
 }
 .mention-highlight.mention-self:hover {
-  background: rgba(250,204,21,0.22);
+  background: transparent;
+  text-decoration: underline;
 }
 .message-group.own .mention-highlight {
-  background: rgba(255,255,255,0.14);
+  background: transparent;
   color: #fff;
   border: none;
+  text-decoration: underline;
+  text-decoration-color: rgba(255,255,255,0.5);
 }
 /* Pinged message bubble — subtle highlight + gentle glow */
 .message-bubble.pinged-msg {
@@ -11750,6 +11754,43 @@ function preloadProfileImages(me, userList, msgs) {
   }
 }
 
+// Re-fetch the freshest users + messages and re-render, so avatars, banners
+// and GIFs that changed while the tab was backgrounded (or while the socket
+// was briefly disconnected) appear immediately. Debounced so a burst of
+// focus/connect events only triggers one refresh.
+let _refreshLiveTimer = null;
+function refreshLiveData() {
+  if (_refreshLiveTimer) return;
+  _refreshLiveTimer = setTimeout(async () => {
+    _refreshLiveTimer = null;
+    if (!currentUser) return;
+    try {
+      const [usersRes, msgRes] = await Promise.all([
+        fetch(API_BASE + '/api/users').then(r => r.json()).catch(() => null),
+        fetch(API_BASE + '/api/messages').then(r => r.json()).catch(() => null),
+      ]);
+      if (usersRes && Array.isArray(usersRes.users)) {
+        users = usersRes.users;
+        // Keep our own currentUser object in sync with the server copy.
+        const me = users.find(x => x.username === currentUser.username);
+        if (me) currentUser = { ...currentUser, ...me };
+        preloadProfileImages(currentUser, users, messages);
+        renderUserListDebounced();
+        if (typeof renderDMList === 'function') renderDMList();
+        if (typeof renderMessagesList === 'function') renderMessagesList();
+        updateSidebarSelf();
+      }
+      if (msgRes && Array.isArray(msgRes.messages)) {
+        messages = msgRes.messages;
+        renderMessages();
+      }
+    } catch (e) { /* network hiccup — try again on the next focus/connect */ }
+  }, 250);
+}
+// Refresh when the tab regains focus/visibility (user tabs back in).
+document.addEventListener('visibilitychange', () => { if (!document.hidden) refreshLiveData(); });
+window.addEventListener('focus', () => refreshLiveData());
+
 // ---------- Welcome popup (one-time, new accounts only) ----------
 // Shows a one-time welcome/thank-you popup the first time a user creates an
 // account. Guarded by a per-username localStorage flag so it never re-appears
@@ -12017,7 +12058,14 @@ function connectSocket() {
   const sid = sessionSocketId || getCookie('hellobye_session');
   socket = io(SOCKET_URL, { auth: { sessionId: sid }, transports: ['polling', 'websocket'], upgrade: true, rememberUpgrade: true });
 
-  socket.on('connect', () => { console.log('Connected'); });
+  socket.on('connect', () => {
+    console.log('Connected');
+    // On every (re)connect — including when the tab wakes back up after being
+    // backgrounded — pull the freshest users/messages so avatars, banners and
+    // GIFs that changed while we were away appear immediately instead of
+    // staying stale until a manual refresh.
+    if (typeof refreshLiveData === 'function') refreshLiveData();
+  });
 
   // System broadcast alert (shown as a top-center popup, not a chat message)
   socket.on('system-alert', (payload) => { showSystemAlert(payload); });
@@ -12316,6 +12364,10 @@ function connectSocket() {
     }
     renderUserListDebounced();
     updateMessageAvatars(data.username, data.avatar);
+    // Live-update the DM/group conversation list so a changed picture shows
+    // instantly there too (not just the user list).
+    if (typeof renderDMList === 'function') renderDMList();
+    if (typeof renderMessagesList === 'function') renderMessagesList();
     // If DM open with this user, update header + re-evaluate the DM-disabled state
     if (activeDMUser === data.username) { updateDMHeader(); applyDMDisabledState(); }
     // Live-update the profile view modal if it's open showing this user,
@@ -12353,6 +12405,26 @@ function connectSocket() {
           // Live-update status text (but hide last-seen for hidden profiles)
           const st = pvUser.status === 'offline' ? (pvHidden || pvUser.hideLastSeen ? 'Offline' : 'Last seen ' + getRelativeLastSeen(pvUser.lastSeen)) : getStatusText(pvUser.status);
           if ($('pv-status')) $('pv-status').innerHTML = '<span class="status-dot ' + pvUser.status + '"></span> ' + escapeHtml(st);
+          // Live-update the avatar + banner so a picture/banner change (or
+          // removal) shows instantly in the open profile view without needing
+          // to close and reopen it.
+          const pvAv = $('pv-avatar');
+          if (pvAv) {
+            if (pvUser.avatar) {
+              pvAv.innerHTML = '<img src="' + escapeHtml(pvUser.avatar) + '">';
+              pvAv.style.cursor = 'zoom-in'; pvAv.title = 'Click to zoom';
+              pvAv.onclick = () => openProfileAvatarLightbox(pvUser.avatar);
+            } else {
+              pvAv.innerHTML = '<span>' + getInitials(pvUser.username) + '</span>';
+              pvAv.style.cursor = 'default'; pvAv.title = ''; pvAv.onclick = null;
+            }
+          }
+          const pvBanner = $('pv-banner');
+          if (pvBanner) {
+            pvBanner.innerHTML = pvUser.banner
+              ? '<img src="' + escapeHtml(pvUser.banner) + '" class="pv-banner-img">'
+              : '<div class="profile-view-banner-placeholder">No banner set</div>';
+          }
         }
       }
     }
