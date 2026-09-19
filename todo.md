@@ -84,4 +84,4 @@
 - [x] Remove SVG icon for "Leave Servers?" UI
 - [x] Server icon click (non-owner): leave server + copy server id
 - [x] Random 10-digit numeric SERVER id per server
-- [ ] Syntax check + commit/push + verify deploy + confirm no data wiped
+- [x] Syntax check + commit/push + verify deploy + confirm no data wiped
