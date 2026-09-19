@@ -1591,9 +1591,9 @@ async function loadServer(id, silent) {
 function renderServerView() {
   if (!activeServer) return;
   // Header
-  const icon = $('server-header-icon');
-  if (activeServer.icon) icon.innerHTML = '<img src="' + escapeAttr(activeServer.icon) + '">';
-  else icon.textContent = getInitials(activeServer.name);
+  const headerIconEl = $('server-header-icon');
+  if (activeServer.icon) headerIconEl.innerHTML = '<img src="' + escapeAttr(activeServer.icon) + '">';
+  else headerIconEl.textContent = getInitials(activeServer.name);
   $('server-header-name').textContent = activeServer.name;
   $('server-header-count').textContent = activeServer.memberCount + ' member' + (activeServer.memberCount === 1 ? '' : 's');
   const banner = $('server-header-banner');
@@ -2073,9 +2073,9 @@ function openSettings() {
   $('set-name').value = activeServer.name;
   $('set-bio').value = activeServer.bio || '';
   $('set-member-count').textContent = activeServer.memberCount + ' member' + (activeServer.memberCount === 1 ? '' : 's');
-  const icon = $('set-icon');
-  if (activeServer.icon) icon.innerHTML = '<img src="' + escapeAttr(activeServer.icon) + '"><div class="edit-overlay">' + icon('edit', 'sm') + '</div>';
-  else icon.innerHTML = '<span id="set-icon-initial">' + escapeHtml(getInitials(activeServer.name)) + '</span><div class="edit-overlay">' + icon('edit', 'sm') + '</div>';
+  const setIconEl = $('set-icon');
+  if (activeServer.icon) setIconEl.innerHTML = '<img src="' + escapeAttr(activeServer.icon) + '"><div class="edit-overlay">' + icon('edit', 'sm') + '</div>';
+  else setIconEl.innerHTML = '<span id="set-icon-initial">' + escapeHtml(getInitials(activeServer.name)) + '</span><div class="edit-overlay">' + icon('edit', 'sm') + '</div>';
   $('set-banner').style.backgroundImage = activeServer.banner ? 'url(' + activeServer.banner + ')' : '';
   // Richer settings
   const sysSel = $('set-system-channel');

@@ -2736,11 +2736,11 @@ function genInviteCode() {
 // Default role set created with every new server.
 function defaultServerRoles(owner) {
   return [
-    { id: 'owner', name: 'Owner', color: '#f59e0b', badge: '👑', order: 0, system: true,
+    { id: 'owner', name: 'Owner', color: '#f59e0b', badge: '', order: 0, system: true,
       permissions: { manageChannels: true, manageRoles: true, manageServer: true, kick: true, invite: true, manageMessages: true } },
-    { id: 'admin', name: 'Admin', color: '#ef4444', badge: '🛡️', order: 1, system: true,
+    { id: 'admin', name: 'Admin', color: '#ef4444', badge: '', order: 1, system: true,
       permissions: { manageChannels: true, manageRoles: true, manageServer: false, kick: true, invite: true, manageMessages: true } },
-    { id: 'mod', name: 'Moderator', color: '#3b82f6', badge: '⚔️', order: 2, system: true,
+    { id: 'mod', name: 'Moderator', color: '#3b82f6', badge: '', order: 2, system: true,
       permissions: { manageChannels: false, manageRoles: false, manageServer: false, kick: true, invite: true, manageMessages: true } },
     { id: 'member', name: 'Member', color: '#9ca3af', badge: '', order: 3, system: true,
       permissions: { manageChannels: false, manageRoles: false, manageServer: false, kick: false, invite: true, manageMessages: false } },
