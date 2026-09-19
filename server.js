@@ -4739,6 +4739,14 @@ app.get('/api/version', (req, res) => {
 });
 
 // ---------- Serve Frontend (SPA) ----------
+// Serve the standalone servers page fresh (no-cache) so new deploys are picked
+// up immediately instead of being cached for a day by the static middleware.
+app.get('/servers.html', (req, res) => {
+  res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+  res.set('Pragma', 'no-cache');
+  res.set('Expires', '0');
+  res.sendFile(path.join(__dirname, 'servers.html'));
+});
 // Cache root static assets (favicon, icons, etc.) for a day. index.html is
 // served fresh via the catch-all below with no-cache so new deploys are seen
 // immediately, while uploaded images (avatars/banners/GIFs) are already
