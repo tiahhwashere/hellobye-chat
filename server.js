@@ -445,10 +445,12 @@ function hashEncKey(key) {
   if (remote) {
     const remoteUsers = Object.keys(remote.users || {}).length;
     const localUsers = Object.keys(db.users || {}).length;
-    // Prefer remote if it has more users, OR if local is the empty seed and
-    // remote has any users. This protects real data from being overwritten by
-    // an empty deploy-time seed, while still letting a fresh start work.
-    if (remoteUsers > 0 && remoteUsers >= localUsers) {
+    // The remote backup is the SOURCE OF TRUTH. Whenever it has any users we
+    // adopt it unconditionally — the local file is only a deploy-time seed and
+    // must NEVER overwrite real remote data (even if the seed happens to have
+    // more users, e.g. leftover test accounts). We only fall back to the local
+    // file when the remote is genuinely empty (fresh install).
+    if (remoteUsers > 0) {
       // Extract the remote sha BEFORE we strip it, so subsequent updates can
       // PUT with the correct sha (otherwise GitHub rejects with 422).
       remoteSha = remote.__backupSha || null;
@@ -480,7 +482,7 @@ function hashEncKey(key) {
       // Trigger an immediate backup so the sha is current.
       scheduleRemoteBackup();
     } else {
-      console.log(`[backup] Keeping local db (${localUsers} users) — remote has fewer (${remoteUsers}).`);
+      console.log(`[backup] Remote DB is empty — keeping local db (${localUsers} users).`);
       remoteSha = remote.__backupSha || null;
       if (remoteSha) delete remote.__backupSha;
       // Make sure local data is backed up remotely too.
