@@ -110,4 +110,4 @@
 - [x] My Server Profile: profile picture/banner not smushed
 - [x] Server Settings: add Website Accent Colors + effects visible to everyone (server-only)
 - [x] Chatroom/groupchats/DMs: messages/dates/profile pictures a bit bigger
-- [ ] Syntax check + commit/push + deploy + verify live + confirm no data wiped
+- [x] Syntax check + commit/push + deploy + verify live + confirm no data wiped
