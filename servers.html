@@ -158,10 +158,9 @@ input, textarea { font-family: inherit; }
 }
 .server-header {
   height: 56px; padding: 0 16px; display: flex; align-items: center; gap: 10px;
-  border-bottom: 1px solid var(--border); cursor: pointer; transition: background var(--transition);
+  border-bottom: 1px solid var(--border); cursor: pointer;
   position: relative; overflow: hidden;
 }
-.server-header:hover { background: var(--bg-medium); }
 .server-header-banner {
   position: absolute; inset: 0; background-size: cover; background-position: center;
   opacity: 0.35; z-index: 0;
@@ -593,7 +592,7 @@ input, textarea { font-family: inherit; }
 
 /* ---- Server header: banner fills the whole box, name overlaid on it ---- */
 .server-header {
-  height: 132px; min-height: 132px; flex-wrap: nowrap; padding: 14px 14px 0;
+  height: 168px; min-height: 168px; flex-wrap: nowrap; padding: 14px 14px 0;
   position: relative; overflow: hidden; align-items: flex-start;
   background-size: cover; background-position: center top; background-repeat: no-repeat;
 }
