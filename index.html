@@ -3696,7 +3696,7 @@ body.no-anim .friend-item { animation: none !important; }
 }
 /* Override banner for new card context: full-bleed, no big bottom margin */
 .profile-v2-header-card .profile-banner-section {
-  height: 150px;
+  height: 240px;
   margin-bottom: 0;
   border-radius: var(--radius) var(--radius) 0 0;
   border-bottom: 1px solid var(--border);
@@ -3708,12 +3708,12 @@ body.no-anim .friend-item { animation: none !important; }
   right: 12px;
 }
 
-/* Identity row: avatar (overlapping banner) + id block on right */
+/* Identity row: avatar (overlapping banner) + id block right beside it */
 .profile-v2-identity {
   display: flex;
   align-items: flex-start;
-  gap: 96px;
-  padding: 0 20px 18px 12px;
+  gap: 16px;
+  padding: 0 20px 18px 0;
 }
 .profile-v2-avatar-wrap {
   flex: 0 0 auto;
@@ -3722,10 +3722,13 @@ body.no-anim .friend-item { animation: none !important; }
   margin-top: -28px;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   gap: 8px;
   position: relative;
   z-index: 2;
+  /* Keep the wrap only as wide as the avatar so the username/ID block sits
+     right beside the picture (the action buttons below may overflow). */
+  width: 132px;
 }
 /* Avatar: override centered margin from old layout — refined sizing */
 .profile-v2-avatar-wrap .profile-avatar-large {
@@ -3739,7 +3742,7 @@ body.no-anim .friend-item { animation: none !important; }
 }
 .profile-v2-avatar-wrap .profile-avatar-actions {
   margin-bottom: 0;
-  justify-content: center;
+  justify-content: flex-start;
 }
 .profile-v2-avatar-wrap .profile-avatar-edit,
 .profile-v2-avatar-wrap .profile-avatar-remove {
@@ -3854,7 +3857,7 @@ body.no-anim .friend-item { animation: none !important; }
     grid-template-columns: 1fr;
     gap: 0;
   }
-  .profile-v2-identity { gap: 40px; }
+  .profile-v2-identity { gap: 14px; }
 }
 
 @media (max-width: 520px) {
@@ -3865,8 +3868,8 @@ body.no-anim .friend-item { animation: none !important; }
   .profile-v2-footer { padding: 12px 14px; }
   .profile-v2-footer .profile-save-btn { width: 100%; }
   /* Keep the avatar fully visible on mobile: smaller banner + tighter overlap */
-  .profile-v2-header-card .profile-banner-section { height: 130px; }
-  .profile-v2-avatar-wrap { margin-top: -26px; }
+  .profile-v2-header-card .profile-banner-section { height: 170px; }
+  .profile-v2-avatar-wrap { margin-top: -26px; width: 108px; }
   .profile-v2-avatar-wrap .profile-avatar-large { width: 108px; height: 108px; font-size: 38px; }
 }
 
@@ -6493,6 +6496,7 @@ body.no-anim .friend-item { animation: none !important; }
   
   /* Profile: smaller banner, bigger avatar relative to space */
   .profile-banner-section { height: 160px; margin-bottom: 36px; }
+  .profile-v2-avatar-wrap { width: 88px; }
   .profile-v2-avatar-wrap .profile-avatar-large { width: 88px; height: 88px; font-size: 32px; }
   .profile-username { font-size: 15px; }
   
