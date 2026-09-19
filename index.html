@@ -7225,6 +7225,45 @@ body.no-anim .friend-item { animation: none !important; }
   .toast-container { bottom: calc(84px + env(safe-area-inset-bottom, 0px)); }
 }
 
+/* ============================================================
+   Request F — Borderless messages
+   Chatroom, DMs and group chats no longer wrap messages in a
+   boxed bubble. Text sits directly under the sender's username
+   on the chat surface. Media, link embeds, reply quotes, spoiler
+   wrappers and the deleted-message placeholder keep their own
+   surfaces so they still read as distinct elements.
+   ============================================================ */
+.message-bubble,
+.message-group.own .message-bubble,
+.message-bubble.dm-bubble {
+  background: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+}
+.message-bubble:hover,
+.message-group.own .message-bubble:hover { background: transparent !important; border-color: transparent !important; }
+/* Keep the ping highlight readable without a bubble outline. */
+.message-bubble.pinged-msg { box-shadow: inset 3px 0 0 rgba(250,204,21,0.85) !important; }
+/* Pinned indicator stays as a left accent bar. */
+.message-bubble.is-pinned { box-shadow: inset 3px 0 0 var(--accent) !important; }
+/* Deleted placeholder keeps a faint dashed surface so it is still legible. */
+.message-bubble.deleted {
+  background: transparent !important;
+  border: 1px dashed var(--border-light) !important;
+  padding: 6px 10px !important;
+  border-radius: 10px !important;
+}
+/* Reply quotes, spoiler wrappers and link-embed fallbacks keep their own
+   surfaces (they are not the message text itself). */
+.message-bubble .reply-quote,
+.message-bubble .spoiler-wrapper,
+.message-bubble .link-embed-fallback { border-radius: 10px; }
+/* Own messages: keep the text right-aligned under the username. */
+.message-group.own .message-bubble-wrap { align-items: flex-end; }
+.message-group.own .message-text { text-align: right; }
+
 </style>
   <link rel="icon" type="image/jpeg" href="/uploads/favicon.jpg">
   <link rel="apple-touch-icon" href="/uploads/favicon.jpg">

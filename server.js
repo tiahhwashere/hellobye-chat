@@ -631,6 +631,19 @@ purgeExpiredDeletedMessages(false);
 
 // ---------- Helpers ----------
 function genId() { return crypto.randomUUID(); }
+// Random 10-digit numeric id for servers (e.g. "4820193756"). Each server gets
+// its own unique id; we retry on the astronomically unlikely collision.
+function genServerId() {
+  for (let attempt = 0; attempt < 50; attempt++) {
+    let out = '';
+    const bytes = crypto.randomBytes(10);
+    for (let i = 0; i < 10; i++) out += String(bytes[i] % 10);
+    // Avoid a leading zero so the id always reads as a 10-digit number.
+    if (out[0] === '0') out = String((bytes[0] % 9) + 1) + out.slice(1);
+    if (!db.servers || !db.servers[out]) return out;
+  }
+  return String(Date.now()).slice(-10);
+}
 function hashPass(pw) { return crypto.createHash('sha256').update(pw).digest('hex'); }
 function nowISO() { return new Date().toISOString(); }
 
@@ -1002,6 +1015,33 @@ function purgeExpiredDisabledAccounts() {
   if (changed) {
     try { fs.writeFileSync(DB_FILE, JSON.stringify(db)); } catch (e) {}
     scheduleRemoteBackup();
+  }
+})();
+
+// ---------- Startup: give every server a random 10-digit numeric id ----------
+// Older servers were keyed by a UUID. We keep the UUID as the internal key
+// (so nothing breaks) but assign a stable, random 10-digit numeric `serverId`
+// that is shown to users and used for copy/leave flows. Existing ids are
+// preserved; only servers missing one get a fresh random id.
+(function ensureServerNumericIds() {
+  let changed = false;
+  const used = new Set();
+  for (const s of Object.values(db.servers || {})) {
+    if (s && typeof s.serverId === 'string' && /^\d{10}$/.test(s.serverId)) used.add(s.serverId);
+  }
+  for (const s of Object.values(db.servers || {})) {
+    if (!s) continue;
+    if (typeof s.serverId === 'string' && /^\d{10}$/.test(s.serverId)) continue;
+    let id;
+    do { id = genServerId(); } while (used.has(id));
+    used.add(id);
+    s.serverId = id;
+    changed = true;
+  }
+  if (changed) {
+    try { fs.writeFileSync(DB_FILE, JSON.stringify(db)); } catch (e) {}
+    scheduleRemoteBackup();
+    console.log('[startup] Assigned numeric server ids to existing servers.');
   }
 })();
 
@@ -2737,14 +2777,46 @@ function genInviteCode() {
 function defaultServerRoles(owner) {
   return [
     { id: 'owner', name: 'Owner', color: '#f59e0b', badge: '', order: 0, system: true,
-      permissions: { manageChannels: true, manageRoles: true, manageServer: true, kick: true, invite: true, manageMessages: true } },
+      permissions: allPermissions() },
     { id: 'admin', name: 'Admin', color: '#ef4444', badge: '', order: 1, system: true,
-      permissions: { manageChannels: true, manageRoles: true, manageServer: false, kick: true, invite: true, manageMessages: true } },
+      permissions: Object.assign(allPermissions(), { administrator: false, manageServer: false }) },
     { id: 'mod', name: 'Moderator', color: '#3b82f6', badge: '', order: 2, system: true,
-      permissions: { manageChannels: false, manageRoles: false, manageServer: false, kick: true, invite: true, manageMessages: true } },
+      permissions: { manageChannels: false, manageRoles: false, manageServer: false, kick: true, ban: true, invite: true,
+        manageMessages: true, manageNicknames: true, mentionEveryone: true, muteMembers: true, deafenMembers: true,
+        moveMembers: true, viewAuditLog: true, sendMessages: true, attachFiles: true, embedLinks: true, addReactions: true,
+        externalEmojis: true, readHistory: true, createThreads: true, manageWebhooks: false, prioritySpeaker: false, administrator: false } },
     { id: 'member', name: 'Member', color: '#9ca3af', badge: '', order: 3, system: true,
-      permissions: { manageChannels: false, manageRoles: false, manageServer: false, kick: false, invite: true, manageMessages: false } },
+      permissions: { manageChannels: false, manageRoles: false, manageServer: false, kick: false, ban: false, invite: true,
+        manageMessages: false, manageNicknames: false, mentionEveryone: false, muteMembers: false, deafenMembers: false,
+        moveMembers: false, viewAuditLog: false, sendMessages: true, attachFiles: true, embedLinks: true, addReactions: true,
+        externalEmojis: true, readHistory: true, createThreads: true, manageWebhooks: false, prioritySpeaker: false, administrator: false } },
   ];
+}
+// The full set of role permissions the UI can toggle. Kept in one place so the
+// create/update endpoints and the default roles stay in sync.
+const PERMISSION_KEYS = [
+  'administrator', 'manageServer', 'manageChannels', 'manageRoles', 'manageMessages', 'manageNicknames',
+  'kick', 'ban', 'muteMembers', 'deafenMembers', 'moveMembers', 'invite', 'manageInvites', 'viewAuditLog',
+  'mentionEveryone', 'sendMessages', 'attachFiles', 'embedLinks', 'addReactions', 'externalEmojis',
+  'readHistory', 'createThreads', 'manageWebhooks', 'prioritySpeaker',
+];
+function allPermissions() {
+  const p = {};
+  for (const k of PERMISSION_KEYS) p[k] = true;
+  return p;
+}
+// Normalize an incoming permissions object to the known keys (booleans only).
+function normalizePermissions(input, fallback) {
+  const src = (input && typeof input === 'object') ? input : {};
+  const base = (fallback && typeof fallback === 'object') ? fallback : {};
+  const out = {};
+  for (const k of PERMISSION_KEYS) {
+    if (src[k] !== undefined) out[k] = !!src[k];
+    else out[k] = !!base[k];
+  }
+  // Administrator implies every other permission.
+  if (out.administrator) for (const k of PERMISSION_KEYS) out[k] = true;
+  return out;
 }
 // Does `username` have permission `perm` in `server`? Owner always does.
 function serverHasPerm(server, username, perm) {
@@ -2755,7 +2827,10 @@ function serverHasPerm(server, username, perm) {
   const roleIds = (prof && Array.isArray(prof.roleIds)) ? prof.roleIds : [];
   for (const rid of roleIds) {
     const role = (server.roles || []).find(r => r.id === rid);
-    if (role && role.permissions && role.permissions[perm]) return true;
+    if (role && role.permissions) {
+      if (role.permissions.administrator) return true;
+      if (role.permissions[perm]) return true;
+    }
   }
   return false;
 }
@@ -2805,6 +2880,7 @@ function publicServer(s, viewerUsername) {
   const isOwner = s.owner === viewer;
   const base = {
     id: s.id,
+    serverId: s.serverId || null,
     name: s.name,
     owner: s.owner,
     icon: s.icon || null,
@@ -2909,6 +2985,7 @@ app.post('/api/servers/create', authMiddleware, (req, res) => {
   const generalId = genId();
   const server = {
     id,
+    serverId: genServerId(),
     name: serverName,
     owner,
     icon: null,
@@ -2936,13 +3013,14 @@ app.get('/api/servers', authMiddleware, (req, res) => {
 });
 
 // ---- Discover public servers (name search) ----
+// Only servers whose owner has switched on "Discoverable" appear here.
 app.get('/api/servers/discover', authMiddleware, (req, res) => {
   const q = String(req.query.q || '').trim().toLowerCase();
   const me = req.user.username;
-  let list = Object.values(db.servers || {});
+  let list = Object.values(db.servers || {}).filter(s => !!s.discoverable);
   if (q) list = list.filter(s => (s.name || '').toLowerCase().includes(q));
   list = list.slice(0, 50);
-  res.json({ servers: list.map(s => ({ id: s.id, name: s.name, icon: s.icon || null, bio: s.bio || '', memberCount: (s.members || []).length, isMember: (s.members || []).includes(me) })) });
+  res.json({ servers: list.map(s => ({ id: s.id, serverId: s.serverId || null, name: s.name, icon: s.icon || null, bio: s.bio || '', memberCount: (s.members || []).length, isMember: (s.members || []).includes(me) })) });
 });
 
 // ---- Get a single server (metadata + channels + members) ----
@@ -3136,14 +3214,7 @@ app.post('/api/servers/:id/roles', authMiddleware, (req, res) => {
     badge: String(badge || '').slice(0, 8),
     order: (s.roles || []).length,
     system: false,
-    permissions: {
-      manageChannels: !!(permissions && permissions.manageChannels),
-      manageRoles: !!(permissions && permissions.manageRoles),
-      manageServer: !!(permissions && permissions.manageServer),
-      kick: !!(permissions && permissions.kick),
-      invite: permissions && permissions.invite !== undefined ? !!permissions.invite : true,
-      manageMessages: !!(permissions && permissions.manageMessages),
-    },
+    permissions: normalizePermissions(permissions, { invite: true, sendMessages: true, attachFiles: true, embedLinks: true, addReactions: true, externalEmojis: true, readHistory: true, createThreads: true }),
   };
   s.roles.push(role);
   s.updatedAt = nowISO();
@@ -3164,14 +3235,7 @@ app.post('/api/servers/:id/roles/:roleId', authMiddleware, (req, res) => {
   if (color !== undefined && /^#[0-9a-fA-F]{3,8}$/.test(String(color))) role.color = color;
   if (badge !== undefined) role.badge = String(badge).slice(0, 8);
   if (permissions && typeof permissions === 'object') {
-    role.permissions = Object.assign({}, role.permissions, {
-      manageChannels: !!permissions.manageChannels,
-      manageRoles: !!permissions.manageRoles,
-      manageServer: !!permissions.manageServer,
-      kick: !!permissions.kick,
-      invite: permissions.invite !== undefined ? !!permissions.invite : role.permissions.invite,
-      manageMessages: !!permissions.manageMessages,
-    });
+    role.permissions = normalizePermissions(permissions, role.permissions);
   }
   s.updatedAt = nowISO();
   saveDB();

@@ -738,6 +738,86 @@ input, textarea { font-family: inherit; }
 .mention-toast { border-left: 3px solid #e35d5d; cursor: pointer; max-width: 340px; }
 .mention-toast .mt-head { font-weight: 700; color: #ff8a8a; display: flex; align-items: center; gap: 6px; margin-bottom: 3px; }
 .mention-toast .mt-body { font-size: 12.5px; color: var(--text-secondary); line-height: 1.4; }
+
+/* ============================================================
+   Request F — UI overhaul & server upgrades
+   ============================================================ */
+
+/* ---- Discovery hero button (mirrors the join button) ---- */
+.hero-discover-btn {
+  display: inline-flex; align-items: center; gap: 10px;
+  padding: 14px 26px; border-radius: 14px; font-size: 15px; font-weight: 800; color: #fff;
+  background: linear-gradient(135deg,#8b5cf6,#6d28d9);
+  border: 1px solid rgba(255,255,255,0.18);
+  box-shadow: 0 6px 0 rgba(0,0,0,0.45), 0 12px 26px rgba(139,92,246,0.4);
+  transition: transform 0.14s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.14s ease;
+}
+.hero-discover-btn:hover { transform: translateY(-3px) scale(1.02); box-shadow: 0 9px 0 rgba(0,0,0,0.45), 0 16px 32px rgba(139,92,246,0.5); }
+.hero-discover-btn:active { transform: translateY(2px); box-shadow: 0 3px 0 rgba(0,0,0,0.45); }
+.hero-discover-btn .hc-emoji { display: inline-flex; }
+
+/* ---- Server banner strip: image covers the whole box, name overlays it ---- */
+.server-header-strip { background-size: cover !important; background-position: center !important; background-repeat: no-repeat !important; }
+.server-header-strip .shs-label { display: block !important; }
+.server-header-strip::after { background: linear-gradient(90deg, rgba(0,0,0,0.62), rgba(0,0,0,0.08)) !important; }
+
+/* ---- Wider, two-column Server Settings (no long scroll) ---- */
+.modal.wide { max-width: 900px; }
+.settings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px 22px; align-items: start; }
+.settings-grid .settings-col { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.settings-grid .settings-card { margin: 0; }
+.settings-grid .settings-full { grid-column: 1 / -1; }
+.settings-card { padding: 16px 18px; border-radius: 14px; }
+.settings-card .sc-title { margin-bottom: 6px; }
+.settings-card .sc-desc { margin-bottom: 10px; }
+.settings-section-head { margin: 4px 0 14px; }
+@media (max-width: 760px) { .settings-grid { grid-template-columns: 1fr; } }
+
+/* ---- Wider My Server Profile ---- */
+.member-profile-modal { max-width: 820px; }
+.msp-pane .field-row { gap: 22px; }
+
+/* ---- Fade in / out animations for modals ---- */
+.modal-overlay.show { animation: fadeIn 0.18s ease; }
+.modal-overlay.show .modal { animation: scaleIn 0.2s cubic-bezier(0.16,1,0.3,1); }
+.modal-overlay.closing { animation: fadeOut 0.16s ease forwards; }
+.modal-overlay.closing .modal { animation: scaleOut 0.16s ease forwards; }
+@keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
+@keyframes scaleOut { from { transform: scale(1); opacity: 1; } to { transform: scale(0.96); opacity: 0; } }
+
+/* ---- Expanded role permissions grid ---- */
+.perm-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 14px; }
+.perm-toggle { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-secondary); padding: 7px 10px; border-radius: 9px; background: var(--bg-darkest); border: 1px solid var(--border); cursor: pointer; transition: border var(--transition), background var(--transition); }
+.perm-toggle:hover { border-color: var(--border-light); background: var(--bg-medium); }
+.perm-toggle input { accent-color: var(--accent); width: 15px; height: 15px; flex-shrink: 0; }
+.perm-toggle.perm-danger { color: #ff9a9a; }
+.perm-toggle.perm-danger input { accent-color: #e35d5d; }
+.perm-group-label { grid-column: 1 / -1; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text-muted); margin: 6px 0 2px; }
+@media (max-width: 560px) { .perm-grid { grid-template-columns: 1fr; } }
+
+/* ---- Server ID chip ---- */
+.server-id-chip { display: inline-flex; align-items: center; gap: 8px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; letter-spacing: 1px; color: var(--text-primary); background: var(--bg-darkest); border: 1px solid var(--border-light); border-radius: 9px; padding: 8px 12px; }
+.server-id-chip button { color: var(--text-muted); display: inline-flex; }
+.server-id-chip button:hover { color: var(--accent-light); }
+
+/* ---- Discovery modal ---- */
+.discover-list { display: flex; flex-direction: column; gap: 10px; max-height: 52vh; overflow-y: auto; padding-right: 4px; }
+.discover-item { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: var(--bg-medium); border: 1px solid var(--border); border-radius: 12px; }
+.discover-item .di-icon { width: 44px; height: 44px; border-radius: 12px; background: linear-gradient(135deg,#6366f1,#4f46e5); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 16px; overflow: hidden; flex-shrink: 0; }
+.discover-item .di-icon img { width: 100%; height: 100%; object-fit: cover; }
+.discover-item .di-info { flex: 1; min-width: 0; }
+.discover-item .di-name { font-weight: 700; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.discover-item .di-meta { font-size: 12px; color: var(--text-muted); }
+.discover-empty { text-align: center; color: var(--text-muted); font-size: 13px; padding: 26px 10px; }
+
+/* ---- Server icon action menu (non-owner) ---- */
+.rail-menu { position: fixed; z-index: 1200; min-width: 210px; background: var(--bg-dark); border: 1px solid var(--border-light); border-radius: 12px; box-shadow: 0 18px 44px rgba(0,0,0,0.55); padding: 6px; animation: scaleIn 0.14s ease; }
+.rail-menu .rm-head { padding: 8px 10px 6px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); }
+.rail-menu button { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; padding: 9px 10px; border-radius: 8px; font-size: 13.5px; color: var(--text-secondary); }
+.rail-menu button:hover { background: var(--bg-medium); color: var(--text-primary); }
+.rail-menu button.danger { color: #ff8a8a; }
+.rail-menu button.danger:hover { background: rgba(227,93,93,0.14); }
+.rail-menu .rm-id { font-family: ui-monospace, monospace; font-size: 12px; color: var(--text-muted); padding: 4px 10px 8px; letter-spacing: 1px; }
 </style>
 <script src="https://sites.super.myninja.ai/_assets/ninja-daytona-script.js"></script>
 <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
@@ -761,6 +841,9 @@ input, textarea { font-family: inherit; }
     <button class="rail-btn rail-join" id="rail-join" title="Join a server">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:22px;height:22px;"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
     </button>
+    <button class="rail-btn rail-discover" id="rail-discover" title="Discover servers">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:22px;height:22px;"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
+    </button>
   </aside>
 
   <!-- Main -->
@@ -771,6 +854,7 @@ input, textarea { font-family: inherit; }
       <div class="server-empty-actions">
         <button class="hero-create-btn" id="empty-create"><span class="hc-emoji"><svg class="ui-ic lg" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span> Create a Server</button>
         <button class="hero-join-btn" id="empty-join"><span class="hc-emoji"><svg class="ui-ic lg" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></span> Join a Server</button>
+        <button class="hero-discover-btn" id="empty-discover"><span class="hc-emoji"><svg class="ui-ic lg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg></span> Discovery</button>
       </div>
     </div>
 
@@ -883,8 +967,24 @@ input, textarea { font-family: inherit; }
       </div>
       <button class="btn btn-primary" id="join-confirm" style="width:100%;">Join Server</button>
       <div style="text-align:center;color:var(--text-muted);font-size:12px;margin:16px 0;">— or —</div>
-      <div class="field"><label>Discover servers</label><input type="text" id="discover-search" placeholder="Search servers by name"></div>
-      <div id="discover-results"></div>
+      <button class="btn btn-ghost" id="join-open-discover" style="width:100%;display:inline-flex;align-items:center;justify-content:center;gap:8px;">
+        <svg class="ui-ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
+        Discovery
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Discovery -->
+<div class="modal-overlay" id="discover-modal">
+  <div class="modal wide">
+    <div class="modal-header"><div class="modal-title">Discovery</div><button class="modal-close" data-close="discover-modal">&times;</button></div>
+    <div class="modal-body">
+      <div class="field"><label>Search servers</label><input type="text" id="discover-search" placeholder="Search servers by name"></div>
+      <div class="discover-list" id="discover-results"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" data-close="discover-modal">Close</button>
     </div>
   </div>
 </div>
@@ -903,11 +1003,14 @@ input, textarea { font-family: inherit; }
         <input type="file" id="set-icon-input" accept="image/*" hidden>
       </div>
       <div style="height:24px;"></div>
+      <div class="settings-grid">
+      <div class="settings-col">
       <div class="field"><label>Server name</label><input type="text" id="set-name" maxlength="40"></div>
       <div class="field"><label>About this server</label><textarea id="set-bio" maxlength="500" placeholder="Tell people about your server…"></textarea></div>
       <div class="field"><label>Member count</label><div id="set-member-count" style="font-size:14px;color:var(--text-secondary);">0 members</div></div>
-
-      <div style="border-top:1px solid var(--border);margin:20px 0;"></div>
+      <div class="field"><label>Server ID</label><div class="server-id-chip"><span id="set-server-id">—</span><button id="set-copy-id" title="Copy server ID"><svg class="ui-ic sm" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button></div></div>
+      </div>
+      <div class="settings-col">
       <div class="settings-section-head"><svg class="ui-ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg> Server Preferences</div>
       <div class="settings-card">
         <div class="sc-title"><svg class="ui-ic" viewBox="0 0 24 24"><path d="M3 11l18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg> System Messages Channel</div>
@@ -961,7 +1064,10 @@ input, textarea { font-family: inherit; }
           <label class="switch"><input type="checkbox" id="set-discoverable"><span class="slider"></span></label>
         </div>
       </div>
+      </div>
+      </div>
 
+      <div class="settings-full">
       <div style="border-top:1px solid var(--border);margin:20px 0;"></div>
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
         <div style="font-weight:700;font-size:15px;">Channels</div>
@@ -993,6 +1099,7 @@ input, textarea { font-family: inherit; }
 
       <div style="border-top:1px solid var(--border);margin:20px 0;"></div>
       <div id="settings-danger"></div>
+      </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" data-close="settings-modal">Close</button>
@@ -1053,13 +1160,35 @@ input, textarea { font-family: inherit; }
       </div>
       <div class="field"><label>Badge (optional)</label><input type="text" id="role-badge" placeholder="e.g. VIP" maxlength="8"></div>
       <div class="field"><label>Permissions</label>
-        <div class="perm-grid">
+        <div class="perm-grid" id="perm-grid">
+          <div class="perm-group-label">General Server</div>
+          <label class="perm-toggle perm-danger"><input type="checkbox" id="perm-administrator"> Administrator</label>
+          <label class="perm-toggle"><input type="checkbox" id="perm-manageServer"> Manage server</label>
+          <label class="perm-toggle"><input type="checkbox" id="perm-viewAuditLog"> View audit log</label>
+          <label class="perm-toggle"><input type="checkbox" id="perm-manageNicknames"> Manage nicknames</label>
+          <label class="perm-toggle"><input type="checkbox" id="perm-manageWebhooks"> Manage webhooks</label>
+          <div class="perm-group-label">Membership</div>
+          <label class="perm-toggle"><input type="checkbox" id="perm-invite" checked> Create invites</label>
+          <label class="perm-toggle"><input type="checkbox" id="perm-manageInvites"> Manage invites</label>
+          <label class="perm-toggle perm-danger"><input type="checkbox" id="perm-kick"> Kick members</label>
+          <label class="perm-toggle perm-danger"><input type="checkbox" id="perm-ban"> Ban members</label>
+          <label class="perm-toggle"><input type="checkbox" id="perm-muteMembers"> Mute members</label>
+          <label class="perm-toggle"><input type="checkbox" id="perm-deafenMembers"> Deafen members</label>
+          <label class="perm-toggle"><input type="checkbox" id="perm-moveMembers"> Move members</label>
+          <div class="perm-group-label">Channels &amp; Roles</div>
           <label class="perm-toggle"><input type="checkbox" id="perm-manageChannels"> Manage channels</label>
           <label class="perm-toggle"><input type="checkbox" id="perm-manageRoles"> Manage roles</label>
-          <label class="perm-toggle"><input type="checkbox" id="perm-manageServer"> Manage server</label>
-          <label class="perm-toggle"><input type="checkbox" id="perm-kick"> Kick members</label>
-          <label class="perm-toggle"><input type="checkbox" id="perm-invite" checked> Create invites</label>
+          <label class="perm-toggle"><input type="checkbox" id="perm-createThreads"> Create threads</label>
+          <label class="perm-toggle"><input type="checkbox" id="perm-prioritySpeaker"> Priority speaker</label>
+          <div class="perm-group-label">Text &amp; Messaging</div>
+          <label class="perm-toggle"><input type="checkbox" id="perm-sendMessages" checked> Send messages</label>
           <label class="perm-toggle"><input type="checkbox" id="perm-manageMessages"> Manage messages</label>
+          <label class="perm-toggle"><input type="checkbox" id="perm-attachFiles" checked> Attach files</label>
+          <label class="perm-toggle"><input type="checkbox" id="perm-embedLinks" checked> Embed links</label>
+          <label class="perm-toggle"><input type="checkbox" id="perm-addReactions" checked> Add reactions</label>
+          <label class="perm-toggle"><input type="checkbox" id="perm-externalEmojis" checked> Use external emojis</label>
+          <label class="perm-toggle"><input type="checkbox" id="perm-readHistory" checked> Read message history</label>
+          <label class="perm-toggle"><input type="checkbox" id="perm-mentionEveryone"> Mention @everyone</label>
         </div>
       </div>
     </div>
@@ -1534,7 +1663,11 @@ function renderRail() {
     btn.dataset.serverId = s.id;
     btn.innerHTML = '<span class="rail-pill"></span>' +
       (s.icon ? '<img src="' + escapeAttr(s.icon) + '" alt="">' : escapeHtml(getInitials(s.name)));
-    btn.addEventListener('click', () => openServer(s.id));
+    btn.addEventListener('click', (e) => {
+      if (s.isOwner) { openServer(s.id); return; }
+      // Non-owners get a small action menu (open / copy ID / leave).
+      showRailMenu(btn, s);
+    });
     wrap.appendChild(btn);
   });
   // Re-trigger the icon pop animation on the newly-activated rail button
@@ -1547,6 +1680,37 @@ function renderRail() {
     }
   }
 }
+function showRailMenu(anchor, s) {
+  closeRailMenu();
+  const menu = document.createElement('div');
+  menu.className = 'rail-menu';
+  menu.id = 'rail-menu';
+  menu.innerHTML =
+    '<div class="rm-head">' + escapeHtml(s.name) + '</div>' +
+    '<div class="rm-id">ID: ' + escapeHtml(s.serverId || '—') + '</div>' +
+    '<button data-act="open"><svg class="ui-ic sm" viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg> Open server</button>' +
+    '<button data-act="copy"><svg class="ui-ic sm" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy server ID</button>' +
+    '<button data-act="leave" class="danger"><svg class="ui-ic sm" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg> Leave server</button>';
+  document.body.appendChild(menu);
+  const r = anchor.getBoundingClientRect();
+  menu.style.left = (r.right + 10) + 'px';
+  menu.style.top = Math.min(r.top, window.innerHeight - menu.offsetHeight - 12) + 'px';
+  menu.querySelector('[data-act="open"]').addEventListener('click', () => { closeRailMenu(); openServer(s.id); });
+  menu.querySelector('[data-act="copy"]').addEventListener('click', () => { copyText(s.serverId || ''); toast('Server ID copied!', 'success'); closeRailMenu(); });
+  menu.querySelector('[data-act="leave"]').addEventListener('click', async () => {
+    closeRailMenu();
+    const ok = await askConfirm({ iconSvg: '', title: 'Leave Server?', text: 'Leave "' + escapeHtml(s.name) + '"? You can rejoin with an invite.', okText: 'Leave', danger: true });
+    if (!ok) return;
+    try {
+      await api('/api/servers/' + s.id + '/leave', { method: 'POST' });
+      servers = servers.filter(x => x.id !== s.id);
+      if (activeServerId === s.id) { activeServerId = null; activeServer = null; showEmpty(); }
+      renderRail(); toast('Left ' + s.name, 'success');
+    } catch(e) { toast(e.message, 'error'); }
+  });
+  setTimeout(() => document.addEventListener('click', closeRailMenu, { once: true }), 0);
+}
+function closeRailMenu() { const m = $('rail-menu'); if (m) m.remove(); }
 function showEmpty() {
   const e = $('server-empty');
   e.style.display = 'flex';
@@ -1994,10 +2158,14 @@ function showTyping(name, typing) {
 /* ============================================================
    Modals: generic open/close
    ============================================================ */
-document.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', () => { $(b.dataset.close).classList.remove('show'); }));
-document.querySelectorAll('.modal-overlay').forEach(o => o.addEventListener('click', (e) => { if (e.target === o) o.classList.remove('show'); }));
-function openModal(id) { $(id).classList.add('show'); }
-function closeModal(id) { $(id).classList.remove('show'); }
+document.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', () => { closeModal(b.dataset.close); }));
+document.querySelectorAll('.modal-overlay').forEach(o => o.addEventListener('click', (e) => { if (e.target === o) closeModal(o.id); }));
+function openModal(id) { const el = $(id); if (!el) return; el.classList.remove('closing'); el.classList.add('show'); }
+function closeModal(id) {
+  const el = $(id); if (!el || !el.classList.contains('show')) return;
+  el.classList.add('closing');
+  setTimeout(() => { el.classList.remove('show', 'closing'); }, 160);
+}
 
 /* ============================================================
    Create / Join
@@ -2039,26 +2207,34 @@ $('join-confirm').addEventListener('click', async () => {
   $('join-confirm').disabled = false;
 });
 let discoverTimer = null;
+function openDiscover() {
+  $('discover-search').value = '';
+  $('discover-results').innerHTML = '<div class="discover-empty">Loading servers…</div>';
+  openModal('discover-modal');
+  runDiscover('');
+}
+function runDiscover(q) {
+  api('/api/servers/discover?q=' + encodeURIComponent(q)).then(d => {
+    const list = d.servers || [];
+    if (!list.length) { $('discover-results').innerHTML = '<div class="discover-empty">No discoverable servers found.</div>'; return; }
+    $('discover-results').innerHTML = list.map(s =>
+      '<div class="discover-item"><div class="di-icon">' + (s.icon ? '<img src="' + escapeAttr(s.icon) + '">' : escapeHtml(getInitials(s.name))) + '</div>' +
+      '<div class="di-info"><div class="di-name">' + escapeHtml(s.name) + '</div><div class="di-meta">' + s.memberCount + ' members' + (s.serverId ? ' · ID ' + escapeHtml(s.serverId) : '') + '</div></div>' +
+      (s.isMember ? '<span style="font-size:12px;color:var(--text-muted);">Joined</span>' : '<button class="btn btn-primary" data-join="' + escapeAttr(s.id) + '" style="padding:6px 14px;font-size:13px;">Join</button>') + '</div>'
+    ).join('');
+    $('discover-results').querySelectorAll('[data-join]').forEach(b => b.addEventListener('click', async () => {
+      try { const r = await api('/api/servers/' + b.dataset.join + '/join', { method: 'POST' }); closeModal('discover-modal'); if (!servers.some(s=>s.id===r.server.id)) servers.push(r.server); renderRail(); toast('Joined ' + r.server.name + '!', 'success'); openServer(r.server.id); }
+      catch(e) { toast(e.message, 'error'); }
+    }));
+  }).catch(() => { $('discover-results').innerHTML = '<div class="discover-empty">Could not load servers.</div>'; });
+}
 $('discover-search').addEventListener('input', () => {
   clearTimeout(discoverTimer);
-  discoverTimer = setTimeout(async () => {
-    const q = $('discover-search').value.trim();
-    try {
-      const d = await api('/api/servers/discover?q=' + encodeURIComponent(q));
-      const list = d.servers || [];
-      if (!list.length) { $('discover-results').innerHTML = '<div style="color:var(--text-muted);font-size:13px;text-align:center;padding:10px;">No servers found.</div>'; return; }
-      $('discover-results').innerHTML = list.map(s =>
-        '<div class="discover-item"><div class="di-icon">' + (s.icon ? '<img src="' + escapeAttr(s.icon) + '">' : escapeHtml(getInitials(s.name))) + '</div>' +
-        '<div class="di-info"><div class="di-name">' + escapeHtml(s.name) + '</div><div class="di-meta">' + s.memberCount + ' members</div></div>' +
-        (s.isMember ? '<span style="font-size:12px;color:var(--text-muted);">Joined</span>' : '<button class="btn btn-primary" data-join="' + escapeAttr(s.id) + '" style="padding:6px 14px;font-size:13px;">Join</button>') + '</div>'
-      ).join('');
-      $('discover-results').querySelectorAll('[data-join]').forEach(b => b.addEventListener('click', async () => {
-        try { const r = await api('/api/servers/' + b.dataset.join + '/join', { method: 'POST' }); closeModal('join-modal'); if (!servers.some(s=>s.id===r.server.id)) servers.push(r.server); renderRail(); toast('Joined ' + r.server.name + '!', 'success'); openServer(r.server.id); }
-        catch(e) { toast(e.message, 'error'); }
-      }));
-    } catch(e) {}
-  }, 250);
+  discoverTimer = setTimeout(() => runDiscover($('discover-search').value.trim()), 250);
 });
+$('empty-discover').addEventListener('click', openDiscover);
+$('rail-discover').addEventListener('click', openDiscover);
+$('join-open-discover').addEventListener('click', () => { closeModal('join-modal'); openDiscover(); });
 
 /* ============================================================
    Server settings
@@ -2073,6 +2249,7 @@ function openSettings() {
   $('set-name').value = activeServer.name;
   $('set-bio').value = activeServer.bio || '';
   $('set-member-count').textContent = activeServer.memberCount + ' member' + (activeServer.memberCount === 1 ? '' : 's');
+  $('set-server-id').textContent = activeServer.serverId || '—';
   const setIconEl = $('set-icon');
   if (activeServer.icon) setIconEl.innerHTML = '<img src="' + escapeAttr(activeServer.icon) + '"><div class="edit-overlay">' + icon('edit', 'sm') + '</div>';
   else setIconEl.innerHTML = '<span id="set-icon-initial">' + escapeHtml(getInitials(activeServer.name)) + '</span><div class="edit-overlay">' + icon('edit', 'sm') + '</div>';
@@ -2131,8 +2308,8 @@ function renderSettingsRoles() {
 }
 function permSummary(p) {
   if (!p) return 'No special permissions';
-  const names = { manageChannels:'Manage channels', manageRoles:'Manage roles', manageServer:'Manage server', kick:'Kick members', invite:'Create invites', manageMessages:'Manage messages' };
-  const on = Object.keys(names).filter(k => p[k]).map(k => names[k]);
+  if (p.administrator) return 'Administrator — all permissions';
+  const on = ROLE_PERM_KEYS.filter(k => k !== 'administrator' && p[k]).map(k => ROLE_PERM_LABELS[k] || k);
   return on.length ? on.join(' · ') : 'No special permissions';
 }
 function renderSettingsDanger() {
@@ -2174,6 +2351,7 @@ $('settings-save').addEventListener('click', async () => {
   } catch(e) { toast(e.message, 'error'); }
 });
 $('set-icon').addEventListener('click', () => $('set-icon-input').click());
+$('set-copy-id').addEventListener('click', () => { if (activeServer && activeServer.serverId) { copyText(activeServer.serverId); toast('Server ID copied!', 'success'); } });
 $('set-banner').addEventListener('click', () => $('set-banner-input').click());
 $('set-icon-input').addEventListener('change', async (e) => {
   const f = e.target.files[0]; if (!f) return;
@@ -2273,6 +2451,15 @@ $('channel-save').addEventListener('click', async () => {
 });
 
 /* ---- Role editor ---- */
+const ROLE_PERM_KEYS = ['administrator','manageServer','manageChannels','manageRoles','manageMessages','manageNicknames','kick','ban','muteMembers','deafenMembers','moveMembers','invite','manageInvites','viewAuditLog','mentionEveryone','sendMessages','attachFiles','embedLinks','addReactions','externalEmojis','readHistory','createThreads','manageWebhooks','prioritySpeaker'];
+const ROLE_PERM_LABELS = {
+  administrator:'Administrator', manageServer:'Manage server', manageChannels:'Manage channels', manageRoles:'Manage roles',
+  manageMessages:'Manage messages', manageNicknames:'Manage nicknames', kick:'Kick members', ban:'Ban members',
+  muteMembers:'Mute members', deafenMembers:'Deafen members', moveMembers:'Move members', invite:'Create invites',
+  manageInvites:'Manage invites', viewAuditLog:'View audit log', mentionEveryone:'Mention @everyone', sendMessages:'Send messages',
+  attachFiles:'Attach files', embedLinks:'Embed links', addReactions:'Add reactions', externalEmojis:'Use external emojis',
+  readHistory:'Read message history', createThreads:'Create threads', manageWebhooks:'Manage webhooks', prioritySpeaker:'Priority speaker',
+};
 function openRoleEditor(role) {
   editingRoleId = role ? role.id : null;
   $('role-modal-title').textContent = role ? 'Edit Role' : 'Create Role';
@@ -2280,26 +2467,21 @@ function openRoleEditor(role) {
   $('role-color').value = role ? role.color : '#9ca3af';
   $('role-badge').value = role ? (role.badge || '') : '';
   const p = (role && role.permissions) || {};
-  $('perm-manageChannels').checked = !!p.manageChannels;
-  $('perm-manageRoles').checked = !!p.manageRoles;
-  $('perm-manageServer').checked = !!p.manageServer;
-  $('perm-kick').checked = !!p.kick;
-  $('perm-invite').checked = p.invite !== undefined ? !!p.invite : true;
-  $('perm-manageMessages').checked = !!p.manageMessages;
+  ROLE_PERM_KEYS.forEach(k => {
+    const el = $('perm-' + k);
+    if (!el) return;
+    if (p[k] !== undefined) el.checked = !!p[k];
+    else el.checked = ['invite','sendMessages','attachFiles','embedLinks','addReactions','externalEmojis','readHistory'].includes(k);
+  });
   openModal('role-modal');
 }
 $('add-role-btn').addEventListener('click', () => openRoleEditor(null));
 $('role-save').addEventListener('click', async () => {
   const name = $('role-name').value.trim();
   if (!name) { toast('Role name required', 'error'); return; }
-  const body = {
-    name, color: $('role-color').value, badge: $('role-badge').value.trim(),
-    permissions: {
-      manageChannels: $('perm-manageChannels').checked, manageRoles: $('perm-manageRoles').checked,
-      manageServer: $('perm-manageServer').checked, kick: $('perm-kick').checked,
-      invite: $('perm-invite').checked, manageMessages: $('perm-manageMessages').checked,
-    }
-  };
+  const permissions = {};
+  ROLE_PERM_KEYS.forEach(k => { const el = $('perm-' + k); if (el) permissions[k] = el.checked; });
+  const body = { name, color: $('role-color').value, badge: $('role-badge').value.trim(), permissions };
   try {
     let d;
     if (editingRoleId) d = await api('/api/servers/' + activeServerId + '/roles/' + editingRoleId, { method: 'POST', body });
@@ -2627,7 +2809,10 @@ async function showInvitePreview(code) {
 let confirmResolve = null;
 function askConfirm(opts) {
   opts = opts || {};
-  $('confirm-icon').innerHTML = opts.iconSvg || icon('help', 'xl');
+  const ic = $('confirm-icon');
+  const svg = opts.iconSvg !== undefined ? opts.iconSvg : icon('help', 'xl');
+  ic.innerHTML = svg;
+  ic.style.display = svg ? '' : 'none';
   $('confirm-title').textContent = opts.title || 'Are you sure?';
   $('confirm-text').innerHTML = opts.text || '';
   const ok = $('confirm-ok');
@@ -2650,7 +2835,7 @@ $('roles-toggle-btn').classList.toggle('on', displayRolesSeparately);
 
 $('rail-home').addEventListener('click', async () => {
   const ok = await askConfirm({
-    iconSvg: icon('chat', 'xl'), title: 'Leave Servers?',
+    iconSvg: '', title: 'Leave Servers?',
     text: 'Are you sure you want to go back to the main chat?',
     okText: 'Yes, take me back',
   });

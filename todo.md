@@ -71,3 +71,17 @@
 - [x] Edit message + Delete message confirmation UI
 - [x] @everyone / @here pings with red channel notification
 - [x] Syntax check + local test + deploy
+
+## 9. Request F — UI overhaul & server upgrades
+- [x] Chatroom/DMs/Groupchats: remove bubble outline, messages under usernames
+- [x] Banner strip: image covers whole box; server name overlays image (not Server Settings)
+- [x] Server Settings UI: wider not longer, no smushing
+- [x] My Server Profile UI: wider not longer, no smushing
+- [x] Discovery button under Join a server + Discoverable option shows server in discovery UI
+- [x] Fade in/out animations for My Server Profile + Server Settings
+- [x] Remove full right-click context menu for servers
+- [x] Edit roles: add more useful Permissions
+- [x] Remove SVG icon for "Leave Servers?" UI
+- [x] Server icon click (non-owner): leave server + copy server id
+- [x] Random 10-digit numeric SERVER id per server
+- [ ] Syntax check + commit/push + verify deploy + confirm no data wiped
