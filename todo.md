@@ -118,4 +118,4 @@
 - [x] Unsaved-settings warning: prompt owner to save when they change an option without saving
 - [x] Add a UI for the "delete server" button
 - [x] Server banner: make it taller (extend downward)
-- [ ] Syntax check + commit/push + deploy + verify live + confirm no data wiped
+- [x] Syntax check + commit/push + deploy + verify live + confirm no data wiped
