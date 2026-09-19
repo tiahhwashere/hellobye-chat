@@ -479,6 +479,9 @@ function hashEncKey(key) {
         try { fs.writeFileSync(DB_FILE, JSON.stringify(db)); } catch (e) {}
         console.log('[backup] Cleared ban/mute on owner after adopting remote DB.');
       }
+      // Ensure every adopted server has a stable 10-digit numeric id (older
+      // servers created before this feature may be missing one).
+      ensureServerNumericIds();
       // Trigger an immediate backup so the sha is current.
       scheduleRemoteBackup();
     } else {
@@ -1023,7 +1026,7 @@ function purgeExpiredDisabledAccounts() {
 // (so nothing breaks) but assign a stable, random 10-digit numeric `serverId`
 // that is shown to users and used for copy/leave flows. Existing ids are
 // preserved; only servers missing one get a fresh random id.
-(function ensureServerNumericIds() {
+function ensureServerNumericIds() {
   let changed = false;
   const used = new Set();
   for (const s of Object.values(db.servers || {})) {
@@ -1043,7 +1046,10 @@ function purgeExpiredDisabledAccounts() {
     scheduleRemoteBackup();
     console.log('[startup] Assigned numeric server ids to existing servers.');
   }
-})();
+  return changed;
+}
+// Assign ids for the local seed immediately (covers the fresh-install case).
+ensureServerNumericIds();
 
 // ---------- Periodic check: auto-lift expired temporary bans ----------
 // Runs every 60 seconds. If a user has a temporary ban (bannedUntil > 0) that
