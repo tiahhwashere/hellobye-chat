@@ -27,5 +27,12 @@
 - [x] Update Dockerfile to include servers.html
 - [x] Local end-to-end smoke test (REST + socket)
 - [x] Commit & push to GitHub master
-- [x] Verify Render deploy live (buildId 4318e929e565)
-- [x] Confirm no data wiped (5 users, 5 messages, 1 group chat intact)
+- [x] Verify Render deploy live
+- [x] Confirm no data wiped
+
+## 5. Follow-up fixes
+- [x] Fix servers page stuck on "Loading servers…" (missing socket.io client script)
+- [x] Make boot() resilient + 8s safety-net timeout so page always reveals
+- [x] Show create/join options on empty state (already present, now reachable)
+- [x] Use main site's black favicon (/uploads/favicon.jpg) on servers page
+- [x] Deploy + verify live
