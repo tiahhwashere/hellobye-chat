@@ -1112,13 +1112,13 @@ input, textarea { font-family: inherit; }
         <input type="file" id="set-banner-input" accept="image/*" hidden>
         <input type="file" id="set-icon-input" accept="image/*" hidden>
       </div>
-      <div class="profile-scale-row">
-        <div class="psr-item">
+      <div class="profile-scale-row" id="profile-scale-row" style="display:none;">
+        <div class="psr-item" id="psr-icon" style="display:none;">
           <label><svg class="ui-ic sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg> Icon scale</label>
           <input type="range" id="set-icon-scale" min="100" max="220" step="5" value="100">
           <span class="psr-val" id="set-icon-scale-val">100%</span>
         </div>
-        <div class="psr-item">
+        <div class="psr-item" id="psr-banner" style="display:none;">
           <label><svg class="ui-ic sm" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 15l5-5 4 4 3-3 6 6"/></svg> Banner scale</label>
           <input type="range" id="set-banner-scale" min="100" max="220" step="5" value="100">
           <span class="psr-val" id="set-banner-scale-val">100%</span>
@@ -2637,13 +2637,18 @@ function openSettings() {
   const eff = activeServer.effect || 'none';
   setEffect = eff;
   $('set-effect-seg').querySelectorAll('button').forEach(b => b.classList.toggle('selected', b.dataset.effect === eff));
-  // Icon + banner scale
+  // Icon + banner scale (only shown when the server actually has an icon/banner)
   setIconScale = activeServer.iconScale || 100;
   setBannerScale = activeServer.bannerScale || 100;
   $('set-icon-scale').value = String(setIconScale);
   $('set-banner-scale').value = String(setBannerScale);
   $('set-icon-scale-val').textContent = setIconScale + '%';
   $('set-banner-scale-val').textContent = setBannerScale + '%';
+  const hasIcon = !!activeServer.icon;
+  const hasBanner = !!activeServer.banner;
+  $('psr-icon').style.display = hasIcon ? 'flex' : 'none';
+  $('psr-banner').style.display = hasBanner ? 'flex' : 'none';
+  $('profile-scale-row').style.display = (hasIcon || hasBanner) ? 'flex' : 'none';
   updateAppearancePreview();
   renderSettingsChannels();
   renderSettingsRoles();
