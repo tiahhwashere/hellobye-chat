@@ -44,4 +44,4 @@
 - [x] Show same profile details as main chat when viewing own/others' profile
 - [x] Server banner shows above the server's profile picture
 - [x] Syntax check + local test
-- [ ] Commit & push + verify deploy
+- [x] Commit & push + verify deploy (live on hellobye-chat.onrender.com)
