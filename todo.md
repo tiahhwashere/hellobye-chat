@@ -125,3 +125,9 @@
 - [x] Server banner: taller (132px), extends further down
 - [x] Server name pinned to the top of the banner (not the bottom)
 - [x] Syntax check + commit/push + deploy + verify live + confirm no data wiped
+
+## 14. Request L — 5 more effects + icon/banner scale
+- [x] Add 5 more server effects (Neon, Pulse, Grid, Spotlight, Scanlines)
+- [x] Add a scale control for the Server Settings profile picture (icon)
+- [x] Add a scale control for the Server Settings banner
+- [x] Syntax check + commit/push + deploy + verify live + confirm no data wiped
