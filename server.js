@@ -368,6 +368,25 @@ if (!db.groupChats) db.groupChats = []; // [{ id, name, owner, icon, members:[us
 //   }
 if (!db.encryptionChats || typeof db.encryptionChats !== 'object') db.encryptionChats = {};
 
+// ---- Servers (Discord-style communities) ----
+// A "server" is a community with channels, roles, badges and an end-to-end
+// encrypted chatroom. The server only ever stores CIPHERTEXT for channel
+// messages (the plaintext never reaches the server), so neither the server
+// nor an admin can read them. Keyed by a random id.
+//   db.servers[id] = {
+//     id, name, owner, icon, banner, bio,
+//     members: [username, ...],
+//     memberProfiles: { [username]: { nickname, avatar, banner, bio, roleIds:[], joinedAt } },
+//     roles: [ { id, name, color, badge, permissions:{manageChannels,manageRoles,manageServer,kick,invite}, order } ],
+//     channels: [ { id, name, type:'text', topic, createdAt } ],
+//     messages: { [channelId]: [ { id, from, e2e:{iv,ct}, e2eKeys:{}, timestamp, ... } ] },
+//     invites: [ { code, createdBy, createdAt, expiresAt (0=never), uses, maxUses } ],
+//     createdAt, updatedAt
+//   }
+if (!db.servers || typeof db.servers !== 'object') db.servers = {};
+// Fast invite-code -> { serverId } lookup (rebuilt lazily from servers).
+if (!db.serverInvites || typeof db.serverInvites !== 'object') db.serverInvites = {};
+
 // Canonical pair id for two usernames (order-independent).
 function encPairId(a, b) {
   const x = String(a || '').toLowerCase();
@@ -442,6 +461,8 @@ function hashEncKey(key) {
       if (!db.cooldownExempt) db.cooldownExempt = [];
       if (!db.groupChats) db.groupChats = [];
       if (!db.encryptionChats || typeof db.encryptionChats !== 'object') db.encryptionChats = {};
+      if (!db.servers || typeof db.servers !== 'object') db.servers = {};
+      if (!db.serverInvites || typeof db.serverInvites !== 'object') db.serverInvites = {};
       try { fs.writeFileSync(DB_FILE, JSON.stringify(db)); } catch (e) {}
       console.log(`[backup] Adopted remote DB as live db (${remoteUsers} users, sha ${remoteSha ? remoteSha.slice(0,7) : '?'}).`);
       // After adopting remote DB, ensure the owner (@lore) is not banned/muted.
@@ -2671,6 +2692,586 @@ function publicGroup(g) {
 function findGroup(id) {
   return (db.groupChats || []).find(g => g.id === id);
 }
+
+// ===================== SERVERS =====================
+// ---- Helpers ----
+function findServer(id) {
+  if (!db.servers || typeof db.servers !== 'object') db.servers = {};
+  return db.servers[id] || null;
+}
+// Generate a random, URL-safe invite code (e.g. "mbatkwjgfoaxngkwohak").
+function genInviteCode() {
+  const alphabet = 'abcdefghijklmnopqrstuvwxyz0123456789';
+  const bytes = crypto.randomBytes(20);
+  let out = '';
+  for (let i = 0; i < 20; i++) out += alphabet[bytes[i] % alphabet.length];
+  return out;
+}
+// Default role set created with every new server.
+function defaultServerRoles(owner) {
+  return [
+    { id: 'owner', name: 'Owner', color: '#f59e0b', badge: '👑', order: 0, system: true,
+      permissions: { manageChannels: true, manageRoles: true, manageServer: true, kick: true, invite: true, manageMessages: true } },
+    { id: 'admin', name: 'Admin', color: '#ef4444', badge: '🛡️', order: 1, system: true,
+      permissions: { manageChannels: true, manageRoles: true, manageServer: false, kick: true, invite: true, manageMessages: true } },
+    { id: 'mod', name: 'Moderator', color: '#3b82f6', badge: '⚔️', order: 2, system: true,
+      permissions: { manageChannels: false, manageRoles: false, manageServer: false, kick: true, invite: true, manageMessages: true } },
+    { id: 'member', name: 'Member', color: '#9ca3af', badge: '', order: 3, system: true,
+      permissions: { manageChannels: false, manageRoles: false, manageServer: false, kick: false, invite: true, manageMessages: false } },
+  ];
+}
+// Does `username` have permission `perm` in `server`? Owner always does.
+function serverHasPerm(server, username, perm) {
+  if (!server) return false;
+  const un = String(username || '').toLowerCase();
+  if (server.owner === un) return true;
+  const prof = (server.memberProfiles || {})[un];
+  const roleIds = (prof && Array.isArray(prof.roleIds)) ? prof.roleIds : [];
+  for (const rid of roleIds) {
+    const role = (server.roles || []).find(r => r.id === rid);
+    if (role && role.permissions && role.permissions[perm]) return true;
+  }
+  return false;
+}
+// Public (client-safe) view of a server. Includes member count + roles +
+// channels, but NEVER message plaintext (messages are ciphertext-only).
+function publicServer(s, viewerUsername) {
+  if (!s) return null;
+  const viewer = String(viewerUsername || '').toLowerCase();
+  const isMember = (s.members || []).includes(viewer);
+  const isOwner = s.owner === viewer;
+  const base = {
+    id: s.id,
+    name: s.name,
+    owner: s.owner,
+    icon: s.icon || null,
+    banner: s.banner || null,
+    bio: s.bio || '',
+    memberCount: (s.members || []).length,
+    createdAt: s.createdAt,
+    roles: (s.roles || []).map(r => ({ id: r.id, name: r.name, color: r.color, badge: r.badge || '', order: r.order || 0, system: !!r.system, permissions: r.permissions || {} })),
+    channels: (s.channels || []).map(c => ({ id: c.id, name: c.name, type: c.type || 'text', topic: c.topic || '', createdAt: c.createdAt })),
+    isMember,
+    isOwner,
+  };
+  if (isMember) {
+    base.members = (s.members || []).map(un => {
+      const u = db.users[un];
+      const prof = (s.memberProfiles || {})[un] || {};
+      const pu = publicUser(u) || { username: un, displayName: un };
+      return {
+        username: un,
+        displayName: pu.displayName || un,
+        avatar: prof.avatar || pu.avatar || null,
+        banner: prof.banner || null,
+        bio: prof.bio || '',
+        nickname: prof.nickname || null,
+        roleIds: Array.isArray(prof.roleIds) ? prof.roleIds : [],
+        status: pu.status || 'offline',
+        joinedAt: prof.joinedAt || null,
+        isOwner: s.owner === un,
+      };
+    });
+  }
+  return base;
+}
+// Public invite preview (for link embeds) — no auth required.
+function publicInvitePreview(server, invite) {
+  if (!server) return null;
+  return {
+    serverId: server.id,
+    name: server.name,
+    icon: server.icon || null,
+    banner: server.banner || null,
+    bio: server.bio || '',
+    memberCount: (server.members || []).length,
+    channelCount: (server.channels || []).length,
+    owner: server.owner,
+    code: invite ? invite.code : null,
+    expiresAt: invite ? (invite.expiresAt || 0) : 0,
+  };
+}
+// Find a server + invite by code (checks expiry). Returns { server, invite } or null.
+function findInviteByCode(code) {
+  const c = String(code || '').trim().toLowerCase();
+  if (!c) return null;
+  for (const s of Object.values(db.servers || {})) {
+    const inv = (s.invites || []).find(i => i.code === c);
+    if (inv) {
+      if (inv.expiresAt && Date.now() > inv.expiresAt) return { server: s, invite: inv, expired: true };
+      return { server: s, invite: inv, expired: false };
+    }
+  }
+  return null;
+}
+// Ensure a user has a member profile record inside a server.
+function ensureServerMemberProfile(server, username) {
+  if (!server.memberProfiles) server.memberProfiles = {};
+  const un = String(username || '').toLowerCase();
+  if (!server.memberProfiles[un]) {
+    server.memberProfiles[un] = { nickname: null, avatar: null, banner: null, bio: '', roleIds: ['member'], joinedAt: nowISO() };
+  }
+  return server.memberProfiles[un];
+}
+// Emit a server update to every member (targeted rooms).
+function emitServerUpdate(server) {
+  if (!server) return;
+  for (const m of (server.members || [])) {
+    io.to('user:' + m).emit('server-updated', { server: publicServer(server, m) });
+  }
+}
+
+// ---- Create a server ----
+app.post('/api/servers/create', authMiddleware, (req, res) => {
+  const { name, bio } = req.body || {};
+  const serverName = String(name || '').trim().slice(0, 40);
+  if (!serverName) return res.status(400).json({ error: 'Server name is required' });
+  const owner = req.user.username;
+  const id = genId();
+  const generalId = genId();
+  const server = {
+    id,
+    name: serverName,
+    owner,
+    icon: null,
+    banner: null,
+    bio: String(bio || '').slice(0, 500),
+    members: [owner],
+    memberProfiles: { [owner]: { nickname: null, avatar: null, banner: null, bio: '', roleIds: ['owner'], joinedAt: nowISO() } },
+    roles: defaultServerRoles(owner),
+    channels: [{ id: generalId, name: 'general', type: 'text', topic: 'Welcome!', createdAt: nowISO() }],
+    messages: { [generalId]: [] },
+    invites: [],
+    createdAt: nowISO(),
+    updatedAt: nowISO(),
+  };
+  db.servers[id] = server;
+  saveDB();
+  res.json({ success: true, server: publicServer(server, owner) });
+});
+
+// ---- List servers the current user is a member of ----
+app.get('/api/servers', authMiddleware, (req, res) => {
+  const me = req.user.username;
+  const list = Object.values(db.servers || {}).filter(s => (s.members || []).includes(me));
+  res.json({ servers: list.map(s => publicServer(s, me)) });
+});
+
+// ---- Discover public servers (name search) ----
+app.get('/api/servers/discover', authMiddleware, (req, res) => {
+  const q = String(req.query.q || '').trim().toLowerCase();
+  const me = req.user.username;
+  let list = Object.values(db.servers || {});
+  if (q) list = list.filter(s => (s.name || '').toLowerCase().includes(q));
+  list = list.slice(0, 50);
+  res.json({ servers: list.map(s => ({ id: s.id, name: s.name, icon: s.icon || null, bio: s.bio || '', memberCount: (s.members || []).length, isMember: (s.members || []).includes(me) })) });
+});
+
+// ---- Get a single server (metadata + channels + members) ----
+app.get('/api/servers/:id', authMiddleware, (req, res) => {
+  const s = findServer(req.params.id);
+  if (!s) return res.status(404).json({ error: 'Server not found' });
+  const me = req.user.username;
+  if (!(s.members || []).includes(me)) {
+    // Non-members get a limited preview so they can decide to join.
+    return res.json({ server: publicServer(s, me), preview: true });
+  }
+  res.json({ server: publicServer(s, me) });
+});
+
+// ---- Get a channel's messages (members only) ----
+app.get('/api/servers/:id/channels/:channelId/messages', authMiddleware, (req, res) => {
+  const s = findServer(req.params.id);
+  if (!s) return res.status(404).json({ error: 'Server not found' });
+  const me = req.user.username;
+  if (!(s.members || []).includes(me)) return res.status(403).json({ error: 'You are not a member of this server' });
+  const ch = (s.channels || []).find(c => c.id === req.params.channelId);
+  if (!ch) return res.status(404).json({ error: 'Channel not found' });
+  const msgs = ((s.messages || {})[ch.id] || []).slice(-1000);
+  res.json({ channel: { id: ch.id, name: ch.name, type: ch.type || 'text', topic: ch.topic || '' }, messages: msgs });
+});
+
+// ---- Owner/manager: update server settings (name, bio) ----
+app.post('/api/servers/:id/settings', authMiddleware, (req, res) => {
+  const s = findServer(req.params.id);
+  if (!s) return res.status(404).json({ error: 'Server not found' });
+  if (!serverHasPerm(s, req.user.username, 'manageServer')) return res.status(403).json({ error: 'You do not have permission to manage this server' });
+  const { name, bio } = req.body || {};
+  if (name !== undefined) {
+    const n = String(name).trim().slice(0, 40);
+    if (!n) return res.status(400).json({ error: 'Server name is required' });
+    s.name = n;
+  }
+  if (bio !== undefined) s.bio = String(bio).slice(0, 500);
+  s.updatedAt = nowISO();
+  saveDB();
+  emitServerUpdate(s);
+  res.json({ success: true, server: publicServer(s, req.user.username) });
+});
+
+// ---- Owner/manager: upload server icon ----
+app.post('/api/servers/:id/icon', authMiddleware, avatarUpload.single('image'), async (req, res) => {
+  const s = findServer(req.params.id);
+  if (!s) return res.status(404).json({ error: 'Server not found' });
+  if (!serverHasPerm(s, req.user.username, 'manageServer')) return res.status(403).json({ error: 'You do not have permission to change the server icon' });
+  if (!req.file) return res.status(400).json({ error: 'No image uploaded' });
+  try {
+    try { await enhanceWithTimeout(path.join(UPLOAD_DIR, req.file.filename), { maxStatic: 512, maxAnimated: 480, skipAnimated: true }, 8000); }
+    catch (e) { console.error('[server-icon] enhance error:', e.message); }
+    const fileUrl = '/uploads/' + req.file.filename + '?t=' + Date.now();
+    s.icon = fileUrl;
+    s.updatedAt = nowISO();
+    saveDB();
+    backupUploadFile(req.file.filename);
+    emitServerUpdate(s);
+    res.json({ success: true, icon: fileUrl, server: publicServer(s, req.user.username) });
+  } catch (e) {
+    console.error('server icon upload error', e);
+    res.status(500).json({ error: 'Failed to upload server icon' });
+  }
+});
+
+// ---- Owner/manager: upload server banner ----
+app.post('/api/servers/:id/banner', authMiddleware, avatarUpload.single('image'), async (req, res) => {
+  const s = findServer(req.params.id);
+  if (!s) return res.status(404).json({ error: 'Server not found' });
+  if (!serverHasPerm(s, req.user.username, 'manageServer')) return res.status(403).json({ error: 'You do not have permission to change the server banner' });
+  if (!req.file) return res.status(400).json({ error: 'No image uploaded' });
+  try {
+    try { await enhanceWithTimeout(path.join(UPLOAD_DIR, req.file.filename), { maxStatic: 1920, maxAnimated: 1080, skipAnimated: true }, 10000); }
+    catch (e) { console.error('[server-banner] enhance error:', e.message); }
+    const fileUrl = '/uploads/' + req.file.filename + '?t=' + Date.now();
+    s.banner = fileUrl;
+    s.updatedAt = nowISO();
+    saveDB();
+    backupUploadFile(req.file.filename);
+    emitServerUpdate(s);
+    res.json({ success: true, banner: fileUrl, server: publicServer(s, req.user.username) });
+  } catch (e) {
+    console.error('server banner upload error', e);
+    res.status(500).json({ error: 'Failed to upload server banner' });
+  }
+});
+
+// ---- Channels: create ----
+app.post('/api/servers/:id/channels', authMiddleware, (req, res) => {
+  const s = findServer(req.params.id);
+  if (!s) return res.status(404).json({ error: 'Server not found' });
+  if (!serverHasPerm(s, req.user.username, 'manageChannels')) return res.status(403).json({ error: 'You do not have permission to manage channels' });
+  const name = String((req.body || {}).name || '').trim().toLowerCase().replace(/[^a-z0-9\-_ ]/g, '').replace(/\s+/g, '-').slice(0, 30);
+  if (!name) return res.status(400).json({ error: 'Channel name is required' });
+  if ((s.channels || []).some(c => c.name === name)) return res.status(400).json({ error: 'A channel with that name already exists' });
+  if ((s.channels || []).length >= 50) return res.status(400).json({ error: 'This server has reached the maximum of 50 channels' });
+  const ch = { id: genId(), name, type: 'text', topic: String((req.body || {}).topic || '').slice(0, 200), createdAt: nowISO() };
+  s.channels.push(ch);
+  if (!s.messages) s.messages = {};
+  s.messages[ch.id] = [];
+  s.updatedAt = nowISO();
+  saveDB();
+  emitServerUpdate(s);
+  res.json({ success: true, channel: ch, server: publicServer(s, req.user.username) });
+});
+
+// ---- Channels: rename / set topic ----
+app.post('/api/servers/:id/channels/:channelId', authMiddleware, (req, res) => {
+  const s = findServer(req.params.id);
+  if (!s) return res.status(404).json({ error: 'Server not found' });
+  if (!serverHasPerm(s, req.user.username, 'manageChannels')) return res.status(403).json({ error: 'You do not have permission to manage channels' });
+  const ch = (s.channels || []).find(c => c.id === req.params.channelId);
+  if (!ch) return res.status(404).json({ error: 'Channel not found' });
+  const { name, topic } = req.body || {};
+  if (name !== undefined) {
+    const n = String(name).trim().toLowerCase().replace(/[^a-z0-9\-_ ]/g, '').replace(/\s+/g, '-').slice(0, 30);
+    if (!n) return res.status(400).json({ error: 'Channel name is required' });
+    if ((s.channels || []).some(c => c.id !== ch.id && c.name === n)) return res.status(400).json({ error: 'A channel with that name already exists' });
+    ch.name = n;
+  }
+  if (topic !== undefined) ch.topic = String(topic).slice(0, 200);
+  s.updatedAt = nowISO();
+  saveDB();
+  emitServerUpdate(s);
+  res.json({ success: true, channel: ch, server: publicServer(s, req.user.username) });
+});
+
+// ---- Channels: delete ----
+app.delete('/api/servers/:id/channels/:channelId', authMiddleware, (req, res) => {
+  const s = findServer(req.params.id);
+  if (!s) return res.status(404).json({ error: 'Server not found' });
+  if (!serverHasPerm(s, req.user.username, 'manageChannels')) return res.status(403).json({ error: 'You do not have permission to manage channels' });
+  if ((s.channels || []).length <= 1) return res.status(400).json({ error: 'A server must have at least one channel' });
+  const ch = (s.channels || []).find(c => c.id === req.params.channelId);
+  if (!ch) return res.status(404).json({ error: 'Channel not found' });
+  s.channels = s.channels.filter(c => c.id !== ch.id);
+  if (s.messages) delete s.messages[ch.id];
+  s.updatedAt = nowISO();
+  saveDB();
+  emitServerUpdate(s);
+  res.json({ success: true, server: publicServer(s, req.user.username) });
+});
+
+// ---- Roles: create ----
+app.post('/api/servers/:id/roles', authMiddleware, (req, res) => {
+  const s = findServer(req.params.id);
+  if (!s) return res.status(404).json({ error: 'Server not found' });
+  if (!serverHasPerm(s, req.user.username, 'manageRoles')) return res.status(403).json({ error: 'You do not have permission to manage roles' });
+  const { name, color, badge, permissions } = req.body || {};
+  const rn = String(name || '').trim().slice(0, 24);
+  if (!rn) return res.status(400).json({ error: 'Role name is required' });
+  if ((s.roles || []).length >= 30) return res.status(400).json({ error: 'This server has reached the maximum of 30 roles' });
+  const role = {
+    id: genId(),
+    name: rn,
+    color: /^#[0-9a-fA-F]{3,8}$/.test(String(color || '')) ? color : '#9ca3af',
+    badge: String(badge || '').slice(0, 8),
+    order: (s.roles || []).length,
+    system: false,
+    permissions: {
+      manageChannels: !!(permissions && permissions.manageChannels),
+      manageRoles: !!(permissions && permissions.manageRoles),
+      manageServer: !!(permissions && permissions.manageServer),
+      kick: !!(permissions && permissions.kick),
+      invite: permissions && permissions.invite !== undefined ? !!permissions.invite : true,
+      manageMessages: !!(permissions && permissions.manageMessages),
+    },
+  };
+  s.roles.push(role);
+  s.updatedAt = nowISO();
+  saveDB();
+  emitServerUpdate(s);
+  res.json({ success: true, role, server: publicServer(s, req.user.username) });
+});
+
+// ---- Roles: update ----
+app.post('/api/servers/:id/roles/:roleId', authMiddleware, (req, res) => {
+  const s = findServer(req.params.id);
+  if (!s) return res.status(404).json({ error: 'Server not found' });
+  if (!serverHasPerm(s, req.user.username, 'manageRoles')) return res.status(403).json({ error: 'You do not have permission to manage roles' });
+  const role = (s.roles || []).find(r => r.id === req.params.roleId);
+  if (!role) return res.status(404).json({ error: 'Role not found' });
+  const { name, color, badge, permissions } = req.body || {};
+  if (name !== undefined) { const rn = String(name).trim().slice(0, 24); if (rn) role.name = rn; }
+  if (color !== undefined && /^#[0-9a-fA-F]{3,8}$/.test(String(color))) role.color = color;
+  if (badge !== undefined) role.badge = String(badge).slice(0, 8);
+  if (permissions && typeof permissions === 'object') {
+    role.permissions = Object.assign({}, role.permissions, {
+      manageChannels: !!permissions.manageChannels,
+      manageRoles: !!permissions.manageRoles,
+      manageServer: !!permissions.manageServer,
+      kick: !!permissions.kick,
+      invite: permissions.invite !== undefined ? !!permissions.invite : role.permissions.invite,
+      manageMessages: !!permissions.manageMessages,
+    });
+  }
+  s.updatedAt = nowISO();
+  saveDB();
+  emitServerUpdate(s);
+  res.json({ success: true, role, server: publicServer(s, req.user.username) });
+});
+
+// ---- Roles: delete ----
+app.delete('/api/servers/:id/roles/:roleId', authMiddleware, (req, res) => {
+  const s = findServer(req.params.id);
+  if (!s) return res.status(404).json({ error: 'Server not found' });
+  if (!serverHasPerm(s, req.user.username, 'manageRoles')) return res.status(403).json({ error: 'You do not have permission to manage roles' });
+  const role = (s.roles || []).find(r => r.id === req.params.roleId);
+  if (!role) return res.status(404).json({ error: 'Role not found' });
+  if (role.system) return res.status(400).json({ error: 'Built-in roles cannot be deleted' });
+  s.roles = s.roles.filter(r => r.id !== role.id);
+  // Strip the role from every member profile
+  for (const un of Object.keys(s.memberProfiles || {})) {
+    const p = s.memberProfiles[un];
+    if (Array.isArray(p.roleIds)) p.roleIds = p.roleIds.filter(id => id !== role.id);
+  }
+  s.updatedAt = nowISO();
+  saveDB();
+  emitServerUpdate(s);
+  res.json({ success: true, server: publicServer(s, req.user.username) });
+});
+
+// ---- Members: assign / remove a role ----
+app.post('/api/servers/:id/members/:username/roles', authMiddleware, (req, res) => {
+  const s = findServer(req.params.id);
+  if (!s) return res.status(404).json({ error: 'Server not found' });
+  if (!serverHasPerm(s, req.user.username, 'manageRoles')) return res.status(403).json({ error: 'You do not have permission to manage roles' });
+  const target = String(req.params.username || '').toLowerCase();
+  if (!(s.members || []).includes(target)) return res.status(400).json({ error: 'That user is not a member of this server' });
+  const { roleId, action } = req.body || {};
+  const role = (s.roles || []).find(r => r.id === roleId);
+  if (!role) return res.status(404).json({ error: 'Role not found' });
+  if (role.id === 'owner') return res.status(400).json({ error: 'The Owner role cannot be assigned or removed' });
+  const prof = ensureServerMemberProfile(s, target);
+  if (!Array.isArray(prof.roleIds)) prof.roleIds = [];
+  if (action === 'remove') prof.roleIds = prof.roleIds.filter(id => id !== role.id);
+  else if (!prof.roleIds.includes(role.id)) prof.roleIds.push(role.id);
+  s.updatedAt = nowISO();
+  saveDB();
+  emitServerUpdate(s);
+  res.json({ success: true, server: publicServer(s, req.user.username) });
+});
+
+// ---- Members: kick ----
+app.post('/api/servers/:id/members/:username/kick', authMiddleware, (req, res) => {
+  const s = findServer(req.params.id);
+  if (!s) return res.status(404).json({ error: 'Server not found' });
+  if (!serverHasPerm(s, req.user.username, 'kick')) return res.status(403).json({ error: 'You do not have permission to kick members' });
+  const target = String(req.params.username || '').toLowerCase();
+  if (target === s.owner) return res.status(400).json({ error: 'You cannot kick the server owner' });
+  if (!(s.members || []).includes(target)) return res.status(400).json({ error: 'That user is not a member of this server' });
+  s.members = s.members.filter(m => m !== target);
+  if (s.memberProfiles) delete s.memberProfiles[target];
+  s.updatedAt = nowISO();
+  saveDB();
+  io.to('user:' + target).emit('server-removed', { id: s.id });
+  emitServerUpdate(s);
+  res.json({ success: true, server: publicServer(s, req.user.username) });
+});
+
+// ---- Members: update own server profile (nickname, avatar, banner, bio) ----
+app.post('/api/servers/:id/profile', authMiddleware, avatarUpload.single('image'), async (req, res) => {
+  const s = findServer(req.params.id);
+  if (!s) return res.status(404).json({ error: 'Server not found' });
+  const me = req.user.username;
+  if (!(s.members || []).includes(me)) return res.status(403).json({ error: 'You are not a member of this server' });
+  const prof = ensureServerMemberProfile(s, me);
+  const { nickname, bio, field } = req.body || {};
+  if (nickname !== undefined) prof.nickname = String(nickname).trim().slice(0, 32) || null;
+  if (bio !== undefined) prof.bio = String(bio).slice(0, 300);
+  if (req.file) {
+    try {
+      try { await enhanceWithTimeout(path.join(UPLOAD_DIR, req.file.filename), { maxStatic: 512, maxAnimated: 480, skipAnimated: true }, 8000); }
+      catch (e) { console.error('[server-profile] enhance error:', e.message); }
+      const fileUrl = '/uploads/' + req.file.filename + '?t=' + Date.now();
+      if (field === 'banner') prof.banner = fileUrl;
+      else prof.avatar = fileUrl;
+      backupUploadFile(req.file.filename);
+    } catch (e) { console.error('server profile upload error', e); }
+  }
+  s.updatedAt = nowISO();
+  saveDB();
+  emitServerUpdate(s);
+  res.json({ success: true, server: publicServer(s, me) });
+});
+
+// ---- Leave a server ----
+app.post('/api/servers/:id/leave', authMiddleware, (req, res) => {
+  const s = findServer(req.params.id);
+  if (!s) return res.status(404).json({ error: 'Server not found' });
+  const me = req.user.username;
+  if (!(s.members || []).includes(me)) return res.status(400).json({ error: 'You are not in this server' });
+  if (s.owner === me) return res.status(400).json({ error: 'As the owner you must transfer ownership or delete the server instead of leaving' });
+  s.members = s.members.filter(m => m !== me);
+  if (s.memberProfiles) delete s.memberProfiles[me];
+  s.updatedAt = nowISO();
+  saveDB();
+  io.to('user:' + me).emit('server-removed', { id: s.id });
+  emitServerUpdate(s);
+  res.json({ success: true });
+});
+
+// ---- Delete a server (owner only) ----
+app.post('/api/servers/:id/delete', authMiddleware, (req, res) => {
+  const s = findServer(req.params.id);
+  if (!s) return res.status(404).json({ error: 'Server not found' });
+  if (s.owner !== req.user.username) return res.status(403).json({ error: 'Only the server owner can delete the server' });
+  const members = (s.members || []).slice();
+  delete db.servers[s.id];
+  saveDB();
+  for (const m of members) io.to('user:' + m).emit('server-removed', { id: s.id });
+  res.json({ success: true });
+});
+
+// ---- Invites: create (with expiry: 30m, 1h, 6h, 12h, 1d, 7d, never) ----
+app.post('/api/servers/:id/invites', authMiddleware, (req, res) => {
+  const s = findServer(req.params.id);
+  if (!s) return res.status(404).json({ error: 'Server not found' });
+  if (!serverHasPerm(s, req.user.username, 'invite')) return res.status(403).json({ error: 'You do not have permission to create invites' });
+  const { expiresIn } = req.body || {}; // minutes; 0 = never
+  const mins = Number(expiresIn);
+  const expiresAt = (!mins || mins <= 0) ? 0 : Date.now() + mins * 60 * 1000;
+  let code;
+  do { code = genInviteCode(); } while (findInviteByCode(code));
+  const invite = { code, createdBy: req.user.username, createdAt: nowISO(), expiresAt, uses: 0, maxUses: 0 };
+  if (!s.invites) s.invites = [];
+  s.invites.push(invite);
+  s.updatedAt = nowISO();
+  saveDB();
+  res.json({ success: true, invite, url: '/servers.html?invite=' + code });
+});
+
+// ---- Invites: list ----
+app.get('/api/servers/:id/invites', authMiddleware, (req, res) => {
+  const s = findServer(req.params.id);
+  if (!s) return res.status(404).json({ error: 'Server not found' });
+  if (!(s.members || []).includes(req.user.username)) return res.status(403).json({ error: 'You are not a member of this server' });
+  const now = Date.now();
+  const invites = (s.invites || []).filter(i => !i.expiresAt || i.expiresAt > now);
+  res.json({ invites });
+});
+
+// ---- Invites: revoke ----
+app.delete('/api/servers/:id/invites/:code', authMiddleware, (req, res) => {
+  const s = findServer(req.params.id);
+  if (!s) return res.status(404).json({ error: 'Server not found' });
+  if (!serverHasPerm(s, req.user.username, 'invite')) return res.status(403).json({ error: 'You do not have permission to manage invites' });
+  s.invites = (s.invites || []).filter(i => i.code !== req.params.code);
+  s.updatedAt = nowISO();
+  saveDB();
+  res.json({ success: true });
+});
+
+// ---- Invite preview (public, for link embeds) ----
+app.get('/api/server-invite/:code', (req, res) => {
+  const found = findInviteByCode(req.params.code);
+  if (!found) return res.status(404).json({ error: 'Invite not found' });
+  if (found.expired) return res.status(410).json({ error: 'This invite has expired', expired: true });
+  res.json({ invite: publicInvitePreview(found.server, found.invite) });
+});
+
+// ---- Short invite links: /<code> (e.g. /mbatkwjgfoaxngkwohak) ----
+// A bare 20-char invite code in the path redirects to the servers page with
+// the invite pre-loaded. Only matches the exact code shape so it never
+// shadows real routes (index.html, /uploads, /api, /socket.io, etc.).
+app.get('/:code([a-z0-9]{20})', (req, res, next) => {
+  const code = String(req.params.code || '').toLowerCase();
+  const found = findInviteByCode(code);
+  if (!found) return next();
+  return res.redirect(302, '/servers.html?invite=' + encodeURIComponent(code));
+});
+
+// ---- Join via invite code ----
+app.post('/api/servers/join', authMiddleware, (req, res) => {
+  const code = String((req.body || {}).code || '').trim().toLowerCase();
+  if (!code) return res.status(400).json({ error: 'Invite code is required' });
+  const found = findInviteByCode(code);
+  if (!found) return res.status(404).json({ error: 'Invalid invite code' });
+  if (found.expired) return res.status(410).json({ error: 'This invite has expired' });
+  const s = found.server;
+  const me = req.user.username;
+  if ((s.members || []).includes(me)) return res.json({ success: true, alreadyMember: true, server: publicServer(s, me) });
+  if ((s.members || []).length >= 500) return res.status(400).json({ error: 'This server is full (max 500 members)' });
+  s.members.push(me);
+  ensureServerMemberProfile(s, me);
+  found.invite.uses = (found.invite.uses || 0) + 1;
+  s.updatedAt = nowISO();
+  saveDB();
+  emitServerUpdate(s);
+  res.json({ success: true, server: publicServer(s, me) });
+});
+
+// ---- Join a public server directly (discover) ----
+app.post('/api/servers/:id/join', authMiddleware, (req, res) => {
+  const s = findServer(req.params.id);
+  if (!s) return res.status(404).json({ error: 'Server not found' });
+  const me = req.user.username;
+  if ((s.members || []).includes(me)) return res.json({ success: true, alreadyMember: true, server: publicServer(s, me) });
+  if ((s.members || []).length >= 500) return res.status(400).json({ error: 'This server is full (max 500 members)' });
+  s.members.push(me);
+  ensureServerMemberProfile(s, me);
+  s.updatedAt = nowISO();
+  saveDB();
+  emitServerUpdate(s);
+  res.json({ success: true, server: publicServer(s, me) });
+});
 
 // Create a group chat. The creator becomes the owner and is automatically a member.
 app.post('/api/groups/create', authMiddleware, (req, res) => {
@@ -5063,6 +5664,136 @@ io.on('connection', (socket) => {
     } catch (e) {
       if (typeof ack === 'function') ack({ error: 'Failed to react' });
     }
+  });
+
+  // ===================== SERVER CHAT (E2E) =====================
+  // ---- Send a message to a server channel ----
+  socket.on('server-send', ({ serverId, channelId, text, e2e, e2eKeys, file, files, reply, spoiler }, ack) => {
+    try {
+      const s = findServer(serverId);
+      if (!s) { if (typeof ack === 'function') ack({ error: 'Server not found' }); return; }
+      if (!(s.members || []).includes(username)) { if (typeof ack === 'function') ack({ error: 'You are not a member of this server' }); return; }
+      const ch = (s.channels || []).find(c => c.id === channelId);
+      if (!ch) { if (typeof ack === 'function') ack({ error: 'Channel not found' }); return; }
+      // 0.3s cooldown (skip if exempt)
+      const srvExempt = (db.cooldownExempt || []).includes(username);
+      if (!srvExempt) {
+        const skey = username + ':srv:' + serverId + ':' + channelId;
+        const slast = lastGroupTime[skey] || 0;
+        if (Date.now() - slast < 300) {
+          if (typeof ack === 'function') ack({ error: 'Sending too fast — please slow down', cooldown: 0.3 });
+          return;
+        }
+        lastGroupTime[skey] = Date.now();
+      }
+      if (!s.messages) s.messages = {};
+      if (!Array.isArray(s.messages[channelId])) s.messages[channelId] = [];
+      const textStr = String(text || '').slice(0, 5000);
+      const hasFiles = !!(file || (Array.isArray(files) && files.length));
+      const e2eEnv = (e2e && typeof e2e === 'object' && e2e.iv && e2e.ct) ? e2e : null;
+      const e2eKeysMap = (e2eKeys && typeof e2eKeys === 'object') ? e2eKeys : null;
+      const base = {
+        from: username,
+        username,
+        displayName: user.displayName,
+        timestamp: nowISO(),
+        edited: false,
+        editedAt: null,
+        deleted: false,
+        deletedAt: null,
+      };
+      const storedText = e2eEnv ? '' : textStr;
+      let msgs;
+      if (textStr && hasFiles) {
+        msgs = [
+          Object.assign({}, base, { id: genId(), text: storedText, e2e: e2eEnv, e2eKeys: e2eKeysMap, file: null, files: null, reply: reply || null, spoiler: false }),
+          Object.assign({}, base, { id: genId(), text: '', file: file || null, files: Array.isArray(files) ? files.slice(0, 5) : null, reply: null, spoiler: !!spoiler, followup: true }),
+        ];
+      } else {
+        msgs = [Object.assign({}, base, { id: genId(), text: storedText, e2e: e2eEnv, e2eKeys: e2eKeysMap, file: file || null, files: Array.isArray(files) ? files.slice(0, 5) : null, reply: reply || null, spoiler: !!spoiler })];
+      }
+      const msg = msgs[0];
+      msgs.forEach(m => s.messages[channelId].push(m));
+      if (s.messages[channelId].length > 2000) s.messages[channelId] = s.messages[channelId].slice(-2000);
+      saveDB();
+      const emitToMembers = (m) => { for (const mem of (s.members || [])) io.to('user:' + mem).emit('server-message', { serverId: s.id, channelId, message: m }); };
+      msgs.forEach(emitToMembers);
+      if (typeof ack === 'function') ack({ success: true, message: msg, mediaMessage: msgs.length > 1 ? msgs[1] : null });
+    } catch (e) {
+      console.error('server-send error', e);
+      if (typeof ack === 'function') ack({ error: 'Failed to send server message' });
+    }
+  });
+
+  // ---- Edit a server message ----
+  socket.on('server-edit', ({ serverId, channelId, id, text, e2e, e2eKeys }, ack) => {
+    try {
+      const s = findServer(serverId);
+      if (!s) { if (typeof ack === 'function') ack({ error: 'Server not found' }); return; }
+      if (!(s.members || []).includes(username)) { if (typeof ack === 'function') ack({ error: 'Not a member' }); return; }
+      const m = ((s.messages || {})[channelId] || []).find(x => x.id === id && x.username === username);
+      if (!m) { if (typeof ack === 'function') ack({ error: 'Message not found' }); return; }
+      const e2eEnv = (e2e && typeof e2e === 'object') ? e2e : null;
+      if (e2eEnv) { m.text = ''; m.e2e = e2eEnv; if (e2eKeys && typeof e2eKeys === 'object') m.e2eKeys = e2eKeys; }
+      else { m.text = String(text || '').slice(0, 5000); delete m.e2e; delete m.e2eKeys; }
+      m.edited = true; m.editedAt = nowISO();
+      saveDB();
+      for (const mem of (s.members || [])) io.to('user:' + mem).emit('server-edited', { serverId: s.id, channelId, id: m.id, from: username, text: m.text, e2e: m.e2e || null, e2eKeys: m.e2eKeys || null, edited: true, editedAt: m.editedAt });
+      if (typeof ack === 'function') ack({ success: true });
+    } catch (e) { if (typeof ack === 'function') ack({ error: 'Failed' }); }
+  });
+
+  // ---- Delete a server message ----
+  socket.on('server-delete', ({ serverId, channelId, id }, ack) => {
+    try {
+      const s = findServer(serverId);
+      if (!s) { if (typeof ack === 'function') ack({ error: 'Server not found' }); return; }
+      if (!(s.members || []).includes(username)) { if (typeof ack === 'function') ack({ error: 'Not a member' }); return; }
+      const m = ((s.messages || {})[channelId] || []).find(x => x.id === id && x.username === username);
+      if (!m) { if (typeof ack === 'function') ack({ error: 'Message not found' }); return; }
+      m.deleted = true; m.deletedAt = nowISO(); m.text = ''; m.file = null;
+      saveDB();
+      for (const mem of (s.members || [])) io.to('user:' + mem).emit('server-deleted', { serverId: s.id, channelId, id: m.id, from: username, deletedAt: m.deletedAt });
+      if (typeof ack === 'function') ack({ success: true });
+    } catch (e) { if (typeof ack === 'function') ack({ error: 'Failed' }); }
+  });
+
+  // ---- Server typing indicator ----
+  socket.on('server-typing', ({ serverId, channelId, typing }) => {
+    const s = findServer(serverId);
+    if (!s) return;
+    if (!(s.members || []).includes(username)) return;
+    const u = db.users[username];
+    const dn = u && u.displayName ? u.displayName : username;
+    for (const mem of (s.members || [])) {
+      if (mem === username) continue;
+      io.to('user:' + mem).emit('server-typing', { serverId: s.id, channelId, from: username, displayName: dn, typing: !!typing });
+    }
+  });
+
+  // ---- Server message reaction ----
+  socket.on('server-react', ({ serverId, channelId, id, emoji }, ack) => {
+    try {
+      const s = findServer(serverId);
+      if (!s) { if (typeof ack === 'function') ack({ error: 'Server not found' }); return; }
+      if (!(s.members || []).includes(username)) { if (typeof ack === 'function') ack({ error: 'Not a member' }); return; }
+      const msg = ((s.messages || {})[channelId] || []).find(m => m.id === id);
+      if (!msg) { if (typeof ack === 'function') ack({ error: 'Message not found' }); return; }
+      if (!msg.reactions || typeof msg.reactions !== 'object') msg.reactions = {};
+      const e = String(emoji || '').slice(0, 10);
+      if (!e) { if (typeof ack === 'function') ack({ error: 'Invalid emoji' }); return; }
+      if (!Array.isArray(msg.reactions[e])) msg.reactions[e] = [];
+      const idx = msg.reactions[e].indexOf(username);
+      if (idx >= 0) { msg.reactions[e].splice(idx, 1); if (msg.reactions[e].length === 0) delete msg.reactions[e]; }
+      else {
+        const distinct = Object.keys(msg.reactions).filter(k => msg.reactions[k] && msg.reactions[k].length > 0);
+        if (distinct.length >= 5 && !msg.reactions[e].length) { if (typeof ack === 'function') ack({ error: 'This message already has 5 different reactions', limit: true, reactions: msg.reactions }); return; }
+        msg.reactions[e].push(username);
+      }
+      saveDB();
+      for (const mem of (s.members || [])) io.to('user:' + mem).emit('server-reaction', { serverId: s.id, channelId, id: msg.id, reactions: msg.reactions });
+      if (typeof ack === 'function') ack({ success: true, reactions: msg.reactions });
+    } catch (e) { if (typeof ack === 'function') ack({ error: 'Failed to react' }); }
   });
 
   // ---- Set status ----
