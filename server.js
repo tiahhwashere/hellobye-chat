@@ -2902,6 +2902,8 @@ function publicServer(s, viewerUsername) {
     slowmodeSeconds: s.slowmodeSeconds || 0,
     accentColor: s.accentColor || null,
     effect: s.effect || 'none',
+    iconScale: s.iconScale || 100,
+    bannerScale: s.bannerScale || 100,
     roles: (s.roles || []).map(r => ({ id: r.id, name: r.name, color: r.color, badge: r.badge || '', order: r.order || 0, system: !!r.system, permissions: r.permissions || {} })),
     channels: (s.channels || [])
       .filter(c => isOwner || canViewChannel(s, viewer, c))
@@ -3061,7 +3063,7 @@ app.post('/api/servers/:id/settings', authMiddleware, (req, res) => {
   const s = findServer(req.params.id);
   if (!s) return res.status(404).json({ error: 'Server not found' });
   if (!serverHasPerm(s, req.user.username, 'manageServer')) return res.status(403).json({ error: 'You do not have permission to manage this server' });
-  const { name, bio, systemChannelId, defaultNotifications, verificationLevel, welcomeMessage, discoverable, slowmodeSeconds, accentColor, effect } = req.body || {};
+  const { name, bio, systemChannelId, defaultNotifications, verificationLevel, welcomeMessage, discoverable, slowmodeSeconds, accentColor, effect, iconScale, bannerScale } = req.body || {};
   if (name !== undefined) {
     const n = String(name).trim().slice(0, 40);
     if (!n) return res.status(400).json({ error: 'Server name is required' });
@@ -3092,7 +3094,15 @@ app.post('/api/servers/:id/settings', authMiddleware, (req, res) => {
   }
   if (effect !== undefined) {
     const e = String(effect || 'none');
-    s.effect = ['none', 'glow', 'gradient', 'aurora'].includes(e) ? e : 'none';
+    s.effect = ['none', 'glow', 'gradient', 'aurora', 'neon', 'pulse', 'grid', 'spotlight', 'scanlines'].includes(e) ? e : 'none';
+  }
+  if (iconScale !== undefined) {
+    const v = Number(iconScale);
+    s.iconScale = (Number.isFinite(v) && v >= 100 && v <= 220) ? Math.round(v) : 100;
+  }
+  if (bannerScale !== undefined) {
+    const v = Number(bannerScale);
+    s.bannerScale = (Number.isFinite(v) && v >= 100 && v <= 220) ? Math.round(v) : 100;
   }
   s.updatedAt = nowISO();
   saveDB();

@@ -146,6 +146,39 @@ input, textarea { font-family: inherit; }
   0% { transform: translate3d(-3%, -2%, 0) scale(1.02); }
   100% { transform: translate3d(3%, 2%, 0) scale(1.08); }
 }
+/* Neon: crisp accent outline + glow */
+.server-view.fx-neon .server-header { box-shadow: inset 0 0 0 2px var(--accent), 0 0 18px rgba(var(--accent-rgb),0.6); }
+.server-view.fx-neon .channel-sidebar { box-shadow: inset -2px 0 0 var(--accent); }
+.server-view.fx-neon .server-input-wrap { box-shadow: 0 0 0 2px var(--accent), 0 0 20px rgba(var(--accent-rgb),0.5); }
+.server-view.fx-neon .sch-name { text-shadow: 0 0 10px rgba(var(--accent-rgb),0.85); }
+/* Pulse: breathing accent glow */
+.server-view.fx-pulse .server-header { animation: fxPulse 2.6s ease-in-out infinite; }
+.server-view.fx-pulse .server-input-wrap { animation: fxPulse 2.6s ease-in-out infinite; }
+@keyframes fxPulse {
+  0%, 100% { box-shadow: 0 0 0 1px rgba(var(--accent-rgb),0.35), 0 0 10px rgba(var(--accent-rgb),0.25); }
+  50% { box-shadow: 0 0 0 2px rgba(var(--accent-rgb),0.7), 0 0 26px rgba(var(--accent-rgb),0.55); }
+}
+/* Grid: subtle accent grid overlay */
+.server-view.fx-grid::before {
+  content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 0; opacity: 0.55;
+  background-image:
+    linear-gradient(rgba(var(--accent-rgb),0.10) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(var(--accent-rgb),0.10) 1px, transparent 1px);
+  background-size: 34px 34px;
+}
+.server-view.fx-grid > * { position: relative; z-index: 1; }
+/* Spotlight: radial light from the top */
+.server-view.fx-spotlight::before {
+  content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 0;
+  background: radial-gradient(60% 55% at 50% -12%, rgba(var(--accent-rgb),0.38), transparent 70%);
+}
+.server-view.fx-spotlight > * { position: relative; z-index: 1; }
+/* Scanlines: retro accent scanline overlay */
+.server-view.fx-scanlines::before {
+  content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 0; opacity: 0.4;
+  background: repeating-linear-gradient(0deg, rgba(var(--accent-rgb),0.16) 0px, rgba(var(--accent-rgb),0.16) 1px, transparent 1px, transparent 4px);
+}
+.server-view.fx-scanlines > * { position: relative; z-index: 1; }
 @keyframes viewIn {
   from { opacity: 0; transform: translateX(8px); }
   to { opacity: 1; transform: translateX(0); }
@@ -407,6 +440,13 @@ input, textarea { font-family: inherit; }
   opacity: 0; transition: opacity var(--transition); color: #fff; font-size: 20px;
 }
 .profile-icon:hover .edit-overlay { opacity: 1; }
+/* Scale controls for the server icon + banner */
+.profile-scale-row { display: flex; gap: 14px; margin: -28px 0 18px; flex-wrap: wrap; }
+.psr-item { flex: 1; min-width: 200px; display: flex; align-items: center; gap: 10px; background: var(--bg-dark); border: 1px solid var(--border); border-radius: 10px; padding: 9px 12px; }
+.psr-item label { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: var(--text-secondary); white-space: nowrap; }
+.psr-item label .ui-ic { color: var(--accent-light); }
+.psr-item input[type=range] { flex: 1; min-width: 80px; accent-color: var(--accent); cursor: pointer; }
+.psr-val { font-size: 12px; font-weight: 700; color: var(--text-primary); min-width: 42px; text-align: right; font-variant-numeric: tabular-nums; }
 
 /* Channel / role rows */
 .list-row {
@@ -601,7 +641,11 @@ input, textarea { font-family: inherit; }
   background: linear-gradient(90deg, rgba(0,0,0,0.62), rgba(0,0,0,0.18));
   pointer-events: none;
 }
-.server-header-banner { display: none; }
+.server-header-banner {
+  display: block; position: absolute; inset: 0; z-index: 0;
+  background-size: cover; background-position: center top; background-repeat: no-repeat;
+  transform-origin: center top; transition: transform 0.15s ease;
+}
 .server-header-top { display: flex; align-items: center; gap: 10px; width: 100%; position: relative; z-index: 1; }
 .server-header-strip { display: none !important; }
 @keyframes stripIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
@@ -624,6 +668,9 @@ input, textarea { font-family: inherit; }
 .seg-control button.selected { background: linear-gradient(180deg, var(--accent), var(--accent-dim)); color: #fff; box-shadow: 0 2px 8px rgba(var(--accent-rgb),0.4); }
 .seg-control button.selected.warn { background: linear-gradient(180deg, #f0a92e, #d4881a); color: #33230a; }
 .seg-control button.selected.danger { background: linear-gradient(180deg, #e35d5d, #c02e2e); color: #fff; }
+/* Effect picker wraps into a tidy grid (9 options) */
+#set-effect-seg { flex-wrap: wrap; }
+#set-effect-seg button { flex: 1 1 calc(33.333% - 6px); min-width: 84px; }
 .allow-grid { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
 .allow-chip {
   display: inline-flex; align-items: center; gap: 6px; padding: 6px 11px; border-radius: 20px;
@@ -1065,6 +1112,18 @@ input, textarea { font-family: inherit; }
         <input type="file" id="set-banner-input" accept="image/*" hidden>
         <input type="file" id="set-icon-input" accept="image/*" hidden>
       </div>
+      <div class="profile-scale-row">
+        <div class="psr-item">
+          <label><svg class="ui-ic sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg> Icon scale</label>
+          <input type="range" id="set-icon-scale" min="100" max="220" step="5" value="100">
+          <span class="psr-val" id="set-icon-scale-val">100%</span>
+        </div>
+        <div class="psr-item">
+          <label><svg class="ui-ic sm" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 15l5-5 4 4 3-3 6 6"/></svg> Banner scale</label>
+          <input type="range" id="set-banner-scale" min="100" max="220" step="5" value="100">
+          <span class="psr-val" id="set-banner-scale-val">100%</span>
+        </div>
+      </div>
       <div style="height:24px;"></div>
       <div class="settings-grid">
       <div class="settings-col">
@@ -1146,6 +1205,11 @@ input, textarea { font-family: inherit; }
             <button data-effect="glow">Glow</button>
             <button data-effect="gradient">Gradient</button>
             <button data-effect="aurora">Aurora</button>
+            <button data-effect="neon">Neon</button>
+            <button data-effect="pulse">Pulse</button>
+            <button data-effect="grid">Grid</button>
+            <button data-effect="spotlight">Spotlight</button>
+            <button data-effect="scanlines">Scanlines</button>
           </div>
         </div>
         <button class="btn btn-ghost" id="set-appearance-reset" style="width:100%;font-size:12.5px;">Reset to default</button>
@@ -1409,6 +1473,9 @@ let chEditorChat = 'none';
 const SERVER_ACCENTS = ['#5865f2','#4a9eff','#7c5cf0','#f0629f','#2fa457','#f0a92e','#e35d5d','#00c2b2','#ff7a45','#9b6bff','#3ba55d','#d4a017'];
 let setAccentColor = '#5865f2';
 let setEffect = 'none';
+let setIconScale = 100;
+let setBannerScale = 100;
+const FX_CLASSES = ['fx-glow','fx-gradient','fx-aurora','fx-neon','fx-pulse','fx-grid','fx-spotlight','fx-scanlines'];
 // Unsaved-changes tracking for Server Settings.
 let settingsDirty = false;
 let settingsBaseline = null;
@@ -1426,6 +1493,8 @@ function settingsSnapshot() {
     discoverable: $('set-discoverable') ? $('set-discoverable').checked : false,
     accentColor: setAccentColor,
     effect: effectBtn ? effectBtn.dataset.effect : 'none',
+    iconScale: setIconScale,
+    bannerScale: setBannerScale,
   });
 }
 function markSettingsDirty() {
@@ -1917,7 +1986,7 @@ function showEmpty() {
   const root = document.documentElement;
   ['--accent','--accent-hover','--accent-dim','--accent-light','--accent-rgb'].forEach(v => root.style.removeProperty(v));
   const sv = $('server-view');
-  if (sv) sv.classList.remove('fx-glow', 'fx-gradient', 'fx-aurora');
+  if (sv) sv.classList.remove(...FX_CLASSES);
 }
 function renderSelfFooter() {
   const av = $('sf-avatar');
@@ -1974,9 +2043,19 @@ function applyServerAppearance() {
     root.style.removeProperty('--accent-rgb');
   }
   if (sv) {
-    sv.classList.remove('fx-glow', 'fx-gradient', 'fx-aurora');
+    sv.classList.remove(...FX_CLASSES);
     if (effect && effect !== 'none') sv.classList.add('fx-' + effect);
   }
+  applyServerImageScale();
+}
+// Apply the server's icon + banner scale (visible to every member).
+function applyServerImageScale() {
+  const iconScale = (activeServer && activeServer.iconScale) ? activeServer.iconScale : 100;
+  const bannerScale = (activeServer && activeServer.bannerScale) ? activeServer.bannerScale : 100;
+  const iconEl = $('server-header-icon');
+  const bannerEl = $('server-header-banner');
+  if (iconEl) iconEl.style.transform = iconScale !== 100 ? 'scale(' + (iconScale / 100) + ')' : '';
+  if (bannerEl) bannerEl.style.transform = bannerScale !== 100 ? 'scale(' + (bannerScale / 100) + ')' : '';
 }
 function hexToRgbStr(hex) {
   const h = hex.replace('#', '');
@@ -2005,7 +2084,8 @@ function renderServerView() {
   $('server-header-count').textContent = activeServer.memberCount + ' member' + (activeServer.memberCount === 1 ? '' : 's');
   // The banner fills the whole server header box; the name/count overlay it.
   const headerEl = $('server-header');
-  headerEl.style.backgroundImage = activeServer.banner ? 'url(' + activeServer.banner + ')' : '';
+  const bannerEl = $('server-header-banner');
+  if (bannerEl) bannerEl.style.backgroundImage = activeServer.banner ? 'url(' + activeServer.banner + ')' : '';
   headerEl.classList.toggle('has-banner', !!activeServer.banner);
   // Server-wide appearance (accent color + effect) — visible to every member.
   applyServerAppearance();
@@ -2524,8 +2604,10 @@ function updateAppearancePreview() {
   const accent = /^#[0-9a-fA-F]{6}$/.test(setAccentColor) ? setAccentColor : '#5865f2';
   pv.style.setProperty('--accent', accent);
   pv.style.setProperty('--accent-rgb', hexToRgbStr(accent));
-  pv.classList.remove('fx-glow', 'fx-gradient', 'fx-aurora');
+  pv.classList.remove(...FX_CLASSES);
   if (setEffect && setEffect !== 'none') pv.classList.add('fx-' + setEffect);
+  const sapPill = pv.querySelector('.sap-pill');
+  if (sapPill) sapPill.style.transform = setIconScale !== 100 ? 'scale(' + (setIconScale / 100) + ')' : '';
 }
 function openSettings() {
   if (!activeServer) return;
@@ -2555,6 +2637,13 @@ function openSettings() {
   const eff = activeServer.effect || 'none';
   setEffect = eff;
   $('set-effect-seg').querySelectorAll('button').forEach(b => b.classList.toggle('selected', b.dataset.effect === eff));
+  // Icon + banner scale
+  setIconScale = activeServer.iconScale || 100;
+  setBannerScale = activeServer.bannerScale || 100;
+  $('set-icon-scale').value = String(setIconScale);
+  $('set-banner-scale').value = String(setBannerScale);
+  $('set-icon-scale-val').textContent = setIconScale + '%';
+  $('set-banner-scale-val').textContent = setBannerScale + '%';
   updateAppearancePreview();
   renderSettingsChannels();
   renderSettingsRoles();
@@ -2662,8 +2751,14 @@ $('set-effect-seg').querySelectorAll('button').forEach(b => b.addEventListener('
 $('set-appearance-reset').addEventListener('click', () => {
   setAccentColor = '#5865f2';
   setEffect = 'none';
+  setIconScale = 100;
+  setBannerScale = 100;
   renderServerAccentSwatches();
   $('set-effect-seg').querySelectorAll('button').forEach(x => x.classList.toggle('selected', x.dataset.effect === 'none'));
+  $('set-icon-scale').value = '100';
+  $('set-banner-scale').value = '100';
+  $('set-icon-scale-val').textContent = '100%';
+  $('set-banner-scale-val').textContent = '100%';
   updateAppearancePreview();
 });
 $('settings-save').addEventListener('click', async () => {
@@ -2681,6 +2776,8 @@ $('settings-save').addEventListener('click', async () => {
       discoverable: $('set-discoverable').checked,
       accentColor: setAccentColor,
       effect: effectBtn ? effectBtn.dataset.effect : 'none',
+      iconScale: setIconScale,
+      bannerScale: setBannerScale,
     } });
     activeServer = d.server; renderServerView();
     // Re-baseline so the unsaved-changes warning clears after a successful save.
@@ -2699,6 +2796,19 @@ $('set-notif-seg').querySelectorAll('button').forEach(b => b.addEventListener('c
 $('set-effect-seg').querySelectorAll('button').forEach(b => b.addEventListener('click', markSettingsDirty));
 $('set-accent-swatches').addEventListener('click', markSettingsDirty);
 $('set-appearance-reset').addEventListener('click', markSettingsDirty);
+// Icon + banner scale sliders (live preview + dirty tracking)
+$('set-icon-scale').addEventListener('input', () => {
+  setIconScale = Number($('set-icon-scale').value);
+  $('set-icon-scale-val').textContent = setIconScale + '%';
+  updateAppearancePreview();
+  markSettingsDirty();
+});
+$('set-banner-scale').addEventListener('input', () => {
+  setBannerScale = Number($('set-banner-scale').value);
+  $('set-banner-scale-val').textContent = setBannerScale + '%';
+  updateAppearancePreview();
+  markSettingsDirty();
+});
 $('set-icon').addEventListener('click', () => $('set-icon-input').click());
 $('set-copy-id').addEventListener('click', () => { if (activeServer && activeServer.serverId) { copyText(activeServer.serverId); toast('Server ID copied!', 'success'); } });
 $('set-banner').addEventListener('click', () => $('set-banner-input').click());
