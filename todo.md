@@ -59,3 +59,15 @@
 - [x] Improve "My Server Profile" UI
 - [x] "Back to main chat" → are-you-sure confirmation
 - [x] Syntax check + local test + deploy
+
+## 8. Request E — Professional polish & server upgrades
+- [x] Remove ALL emojis from servers.html + index.html UI
+- [x] Professional look (typography, spacing, borders, shadows)
+- [x] My Server Profile: wider, spacious, no smushing
+- [x] Server banner: longer + wider, no name overlaid on image
+- [x] Replace E2E lock emoji with advanced text message
+- [x] Remove member-count badge on server icon
+- [x] Deleted message fully purged after 2 minutes
+- [x] Edit message + Delete message confirmation UI
+- [x] @everyone / @here pings with red channel notification
+- [x] Syntax check + local test + deploy

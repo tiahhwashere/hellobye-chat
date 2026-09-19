@@ -589,11 +589,33 @@ function purgeExpiredDeletedMessages(emitRemovals) {
       if (kept.length !== before) g.messages = kept;
     }
   }
+  // Purge expired soft-deleted SERVER channel messages (per server, per channel).
+  if (db.servers && typeof db.servers === 'object') {
+    const now = Date.now();
+    for (const s of Object.values(db.servers)) {
+      if (!s || !s.messages || typeof s.messages !== 'object') continue;
+      for (const [channelId, msgs] of Object.entries(s.messages)) {
+        if (!Array.isArray(msgs)) continue;
+        const before = msgs.length;
+        const kept = msgs.filter(m => {
+          if (!m.deleted) return true;
+          const age = m.deletedAt ? (now - new Date(m.deletedAt).getTime()) : Infinity;
+          if (age >= DELETE_WINDOW_MS) { purged++; removedIds.push({ kind: 'server', id: m.id, serverId: s.id, channelId }); return false; }
+          return true;
+        });
+        if (kept.length !== before) s.messages[channelId] = kept;
+      }
+    }
+  }
   if (purged > 0) {
     saveDB();
     if (emitRemovals && typeof io !== 'undefined' && io && io.emit) {
       for (const r of removedIds) {
         if (r.kind === 'message') io.emit('message-removed', { id: r.id });
+        else if (r.kind === 'server') {
+          const s = db.servers && db.servers[r.serverId];
+          if (s && Array.isArray(s.members)) for (const mem of s.members) io.to('user:' + mem).emit('server-message-removed', { serverId: r.serverId, channelId: r.channelId, id: r.id });
+        }
         else { io.to(`user:${r.owner}`).emit('dm-removed', { id: r.id }); if (r.to) io.to(`user:${r.to}`).emit('dm-removed', { id: r.id }); }
       }
     }
@@ -5797,7 +5819,17 @@ io.on('connection', (socket) => {
       }
       if (!s.messages) s.messages = {};
       if (!Array.isArray(s.messages[channelId])) s.messages[channelId] = [];
-      const textStr = String(text || '').slice(0, 5000);
+      let textStr = String(text || '').slice(0, 5000);
+      // @everyone / @here pings: only the owner (or managers) may use them.
+      // Non-privileged senders have the mentions neutralised so they can't ping.
+      const canPing = (s.owner === username) || serverHasPerm(s, username, 'manageMessages') || serverHasPerm(s, username, 'mentionEveryone');
+      let pingType = null;
+      if (/@everyone\b/.test(textStr)) pingType = 'everyone';
+      else if (/@here\b/.test(textStr)) pingType = 'here';
+      if (pingType && !canPing) {
+        textStr = textStr.replace(/@everyone\b/g, '@everyone\u200b').replace(/@here\b/g, '@here\u200b');
+        pingType = null;
+      }
       const hasFiles = !!(file || (Array.isArray(files) && files.length));
       const e2eEnv = (e2e && typeof e2e === 'object' && e2e.iv && e2e.ct) ? e2e : null;
       const e2eKeysMap = (e2eKeys && typeof e2eKeys === 'object') ? e2eKeys : null;
@@ -5827,6 +5859,24 @@ io.on('connection', (socket) => {
       saveDB();
       const emitToMembers = (m) => { for (const mem of (s.members || [])) io.to('user:' + mem).emit('server-message', { serverId: s.id, channelId, message: m }); };
       msgs.forEach(emitToMembers);
+      // @everyone / @here ping: send a red notification to every member except the sender.
+      if (pingType) {
+        const pingPayload = {
+          serverId: s.id,
+          channelId,
+          channelName: ch.name,
+          serverName: s.name,
+          type: pingType,
+          from: username,
+          displayName: user.displayName,
+          text: textStr.slice(0, 140),
+          timestamp: nowISO(),
+        };
+        for (const mem of (s.members || [])) {
+          if (mem === username) continue;
+          io.to('user:' + mem).emit('server-ping', pingPayload);
+        }
+      }
       if (typeof ack === 'function') ack({ success: true, message: msg, mediaMessage: msgs.length > 1 ? msgs[1] : null });
     } catch (e) {
       console.error('server-send error', e);
