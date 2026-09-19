@@ -26,6 +26,6 @@
 - [x] Syntax check server.js + servers.html + index.html
 - [x] Update Dockerfile to include servers.html
 - [x] Local end-to-end smoke test (REST + socket)
-- [ ] Commit & push to GitHub master
-- [ ] Verify Render deploy live
-- [ ] Confirm no data wiped
+- [x] Commit & push to GitHub master
+- [x] Verify Render deploy live (buildId 4318e929e565)
+- [x] Confirm no data wiped (5 users, 5 messages, 1 group chat intact)
