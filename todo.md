@@ -45,3 +45,17 @@
 - [x] Server banner shows above the server's profile picture
 - [x] Syntax check + local test
 - [x] Commit & push + verify deploy (live on hellobye-chat.onrender.com)
+
+## 7. Request D — Advanced server features
+- [x] Channel privacy: owner can make channel private / private for certain roles/members
+- [x] Channel chat disable: owner can disable sending (everyone / members)
+- [x] User profile settings inside servers (avatar/bio/pronouns/panel theme color)
+- [x] Remove right-click context menu on servers
+- [x] Roles: "display roles separately" grouping in member list
+- [x] Better/cartoonier "Create new server" + "Display roles separately" buttons
+- [x] More advanced style/UI/animations overall
+- [x] More useful Server Settings
+- [x] Server banner shows under server name (where member count is) in header
+- [x] Improve "My Server Profile" UI
+- [x] "Back to main chat" → are-you-sure confirmation
+- [x] Syntax check + local test + deploy

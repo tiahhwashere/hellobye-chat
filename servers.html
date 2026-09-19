@@ -471,6 +471,197 @@ input, textarea { font-family: inherit; }
   .mobile-only { display: inline-flex; }
   .server-chat-header .sch-topic { display: none; }
 }
+
+/* ============================================================
+   Request D — advanced UI, cartoon buttons, channel privacy,
+   role grouping, richer settings, better profile
+   ============================================================ */
+
+/* ---- Cartoon / playful buttons ---- */
+.btn-cartoon {
+  position: relative; font-weight: 800; letter-spacing: 0.2px;
+  border-radius: 14px; padding: 11px 20px; font-size: 14px;
+  border: 2px solid rgba(0,0,0,0.35);
+  box-shadow: 0 4px 0 rgba(0,0,0,0.45), 0 6px 14px rgba(0,0,0,0.35);
+  transition: transform 0.12s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.12s ease, filter 0.12s ease;
+  overflow: hidden; isolation: isolate;
+}
+.btn-cartoon::after {
+  content: ''; position: absolute; inset: 0; z-index: -1;
+  background: linear-gradient(180deg, rgba(255,255,255,0.28), rgba(255,255,255,0) 55%);
+  pointer-events: none;
+}
+.btn-cartoon:hover { transform: translateY(-2px); box-shadow: 0 6px 0 rgba(0,0,0,0.45), 0 10px 20px rgba(0,0,0,0.4); filter: brightness(1.06); }
+.btn-cartoon:active { transform: translateY(2px); box-shadow: 0 2px 0 rgba(0,0,0,0.45), 0 3px 8px rgba(0,0,0,0.35); }
+.btn-cartoon svg { width: 18px; height: 18px; }
+.btn-cartoon-green { background: linear-gradient(180deg, #4fd07a, #2fa457); color: #06210f; }
+.btn-cartoon-purple { background: linear-gradient(180deg, #a78bfa, #7c5cf0); color: #140a33; }
+.btn-cartoon-blue { background: linear-gradient(180deg, #6fb5ff, #3b82f6); color: #041a33; }
+.btn-cartoon-pink { background: linear-gradient(180deg, #ff9ecb, #f0629f); color: #33061c; }
+.btn-cartoon-amber { background: linear-gradient(180deg, #ffd166, #f0a92e); color: #33230a; }
+.btn-cartoon .btn-emoji { font-size: 17px; margin-right: 6px; display: inline-block; animation: wiggle 2.4s ease-in-out infinite; }
+@keyframes wiggle { 0%,88%,100% { transform: rotate(0); } 92% { transform: rotate(-12deg); } 96% { transform: rotate(12deg); } }
+
+/* Big hero create button on empty state */
+.hero-create-btn {
+  display: inline-flex; align-items: center; gap: 10px; font-size: 16px; padding: 15px 28px;
+  border-radius: 18px; font-weight: 800;
+  background: linear-gradient(180deg, #4fd07a, #2fa457); color: #06210f;
+  border: 2px solid rgba(0,0,0,0.35);
+  box-shadow: 0 6px 0 rgba(0,0,0,0.45), 0 12px 26px rgba(47,164,87,0.35);
+  transition: transform 0.14s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.14s ease;
+  position: relative; overflow: hidden;
+}
+.hero-create-btn:hover { transform: translateY(-3px) scale(1.02); box-shadow: 0 9px 0 rgba(0,0,0,0.45), 0 16px 32px rgba(47,164,87,0.45); }
+.hero-create-btn:active { transform: translateY(2px); box-shadow: 0 3px 0 rgba(0,0,0,0.45); }
+.hero-create-btn .hc-emoji { font-size: 22px; animation: bob 2.2s ease-in-out infinite; }
+@keyframes bob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+.hero-join-btn {
+  display: inline-flex; align-items: center; gap: 10px; font-size: 16px; padding: 15px 28px;
+  border-radius: 18px; font-weight: 800;
+  background: linear-gradient(180deg, #6fb5ff, #3b82f6); color: #041a33;
+  border: 2px solid rgba(0,0,0,0.35);
+  box-shadow: 0 6px 0 rgba(0,0,0,0.45), 0 12px 26px rgba(59,130,246,0.35);
+  transition: transform 0.14s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.14s ease;
+}
+.hero-join-btn:hover { transform: translateY(-3px) scale(1.02); box-shadow: 0 9px 0 rgba(0,0,0,0.45), 0 16px 32px rgba(59,130,246,0.45); }
+.hero-join-btn:active { transform: translateY(2px); box-shadow: 0 3px 0 rgba(0,0,0,0.45); }
+
+/* ---- Server header: banner strip under name/count ---- */
+.server-header { height: auto; min-height: 56px; flex-wrap: wrap; padding: 8px 16px; }
+.server-header-banner { display: none; }
+.server-header-top { display: flex; align-items: center; gap: 10px; width: 100%; }
+.server-header-strip {
+  width: 100%; height: 34px; border-radius: 8px; margin-top: 6px;
+  background-size: cover; background-position: center; position: relative; overflow: hidden;
+  border: 1px solid var(--border-light);
+  animation: stripIn 0.4s cubic-bezier(0.16,1,0.3,1);
+}
+.server-header-strip::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(90deg, rgba(0,0,0,0.55), rgba(0,0,0,0.05));
+}
+.server-header-strip .shs-label {
+  position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
+  font-size: 11px; font-weight: 700; color: #fff; z-index: 1; text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+  letter-spacing: 0.3px;
+}
+@keyframes stripIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ---- Channel privacy / lock badges ---- */
+.channel-item .ch-lock { font-size: 11px; opacity: 0.85; flex-shrink: 0; }
+.channel-item .ch-muted { font-size: 11px; opacity: 0.85; flex-shrink: 0; }
+.channel-item.private-ch { }
+.channel-item .ch-name { display: flex; align-items: center; gap: 5px; }
+
+/* ---- Channel editor: privacy + chat controls ---- */
+.ch-section { border-top: 1px solid var(--border); margin: 18px 0 14px; padding-top: 14px; }
+.ch-section-title { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-secondary); margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+.seg-control { display: flex; gap: 6px; background: var(--bg-darkest); padding: 4px; border-radius: 12px; border: 1px solid var(--border); }
+.seg-control button {
+  flex: 1; padding: 9px 8px; border-radius: 9px; font-size: 12.5px; font-weight: 700; color: var(--text-secondary);
+  transition: all var(--transition); display: flex; align-items: center; justify-content: center; gap: 5px;
+}
+.seg-control button:hover { color: var(--text-primary); background: var(--bg-medium); }
+.seg-control button.selected { background: linear-gradient(180deg, var(--accent), var(--accent-dim)); color: #fff; box-shadow: 0 2px 8px rgba(var(--accent-rgb),0.4); }
+.seg-control button.selected.warn { background: linear-gradient(180deg, #f0a92e, #d4881a); color: #33230a; }
+.seg-control button.selected.danger { background: linear-gradient(180deg, #e35d5d, #c02e2e); color: #fff; }
+.allow-grid { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.allow-chip {
+  display: inline-flex; align-items: center; gap: 6px; padding: 6px 11px; border-radius: 20px;
+  background: var(--bg-medium); border: 1px solid var(--border-light); font-size: 12px; font-weight: 600;
+  cursor: pointer; transition: all var(--transition); color: var(--text-secondary);
+}
+.allow-chip:hover { border-color: var(--accent); color: var(--text-primary); }
+.allow-chip.on { background: rgba(var(--accent-rgb),0.16); border-color: var(--accent); color: var(--accent-light); }
+.allow-chip .ac-dot { width: 10px; height: 10px; border-radius: 50%; }
+.allow-chip .ac-av { width: 18px; height: 18px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 700; overflow: hidden; }
+.allow-chip .ac-av img { width: 100%; height: 100%; object-fit: cover; }
+.allow-empty { font-size: 12px; color: var(--text-muted); font-style: italic; }
+
+/* ---- Member sidebar: role grouping ---- */
+.member-sidebar-head { display: flex; align-items: center; justify-content: space-between; padding: 4px 8px 8px; }
+.member-sidebar-head .msh-title { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-secondary); }
+.roles-toggle-btn {
+  display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 800;
+  padding: 6px 10px; border-radius: 12px; color: #140a33;
+  background: linear-gradient(180deg, #a78bfa, #7c5cf0);
+  border: 2px solid rgba(0,0,0,0.3);
+  box-shadow: 0 3px 0 rgba(0,0,0,0.4);
+  transition: transform 0.12s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.12s ease;
+}
+.roles-toggle-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 0 rgba(0,0,0,0.4); }
+.roles-toggle-btn:active { transform: translateY(1px); box-shadow: 0 1px 0 rgba(0,0,0,0.4); }
+.roles-toggle-btn.on { background: linear-gradient(180deg, #ffd166, #f0a92e); color: #33230a; }
+.roles-toggle-btn svg { width: 13px; height: 13px; }
+.role-group-head {
+  display: flex; align-items: center; gap: 7px; padding: 10px 8px 4px;
+  font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;
+  color: var(--text-muted);
+}
+.role-group-head .rgh-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+.role-group-head .rgh-count { margin-left: auto; font-weight: 700; opacity: 0.7; }
+.role-group-head .rgh-badge { font-size: 12px; }
+
+/* ---- Richer settings: cards ---- */
+.settings-card { background: var(--bg-dark); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 12px; }
+.settings-card .sc-title { font-size: 13px; font-weight: 800; margin-bottom: 4px; display: flex; align-items: center; gap: 7px; }
+.settings-card .sc-desc { font-size: 12px; color: var(--text-muted); line-height: 1.5; margin-bottom: 10px; }
+.settings-section-head { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 15px; margin-bottom: 12px; }
+.settings-section-head .ssh-emoji { font-size: 18px; }
+.switch-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 0; }
+.switch-row .sr-label { font-size: 13px; font-weight: 600; }
+.switch-row .sr-sub { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+.switch { position: relative; width: 44px; height: 25px; flex-shrink: 0; }
+.switch input { opacity: 0; width: 0; height: 0; }
+.switch .slider { position: absolute; inset: 0; background: var(--bg-lighter); border-radius: 25px; transition: var(--transition); cursor: pointer; }
+.switch .slider::before { content: ''; position: absolute; width: 19px; height: 19px; left: 3px; top: 3px; background: #fff; border-radius: 50%; transition: var(--transition); }
+.switch input:checked + .slider { background: var(--accent); }
+.switch input:checked + .slider::before { transform: translateX(19px); }
+
+/* ---- Better My Server Profile ---- */
+.msp-hero { position: relative; border-radius: var(--radius); overflow: hidden; margin-bottom: 16px; border: 1px solid var(--border); }
+.msp-hero-banner { height: 110px; background: linear-gradient(135deg,#6366f1,#4f46e5); background-size: cover; background-position: center; position: relative; cursor: pointer; }
+.msp-hero-banner .edit-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: #fff; opacity: 0; transition: opacity var(--transition); }
+.msp-hero-banner:hover .edit-overlay { opacity: 1; }
+.msp-hero-avatar {
+  width: 84px; height: 84px; border-radius: 50%; border: 4px solid var(--bg-dark); background: var(--accent);
+  display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 26px; overflow: hidden;
+  position: absolute; left: 18px; bottom: -42px; cursor: pointer; z-index: 2;
+}
+.msp-hero-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.msp-hero-avatar .edit-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.55); display: flex; align-items: center; justify-content: center; font-size: 18px; opacity: 0; transition: opacity var(--transition); }
+.msp-hero-avatar:hover .edit-overlay { opacity: 1; }
+.msp-hero-name { padding: 50px 18px 14px; }
+.msp-hero-name .mhn-name { font-size: 18px; font-weight: 800; }
+.msp-hero-name .mhn-handle { font-size: 13px; color: var(--text-muted); }
+.msp-tabs { display: flex; gap: 6px; margin-bottom: 16px; background: var(--bg-darkest); padding: 4px; border-radius: 12px; border: 1px solid var(--border); }
+.msp-tabs button { flex: 1; padding: 9px; border-radius: 9px; font-size: 12.5px; font-weight: 700; color: var(--text-secondary); transition: all var(--transition); }
+.msp-tabs button:hover { color: var(--text-primary); }
+.msp-tabs button.active { background: var(--bg-light); color: var(--text-primary); box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+.msp-pane { display: none; }
+.msp-pane.active { display: block; animation: viewIn 0.22s cubic-bezier(0.16,1,0.3,1); }
+.color-swatches { display: flex; flex-wrap: wrap; gap: 8px; }
+.color-swatch { width: 34px; height: 34px; border-radius: 10px; cursor: pointer; border: 2px solid transparent; transition: transform 0.12s cubic-bezier(0.34,1.56,0.64,1); position: relative; }
+.color-swatch:hover { transform: scale(1.12); }
+.color-swatch.selected { border-color: #fff; box-shadow: 0 0 0 2px var(--accent); }
+.color-swatch.selected::after { content: '\2713'; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 800; text-shadow: 0 1px 3px rgba(0,0,0,0.7); }
+
+/* ---- Confirm dialog ---- */
+.confirm-icon { width: 56px; height: 56px; border-radius: 50%; background: rgba(var(--accent-rgb),0.15); display: flex; align-items: center; justify-content: center; font-size: 26px; margin: 0 auto 14px; animation: popIn 0.3s cubic-bezier(0.34,1.56,0.64,1); }
+@keyframes popIn { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.confirm-text { text-align: center; font-size: 14px; color: var(--text-secondary); line-height: 1.6; }
+
+/* ---- Extra polish animations ---- */
+.channel-item { animation: chIn 0.24s cubic-bezier(0.16,1,0.3,1); }
+@keyframes chIn { from { opacity: 0; transform: translateX(-6px); } to { opacity: 1; transform: translateX(0); } }
+.member-item { animation: memIn 0.24s cubic-bezier(0.16,1,0.3,1); }
+@keyframes memIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+.settings-card { animation: cardIn 0.26s cubic-bezier(0.16,1,0.3,1); }
+@keyframes cardIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.rail-btn { transition: all 0.2s cubic-bezier(0.34,1.56,0.64,1); }
+.rail-btn:hover { transform: translateY(-2px); }
+.rail-btn:active { transform: scale(0.94); }
 </style>
 <script src="https://sites.super.myninja.ai/_assets/ninja-daytona-script.js"></script>
 <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
@@ -502,8 +693,8 @@ input, textarea { font-family: inherit; }
       <h2>Your Servers</h2>
       <p>Create your own community or join one with an invite link. Servers have channels, roles, badges and an end-to-end encrypted chatroom.</p>
       <div class="server-empty-actions">
-        <button class="btn btn-primary" id="empty-create">Create a Server</button>
-        <button class="btn btn-secondary" id="empty-join">Join a Server</button>
+        <button class="hero-create-btn" id="empty-create"><span class="hc-emoji">✨</span> Create a Server</button>
+        <button class="hero-join-btn" id="empty-join"><span class="hc-emoji">🔗</span> Join a Server</button>
       </div>
     </div>
 
@@ -512,12 +703,15 @@ input, textarea { font-family: inherit; }
       <aside class="channel-sidebar" id="channel-sidebar">
         <div class="server-header" id="server-header">
           <div class="server-header-banner" id="server-header-banner"></div>
-          <div class="server-header-icon" id="server-header-icon">S</div>
-          <div class="server-header-info">
-            <div class="server-header-name" id="server-header-name">Server</div>
-            <div class="server-header-count" id="server-header-count">0 members</div>
+          <div class="server-header-top">
+            <div class="server-header-icon" id="server-header-icon">S</div>
+            <div class="server-header-info">
+              <div class="server-header-name" id="server-header-name">Server</div>
+              <div class="server-header-count" id="server-header-count">0 members</div>
+            </div>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
           </div>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+          <div class="server-header-strip" id="server-header-strip" style="display:none;"><span class="shs-label" id="server-header-strip-label"></span></div>
         </div>
         <div class="channel-list" id="channel-list"></div>
         <div class="server-user-footer">
@@ -572,6 +766,13 @@ input, textarea { font-family: inherit; }
 
       <!-- Members -->
       <aside class="member-sidebar" id="member-sidebar">
+        <div class="member-sidebar-head">
+          <span class="msh-title">Members</span>
+          <button class="roles-toggle-btn" id="roles-toggle-btn" title="Display roles separately">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 2l2.4 5.2L20 8l-4 3.9.9 5.6L12 15l-4.9 2.5.9-5.6L4 8l5.6-.8z"/></svg>
+            <span>Roles</span>
+          </button>
+        </div>
         <div class="member-list" id="member-list"></div>
       </aside>
     </div>
@@ -631,16 +832,71 @@ input, textarea { font-family: inherit; }
       <div class="field"><label>Member count</label><div id="set-member-count" style="font-size:14px;color:var(--text-secondary);">0 members</div></div>
 
       <div style="border-top:1px solid var(--border);margin:20px 0;"></div>
+      <div class="settings-section-head"><span class="ssh-emoji">⚙️</span> Server Preferences</div>
+      <div class="settings-card">
+        <div class="sc-title">📢 System Messages Channel</div>
+        <div class="sc-desc">Where join/leave and system notices are posted.</div>
+        <select id="set-system-channel" style="width:100%;background:var(--bg-darkest);border:1px solid var(--border-light);border-radius:var(--radius-sm);color:var(--text-primary);padding:10px;font-size:13px;"></select>
+      </div>
+      <div class="settings-card">
+        <div class="sc-title">🔔 Default Notifications</div>
+        <div class="sc-desc">What new members get notified about by default.</div>
+        <div class="seg-control" id="set-notif-seg">
+          <button data-notif="all" class="selected">All messages</button>
+          <button data-notif="mentions">Only @mentions</button>
+          <button data-notif="none">Nothing</button>
+        </div>
+      </div>
+      <div class="settings-card">
+        <div class="sc-title">🛡️ Verification Level</div>
+        <div class="sc-desc">How strict the server is about who can join and chat.</div>
+        <select id="set-verification" style="width:100%;background:var(--bg-darkest);border:1px solid var(--border-light);border-radius:var(--radius-sm);color:var(--text-primary);padding:10px;font-size:13px;">
+          <option value="0">None — no restrictions</option>
+          <option value="1">Low — must have a verified email</option>
+          <option value="2">Medium — account older than 5 minutes</option>
+          <option value="3">High — member for 10+ minutes</option>
+          <option value="4">Highest — verified phone number</option>
+        </select>
+      </div>
+      <div class="settings-card">
+        <div class="sc-title">🐢 Slowmode</div>
+        <div class="sc-desc">Limit how often members can send messages in this server.</div>
+        <select id="set-slowmode" style="width:100%;background:var(--bg-darkest);border:1px solid var(--border-light);border-radius:var(--radius-sm);color:var(--text-primary);padding:10px;font-size:13px;">
+          <option value="0">Off</option>
+          <option value="5">5 seconds</option>
+          <option value="10">10 seconds</option>
+          <option value="30">30 seconds</option>
+          <option value="60">1 minute</option>
+          <option value="300">5 minutes</option>
+          <option value="600">10 minutes</option>
+          <option value="1800">30 minutes</option>
+          <option value="3600">1 hour</option>
+          <option value="21600">6 hours</option>
+        </select>
+      </div>
+      <div class="settings-card">
+        <div class="sc-title">👋 Welcome Message</div>
+        <div class="sc-desc">Shown to new members when they join.</div>
+        <textarea id="set-welcome" maxlength="300" placeholder="Welcome to the server!" style="width:100%;background:var(--bg-darkest);border:1px solid var(--border-light);border-radius:var(--radius-sm);color:var(--text-primary);padding:10px;font-size:13px;min-height:60px;resize:vertical;"></textarea>
+      </div>
+      <div class="settings-card">
+        <div class="switch-row">
+          <div><div class="sr-label">🔎 Discoverable</div><div class="sr-sub">Allow people to find this server in Discover.</div></div>
+          <label class="switch"><input type="checkbox" id="set-discoverable"><span class="slider"></span></label>
+        </div>
+      </div>
+
+      <div style="border-top:1px solid var(--border);margin:20px 0;"></div>
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
         <div style="font-weight:700;font-size:15px;">Channels</div>
-        <button class="btn btn-secondary" id="add-channel-btn" style="padding:6px 12px;font-size:13px;">+ Add Channel</button>
+        <button class="btn-cartoon btn-cartoon-blue" id="add-channel-btn" style="padding:8px 14px;font-size:13px;"><span class="btn-emoji">➕</span>Add Channel</button>
       </div>
       <div id="settings-channels"></div>
 
       <div style="border-top:1px solid var(--border);margin:20px 0;"></div>
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
         <div style="font-weight:700;font-size:15px;">Roles &amp; Badges</div>
-        <button class="btn btn-secondary" id="add-role-btn" style="padding:6px 12px;font-size:13px;">+ Add Role</button>
+        <button class="btn-cartoon btn-cartoon-purple" id="add-role-btn" style="padding:8px 14px;font-size:13px;"><span class="btn-emoji">🎭</span>Add Role</button>
       </div>
       <div id="settings-roles"></div>
 
@@ -676,6 +932,32 @@ input, textarea { font-family: inherit; }
     <div class="modal-body">
       <div class="field"><label>Channel name</label><input type="text" id="channel-name" placeholder="new-channel" maxlength="30"></div>
       <div class="field"><label>Topic (optional)</label><input type="text" id="channel-topic" placeholder="What's this channel about?" maxlength="200"></div>
+
+      <div class="ch-section">
+        <div class="ch-section-title">🔒 Channel Privacy</div>
+        <div class="seg-control" id="ch-privacy-seg">
+          <button data-priv="public" class="selected">🌐 Public</button>
+          <button data-priv="private">🔒 Private</button>
+        </div>
+        <div id="ch-privacy-extra" style="display:none;margin-top:12px;">
+          <div class="field" style="margin-bottom:8px;"><label style="text-transform:none;font-size:12px;color:var(--text-secondary);">Who can see this channel?</label></div>
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--text-muted);margin:8px 0 4px;">Roles</div>
+          <div class="allow-grid" id="ch-allow-roles"></div>
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--text-muted);margin:12px 0 4px;">Members</div>
+          <div class="allow-grid" id="ch-allow-members"></div>
+          <div class="hint" style="font-size:11px;color:var(--text-muted);margin-top:8px;">Owners &amp; managers always see private channels. Everyone else needs an allowed role or to be picked here.</div>
+        </div>
+      </div>
+
+      <div class="ch-section">
+        <div class="ch-section-title">💬 Chat Permissions</div>
+        <div class="seg-control" id="ch-chat-seg">
+          <button data-chat="none" class="selected">✅ Everyone</button>
+          <button data-chat="members">⭐ Members w/ role</button>
+          <button data-chat="everyone">🚫 Disabled</button>
+        </div>
+        <div class="hint" style="font-size:11px;color:var(--text-muted);margin-top:8px;" id="ch-chat-hint">Everyone can send messages in this channel.</div>
+      </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" data-close="channel-modal">Cancel</button>
@@ -730,6 +1012,21 @@ input, textarea { font-family: inherit; }
   </div>
 </div>
 
+<!-- Confirm dialog -->
+<div class="modal-overlay" id="confirm-modal">
+  <div class="modal" style="max-width:400px;">
+    <div class="modal-body" style="padding-top:26px;">
+      <div class="confirm-icon" id="confirm-icon">❓</div>
+      <div class="modal-title" id="confirm-title" style="text-align:center;margin-bottom:8px;">Are you sure?</div>
+      <div class="confirm-text" id="confirm-text"></div>
+    </div>
+    <div class="modal-footer" style="justify-content:center;">
+      <button class="btn btn-ghost" id="confirm-cancel">Cancel</button>
+      <button class="btn btn-primary" id="confirm-ok">Confirm</button>
+    </div>
+  </div>
+</div>
+
 <div id="toast-container"></div>
 
 <script>
@@ -752,6 +1049,11 @@ let editingChannelId = null;
 let editingRoleId = null;
 let selectedInviteMins = 0;
 let viewingMember = null;
+let displayRolesSeparately = localStorage.getItem('hb_roles_separate') === '1';
+let chEditorPrivacy = 'public';
+let chEditorChat = 'none';
+let chEditorAllowedRoles = [];
+let chEditorAllowedMembers = [];
 
 // ---------- helpers ----------
 function $(id) { return document.getElementById(id); }
@@ -1122,13 +1424,22 @@ function renderServerView() {
   $('server-header-count').textContent = activeServer.memberCount + ' member' + (activeServer.memberCount === 1 ? '' : 's');
   const banner = $('server-header-banner');
   banner.style.backgroundImage = activeServer.banner ? 'url(' + activeServer.banner + ')' : '';
+  // Banner strip under the server name / member count (in the header, not settings)
+  const strip = $('server-header-strip');
+  if (activeServer.banner) {
+    strip.style.display = '';
+    strip.style.backgroundImage = 'url(' + activeServer.banner + ')';
+    $('server-header-strip-label').textContent = activeServer.name;
+  } else {
+    strip.style.display = 'none';
+  }
   // Channels
   renderChannels();
   // Members
   renderMembers();
   // Chat header
   const ch = (activeServer.channels || []).find(c => c.id === activeChannelId);
-  if (ch) { $('sch-name').textContent = ch.name; $('sch-topic').textContent = ch.topic || ''; $('srv-input').placeholder = 'Message #' + ch.name; }
+  if (ch) { $('sch-name').textContent = ch.name; $('sch-topic').textContent = ch.topic || ''; $('srv-input').placeholder = 'Message #' + ch.name; applyChannelChatState(ch, null); }
 }
 function renderChannels() {
   const wrap = $('channel-list');
@@ -1137,9 +1448,11 @@ function renderChannels() {
     (canManage ? '<button id="ch-add-inline" title="Add channel">+</button>' : '') + '</div>';
   (activeServer.channels || []).forEach(c => {
     const el = document.createElement('div');
-    el.className = 'channel-item' + (c.id === activeChannelId ? ' active' : '');
+    el.className = 'channel-item' + (c.id === activeChannelId ? ' active' : '') + (c.private ? ' private-ch' : '');
+    const lock = c.private ? '<span class="ch-lock" title="Private channel">🔒</span>' : '';
+    const muted = (c.chatDisabledFor && c.chatDisabledFor !== 'none') ? '<span class="ch-muted" title="Chat restricted">' + (c.chatDisabledFor === 'everyone' ? '🚫' : '⭐') + '</span>' : '';
     el.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9h16M4 15h16M10 3L8 21M16 3l-2 18"/></svg>' +
-      '<span class="ch-name">' + escapeHtml(c.name) + '</span>' +
+      '<span class="ch-name">' + escapeHtml(c.name) + lock + muted + '</span>' +
       (canManage ? '<span class="ch-edit" title="Edit">✎</span>' : '');
     el.addEventListener('click', (e) => {
       if (e.target.classList.contains('ch-edit')) { e.stopPropagation(); openChannelEditor(c); return; }
@@ -1176,13 +1489,43 @@ function renderMembers() {
     if (on !== 0) return on;
     return (a.displayName || a.username).localeCompare(b.displayName || b.username);
   });
-  const online = members.filter(m => m.status !== 'offline');
-  const offline = members.filter(m => m.status === 'offline');
-  let html = '<div class="member-section-label">Online — ' + online.length + '</div>';
-  online.forEach(m => { html += memberRowHtml(m); });
-  if (offline.length) {
-    html += '<div class="member-section-label">Offline — ' + offline.length + '</div>';
-    offline.forEach(m => { html += memberRowHtml(m); });
+
+  let html = '';
+  if (displayRolesSeparately) {
+    // Group members by their highest (lowest-order) role. Owner gets its own group.
+    const groups = [];
+    const byId = {};
+    const rolesSorted = (activeServer.roles || []).slice().sort((a, b) => (a.order || 0) - (b.order || 0));
+    rolesSorted.forEach(r => { const g = { role: r, members: [] }; groups.push(g); byId[r.id] = g; });
+    const noRole = { role: null, members: [] };
+    members.forEach(m => {
+      if (m.isOwner) { const og = byId['owner']; if (og) { og.members.push(m); return; } }
+      const ids = (m.roleIds || []).slice().sort((a, b) => (roleOrder[a] !== undefined ? roleOrder[a] : 99) - (roleOrder[b] !== undefined ? roleOrder[b] : 99));
+      const topId = ids.find(id => byId[id]);
+      if (topId) byId[topId].members.push(m);
+      else noRole.members.push(m);
+    });
+    groups.forEach(g => {
+      if (!g.members.length) return;
+      const r = g.role;
+      html += '<div class="role-group-head"><span class="rgh-dot" style="background:' + escapeAttr(r.color) + ';"></span>' +
+        (r.badge ? '<span class="rgh-badge">' + escapeHtml(r.badge) + '</span>' : '') +
+        escapeHtml(r.name) + '<span class="rgh-count">' + g.members.length + '</span></div>';
+      g.members.forEach(m => { html += memberRowHtml(m); });
+    });
+    if (noRole.members.length) {
+      html += '<div class="role-group-head"><span class="rgh-dot" style="background:var(--text-muted);"></span>Members<span class="rgh-count">' + noRole.members.length + '</span></div>';
+      noRole.members.forEach(m => { html += memberRowHtml(m); });
+    }
+  } else {
+    const online = members.filter(m => m.status !== 'offline');
+    const offline = members.filter(m => m.status === 'offline');
+    html += '<div class="member-section-label">Online — ' + online.length + '</div>';
+    online.forEach(m => { html += memberRowHtml(m); });
+    if (offline.length) {
+      html += '<div class="member-section-label">Offline — ' + offline.length + '</div>';
+      offline.forEach(m => { html += memberRowHtml(m); });
+    }
   }
   wrap.innerHTML = html;
   wrap.querySelectorAll('[data-member]').forEach(el => el.addEventListener('click', () => openMemberProfile(el.dataset.member)));
@@ -1216,7 +1559,24 @@ async function openChannel(channelId) {
     if (__e2eReady) { try { await e2eDecryptAll(serverMessages, activeServerId); } catch(e) {} }
     renderMessages();
     scrollBottom();
+    applyChannelChatState(ch, d.channel);
   } catch(e) { toast(e.message, 'error'); }
+}
+function applyChannelChatState(ch, chData) {
+  const canChat = chData ? chData.canChat !== false : (ch ? ch.canChat !== false : true);
+  const input = $('srv-input');
+  const sendBtn = $('srv-send-btn');
+  const attach = $('srv-attach-btn');
+  const disabled = !canChat;
+  input.disabled = disabled;
+  sendBtn.disabled = disabled || !input.value.trim();
+  if (attach) attach.style.display = disabled ? 'none' : '';
+  if (disabled) {
+    const mode = (chData && chData.chatDisabledFor) || (ch && ch.chatDisabledFor) || 'everyone';
+    input.placeholder = mode === 'members' ? 'Only members with a role can chat here' : 'Chat is disabled in this channel';
+  } else if (ch) {
+    input.placeholder = 'Message #' + ch.name;
+  }
 }
 function renderMessages() {
   const c = $('server-messages');
@@ -1320,7 +1680,9 @@ function scrollBottom() { const c = $('server-messages'); c.scrollTop = c.scroll
    ============================================================ */
 function updateSendBtn() {
   const hasText = $('srv-input').value.trim().length > 0;
-  $('srv-send-btn').disabled = !hasText && !pendingFiles.length;
+  const ch = (activeServer && activeServer.channels || []).find(c => c.id === activeChannelId);
+  const canChat = ch ? ch.canChat !== false : true;
+  $('srv-send-btn').disabled = !canChat || (!hasText && !pendingFiles.length);
 }
 $('srv-input').addEventListener('input', () => {
   updateSendBtn();
@@ -1494,6 +1856,16 @@ function openSettings() {
   if (activeServer.icon) icon.innerHTML = '<img src="' + escapeAttr(activeServer.icon) + '"><div class="edit-overlay">✎</div>';
   else icon.innerHTML = '<span id="set-icon-initial">' + escapeHtml(getInitials(activeServer.name)) + '</span><div class="edit-overlay">✎</div>';
   $('set-banner').style.backgroundImage = activeServer.banner ? 'url(' + activeServer.banner + ')' : '';
+  // Richer settings
+  const sysSel = $('set-system-channel');
+  sysSel.innerHTML = '<option value="">None</option>' + (activeServer.channels || []).map(c => '<option value="' + escapeAttr(c.id) + '">#' + escapeHtml(c.name) + '</option>').join('');
+  sysSel.value = activeServer.systemChannelId || '';
+  const notif = activeServer.defaultNotifications || 'all';
+  $('set-notif-seg').querySelectorAll('button').forEach(b => b.classList.toggle('selected', b.dataset.notif === notif));
+  $('set-verification').value = String(activeServer.verificationLevel || 0);
+  $('set-slowmode').value = String(activeServer.slowmodeSeconds || 0);
+  $('set-welcome').value = activeServer.welcomeMessage || '';
+  $('set-discoverable').checked = !!activeServer.discoverable;
   renderSettingsChannels();
   renderSettingsRoles();
   renderActiveInvites();
@@ -1504,10 +1876,14 @@ function openSettings() {
 function renderSettingsChannels() {
   const wrap = $('settings-channels');
   const canManage = activeServer.isOwner || hasPerm('manageChannels');
-  wrap.innerHTML = (activeServer.channels || []).map(c =>
-    '<div class="list-row"><span style="color:var(--text-muted);">#</span><div class="lr-main"><div class="lr-title">' + escapeHtml(c.name) + '</div>' + (c.topic ? '<div class="lr-sub">' + escapeHtml(c.topic) + '</div>' : '') + '</div>' +
-    (canManage ? '<div class="lr-actions"><button data-edit-ch="' + escapeAttr(c.id) + '" title="Edit">✎</button><button data-del-ch="' + escapeAttr(c.id) + '" title="Delete">🗑</button></div>' : '') + '</div>'
-  ).join('');
+  wrap.innerHTML = (activeServer.channels || []).map(c => {
+    const badges = [];
+    if (c.private) badges.push('<span style="font-size:10px;color:var(--accent-light);background:rgba(var(--accent-rgb),0.15);padding:1px 6px;border-radius:8px;font-weight:700;">🔒 Private</span>');
+    if (c.chatDisabledFor === 'everyone') badges.push('<span style="font-size:10px;color:#e35d5d;background:rgba(227,93,93,0.15);padding:1px 6px;border-radius:8px;font-weight:700;">🚫 Chat off</span>');
+    else if (c.chatDisabledFor === 'members') badges.push('<span style="font-size:10px;color:#f0a92e;background:rgba(240,169,46,0.15);padding:1px 6px;border-radius:8px;font-weight:700;">⭐ Role-only</span>');
+    return '<div class="list-row"><span style="color:var(--text-muted);">#</span><div class="lr-main"><div class="lr-title">' + escapeHtml(c.name) + (badges.length ? ' ' + badges.join(' ') : '') + '</div>' + (c.topic ? '<div class="lr-sub">' + escapeHtml(c.topic) + '</div>' : '') + '</div>' +
+    (canManage ? '<div class="lr-actions"><button data-edit-ch="' + escapeAttr(c.id) + '" title="Edit">✎</button><button data-del-ch="' + escapeAttr(c.id) + '" title="Delete">🗑</button></div>' : '') + '</div>';
+  }).join('');
   wrap.querySelectorAll('[data-edit-ch]').forEach(b => b.addEventListener('click', () => openChannelEditor((activeServer.channels||[]).find(c=>c.id===b.dataset.editCh))));
   wrap.querySelectorAll('[data-del-ch]').forEach(b => b.addEventListener('click', async () => {
     if (!confirm('Delete this channel and all its messages?')) return;
@@ -1556,9 +1932,23 @@ function renderSettingsDanger() {
     });
   }
 }
+$('set-notif-seg').querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
+  $('set-notif-seg').querySelectorAll('button').forEach(x => x.classList.remove('selected'));
+  b.classList.add('selected');
+}));
 $('settings-save').addEventListener('click', async () => {
+  const notifBtn = $('set-notif-seg').querySelector('button.selected');
   try {
-    const d = await api('/api/servers/' + activeServerId + '/settings', { method: 'POST', body: { name: $('set-name').value.trim(), bio: $('set-bio').value.trim() } });
+    const d = await api('/api/servers/' + activeServerId + '/settings', { method: 'POST', body: {
+      name: $('set-name').value.trim(),
+      bio: $('set-bio').value.trim(),
+      systemChannelId: $('set-system-channel').value || null,
+      defaultNotifications: notifBtn ? notifBtn.dataset.notif : 'all',
+      verificationLevel: Number($('set-verification').value),
+      slowmodeSeconds: Number($('set-slowmode').value),
+      welcomeMessage: $('set-welcome').value.trim(),
+      discoverable: $('set-discoverable').checked,
+    } });
     activeServer = d.server; renderServerView(); toast('Saved', 'success');
   } catch(e) { toast(e.message, 'error'); }
 });
@@ -1585,16 +1975,78 @@ function openChannelEditor(ch) {
   $('channel-modal-title').textContent = ch ? 'Edit Channel' : 'Add Channel';
   $('channel-name').value = ch ? ch.name : '';
   $('channel-topic').value = ch ? (ch.topic || '') : '';
+  chEditorPrivacy = (ch && ch.private) ? 'private' : 'public';
+  chEditorChat = (ch && ch.chatDisabledFor) ? ch.chatDisabledFor : 'none';
+  chEditorAllowedRoles = (ch && Array.isArray(ch.allowedRoles)) ? ch.allowedRoles.slice() : [];
+  chEditorAllowedMembers = (ch && Array.isArray(ch.allowedMembers)) ? ch.allowedMembers.slice() : [];
+  renderChannelPrivacyUI();
+  renderChannelChatUI();
   openModal('channel-modal');
 }
+function renderChannelPrivacyUI() {
+  $('ch-privacy-seg').querySelectorAll('button').forEach(b => b.classList.toggle('selected', b.dataset.priv === chEditorPrivacy));
+  const extra = $('ch-privacy-extra');
+  extra.style.display = chEditorPrivacy === 'private' ? '' : 'none';
+  if (chEditorPrivacy !== 'private') return;
+  // Roles
+  const rolesWrap = $('ch-allow-roles');
+  const roles = (activeServer.roles || []).filter(r => r.id !== 'owner');
+  rolesWrap.innerHTML = roles.length ? roles.map(r =>
+    '<span class="allow-chip' + (chEditorAllowedRoles.includes(r.id) ? ' on' : '') + '" data-role="' + escapeAttr(r.id) + '">' +
+    '<span class="ac-dot" style="background:' + escapeAttr(r.color) + ';"></span>' + (r.badge ? escapeHtml(r.badge) + ' ' : '') + escapeHtml(r.name) + '</span>'
+  ).join('') : '<span class="allow-empty">No roles yet.</span>';
+  rolesWrap.querySelectorAll('[data-role]').forEach(el => el.addEventListener('click', () => {
+    const id = el.dataset.role;
+    const i = chEditorAllowedRoles.indexOf(id);
+    if (i >= 0) chEditorAllowedRoles.splice(i, 1); else chEditorAllowedRoles.push(id);
+    el.classList.toggle('on');
+  }));
+  // Members
+  const memWrap = $('ch-allow-members');
+  const members = (activeServer.members || []).filter(m => !m.isOwner);
+  memWrap.innerHTML = members.length ? members.map(m =>
+    '<span class="allow-chip' + (chEditorAllowedMembers.includes(m.username) ? ' on' : '') + '" data-mem="' + escapeAttr(m.username) + '">' +
+    '<span class="ac-av">' + (m.avatar ? '<img src="' + escapeAttr(m.avatar) + '">' : escapeHtml(getInitials(m.nickname || m.displayName || m.username))) + '</span>' +
+    escapeHtml(m.nickname || m.displayName || m.username) + '</span>'
+  ).join('') : '<span class="allow-empty">No other members yet.</span>';
+  memWrap.querySelectorAll('[data-mem]').forEach(el => el.addEventListener('click', () => {
+    const un = el.dataset.mem;
+    const i = chEditorAllowedMembers.indexOf(un);
+    if (i >= 0) chEditorAllowedMembers.splice(i, 1); else chEditorAllowedMembers.push(un);
+    el.classList.toggle('on');
+  }));
+}
+function renderChannelChatUI() {
+  $('ch-chat-seg').querySelectorAll('button').forEach(b => {
+    const on = b.dataset.chat === chEditorChat;
+    b.classList.toggle('selected', on);
+    b.classList.toggle('warn', on && b.dataset.chat === 'members');
+    b.classList.toggle('danger', on && b.dataset.chat === 'everyone');
+  });
+  const hints = {
+    none: 'Everyone can send messages in this channel.',
+    members: 'Only members with a custom role can send messages. Everyone else can read.',
+    everyone: 'Chat is disabled — only the owner and managers can send messages.',
+  };
+  $('ch-chat-hint').textContent = hints[chEditorChat] || hints.none;
+}
+$('ch-privacy-seg').querySelectorAll('button').forEach(b => b.addEventListener('click', () => { chEditorPrivacy = b.dataset.priv; renderChannelPrivacyUI(); }));
+$('ch-chat-seg').querySelectorAll('button').forEach(b => b.addEventListener('click', () => { chEditorChat = b.dataset.chat; renderChannelChatUI(); }));
 $('add-channel-btn').addEventListener('click', () => openChannelEditor(null));
 $('channel-save').addEventListener('click', async () => {
   const name = $('channel-name').value.trim();
   if (!name) { toast('Channel name required', 'error'); return; }
+  const body = {
+    name, topic: $('channel-topic').value.trim(),
+    private: chEditorPrivacy === 'private',
+    allowedRoles: chEditorPrivacy === 'private' ? chEditorAllowedRoles : [],
+    allowedMembers: chEditorPrivacy === 'private' ? chEditorAllowedMembers : [],
+    chatDisabledFor: chEditorChat,
+  };
   try {
     let d;
-    if (editingChannelId) d = await api('/api/servers/' + activeServerId + '/channels/' + editingChannelId, { method: 'POST', body: { name, topic: $('channel-topic').value.trim() } });
-    else d = await api('/api/servers/' + activeServerId + '/channels', { method: 'POST', body: { name, topic: $('channel-topic').value.trim() } });
+    if (editingChannelId) d = await api('/api/servers/' + activeServerId + '/channels/' + editingChannelId, { method: 'POST', body });
+    else d = await api('/api/servers/' + activeServerId + '/channels', { method: 'POST', body });
     activeServer = d.server; renderServerView(); renderSettingsChannels(); closeModal('channel-modal'); toast('Channel saved', 'success');
   } catch(e) { toast(e.message, 'error'); }
 });
@@ -1811,24 +2263,108 @@ function openAssignRole(m) {
 }
 function openMyServerProfileEditor() {
   const me = (activeServer.members || []).find(x => x.username === currentUser.username) || {};
+  const u = currentUser || {};
+  const displayName = me.nickname || u.displayName || u.username;
+  const avatar = me.avatar || u.avatar || null;
+  const banner = me.banner || u.banner || null;
+  const panelColors = ['#4a9eff','#7c5cf0','#f0629f','#2fa457','#f0a92e','#e35d5d','#00c2b2','#ff7a45','#9b6bff','#3ba55d','#d4a017','#5865f2'];
+  const curColor = u.panelColor || '#4a9eff';
   $('member-modal-title').textContent = 'My Server Profile';
   $('member-modal-body').innerHTML =
-    '<div class="field"><label>Nickname (in this server)</label><input type="text" id="my-nick" maxlength="32" value="' + escapeAttr(me.nickname || '') + '" placeholder="' + escapeAttr(me.displayName || currentUser.username) + '"></div>' +
-    '<div class="field"><label>About me (in this server)</label><textarea id="my-bio" maxlength="300" placeholder="Say something about yourself…">' + escapeHtml(me.bio || '') + '</textarea></div>' +
-    '<div class="field"><label>Server avatar</label><input type="file" id="my-avatar" accept="image/*"></div>' +
-    '<div class="field"><label>Server banner</label><input type="file" id="my-banner" accept="image/*"></div>';
-  $('member-modal-footer').innerHTML = '<button class="btn btn-ghost" data-close="member-modal">Cancel</button><button class="btn btn-primary" id="my-profile-save">Save</button>';
+    '<div class="msp-hero">' +
+      '<div class="msp-hero-banner" id="msp-banner" style="' + (banner ? 'background-image:url(' + escapeAttr(banner) + ');' : '') + '"><div class="edit-overlay">Change Banner</div></div>' +
+      '<div class="msp-hero-avatar" id="msp-avatar">' + (avatar ? '<img src="' + escapeAttr(avatar) + '">' : escapeHtml(getInitials(displayName))) + '<div class="edit-overlay">📷</div></div>' +
+      '<div class="msp-hero-name"><div class="mhn-name">' + escapeHtml(displayName) + '</div><div class="mhn-handle">@' + escapeHtml(u.username || '') + '</div></div>' +
+      '<input type="file" id="my-avatar" accept="image/*" hidden>' +
+      '<input type="file" id="my-banner" accept="image/*" hidden>' +
+    '</div>' +
+    '<div class="msp-tabs">' +
+      '<button data-tab="profile" class="active">👤 Profile</button>' +
+      '<button data-tab="appearance">🎨 Appearance</button>' +
+    '</div>' +
+    '<div class="msp-pane active" id="msp-pane-profile">' +
+      '<div class="field"><label>Nickname (in this server)</label><input type="text" id="my-nick" maxlength="32" value="' + escapeAttr(me.nickname || '') + '" placeholder="' + escapeAttr(u.displayName || u.username || '') + '"></div>' +
+      '<div class="field"><label>About me (in this server)</label><textarea id="my-bio" maxlength="300" placeholder="Say something about yourself…">' + escapeHtml(me.bio || '') + '</textarea></div>' +
+      '<div class="field"><label>Global Bio</label><textarea id="my-gbio" maxlength="500" placeholder="Your bio across hellobye…">' + escapeHtml(u.bio || '') + '</textarea></div>' +
+      '<div class="field-row">' +
+        '<div class="field"><label>Pronouns</label><input type="text" id="my-pronouns" maxlength="50" value="' + escapeAttr(u.pronouns || '') + '" placeholder="they/them"></div>' +
+        '<div class="field"><label>Location</label><input type="text" id="my-location" maxlength="60" value="' + escapeAttr(u.location || '') + '" placeholder="Earth"></div>' +
+      '</div>' +
+      '<div class="field"><label>Website</label><input type="text" id="my-website" maxlength="120" value="' + escapeAttr(u.website || '') + '" placeholder="https://…"></div>' +
+      '<div class="field"><label>Status Message</label><input type="text" id="my-statusmsg" maxlength="25" value="' + escapeAttr(u.statusMessage || '') + '" placeholder="What are you up to?"></div>' +
+    '</div>' +
+    '<div class="msp-pane" id="msp-pane-appearance">' +
+      '<div class="field"><label>Panel Theme Color</label><div class="hint" style="margin-bottom:10px;">This tints your profile panel for everyone who views it.</div>' +
+      '<div class="color-swatches" id="msp-colors">' + panelColors.map(c => '<div class="color-swatch' + (c.toLowerCase() === curColor.toLowerCase() ? ' selected' : '') + '" data-color="' + c + '" style="background:' + c + ';"></div>').join('') + '</div>' +
+      '<div style="display:flex;align-items:center;gap:10px;margin-top:12px;">' +
+        '<input type="color" id="my-panelcolor" value="' + escapeAttr(curColor) + '" style="width:44px;height:38px;background:var(--bg-darkest);border:1px solid var(--border-light);border-radius:8px;cursor:pointer;">' +
+        '<span style="font-size:12px;color:var(--text-muted);">Custom color</span>' +
+        '<button class="btn btn-ghost" id="my-panelcolor-clear" style="margin-left:auto;padding:6px 12px;font-size:12px;">Clear</button>' +
+      '</div></div>' +
+    '</div>';
+  $('member-modal-footer').innerHTML = '<button class="btn btn-ghost" data-close="member-modal">Cancel</button><button class="btn btn-primary" id="my-profile-save">Save Changes</button>';
   $('member-modal-footer').querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', () => closeModal('member-modal')));
+
+  // Tabs
+  $('member-modal-body').querySelectorAll('.msp-tabs button').forEach(b => b.addEventListener('click', () => {
+    $('member-modal-body').querySelectorAll('.msp-tabs button').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    $('member-modal-body').querySelectorAll('.msp-pane').forEach(p => p.classList.remove('active'));
+    const pane = $('msp-pane-' + b.dataset.tab); if (pane) pane.classList.add('active');
+  }));
+  // Avatar / banner pickers
+  $('msp-avatar').addEventListener('click', () => $('my-avatar').click());
+  $('msp-banner').addEventListener('click', () => $('my-banner').click());
+  $('my-avatar').addEventListener('change', (e) => {
+    const f = e.target.files[0]; if (!f) return;
+    const url = URL.createObjectURL(f);
+    $('msp-avatar').innerHTML = '<img src="' + url + '"><div class="edit-overlay">📷</div>';
+  });
+  $('my-banner').addEventListener('change', (e) => {
+    const f = e.target.files[0]; if (!f) return;
+    const url = URL.createObjectURL(f);
+    $('msp-banner').style.backgroundImage = 'url(' + url + ')';
+  });
+  // Color swatches
+  $('msp-colors').querySelectorAll('.color-swatch').forEach(sw => sw.addEventListener('click', () => {
+    $('msp-colors').querySelectorAll('.color-swatch').forEach(x => x.classList.remove('selected'));
+    sw.classList.add('selected');
+    $('my-panelcolor').value = sw.dataset.color;
+  }));
+  $('my-panelcolor').addEventListener('input', () => {
+    $('msp-colors').querySelectorAll('.color-swatch').forEach(x => x.classList.remove('selected'));
+  });
+  $('my-panelcolor-clear').addEventListener('click', () => {
+    $('msp-colors').querySelectorAll('.color-swatch').forEach(x => x.classList.remove('selected'));
+    $('my-panelcolor').value = '#4a9eff';
+    $('my-panelcolor').dataset.cleared = '1';
+  });
+
   $('my-profile-save').addEventListener('click', async () => {
+    const btn = $('my-profile-save'); btn.disabled = true; btn.textContent = 'Saving…';
     try {
+      // Server-specific profile (nickname, bio, avatar, banner)
       await api('/api/servers/' + activeServerId + '/profile', { method: 'POST', body: { nickname: $('my-nick').value.trim(), bio: $('my-bio').value.trim() } });
       const av = $('my-avatar').files[0];
       if (av) { const fd = new FormData(); fd.append('image', av); fd.append('field', 'avatar'); await api('/api/servers/' + activeServerId + '/profile', { method: 'POST', body: fd }); }
       const bn = $('my-banner').files[0];
       if (bn) { const fd = new FormData(); fd.append('image', bn); fd.append('field', 'banner'); await api('/api/servers/' + activeServerId + '/profile', { method: 'POST', body: fd }); }
+      // Global profile (bio, pronouns, location, website, status message, panel color)
+      const pcEl = $('my-panelcolor');
+      const panelColor = pcEl.dataset.cleared === '1' ? null : pcEl.value;
+      const prof = await api('/api/profile', { method: 'POST', body: {
+        bio: $('my-gbio').value.trim(),
+        pronouns: $('my-pronouns').value.trim(),
+        location: $('my-location').value.trim(),
+        website: $('my-website').value.trim(),
+        statusMessage: $('my-statusmsg').value.trim(),
+        panelColor,
+      } });
+      if (prof && prof.user) currentUser = prof.user;
       await loadServer(activeServerId, true);
+      renderSelfFooter();
       closeModal('member-modal'); toast('Profile updated', 'success');
-    } catch(e) { toast(e.message, 'error'); }
+    } catch(e) { toast(e.message, 'error'); btn.disabled = false; btn.textContent = 'Save Changes'; }
   });
   openModal('member-modal');
 }
@@ -1866,7 +2402,39 @@ async function showInvitePreview(code) {
 /* ============================================================
    Misc UI
    ============================================================ */
-$('rail-home').addEventListener('click', () => { window.location.href = '/'; });
+// Confirm dialog helper (promise-based)
+let confirmResolve = null;
+function askConfirm(opts) {
+  opts = opts || {};
+  $('confirm-icon').textContent = opts.icon || '❓';
+  $('confirm-title').textContent = opts.title || 'Are you sure?';
+  $('confirm-text').innerHTML = opts.text || '';
+  const ok = $('confirm-ok');
+  ok.textContent = opts.okText || 'Confirm';
+  ok.className = 'btn ' + (opts.danger ? 'btn-danger' : 'btn-primary');
+  openModal('confirm-modal');
+  return new Promise(resolve => { confirmResolve = resolve; });
+}
+$('confirm-ok').addEventListener('click', () => { closeModal('confirm-modal'); if (confirmResolve) { confirmResolve(true); confirmResolve = null; } });
+$('confirm-cancel').addEventListener('click', () => { closeModal('confirm-modal'); if (confirmResolve) { confirmResolve(false); confirmResolve = null; } });
+
+// Display roles separately toggle
+$('roles-toggle-btn').addEventListener('click', () => {
+  displayRolesSeparately = !displayRolesSeparately;
+  localStorage.setItem('hb_roles_separate', displayRolesSeparately ? '1' : '0');
+  $('roles-toggle-btn').classList.toggle('on', displayRolesSeparately);
+  if (activeServer) renderMembers();
+});
+$('roles-toggle-btn').classList.toggle('on', displayRolesSeparately);
+
+$('rail-home').addEventListener('click', async () => {
+  const ok = await askConfirm({
+    icon: '💬', title: 'Leave Servers?',
+    text: 'Are you sure you want to go back to the main chat?',
+    okText: 'Yes, take me back',
+  });
+  if (ok) window.location.href = '/';
+});
 $('mobile-channels-btn').addEventListener('click', () => $('channel-sidebar').classList.toggle('mobile-show'));
 $('sch-members-btn').addEventListener('click', () => $('member-sidebar').classList.toggle('mobile-show'));
 

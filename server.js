@@ -1796,10 +1796,12 @@ app.post('/api/profile', authMiddleware, avatarUpload.single('image'), async (re
     return res.json({ success: true, avatar: u.avatar, banner: u.banner });
   }
   // JSON profile update
-  const { bio, hideLastSeen, pronouns, panelColor, friendRequestsEnabled, directMessagesEnabled, statusMessage, hideProfile } = req.body || {};
+  const { bio, hideLastSeen, pronouns, panelColor, friendRequestsEnabled, directMessagesEnabled, statusMessage, hideProfile, location, website } = req.body || {};
   if (bio !== undefined) u.bio = String(bio).slice(0, 500);
   if (hideLastSeen !== undefined) u.hideLastSeen = !!hideLastSeen;
   if (pronouns !== undefined) u.pronouns = String(pronouns).slice(0, 50);
+  if (location !== undefined) u.location = String(location).slice(0, 60);
+  if (website !== undefined) u.website = String(website).slice(0, 120);
   if (friendRequestsEnabled !== undefined) u.friendRequestsEnabled = friendRequestsEnabled !== false;
   if (directMessagesEnabled !== undefined) u.directMessagesEnabled = directMessagesEnabled !== false;
   if (hideProfile !== undefined) u.hideProfile = hideProfile !== false;
@@ -2733,6 +2735,43 @@ function serverHasPerm(server, username, perm) {
   }
   return false;
 }
+// Can `username` VIEW channel `ch` in `server`? Managers/owner always can.
+// Private channels are hidden from members who are not explicitly allowed
+// (via allowedMembers) and do not hold one of the allowedRoles.
+function canViewChannel(server, username, ch) {
+  if (!ch) return false;
+  if (!ch.private) return true;
+  if (serverHasPerm(server, username, 'manageChannels')) return true;
+  const un = String(username || '').toLowerCase();
+  if ((ch.allowedMembers || []).map(x => String(x).toLowerCase()).includes(un)) return true;
+  const prof = (server.memberProfiles || {})[un];
+  const roleIds = (prof && Array.isArray(prof.roleIds)) ? prof.roleIds : [];
+  if ((ch.allowedRoles || []).some(rid => roleIds.includes(rid))) return true;
+  return false;
+}
+// Can `username` SEND messages in channel `ch`?
+//   chatDisabledFor: 'none'     -> everyone can chat
+//   chatDisabledFor: 'members'  -> only members holding a custom role can chat
+//   chatDisabledFor: 'everyone' -> only owner/managers can chat (read-only)
+function canChatInChannel(server, username, ch) {
+  if (!ch) return false;
+  const mode = ch.chatDisabledFor || 'none';
+  if (mode === 'none') return true;
+  if (serverHasPerm(server, username, 'manageMessages') || serverHasPerm(server, username, 'manageChannels')) return true;
+  if (mode === 'everyone') return false;
+  if (mode === 'members') {
+    const un = String(username || '').toLowerCase();
+    const prof = (server.memberProfiles || {})[un];
+    const roleIds = (prof && Array.isArray(prof.roleIds)) ? prof.roleIds : [];
+    // A "custom" role is any role that is not the built-in default member role.
+    const custom = roleIds.some(rid => {
+      const r = (server.roles || []).find(x => x.id === rid);
+      return r && !r.system;
+    });
+    return custom;
+  }
+  return true;
+}
 // Public (client-safe) view of a server. Includes member count + roles +
 // channels, but NEVER message plaintext (messages are ciphertext-only).
 function publicServer(s, viewerUsername) {
@@ -2749,8 +2788,23 @@ function publicServer(s, viewerUsername) {
     bio: s.bio || '',
     memberCount: (s.members || []).length,
     createdAt: s.createdAt,
+    systemChannelId: s.systemChannelId || null,
+    defaultNotifications: s.defaultNotifications || 'all',
+    verificationLevel: s.verificationLevel || 0,
+    welcomeMessage: s.welcomeMessage || '',
+    discoverable: !!s.discoverable,
+    slowmodeSeconds: s.slowmodeSeconds || 0,
     roles: (s.roles || []).map(r => ({ id: r.id, name: r.name, color: r.color, badge: r.badge || '', order: r.order || 0, system: !!r.system, permissions: r.permissions || {} })),
-    channels: (s.channels || []).map(c => ({ id: c.id, name: c.name, type: c.type || 'text', topic: c.topic || '', createdAt: c.createdAt })),
+    channels: (s.channels || [])
+      .filter(c => isOwner || canViewChannel(s, viewer, c))
+      .map(c => ({
+        id: c.id, name: c.name, type: c.type || 'text', topic: c.topic || '', createdAt: c.createdAt,
+        private: !!c.private,
+        allowedRoles: Array.isArray(c.allowedRoles) ? c.allowedRoles : [],
+        allowedMembers: Array.isArray(c.allowedMembers) ? c.allowedMembers : [],
+        chatDisabledFor: c.chatDisabledFor || 'none',
+        canChat: isOwner || canChatInChannel(s, viewer, c),
+      })),
     isMember,
     isOwner,
   };
@@ -2887,8 +2941,9 @@ app.get('/api/servers/:id/channels/:channelId/messages', authMiddleware, (req, r
   if (!(s.members || []).includes(me)) return res.status(403).json({ error: 'You are not a member of this server' });
   const ch = (s.channels || []).find(c => c.id === req.params.channelId);
   if (!ch) return res.status(404).json({ error: 'Channel not found' });
+  if (!canViewChannel(s, me, ch)) return res.status(403).json({ error: 'This channel is private' });
   const msgs = ((s.messages || {})[ch.id] || []).slice(-1000);
-  res.json({ channel: { id: ch.id, name: ch.name, type: ch.type || 'text', topic: ch.topic || '' }, messages: msgs });
+  res.json({ channel: { id: ch.id, name: ch.name, type: ch.type || 'text', topic: ch.topic || '', private: !!ch.private, chatDisabledFor: ch.chatDisabledFor || 'none', canChat: canChatInChannel(s, me, ch) }, messages: msgs });
 });
 
 // ---- Owner/manager: update server settings (name, bio) ----
@@ -2896,13 +2951,31 @@ app.post('/api/servers/:id/settings', authMiddleware, (req, res) => {
   const s = findServer(req.params.id);
   if (!s) return res.status(404).json({ error: 'Server not found' });
   if (!serverHasPerm(s, req.user.username, 'manageServer')) return res.status(403).json({ error: 'You do not have permission to manage this server' });
-  const { name, bio } = req.body || {};
+  const { name, bio, systemChannelId, defaultNotifications, verificationLevel, welcomeMessage, discoverable, slowmodeSeconds } = req.body || {};
   if (name !== undefined) {
     const n = String(name).trim().slice(0, 40);
     if (!n) return res.status(400).json({ error: 'Server name is required' });
     s.name = n;
   }
   if (bio !== undefined) s.bio = String(bio).slice(0, 500);
+  if (systemChannelId !== undefined) {
+    const valid = (s.channels || []).some(c => c.id === systemChannelId);
+    s.systemChannelId = valid ? systemChannelId : null;
+  }
+  if (defaultNotifications !== undefined) {
+    const v = String(defaultNotifications);
+    s.defaultNotifications = ['all', 'mentions', 'none'].includes(v) ? v : 'all';
+  }
+  if (verificationLevel !== undefined) {
+    const v = Number(verificationLevel);
+    s.verificationLevel = [0, 1, 2, 3, 4].includes(v) ? v : 0;
+  }
+  if (welcomeMessage !== undefined) s.welcomeMessage = String(welcomeMessage).slice(0, 300);
+  if (discoverable !== undefined) s.discoverable = !!discoverable;
+  if (slowmodeSeconds !== undefined) {
+    const v = Number(slowmodeSeconds);
+    s.slowmodeSeconds = [0, 5, 10, 30, 60, 120, 300, 600, 900, 1800, 3600, 21600].includes(v) ? v : 0;
+  }
   s.updatedAt = nowISO();
   saveDB();
   emitServerUpdate(s);
@@ -2962,7 +3035,8 @@ app.post('/api/servers/:id/channels', authMiddleware, (req, res) => {
   if (!name) return res.status(400).json({ error: 'Channel name is required' });
   if ((s.channels || []).some(c => c.name === name)) return res.status(400).json({ error: 'A channel with that name already exists' });
   if ((s.channels || []).length >= 50) return res.status(400).json({ error: 'This server has reached the maximum of 50 channels' });
-  const ch = { id: genId(), name, type: 'text', topic: String((req.body || {}).topic || '').slice(0, 200), createdAt: nowISO() };
+  const ch = { id: genId(), name, type: 'text', topic: String((req.body || {}).topic || '').slice(0, 200), createdAt: nowISO(),
+    private: false, allowedRoles: [], allowedMembers: [], chatDisabledFor: 'none' };
   s.channels.push(ch);
   if (!s.messages) s.messages = {};
   s.messages[ch.id] = [];
@@ -2979,7 +3053,7 @@ app.post('/api/servers/:id/channels/:channelId', authMiddleware, (req, res) => {
   if (!serverHasPerm(s, req.user.username, 'manageChannels')) return res.status(403).json({ error: 'You do not have permission to manage channels' });
   const ch = (s.channels || []).find(c => c.id === req.params.channelId);
   if (!ch) return res.status(404).json({ error: 'Channel not found' });
-  const { name, topic } = req.body || {};
+  const { name, topic, private: isPrivate, allowedRoles, allowedMembers, chatDisabledFor } = req.body || {};
   if (name !== undefined) {
     const n = String(name).trim().toLowerCase().replace(/[^a-z0-9\-_ ]/g, '').replace(/\s+/g, '-').slice(0, 30);
     if (!n) return res.status(400).json({ error: 'Channel name is required' });
@@ -2987,6 +3061,19 @@ app.post('/api/servers/:id/channels/:channelId', authMiddleware, (req, res) => {
     ch.name = n;
   }
   if (topic !== undefined) ch.topic = String(topic).slice(0, 200);
+  if (isPrivate !== undefined) ch.private = !!isPrivate;
+  if (allowedRoles !== undefined) {
+    const valid = new Set((s.roles || []).map(r => r.id));
+    ch.allowedRoles = Array.isArray(allowedRoles) ? allowedRoles.filter(r => valid.has(r)).slice(0, 30) : [];
+  }
+  if (allowedMembers !== undefined) {
+    const valid = new Set((s.members || []).map(m => String(m).toLowerCase()));
+    ch.allowedMembers = Array.isArray(allowedMembers) ? allowedMembers.map(m => String(m).toLowerCase()).filter(m => valid.has(m)).slice(0, 200) : [];
+  }
+  if (chatDisabledFor !== undefined) {
+    const v = String(chatDisabledFor);
+    ch.chatDisabledFor = ['none', 'members', 'everyone'].includes(v) ? v : 'none';
+  }
   s.updatedAt = nowISO();
   saveDB();
   emitServerUpdate(s);
@@ -5683,6 +5770,8 @@ io.on('connection', (socket) => {
       if (!(s.members || []).includes(username)) { if (typeof ack === 'function') ack({ error: 'You are not a member of this server' }); return; }
       const ch = (s.channels || []).find(c => c.id === channelId);
       if (!ch) { if (typeof ack === 'function') ack({ error: 'Channel not found' }); return; }
+      if (!canViewChannel(s, username, ch)) { if (typeof ack === 'function') ack({ error: 'This channel is private' }); return; }
+      if (!canChatInChannel(s, username, ch)) { if (typeof ack === 'function') ack({ error: 'Chat is disabled in this channel' }); return; }
       // 0.3s cooldown (skip if exempt)
       const srvExempt = (db.cooldownExempt || []).includes(username);
       if (!srvExempt) {
@@ -5693,6 +5782,18 @@ io.on('connection', (socket) => {
           return;
         }
         lastGroupTime[skey] = Date.now();
+      }
+      // Per-channel slowmode (owner/managers exempt)
+      const slow = Number(s.slowmodeSeconds) || 0;
+      if (slow > 0 && !srvExempt && !serverHasPerm(s, username, 'manageMessages')) {
+        const slowKey = username + ':slow:' + serverId + ':' + channelId;
+        const lastSlow = lastGroupTime[slowKey] || 0;
+        const remain = slow * 1000 - (Date.now() - lastSlow);
+        if (remain > 0) {
+          if (typeof ack === 'function') ack({ error: 'Slowmode is on \u2014 wait ' + Math.ceil(remain / 1000) + 's', cooldown: remain / 1000 });
+          return;
+        }
+        lastGroupTime[slowKey] = Date.now();
       }
       if (!s.messages) s.messages = {};
       if (!Array.isArray(s.messages[channelId])) s.messages[channelId] = [];
