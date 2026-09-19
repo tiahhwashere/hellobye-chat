@@ -131,3 +131,8 @@
 - [x] Add a scale control for the Server Settings profile picture (icon)
 - [x] Add a scale control for the Server Settings banner
 - [x] Syntax check + commit/push + deploy + verify live + confirm no data wiped
+
+## 15. Request M — scale controls only when icon/banner exists
+- [x] Only show the icon scale control when the server has an icon
+- [x] Only show the banner scale control when the server has a banner
+- [x] Syntax check + commit/push + deploy + verify live + confirm no data wiped
