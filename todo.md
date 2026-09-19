@@ -100,4 +100,4 @@
 - [x] Verification Level: remove "Highest — verified phone number", replace
 - [x] Remove cartoony button from "display roles separately"
 - [x] Ensure Discoverable servers show in Discovery
-- [ ] Syntax check + commit/push + deploy + verify live + confirm no data wiped
+- [x] Syntax check + commit/push + deploy + verify live + confirm no data wiped
