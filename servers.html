@@ -272,6 +272,24 @@ input, textarea { font-family: inherit; }
 .msg-actions button { padding: 4px 6px; border-radius: 6px; font-size: 13px; color: var(--text-secondary); }
 .msg-actions button:hover { background: var(--bg-hover); color: var(--text-primary); }
 .msg-deleted { font-style: italic; color: var(--text-muted); font-size: 13px; }
+.msg-undecryptable { display: inline-flex; align-items: center; gap: 6px; font-style: italic; color: var(--text-muted); font-size: 13.5px; }
+.msg-undecryptable .ui-ic { width: 13px; height: 13px; }
+.settings-unsaved {
+  display: flex; align-items: center; gap: 7px; margin-right: auto;
+  font-size: 12.5px; font-weight: 600; color: #f0a92e;
+  background: rgba(240,169,46,0.12); border: 1px solid rgba(240,169,46,0.35);
+  padding: 7px 12px; border-radius: 9px; animation: fadeIn 0.2s ease;
+}
+.settings-unsaved .ui-ic { width: 14px; height: 14px; flex-shrink: 0; }
+.settings-unsaved b { color: #ffc266; }
+.danger-zone { border: 1px solid rgba(227,93,93,0.4); border-radius: var(--radius); overflow: hidden; background: rgba(227,93,93,0.05); }
+.dz-head { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; color: #e35d5d; padding: 12px 16px; border-bottom: 1px solid rgba(227,93,93,0.25); background: rgba(227,93,93,0.08); }
+.dz-head .ui-ic { width: 16px; height: 16px; }
+.dz-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 16px; }
+.dz-info { min-width: 0; }
+.dz-title { font-weight: 700; font-size: 14px; color: var(--text-primary); }
+.dz-sub { font-size: 12.5px; color: var(--text-muted); margin-top: 3px; line-height: 1.45; }
+.dz-row .btn-danger { flex-shrink: 0; }
 .msg-e2e-lock { font-size: 10px; color: var(--success); margin-left: 4px; }
 
 .server-typing { height: 20px; padding: 0 16px; font-size: 12px; color: var(--text-muted); flex-shrink: 0; }
@@ -560,8 +578,8 @@ input, textarea { font-family: inherit; }
 
 /* ---- Server header: banner fills the whole box, name overlaid on it ---- */
 .server-header {
-  height: 72px; min-height: 72px; flex-wrap: nowrap; padding: 0 14px;
-  position: relative; overflow: hidden;
+  height: 108px; min-height: 108px; flex-wrap: nowrap; padding: 0 14px 14px;
+  position: relative; overflow: hidden; align-items: flex-end;
   background-size: cover; background-position: center; background-repeat: no-repeat;
 }
 .server-header::after {
@@ -1156,6 +1174,7 @@ input, textarea { font-family: inherit; }
       </div>
     </div>
     <div class="modal-footer">
+      <div id="settings-unsaved" class="settings-unsaved" style="display:none;"><svg class="ui-ic sm" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> You have unsaved changes — click <b>Save Changes</b> to apply them.</div>
       <button class="btn btn-ghost" data-close="settings-modal">Close</button>
       <button class="btn btn-primary" id="settings-save">Save Changes</button>
     </div>
@@ -1320,6 +1339,27 @@ input, textarea { font-family: inherit; }
   </div>
 </div>
 
+<!-- Delete server confirmation -->
+<div class="modal-overlay" id="del-server-modal">
+  <div class="modal msg-action-modal">
+    <div class="modal-body">
+      <div class="msg-action-head">
+        <div class="mah-ic del"><svg class="ui-ic lg" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg></div>
+        <div><div class="mah-title">Delete this server?</div><div class="mah-sub">This permanently removes the server, its channels, roles and messages. This cannot be undone.</div></div>
+      </div>
+      <div class="msg-action-quote" id="del-server-quote"></div>
+      <div class="field" style="margin-top:14px;">
+        <label style="text-transform:none;font-size:12px;color:var(--text-secondary);">Type the server name to confirm</label>
+        <input type="text" id="del-server-confirm-input" placeholder="Server name" autocomplete="off" style="width:100%;background:var(--bg-darkest);border:1px solid var(--border-light);border-radius:var(--radius-sm);color:var(--text-primary);padding:10px;font-size:13px;">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" data-close="del-server-modal">Cancel</button>
+      <button class="btn btn-primary" id="del-server-confirm" style="background:#e35d5d;" disabled>Delete server</button>
+    </div>
+  </div>
+</div>
+
 <div id="toast-container"></div>
 
 <script>
@@ -1351,6 +1391,36 @@ let chEditorChat = 'none';
 const SERVER_ACCENTS = ['#5865f2','#4a9eff','#7c5cf0','#f0629f','#2fa457','#f0a92e','#e35d5d','#00c2b2','#ff7a45','#9b6bff','#3ba55d','#d4a017'];
 let setAccentColor = '#5865f2';
 let setEffect = 'none';
+// Unsaved-changes tracking for Server Settings.
+let settingsDirty = false;
+let settingsBaseline = null;
+function settingsSnapshot() {
+  const notifBtn = $('set-notif-seg') ? $('set-notif-seg').querySelector('button.selected') : null;
+  const effectBtn = $('set-effect-seg') ? $('set-effect-seg').querySelector('button.selected') : null;
+  return JSON.stringify({
+    name: $('set-name') ? $('set-name').value.trim() : '',
+    bio: $('set-bio') ? $('set-bio').value.trim() : '',
+    systemChannelId: $('set-system-channel') ? ($('set-system-channel').value || null) : null,
+    defaultNotifications: notifBtn ? notifBtn.dataset.notif : 'all',
+    verificationLevel: $('set-verification') ? Number($('set-verification').value) : 0,
+    slowmodeSeconds: $('set-slowmode') ? Number($('set-slowmode').value) : 0,
+    welcomeMessage: $('set-welcome') ? $('set-welcome').value.trim() : '',
+    discoverable: $('set-discoverable') ? $('set-discoverable').checked : false,
+    accentColor: setAccentColor,
+    effect: effectBtn ? effectBtn.dataset.effect : 'none',
+  });
+}
+function markSettingsDirty() {
+  if (!settingsBaseline) return;
+  settingsDirty = settingsSnapshot() !== settingsBaseline;
+  const el = $('settings-unsaved');
+  if (el) el.style.display = settingsDirty ? 'flex' : 'none';
+}
+function clearSettingsDirty() {
+  settingsDirty = false;
+  const el = $('settings-unsaved');
+  if (el) el.style.display = 'none';
+}
 let chEditorAllowedRoles = [];
 let chEditorAllowedMembers = [];
 
@@ -1576,14 +1646,57 @@ async function e2eEncryptServer(serverId, plaintext) {
   return { v:1, alg:'AESGCM-SERVER', iv, ct };
 }
 async function e2eDecryptServer(serverId, envelope, wrappedForMe, fromUsername) {
-  let key = null;
-  if (__e2eServerKeyRaw[serverId]) key = await e2eImportKey(__e2eServerKeyRaw[serverId]);
-  if (!key && wrappedForMe && fromUsername) {
-    const raw = await e2eUnwrapFrom(fromUsername, wrappedForMe);
-    if (raw) { __e2eServerKeyRaw[serverId] = raw; e2eSaveServerKeys(); key = await e2eImportKey(raw); }
+  // 1) Try the locally-stored server key first.
+  if (__e2eServerKeyRaw[serverId]) {
+    const key = await e2eImportKey(__e2eServerKeyRaw[serverId]);
+    if (key) {
+      const pt = await e2eDecryptWithKey(key, envelope);
+      if (pt !== null) return pt;
+    }
   }
-  if (!key) return null;
-  return e2eDecryptWithKey(key, envelope);
+  // 2) The local key is missing OR stale (a different member generated the
+  //    canonical key). Fall back to the per-member wrapped key, adopt it as
+  //    the canonical server key, and retry. This is what makes every member
+  //    converge on one shared key so messages actually decrypt.
+  if (wrappedForMe && fromUsername) {
+    const raw = await e2eUnwrapFrom(fromUsername, wrappedForMe);
+    if (raw) {
+      __e2eServerKeyRaw[serverId] = raw;
+      e2eSaveServerKeys();
+      const key = await e2eImportKey(raw);
+      if (key) return e2eDecryptWithKey(key, envelope);
+    }
+  }
+  return null;
+}
+// Adopt the canonical server key from existing message history. Called before
+// sending so a member who has never sent a message uses the SAME key as
+// everyone else instead of minting a brand-new one (which would make their
+// messages undecryptable for others).
+async function e2eAdoptServerKey(serverId) {
+  if (__e2eServerKeyRaw[serverId]) return true;
+  try {
+    // Fast path: the current channel's messages are already loaded.
+    for (const m of (serverMessages || [])) {
+      if (m.e2e && m.e2eKeys && m.e2eKeys[currentUser.username]) {
+        const raw = await e2eUnwrapFrom(m.from, m.e2eKeys[currentUser.username]);
+        if (raw) { __e2eServerKeyRaw[serverId] = raw; e2eSaveServerKeys(); return true; }
+      }
+    }
+    // Fallback: scan the server's other channels for a wrapped key for us.
+    const chans = (activeServer && activeServer.channels) || [];
+    for (const c of chans) {
+      let d;
+      try { d = await api('/api/servers/' + encodeURIComponent(serverId) + '/channels/' + encodeURIComponent(c.id) + '/messages'); } catch(e) { continue; }
+      for (const m of (d.messages || [])) {
+        if (m.e2e && m.e2eKeys && m.e2eKeys[currentUser.username]) {
+          const raw = await e2eUnwrapFrom(m.from, m.e2eKeys[currentUser.username]);
+          if (raw) { __e2eServerKeyRaw[serverId] = raw; e2eSaveServerKeys(); return true; }
+        }
+      }
+    }
+  } catch(e) {}
+  return false;
 }
 async function e2eBuildWrappedKeys(serverId, members) {
   const rawB64 = await e2eGetServerKeyRaw(serverId);
@@ -2068,8 +2181,18 @@ function appendMessage(m, silent) {
   let textHtml = '';
   if (m.deleted) textHtml = '<div class="msg-deleted">This message was deleted</div>';
   else {
-    const raw = m._plain !== undefined && m._plain !== null ? m._plain : (m.e2e ? 'Encrypted message' : (m.text || ''));
-    textHtml = '<div class="msg-text">' + linkify(escapeHtml(raw)) + '</div>';
+    // Prefer the decrypted plaintext. Only fall back to a muted note when a
+    // message is genuinely encrypted and we could not decrypt it (e.g. it was
+    // sent before we had the shared key). Never show raw ciphertext.
+    let raw;
+    if (m._plain !== undefined && m._plain !== null) raw = m._plain;
+    else if (m.e2e) raw = null;
+    else raw = (m.text || '');
+    if (raw === null) {
+      textHtml = '<div class="msg-text msg-undecryptable">' + icon('lock', 'sm') + 'Encrypted message</div>';
+    } else {
+      textHtml = '<div class="msg-text">' + linkify(escapeHtml(raw)) + '</div>';
+    }
     if (m.file) textHtml += renderFile(m.file);
     if (Array.isArray(m.files)) m.files.forEach(f => { textHtml += renderFile(f); });
   }
@@ -2156,10 +2279,16 @@ async function sendMessage() {
   const text = $('srv-input').value.trim();
   if (!text && !pendingFiles.length) return;
   if (!activeServerId || !activeChannelId) return;
+  // Respect the channel's chat permissions — never send when chat is disabled.
+  const _ch = (activeServer && activeServer.channels || []).find(c => c.id === activeChannelId);
+  if (_ch && _ch.canChat === false) { toast('Chat is disabled in this channel', 'error'); return; }
   $('srv-send-btn').disabled = true;
   let e2e = null, e2eKeys = null;
   if (__e2eReady && text) {
     try {
+      // Make sure we're using the SAME server key as everyone else before we
+      // encrypt — otherwise our messages would be undecryptable for others.
+      await e2eAdoptServerKey(activeServerId);
       e2e = await e2eEncryptServer(activeServerId, text);
       if (e2e) e2eKeys = await e2eBuildWrappedKeys(activeServerId, (activeServer.members || []).map(m => m.username));
     } catch(e) { e2e = null; }
@@ -2265,8 +2394,16 @@ function showTyping(name, typing) {
 /* ============================================================
    Modals: generic open/close
    ============================================================ */
-document.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', () => { closeModal(b.dataset.close); }));
-document.querySelectorAll('.modal-overlay').forEach(o => o.addEventListener('click', (e) => { if (e.target === o) closeModal(o.id); }));
+document.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', () => { requestCloseModal(b.dataset.close); }));
+document.querySelectorAll('.modal-overlay').forEach(o => o.addEventListener('click', (e) => { if (e.target === o) requestCloseModal(o.id); }));
+// Closing Server Settings with unsaved changes prompts the user to save first.
+function requestCloseModal(id) {
+  if (id === 'settings-modal' && typeof settingsDirty !== 'undefined' && settingsDirty) {
+    if (!confirm('You have unsaved changes in Server Settings. Leave without saving?')) return;
+    clearSettingsDirty();
+  }
+  closeModal(id);
+}
 function openModal(id) { const el = $(id); if (!el) return; el.classList.remove('closing'); el.classList.add('show'); }
 function closeModal(id) {
   const el = $(id); if (!el || !el.classList.contains('show')) return;
@@ -2406,6 +2543,9 @@ function openSettings() {
   renderActiveInvites();
   renderSettingsDanger();
   $('invite-result').innerHTML = '';
+  // Capture the baseline so we can detect unsaved changes.
+  settingsBaseline = settingsSnapshot();
+  clearSettingsDirty();
   openModal('settings-modal');
 }
 function renderSettingsChannels() {
@@ -2452,14 +2592,16 @@ function permSummary(p) {
 function renderSettingsDanger() {
   const wrap = $('settings-danger');
   if (activeServer.isOwner) {
-    wrap.innerHTML = '<button class="btn btn-danger" id="delete-server-btn" style="width:100%;">Delete Server</button>';
-    $('delete-server-btn').addEventListener('click', async () => {
-      if (!confirm('Permanently delete "' + activeServer.name + '"? This cannot be undone.')) return;
-      try { await api('/api/servers/' + activeServerId + '/delete', { method: 'POST' }); closeModal('settings-modal'); toast('Server deleted', 'success'); }
-      catch(e) { toast(e.message, 'error'); }
-    });
+    wrap.innerHTML = '<div class="danger-zone">' +
+      '<div class="dz-head"><svg class="ui-ic" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Danger Zone</div>' +
+      '<div class="dz-row"><div class="dz-info"><div class="dz-title">Delete this server</div><div class="dz-sub">Permanently remove the server, its channels, roles and messages. This cannot be undone.</div></div>' +
+      '<button class="btn btn-danger" id="delete-server-btn">Delete Server</button></div></div>';
+    $('delete-server-btn').addEventListener('click', openDeleteServerModal);
   } else {
-    wrap.innerHTML = '<button class="btn btn-danger" id="leave-server-btn" style="width:100%;">Leave Server</button>';
+    wrap.innerHTML = '<div class="danger-zone">' +
+      '<div class="dz-head"><svg class="ui-ic" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg> Leave Server</div>' +
+      '<div class="dz-row"><div class="dz-info"><div class="dz-title">Leave this server</div><div class="dz-sub">You will need a new invite to rejoin.</div></div>' +
+      '<button class="btn btn-danger" id="leave-server-btn">Leave Server</button></div></div>';
     $('leave-server-btn').addEventListener('click', async () => {
       if (!confirm('Leave "' + activeServer.name + '"?')) return;
       try { await api('/api/servers/' + activeServerId + '/leave', { method: 'POST' }); closeModal('settings-modal'); toast('Left server', 'success'); }
@@ -2467,6 +2609,28 @@ function renderSettingsDanger() {
     });
   }
 }
+// ---- Delete server: dedicated confirmation UI ----
+function openDeleteServerModal() {
+  if (!activeServer || !activeServer.isOwner) return;
+  $('del-server-quote').innerHTML = '<b>' + escapeHtml(activeServer.name) + '</b>' +
+    (activeServer.memberCount ? ' \u00b7 ' + activeServer.memberCount + ' member' + (activeServer.memberCount === 1 ? '' : 's') : '');
+  const inp = $('del-server-confirm-input');
+  inp.value = '';
+  $('del-server-confirm').disabled = true;
+  inp.oninput = () => { $('del-server-confirm').disabled = inp.value.trim() !== activeServer.name; };
+  openModal('del-server-modal');
+  setTimeout(() => inp.focus(), 60);
+}
+$('del-server-confirm').addEventListener('click', async () => {
+  if (!activeServer || $('del-server-confirm-input').value.trim() !== activeServer.name) return;
+  $('del-server-confirm').disabled = true;
+  try {
+    await api('/api/servers/' + activeServerId + '/delete', { method: 'POST' });
+    closeModal('del-server-modal');
+    closeModal('settings-modal');
+    toast('Server deleted', 'success');
+  } catch(e) { toast(e.message, 'error'); $('del-server-confirm').disabled = false; }
+});
 $('set-notif-seg').querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
   $('set-notif-seg').querySelectorAll('button').forEach(x => x.classList.remove('selected'));
   b.classList.add('selected');
@@ -2500,9 +2664,23 @@ $('settings-save').addEventListener('click', async () => {
       accentColor: setAccentColor,
       effect: effectBtn ? effectBtn.dataset.effect : 'none',
     } });
-    activeServer = d.server; renderServerView(); toast('Saved', 'success');
+    activeServer = d.server; renderServerView();
+    // Re-baseline so the unsaved-changes warning clears after a successful save.
+    settingsBaseline = settingsSnapshot();
+    clearSettingsDirty();
+    toast('Saved', 'success');
   } catch(e) { toast(e.message, 'error'); }
 });
+// Track unsaved changes across every Server Settings control.
+['set-name','set-bio','set-system-channel','set-verification','set-slowmode','set-welcome','set-discoverable'].forEach(id => {
+  const el = $(id); if (!el) return;
+  el.addEventListener('input', markSettingsDirty);
+  el.addEventListener('change', markSettingsDirty);
+});
+$('set-notif-seg').querySelectorAll('button').forEach(b => b.addEventListener('click', markSettingsDirty));
+$('set-effect-seg').querySelectorAll('button').forEach(b => b.addEventListener('click', markSettingsDirty));
+$('set-accent-swatches').addEventListener('click', markSettingsDirty);
+$('set-appearance-reset').addEventListener('click', markSettingsDirty);
 $('set-icon').addEventListener('click', () => $('set-icon-input').click());
 $('set-copy-id').addEventListener('click', () => { if (activeServer && activeServer.serverId) { copyText(activeServer.serverId); toast('Server ID copied!', 'success'); } });
 $('set-banner').addEventListener('click', () => $('set-banner-input').click());

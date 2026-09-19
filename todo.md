@@ -111,3 +111,11 @@
 - [x] Server Settings: add Website Accent Colors + effects visible to everyone (server-only)
 - [x] Chatroom/groupchats/DMs: messages/dates/profile pictures a bit bigger
 - [x] Syntax check + commit/push + deploy + verify live + confirm no data wiped
+
+## 12. Request I — real messages, chat-disable enforcement, unsaved warning, delete-server UI, taller banner
+- [x] Server chatroom: show actual decrypted message instead of "Encrypted message"
+- [x] Enforce chat-disable: disable chat input/send until owner re-enables for everyone
+- [x] Unsaved-settings warning: prompt owner to save when they change an option without saving
+- [x] Add a UI for the "delete server" button
+- [x] Server banner: make it taller (extend downward)
+- [ ] Syntax check + commit/push + deploy + verify live + confirm no data wiped
