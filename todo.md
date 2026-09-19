@@ -35,4 +35,5 @@
 - [x] Make boot() resilient + 8s safety-net timeout so page always reveals
 - [x] Show create/join options on empty state (already present, now reachable)
 - [x] Use main site's black favicon (/uploads/favicon.jpg) on servers page
-- [x] Deploy + verify live
+- [x] Serve servers.html with no-cache headers (was cached 24h → stale page in browser)
+- [x] Deploy + verify live (buildId 9595227c9d14)
