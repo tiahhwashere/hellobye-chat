@@ -4,7 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Servers — hellobye</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><text y='20' font-size='20'>🖥️</text></svg>">
+<link rel="icon" type="image/jpeg" href="/uploads/favicon.jpg">
+<link rel="apple-touch-icon" href="/uploads/favicon.jpg">
+<link rel="preload" as="image" href="/uploads/favicon.jpg">
 <style>
 :root {
   --bg-darkest: #0a0b0d;
@@ -423,6 +425,7 @@ input, textarea { font-family: inherit; }
 }
 </style>
 <script src="https://sites.super.myninja.ai/_assets/ninja-daytona-script.js"></script>
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 </head>
 <body>
 <div id="loading">
@@ -894,20 +897,25 @@ async function boot() {
     currentUser = me.user;
     if (me.sessionId) localStorage.setItem('hellobye_sid', me.sessionId);
   } catch(e) { window.location.href = '/'; return; }
-  e2eLoadServerKeys();
-  await e2eInit();
-  connectSocket();
-  await loadServers();
-  // Handle ?invite=CODE deep link
-  const params = new URLSearchParams(window.location.search);
-  const inviteCode = params.get('invite');
-  if (inviteCode) { showInvitePreview(inviteCode); }
+  // Reveal the app as soon as auth succeeds — never leave the user stuck on
+  // the loading screen if a later step (e2e / socket / server list) fails.
   $('loading').style.display = 'none';
   $('servers-app').style.display = 'flex';
   renderSelfFooter();
+  try { e2eLoadServerKeys(); } catch(e) {}
+  try { await e2eInit(); } catch(e) { console.warn('[e2e] init failed', e); }
+  try { connectSocket(); } catch(e) { console.warn('[socket] connect failed', e); }
+  try { await loadServers(); } catch(e) { console.warn('[servers] load failed', e); }
+  // Handle ?invite=CODE deep link
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const inviteCode = params.get('invite');
+    if (inviteCode) { showInvitePreview(inviteCode); }
+  } catch(e) {}
 }
 
 function connectSocket() {
+  if (typeof io === 'undefined') { console.warn('[socket] socket.io client not loaded'); return; }
   const sid = localStorage.getItem('hellobye_sid');
   socket = io({ auth: { sessionId: sid }, transports: ['polling','websocket'], upgrade: true, rememberUpgrade: true });
   socket.on('connect', () => { if (activeServerId) loadServer(activeServerId, true); });
@@ -1705,6 +1713,16 @@ $('mobile-channels-btn').addEventListener('click', () => $('channel-sidebar').cl
 $('sch-members-btn').addEventListener('click', () => $('member-sidebar').classList.toggle('mobile-show'));
 
 boot();
+// Safety net: if boot() somehow stalls (slow network, blocked script), reveal
+// the app after 8s so the user is never permanently stuck on "Loading servers…".
+setTimeout(() => {
+  const l = document.getElementById('loading');
+  const a = document.getElementById('servers-app');
+  if (l && l.style.display !== 'none' && a && a.style.display === 'none') {
+    l.style.display = 'none';
+    a.style.display = 'flex';
+  }
+}, 8000);
 </script>
 </body>
 </html>
