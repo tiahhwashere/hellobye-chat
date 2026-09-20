@@ -36,7 +36,7 @@
 
 ## Verify & Deploy
 - [x] Syntax check
-- [ ] Local smoke test
-- [ ] Commit + push
-- [ ] Render deploy live
-- [ ] No data wiped
+- [x] Local smoke test
+- [x] Commit + push
+- [x] Render deploy live
+- [x] No data wiped
