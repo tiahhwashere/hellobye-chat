@@ -1,42 +1,28 @@
-# Hellobye Chat — Servers Polish (Request W)
+# Request X — Servers polish round 5
 
-## Script removal
-- [x] Remove ninja-daytona-script.js + add "do not re-add" reminder
+## 1. Invite revoke permissions
+- [x] Frontend: only the server OWNER sees the revoke button on active invites
+- [x] Backend: DELETE /api/servers/:id/invites/:code requires owner (non-owners blocked)
 
-## Profile
-- [x] Panel Theme Color → full profile color (no text overlay)
-- [x] Make My Server Profile modal wider (un-smush save/options)
+## 2. @everyone / @here colors -> blueish
+- [x] .mention-everyone + .mention-here -> dark/light blueish
+- [x] .mention-ping message highlight -> blueish
+- [x] linkify + toast accents updated
 
-## Fonts
-- [x] Change servers fonts to GG Sans
+## 3. Red notification -> darkish golden
+- [x] .ch-ping-dot -> darkish golden
+- [x] .mention-toast border/accent -> darkish golden
+- [x] showPingToast accent -> darkish golden
 
-## Chat message actions
-- [x] Make reply/react/edit/delete buttons a bit bigger
+## 4. Advanced placeholders (no emojis)
+- [x] Rewrite all input/textarea placeholders to be richer & professional
+- [x] Upgrade empty states (channel start, no roles, no results, assign empty)
 
-## Server Appearance
-- [x] Add server chat background custom image (scale, transparency, etc.)
+## 5. Assign Roles checkmark first-click fix
+- [x] Fix double-toggle so the check registers on the first click
 
-## Create a Server
-- [x] Add image changer to the live preview
-
-## Refresh/update behavior
-- [x] Don't return to "Your Servers" page on refresh — professional message
-
-## Files
-- [x] Add download button + extra file details (name, image, etc.)
-
-## Replies
-- [x] Fix reply system not replying to users' messages
-
-## Search messages
-- [x] Add files/image tab
-
-## Roles
-- [x] Make Create Role UI wider
-
-## Verify & Deploy
-- [x] Syntax check
-- [x] Local smoke test
-- [x] Commit + push
-- [x] Render deploy live
-- [x] No data wiped
+## 6. Verify & Deploy
+- [x] node --check on server.js + extracted servers.html script
+- [x] Smoke test locally (invite revoke 403/200 verified)
+- [ ] Commit + push to GitHub master
+- [ ] Trigger/verify Render deploy (no data wiped)

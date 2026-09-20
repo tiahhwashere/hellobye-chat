@@ -133,8 +133,13 @@ input, textarea { font-family: inherit; }
   gap: 16px; text-align: center; padding: 40px;
 }
 .server-empty.view-in { animation: viewIn 0.26s cubic-bezier(0.16,1,0.3,1); }
-.server-empty h2 { font-size: 24px; font-weight: 700; }
-.server-empty p { color: var(--text-secondary); max-width: 420px; line-height: 1.6; }
+.server-empty h2 { font-size: 26px; font-weight: 700; letter-spacing: -0.4px; }
+.server-empty p { color: var(--text-secondary); max-width: 460px; line-height: 1.65; }
+.server-empty .se-hero { width: 76px; height: 76px; border-radius: 22px; display: flex; align-items: center; justify-content: center; background: linear-gradient(180deg, rgba(var(--accent-rgb),0.18), rgba(var(--accent-rgb),0.05)); border: 1px solid rgba(var(--accent-rgb),0.30); color: var(--accent-light); box-shadow: 0 12px 34px rgba(0,0,0,0.35); }
+.server-empty .se-hero svg { width: 36px; height: 36px; }
+.server-empty .se-features { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 4px; }
+.server-empty .se-feature { display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; color: var(--text-secondary); background: var(--bg-medium); border: 1px solid var(--border); border-radius: 999px; padding: 6px 13px; }
+.server-empty .se-feature svg { width: 14px; height: 14px; color: var(--accent-light); }
 .server-empty-actions { display: flex; gap: 12px; margin-top: 8px; flex-wrap: wrap; justify-content: center; }
 
 /* ---------- Server view ---------- */
@@ -846,7 +851,11 @@ input, textarea { font-family: inherit; }
 .search-msg-scope button { font-size: 12.5px; padding: 5px 12px; border-radius: 20px; background: var(--bg-light); color: var(--text-secondary); }
 .search-msg-scope button.active { background: var(--accent); color: #fff; }
 .search-msg-results { overflow-y: auto; padding: 8px; }
-.search-msg-hint { padding: 24px; text-align: center; color: var(--text-muted); font-size: 13.5px; }
+.search-msg-hint { padding: 40px 24px; text-align: center; color: var(--text-muted); font-size: 13.5px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.search-msg-hint .smh-icon { width: 52px; height: 52px; border-radius: 15px; display: flex; align-items: center; justify-content: center; background: var(--bg-medium); border: 1px solid var(--border); color: var(--text-secondary); }
+.search-msg-hint .smh-icon svg { width: 24px; height: 24px; }
+.search-msg-hint .smh-title { color: var(--text-primary); font-weight: 700; font-size: 14.5px; }
+.search-msg-hint .smh-sub { color: var(--text-muted); font-size: 12.5px; line-height: 1.55; max-width: 340px; }
 .search-msg-result { padding: 10px 12px; border-radius: 10px; cursor: pointer; transition: background 0.12s ease; }
 .search-msg-result:hover { background: var(--bg-light); }
 .search-msg-result .smr-top { display: flex; align-items: center; gap: 8px; margin-bottom: 3px; }
@@ -1145,7 +1154,6 @@ input, textarea { font-family: inherit; }
 .allow-chip .ac-av { width: 18px; height: 18px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 700; overflow: hidden; }
 .allow-chip .ac-av img { width: 100%; height: 100%; object-fit: cover; }
 .allow-empty { font-size: 12px; color: var(--text-muted); font-style: italic; }
-
 /* ---- Member sidebar: role grouping ---- */
 .member-sidebar-head { display: flex; align-items: center; justify-content: space-between; padding: 4px 8px 8px; }
 .member-sidebar-head .msh-title { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-secondary); }
@@ -1300,6 +1308,7 @@ input, textarea { font-family: inherit; }
 /* Inline SVG icon system (replaces emojis) */
 .ui-ic { width: 15px; height: 15px; flex-shrink: 0; display: inline-block; vertical-align: -2px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .ui-ic.sm { width: 13px; height: 13px; }
+.ui-ic.lg { width: 22px; height: 22px; }
 .ui-ic.lg { width: 20px; height: 20px; }
 .ui-ic.xl { width: 26px; height: 26px; }
 .ui-ic.solid { fill: currentColor; stroke: none; }
@@ -1356,19 +1365,19 @@ input, textarea { font-family: inherit; }
 .msg-action-modal textarea:focus { outline: none; border-color: var(--accent); }
 .msg-action-quote { background: var(--bg-darkest); border-left: 3px solid var(--border-light); border-radius: 6px; padding: 10px 12px; font-size: 13px; color: var(--text-secondary); margin-bottom: 16px; max-height: 90px; overflow: hidden; }
 
-/* @everyone / @here mention highlight + red notification */
-.mention-everyone { background: rgba(227,93,93,0.18); color: #ff8a8a; font-weight: 700; border-radius: 4px; padding: 0 4px; }
-.mention-here { background: rgba(240,169,46,0.18); color: #f0c46a; font-weight: 700; border-radius: 4px; padding: 0 4px; }
+/* @everyone / @here mention highlight (dark / light blueish) + golden notification */
+.mention-everyone { background: rgba(47,96,168,0.30); color: #9cc2ff; font-weight: 700; border-radius: 4px; padding: 0 4px; }
+.mention-here { background: rgba(96,165,250,0.20); color: #bcd8ff; font-weight: 700; border-radius: 4px; padding: 0 4px; }
 .mention-user { background: rgba(74,158,255,0.16); color: var(--accent-light); font-weight: 600; border-radius: 4px; padding: 0 4px; }
 .mention-user.mention-me { background: rgba(74,158,255,0.32); color: #cfe6ff; }
 .msg-group.mention-ping { background: rgba(227,93,93,0.07); border-left: 3px solid #e35d5d; border-radius: 6px; }
 .msg-group.msg-flash { animation: msgFlash 1.2s ease; }
 @keyframes msgFlash { 0%,100% { background: transparent; } 30% { background: rgba(74,158,255,0.18); } }
-.channel-item .ch-ping-dot { width: 7px; height: 7px; border-radius: 50%; background: #e35d5d; margin-left: auto; flex-shrink: 0; box-shadow: 0 0 0 2px rgba(227,93,93,0.25); animation: pingPulse 1.6s ease-in-out infinite; }
+.channel-item .ch-ping-dot { width: 7px; height: 7px; border-radius: 50%; background: #c9a227; margin-left: auto; flex-shrink: 0; box-shadow: 0 0 0 2px rgba(201,162,39,0.28); animation: pingPulse 1.6s ease-in-out infinite; }
 @keyframes pingPulse { 0%,100% { opacity: 1; } 50% { opacity: 0.45; } }
 .mention-toast { border-left: 3px solid #e35d5d; cursor: pointer; max-width: 340px; }
 .reply-toast { border-left: 3px solid #7ee0b0; cursor: pointer; max-width: 340px; }
-.mention-toast .mt-head { font-weight: 700; color: #ff8a8a; display: flex; align-items: center; gap: 6px; margin-bottom: 3px; }
+.mention-toast .mt-head { font-weight: 700; color: #e0c060; display: flex; align-items: center; gap: 6px; margin-bottom: 3px; }
 .mention-toast .mt-body { font-size: 12.5px; color: var(--text-secondary); line-height: 1.4; }
 
 /* ============================================================
@@ -1564,8 +1573,14 @@ input, textarea { font-family: inherit; }
   <!-- Main -->
   <div class="server-main">
     <div class="server-empty" id="server-empty">
+      <div class="se-hero"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></div>
       <h2>Welcome to Servers</h2>
       <p>Pick up where you left off, or start something new. Create your own space, join with an invite link, or explore public communities &mdash; each server has channels, roles, badges, and a private, end-to-end encrypted chatroom.</p>
+      <div class="se-features">
+        <span class="se-feature"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v12H5.17L4 17.17z"/></svg> Channels</span>
+        <span class="se-feature"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3 6 6 .9-4.5 4.3 1.1 6.3L12 16.8 6.4 19.5l1.1-6.3L3 8.9 9 8z"/></svg> Roles &amp; badges</span>
+        <span class="se-feature"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> Encrypted chat</span>
+      </div>
       <div class="server-empty-actions">
         <button class="hero-create-btn" id="empty-create"><span class="hc-emoji"><svg class="ui-ic lg" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span> Create a Server</button>
         <button class="hero-join-btn" id="empty-join"><span class="hc-emoji"><svg class="ui-ic lg" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></span> Join a Server</button>
@@ -1664,7 +1679,7 @@ input, textarea { font-family: inherit; }
             <button id="srv-slash-btn" title="Commands & shortcuts (/)">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="5" x2="5" y2="19"/><circle cx="6.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/></svg>
             </button>
-            <textarea id="srv-input" placeholder="Message #general" rows="1"></textarea>
+            <textarea id="srv-input" placeholder="Message #general — type a message, or press / for commands" rows="1"></textarea>
             <button class="send-btn" id="srv-send-btn" disabled>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
             </button>
@@ -1703,8 +1718,8 @@ input, textarea { font-family: inherit; }
       </div>
       <div class="create-layout">
         <div class="create-form">
-          <div class="field"><label>Server name <span class="req">*</span></label><input type="text" id="create-name" placeholder="My awesome server" maxlength="40"><div class="hint">Up to 40 characters. This is how members will find you.</div></div>
-          <div class="field"><label>About (optional)</label><textarea id="create-bio" placeholder="What is your server about? Who is it for?" maxlength="500"></textarea><div class="hint"><span id="create-bio-count">0</span>/500</div></div>
+          <div class="field"><label>Server name <span class="req">*</span></label><input type="text" id="create-name" placeholder="e.g. Aurora Lounge, Dev Guild, Study Hall" maxlength="40"><div class="hint">Up to 40 characters. This is how members will find you.</div></div>
+          <div class="field"><label>About (optional)</label><textarea id="create-bio" placeholder="Describe your community — its purpose, who it's for, and what members can expect." maxlength="500"></textarea><div class="hint"><span id="create-bio-count">0</span>/500</div></div>
           <div class="field"><label>Accent color</label>
             <div class="server-accent-swatches" id="create-accent-swatches"></div>
             <div class="hint">This tints your server's buttons and highlights.</div>
@@ -1805,7 +1820,7 @@ input, textarea { font-family: inherit; }
       <div class="settings-grid">
       <div class="settings-col">
       <div class="field"><label>Server name</label><input type="text" id="set-name" maxlength="40"></div>
-      <div class="field"><label>About this server</label><textarea id="set-bio" maxlength="500" placeholder="Tell people about your server…"></textarea></div>
+      <div class="field"><label>About this server</label><textarea id="set-bio" maxlength="500" placeholder="Describe your server for members — its focus, rules, and what makes it worth joining."></textarea></div>
       <div class="field"><label>Member count</label><div id="set-member-count" style="font-size:14px;color:var(--text-secondary);">0 members</div></div>
       <div class="field"><label>Server ID</label><div class="server-id-chip"><span id="set-server-id">—</span><button id="set-copy-id" title="Copy server ID"><svg class="ui-ic sm" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button></div></div>
       <div class="settings-card">
@@ -2032,7 +2047,7 @@ input, textarea { font-family: inherit; }
         <div class="field"><label>Role name</label><input type="text" id="role-name" placeholder="VIP" maxlength="24"></div>
         <div class="field" style="max-width:110px;"><label>Color</label><input type="color" id="role-color" value="#9ca3af" style="width:100%;height:42px;background:var(--bg-darkest);border:1px solid var(--border-light);border-radius:var(--radius-sm);cursor:pointer;"></div>
       </div>
-      <div class="field"><label>Badge (optional)</label><input type="text" id="role-badge" placeholder="e.g. VIP" maxlength="8"></div>
+      <div class="field"><label>Badge (optional)</label><input type="text" id="role-badge" placeholder="Short badge text shown next to the name (max 8)" maxlength="8"></div>
       <div class="field"><label>Permissions</label>
         <div class="perm-grid" id="perm-grid">
           <div class="perm-group-label">General Server</div>
@@ -2114,7 +2129,7 @@ input, textarea { font-family: inherit; }
         <div class="mah-ic edit"><svg class="ui-ic lg" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></div>
         <div><div class="mah-title">Edit message</div><div class="mah-sub">Update the content of your message.</div></div>
       </div>
-      <textarea id="edit-msg-input" maxlength="5000" placeholder="Edit message..."></textarea>
+      <textarea id="edit-msg-input" maxlength="5000" placeholder="Edit your message…"></textarea>
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" data-close="edit-msg-modal">Cancel</button>
@@ -2149,7 +2164,7 @@ input, textarea { font-family: inherit; }
       <div class="msg-action-quote" id="del-server-quote"></div>
       <div class="field" style="margin-top:14px;">
         <label style="text-transform:none;font-size:12px;color:var(--text-secondary);">Type the server name to confirm</label>
-        <input type="text" id="del-server-confirm-input" placeholder="Server name" autocomplete="off" style="width:100%;background:var(--bg-darkest);border:1px solid var(--border-light);border-radius:var(--radius-sm);color:var(--text-primary);padding:10px;font-size:13px;">
+        <input type="text" id="del-server-confirm-input" placeholder="Type the server name to confirm" autocomplete="off" style="width:100%;background:var(--bg-darkest);border:1px solid var(--border-light);border-radius:var(--radius-sm);color:var(--text-primary);padding:10px;font-size:13px;">
       </div>
     </div>
     <div class="modal-footer">
@@ -2200,7 +2215,7 @@ input, textarea { font-family: inherit; }
   <div class="search-msg-panel">
     <div class="search-msg-head">
       <span class="search-msg-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
-      <input type="text" id="search-msg-input" placeholder="Search messages in this server..." autocomplete="off">
+      <input type="text" id="search-msg-input" placeholder="Search messages, files, and members across this server" autocomplete="off">
       <button class="search-msg-close" id="search-msg-close" title="Close">&times;</button>
     </div>
     <div class="search-msg-scope">
@@ -2328,7 +2343,8 @@ const ICONS = {
   info: '<circle cx="12" cy="12" r="9"/><line x1="12" y1="11" x2="12" y2="16"/><line x1="12" y1="8" x2="12.01" y2="8"/>',
   video: '<rect x="2" y="5" width="14" height="14" rx="2"/><polygon points="22 7 16 11 16 13 22 17 22 7"/>',
   music: '<path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>',
-  download: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>'
+  download: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>',
+  hash: '<line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/>'
 };
 function icon(name, cls) {
   const p = ICONS[name] || '';
@@ -2382,7 +2398,7 @@ function showPingToast(data) {
   const where = escapeHtml(data.channelName || 'a channel');
   const isMention = data.type === 'mention';
   const tag = isMention ? ('@' + escapeHtml(currentUser.username)) : (data.type === 'here' ? '@here' : '@everyone');
-  const accent = isMention ? '#8ab4ff' : '#ff8a8a';
+  const accent = '#e0c060';
   el.innerHTML =
     '<div class="toast-content"><div class="toast-title" style="color:' + accent + ';">' + who + ' ' + (isMention ? 'mentioned you' : 'pinged <b>' + tag + '</b>') + '</div>' +
     '<div class="toast-msg">in #' + where + (data.text ? ' \u2014 ' + escapeHtml(data.text) : '') + '</div></div>' +
@@ -3180,7 +3196,7 @@ function renderServerView() {
   renderMembers();
   // Chat header
   const ch = (activeServer.channels || []).find(c => c.id === activeChannelId);
-  if (ch) { $('sch-name').textContent = ch.name; $('sch-topic').textContent = ch.topic || ''; $('srv-input').placeholder = 'Message #' + ch.name; applyChannelChatState(ch, null); }
+  if (ch) { $('sch-name').textContent = ch.name; $('sch-topic').textContent = ch.topic || ''; $('srv-input').placeholder = 'Message #' + ch.name + ' — type a message, or press / for commands'; applyChannelChatState(ch, null); }
 }
 function renderChannels() {
   const wrap = $('channel-list');
@@ -3441,7 +3457,7 @@ function applyChannelChatState(ch, chData) {
 function renderMessages() {
   const c = $('server-messages');
   if (!serverMessages.length) {
-    c.innerHTML = '<div class="server-empty-chat"><h3>Welcome to #' + escapeHtml((activeServer.channels.find(x=>x.id===activeChannelId)||{}).name || 'channel') + '</h3><p>This is the start of the channel. Say hi!</p></div>';
+    c.innerHTML = '<div class="server-empty-chat"><div class="sec-icon">' + icon('hash', 'lg') + '</div><h3>Welcome to #' + escapeHtml((activeServer.channels.find(x=>x.id===activeChannelId)||{}).name || 'channel') + '</h3><p>This is the very beginning of the channel. Share a thought, drop a file, or say hello to get the conversation started.</p><div class="sec-hints"><span class="sec-hint"><b>/</b> commands</span><span class="sec-hint"><b>@</b> mention someone</span><span class="sec-hint"><b>+</b> attach a file</span></div></div>';
     return;
   }
   c.innerHTML = '';
@@ -5138,7 +5154,9 @@ async function renderActiveInvites() {
     const d = await api('/api/servers/' + activeServerId + '/invites');
     const list = d.invites || [];
     if (!list.length) { $('active-invites').innerHTML = ''; return; }
-    const canManageInvites = activeServer.isOwner || hasPerm('invite');
+    // Only the server OWNER may revoke invites. Members with the invite
+    // permission can still create/copy links, but revoking is owner-only.
+    const canRevokeInvites = !!activeServer.isOwner;
     $('active-invites').innerHTML = '<div style="font-size:12px;color:var(--text-muted);margin-bottom:6px;">Active invites</div>' + list.map(i =>
       '<div class="list-row" style="padding:8px 10px;"><div class="lr-main"><div class="lr-title" style="font-size:12px;font-family:monospace;">/' + escapeHtml(i.code) + '</div><div class="lr-sub">' + (i.expiresAt ? 'expires ' + timeAgo(new Date(i.expiresAt).toISOString()) : 'never expires') + ' · ' + (i.uses||0) + ' uses</div></div>' +
       '<div class="lr-actions"><button data-copy="' + escapeAttr(i.code) + '" title="Copy">' + icon('copy','sm') + '</button>' + (canManageInvites ? '<button data-revoke="' + escapeAttr(i.code) + '" title="Revoke">' + icon('trash','sm') + '</button>' : '') + '</div></div>'
@@ -5182,8 +5200,8 @@ async function runServerSearch() {
   const q = $('search-msg-input').value.trim();
   const box = $('search-msg-results');
   const filesMode = searchMsgScope === 'files';
-  if (!q && !filesMode) { box.innerHTML = '<div class="search-msg-hint">Type to search messages across this server.</div>'; return; }
-  box.innerHTML = '<div class="search-msg-hint">Searching\u2026</div>';
+  if (!q && !filesMode) { box.innerHTML = '<div class="search-msg-hint"><div class="smh-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div><div class="smh-title">Search this server</div><div class="smh-sub">Find messages, files, and images across every channel. Press Ctrl&nbsp;+&nbsp;K anytime to open search.</div></div>'; return; }
+  box.innerHTML = '<div class="search-msg-hint"><div class="smh-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div><div class="smh-title">Searching\u2026</div><div class="smh-sub">Scanning messages across this server.</div></div>';
   try {
     let url = '/api/servers/' + activeServerId + '/search-messages?q=' + encodeURIComponent(q);
     if (searchMsgScope === 'channel' && activeChannelId) url += '&channelId=' + encodeURIComponent(activeChannelId);
@@ -5441,7 +5459,7 @@ function openAssignRole(m) {
       '<div class="assign-handle">@' + escapeHtml(m.username) + '</div></div>' +
       '<div class="assign-count" id="assign-count">' + current.length + ' role' + (current.length === 1 ? '' : 's') + '</div>' +
     '</div>' +
-    '<div class="assign-search"><span>' + icon('search', 'sm') + '</span><input type="text" id="assign-search-input" placeholder="Search roles\u2026" autocomplete="off"></div>' +
+    '<div class="assign-search"><span>' + icon('search', 'sm') + '</span><input type="text" id="assign-search-input" placeholder="Filter roles by name…" autocomplete="off"></div>' +
     (roles.length ? '<div class="assign-list" id="assign-list">' + roles.map(r => {
       const on = current.includes(r.id);
       return '<label class="assign-role' + (on ? ' on' : '') + '" data-name="' + escapeAttr((r.name || '').toLowerCase()) + '">' +
@@ -5450,7 +5468,7 @@ function openAssignRole(m) {
         '<span class="assign-role-name">' + escapeHtml(r.name) + '</span>' +
         '<input type="checkbox" data-role="' + escapeAttr(r.id) + '"' + (on ? ' checked' : '') + ' hidden>' +
       '</label>';
-    }).join('') + '</div>' : '<div class="assign-empty">No roles yet. Create roles in Server Settings \u2192 Roles.</div>');
+    }).join('') + '</div>' : '<div class="assign-empty"><div class="ae-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3 6 6 .9-4.5 4.3 1.1 6.3L12 16.8 6.4 19.5l1.1-6.3L3 8.9 9 8z"/></svg></div><div class="ae-title">No roles yet</div><div class="ae-sub">Create roles in Server Settings \u2192 Roles to start assigning permissions and badges to members.</div></div>');
   $('member-modal-footer').innerHTML = '<button class="btn btn-ghost" id="assign-back">Back</button><button class="btn btn-primary" id="assign-save">Save Roles</button>';
 
   const list = $('assign-list');
@@ -5462,7 +5480,10 @@ function openAssignRole(m) {
     list.querySelectorAll('.assign-role').forEach(lbl => {
       const cb = lbl.querySelector('input');
       lbl.addEventListener('click', (e) => {
-        if (e.target !== cb) { cb.checked = !cb.checked; }
+        // Prevent the browser's native label->checkbox activation so we don't
+        // double-toggle (which made the first click appear to do nothing).
+        e.preventDefault();
+        cb.checked = !cb.checked;
         lbl.classList.toggle('on', cb.checked);
         lbl.querySelector('.assign-check').innerHTML = cb.checked ? icon('check', 'sm') : '';
         refreshCount();
@@ -5519,14 +5540,14 @@ function openMyServerProfileEditor() {
     '</div>' +
     '<div class="msp-pane active" id="msp-pane-profile">' +
       '<div class="field"><label>Nickname (in this server)</label><input type="text" id="my-nick" maxlength="32" value="' + escapeAttr(me.nickname || '') + '" placeholder="' + escapeAttr(u.displayName || u.username || '') + '"></div>' +
-      '<div class="field"><label>About me (in this server)</label><textarea id="my-bio" maxlength="300" placeholder="Say something about yourself…">' + escapeHtml(me.bio || '') + '</textarea></div>' +
-      '<div class="field"><label>Global Bio</label><textarea id="my-gbio" maxlength="500" placeholder="Your bio across hellobye…">' + escapeHtml(u.bio || '') + '</textarea></div>' +
+      '<div class="field"><label>About me (in this server)</label><textarea id="my-bio" maxlength="300" placeholder="Introduce yourself to this server’s members.">' + escapeHtml(me.bio || '') + '</textarea></div>' +
+      '<div class="field"><label>Global Bio</label><textarea id="my-gbio" maxlength="500" placeholder="This bio appears on your profile everywhere on hellobye.">' + escapeHtml(u.bio || '') + '</textarea></div>' +
       '<div class="field-row">' +
         '<div class="field"><label>Pronouns</label><input type="text" id="my-pronouns" maxlength="50" value="' + escapeAttr(u.pronouns || '') + '" placeholder="they/them"></div>' +
         '<div class="field"><label>Location</label><input type="text" id="my-location" maxlength="60" value="' + escapeAttr(u.location || '') + '" placeholder="Earth"></div>' +
       '</div>' +
-      '<div class="field"><label>Website</label><input type="text" id="my-website" maxlength="120" value="' + escapeAttr(u.website || '') + '" placeholder="https://…"></div>' +
-      '<div class="field"><label>Status Message</label><input type="text" id="my-statusmsg" maxlength="25" value="' + escapeAttr(u.statusMessage || '') + '" placeholder="What are you up to?"></div>' +
+      '<div class="field"><label>Website</label><input type="text" id="my-website" maxlength="120" value="' + escapeAttr(u.website || '') + '" placeholder="https://your-site.com"></div>' +
+      '<div class="field"><label>Status Message</label><input type="text" id="my-statusmsg" maxlength="25" value="' + escapeAttr(u.statusMessage || '') + '" placeholder="Set a short status — e.g. Building something new"></div>' +
     '</div>' +
     '<div class="msp-pane" id="msp-pane-appearance">' +
       '<div class="field"><label>Panel Theme Color</label><div class="hint" style="margin-bottom:10px;">This tints your profile panel for everyone who views it.</div>' +

@@ -3703,7 +3703,9 @@ app.get('/api/servers/:id/invites', authMiddleware, (req, res) => {
 app.delete('/api/servers/:id/invites/:code', authMiddleware, (req, res) => {
   const s = findServer(req.params.id);
   if (!s) return res.status(404).json({ error: 'Server not found' });
-  if (!serverHasPerm(s, req.user.username, 'invite')) return res.status(403).json({ error: 'You do not have permission to manage invites' });
+  // Revoking an invite is owner-only. Members with the invite permission may
+  // create and copy links, but only the owner can revoke them.
+  if (s.owner !== req.user.username) return res.status(403).json({ error: 'Only the server owner can revoke invites' });
   s.invites = (s.invites || []).filter(i => i.code !== req.params.code);
   s.updatedAt = nowISO();
   saveDB();
