@@ -12,5 +12,5 @@
 - [x] node --check enhance.js + server.js
 - [x] Pipeline test: no-sharpen output is clean/smooth (smaller file = less noise)
 - [x] Smoke test locally (servers.html 200)
-- [ ] Commit + push to GitHub master
-- [ ] Trigger/verify Render deploy (no data wiped)
+- [x] Commit + push to GitHub master (67a0ce4)
+- [x] Trigger/verify Render deploy (live, no data wiped)
