@@ -136,3 +136,8 @@
 - [x] Only show the icon scale control when the server has an icon
 - [x] Only show the banner scale control when the server has a banner
 - [x] Syntax check + commit/push + deploy + verify live + confirm no data wiped
+
+## 16. Request N — scale dialog only after uploading icon/banner
+- [x] Remove the icon/banner scale controls from Server Settings
+- [x] Show a dedicated scale dialog only when the user uploads a new server icon/banner
+- [x] Syntax check + commit/push + deploy + verify live + confirm no data wiped
