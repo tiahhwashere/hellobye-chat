@@ -1775,6 +1775,48 @@ app.get('/api/search-messages', authMiddleware, (req, res) => {
   }
 });
 
+// ---------- Server message search ----------
+app.get('/api/servers/:id/search-messages', authMiddleware, (req, res) => {
+  try {
+    const s = findServer(req.params.id);
+    if (!s) return res.status(404).json({ error: 'Server not found' });
+    if (!(s.members || []).includes(req.user.username)) return res.status(403).json({ error: 'Not a member' });
+    const rawQ = String(req.query.q || '').trim();
+    const q = rawQ.toLowerCase();
+    const channelId = req.query.channelId ? String(req.query.channelId) : null;
+    const results = [];
+    if (!q) return res.json({ results: [] });
+    const usernameQuery = q.replace(/^@/, '');
+    const channels = (s.channels || []).filter(c => !channelId || c.id === channelId);
+    for (const ch of channels) {
+      if (!canViewChannel(s, req.user.username, ch)) continue;
+      const msgs = (s.messages && s.messages[ch.id]) || [];
+      msgs.slice(-1000).forEach(m => {
+        if (m.deleted) return;
+        const text = m.text || '';
+        const byUser = m.from && m.from.toLowerCase() === usernameQuery;
+        const byText = text && text.toLowerCase().includes(q);
+        if (!byUser && !byText) return;
+        results.push({
+          id: m.id,
+          channelId: ch.id,
+          channelName: ch.name,
+          username: m.from,
+          displayName: m.displayName,
+          text: text.slice(0, 300),
+          timestamp: m.timestamp,
+          e2e: !!m.e2e,
+        });
+      });
+    }
+    results.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    res.json({ results: results.slice(0, 60) });
+  } catch (e) {
+    console.error('server search-messages error', e);
+    res.json({ results: [] });
+  }
+});
+
 // ---------- Users ----------
 app.get('/api/users', authMiddleware, (req, res) => {
   // Viewer-aware: hidden profiles are redacted for everyone except the user
@@ -5932,6 +5974,20 @@ io.on('connection', (socket) => {
         textStr = textStr.replace(/@everyone\b/g, '@everyone\u200b').replace(/@here\b/g, '@here\u200b');
         pingType = null;
       }
+      // Per-user @mentions: notify each mentioned member (except the sender).
+      const mentionedUsers = [];
+      try {
+        const seen = new Set();
+        const re = /@([a-zA-Z0-9_.\-]{2,32})/g;
+        let mm;
+        while ((mm = re.exec(textStr)) !== null) {
+          const uname = mm[1];
+          if (uname === 'everyone' || uname === 'here') continue;
+          if (seen.has(uname)) continue;
+          seen.add(uname);
+          if ((s.members || []).includes(uname) && uname !== username) mentionedUsers.push(uname);
+        }
+      } catch (e) {}
       const hasFiles = !!(file || (Array.isArray(files) && files.length));
       const e2eEnv = (e2e && typeof e2e === 'object' && e2e.iv && e2e.ct) ? e2e : null;
       const e2eKeysMap = (e2eKeys && typeof e2eKeys === 'object') ? e2eKeys : null;
@@ -5977,6 +6033,22 @@ io.on('connection', (socket) => {
         for (const mem of (s.members || [])) {
           if (mem === username) continue;
           io.to('user:' + mem).emit('server-ping', pingPayload);
+        }
+      }
+      // Per-user @mention notifications.
+      if (mentionedUsers.length) {
+        for (const uname of mentionedUsers) {
+          io.to('user:' + uname).emit('server-ping', {
+            serverId: s.id,
+            channelId,
+            channelName: ch.name,
+            serverName: s.name,
+            type: 'mention',
+            from: username,
+            displayName: user.displayName,
+            text: textStr.slice(0, 140),
+            timestamp: nowISO(),
+          });
         }
       }
       if (typeof ack === 'function') ack({ success: true, message: msg, mediaMessage: msgs.length > 1 ? msgs[1] : null });

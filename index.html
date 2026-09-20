@@ -2106,6 +2106,15 @@ body.no-anim .friend-item { animation: none !important; }
   letter-spacing: 0;
   opacity: 0.75;
 }
+/* Inline timestamp that sits right next to the message text (not on its own
+   line far below the bubble). Keeps the message tight under the display name. */
+.msg-inline-time {
+  font-size: 11px; color: var(--text-muted); opacity: 0.7;
+  margin-left: 8px; white-space: nowrap;
+  font-variant-numeric: tabular-nums; font-weight: 400;
+  vertical-align: baseline;
+}
+.message-group.own .msg-inline-time { color: rgba(255,255,255,0.7); opacity: 0.85; }
 .message-edited-tag { font-style: italic; opacity: 0.6; font-size: 10px; }
 
 .edit-input-wrap { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
@@ -12604,13 +12613,9 @@ function connectSocket() {
         const bubble = group.querySelector('.message-bubble');
         if (bubble) bubble.classList.toggle('link-only-bubble', linkOnly && !(msg.file || (msg.files && msg.files.length)) && !msg.reply);
       }
-      const meta = group.querySelector('.message-meta');
+      const meta = group.querySelector('.msg-inline-time');
       if (meta && msg && msg.edited) {
-        if (!meta.querySelector('.message-edited-tag')) {
-          const t = document.createElement('span');
-          t.className = 'message-edited-tag'; t.textContent = '(edited)';
-          meta.appendChild(t);
-        }
+        if (!/\(edited\)/.test(meta.textContent)) meta.textContent += ' (edited)';
       }
     } else {
       renderMessages(); // fallback if element not found
@@ -12656,7 +12661,7 @@ function connectSocket() {
         bubble.classList.add('deleted');
         bubble.innerHTML = 'This message was deleted';
       }
-      const meta = group.querySelector('.message-meta');
+      const meta = group.querySelector('.msg-inline-time');
       if (meta) meta.remove();
     } else {
       renderMessages(); // fallback
@@ -15387,6 +15392,11 @@ function appendMessage(msg, silent) {
       const textBlock = document.createElement('div');
       textBlock.className = 'message-text-block';
       textBlock.appendChild(textSpan);
+      // Inline timestamp right next to the message text.
+      const inlineTime = document.createElement('span');
+      inlineTime.className = 'msg-inline-time';
+      inlineTime.textContent = formatMessageDateTime(msg.timestamp) + (msg.edited ? ' (edited)' : '');
+      textBlock.appendChild(inlineTime);
       if (linkOnly) textBlock.classList.add('link-only');
       contentParent.appendChild(textBlock);
       // Add pinged class if this message mentions the current user
@@ -15469,18 +15479,13 @@ function appendMessage(msg, silent) {
   // bubble's size independent of reactions.
   if (!msg.deleted) refreshReactionsDisplay(msg, 'chat', group);
 
-  if (!msg.deleted) {
-    const meta = document.createElement('div');
-    meta.className = 'message-meta';
+  if (!msg.deleted && !msg.text) {
+    // Media-only messages have no text block, so show the timestamp inline
+    // at the end of the bubble instead.
     const timeSpan = document.createElement('span');
-    timeSpan.textContent = formatMessageDateTime(msg.timestamp);
-    meta.appendChild(timeSpan);
-    if (msg.edited) {
-      const t = document.createElement('span');
-      t.className = 'message-edited-tag'; t.textContent = '(edited)';
-      meta.appendChild(t);
-    }
-    wrap.appendChild(meta);
+    timeSpan.className = 'msg-inline-time';
+    timeSpan.textContent = formatMessageDateTime(msg.timestamp) + (msg.edited ? ' (edited)' : '');
+    bubble.appendChild(timeSpan);
   }
 
   group.appendChild(avatarDiv);
@@ -18704,6 +18709,11 @@ function appendEncMessage(msg, silent) {
   const textBlock = document.createElement('div');
   textBlock.className = 'message-text-block';
   textBlock.appendChild(textSpan);
+  // Inline timestamp right next to the message text.
+  const encInlineTime = document.createElement('span');
+  encInlineTime.className = 'msg-inline-time';
+  encInlineTime.textContent = formatMessageDateTime(msg.timestamp);
+  textBlock.appendChild(encInlineTime);
   bubble.appendChild(textBlock);
   // Encrypted attachments: decrypt + render (async).
   const entries = [];
@@ -18748,13 +18758,6 @@ function appendEncMessage(msg, silent) {
   const wrap = document.createElement('div');
   wrap.className = 'message-bubble-wrap';
   wrap.appendChild(bubble);
-  // Timestamp + date meta line (matches the rest of the app).
-  const meta = document.createElement('div');
-  meta.className = 'message-meta';
-  const timeSpan = document.createElement('span');
-  timeSpan.textContent = formatMessageDateTime(msg.timestamp);
-  meta.appendChild(timeSpan);
-  wrap.appendChild(meta);
   group.appendChild(wrap);
   markImsgIn(group, silent);
   container.appendChild(group);
@@ -19503,6 +19506,11 @@ function appendGroupMessage(msg, silent) {
       const textBlock = document.createElement('div');
       textBlock.className = 'message-text-block';
       textBlock.appendChild(textSpan);
+      // Inline timestamp right next to the message text.
+      const inlineTime = document.createElement('span');
+      inlineTime.className = 'msg-inline-time';
+      inlineTime.textContent = formatMessageDateTime(msg.timestamp) + (msg.edited ? ' (edited)' : '');
+      textBlock.appendChild(inlineTime);
       if (linkOnly) textBlock.classList.add('link-only');
       contentParent.appendChild(textBlock);
       if (msg.pingedForMe) bubble.classList.add('pinged-msg');
@@ -19545,18 +19553,17 @@ function appendGroupMessage(msg, silent) {
     actions.appendChild(createReactButton(msg, 'group', activeGroupId)); actions.appendChild(replyBtn);
     bubble.appendChild(actions);
   }
+  // Media-only messages have no text block, so show the timestamp inline.
+  if (!msg.deleted && !msg.text) {
+    const mt = document.createElement('span');
+    mt.className = 'msg-inline-time';
+    mt.textContent = formatMessageDateTime(msg.timestamp) + (msg.edited ? ' (edited)' : '');
+    bubble.appendChild(mt);
+  }
   wrap.appendChild(bubble);
   // Render existing reactions (if any) after the bubble is in the wrap so
   // the row can be inserted as a sibling directly under the bubble.
   if (!msg.deleted) refreshReactionsDisplay(msg, 'group', group);
-  if (!msg.deleted) {
-    const meta = document.createElement('div');
-    meta.className = 'message-meta';
-    const t = document.createElement('span'); t.textContent = formatMessageDateTime(msg.timestamp);
-    meta.appendChild(t);
-    if (msg.edited) { const e2 = document.createElement('span'); e2.className = 'message-edited-tag'; e2.textContent = '(edited)'; meta.appendChild(e2); }
-    wrap.appendChild(meta);
-  }
   group.appendChild(wrap);
   markImsgIn(group, silent);
   container.appendChild(group);
@@ -20375,6 +20382,11 @@ function appendDMMessage(msg, silent) {
       const textBlock = document.createElement('div');
       textBlock.className = 'message-text-block';
       textBlock.appendChild(textSpan);
+      // Inline timestamp right next to the message text.
+      const inlineTime = document.createElement('span');
+      inlineTime.className = 'msg-inline-time';
+      inlineTime.textContent = formatMessageDateTime(msg.timestamp) + (msg.edited ? ' (edited)' : '');
+      textBlock.appendChild(inlineTime);
       if (linkOnly) textBlock.classList.add('link-only');
       contentParent.appendChild(textBlock);
       if (msg.pingedForMe) bubble.classList.add('pinged-msg');
@@ -20440,18 +20452,17 @@ function appendDMMessage(msg, silent) {
   }
   const wrap = document.createElement('div');
   wrap.className = 'message-bubble-wrap';
+  // Media-only messages have no text block, so show the timestamp inline.
+  if (!msg.deleted && !msg.text) {
+    const mt = document.createElement('span');
+    mt.className = 'msg-inline-time';
+    mt.textContent = formatMessageDateTime(msg.timestamp) + (msg.edited ? ' (edited)' : '');
+    bubble.appendChild(mt);
+  }
   wrap.appendChild(bubble);
   // Render existing reactions (if any) after the bubble is in the wrap so
   // the row can be inserted as a sibling directly under the bubble.
   if (!msg.deleted) refreshReactionsDisplay(msg, 'dm', group);
-  if (!msg.deleted) {
-    const meta = document.createElement('div');
-    meta.className = 'message-meta';
-    const t = document.createElement('span'); t.textContent = formatMessageDateTime(msg.timestamp);
-    meta.appendChild(t);
-    if (msg.edited) { const e2 = document.createElement('span'); e2.className = 'message-edited-tag'; e2.textContent = '(edited)'; meta.appendChild(e2); }
-    wrap.appendChild(meta);
-  }
   group.appendChild(wrap);
   markImsgIn(group, silent);
   container.appendChild(group);

@@ -150,3 +150,42 @@
 - [x] Render auto-deploy reached `live`
 - [x] Verify live site serves the change (grep count = 1)
 - [x] Confirm no data wiped (remote backup: users hi/lore/pwonttalk/swirlpup/zombie; server Crossroads V2)
+
+## 18. Request P — server UI fixes & new features
+- [x] Fix server banner size not fitting the full box (the little gap — not Server Settings)
+- [x] Make sure ALL Effects work (overlays now paint above opaque panels)
+- [x] Edit Channel modal: give server owners a Delete Channel option there too
+- [x] Server Settings: fix banner/profile scales, make it better, add more scaling settings
+- [x] Members: fix status not all the way in the frame
+- [x] Bottom-left username: show the actual user's status (not "offline")
+- [x] Add a UI to the kick option
+- [x] Add a UI to the "You have unsaved changes" indicator
+- [x] Right-click channel (owner): dropdown with Edit Channel / Delete Channel
+- [x] My Server Profile: make sure all scales/options work
+- [x] Mobile: make sizing/scaling well fitted
+- [x] Invite links sent in servers: embed them with a rich, detailed card
+- [x] Roles & Badges: allow server owner to add/remove their own roles
+- [x] Add a UI to the "Delete this channel and all its messages?" confirmation
+- [x] Add way better notifications (icon, title, progress bar, close)
+- [x] Syntax check server.js + servers.html — passed
+- [x] Commit + push to GitHub master (917a39c)
+- [x] Render auto-deploy reached `live`
+- [x] Verify live site serves the changes (feature markers present)
+- [x] Confirm no data wiped (data/db.json restored to clean committed state; only server.js + servers.html changed)
+
+## 19. Request Q — profile banner, mentions/reply, UI cleanups, embeds, layout
+- [ ] Profile banner: remove the icon beside the server name, keep the server profile picture
+- [ ] Add @ ping/mention system for servers
+- [ ] Add a reply system for servers
+- [ ] Remove the SVG from the "Discard unsaved changes?" UI
+- [ ] Remove the SVG from the Delete (channel) UI
+- [ ] Fix Icon & Banner Scale preview (profile/banner mushed together)
+- [ ] Remove the SVG icon from the "Delete this message?" UI
+- [ ] Fix embeds so links always embed when sent
+- [ ] Slash (/) button → chat shortcut
+- [ ] Make the assign-roles UI better
+- [ ] Chatroom/groupchats/DMs: message right under display name, date next to message (not spaced out)
+- [ ] Add a search-messages system beside "Invite people"
+- [ ] Delete-channels UI: Enter key = confirm shortcut
+- [ ] Other confirmation UIs: Enter key shortcut
+- [ ] Syntax check + commit/push + deploy + verify live + confirm no data wiped
