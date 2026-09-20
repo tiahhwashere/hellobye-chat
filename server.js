@@ -1196,6 +1196,9 @@ function fullUser(u) {
   pub.allowGroupAdd = u.allowGroupAdd !== false;
   pub.theme = u.theme || 'dark';
   pub.preferences = u.preferences || {};
+  // Profile-completeness "skip" flag \u2014 persisted so the 100% state survives
+  // refreshes / tab switches until the user clicks "Undo skip".
+  pub.completenessSkipped = !!u.completenessSkipped;
   pub.musicLink = u.musicLink || '';
   pub.isAdmin = isOwnerUser(u);
   pub.cooldownExempt = (db.cooldownExempt || []).includes(u.username);
@@ -1420,7 +1423,7 @@ const storage = multer.diskStorage({
   },
 });
 const upload = multer({ storage, limits: { fileSize: 251 * 1024 * 1024 } }); // 250MB + 1MB headroom for chat attachments
-const avatarUpload = multer({ storage, limits: { fileSize: 21 * 1024 * 1024 } }); // 20MB + 1MB headroom for profile pic / banner
+const avatarUpload = multer({ storage, limits: { fileSize: 26 * 1024 * 1024 } }); // 25MB + 1MB headroom for profile pic / banner (incl. GIFs)
 const badgeUpload = multer({ storage, limits: { fileSize: 11 * 1024 * 1024 } }); // 10MB + 1MB headroom for admin profile-badge images
 
 // ---------- Auth Routes ----------
@@ -3343,7 +3346,13 @@ app.post('/api/servers/:id/members/:username/roles', authMiddleware, (req, res) 
   const { roleId, action } = req.body || {};
   const role = (s.roles || []).find(r => r.id === roleId);
   if (!role) return res.status(404).json({ error: 'Role not found' });
-  if (role.id === 'owner') return res.status(400).json({ error: 'The Owner role cannot be assigned or removed' });
+  // The Owner role can only be toggled by the server owner, and only on
+  // themselves \u2014 it is a display badge, not a permission grant (the owner
+  // always has full permissions regardless).
+  if (role.id === 'owner') {
+    if (s.owner !== req.user.username) return res.status(403).json({ error: 'Only the server owner can change the Owner role' });
+    if (target !== s.owner) return res.status(400).json({ error: 'The Owner role can only be applied to the server owner' });
+  }
   const prof = ensureServerMemberProfile(s, target);
   if (!Array.isArray(prof.roleIds)) prof.roleIds = [];
   if (action === 'remove') prof.roleIds = prof.roleIds.filter(id => id !== role.id);
@@ -6215,8 +6224,9 @@ setInterval(() => { purgeExpiredDeletedMessages(true); }, 30 * 1000);
 app.use((err, req, res, next) => {
   if (err && err.code === 'LIMIT_FILE_SIZE') {
     // Determine which limit applies based on the route
-    const isAvatar = req.originalUrl && req.originalUrl.includes('/api/profile');
-    const limit = isAvatar ? '20MB' : '250MB';
+    const url = req.originalUrl || '';
+    const isAvatar = url.includes('/api/profile') || url.includes('/icon') || url.includes('/banner');
+    const limit = isAvatar ? '25MB' : '250MB';
     return res.status(413).json({ error: 'File exceeds the ' + limit + ' size limit.' });
   }
   if (err && err.message && err.message.includes('Multipart')) {

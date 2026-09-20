@@ -1,191 +1,38 @@
-# Servers System — Build Plan
+# Request R — Servers UI/UX fixes & features
 
-## 1. Backend (server.js)
-- [x] Add `db.servers` + `db.serverInvites` to defaultDB and ensure-on-load (non-destructive)
-- [x] Add server helpers (publicServer, findServer, permissions, invite codes)
-- [x] Add REST endpoints: create/list/get/settings/icon/banner, channels CRUD, roles CRUD, member roles/kick/nickname, leave/delete, invites create/list/revoke, invite preview + join, member profile
-- [x] Add socket events: server-send/edit/delete/typing/react (E2E ciphertext only)
-- [x] Add invite-preview endpoint for link embeds
-- [x] Add short `/CODE` invite redirect route
+## 1. Owner crown emoji
+- [x] Remove the crown emoji from the owner display in servers
 
-## 2. New page (servers.html)
-- [x] Full server system UI: server rail, channel list, chat area, member list
-- [x] Create/join server flows
-- [x] Owner commands: add/delete channels, roles, badges, permissions
-- [x] Server profile: icon/banner/bio editing
-- [x] Member count display
-- [x] Invite generation with 30min→never expiry + copy link
-- [x] E2E encrypted chatroom (AES-GCM, per-server key wrapped per member)
-- [x] "Back to main chat" button
+## 2. Owner role add/remove
+- [x] Allow the owner role to be added/removed from the owner (roles tab)
 
-## 3. Main page (index.html)
-- [x] Add "Servers" nav button after Blocked (opens /servers.html)
-- [x] Invite-link embeds (server name/icon/member count) in public chat, DMs, group chats, encrypted rooms
+## 3. Members profile UI
+- [x] Make the Members profile UI/style match the main chat profile UI
 
-## 4. Deploy
-- [x] Syntax check server.js + servers.html + index.html
-- [x] Update Dockerfile to include servers.html
-- [x] Local end-to-end smoke test (REST + socket)
-- [x] Commit & push to GitHub master
-- [x] Verify Render deploy live
+## 4. GIF support for banner/profile
+- [x] Add GIF support for server banner/profile picture (~25 MB max)
+
+## 5. Upload file dropdown + loading bar + 150MB
+- [x] Upload button opens a dropdown first (image/video/file)
+- [x] Show files with a loading/progress bar
+- [x] Actually send file/gif/video with 150 MB limit
+
+## 6. Profile Completeness skip persistence
+- [x] Skip keeps it at 100% across refresh/tab-off until "undo skip"
+
+## 7. GIF flicker
+- [x] Fix the GIF flicker
+
+## 8. Server invite embed flicker
+- [x] Fix the server link invite embed flicker
+
+## 9. Empty-state copy
+- [x] Rewrite the "Create your own community..." message (simple + professional)
+
+## 10. Verify & deploy
+- [x] Syntax check server.js + servers.html script
+- [x] Fix upload progress-bar crash (missing #server-input-area id) + response shape ({file:{url}})
+- [x] Restore data/db.json to clean baseline (no test pollution)
+- [x] Commit + push to GitHub (master)
+- [x] Verify Render deploy + live site
 - [x] Confirm no data wiped
-
-## 5. Follow-up fixes
-- [x] Fix servers page stuck on "Loading servers…" (missing socket.io client script)
-- [x] Make boot() resilient + 8s safety-net timeout so page always reveals
-- [x] Show create/join options on empty state (already present, now reachable)
-- [x] Use main site's black favicon (/uploads/favicon.jpg) on servers page
-- [x] Serve servers.html with no-cache headers (was cached 24h → stale page in browser)
-- [x] Deploy + verify live (buildId 9595227c9d14)
-
-## 6. Request C — UI polish & profile parity
-- [x] Remove computer/desktop emoji icon (🖥️) under "Your Servers" heading
-- [x] Make servers UI/animation flow match main chatroom/systems
-- [x] Show same profile details as main chat when viewing own/others' profile
-- [x] Server banner shows above the server's profile picture
-- [x] Syntax check + local test
-- [x] Commit & push + verify deploy (live on hellobye-chat.onrender.com)
-
-## 7. Request D — Advanced server features
-- [x] Channel privacy: owner can make channel private / private for certain roles/members
-- [x] Channel chat disable: owner can disable sending (everyone / members)
-- [x] User profile settings inside servers (avatar/bio/pronouns/panel theme color)
-- [x] Remove right-click context menu on servers
-- [x] Roles: "display roles separately" grouping in member list
-- [x] Better/cartoonier "Create new server" + "Display roles separately" buttons
-- [x] More advanced style/UI/animations overall
-- [x] More useful Server Settings
-- [x] Server banner shows under server name (where member count is) in header
-- [x] Improve "My Server Profile" UI
-- [x] "Back to main chat" → are-you-sure confirmation
-- [x] Syntax check + local test + deploy
-
-## 8. Request E — Professional polish & server upgrades
-- [x] Remove ALL emojis from servers.html + index.html UI
-- [x] Professional look (typography, spacing, borders, shadows)
-- [x] My Server Profile: wider, spacious, no smushing
-- [x] Server banner: longer + wider, no name overlaid on image
-- [x] Replace E2E lock emoji with advanced text message
-- [x] Remove member-count badge on server icon
-- [x] Deleted message fully purged after 2 minutes
-- [x] Edit message + Delete message confirmation UI
-- [x] @everyone / @here pings with red channel notification
-- [x] Syntax check + local test + deploy
-
-## 9. Request F — UI overhaul & server upgrades
-- [x] Chatroom/DMs/Groupchats: remove bubble outline, messages under usernames
-- [x] Banner strip: image covers whole box; server name overlays image (not Server Settings)
-- [x] Server Settings UI: wider not longer, no smushing
-- [x] My Server Profile UI: wider not longer, no smushing
-- [x] Discovery button under Join a server + Discoverable option shows server in discovery UI
-- [x] Fade in/out animations for My Server Profile + Server Settings
-- [x] Remove full right-click context menu for servers
-- [x] Edit roles: add more useful Permissions
-- [x] Remove SVG icon for "Leave Servers?" UI
-- [x] Server icon click (non-owner): leave server + copy server id
-- [x] Random 10-digit numeric SERVER id per server
-- [x] Syntax check + commit/push + verify deploy + confirm no data wiped
-
-## 10. Request G — UI fixes & bug fixes
-- [x] Move time/date directly under messages (not in header, not far apart)
-- [x] Hero buttons (Create/Join/Discovery): less shiny/cartoony, professional
-- [x] Server banner: take over whole box under member count, image fits, remove name off banner (keep at top)
-- [x] Remove emojis for Roles & Badges
-- [x] Server Settings: make shiny colorful buttons professional
-- [x] My Server Profile: wider, fix smushed elements, make it fit
-- [x] Remove right-click "My Server Profile" for whole website
-- [x] Fix channel edit button not working
-- [x] Fix server ID numbers not showing up
-- [x] Fix server right-click dropdown leave button + copy server id
-- [x] Verification Level: remove "Highest — verified phone number", replace
-- [x] Remove cartoony button from "display roles separately"
-- [x] Ensure Discoverable servers show in Discovery
-- [x] Syntax check + commit/push + deploy + verify live + confirm no data wiped
-
-## 11. Request H — banner box, member menu, advanced settings, bigger chat text
-- [x] Server banner: fill the whole small header box (not a spaced strip), name overlaid on banner
-- [x] Non-owner right-click on server profile picture → dropdown (leave, copy server ID, etc.)
-- [x] Server Settings UI: more advanced/better
-- [x] My Server Profile UI: more advanced/better
-- [x] My Server Profile: profile picture/banner not smushed
-- [x] Server Settings: add Website Accent Colors + effects visible to everyone (server-only)
-- [x] Chatroom/groupchats/DMs: messages/dates/profile pictures a bit bigger
-- [x] Syntax check + commit/push + deploy + verify live + confirm no data wiped
-
-## 12. Request I — real messages, chat-disable enforcement, unsaved warning, delete-server UI, taller banner
-- [x] Server chatroom: show actual decrypted message instead of "Encrypted message"
-- [x] Enforce chat-disable: disable chat input/send until owner re-enables for everyone
-- [x] Unsaved-settings warning: prompt owner to save when they change an option without saving
-- [x] Add a UI for the "delete server" button
-- [x] Server banner: make it taller (extend downward)
-- [x] Syntax check + commit/push + deploy + verify live + confirm no data wiped
-
-## 13. Request J — unsaved-changes UI, taller banner, name at top
-- [x] Add a proper UI to the "You have unsaved changes" indicator (icon + title/subtitle + pulsing dot)
-- [x] Server banner: taller (132px), extends further down
-- [x] Server name pinned to the top of the banner (not the bottom)
-- [x] Syntax check + commit/push + deploy + verify live + confirm no data wiped
-
-## 14. Request L — 5 more effects + icon/banner scale
-- [x] Add 5 more server effects (Neon, Pulse, Grid, Spotlight, Scanlines)
-- [x] Add a scale control for the Server Settings profile picture (icon)
-- [x] Add a scale control for the Server Settings banner
-- [x] Syntax check + commit/push + deploy + verify live + confirm no data wiped
-
-## 15. Request M — scale controls only when icon/banner exists
-- [x] Only show the icon scale control when the server has an icon
-- [x] Only show the banner scale control when the server has a banner
-- [x] Syntax check + commit/push + deploy + verify live + confirm no data wiped
-
-## 16. Request N — scale dialog only after uploading icon/banner
-- [x] Remove the icon/banner scale controls from Server Settings
-- [x] Show a dedicated scale dialog only when the user uploads a new server icon/banner
-- [x] Syntax check + commit/push + deploy + verify live + confirm no data wiped
-
-## 17. Request O — server banner slightly narrower from the right
-- [x] Add `margin-right: 14px; border-radius: 0 0 10px 0;` to `.server-header` so the banner's right edge is pulled in slightly (left edge stays flush)
-- [x] Syntax-check inline JS in servers.html (`node --check`) — passed
-- [x] Visual preview (requestO_preview.html) confirming narrower right edge
-- [x] Commit + push to GitHub master (6b78a1d)
-- [x] Render auto-deploy reached `live`
-- [x] Verify live site serves the change (grep count = 1)
-- [x] Confirm no data wiped (remote backup: users hi/lore/pwonttalk/swirlpup/zombie; server Crossroads V2)
-
-## 18. Request P — server UI fixes & new features
-- [x] Fix server banner size not fitting the full box (the little gap — not Server Settings)
-- [x] Make sure ALL Effects work (overlays now paint above opaque panels)
-- [x] Edit Channel modal: give server owners a Delete Channel option there too
-- [x] Server Settings: fix banner/profile scales, make it better, add more scaling settings
-- [x] Members: fix status not all the way in the frame
-- [x] Bottom-left username: show the actual user's status (not "offline")
-- [x] Add a UI to the kick option
-- [x] Add a UI to the "You have unsaved changes" indicator
-- [x] Right-click channel (owner): dropdown with Edit Channel / Delete Channel
-- [x] My Server Profile: make sure all scales/options work
-- [x] Mobile: make sizing/scaling well fitted
-- [x] Invite links sent in servers: embed them with a rich, detailed card
-- [x] Roles & Badges: allow server owner to add/remove their own roles
-- [x] Add a UI to the "Delete this channel and all its messages?" confirmation
-- [x] Add way better notifications (icon, title, progress bar, close)
-- [x] Syntax check server.js + servers.html — passed
-- [x] Commit + push to GitHub master (917a39c)
-- [x] Render auto-deploy reached `live`
-- [x] Verify live site serves the changes (feature markers present)
-- [x] Confirm no data wiped (data/db.json restored to clean committed state; only server.js + servers.html changed)
-
-## 19. Request Q — profile banner, mentions/reply, UI cleanups, embeds, layout
-- [ ] Profile banner: remove the icon beside the server name, keep the server profile picture
-- [ ] Add @ ping/mention system for servers
-- [ ] Add a reply system for servers
-- [ ] Remove the SVG from the "Discard unsaved changes?" UI
-- [ ] Remove the SVG from the Delete (channel) UI
-- [ ] Fix Icon & Banner Scale preview (profile/banner mushed together)
-- [ ] Remove the SVG icon from the "Delete this message?" UI
-- [ ] Fix embeds so links always embed when sent
-- [ ] Slash (/) button → chat shortcut
-- [ ] Make the assign-roles UI better
-- [ ] Chatroom/groupchats/DMs: message right under display name, date next to message (not spaced out)
-- [ ] Add a search-messages system beside "Invite people"
-- [ ] Delete-channels UI: Enter key = confirm shortcut
-- [ ] Other confirmation UIs: Enter key shortcut
-- [ ] Syntax check + commit/push + deploy + verify live + confirm no data wiped
