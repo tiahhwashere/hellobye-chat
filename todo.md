@@ -11,5 +11,5 @@
 - [x] node --check server.js + extracted servers.html script
 - [x] E2E API test: member custom -> 403, member random -> 200, owner custom -> 200
 - [x] Cleanup test file + restore data/db.json seed
-- [ ] Commit + push to GitHub master
-- [ ] Trigger/verify Render deploy (no data wiped)
+- [x] Commit + push to GitHub master (4092990)
+- [x] Trigger/verify Render deploy (live, no data wiped)
