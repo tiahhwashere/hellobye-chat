@@ -5123,6 +5123,32 @@ app.get('/api/embed', authMiddleware, async (req, res) => {
     return res.status(400).json({ error: 'URLs pointing to private or internal hosts are not allowed' });
   }
 
+  // ---- GIF provider special-casing ----
+  // Giphy blocks server-side scraping (it returns 403 to non-browser clients),
+  // so we can never read its og:image. Instead we extract the GIF id from the
+  // URL and build the direct media URL, which is publicly served and hotlink
+  // friendly. This makes a pasted giphy.com link auto-embed as the animated GIF.
+  const giphyUrl = giphyGifUrl(parsed);
+  if (giphyUrl) {
+    try {
+      const headCtrl = new AbortController();
+      const headTimer = setTimeout(() => headCtrl.abort(), 5000);
+      const head = await fetch(giphyUrl, { method: 'HEAD', signal: headCtrl.signal });
+      clearTimeout(headTimer);
+      if (head.ok) {
+        return res.json({
+          url,
+          title: 'GIF',
+          description: null,
+          image: giphyUrl,
+          gifUrl: giphyUrl,
+          siteName: 'Giphy',
+          favicon: 'https://www.google.com/s2/favicons?domain=giphy.com&sz=64',
+        });
+      }
+    } catch (e) { /* fall through to normal scraping below */ }
+  }
+
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 8000);
   try {
@@ -5196,6 +5222,34 @@ app.get('/api/embed', authMiddleware, async (req, res) => {
     res.json({ url, title: null, description: null, image: null, gifUrl: /\.gif(\?|$)/i.test(parsed.pathname) ? url : null, siteName: parsed.hostname, favicon: 'https://www.google.com/s2/favicons?domain=' + encodeURIComponent(parsed.hostname) + '&sz=64' });
   }
 });
+
+// Build a direct, hotlink-friendly Giphy media URL from a giphy.com page URL.
+// Giphy blocks server-side scraping (403), so we derive the GIF id from the
+// URL slug and point at media.giphy.com instead. Returns null for non-Giphy
+// URLs or when no id can be extracted.
+function giphyGifUrl(parsed) {
+  try {
+    const host = (parsed.hostname || '').toLowerCase();
+    if (!/(^|\.)giphy\.com$/.test(host)) return null;
+    let id = null;
+    // media.giphy.com/media/<id>/giphy.gif  (or /giphy.webp, etc.)
+    const mediaMatch = parsed.pathname.match(/\/media\/([A-Za-z0-9]+)\//);
+    if (mediaMatch) id = mediaMatch[1];
+    // giphy.com/gifs/<slug>-<id>  (id is the trailing alphanumeric token)
+    if (!id) {
+      const slug = parsed.pathname.split('/').filter(Boolean).pop() || '';
+      const slugMatch = slug.match(/-([A-Za-z0-9]{6,})$/);
+      if (slugMatch) id = slugMatch[1];
+    }
+    // giphy.com/embed/<id>
+    if (!id) {
+      const embedMatch = parsed.pathname.match(/\/embed\/([A-Za-z0-9]+)/);
+      if (embedMatch) id = embedMatch[1];
+    }
+    if (!id) return null;
+    return 'https://media.giphy.com/media/' + id + '/giphy.gif';
+  } catch (e) { return null; }
+}
 
 // Extract <meta> tags + <title> from an HTML head chunk into a flat map.
 function extractMeta(html) {
