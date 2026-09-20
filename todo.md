@@ -1,16 +1,13 @@
-# Request Y — Chat background persistence + golden mention highlight
+# Request Z — Clickable @mention chips open the member profile
 
-## 1. Chat background survives refresh
-- [x] Move `.server-chat-bg` out of `#server-messages` into a stable sibling layer (`#server-chat-body`)
-- [x] Update `applyServerChatBackground()` to target the stable element
-- [x] Persist last-opened server + channel (localStorage) and restore on boot
+## 1. Make @username mentions clickable
+- [x] `.mention-user` CSS: add `cursor: pointer`, hover state, transition
+- [x] `linkify()`: render @username as `<span class="mention-user" data-mention-user="USERNAME" role="button" tabindex="0">`
+- [x] Delegated `click` handler on `document` -> `openMemberProfile(uname)`
+- [x] Delegated `keydown` (Enter/Space) handler for keyboard access
 
-## 2. @everyone / @here red highlight -> darkish golden
-- [x] `.msg-group.mention-ping` -> golden tint + golden left border
-- [x] `.mention-toast` border -> golden
-
-## 3. Verify & Deploy
-- [x] node --check on server.js + extracted servers.html script
-- [x] Smoke test locally (bg persistence via API verified)
-- [x] Commit + push to GitHub master
-- [x] Trigger/verify Render deploy (no data wiped)
+## 2. Verify & Deploy
+- [x] node --check on extracted servers.html script
+- [ ] Smoke test locally (servers.html 200 + markers present)
+- [ ] Commit + push to GitHub master
+- [ ] Trigger/verify Render deploy (no data wiped)

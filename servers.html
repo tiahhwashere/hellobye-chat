@@ -1368,7 +1368,8 @@ input, textarea { font-family: inherit; }
 /* @everyone / @here mention highlight (dark / light blueish) + golden notification */
 .mention-everyone { background: rgba(47,96,168,0.30); color: #9cc2ff; font-weight: 700; border-radius: 4px; padding: 0 4px; }
 .mention-here { background: rgba(96,165,250,0.20); color: #bcd8ff; font-weight: 700; border-radius: 4px; padding: 0 4px; }
-.mention-user { background: rgba(74,158,255,0.16); color: var(--accent-light); font-weight: 600; border-radius: 4px; padding: 0 4px; }
+.mention-user { background: rgba(74,158,255,0.16); color: var(--accent-light); font-weight: 600; border-radius: 4px; padding: 0 4px; cursor: pointer; transition: background var(--transition), color var(--transition); }
+.mention-user:hover { background: rgba(74,158,255,0.30); color: #cfe6ff; }
 .mention-user.mention-me { background: rgba(74,158,255,0.32); color: #cfe6ff; }
 .msg-group.mention-ping { background: rgba(201,162,39,0.10); border-left: 3px solid #c9a227; border-radius: 6px; }
 .msg-group.msg-flash { animation: msgFlash 1.2s ease; }
@@ -3705,6 +3706,24 @@ document.addEventListener('click', (e) => {
   const src = el.getAttribute('data-zoom-src') || el.getAttribute('src');
   if (src) openImageLightbox(src);
 });
+// Delegated click: clicking an @username mention opens that member's profile.
+document.addEventListener('click', (e) => {
+  const el = e.target.closest && e.target.closest('#server-messages [data-mention-user]');
+  if (!el) return;
+  e.preventDefault();
+  e.stopPropagation();
+  const uname = el.getAttribute('data-mention-user');
+  if (uname) openMemberProfile(uname);
+});
+// Keyboard access for mention chips (Enter / Space).
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'Enter' && e.key !== ' ') return;
+  const el = e.target.closest && e.target.closest('#server-messages [data-mention-user]');
+  if (!el) return;
+  e.preventDefault();
+  const uname = el.getAttribute('data-mention-user');
+  if (uname) openMemberProfile(uname);
+});
 function formatFileSize(bytes) {
   const n = Number(bytes);
   if (!Number.isFinite(n) || n <= 0) return '';
@@ -3767,7 +3786,7 @@ function linkify(html) {
       const re = new RegExp('@(' + names.map(n => n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|') + ')\\b', 'g');
       html = html.replace(re, (full, uname) => {
         const mine = uname === currentUser.username;
-        return '<span class="mention-user' + (mine ? ' mention-me' : '') + '">@' + escapeHtml(uname) + '</span>';
+        return '<span class="mention-user' + (mine ? ' mention-me' : '') + '" data-mention-user="' + escapeAttr(uname) + '" role="button" tabindex="0" title="View @' + escapeAttr(uname) + '\u2019s profile">@' + escapeHtml(uname) + '</span>';
       });
     }
   }
