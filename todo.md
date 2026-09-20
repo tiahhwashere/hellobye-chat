@@ -141,3 +141,12 @@
 - [x] Remove the icon/banner scale controls from Server Settings
 - [x] Show a dedicated scale dialog only when the user uploads a new server icon/banner
 - [x] Syntax check + commit/push + deploy + verify live + confirm no data wiped
+
+## 17. Request O — server banner slightly narrower from the right
+- [x] Add `margin-right: 14px; border-radius: 0 0 10px 0;` to `.server-header` so the banner's right edge is pulled in slightly (left edge stays flush)
+- [x] Syntax-check inline JS in servers.html (`node --check`) — passed
+- [x] Visual preview (requestO_preview.html) confirming narrower right edge
+- [x] Commit + push to GitHub master (6b78a1d)
+- [x] Render auto-deploy reached `live`
+- [x] Verify live site serves the change (grep count = 1)
+- [x] Confirm no data wiped (remote backup: users hi/lore/pwonttalk/swirlpup/zombie; server Crossroads V2)
