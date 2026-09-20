@@ -14,5 +14,5 @@
 - [x] Unit test: giphyGifUrl for all URL patterns
 - [x] E2E test: /api/embed returns gifUrl for giphy + tenor + direct gif
 - [x] Cleanup test file + restore data/db.json seed
-- [ ] Commit + push to GitHub master
-- [ ] Trigger/verify Render deploy (no data wiped)
+- [x] Commit + push to GitHub master (873c754)
+- [x] Trigger/verify Render deploy (live, no data wiped)
