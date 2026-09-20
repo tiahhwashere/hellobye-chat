@@ -1,38 +1,21 @@
-# Request R — Servers UI/UX fixes & features
+# Fix: GIF not showing inline in Servers (only visible when zoomed)
 
-## 1. Owner crown emoji
-- [x] Remove the crown emoji from the owner display in servers
+## Root cause
+- [x] Confirmed: GIFs were rendered as `<video><source type="image/gif">`
+- [x] Browsers cannot decode GIF in a `<video>` (networkState=3 NETWORK_NO_SOURCE, videoWidth=0) → blank inline
+- [x] Lightbox uses `<img>` → GIF visible only when zoomed
 
-## 2. Owner role add/remove
-- [x] Allow the owner role to be added/removed from the owner (roles tab)
+## Fix
+- [x] Render GIFs as native `<img class="msg-media msg-gif" data-zoom ...>` in `renderFile`
+- [x] Keep `data-zoom`/`data-zoom-src` so click-to-zoom still works
 
-## 3. Members profile UI
-- [x] Make the Members profile UI/style match the main chat profile UI
+## Verification
+- [x] Syntax check passes
+- [x] Browser test: GIF `<img>` naturalWidth=200, complete=true, zoomable
+- [x] End-to-end: uploaded real animated GIF, sent via socket, rendered inline in channel
 
-## 4. GIF support for banner/profile
-- [x] Add GIF support for server banner/profile picture (~25 MB max)
-
-## 5. Upload file dropdown + loading bar + 150MB
-- [x] Upload button opens a dropdown first (image/video/file)
-- [x] Show files with a loading/progress bar
-- [x] Actually send file/gif/video with 150 MB limit
-
-## 6. Profile Completeness skip persistence
-- [x] Skip keeps it at 100% across refresh/tab-off until "undo skip"
-
-## 7. GIF flicker
-- [x] Fix the GIF flicker
-
-## 8. Server invite embed flicker
-- [x] Fix the server link invite embed flicker
-
-## 9. Empty-state copy
-- [x] Rewrite the "Create your own community..." message (simple + professional)
-
-## 10. Verify & deploy
-- [x] Syntax check server.js + servers.html script
-- [x] Fix upload progress-bar crash (missing #server-input-area id) + response shape ({file:{url}})
-- [x] Restore data/db.json to clean baseline (no test pollution)
-- [x] Commit + push to GitHub (master)
-- [x] Verify Render deploy + live site
-- [x] Confirm no data wiped
+## Deploy
+- [x] Commit + push to GitHub master
+- [x] Render deploy live
+- [x] Live site serves fixed renderFile
+- [x] No data wiped (db.json at clean baseline)

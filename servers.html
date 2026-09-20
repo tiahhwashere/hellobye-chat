@@ -3084,10 +3084,12 @@ function renderFile(f) {
   const type = (f.type || '').toLowerCase();
   const isGif = type === 'image/gif' || /\.gif$/i.test(f.url);
   if (isGif) {
-    // Animated GIFs render as a looping, muted <video> so they play smoothly
-    // and never flicker/restart when the message list updates. data-zoom makes
+    // Animated GIFs render as a native <img> so the browser decodes and
+    // animates them directly. (A <video> element cannot decode GIF data —
+    // it reports NETWORK_NO_SOURCE and renders blank, which is why GIFs
+    // previously only appeared once opened in the lightbox.) data-zoom makes
     // them clickable to open the full-size lightbox.
-    return '<video class="msg-media msg-gif" data-zoom data-zoom-src="' + url + '" autoplay loop muted playsinline preload="auto"><source src="' + url + '" type="image/gif"></video>';
+    return '<img class="msg-media msg-gif" data-zoom data-zoom-src="' + url + '" src="' + url + '" alt="" loading="lazy">';
   }
   if (type.startsWith('image') || /\.(png|jpe?g|webp|avif)$/i.test(f.url)) return '<img class="msg-media" data-zoom data-zoom-src="' + url + '" src="' + url + '" alt="" loading="lazy">';
   if (type.startsWith('video') || /\.(mp4|webm|mov)$/i.test(f.url)) return '<video class="msg-media" src="' + url + '" controls preload="metadata"></video>';
