@@ -122,26 +122,27 @@ input, textarea { font-family: inherit; }
 .server-empty-actions { display: flex; gap: 12px; margin-top: 8px; flex-wrap: wrap; justify-content: center; }
 
 /* ---------- Server view ---------- */
-.server-view { flex: 1; display: flex; min-width: 0; position: relative; }
+.server-view { flex: 1; display: flex; min-width: 0; position: relative; overflow: hidden; }
 .server-view.view-in { animation: viewIn 0.26s cubic-bezier(0.16,1,0.3,1); }
-/* Server-wide visual effects (chosen in Server Settings, seen by everyone) */
+/* Server-wide visual effects (chosen in Server Settings, seen by everyone).
+   The overlay effects are painted ABOVE the opaque sidebar/chat panels
+   (z-index:3, pointer-events:none) so the theme is actually visible instead
+   of being hidden behind them. */
 .server-view.fx-glow .server-header { box-shadow: inset 0 0 0 2px var(--accent), 0 0 26px rgba(var(--accent-rgb),0.45); }
 .server-view.fx-glow .channel-sidebar { box-shadow: inset -1px 0 0 rgba(var(--accent-rgb),0.35); }
 .server-view.fx-glow .server-input-wrap { box-shadow: 0 0 0 1px rgba(var(--accent-rgb),0.4), 0 0 22px rgba(var(--accent-rgb),0.22); }
 .server-view.fx-gradient::before {
-  content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 0;
-  background: linear-gradient(135deg, rgba(var(--accent-rgb),0.16), transparent 42%, rgba(var(--accent-rgb),0.10));
+  content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 3;
+  background: linear-gradient(135deg, rgba(var(--accent-rgb),0.20), transparent 45%, rgba(var(--accent-rgb),0.14));
 }
-.server-view.fx-gradient > * { position: relative; z-index: 1; }
 .server-view.fx-aurora::before {
-  content: ''; position: absolute; inset: -30%; pointer-events: none; z-index: 0; opacity: 0.5;
+  content: ''; position: absolute; inset: -30%; pointer-events: none; z-index: 3; opacity: 0.42;
   background:
     radial-gradient(38% 42% at 18% 22%, rgba(var(--accent-rgb),0.55), transparent 70%),
     radial-gradient(34% 40% at 82% 30%, rgba(var(--accent-rgb),0.40), transparent 72%),
     radial-gradient(40% 46% at 50% 88%, rgba(var(--accent-rgb),0.45), transparent 74%);
   filter: blur(46px); animation: auroraDrift 16s ease-in-out infinite alternate;
 }
-.server-view.fx-aurora > * { position: relative; z-index: 1; }
 @keyframes auroraDrift {
   0% { transform: translate3d(-3%, -2%, 0) scale(1.02); }
   100% { transform: translate3d(3%, 2%, 0) scale(1.08); }
@@ -160,29 +161,55 @@ input, textarea { font-family: inherit; }
 }
 /* Grid: subtle accent grid overlay */
 .server-view.fx-grid::before {
-  content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 0; opacity: 0.55;
+  content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 3; opacity: 0.5;
   background-image:
     linear-gradient(rgba(var(--accent-rgb),0.10) 1px, transparent 1px),
     linear-gradient(90deg, rgba(var(--accent-rgb),0.10) 1px, transparent 1px);
   background-size: 34px 34px;
 }
-.server-view.fx-grid > * { position: relative; z-index: 1; }
 /* Spotlight: radial light from the top */
 .server-view.fx-spotlight::before {
-  content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 0;
-  background: radial-gradient(60% 55% at 50% -12%, rgba(var(--accent-rgb),0.38), transparent 70%);
+  content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 3;
+  background: radial-gradient(60% 55% at 50% -12%, rgba(var(--accent-rgb),0.42), transparent 70%);
 }
-.server-view.fx-spotlight > * { position: relative; z-index: 1; }
 /* Scanlines: retro accent scanline overlay */
 .server-view.fx-scanlines::before {
-  content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 0; opacity: 0.4;
+  content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 3; opacity: 0.35;
   background: repeating-linear-gradient(0deg, rgba(var(--accent-rgb),0.16) 0px, rgba(var(--accent-rgb),0.16) 1px, transparent 1px, transparent 4px);
 }
-.server-view.fx-scanlines > * { position: relative; z-index: 1; }
 @keyframes viewIn {
   from { opacity: 0; transform: translateX(8px); }
   to { opacity: 1; transform: translateX(0); }
 }
+/* Mirror the overlay effects inside the Server Settings live preview so the
+   chosen effect is actually visible while picking it. */
+.server-appearance-preview { position: relative; }
+.server-appearance-preview.fx-gradient::before,
+.server-appearance-preview.fx-aurora::before,
+.server-appearance-preview.fx-grid::before,
+.server-appearance-preview.fx-spotlight::before,
+.server-appearance-preview.fx-scanlines::before {
+  content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 2;
+}
+.server-appearance-preview.fx-gradient::before { background: linear-gradient(135deg, rgba(var(--accent-rgb),0.22), transparent 45%, rgba(var(--accent-rgb),0.16)); }
+.server-appearance-preview.fx-aurora::before {
+  opacity: 0.5;
+  background:
+    radial-gradient(38% 42% at 18% 22%, rgba(var(--accent-rgb),0.6), transparent 70%),
+    radial-gradient(34% 40% at 82% 30%, rgba(var(--accent-rgb),0.45), transparent 72%),
+    radial-gradient(40% 46% at 50% 88%, rgba(var(--accent-rgb),0.5), transparent 74%);
+  filter: blur(22px); animation: auroraDrift 16s ease-in-out infinite alternate;
+}
+.server-appearance-preview.fx-grid::before {
+  opacity: 0.6;
+  background-image: linear-gradient(rgba(var(--accent-rgb),0.14) 1px, transparent 1px), linear-gradient(90deg, rgba(var(--accent-rgb),0.14) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+.server-appearance-preview.fx-spotlight::before { background: radial-gradient(60% 55% at 50% -12%, rgba(var(--accent-rgb),0.5), transparent 70%); }
+.server-appearance-preview.fx-scanlines::before { opacity: 0.4; background: repeating-linear-gradient(0deg, rgba(var(--accent-rgb),0.18) 0px, rgba(var(--accent-rgb),0.18) 1px, transparent 1px, transparent 4px); }
+.server-appearance-preview.fx-glow { box-shadow: 0 0 0 1px rgba(var(--accent-rgb),0.5), 0 0 22px rgba(var(--accent-rgb),0.35); }
+.server-appearance-preview.fx-neon { box-shadow: 0 0 0 2px var(--accent), 0 0 20px rgba(var(--accent-rgb),0.55); }
+.server-appearance-preview.fx-pulse { animation: fxPulse 2.6s ease-in-out infinite; }
 
 /* Channel sidebar */
 .channel-sidebar {
@@ -241,11 +268,17 @@ input, textarea { font-family: inherit; }
 .server-user-footer .sf-avatar {
   width: 32px; height: 32px; border-radius: 50%; background: var(--accent); display: flex;
   align-items: center; justify-content: center; font-weight: 700; font-size: 13px; overflow: hidden; flex-shrink: 0;
+  position: relative;
 }
 .server-user-footer .sf-avatar img { width: 100%; height: 100%; object-fit: cover; }
-.server-user-footer .sf-info { flex: 1; min-width: 0; }
+.server-user-footer .sf-status {
+  position: absolute; bottom: 0; right: 0; width: 11px; height: 11px; border-radius: 50%;
+  border: 2.5px solid var(--bg-darker); background: var(--offline); box-shadow: 0 0 0 1px rgba(0,0,0,0.35);
+}
+.server-user-footer .sf-info { flex: 1; min-width: 0; cursor: pointer; border-radius: 6px; padding: 3px 6px; margin: -3px -6px; transition: background var(--transition); }
+.server-user-footer .sf-info:hover { background: var(--bg-medium); }
 .server-user-footer .sf-name { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.server-user-footer .sf-sub { font-size: 11px; color: var(--text-muted); }
+.server-user-footer .sf-sub { font-size: 11px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .server-user-footer button { color: var(--text-muted); padding: 4px; border-radius: 4px; }
 .server-user-footer button:hover { color: var(--text-primary); background: var(--bg-medium); }
 .server-user-footer button svg { width: 18px; height: 18px; }
@@ -327,6 +360,12 @@ input, textarea { font-family: inherit; }
   width: 7px; height: 7px; border-radius: 50%; background: #f0a92e; flex-shrink: 0;
   box-shadow: 0 0 0 0 rgba(240,169,46,0.6); animation: suPulse 1.6s infinite;
 }
+.settings-unsaved .su-save {
+  flex-shrink: 0; font-size: 11.5px; font-weight: 800; color: #33230a;
+  background: linear-gradient(180deg, #ffc266, #f0a92e); border-radius: 7px; padding: 6px 12px;
+  transition: filter var(--transition);
+}
+.settings-unsaved .su-save:hover { filter: brightness(1.08); }
 @keyframes unsavedIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes suPulse { 0% { box-shadow: 0 0 0 0 rgba(240,169,46,0.55); } 70% { box-shadow: 0 0 0 7px rgba(240,169,46,0); } 100% { box-shadow: 0 0 0 0 rgba(240,169,46,0); } }
 .danger-zone { border: 1px solid rgba(227,93,93,0.4); border-radius: var(--radius); overflow: hidden; background: rgba(227,93,93,0.05); }
@@ -364,7 +403,7 @@ input, textarea { font-family: inherit; }
 .member-item:hover { background: var(--bg-medium); }
 .member-item .mi-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; overflow: hidden; position: relative; flex-shrink: 0; }
 .member-item .mi-avatar img { width: 100%; height: 100%; object-fit: cover; }
-.member-item .mi-status { position: absolute; bottom: -1px; right: -1px; width: 11px; height: 11px; border-radius: 50%; border: 2px solid var(--bg-dark); }
+.member-item .mi-status { position: absolute; bottom: 0; right: 0; width: 12px; height: 12px; border-radius: 50%; border: 2.5px solid var(--bg-dark); box-shadow: 0 0 0 1px rgba(0,0,0,0.35); }
 .member-item .mi-info { flex: 1; min-width: 0; }
 .member-item .mi-name { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .member-item .mi-roles { display: flex; gap: 3px; margin-top: 1px; flex-wrap: wrap; }
@@ -447,6 +486,11 @@ input, textarea { font-family: inherit; }
 .psr-item label .ui-ic { color: var(--accent-light); }
 .psr-item input[type=range] { flex: 1; min-width: 80px; accent-color: var(--accent); cursor: pointer; }
 .psr-val { font-size: 12px; font-weight: 700; color: var(--text-primary); min-width: 42px; text-align: right; font-variant-numeric: tabular-nums; }
+/* Server Settings: icon/banner scale rows */
+.scale-row { display: flex; align-items: center; gap: 10px; background: var(--bg-dark); border: 1px solid var(--border); border-radius: 10px; padding: 9px 12px; margin-bottom: 8px; }
+.scale-row label { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: var(--text-secondary); white-space: nowrap; min-width: 62px; }
+.scale-row label .ui-ic { color: var(--accent-light); }
+.scale-row input[type=range] { flex: 1; min-width: 80px; accent-color: var(--accent); cursor: pointer; }
 /* Scale dialog preview */
 .scale-preview { margin-top: 14px; border: 1px solid var(--border-light); border-radius: 10px; overflow: hidden; background: var(--bg-darkest); }
 .scale-preview .sp-banner { height: 120px; background-size: cover; background-position: center top; background-repeat: no-repeat; position: relative; overflow: hidden; }
@@ -498,18 +542,44 @@ input, textarea { font-family: inherit; }
 .invite-embed-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); }
 .invite-embed-name { font-size: 15px; font-weight: 700; margin: 2px 0; }
 .invite-embed-meta { font-size: 12px; color: var(--text-secondary); }
+.invite-embed-bio { font-size: 12px; color: var(--text-muted); margin-top: 6px; line-height: 1.45; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.invite-embed-slot { display: block; }
 .invite-embed-join { margin-top: 8px; }
 
 /* Toast */
-#toast-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 2000; display: flex; flex-direction: column; gap: 8px; align-items: center; }
+#toast-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 2000; display: flex; flex-direction: column; gap: 10px; align-items: center; pointer-events: none; }
 .toast {
-  background: var(--bg-light); border: 1px solid var(--border-light); border-radius: var(--radius);
-  padding: 12px 20px; font-size: 14px; box-shadow: var(--shadow); animation: toastIn 0.25s ease;
-  max-width: 90vw;
+  position: relative; display: flex; align-items: flex-start; gap: 11px;
+  background: linear-gradient(180deg, var(--bg-light), var(--bg-medium));
+  border: 1px solid var(--border-light); border-radius: 12px;
+  padding: 13px 16px 13px 14px; font-size: 13.5px; box-shadow: 0 10px 34px rgba(0,0,0,0.45);
+  animation: toastIn 0.32s cubic-bezier(0.16,1,0.3,1); max-width: min(420px, 92vw);
+  pointer-events: auto; overflow: hidden;
 }
-.toast.success { border-color: var(--success); }
-.toast.error { border-color: var(--danger); }
-@keyframes toastIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+.toast.toast-out { animation: toastOut 0.28s ease forwards; }
+@keyframes toastOut { to { opacity: 0; transform: translateY(-10px) scale(0.97); } }
+.toast .toast-ic { width: 30px; height: 30px; border-radius: 9px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: rgba(var(--accent-rgb),0.16); color: var(--accent-light); }
+.toast .toast-ic .ui-ic { width: 17px; height: 17px; }
+.toast .toast-content { flex: 1; min-width: 0; }
+.toast .toast-title { font-weight: 800; font-size: 13px; margin-bottom: 1px; }
+.toast .toast-msg { color: var(--text-secondary); line-height: 1.45; word-break: break-word; }
+.toast .toast-close { flex-shrink: 0; color: var(--text-muted); padding: 2px; border-radius: 6px; line-height: 0; }
+.toast .toast-close:hover { color: var(--text-primary); background: var(--bg-hover); }
+.toast .toast-close svg { width: 15px; height: 15px; }
+.toast .toast-bar { position: absolute; left: 0; bottom: 0; height: 3px; width: 100%; background: var(--accent); transform-origin: left; animation: toastBar linear forwards; }
+@keyframes toastBar { from { transform: scaleX(1); } to { transform: scaleX(0); } }
+.toast.success { border-color: rgba(47,164,87,0.6); }
+.toast.success .toast-ic { background: rgba(47,164,87,0.18); color: #4fd07f; }
+.toast.success .toast-bar { background: #2fa457; }
+.toast.error { border-color: rgba(227,93,93,0.6); }
+.toast.error .toast-ic { background: rgba(227,93,93,0.18); color: #ff8a8a; }
+.toast.error .toast-bar { background: #e35d5d; }
+.toast.info .toast-ic { background: rgba(74,158,255,0.18); color: #6fb5ff; }
+.toast.info .toast-bar { background: #4a9eff; }
+.toast.warn { border-color: rgba(240,169,46,0.6); }
+.toast.warn .toast-ic { background: rgba(240,169,46,0.18); color: #ffc266; }
+.toast.warn .toast-bar { background: #f0a92e; }
+@keyframes toastIn { from { opacity: 0; transform: translateY(-14px) scale(0.96); } to { opacity: 1; transform: translateY(0) scale(1); } }
 
 /* Member profile modal */
 /* ---------- Member profile (mirrors the main chat's profile view) ---------- */
@@ -574,14 +644,47 @@ input, textarea { font-family: inherit; }
   .member-sidebar { display: none; }
   .member-sidebar.mobile-show { display: block; position: fixed; right: 0; top: 0; bottom: 0; z-index: 500; width: 260px; }
   .channel-sidebar { width: 200px; }
+  .settings-grid { grid-template-columns: 1fr; }
 }
 @media (max-width: 640px) {
   .server-rail { width: 60px; }
   .rail-btn { width: 42px; height: 42px; }
-  .channel-sidebar { position: fixed; left: 60px; top: 0; bottom: 0; z-index: 400; transform: translateX(-110%); transition: transform var(--transition); }
+  .channel-sidebar { position: fixed; left: 60px; top: 0; bottom: 0; z-index: 400; transform: translateX(-110%); transition: transform var(--transition); width: min(78vw, 280px); box-shadow: 0 0 40px rgba(0,0,0,0.5); }
   .channel-sidebar.mobile-show { transform: translateX(0); }
   .mobile-only { display: inline-flex; }
   .server-chat-header .sch-topic { display: none; }
+  /* Tighter chrome so content fits small screens */
+  .server-header { height: 52px; padding: 0 12px; }
+  .server-header-icon { width: 30px; height: 30px; }
+  .server-messages { padding: 12px 10px; }
+  .server-input-area { padding: 10px; }
+  .msg-group { gap: 8px; }
+  .msg-avatar { width: 34px; height: 34px; }
+  .invite-embed { max-width: 100%; }
+  .modal { width: calc(100vw - 20px) !important; max-width: 100% !important; max-height: 92vh; }
+  .modal.wide { width: calc(100vw - 20px) !important; }
+  .modal-body { padding: 16px; }
+  .settings-grid { grid-template-columns: 1fr; }
+  .settings-full { padding: 0; }
+  .msp-hero-banner { height: 120px; }
+  .msp-hero-avatar { width: 78px; height: 78px; left: 18px; top: 82px; font-size: 24px; }
+  .msp-hero-name { padding: 52px 18px 16px; }
+  .msp-pane .field-row { grid-template-columns: 1fr; gap: 0; }
+  #toast-container { top: 12px; width: calc(100vw - 20px); }
+  .toast { max-width: 100%; }
+  .scale-row { flex-wrap: wrap; }
+  .scale-row input[type=range] { min-width: 100%; order: 3; }
+  .profile-banner { height: 120px; }
+  .profile-icon { width: 76px; height: 76px; font-size: 26px; bottom: -38px; }
+  .profile-editor { margin-bottom: 36px; }
+}
+@media (max-width: 420px) {
+  .server-rail { width: 54px; }
+  .rail-btn { width: 38px; height: 38px; }
+  .channel-sidebar { left: 54px; }
+  .msg-avatar { width: 30px; height: 30px; }
+  .server-chat-header { padding: 0 10px; }
+  .sch-name { font-size: 14px; }
 }
 
 /* ============================================================
@@ -641,7 +744,7 @@ input, textarea { font-family: inherit; }
 .server-header {
   height: 168px; min-height: 168px; flex-wrap: nowrap; padding: 14px 14px 0;
   position: relative; overflow: hidden; align-items: flex-start;
-  margin-right: 14px; border-radius: 0 0 10px 0;
+  margin: 0; border-radius: 0;
   background-size: cover; background-position: center top; background-repeat: no-repeat;
 }
 .server-header::after {
@@ -936,6 +1039,23 @@ input, textarea { font-family: inherit; }
 .rail-menu button.danger { color: #ff8a8a; }
 .rail-menu button.danger:hover { background: rgba(227,93,93,0.14); }
 .rail-menu .rm-id { font-family: ui-monospace, monospace; font-size: 12px; color: var(--text-muted); padding: 4px 10px 8px; letter-spacing: 1px; }
+
+/* ---- Status picker menu (bottom-left footer) ---- */
+.status-menu { position: fixed; z-index: 1300; min-width: 200px; background: var(--bg-dark); border: 1px solid var(--border-light); border-radius: 12px; box-shadow: 0 18px 44px rgba(0,0,0,0.55); padding: 6px; animation: scaleIn 0.14s ease; }
+.status-menu .sm-head { padding: 8px 10px 6px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); }
+.status-menu button { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; padding: 9px 10px; border-radius: 8px; font-size: 13.5px; color: var(--text-secondary); }
+.status-menu button:hover { background: var(--bg-medium); color: var(--text-primary); }
+.status-menu .sm-dot { width: 11px; height: 11px; border-radius: 50%; flex-shrink: 0; }
+.status-menu .sm-check { margin-left: auto; color: var(--accent-light); display: inline-flex; }
+
+/* ---- Channel right-click context menu ---- */
+.ctx-menu { position: fixed; z-index: 1300; min-width: 190px; background: var(--bg-dark); border: 1px solid var(--border-light); border-radius: 12px; box-shadow: 0 18px 44px rgba(0,0,0,0.55); padding: 6px; animation: scaleIn 0.14s ease; }
+.ctx-menu .cm-head { padding: 8px 10px 6px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); display: flex; align-items: center; gap: 6px; }
+.ctx-menu button { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; padding: 9px 10px; border-radius: 8px; font-size: 13.5px; color: var(--text-secondary); }
+.ctx-menu button:hover { background: var(--bg-medium); color: var(--text-primary); }
+.ctx-menu button.danger { color: #ff8a8a; }
+.ctx-menu button.danger:hover { background: rgba(227,93,93,0.14); }
+.ctx-menu .cm-sep { height: 1px; background: var(--border); margin: 5px 6px; }
 </style>
 <script src="https://sites.super.myninja.ai/_assets/ninja-daytona-script.js"></script>
 <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
@@ -993,8 +1113,8 @@ input, textarea { font-family: inherit; }
         </div>
         <div class="channel-list" id="channel-list"></div>
         <div class="server-user-footer">
-          <div class="sf-avatar" id="sf-avatar">U</div>
-          <div class="sf-info">
+          <div class="sf-avatar" id="sf-avatar">U<span class="sf-status" id="sf-status-dot"></span></div>
+          <div class="sf-info" id="sf-info" title="Click to change your status">
             <div class="sf-name" id="sf-name">@you</div>
             <div class="sf-sub" id="sf-sub">Online</div>
           </div>
@@ -1127,6 +1247,22 @@ input, textarea { font-family: inherit; }
       <div class="field"><label>About this server</label><textarea id="set-bio" maxlength="500" placeholder="Tell people about your server…"></textarea></div>
       <div class="field"><label>Member count</label><div id="set-member-count" style="font-size:14px;color:var(--text-secondary);">0 members</div></div>
       <div class="field"><label>Server ID</label><div class="server-id-chip"><span id="set-server-id">—</span><button id="set-copy-id" title="Copy server ID"><svg class="ui-ic sm" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button></div></div>
+      <div class="settings-card">
+        <div class="sc-title"><svg class="ui-ic" viewBox="0 0 24 24"><path d="M15 3h6v6"/><path d="M9 21H3v-6"/><path d="M21 3l-7 7"/><path d="M3 21l7-7"/></svg> Icon &amp; Banner Scale</div>
+        <div class="sc-desc">Fine-tune how large your server icon and banner appear to everyone. 100% is the default size.</div>
+        <div class="scale-row">
+          <label><svg class="ui-ic sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg> Icon</label>
+          <input type="range" id="set-icon-scale" min="100" max="220" step="5" value="100">
+          <span class="psr-val" id="set-icon-scale-val">100%</span>
+        </div>
+        <div class="scale-row">
+          <label><svg class="ui-ic sm" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 15l5-5 4 4 3-3 6 6"/></svg> Banner</label>
+          <input type="range" id="set-banner-scale" min="100" max="220" step="5" value="100">
+          <span class="psr-val" id="set-banner-scale-val">100%</span>
+        </div>
+        <div class="scale-preview" id="set-scale-preview"></div>
+        <button class="btn btn-ghost" id="set-scale-reset" style="width:100%;font-size:12.5px;margin-top:10px;">Reset scale to 100%</button>
+      </div>
       </div>
       <div class="settings-col">
       <div class="settings-section-head"><svg class="ui-ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg> Server Preferences</div>
@@ -1251,6 +1387,7 @@ input, textarea { font-family: inherit; }
       <div id="settings-unsaved" class="settings-unsaved" style="display:none;">
         <span class="su-ic"><svg class="ui-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
         <span class="su-text"><span class="su-title">Unsaved changes</span><span class="su-sub">Click <b>Save Changes</b> to apply them.</span></span>
+        <button class="su-save" id="settings-unsaved-save">Save now</button>
         <span class="su-dot"></span>
       </div>
       <button class="btn btn-ghost" data-close="settings-modal">Close</button>
@@ -1294,6 +1431,7 @@ input, textarea { font-family: inherit; }
       </div>
     </div>
     <div class="modal-footer">
+      <button class="btn btn-danger" id="channel-delete" style="display:none;margin-right:auto;">Delete Channel</button>
       <button class="btn btn-ghost" data-close="channel-modal">Cancel</button>
       <button class="btn btn-primary" id="channel-save">Save</button>
     </div>
@@ -1509,6 +1647,8 @@ function settingsSnapshot() {
     discoverable: $('set-discoverable') ? $('set-discoverable').checked : false,
     accentColor: setAccentColor,
     effect: effectBtn ? effectBtn.dataset.effect : 'none',
+    iconScale: $('set-icon-scale') ? Number($('set-icon-scale').value) : 100,
+    bannerScale: $('set-banner-scale') ? Number($('set-banner-scale').value) : 100,
   });
 }
 function markSettingsDirty() {
@@ -1553,7 +1693,10 @@ const ICONS = {
   link: '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>',
   help: '<circle cx="12" cy="12" r="9"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>',
   at: '<circle cx="12" cy="12" r="4"/><path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-3.9 7.9"/>',
-  key: '<circle cx="7.5" cy="15.5" r="4.5"/><path d="M10.7 12.3L21 2"/><path d="M17 6l3 3"/><path d="M14 9l3 3"/>'
+  key: '<circle cx="7.5" cy="15.5" r="4.5"/><path d="M10.7 12.3L21 2"/><path d="M17 6l3 3"/><path d="M14 9l3 3"/>',
+  alert: '<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>',
+  x: '<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>',
+  image: '<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>'
 };
 function icon(name, cls) {
   const p = ICONS[name] || '';
@@ -1573,27 +1716,45 @@ function getInitials(name) {
 }
 function toast(msg, type) {
   const c = $('toast-container');
+  if (!c) return;
   const el = document.createElement('div');
-  el.className = 'toast ' + (type || '');
-  el.textContent = msg;
+  el.className = 'toast ' + (type || 'info');
+  const icons = { success: 'check', error: 'alert', warn: 'alert', info: 'bell' };
+  const titles = { success: 'Success', error: 'Something went wrong', warn: 'Heads up', info: 'Notice' };
+  const t = type || 'info';
+  const dur = t === 'error' ? 5200 : 3600;
+  el.innerHTML =
+    '<span class="toast-ic">' + icon(icons[t] || 'bell', 'sm') + '</span>' +
+    '<div class="toast-content"><div class="toast-title">' + (titles[t] || 'Notice') + '</div><div class="toast-msg">' + escapeHtml(msg) + '</div></div>' +
+    '<button class="toast-close" aria-label="Dismiss">' + icon('x', 'sm') + '</button>' +
+    '<span class="toast-bar" style="animation-duration:' + dur + 'ms;"></span>';
+  const dismiss = () => { el.classList.add('toast-out'); setTimeout(() => el.remove(), 280); };
+  el.querySelector('.toast-close').addEventListener('click', dismiss);
   c.appendChild(el);
-  setTimeout(() => { el.style.opacity = '0'; el.style.transition = 'opacity 0.3s'; setTimeout(() => el.remove(), 300); }, 3200);
+  setTimeout(dismiss, dur);
 }
 function showPingToast(data) {
   const c = $('toast-container');
+  if (!c) return;
   const el = document.createElement('div');
   el.className = 'toast mention-toast';
   const who = escapeHtml(data.displayName || data.from);
   const where = escapeHtml(data.channelName || 'a channel');
   const tag = data.type === 'here' ? '@here' : '@everyone';
-  el.innerHTML = '<div class="mt-head">' + icon('at', 'sm') + ' ' + who + ' pinged <b>' + tag + '</b></div>' +
-    '<div class="mt-body">in #' + where + (data.text ? ' \u2014 ' + escapeHtml(data.text) : '') + '</div>';
+  el.innerHTML =
+    '<span class="toast-ic" style="background:rgba(227,93,93,0.18);color:#ff8a8a;">' + icon('at', 'sm') + '</span>' +
+    '<div class="toast-content"><div class="toast-title" style="color:#ff8a8a;">' + who + ' pinged <b>' + tag + '</b></div>' +
+    '<div class="toast-msg">in #' + where + (data.text ? ' \u2014 ' + escapeHtml(data.text) : '') + '</div></div>' +
+    '<button class="toast-close" aria-label="Dismiss">' + icon('x', 'sm') + '</button>' +
+    '<span class="toast-bar" style="background:#e35d5d;animation-duration:6500ms;"></span>';
+  const dismiss = () => { el.classList.add('toast-out'); setTimeout(() => el.remove(), 280); };
+  el.querySelector('.toast-close').addEventListener('click', (e) => { e.stopPropagation(); dismiss(); });
   el.addEventListener('click', () => {
     if (data.serverId === activeServerId) openChannel(data.channelId);
-    el.remove();
+    dismiss();
   });
   c.appendChild(el);
-  setTimeout(() => { el.style.opacity = '0'; el.style.transition = 'opacity 0.3s'; setTimeout(() => el.remove(), 300); }, 6000);
+  setTimeout(dismiss, 6500);
 }
 function timeAgo(iso) {
   const d = new Date(iso);
@@ -2004,11 +2165,62 @@ function showEmpty() {
 }
 function renderSelfFooter() {
   const av = $('sf-avatar');
-  if (currentUser.avatar) av.innerHTML = '<img src="' + escapeAttr(currentUser.avatar) + '">';
-  else av.textContent = getInitials(currentUser.displayName || currentUser.username);
+  if (currentUser.avatar) av.innerHTML = '<img src="' + escapeAttr(currentUser.avatar) + '"><span class="sf-status" id="sf-status-dot"></span>';
+  else av.innerHTML = escapeHtml(getInitials(currentUser.displayName || currentUser.username)) + '<span class="sf-status" id="sf-status-dot"></span>';
   $('sf-name').textContent = currentUser.displayName || ('@' + currentUser.username);
-  $('sf-sub').textContent = 'Online';
+  // Show the user's ACTUAL presence (online / idle / dnd / offline / streaming),
+  // never a hardcoded "Online".
+  const st = currentUser.status || 'online';
+  const dot = $('sf-status-dot');
+  if (dot) dot.style.background = statusColorFor(st);
+  const sub = $('sf-sub');
+  let label = getStatusText(st);
+  if (st !== 'offline' && currentUser.statusMessage) label = currentUser.statusMessage;
+  sub.textContent = label;
+  sub.style.color = st === 'offline' ? 'var(--text-muted)' : statusColorFor(st);
 }
+function statusColorFor(st) {
+  return st === 'online' ? 'var(--online)' : st === 'idle' ? 'var(--idle)' : st === 'dnd' ? 'var(--dnd)' : st === 'streaming' ? '#9146ff' : 'var(--offline)';
+}
+// Status picker (click your name in the bottom-left footer).
+function openStatusMenu() {
+  closeStatusMenu();
+  const info = $('sf-info');
+  if (!info) return;
+  const rect = info.getBoundingClientRect();
+  const options = [
+    { s: 'online', label: 'Online' },
+    { s: 'idle', label: 'Idle' },
+    { s: 'dnd', label: 'Do Not Disturb' },
+    { s: 'offline', label: 'Invisible' },
+  ];
+  const menu = document.createElement('div');
+  menu.className = 'status-menu';
+  menu.id = 'status-menu';
+  menu.innerHTML = '<div class="sm-head">Set Status</div>' + options.map(o =>
+    '<button data-status="' + o.s + '"><span class="sm-dot" style="background:' + statusColorFor(o.s) + ';"></span>' + o.label +
+    (currentUser.status === o.s ? '<span class="sm-check">' + icon('check', 'sm') + '</span>' : '') + '</button>'
+  ).join('');
+  document.body.appendChild(menu);
+  const mw = menu.offsetWidth, mh = menu.offsetHeight;
+  let left = rect.left;
+  let top = rect.top - mh - 8;
+  if (top < 8) top = rect.bottom + 8;
+  if (left + mw > window.innerWidth - 8) left = window.innerWidth - mw - 8;
+  if (left < 8) left = 8;
+  menu.style.left = left + 'px';
+  menu.style.top = top + 'px';
+  menu.querySelectorAll('[data-status]').forEach(b => b.addEventListener('click', () => {
+    const s = b.dataset.status;
+    currentUser.status = s;
+    if (socket) socket.emit('set-status', s);
+    renderSelfFooter();
+    closeStatusMenu();
+    toast('Status set to ' + getStatusText(s), 'success');
+  }));
+  setTimeout(() => document.addEventListener('click', closeStatusMenu, { once: true }), 0);
+}
+function closeStatusMenu() { const m = $('status-menu'); if (m) m.remove(); }
 
 /* ============================================================
    Open a server
@@ -2129,10 +2341,68 @@ function renderChannels() {
       if (e.target.closest('.ch-edit')) { e.stopPropagation(); openChannelEditor(c); return; }
       openChannel(c.id);
     });
+    if (canManage) {
+      el.addEventListener('contextmenu', (e) => {
+        e.preventDefault(); e.stopPropagation();
+        openChannelContextMenu(c, e.clientX, e.clientY);
+      });
+    }
     wrap.appendChild(el);
   });
   const addBtn = $('ch-add-inline');
   if (addBtn) addBtn.addEventListener('click', () => openChannelEditor(null));
+}
+// Right-click context menu for a channel (owners / managers only).
+function openChannelContextMenu(c, x, y) {
+  closeChannelContextMenu();
+  const menu = document.createElement('div');
+  menu.className = 'ctx-menu';
+  menu.id = 'channel-ctx-menu';
+  menu.innerHTML =
+    '<div class="cm-head">' + icon('tag', 'sm') + '#' + escapeHtml(c.name) + '</div>' +
+    '<button data-act="edit">' + icon('edit', 'sm') + 'Edit Channel</button>' +
+    '<button data-act="copy">' + icon('link', 'sm') + 'Copy Channel Link</button>' +
+    '<div class="cm-sep"></div>' +
+    '<button data-act="delete" class="danger">' + icon('trash', 'sm') + 'Delete Channel</button>';
+  document.body.appendChild(menu);
+  const mw = menu.offsetWidth, mh = menu.offsetHeight;
+  let left = x, top = y;
+  if (left + mw > window.innerWidth - 8) left = window.innerWidth - mw - 8;
+  if (top + mh > window.innerHeight - 8) top = window.innerHeight - mh - 8;
+  if (left < 8) left = 8;
+  if (top < 8) top = 8;
+  menu.style.left = left + 'px';
+  menu.style.top = top + 'px';
+  menu.querySelectorAll('[data-act]').forEach(b => b.addEventListener('click', () => {
+    const act = b.dataset.act;
+    closeChannelContextMenu();
+    if (act === 'edit') openChannelEditor(c);
+    else if (act === 'copy') { copyText(window.location.origin + '/servers.html?server=' + activeServerId + '&channel=' + c.id); toast('Channel link copied', 'success'); }
+    else if (act === 'delete') confirmDeleteChannel(c);
+  }));
+  setTimeout(() => document.addEventListener('click', closeChannelContextMenu, { once: true }), 0);
+  setTimeout(() => document.addEventListener('contextmenu', closeChannelContextMenu, { once: true }), 0);
+}
+function closeChannelContextMenu() { const m = $('channel-ctx-menu'); if (m) m.remove(); }
+// Rich confirmation UI for deleting a channel (replaces the native confirm()).
+function confirmDeleteChannel(c) {
+  askConfirm({
+    iconSvg: icon('trash', 'xl'),
+    title: 'Delete #' + c.name + '?',
+    text: 'This will permanently delete the channel <b>#' + escapeHtml(c.name) + '</b> and <b>all of its messages</b>. This action cannot be undone.',
+    okText: 'Delete Channel',
+    danger: true,
+  }).then(async (ok) => {
+    if (!ok) return;
+    try {
+      const d = await api('/api/servers/' + activeServerId + '/channels/' + c.id, { method: 'DELETE' });
+      activeServer = d.server;
+      if (activeChannelId === c.id) { activeChannelId = null; serverMessages = []; $('server-messages').innerHTML = ''; }
+      renderServerView(); renderSettingsChannels();
+      if (!activeChannelId && (activeServer.channels || []).length) openChannel(activeServer.channels[0].id);
+      toast('Channel deleted', 'success');
+    } catch(e) { toast(e.message, 'error'); }
+  });
 }
 function hasPerm(perm) {
   if (!activeServer) return false;
@@ -2340,6 +2610,7 @@ function appendMessage(m, silent) {
 
   g.appendChild(av); g.appendChild(body); g.appendChild(actions);
   c.appendChild(g);
+  hydrateInviteEmbeds(body);
   if (!silent) scrollBottom();
 }
 function renderFile(f) {
@@ -2358,7 +2629,64 @@ function linkify(html) {
   return html.replace(/(https?:\/\/[^\s<]+)/g, (u) => {
     const clean = u.replace(/[.,;:!?)]+$/, '');
     const trail = u.slice(clean.length);
+    // Server invite links get a rich embed card instead of a plain link.
+    const code = inviteCodeFromUrl(clean);
+    if (code) {
+      return '<span class="invite-embed-slot" data-invite="' + escapeAttr(code) + '"></span>' + trail;
+    }
     return '<a href="' + escapeAttr(clean) + '" target="_blank" rel="noopener noreferrer">' + escapeHtml(clean) + '</a>' + trail;
+  });
+}
+// Extract an invite code from a hellobye invite URL (or a bare /invite/CODE path).
+function inviteCodeFromUrl(url) {
+  try {
+    const m = String(url).match(/[?&]invite=([a-z0-9]+)/i) || String(url).match(/\/invite\/([a-z0-9]+)/i);
+    return m ? m[1] : null;
+  } catch (e) { return null; }
+}
+// Hydrate any invite-embed placeholders inside a container by fetching the
+// public invite preview and rendering a rich card (icon, name, members,
+// channels, bio, join button).
+const _inviteEmbedCache = {};
+function hydrateInviteEmbeds(container) {
+  if (!container) return;
+  container.querySelectorAll('.invite-embed-slot').forEach(async (slot) => {
+    const code = slot.dataset.invite;
+    if (!code || slot.dataset.hydrated) return;
+    slot.dataset.hydrated = '1';
+    try {
+      let inv = _inviteEmbedCache[code];
+      if (!inv) {
+        const d = await api('/api/server-invite/' + encodeURIComponent(code));
+        inv = d.invite; _inviteEmbedCache[code] = inv;
+      }
+      const already = servers.some(s => s.id === inv.serverId);
+      const expires = inv.expiresAt ? 'Expires ' + timeAgo(new Date(inv.expiresAt).toISOString()) : 'Never expires';
+      const card = document.createElement('div');
+      card.className = 'invite-embed';
+      card.innerHTML =
+        '<div class="invite-embed-icon">' + (inv.icon ? '<img src="' + escapeAttr(inv.icon) + '">' : escapeHtml(getInitials(inv.name))) + '</div>' +
+        '<div class="invite-embed-body">' +
+          '<div class="invite-embed-label">You\u2019ve been invited to join a server</div>' +
+          '<div class="invite-embed-name">' + escapeHtml(inv.name) + '</div>' +
+          '<div class="invite-embed-meta">' + inv.memberCount + ' member' + (inv.memberCount === 1 ? '' : 's') + ' \u00b7 ' + inv.channelCount + ' channel' + (inv.channelCount === 1 ? '' : 's') + ' \u00b7 ' + escapeHtml(expires) + '</div>' +
+          (inv.bio ? '<div class="invite-embed-bio">' + escapeHtml(inv.bio) + '</div>' : '') +
+          '<div class="invite-embed-join"><button class="btn btn-primary" style="padding:7px 16px;font-size:12.5px;">' + (already ? 'Open Server' : 'Join Server') + '</button></div>' +
+        '</div>';
+      const btn = card.querySelector('button');
+      btn.addEventListener('click', async () => {
+        if (already) { openServer(inv.serverId); return; }
+        try {
+          const r = await api('/api/servers/join', { method: 'POST', body: { code } });
+          if (!servers.some(s => s.id === r.server.id)) servers.push(r.server);
+          renderRail(); toast('Joined ' + r.server.name + '!', 'success'); openServer(r.server.id);
+        } catch (e) { toast(e.message, 'error'); }
+      });
+      slot.replaceWith(card);
+    } catch (e) {
+      // Invalid/expired invite \u2014 fall back to a plain link.
+      slot.replaceWith(document.createTextNode(''));
+    }
   });
 }
 function scrollBottom() { const c = $('server-messages'); c.scrollTop = c.scrollHeight; }
@@ -2511,8 +2839,14 @@ document.querySelectorAll('.modal-overlay').forEach(o => o.addEventListener('cli
 // Closing Server Settings with unsaved changes prompts the user to save first.
 function requestCloseModal(id) {
   if (id === 'settings-modal' && typeof settingsDirty !== 'undefined' && settingsDirty) {
-    if (!confirm('You have unsaved changes in Server Settings. Leave without saving?')) return;
-    clearSettingsDirty();
+    askConfirm({
+      iconSvg: icon('help', 'xl'),
+      title: 'Discard unsaved changes?',
+      text: 'You have <b>unsaved changes</b> in Server Settings. If you leave now, they will be lost.',
+      okText: 'Discard & Close',
+      danger: true,
+    }).then(ok => { if (ok) { clearSettingsDirty(); closeModal(id); } });
+    return;
   }
   closeModal(id);
 }
@@ -2621,6 +2955,38 @@ function updateAppearancePreview() {
   pv.classList.remove(...FX_CLASSES);
   if (setEffect && setEffect !== 'none') pv.classList.add('fx-' + setEffect);
 }
+// Live preview of the icon + banner scale inside Server Settings.
+function renderSettingsScalePreview() {
+  const el = $('set-scale-preview');
+  if (!el || !activeServer) return;
+  const bannerUrl = activeServer.banner || '';
+  const iconUrl = activeServer.icon || '';
+  el.innerHTML =
+    '<div class="sp-banner" style="' + (bannerUrl ? '' : 'background:linear-gradient(135deg,#6366f1,#4f46e5);') + '">' +
+      (bannerUrl ? '<div class="sp-banner-img" id="set-sp-banner-img" style="background-image:url(' + escapeAttr(bannerUrl) + ')"></div>' : '') +
+      '<div class="sp-icon" id="set-sp-icon">' + (iconUrl ? '<img src="' + escapeAttr(iconUrl) + '">' : escapeHtml(getInitials(activeServer.name))) + '</div>' +
+    '</div><div class="sp-body"></div>';
+  applySettingsScalePreview();
+}
+function applySettingsScalePreview() {
+  const iScale = Number($('set-icon-scale').value) || 100;
+  const bScale = Number($('set-banner-scale').value) || 100;
+  const bi = $('set-sp-banner-img'); if (bi) bi.style.transform = bScale !== 100 ? 'scale(' + (bScale / 100) + ')' : '';
+  const ic = $('set-sp-icon'); if (ic) ic.style.transform = iScale !== 100 ? 'scale(' + (iScale / 100) + ')' : '';
+}
+$('set-icon-scale').addEventListener('input', () => {
+  $('set-icon-scale-val').textContent = $('set-icon-scale').value + '%';
+  applySettingsScalePreview();
+});
+$('set-banner-scale').addEventListener('input', () => {
+  $('set-banner-scale-val').textContent = $('set-banner-scale').value + '%';
+  applySettingsScalePreview();
+});
+$('set-scale-reset').addEventListener('click', () => {
+  $('set-icon-scale').value = '100'; $('set-icon-scale-val').textContent = '100%';
+  $('set-banner-scale').value = '100'; $('set-banner-scale-val').textContent = '100%';
+  applySettingsScalePreview();
+});
 function openSettings() {
   if (!activeServer) return;
   if (!(activeServer.isOwner || hasPerm('manageServer') || hasPerm('manageChannels') || hasPerm('manageRoles'))) {
@@ -2650,6 +3016,14 @@ function openSettings() {
   setEffect = eff;
   $('set-effect-seg').querySelectorAll('button').forEach(b => b.classList.toggle('selected', b.dataset.effect === eff));
   updateAppearancePreview();
+  // Icon & banner scale controls
+  const iScale = activeServer.iconScale || 100;
+  const bScale = activeServer.bannerScale || 100;
+  $('set-icon-scale').value = String(iScale);
+  $('set-icon-scale-val').textContent = iScale + '%';
+  $('set-banner-scale').value = String(bScale);
+  $('set-banner-scale-val').textContent = bScale + '%';
+  renderSettingsScalePreview();
   renderSettingsChannels();
   renderSettingsRoles();
   renderActiveInvites();
@@ -2672,10 +3046,9 @@ function renderSettingsChannels() {
     (canManage ? '<div class="lr-actions"><button data-edit-ch="' + escapeAttr(c.id) + '" title="Edit">' + icon('edit','sm') + '</button><button data-del-ch="' + escapeAttr(c.id) + '" title="Delete">' + icon('trash','sm') + '</button></div>' : '') + '</div>';
   }).join('');
   wrap.querySelectorAll('[data-edit-ch]').forEach(b => b.addEventListener('click', () => openChannelEditor((activeServer.channels||[]).find(c=>c.id===b.dataset.editCh))));
-  wrap.querySelectorAll('[data-del-ch]').forEach(b => b.addEventListener('click', async () => {
-    if (!confirm('Delete this channel and all its messages?')) return;
-    try { const d = await api('/api/servers/' + activeServerId + '/channels/' + b.dataset.delCh, { method: 'DELETE' }); activeServer = d.server; renderServerView(); renderSettingsChannels(); toast('Channel deleted', 'success'); }
-    catch(e) { toast(e.message, 'error'); }
+  wrap.querySelectorAll('[data-del-ch]').forEach(b => b.addEventListener('click', () => {
+    const c = (activeServer.channels || []).find(x => x.id === b.dataset.delCh);
+    if (c) confirmDeleteChannel(c);
   }));
   $('add-channel-btn').style.display = canManage ? '' : 'none';
 }
@@ -2823,6 +3196,8 @@ $('settings-save').addEventListener('click', async () => {
       discoverable: $('set-discoverable').checked,
       accentColor: setAccentColor,
       effect: effectBtn ? effectBtn.dataset.effect : 'none',
+      iconScale: Number($('set-icon-scale').value) || 100,
+      bannerScale: Number($('set-banner-scale').value) || 100,
     } });
     activeServer = d.server; renderServerView();
     // Re-baseline so the unsaved-changes warning clears after a successful save.
@@ -2832,7 +3207,7 @@ $('settings-save').addEventListener('click', async () => {
   } catch(e) { toast(e.message, 'error'); }
 });
 // Track unsaved changes across every Server Settings control.
-['set-name','set-bio','set-system-channel','set-verification','set-slowmode','set-welcome','set-discoverable'].forEach(id => {
+['set-name','set-bio','set-system-channel','set-verification','set-slowmode','set-welcome','set-discoverable','set-icon-scale','set-banner-scale'].forEach(id => {
   const el = $(id); if (!el) return;
   el.addEventListener('input', markSettingsDirty);
   el.addEventListener('change', markSettingsDirty);
@@ -2841,6 +3216,7 @@ $('set-notif-seg').querySelectorAll('button').forEach(b => b.addEventListener('c
 $('set-effect-seg').querySelectorAll('button').forEach(b => b.addEventListener('click', markSettingsDirty));
 $('set-accent-swatches').addEventListener('click', markSettingsDirty);
 $('set-appearance-reset').addEventListener('click', markSettingsDirty);
+$('settings-unsaved-save').addEventListener('click', () => $('settings-save').click());
 $('set-icon').addEventListener('click', () => $('set-icon-input').click());
 $('set-copy-id').addEventListener('click', () => { if (activeServer && activeServer.serverId) { copyText(activeServer.serverId); toast('Server ID copied!', 'success'); } });
 $('set-banner').addEventListener('click', () => $('set-banner-input').click());
@@ -2869,6 +3245,14 @@ function openChannelEditor(ch) {
   chEditorChat = (ch && ch.chatDisabledFor) ? ch.chatDisabledFor : 'none';
   chEditorAllowedRoles = (ch && Array.isArray(ch.allowedRoles)) ? ch.allowedRoles.slice() : [];
   chEditorAllowedMembers = (ch && Array.isArray(ch.allowedMembers)) ? ch.allowedMembers.slice() : [];
+  // Owners / managers can delete the channel straight from the editor.
+  const canManage = activeServer && (activeServer.isOwner || hasPerm('manageChannels'));
+  const delBtn = $('channel-delete');
+  if (delBtn) {
+    const show = !!(ch && canManage);
+    delBtn.style.display = show ? '' : 'none';
+    delBtn.onclick = show ? () => { closeModal('channel-modal'); confirmDeleteChannel(ch); } : null;
+  }
   renderChannelPrivacyUI();
   renderChannelChatUI();
   openModal('channel-modal');
@@ -3047,12 +3431,14 @@ function renderMemberProfileBody(m, roles, isMe, data) {
   const banner = m.banner || u.banner || null;
 
   // Banner (above the profile picture)
-  let html = '<div class="member-profile-banner" style="' + (banner ? 'background-image:url(' + escapeAttr(banner) + ');' : '') + '">' +
+  const bannerScale = m.bannerScale || 100;
+  const avatarScale = m.avatarScale || 100;
+  let html = '<div class="member-profile-banner" style="' + (banner ? 'background-image:url(' + escapeAttr(banner) + ');' : '') + (bannerScale !== 100 ? 'transform:scale(' + (bannerScale / 100) + ');transform-origin:center;' : '') + '">' +
     (banner ? '' : '<div class="member-profile-banner-placeholder">No banner set</div>') + '</div>';
 
   // Avatar + identity row
   html += '<div class="member-profile-main">' +
-    '<div class="member-profile-avatar">' + (avatar ? '<img src="' + escapeAttr(avatar) + '">' : escapeHtml(getInitials(displayName))) + '</div>' +
+    '<div class="member-profile-avatar"' + (avatarScale !== 100 ? ' style="transform:scale(' + (avatarScale / 100) + ');transform-origin:center;"' : '') + '>' + (avatar ? '<img src="' + escapeAttr(avatar) + '">' : escapeHtml(getInitials(displayName))) + '</div>' +
     '<div class="member-profile-info">' +
     '<div class="member-profile-name">' + escapeHtml(displayName) + (m.isOwner ? ' \ud83d\udc51' : '') + '</div>' +
     '<div class="member-profile-handle">@' + escapeHtml(m.username) + '</div>';
@@ -3114,6 +3500,8 @@ function renderMemberProfileBody(m, roles, isMe, data) {
   const canKick = activeServer.isOwner || hasPerm('kick');
   if (isMe) {
     footer = '<button class="btn btn-primary" id="edit-my-server-profile">Edit My Server Profile</button>';
+    // Owners / role-managers can add or remove their OWN roles too.
+    if (canManageRoles) footer += '<button class="btn btn-secondary" id="assign-role-btn">Manage My Roles</button>';
   } else {
     if (canManageRoles) footer += '<button class="btn btn-secondary" id="assign-role-btn">Assign Role</button>';
     if (canKick && !m.isOwner) footer += '<button class="btn btn-danger" id="kick-member-btn">Kick</button>';
@@ -3126,10 +3514,19 @@ function renderMemberProfileBody(m, roles, isMe, data) {
   const assignBtn = $('assign-role-btn');
   if (assignBtn) assignBtn.addEventListener('click', () => openAssignRole(m));
   const kickBtn = $('kick-member-btn');
-  if (kickBtn) kickBtn.addEventListener('click', async () => {
-    if (!confirm('Kick @' + m.username + ' from the server?')) return;
-    try { const d = await api('/api/servers/' + activeServerId + '/members/' + m.username + '/kick', { method: 'POST' }); activeServer = d.server; renderServerView(); closeModal('member-modal'); toast('Member kicked', 'success'); }
-    catch(e) { toast(e.message, 'error'); }
+  if (kickBtn) kickBtn.addEventListener('click', () => {
+    const name = m.nickname || m.displayName || m.username;
+    askConfirm({
+      iconSvg: icon('ban', 'xl'),
+      title: 'Kick ' + name + '?',
+      text: 'This will remove <b>' + escapeHtml(name) + '</b> (@' + escapeHtml(m.username) + ') from <b>' + escapeHtml(activeServer.name) + '</b>. They can rejoin with a new invite.',
+      okText: 'Kick Member',
+      danger: true,
+    }).then(async (ok) => {
+      if (!ok) return;
+      try { const d = await api('/api/servers/' + activeServerId + '/members/' + m.username + '/kick', { method: 'POST' }); activeServer = d.server; renderServerView(); closeModal('member-modal'); toast('Member kicked', 'success'); }
+      catch(e) { toast(e.message, 'error'); }
+    });
   });
 }
 function openAssignRole(m) {
@@ -3195,6 +3592,10 @@ function openMyServerProfileEditor() {
         '<span style="font-size:12px;color:var(--text-muted);">Custom color</span>' +
         '<button class="btn btn-ghost" id="my-panelcolor-clear" style="margin-left:auto;padding:6px 12px;font-size:12px;">Clear</button>' +
       '</div></div>' +
+      '<div class="field"><label>Avatar &amp; Banner Scale</label><div class="hint" style="margin-bottom:10px;">Adjust how large your avatar and banner appear on your server profile.</div>' +
+        '<div class="scale-row"><label>' + icon('user', 'sm') + ' Avatar</label><input type="range" id="my-avatar-scale" min="100" max="220" step="5" value="' + (me.avatarScale || 100) + '"><span class="psr-val" id="my-avatar-scale-val">' + (me.avatarScale || 100) + '%</span></div>' +
+        '<div class="scale-row"><label>' + icon('image', 'sm') + ' Banner</label><input type="range" id="my-banner-scale" min="100" max="220" step="5" value="' + (me.bannerScale || 100) + '"><span class="psr-val" id="my-banner-scale-val">' + (me.bannerScale || 100) + '%</span></div>' +
+      '</div>' +
     '</div>';
   $('member-modal-footer').innerHTML = '<button class="btn btn-ghost" data-close="member-modal">Cancel</button><button class="btn btn-primary" id="my-profile-save">Save Changes</button>';
   $('member-modal-footer').querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', () => closeModal('member-modal')));
@@ -3233,12 +3634,15 @@ function openMyServerProfileEditor() {
     $('my-panelcolor').value = '#4a9eff';
     $('my-panelcolor').dataset.cleared = '1';
   });
+  // Avatar / banner scale sliders
+  $('my-avatar-scale').addEventListener('input', () => { $('my-avatar-scale-val').textContent = $('my-avatar-scale').value + '%'; });
+  $('my-banner-scale').addEventListener('input', () => { $('my-banner-scale-val').textContent = $('my-banner-scale').value + '%'; });
 
   $('my-profile-save').addEventListener('click', async () => {
     const btn = $('my-profile-save'); btn.disabled = true; btn.textContent = 'Saving…';
     try {
-      // Server-specific profile (nickname, bio, avatar, banner)
-      await api('/api/servers/' + activeServerId + '/profile', { method: 'POST', body: { nickname: $('my-nick').value.trim(), bio: $('my-bio').value.trim() } });
+      // Server-specific profile (nickname, bio, avatar, banner, scales)
+      await api('/api/servers/' + activeServerId + '/profile', { method: 'POST', body: { nickname: $('my-nick').value.trim(), bio: $('my-bio').value.trim(), avatarScale: Number($('my-avatar-scale').value) || 100, bannerScale: Number($('my-banner-scale').value) || 100 } });
       const av = $('my-avatar').files[0];
       if (av) { const fd = new FormData(); fd.append('image', av); fd.append('field', 'avatar'); await api('/api/servers/' + activeServerId + '/profile', { method: 'POST', body: fd }); }
       const bn = $('my-banner').files[0];
@@ -3263,6 +3667,7 @@ function openMyServerProfileEditor() {
   openModal('member-modal');
 }
 $('sf-profile-btn').addEventListener('click', () => { if (activeServer) openMyServerProfileEditor(); });
+$('sf-info').addEventListener('click', openStatusMenu);
 
 /* ============================================================
    Invite preview (deep link / embed)

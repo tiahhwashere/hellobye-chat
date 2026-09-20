@@ -2931,6 +2931,8 @@ function publicServer(s, viewerUsername) {
         bio: prof.bio || '',
         nickname: prof.nickname || null,
         roleIds: Array.isArray(prof.roleIds) ? prof.roleIds : [],
+        avatarScale: prof.avatarScale || 100,
+        bannerScale: prof.bannerScale || 100,
         status: pu.status || 'offline',
         joinedAt: prof.joinedAt || null,
         isOwner: s.owner === un,
@@ -2973,7 +2975,7 @@ function ensureServerMemberProfile(server, username) {
   if (!server.memberProfiles) server.memberProfiles = {};
   const un = String(username || '').toLowerCase();
   if (!server.memberProfiles[un]) {
-    server.memberProfiles[un] = { nickname: null, avatar: null, banner: null, bio: '', roleIds: ['member'], joinedAt: nowISO() };
+    server.memberProfiles[un] = { nickname: null, avatar: null, banner: null, bio: '', roleIds: ['member'], joinedAt: nowISO(), avatarScale: 100, bannerScale: 100 };
   }
   return server.memberProfiles[un];
 }
@@ -3334,9 +3336,17 @@ app.post('/api/servers/:id/profile', authMiddleware, avatarUpload.single('image'
   const me = req.user.username;
   if (!(s.members || []).includes(me)) return res.status(403).json({ error: 'You are not a member of this server' });
   const prof = ensureServerMemberProfile(s, me);
-  const { nickname, bio, field } = req.body || {};
+  const { nickname, bio, field, avatarScale, bannerScale } = req.body || {};
   if (nickname !== undefined) prof.nickname = String(nickname).trim().slice(0, 32) || null;
   if (bio !== undefined) prof.bio = String(bio).slice(0, 300);
+  if (avatarScale !== undefined) {
+    const v = Number(avatarScale);
+    prof.avatarScale = (Number.isFinite(v) && v >= 100 && v <= 220) ? Math.round(v) : 100;
+  }
+  if (bannerScale !== undefined) {
+    const v = Number(bannerScale);
+    prof.bannerScale = (Number.isFinite(v) && v >= 100 && v <= 220) ? Math.round(v) : 100;
+  }
   if (req.file) {
     try {
       try { await enhanceWithTimeout(path.join(UPLOAD_DIR, req.file.filename), { maxStatic: 512, maxAnimated: 480, skipAnimated: true }, 8000); }
