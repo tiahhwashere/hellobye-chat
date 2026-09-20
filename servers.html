@@ -284,6 +284,25 @@ input, textarea { font-family: inherit; }
 .channel-item .ch-name { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .channel-item .ch-edit { opacity: 0; font-size: 14px; color: var(--text-muted); }
 .channel-item:hover .ch-edit { opacity: 1; }
+/* ---- Channel categories ---- */
+.channel-category { margin-top: 6px; }
+.channel-category-head {
+  display: flex; align-items: center; gap: 6px; padding: 6px 8px; border-radius: var(--radius-sm);
+  font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
+  color: var(--text-muted); cursor: pointer; user-select: none; transition: color var(--transition), background var(--transition);
+}
+.channel-category-head:hover { color: var(--text-secondary); background: var(--bg-medium); }
+.channel-category-head .cc-caret { width: 12px; height: 12px; flex-shrink: 0; transition: transform 0.18s ease; }
+.channel-category.collapsed .cc-caret { transform: rotate(-90deg); }
+.channel-category-head .cc-name { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.channel-category-head .cc-actions { display: flex; align-items: center; gap: 2px; opacity: 0; transition: opacity var(--transition); }
+.channel-category-head:hover .cc-actions { opacity: 1; }
+.channel-category-head .cc-actions button { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 5px; color: var(--text-muted); background: transparent; border: none; cursor: pointer; font-size: 14px; line-height: 1; }
+.channel-category-head .cc-actions button:hover { color: var(--text-primary); background: var(--bg-light); }
+.channel-category-head .cc-actions button svg { width: 13px; height: 13px; }
+.channel-category-body { padding-left: 6px; }
+.channel-category.collapsed .channel-category-body { display: none; }
+.channel-category-empty { font-size: 12px; color: var(--text-muted); padding: 4px 10px 6px; font-style: italic; }
 
 .server-user-footer {
   height: 52px; background: var(--bg-darker); display: flex; align-items: center; gap: 8px;
@@ -351,7 +370,8 @@ input, textarea { font-family: inherit; }
 .msg-author { font-weight: 700; font-size: 15.5px; }
 .msg-time { font-size: 12px; color: var(--text-muted); margin-top: 3px; display: block; }
 .msg-group.own .msg-time { text-align: right; }
-.msg-role-badge { font-size: 10px; padding: 1px 6px; border-radius: 8px; font-weight: 700; }
+.msg-role-badge { font-size: 11px; padding: 2px 7px; border-radius: 8px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; }
+.msg-role-badge-img { width: 13px; height: 13px; object-fit: contain; flex-shrink: 0; }
 .msg-text { font-size: 15.5px; line-height: 1.55; word-wrap: break-word; white-space: pre-wrap; }
 .msg-group.own .msg-text { text-align: right; }
 .msg-text a { color: var(--accent-light); }
@@ -658,6 +678,14 @@ input, textarea { font-family: inherit; }
 .modal.role-modal-wide .perm-grid { grid-template-columns: 1fr 1fr 1fr; gap: 9px; }
 .modal.role-modal-wide .perm-group-label { grid-column: 1 / -1; }
 @media (max-width: 720px) { .modal.role-modal-wide .perm-grid { grid-template-columns: 1fr 1fr; } }
+.role-badge-upload { display: flex; align-items: center; gap: 14px; }
+.role-badge-preview { width: 56px; height: 56px; flex-shrink: 0; border-radius: 12px; background: var(--bg-darkest); border: 1px solid var(--border-light); display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.role-badge-preview img { width: 100%; height: 100%; object-fit: contain; }
+.role-badge-empty { font-size: 10px; color: var(--text-muted); text-align: center; line-height: 1.2; }
+.role-badge-upload-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.role-badge-pick { cursor: pointer; }
+.role-badge-hint { font-size: 11px; color: var(--text-muted); flex-basis: 100%; }
+.settings-role-badge { width: 15px; height: 15px; object-fit: contain; vertical-align: -2px; margin-right: 5px; }
 .modal-header { padding: 20px 24px 0; display: flex; align-items: center; justify-content: space-between; }
 .modal-title { font-size: 18px; font-weight: 700; }
 .modal-close { color: var(--text-muted); font-size: 24px; line-height: 1; padding: 4px; }
@@ -772,6 +800,8 @@ input, textarea { font-family: inherit; }
 .invite-embed-bio { font-size: 12px; color: var(--text-muted); margin-top: 6px; line-height: 1.45; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .invite-embed-slot { display: block; }
 .invite-embed-join { margin-top: 8px; }
+.invite-embed-open-hint { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 600; color: var(--online); }
+.invite-embed-open-hint .ui-ic { width: 14px; height: 14px; }
 
 /* Generic link embeds (rich preview cards for any URL) */
 .link-embed {
@@ -992,7 +1022,8 @@ input, textarea { font-family: inherit; }
 .member-profile-extra .mp-extra-value { font-size: 13px; color: #ffffff; font-weight: 700; }
 .member-profile-bio { font-size: 13px; color: var(--text-secondary); line-height: 1.6; padding: 12px 16px; background: var(--bg-medium); border-radius: var(--radius-sm); margin-bottom: 20px; text-align: left; white-space: pre-wrap; word-wrap: break-word; min-height: 20px; }
 .member-profile-roles { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
-.member-profile-role { font-size: 11px; padding: 4px 11px; border-radius: 10px; font-weight: 700; }
+.member-profile-role { font-size: 13px; padding: 5px 13px; border-radius: 11px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; }
+.member-profile-role-badge { width: 16px; height: 16px; object-fit: contain; flex-shrink: 0; }
 .member-profile-joined { font-size: 12px; color: var(--text-muted); }
 .member-profile-actions { display: flex; gap: 10px; padding: 0 32px 24px; }
 .member-profile-actions .btn { flex: 1; }
@@ -1020,52 +1051,64 @@ input, textarea { font-family: inherit; }
 .member-profile-extra .mp-extra-value { font-size: 13.5px; color: var(--text-primary); font-weight: 600; }
 .member-profile-bio { font-size: 13.5px; color: var(--text-secondary); line-height: 1.65; margin-bottom: 14px; }
 .member-profile-roles { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
-.member-profile-role { font-size: 11px; padding: 4px 11px; border-radius: 10px; font-weight: 700; }
+.member-profile-role { font-size: 13px; padding: 5px 13px; border-radius: 11px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; }
+.member-profile-role-badge { width: 16px; height: 16px; object-fit: contain; flex-shrink: 0; }
 .member-profile-joined { font-size: 12px; color: var(--text-muted); }
 
 /* ============================================================
    File send modal (spoiler + image-on-file options)
    ============================================================ */
-.srv-media-send-modal { max-width: 460px; text-align: left; border-radius: 14px; overflow: hidden; }
-.srv-ms-header { display: flex; align-items: center; gap: 12px; margin-bottom: 6px; }
-.srv-ms-header-icon { width: 38px; height: 38px; border-radius: 9px; background: rgba(var(--accent-rgb),0.14); color: var(--accent-light); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-.srv-ms-header-icon svg { width: 20px; height: 20px; }
+/* Send Attachment modal — wide, two-column professional layout.
+   Left: large preview. Right: caption + options. */
+.srv-media-send-modal { max-width: 860px; width: 94vw; text-align: left; border-radius: 16px; overflow: hidden; }
+.srv-ms-header { display: flex; align-items: center; gap: 13px; margin-bottom: 16px; padding-bottom: 15px; border-bottom: 1px solid var(--border); }
+.srv-ms-header-icon { width: 42px; height: 42px; border-radius: 11px; background: rgba(var(--accent-rgb),0.14); color: var(--accent-light); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.srv-ms-header-icon svg { width: 21px; height: 21px; }
 .srv-ms-header-text { flex: 1; min-width: 0; }
-.srv-ms-header-text h3 { margin: 0 0 2px; font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
+.srv-ms-header-text h3 { margin: 0 0 3px; font-size: 18px; font-weight: 700; letter-spacing: -0.01em; }
 .srv-ms-sub { margin: 0; font-size: 12.5px; color: var(--text-muted); }
-.srv-ms-preview { margin: 16px 0 12px; background: var(--bg-darkest); border: 1px solid var(--border); border-radius: 10px; padding: 14px; display: flex; align-items: center; justify-content: center; min-height: 80px; max-height: 320px; overflow: hidden; position: relative; }
-.srv-ms-preview img { max-width: 100%; max-height: 260px; border-radius: 8px; object-fit: contain; }
-.srv-ms-preview video { max-width: 100%; max-height: 260px; border-radius: 8px; }
+.srv-ms-body { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+.srv-ms-col-preview { min-width: 0; }
+.srv-ms-col-options { min-width: 0; display: flex; flex-direction: column; }
+.srv-ms-preview { background: var(--bg-darkest); border: 1px solid var(--border); border-radius: 12px; padding: 16px; display: flex; align-items: center; justify-content: center; min-height: 240px; max-height: 420px; overflow: hidden; position: relative; }
+.srv-ms-preview img { max-width: 100%; max-height: 380px; border-radius: 9px; object-fit: contain; }
+.srv-ms-preview video { max-width: 100%; max-height: 380px; border-radius: 9px; }
 .srv-ms-preview audio { width: 100%; }
-.srv-ms-preview .srv-ms-file-card { display: flex; align-items: center; gap: 12px; width: 100%; background: var(--bg-medium); padding: 14px; border-radius: 8px; border: 1px solid var(--border); }
-.srv-ms-preview .srv-ms-file-ic { width: 44px; height: 44px; border-radius: 9px; background: rgba(var(--accent-rgb),0.16); color: var(--accent-light); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; }
-.srv-ms-preview .srv-ms-file-name { font-size: 13px; font-weight: 600; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.srv-ms-preview .srv-ms-file-size { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
-.srv-ms-extra-count { position: absolute; bottom: 10px; right: 10px; background: rgba(0,0,0,0.62); color: #fff; font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 20px; }
-.srv-ms-caption-row { margin-bottom: 12px; }
-.srv-ms-caption-row textarea { width: 100%; box-sizing: border-box; padding: 11px 13px; resize: vertical; background: var(--bg-darkest); border: 1px solid var(--border); border-radius: 9px; color: var(--text-primary); font-size: 14px; font-family: inherit; line-height: 1.5; transition: border-color 0.2s ease, box-shadow 0.2s ease; }
+.srv-ms-preview .srv-ms-file-card { display: flex; align-items: center; gap: 13px; width: 100%; background: var(--bg-medium); padding: 16px; border-radius: 10px; border: 1px solid var(--border); }
+.srv-ms-preview .srv-ms-file-ic { width: 48px; height: 48px; border-radius: 10px; background: rgba(var(--accent-rgb),0.16); color: var(--accent-light); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; }
+.srv-ms-preview .srv-ms-file-name { font-size: 13.5px; font-weight: 600; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.srv-ms-preview .srv-ms-file-size { font-size: 11.5px; color: var(--text-muted); margin-top: 3px; }
+.srv-ms-extra-count { position: absolute; bottom: 12px; right: 12px; background: rgba(0,0,0,0.68); color: #fff; font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 20px; backdrop-filter: blur(4px); }
+.srv-ms-caption-row { margin-bottom: 14px; }
+.srv-ms-caption-row textarea { width: 100%; box-sizing: border-box; padding: 12px 14px; resize: vertical; background: var(--bg-darkest); border: 1px solid var(--border); border-radius: 10px; color: var(--text-primary); font-size: 14px; font-family: inherit; line-height: 1.5; transition: border-color 0.2s ease, box-shadow 0.2s ease; }
 .srv-ms-caption-row textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.12); }
-.srv-ms-options { margin-bottom: 16px; display: flex; flex-direction: column; gap: 8px; }
-.srv-ms-toggle { display: flex; align-items: center; gap: 10px; padding: 11px 13px; background: var(--bg-darkest); border: 1px solid var(--border); border-radius: 9px; cursor: pointer; transition: border-color 0.2s ease, background 0.2s ease; user-select: none; }
+.srv-ms-options { display: flex; flex-direction: column; gap: 9px; }
+.srv-ms-toggle { display: flex; align-items: center; gap: 11px; padding: 12px 14px; background: var(--bg-darkest); border: 1px solid var(--border); border-radius: 10px; cursor: pointer; transition: border-color 0.2s ease, background 0.2s ease; user-select: none; }
 .srv-ms-toggle:hover { border-color: var(--border-light); background: var(--bg-medium); }
 .srv-ms-toggle input[type="checkbox"] { display: none; }
-.srv-ms-track { width: 38px; height: 22px; border-radius: 11px; background: var(--bg-lighter); position: relative; transition: background 0.25s ease; flex-shrink: 0; }
-.srv-ms-thumb { position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: #fff; transition: transform 0.25s ease; box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+.srv-ms-track { width: 40px; height: 23px; border-radius: 12px; background: var(--bg-lighter); position: relative; transition: background 0.25s ease; flex-shrink: 0; }
+.srv-ms-thumb { position: absolute; top: 3px; left: 3px; width: 17px; height: 17px; border-radius: 50%; background: #fff; transition: transform 0.25s ease; box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
 .srv-ms-toggle input:checked ~ .srv-ms-track { background: var(--accent); }
-.srv-ms-toggle input:checked ~ .srv-ms-track .srv-ms-thumb { transform: translateX(16px); }
-.srv-ms-toggle-label { display: flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 600; color: var(--text-primary); }
+.srv-ms-toggle input:checked ~ .srv-ms-track .srv-ms-thumb { transform: translateX(17px); }
+.srv-ms-toggle-label { display: flex; align-items: center; gap: 7px; font-size: 14px; font-weight: 600; color: var(--text-primary); }
 .srv-ms-toggle-icon { width: 16px; height: 16px; color: var(--text-muted); }
 .srv-ms-toggle input:checked ~ .srv-ms-toggle-label .srv-ms-toggle-icon { color: var(--accent-light); }
 .srv-ms-toggle-hint { font-size: 11px; color: var(--text-muted); font-weight: 400; margin-left: auto; white-space: nowrap; }
-.srv-ms-cover-picker { display: flex; align-items: center; gap: 10px; padding: 10px 13px; background: var(--bg-darkest); border: 1px dashed var(--border-light); border-radius: 9px; }
-.srv-ms-cover-btn { display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; font-weight: 600; color: var(--text-primary); background: var(--bg-light); border: 1px solid var(--border-light); border-radius: 8px; padding: 8px 12px; cursor: pointer; transition: background var(--transition), border-color var(--transition); }
+.srv-ms-cover-picker { display: flex; align-items: center; gap: 11px; padding: 12px 14px; background: var(--bg-darkest); border: 1px dashed var(--border-light); border-radius: 10px; }
+.srv-ms-cover-btn { display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; font-weight: 600; color: var(--text-primary); background: var(--bg-light); border: 1px solid var(--border-light); border-radius: 8px; padding: 9px 13px; cursor: pointer; transition: background var(--transition), border-color var(--transition); }
 .srv-ms-cover-btn:hover { background: var(--bg-hover); border-color: var(--accent); }
-.srv-ms-cover-thumb { position: relative; width: 46px; height: 46px; border-radius: 8px; overflow: hidden; border: 1px solid var(--border-light); flex-shrink: 0; }
+.srv-ms-cover-thumb { position: relative; width: 50px; height: 50px; border-radius: 9px; overflow: hidden; border: 1px solid var(--border-light); flex-shrink: 0; }
 .srv-ms-cover-thumb img { width: 100%; height: 100%; object-fit: cover; }
-.srv-ms-cover-thumb button { position: absolute; top: 1px; right: 1px; width: 16px; height: 16px; border-radius: 50%; background: rgba(0,0,0,0.7); color: #fff; font-size: 12px; line-height: 1; display: flex; align-items: center; justify-content: center; border: none; cursor: pointer; }
+.srv-ms-cover-thumb button { position: absolute; top: 2px; right: 2px; width: 17px; height: 17px; border-radius: 50%; background: rgba(0,0,0,0.72); color: #fff; font-size: 12px; line-height: 1; display: flex; align-items: center; justify-content: center; border: none; cursor: pointer; }
 .srv-ms-spinner { display: none; width: 15px; height: 15px; margin-right: 7px; border: 2px solid rgba(255,255,255,0.35); border-top-color: #fff; border-radius: 50%; animation: srvMsSpin 0.7s linear infinite; vertical-align: -2px; }
 .srv-ms-send.sending { pointer-events: none; opacity: 0.85; }
 .srv-ms-send.sending .srv-ms-spinner { display: inline-block; }
+@media (max-width: 720px) {
+  .srv-media-send-modal { width: 96vw; }
+  .srv-ms-body { grid-template-columns: 1fr; gap: 14px; }
+  .srv-ms-preview { min-height: 180px; max-height: 300px; }
+  .srv-ms-preview img, .srv-ms-preview video { max-height: 260px; }
+}
 @keyframes srvMsSpin { to { transform: rotate(360deg); } }
 /* Cover image overlay on a sent file card */
 .msg-file-card .mfc-preview { position: relative; }
@@ -1623,11 +1666,16 @@ input, textarea { font-family: inherit; }
 
 /* ---- Expanded role permissions grid ---- */
 .perm-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 14px; }
-.perm-toggle { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-secondary); padding: 7px 10px; border-radius: 9px; background: var(--bg-darkest); border: 1px solid var(--border); cursor: pointer; transition: border var(--transition), background var(--transition); }
+.perm-toggle { display: flex; align-items: center; gap: 9px; font-size: 13px; color: var(--text-secondary); padding: 8px 11px; border-radius: 9px; background: var(--bg-darkest); border: 1px solid var(--border); cursor: pointer; transition: border var(--transition), background var(--transition); }
 .perm-toggle:hover { border-color: var(--border-light); background: var(--bg-medium); }
-.perm-toggle input { accent-color: var(--accent); width: 15px; height: 15px; flex-shrink: 0; }
+.perm-toggle input { appearance: none; -webkit-appearance: none; width: 18px; height: 18px; flex-shrink: 0; border-radius: 6px; border: 1.5px solid var(--border-light); background: var(--bg-medium); cursor: pointer; position: relative; transition: background var(--transition), border var(--transition); }
+.perm-toggle input:hover { border-color: var(--accent); }
+.perm-toggle input:checked { background: var(--accent); border-color: var(--accent); }
+.perm-toggle input:checked::after { content: ''; position: absolute; left: 5px; top: 1.5px; width: 5px; height: 9px; border: solid #fff; border-width: 0 2px 2px 0; transform: rotate(45deg); }
+.perm-toggle input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .perm-toggle.perm-danger { color: #ff9a9a; }
-.perm-toggle.perm-danger input { accent-color: #e35d5d; }
+.perm-toggle.perm-danger input:checked { background: #e35d5d; border-color: #e35d5d; }
+.perm-toggle.perm-danger input:hover { border-color: #e35d5d; }
 
 /* Assign roles UI */
 .assign-head { display: flex; align-items: center; gap: 12px; padding: 12px; background: var(--bg-darkest); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 14px; }
@@ -1783,7 +1831,7 @@ input, textarea { font-family: inherit; }
 
   <!-- Main -->
   <div class="server-main">
-    <div class="server-empty" id="server-empty">
+    <div class="server-empty" id="server-empty" style="display:none;">
       <div class="se-hero"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></div>
       <h2>Welcome to Servers</h2>
       <p>Pick up where you left off, or start something new. Create your own space, join with an invite link, or explore public communities &mdash; each server has channels, roles, badges, and a private, end-to-end encrypted chatroom.</p>
@@ -2226,6 +2274,20 @@ input, textarea { font-family: inherit; }
       <div class="field"><label>Topic (optional)</label><input type="text" id="channel-topic" placeholder="What's this channel about?" maxlength="200"></div>
 
       <div class="ch-section">
+        <div class="ch-section-title"><svg class="ui-ic" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg> Category</div>
+        <div class="field" style="margin-bottom:8px;">
+          <select id="channel-category" style="width:100%;padding:11px 13px;background:var(--bg-darkest);border:1px solid var(--border-light);border-radius:var(--radius-sm);color:var(--text-primary);font-size:14px;font-family:inherit;cursor:pointer;">
+            <option value="">No category (top level)</option>
+          </select>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <input type="text" id="new-category-name" placeholder="New category name" maxlength="40" style="flex:1;padding:10px 13px;background:var(--bg-darkest);border:1px solid var(--border-light);border-radius:var(--radius-sm);color:var(--text-primary);font-size:13px;font-family:inherit;">
+          <button type="button" class="btn btn-secondary" id="create-category-btn" style="white-space:nowrap;padding:10px 14px;font-size:13px;">Create</button>
+        </div>
+        <div class="hint" style="font-size:11px;color:var(--text-muted);margin-top:8px;">Group channels under a category. Create a new one or pick an existing category above.</div>
+      </div>
+
+      <div class="ch-section">
         <div class="ch-section-title"><svg class="ui-ic" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> Channel Privacy</div>
         <div class="seg-control" id="ch-privacy-seg">
           <button data-priv="public" class="selected"><svg class="ui-ic sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><line x1="3" y1="12" x2="21" y2="12"/><path d="M12 3a15 15 0 0 1 0 18 15 15 0 0 1 0-18z"/></svg> Public</button>
@@ -2268,7 +2330,17 @@ input, textarea { font-family: inherit; }
         <div class="field"><label>Role name</label><input type="text" id="role-name" placeholder="VIP" maxlength="24"></div>
         <div class="field" style="max-width:110px;"><label>Color</label><input type="color" id="role-color" value="#9ca3af" style="width:100%;height:42px;background:var(--bg-darkest);border:1px solid var(--border-light);border-radius:var(--radius-sm);cursor:pointer;"></div>
       </div>
-      <div class="field"><label>Badge (optional)</label><input type="text" id="role-badge" placeholder="Short badge text shown next to the name (max 8)" maxlength="8"></div>
+      <div class="field"><label>Badge (optional)</label>
+        <div class="role-badge-upload">
+          <div class="role-badge-preview" id="role-badge-preview"><span class="role-badge-empty">No badge</span></div>
+          <div class="role-badge-upload-actions">
+            <label class="btn btn-ghost role-badge-pick" for="role-badge-file">Upload PNG</label>
+            <input type="file" id="role-badge-file" accept="image/png,image/*" style="display:none;">
+            <button type="button" class="btn btn-ghost role-badge-clear" id="role-badge-clear" style="display:none;">Remove</button>
+            <span class="role-badge-hint">Shown as an icon right next to the role name.</span>
+          </div>
+        </div>
+      </div>
       <div class="field"><label>Permissions</label>
         <div class="perm-grid" id="perm-grid">
           <div class="perm-group-label">General Server</div>
@@ -2441,11 +2513,15 @@ input, textarea { font-family: inherit; }
         <p class="srv-ms-sub" id="srv-ms-subtitle">Add a caption and options, then send.</p>
       </div>
     </div>
-    <div class="srv-ms-preview" id="srv-ms-preview"></div>
-    <div class="srv-ms-caption-row">
-      <textarea id="srv-ms-caption" placeholder="Add a caption (optional)" rows="2" maxlength="500"></textarea>
-    </div>
-    <div class="srv-ms-options">
+    <div class="srv-ms-body">
+      <div class="srv-ms-col-preview">
+        <div class="srv-ms-preview" id="srv-ms-preview"></div>
+      </div>
+      <div class="srv-ms-col-options">
+        <div class="srv-ms-caption-row">
+          <textarea id="srv-ms-caption" placeholder="Add a caption (optional)" rows="2" maxlength="500"></textarea>
+        </div>
+        <div class="srv-ms-options">
       <label class="srv-ms-toggle">
         <input type="checkbox" id="srv-ms-spoiler">
         <span class="srv-ms-track"><span class="srv-ms-thumb"></span></span>
@@ -2471,6 +2547,8 @@ input, textarea { font-family: inherit; }
           <span id="srv-ms-cover-btn-text">Choose cover image</span>
         </button>
         <div class="srv-ms-cover-thumb" id="srv-ms-cover-thumb" style="display:none;"><img id="srv-ms-cover-img" alt=""><button type="button" id="srv-ms-cover-remove" title="Remove cover">&times;</button></div>
+      </div>
+        </div>
       </div>
     </div>
     <div class="modal-footer">
@@ -2534,6 +2612,8 @@ let mentionState = null;      // { start, query } while typing an @mention
 let slashState = null;        // { start, query } while typing a /command
 let editingChannelId = null;
 let editingRoleId = null;
+let pendingRoleBadge = '';
+let pendingRoleBadgeFile = null;
 let selectedInviteMins = 0;
 let viewingMember = null;
 let displayRolesSeparately = localStorage.getItem('hb_roles_separate') === '1';
@@ -2630,7 +2710,8 @@ const ICONS = {
   video: '<rect x="2" y="5" width="14" height="14" rx="2"/><polygon points="22 7 16 11 16 13 22 17 22 7"/>',
   music: '<path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>',
   download: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>',
-  hash: '<line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/>'
+  hash: '<line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/>',
+  folder: '<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>'
 };
 function icon(name, cls) {
   const p = ICONS[name] || '';
@@ -3566,9 +3647,12 @@ function renderServerView() {
 function renderChannels() {
   const wrap = $('channel-list');
   const canManage = activeServer.isOwner || hasPerm('manageChannels');
-  wrap.innerHTML = '<div class="channel-section-label"><span>Text Channels</span>' +
-    (canManage ? '<button id="ch-add-inline" title="Add channel">+</button>' : '') + '</div>';
-  (activeServer.channels || []).forEach(c => {
+  wrap.innerHTML = '';
+  const channels = activeServer.channels || [];
+  const categories = (activeServer.categories || []).slice().sort((a, b) => (a.order || 0) - (b.order || 0));
+
+  // Build a single channel row element (shared by categorised + uncategorised).
+  function buildChannelEl(c) {
     const el = document.createElement('div');
     el.className = 'channel-item' + (c.id === activeChannelId ? ' active' : '') + (c.private ? ' private-ch' : '');
     const lock = c.private ? '<span class="ch-lock" title="Private channel">' + icon('lock', 'sm') + '</span>' : '';
@@ -3589,10 +3673,69 @@ function renderChannels() {
       el.draggable = true;
       attachChannelDrag(el, c);
     }
-    wrap.appendChild(el);
+    return el;
+  }
+
+  // Uncategorised channels first (top level), then each category in order.
+  const uncategorised = channels.filter(c => !c.categoryId || !categories.some(cat => cat.id === c.categoryId));
+  if (uncategorised.length || !categories.length) {
+    const label = document.createElement('div');
+    label.className = 'channel-section-label';
+    label.innerHTML = '<span>Text Channels</span>' + (canManage ? '<button id="ch-add-inline" title="Add channel">+</button>' : '');
+    wrap.appendChild(label);
+    uncategorised.forEach(c => wrap.appendChild(buildChannelEl(c)));
+  }
+
+  categories.forEach(cat => {
+    const inCat = channels.filter(c => c.categoryId === cat.id);
+    const catWrap = document.createElement('div');
+    catWrap.className = 'channel-category';
+    const head = document.createElement('div');
+    head.className = 'channel-category-head';
+    head.innerHTML = '<svg class="cc-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>' +
+      '<span class="cc-name">' + escapeHtml(cat.name) + '</span>' +
+      (canManage ? '<span class="cc-actions"><button class="cc-add" title="Add channel to category">+</button><button class="cc-edit" title="Rename category">' + icon('edit', 'sm') + '</button><button class="cc-del" title="Delete category">' + icon('trash', 'sm') + '</button></span>' : '');
+    const body = document.createElement('div');
+    body.className = 'channel-category-body';
+    inCat.forEach(c => body.appendChild(buildChannelEl(c)));
+    if (!inCat.length) body.innerHTML = '<div class="channel-category-empty">No channels yet</div>';
+    // Collapse / expand
+    head.addEventListener('click', (e) => {
+      if (e.target.closest('.cc-actions')) return;
+      catWrap.classList.toggle('collapsed');
+    });
+    if (canManage) {
+      head.querySelector('.cc-add').addEventListener('click', (e) => { e.stopPropagation(); openChannelEditor(null, cat.id); });
+      head.querySelector('.cc-edit').addEventListener('click', (e) => { e.stopPropagation(); renameCategory(cat); });
+      head.querySelector('.cc-del').addEventListener('click', (e) => { e.stopPropagation(); deleteCategory(cat); });
+    }
+    catWrap.appendChild(head);
+    catWrap.appendChild(body);
+    wrap.appendChild(catWrap);
   });
+
   const addBtn = $('ch-add-inline');
   if (addBtn) addBtn.addEventListener('click', () => openChannelEditor(null));
+}
+// Rename a category (owner / manageChannels).
+async function renameCategory(cat) {
+  const name = prompt('Rename category', cat.name);
+  if (name === null) return;
+  const trimmed = name.trim();
+  if (!trimmed) { toast('Category name required', 'error'); return; }
+  try {
+    const d = await api('/api/servers/' + activeServerId + '/categories/' + cat.id, { method: 'POST', body: { name: trimmed } });
+    activeServer = d.server; renderChannels(); renderSettingsChannels(); toast('Category renamed', 'success');
+  } catch(e) { toast(e.message, 'error'); }
+}
+// Delete a category (channels inside move back to the top level).
+async function deleteCategory(cat) {
+  const ok = await askConfirm({ title: 'Delete category?', text: 'Channels inside <b>' + escapeHtml(cat.name) + '</b> will move back to the top level. This cannot be undone.', okText: 'Delete', danger: true });
+  if (!ok) return;
+  try {
+    const d = await api('/api/servers/' + activeServerId + '/categories/' + cat.id, { method: 'DELETE' });
+    activeServer = d.server; renderChannels(); renderSettingsChannels(); toast('Category deleted', 'success');
+  } catch(e) { toast(e.message, 'error'); }
 }
 // Drag-and-drop reordering of text channels (owners / managers only).
 let chDragId = null;
@@ -3855,7 +3998,7 @@ function buildMessageGroup(m) {
   const body = document.createElement('div');
   body.className = 'msg-body';
   let head = '<div class="msg-head"><span class="msg-author" style="color:' + nameColor + ';">' + escapeHtml(displayName) + '</span>';
-  if (topRole) head += '<span class="msg-role-badge" style="background:' + escapeAttr(topRole.color) + '22;color:' + escapeAttr(topRole.color) + ';">' + escapeHtml(topRole.name) + '</span>';
+  if (topRole) head += '<span class="msg-role-badge" style="background:' + escapeAttr(topRole.color) + '22;color:' + escapeAttr(topRole.color) + ';">' + (topRole.badge ? '<img class="msg-role-badge-img" src="' + escapeAttr(topRole.badge) + '" alt="">' : '') + escapeHtml(topRole.name) + '</span>';
   if (m.e2e) head += '<span class="msg-e2e-badge" title="End-to-end encrypted">Encrypted</span>';
   head += '</div>';
 
@@ -4220,17 +4363,25 @@ function hydrateInviteEmbeds(container) {
           '<div class="invite-embed-name">' + escapeHtml(inv.name) + '</div>' +
           '<div class="invite-embed-meta">' + inv.memberCount + ' member' + (inv.memberCount === 1 ? '' : 's') + ' \u00b7 ' + inv.channelCount + ' channel' + (inv.channelCount === 1 ? '' : 's') + ' \u00b7 ' + escapeHtml(expires) + '</div>' +
           (inv.bio ? '<div class="invite-embed-bio">' + escapeHtml(inv.bio) + '</div>' : '') +
-          '<div class="invite-embed-join"><button class="btn btn-primary" style="padding:7px 16px;font-size:12.5px;">' + (already ? 'Open Server' : 'Join Server') + '</button></div>' +
+          (already
+            ? '<div class="invite-embed-join"><span class="invite-embed-open-hint">' + icon('check', 'sm') + ' You\u2019re a member \u2014 click to open</span></div>'
+            : '<div class="invite-embed-join"><button class="btn btn-primary" style="padding:7px 16px;font-size:12.5px;">Join Server</button></div>') +
         '</div>';
-      const btn = card.querySelector('button');
-      btn.addEventListener('click', async () => {
-        if (already) { openServer(inv.serverId); return; }
-        try {
-          const r = await api('/api/servers/join', { method: 'POST', body: { code } });
-          if (!servers.some(s => s.id === r.server.id)) servers.push(r.server);
-          renderRail(); toast('Joined ' + r.server.name + '!', 'success'); openServer(r.server.id);
-        } catch (e) { toast(e.message, 'error'); }
-      });
+      if (already) {
+        // Already a member: the whole card is a shortcut straight into the
+        // server \u2014 no separate "Open Server" button.
+        card.style.cursor = 'pointer';
+        card.addEventListener('click', () => openServer(inv.serverId));
+      } else {
+        const btn = card.querySelector('button');
+        btn.addEventListener('click', async () => {
+          try {
+            const r = await api('/api/servers/join', { method: 'POST', body: { code } });
+            if (!servers.some(s => s.id === r.server.id)) servers.push(r.server);
+            renderRail(); toast('Joined ' + r.server.name + '!', 'success'); openServer(r.server.id);
+          } catch (e) { toast(e.message, 'error'); }
+        });
+      }
       slot.replaceWith(card);
     } catch (e) {
       // Invalid/expired invite \u2014 fall back to a plain link.
@@ -5296,11 +5447,14 @@ function applySettingsPermissions(canEdit, canManageChannels, canManageRoles, ca
 function renderSettingsChannels() {
   const wrap = $('settings-channels');
   const canManage = activeServer.isOwner || hasPerm('manageChannels');
+  const cats = activeServer.categories || [];
   wrap.innerHTML = (activeServer.channels || []).map(c => {
     const badges = [];
     if (c.private) badges.push('<span style="font-size:10px;color:var(--accent-light);background:rgba(var(--accent-rgb),0.15);padding:1px 6px;border-radius:8px;font-weight:700;display:inline-flex;align-items:center;gap:3px;">' + icon('lock','sm') + 'Private</span>');
     if (c.chatDisabledFor === 'everyone') badges.push('<span style="font-size:10px;color:#e35d5d;background:rgba(227,93,93,0.15);padding:1px 6px;border-radius:8px;font-weight:700;display:inline-flex;align-items:center;gap:3px;">' + icon('ban','sm') + 'Chat off</span>');
     else if (c.chatDisabledFor === 'members') badges.push('<span style="font-size:10px;color:#f0a92e;background:rgba(240,169,46,0.15);padding:1px 6px;border-radius:8px;font-weight:700;display:inline-flex;align-items:center;gap:3px;">' + icon('star','sm') + 'Role-only</span>');
+    const cat = c.categoryId ? cats.find(x => x.id === c.categoryId) : null;
+    if (cat) badges.push('<span style="font-size:10px;color:var(--text-secondary);background:var(--bg-light);padding:1px 6px;border-radius:8px;font-weight:700;display:inline-flex;align-items:center;gap:3px;">' + icon('folder','sm') + escapeHtml(cat.name) + '</span>');
     return '<div class="list-row"><span style="color:var(--text-muted);">#</span><div class="lr-main"><div class="lr-title">' + escapeHtml(c.name) + (badges.length ? ' ' + badges.join(' ') : '') + '</div>' + (c.topic ? '<div class="lr-sub">' + escapeHtml(c.topic) + '</div>' : '') + '</div>' +
     (canManage ? '<div class="lr-actions"><button data-edit-ch="' + escapeAttr(c.id) + '" title="Edit">' + icon('edit','sm') + '</button><button data-del-ch="' + escapeAttr(c.id) + '" title="Delete">' + icon('trash','sm') + '</button></div>' : '') + '</div>';
   }).join('');
@@ -5315,7 +5469,7 @@ function renderSettingsRoles() {
   const wrap = $('settings-roles');
   const canManage = activeServer.isOwner || hasPerm('manageRoles');
   wrap.innerHTML = (activeServer.roles || []).map(r =>
-    '<div class="list-row"><span class="role-dot" style="background:' + escapeAttr(r.color) + ';"></span><div class="lr-main"><div class="lr-title">' + escapeHtml(r.name) + (r.system ? ' <span style="font-size:10px;color:var(--text-muted);">(built-in)</span>' : '') + '</div>' +
+    '<div class="list-row"><span class="role-dot" style="background:' + escapeAttr(r.color) + ';"></span><div class="lr-main"><div class="lr-title">' + (r.badge ? '<img class="settings-role-badge" src="' + escapeAttr(r.badge) + '" alt="">' : '') + escapeHtml(r.name) + (r.system ? ' <span style="font-size:10px;color:var(--text-muted);">(built-in)</span>' : '') + '</div>' +
     '<div class="lr-sub">' + permSummary(r.permissions) + '</div></div>' +
     (canManage && !r.system ? '<div class="lr-actions"><button data-edit-role="' + escapeAttr(r.id) + '" title="Edit">' + icon('edit','sm') + '</button><button data-del-role="' + escapeAttr(r.id) + '" title="Delete">' + icon('trash','sm') + '</button></div>' : '') + '</div>'
   ).join('');
@@ -5574,7 +5728,7 @@ $('set-banner-input').addEventListener('change', async (e) => {
 });
 
 /* ---- Channel editor ---- */
-function openChannelEditor(ch) {
+function openChannelEditor(ch, presetCategoryId) {
   editingChannelId = ch ? ch.id : null;
   $('channel-modal-title').textContent = ch ? 'Edit Channel' : 'Add Channel';
   $('channel-name').value = ch ? ch.name : '';
@@ -5583,6 +5737,16 @@ function openChannelEditor(ch) {
   chEditorChat = (ch && ch.chatDisabledFor) ? ch.chatDisabledFor : 'none';
   chEditorAllowedRoles = (ch && Array.isArray(ch.allowedRoles)) ? ch.allowedRoles.slice() : [];
   chEditorAllowedMembers = (ch && Array.isArray(ch.allowedMembers)) ? ch.allowedMembers.slice() : [];
+  // Category selector \u2014 populate with the server's existing categories.
+  const catSel = $('channel-category');
+  if (catSel) {
+    const cats = (activeServer.categories || []);
+    catSel.innerHTML = '<option value="">No category (top level)</option>' +
+      cats.map(c => '<option value="' + escapeAttr(c.id) + '">' + escapeHtml(c.name) + '</option>').join('');
+    catSel.value = (ch && ch.categoryId) ? ch.categoryId : (presetCategoryId || '');
+  }
+  const newCatInput = $('new-category-name');
+  if (newCatInput) newCatInput.value = '';
   // Owners / managers can delete the channel straight from the editor.
   const canManage = activeServer && (activeServer.isOwner || hasPerm('manageChannels'));
   const delBtn = $('channel-delete');
@@ -5645,11 +5809,33 @@ function renderChannelChatUI() {
 $('ch-privacy-seg').querySelectorAll('button').forEach(b => b.addEventListener('click', () => { chEditorPrivacy = b.dataset.priv; renderChannelPrivacyUI(); }));
 $('ch-chat-seg').querySelectorAll('button').forEach(b => b.addEventListener('click', () => { chEditorChat = b.dataset.chat; renderChannelChatUI(); }));
 $('add-channel-btn').addEventListener('click', () => openChannelEditor(null));
+// Create a new category inline from the channel editor, then select it.
+$('create-category-btn').addEventListener('click', async () => {
+  const inp = $('new-category-name');
+  const name = inp.value.trim();
+  if (!name) { toast('Enter a category name first', 'error'); inp.focus(); return; }
+  const btn = $('create-category-btn');
+  btn.disabled = true; btn.textContent = 'Creating\u2026';
+  try {
+    const d = await api('/api/servers/' + activeServerId + '/categories', { method: 'POST', body: { name } });
+    activeServer = d.server;
+    const catSel = $('channel-category');
+    const cats = (activeServer.categories || []);
+    catSel.innerHTML = '<option value="">No category (top level)</option>' +
+      cats.map(c => '<option value="' + escapeAttr(c.id) + '">' + escapeHtml(c.name) + '</option>').join('');
+    catSel.value = d.category.id;
+    inp.value = '';
+    renderChannels(); renderSettingsChannels();
+    toast('Category "' + name + '" created', 'success');
+  } catch(e) { toast(e.message, 'error'); }
+  btn.disabled = false; btn.textContent = 'Create';
+});
 $('channel-save').addEventListener('click', async () => {
   const name = $('channel-name').value.trim();
   if (!name) { toast('Channel name required', 'error'); return; }
   const body = {
     name, topic: $('channel-topic').value.trim(),
+    categoryId: $('channel-category') ? ($('channel-category').value || null) : null,
     private: chEditorPrivacy === 'private',
     allowedRoles: chEditorPrivacy === 'private' ? chEditorAllowedRoles : [],
     allowedMembers: chEditorPrivacy === 'private' ? chEditorAllowedMembers : [],
@@ -5673,12 +5859,26 @@ const ROLE_PERM_LABELS = {
   attachFiles:'Attach files', embedLinks:'Embed links', addReactions:'Add reactions', externalEmojis:'Use external emojis',
   readHistory:'Read message history', createThreads:'Create threads', manageWebhooks:'Manage webhooks', prioritySpeaker:'Priority speaker',
 };
+function renderRoleBadgePreview() {
+  const box = $('role-badge-preview');
+  const clearBtn = $('role-badge-clear');
+  if (!box) return;
+  if (pendingRoleBadge) {
+    box.innerHTML = '<img src="' + escapeAttr(pendingRoleBadge) + '" alt="badge">';
+    if (clearBtn) clearBtn.style.display = '';
+  } else {
+    box.innerHTML = '<span class="role-badge-empty">No badge</span>';
+    if (clearBtn) clearBtn.style.display = 'none';
+  }
+}
 function openRoleEditor(role) {
   editingRoleId = role ? role.id : null;
   $('role-modal-title').textContent = role ? 'Edit Role' : 'Create Role';
   $('role-name').value = role ? role.name : '';
   $('role-color').value = role ? role.color : '#9ca3af';
-  $('role-badge').value = role ? (role.badge || '') : '';
+  pendingRoleBadge = role ? (role.badge || '') : '';
+  pendingRoleBadgeFile = null;
+  renderRoleBadgePreview();
   const p = (role && role.permissions) || {};
   ROLE_PERM_KEYS.forEach(k => {
     const el = $('perm-' + k);
@@ -5694,14 +5894,59 @@ $('role-save').addEventListener('click', async () => {
   if (!name) { toast('Role name required', 'error'); return; }
   const permissions = {};
   ROLE_PERM_KEYS.forEach(k => { const el = $('perm-' + k); if (el) permissions[k] = el.checked; });
-  const body = { name, color: $('role-color').value, badge: $('role-badge').value.trim(), permissions };
+  const body = { name, color: $('role-color').value, badge: (editingRoleId ? (pendingRoleBadge || '') : ''), permissions };
   try {
     let d;
     if (editingRoleId) d = await api('/api/servers/' + activeServerId + '/roles/' + editingRoleId, { method: 'POST', body });
     else d = await api('/api/servers/' + activeServerId + '/roles', { method: 'POST', body });
+    // If a badge image was picked for a brand-new role, upload it now that the
+    // role has an id.
+    if (!editingRoleId && pendingRoleBadgeFile && d.role && d.role.id) {
+      try {
+        const fd = new FormData();
+        fd.append('image', pendingRoleBadgeFile);
+        const r = await fetch('/api/servers/' + activeServerId + '/roles/' + d.role.id + '/badge', {
+          method: 'POST', headers: getAuthHeaders(), body: fd,
+        });
+        const bd = await r.json();
+        if (r.ok && bd.server) d.server = bd.server;
+      } catch (err) { console.error('badge upload failed', err); }
+    }
+    pendingRoleBadgeFile = null;
     activeServer = d.server; renderServerView(); renderSettingsRoles(); closeModal('role-modal'); toast('Role saved', 'success');
   } catch(e) { toast(e.message, 'error'); }
 });
+$('role-badge-file').addEventListener('change', async (e) => {
+  const file = e.target.files && e.target.files[0];
+  if (!file) return;
+  if (!/^image\//.test(file.type)) { toast('Please choose an image file', 'error'); e.target.value = ''; return; }
+  if (file.size > 10 * 1024 * 1024) { toast('Badge image must be under 10MB', 'error'); e.target.value = ''; return; }
+  // New roles have no id yet, so upload after the role exists. For a brand-new
+  // role we stash the local data URL and upload it right after creation.
+  if (!editingRoleId) {
+    pendingRoleBadgeFile = file;
+    const reader = new FileReader();
+    reader.onload = () => { pendingRoleBadge = reader.result; renderRoleBadgePreview(); };
+    reader.readAsDataURL(file);
+    e.target.value = '';
+    return;
+  }
+  const fd = new FormData();
+  fd.append('image', file);
+  try {
+    const r = await fetch('/api/servers/' + activeServerId + '/roles/' + editingRoleId + '/badge', {
+      method: 'POST', headers: getAuthHeaders(), body: fd,
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Upload failed');
+    pendingRoleBadge = d.badge;
+    renderRoleBadgePreview();
+    activeServer = d.server; renderServerView(); renderSettingsRoles();
+    toast('Badge uploaded', 'success');
+  } catch (err) { toast(err.message, 'error'); }
+  e.target.value = '';
+});
+$('role-badge-clear').addEventListener('click', () => { pendingRoleBadge = ''; renderRoleBadgePreview(); });
 
 /* ---- Invites ---- */
 $('invite-expiry-grid').querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
@@ -5975,7 +6220,9 @@ function renderMemberProfileBody(m, roles, isMe, data) {
   // Server roles
   if (roles.length) {
     html += '<div class="member-profile-roles">' + roles.map(r =>
-      '<span class="member-profile-role" style="background:' + escapeAttr(r.color) + '22;color:' + escapeAttr(r.color) + ';">' + escapeHtml(r.name) + '</span>'
+      '<span class="member-profile-role" style="background:' + escapeAttr(r.color) + '22;color:' + escapeAttr(r.color) + ';">' +
+        (r.badge ? '<img class="member-profile-role-badge" src="' + escapeAttr(r.badge) + '" alt="">' : '') +
+        escapeHtml(r.name) + '</span>'
     ).join('') + '</div>';
   }
 
@@ -6261,12 +6508,16 @@ async function showInvitePreview(code) {
       (inv.bio ? '<div style="font-size:13px;color:var(--text-secondary);margin-top:10px;line-height:1.5;">' + escapeHtml(inv.bio) + '</div>' : '') +
       '<div style="font-size:12px;color:var(--text-muted);margin-top:10px;">' + (inv.expiresAt ? 'Invite expires ' + timeAgo(new Date(inv.expiresAt).toISOString()) : 'Invite never expires') + '</div></div>';
     const already = servers.some(s => s.id === inv.serverId);
-    $('invite-preview-footer').innerHTML = already
-      ? '<button class="btn btn-primary" id="inv-open">Open Server</button>'
-      : '<button class="btn btn-ghost" data-close="invite-preview-modal">Decline</button><button class="btn btn-primary" id="inv-accept">Accept Invite</button>';
+    // If the viewer is already a member, skip the preview entirely and jump
+    // straight into the server \u2014 no "Open Server" button needed.
+    if (already) {
+      closeModal('invite-preview-modal');
+      openServer(inv.serverId);
+      return;
+    }
+    $('invite-preview-footer').innerHTML =
+      '<button class="btn btn-ghost" data-close="invite-preview-modal">Decline</button><button class="btn btn-primary" id="inv-accept">Accept Invite</button>';
     $('invite-preview-footer').querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', () => closeModal('invite-preview-modal')));
-    const openBtn = $('inv-open');
-    if (openBtn) openBtn.addEventListener('click', () => { closeModal('invite-preview-modal'); openServer(inv.serverId); });
     const accBtn = $('inv-accept');
     if (accBtn) accBtn.addEventListener('click', async () => {
       try { const r = await api('/api/servers/join', { method: 'POST', body: { code } }); if (!servers.some(s=>s.id===r.server.id)) servers.push(r.server); renderRail(); closeModal('invite-preview-modal'); toast('Joined ' + r.server.name + '!', 'success'); openServer(r.server.id); }

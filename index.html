@@ -12900,20 +12900,31 @@ function connectSocket() {
           // to close and reopen it.
           const pvAv = $('pv-avatar');
           if (pvAv) {
+            const newAvSrc = pvUser.avatar || '';
+            if (pvAv.dataset.src !== newAvSrc) {
+              pvAv.dataset.src = newAvSrc;
+              if (pvUser.avatar) {
+                pvAv.innerHTML = '<img src="' + escapeHtml(pvUser.avatar) + '">';
+              } else {
+                pvAv.innerHTML = '<span>' + getInitials(pvUser.username) + '</span>';
+              }
+            }
             if (pvUser.avatar) {
-              pvAv.innerHTML = '<img src="' + escapeHtml(pvUser.avatar) + '">';
               pvAv.style.cursor = 'zoom-in'; pvAv.title = 'Click to zoom';
               pvAv.onclick = () => openProfileAvatarLightbox(pvUser.avatar);
             } else {
-              pvAv.innerHTML = '<span>' + getInitials(pvUser.username) + '</span>';
               pvAv.style.cursor = 'default'; pvAv.title = ''; pvAv.onclick = null;
             }
           }
           const pvBanner = $('pv-banner');
           if (pvBanner) {
-            pvBanner.innerHTML = pvUser.banner
-              ? '<img src="' + escapeHtml(pvUser.banner) + '" class="pv-banner-img">'
-              : '<div class="profile-view-banner-placeholder">No banner set</div>';
+            const newBannerSrc = pvUser.banner || '';
+            if (pvBanner.dataset.src !== newBannerSrc) {
+              pvBanner.dataset.src = newBannerSrc;
+              pvBanner.innerHTML = pvUser.banner
+                ? '<img src="' + escapeHtml(pvUser.banner) + '" class="pv-banner-img">'
+                : '<div class="profile-view-banner-placeholder">No banner set</div>';
+            }
           }
         }
       }
@@ -23559,11 +23570,16 @@ async function openProfileView(username) {
   // (authoritative friend/block state, hidden flag) is fetched in the
   // background and re-rendered once it arrives.
   const cached = users.find(u => u && u.username === username);
+  // Always open the modal synchronously so there is ZERO perceived delay.
+  // If we have a cached user we render the full profile instantly; otherwise
+  // we render a lightweight placeholder that the server response replaces.
   if (cached) {
     renderProfileView(buildLocalProfileData(cached));
-    currentProfileViewUser = username;
-    $('profile-view-modal').classList.add('show');
+  } else {
+    renderProfileView(buildLocalProfileData({ username: username, displayName: username, status: 'offline' }));
   }
+  currentProfileViewUser = username;
+  $('profile-view-modal').classList.add('show');
   try {
     const res = await fetch(API_BASE + '/api/user/' + encodeURIComponent(username));
     const data = await res.json();
@@ -24024,22 +24040,37 @@ function refreshProfileViewActions(username) {
 function renderProfileView(data) {
   const u = data.user;
   const isHidden = !data.isMe && (data.profileHidden || u.profileHidden);
-  // Banner
+  // Banner \u2014 only rebuild the DOM when the image actually changes. The
+  // profile is first rendered from the local cache and then re-rendered once
+  // the server response arrives; resetting innerHTML on the second pass would
+  // force the browser to re-fetch/re-decode the image and cause a visible
+  // split-second flash. Guarding on the source URL keeps it perfectly stable.
   const bannerEl = $('pv-banner');
-  if (u.banner) {
-    bannerEl.innerHTML = '<img src="' + u.banner + '" class="pv-banner-img">';
-  } else {
-    bannerEl.innerHTML = '<div class="profile-view-banner-placeholder">No banner set</div>';
+  const bannerSrc = u.banner || '';
+  if (bannerEl.dataset.src !== bannerSrc) {
+    bannerEl.dataset.src = bannerSrc;
+    if (u.banner) {
+      bannerEl.innerHTML = '<img src="' + u.banner + '" class="pv-banner-img">';
+    } else {
+      bannerEl.innerHTML = '<div class="profile-view-banner-placeholder">No banner set</div>';
+    }
   }
-  // Avatar (click to zoom if a real picture is set)
+  // Avatar (click to zoom if a real picture is set) \u2014 same guard as the banner.
   const av = $('pv-avatar');
+  const avatarSrc = u.avatar || '';
+  if (av.dataset.src !== avatarSrc) {
+    av.dataset.src = avatarSrc;
+    if (u.avatar) {
+      av.innerHTML = '<img src="' + u.avatar + '">';
+    } else {
+      av.innerHTML = '<span>' + getInitials(u.username) + '</span>';
+    }
+  }
   if (u.avatar) {
-    av.innerHTML = '<img src="' + u.avatar + '">';
     av.style.cursor = 'zoom-in';
     av.title = 'Click to zoom';
     av.onclick = () => openProfileAvatarLightbox(u.avatar);
   } else {
-    av.innerHTML = '<span>' + getInitials(u.username) + '</span>';
     av.style.cursor = 'default';
     av.title = '';
     av.onclick = null;

@@ -3016,11 +3016,13 @@ function publicServer(s, viewerUsername) {
     chatBackgroundOpacity: (typeof s.chatBackgroundOpacity === 'number') ? s.chatBackgroundOpacity : 100,
     serverOrder: (s.serverOrder && typeof s.serverOrder === 'object') ? s.serverOrder : {},
     roles: (s.roles || []).map(r => ({ id: r.id, name: r.name, color: r.color, badge: r.badge || '', order: r.order || 0, system: !!r.system, permissions: r.permissions || {} })),
+    categories: (s.categories || []).map(cat => ({ id: cat.id, name: cat.name, order: cat.order || 0 })),
     channels: (s.channels || [])
       .filter(c => isOwner || canViewChannel(s, viewer, c))
       .map(c => ({
         id: c.id, name: c.name, type: c.type || 'text', topic: c.topic || '', createdAt: c.createdAt,
         private: !!c.private,
+        categoryId: c.categoryId || null,
         allowedRoles: Array.isArray(c.allowedRoles) ? c.allowedRoles : [],
         allowedMembers: Array.isArray(c.allowedMembers) ? c.allowedMembers : [],
         chatDisabledFor: c.chatDisabledFor || 'none',
@@ -3391,8 +3393,10 @@ app.post('/api/servers/:id/channels', authMiddleware, (req, res) => {
   if (!name) return res.status(400).json({ error: 'Channel name is required' });
   if ((s.channels || []).some(c => c.name === name)) return res.status(400).json({ error: 'A channel with that name already exists' });
   if ((s.channels || []).length >= 50) return res.status(400).json({ error: 'This server has reached the maximum of 50 channels' });
+  const catId = (req.body || {}).categoryId;
+  const validCat = catId && (s.categories || []).some(c => c.id === catId) ? catId : null;
   const ch = { id: genId(), name, type: 'text', topic: String((req.body || {}).topic || '').slice(0, 200), createdAt: nowISO(),
-    private: false, allowedRoles: [], allowedMembers: [], chatDisabledFor: 'none' };
+    private: false, allowedRoles: [], allowedMembers: [], chatDisabledFor: 'none', categoryId: validCat };
   s.channels.push(ch);
   if (!s.messages) s.messages = {};
   s.messages[ch.id] = [];
@@ -3428,7 +3432,10 @@ app.post('/api/servers/:id/channels/:channelId', authMiddleware, (req, res) => {
   if (!serverHasPerm(s, req.user.username, 'manageChannels')) return res.status(403).json({ error: 'You do not have permission to manage channels' });
   const ch = (s.channels || []).find(c => c.id === req.params.channelId);
   if (!ch) return res.status(404).json({ error: 'Channel not found' });
-  const { name, topic, private: isPrivate, allowedRoles, allowedMembers, chatDisabledFor } = req.body || {};
+  const { name, topic, private: isPrivate, allowedRoles, allowedMembers, chatDisabledFor, categoryId } = req.body || {};
+  if (categoryId !== undefined) {
+    ch.categoryId = (categoryId && (s.categories || []).some(c => c.id === categoryId)) ? categoryId : null;
+  }
   if (name !== undefined) {
     const n = String(name).trim().toLowerCase().replace(/[^a-z0-9\-_ ]/g, '').replace(/\s+/g, '-').slice(0, 30);
     if (!n) return res.status(400).json({ error: 'Channel name is required' });
@@ -3471,6 +3478,55 @@ app.delete('/api/servers/:id/channels/:channelId', authMiddleware, (req, res) =>
   res.json({ success: true, server: publicServer(s, req.user.username) });
 });
 
+// ---- Channel categories: create (owner / manageChannels) ----
+app.post('/api/servers/:id/categories', authMiddleware, (req, res) => {
+  const s = findServer(req.params.id);
+  if (!s) return res.status(404).json({ error: 'Server not found' });
+  if (!serverHasPerm(s, req.user.username, 'manageChannels')) return res.status(403).json({ error: 'You do not have permission to manage channels' });
+  const name = String((req.body || {}).name || '').trim().slice(0, 40);
+  if (!name) return res.status(400).json({ error: 'Category name is required' });
+  if (!s.categories) s.categories = [];
+  if (s.categories.length >= 20) return res.status(400).json({ error: 'This server has reached the maximum of 20 categories' });
+  const cat = { id: genId(), name, order: s.categories.length, createdAt: nowISO() };
+  s.categories.push(cat);
+  s.updatedAt = nowISO();
+  saveDB();
+  emitServerUpdate(s);
+  res.json({ success: true, category: cat, server: publicServer(s, req.user.username) });
+});
+
+// ---- Channel categories: rename (owner / manageChannels) ----
+app.post('/api/servers/:id/categories/:categoryId', authMiddleware, (req, res) => {
+  const s = findServer(req.params.id);
+  if (!s) return res.status(404).json({ error: 'Server not found' });
+  if (!serverHasPerm(s, req.user.username, 'manageChannels')) return res.status(403).json({ error: 'You do not have permission to manage channels' });
+  const cat = (s.categories || []).find(c => c.id === req.params.categoryId);
+  if (!cat) return res.status(404).json({ error: 'Category not found' });
+  const name = String((req.body || {}).name || '').trim().slice(0, 40);
+  if (!name) return res.status(400).json({ error: 'Category name is required' });
+  cat.name = name;
+  s.updatedAt = nowISO();
+  saveDB();
+  emitServerUpdate(s);
+  res.json({ success: true, category: cat, server: publicServer(s, req.user.username) });
+});
+
+// ---- Channel categories: delete (owner / manageChannels) ----
+// Channels that belonged to the category are moved back to the top level.
+app.delete('/api/servers/:id/categories/:categoryId', authMiddleware, (req, res) => {
+  const s = findServer(req.params.id);
+  if (!s) return res.status(404).json({ error: 'Server not found' });
+  if (!serverHasPerm(s, req.user.username, 'manageChannels')) return res.status(403).json({ error: 'You do not have permission to manage channels' });
+  const cat = (s.categories || []).find(c => c.id === req.params.categoryId);
+  if (!cat) return res.status(404).json({ error: 'Category not found' });
+  s.categories = (s.categories || []).filter(c => c.id !== cat.id);
+  (s.channels || []).forEach(c => { if (c.categoryId === cat.id) c.categoryId = null; });
+  s.updatedAt = nowISO();
+  saveDB();
+  emitServerUpdate(s);
+  res.json({ success: true, server: publicServer(s, req.user.username) });
+});
+
 // ---- Roles: create ----
 app.post('/api/servers/:id/roles', authMiddleware, (req, res) => {
   const s = findServer(req.params.id);
@@ -3484,7 +3540,7 @@ app.post('/api/servers/:id/roles', authMiddleware, (req, res) => {
     id: genId(),
     name: rn,
     color: /^#[0-9a-fA-F]{3,8}$/.test(String(color || '')) ? color : '#9ca3af',
-    badge: String(badge || '').slice(0, 8),
+    badge: String(badge || '').slice(0, 300),
     order: (s.roles || []).length,
     system: false,
     permissions: normalizePermissions(permissions, { invite: true, sendMessages: true, attachFiles: true, embedLinks: true, addReactions: true, externalEmojis: true, readHistory: true, createThreads: true }),
@@ -3506,7 +3562,7 @@ app.post('/api/servers/:id/roles/:roleId', authMiddleware, (req, res) => {
   const { name, color, badge, permissions } = req.body || {};
   if (name !== undefined) { const rn = String(name).trim().slice(0, 24); if (rn) role.name = rn; }
   if (color !== undefined && /^#[0-9a-fA-F]{3,8}$/.test(String(color))) role.color = color;
-  if (badge !== undefined) role.badge = String(badge).slice(0, 8);
+  if (badge !== undefined) role.badge = String(badge).slice(0, 300);
   if (permissions && typeof permissions === 'object') {
     role.permissions = normalizePermissions(permissions, role.permissions);
   }
@@ -3514,6 +3570,36 @@ app.post('/api/servers/:id/roles/:roleId', authMiddleware, (req, res) => {
   saveDB();
   emitServerUpdate(s);
   res.json({ success: true, role, server: publicServer(s, req.user.username) });
+});
+
+// ---- Roles: upload a custom badge image (PNG) shown next to the role name ----
+app.post('/api/servers/:id/roles/:roleId/badge', authMiddleware, badgeUpload.single('image'), async (req, res) => {
+  const s = findServer(req.params.id);
+  if (!s) return res.status(404).json({ error: 'Server not found' });
+  if (!serverHasPerm(s, req.user.username, 'manageRoles')) return res.status(403).json({ error: 'You do not have permission to manage roles' });
+  const role = (s.roles || []).find(r => r.id === req.params.roleId);
+  if (!role) return res.status(404).json({ error: 'Role not found' });
+  if (!req.file) return res.status(400).json({ error: 'No image uploaded' });
+  const isImage = /^image\//.test(req.file.mimetype || '');
+  if (!isImage) {
+    try { fs.unlinkSync(path.join(UPLOAD_DIR, req.file.filename)); } catch (e) {}
+    return res.status(400).json({ error: 'Only image files are allowed' });
+  }
+  try {
+    // Badges render tiny, so cap the longest edge small and skip sharpening.
+    try { await enhanceWithTimeout(path.join(UPLOAD_DIR, req.file.filename), { skipAnimated: true, maxStatic: 256, noSharpen: true }, 5000); }
+    catch (e) { console.error('[role-badge] enhance error:', e.message); }
+    const fileUrl = '/uploads/' + req.file.filename + '?t=' + Date.now();
+    role.badge = fileUrl;
+    s.updatedAt = nowISO();
+    saveDB();
+    backupUploadFile(req.file.filename);
+    emitServerUpdate(s);
+    res.json({ success: true, badge: fileUrl, role, server: publicServer(s, req.user.username) });
+  } catch (e) {
+    console.error('role badge upload error', e);
+    res.status(500).json({ error: 'Failed to upload role badge' });
+  }
 });
 
 // ---- Roles: delete ----
