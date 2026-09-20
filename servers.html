@@ -4721,8 +4721,19 @@ function applySettingsPermissions(canEdit, canManageChannels, canManageRoles, ca
   // invite controls gated here.
   const genBtn = $('gen-invite-btn');
   if (genBtn) genBtn.style.display = canManageInvites ? '' : 'none';
+  // Custom (vanity) invite links are owner-only. Members with the invite
+  // permission may still generate random links, but only the owner can claim
+  // a custom code.
   const customInv = $('custom-invite-input');
-  if (customInv) customInv.disabled = !canManageInvites;
+  if (customInv) {
+    customInv.disabled = !activeServer.isOwner;
+    customInv.style.opacity = activeServer.isOwner ? '' : '0.5';
+    customInv.style.pointerEvents = activeServer.isOwner ? '' : 'none';
+    const ciHint = customInv.closest('.field') ? customInv.closest('.field').querySelector('.hint') : null;
+    if (ciHint) ciHint.textContent = activeServer.isOwner
+      ? '4\u201310 characters. Letters, numbers, hyphens and underscores. Leave blank for a random link.'
+      : 'Only the server owner can create a custom invite link.';
+  }
   const expiryGrid = $('invite-expiry-grid');
   if (expiryGrid) expiryGrid.querySelectorAll('button').forEach(b => { b.disabled = !canManageInvites; b.style.pointerEvents = canManageInvites ? '' : 'none'; b.style.opacity = canManageInvites ? '' : '0.5'; });
   // Save button only for managers.
@@ -5139,7 +5150,8 @@ $('invite-expiry-grid').querySelectorAll('button').forEach(b => b.addEventListen
 }));
 $('gen-invite-btn').addEventListener('click', async () => {
   if (!(activeServer.isOwner || hasPerm('invite'))) { toast('You do not have permission to create invites', 'error'); return; }
-  const custom = ($('custom-invite-input').value || '').trim().replace(/^\/+/, '');
+  // Custom (vanity) links are owner-only; non-owners always get a random code.
+  const custom = activeServer.isOwner ? ($('custom-invite-input').value || '').trim().replace(/^\/+/, '') : '';
   if (custom) {
     if (custom.length < 4 || custom.length > 10) { toast('Custom links must be 4–10 characters', 'error'); return; }
     if (!/^[a-z0-9_-]+$/i.test(custom)) { toast('Use only letters, numbers, hyphens and underscores', 'error'); return; }

@@ -1,16 +1,15 @@
-# Request AB — Chat Background image quality: clearer, not staticy/buggy
+# Request AC — Disable custom invite link for non-server-owners
 
-## 1. Root cause
-- [x] Identified: chat-background upload ran the enhance pipeline with an aggressive sharpen pass (sigma 0.6, m2 3) after Lanczos3 upscale -> amplifies compression noise on smooth regions = "staticy" look
+## 1. Frontend gating
+- [x] `applySettingsPermissions`: custom invite input disabled + dimmed for non-owners; hint text updated
+- [x] `gen-invite-btn` handler: non-owners never send a custom code (random only)
 
-## 2. Fix
-- [x] enhance.js: add `noSharpen` option to skip the sharpen pass
-- [x] server.js chat-background endpoint: `noSharpen: true` + raise target to 2560px (crisp, smooth)
-- [x] Confirm no CSS noise/grain overlays exist
+## 2. Backend enforcement
+- [x] `/api/servers/:id/invites`: reject custom codes from non-owners with 403
 
 ## 3. Verify & Deploy
-- [x] node --check enhance.js + server.js
-- [x] Pipeline test: no-sharpen output is clean/smooth (smaller file = less noise)
-- [x] Smoke test locally (servers.html 200)
-- [x] Commit + push to GitHub master (67a0ce4)
-- [x] Trigger/verify Render deploy (live, no data wiped)
+- [x] node --check server.js + extracted servers.html script
+- [x] E2E API test: member custom -> 403, member random -> 200, owner custom -> 200
+- [x] Cleanup test file + restore data/db.json seed
+- [ ] Commit + push to GitHub master
+- [ ] Trigger/verify Render deploy (no data wiped)

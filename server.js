@@ -3666,6 +3666,10 @@ app.post('/api/servers/:id/invites', authMiddleware, (req, res) => {
   const expiresAt = (!mins || mins <= 0) ? 0 : Date.now() + mins * 60 * 1000;
   let code;
   if (customCode != null && String(customCode).trim() !== '') {
+    // Custom (vanity) invite links are owner-only. Members with the invite
+    // permission may still generate random links, but only the owner can
+    // claim a custom code.
+    if (s.owner !== req.user.username) return res.status(403).json({ error: 'Only the server owner can create a custom invite link' });
     // User wants a custom vanity link (e.g. /test, /hello).
     const v = validateCustomInviteCode(customCode);
     if (!v.ok) return res.status(400).json({ error: v.error });
