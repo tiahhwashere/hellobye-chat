@@ -1,16 +1,10 @@
-# Request AH — Send Attachment polish, profile delay, server join, channel categories, My Server Profile, badges, permissions
+# Request AI — Panel Theme Color fills whole profile + hide preview X button
 
 ## Tasks
-- [x] Make the Send Attachment modal wider + more polished/better
-- [x] Fix the profile click delay (still present)
-- [x] Clicking someone else's server: remove "Open Server" option, auto-join/go to their server
-- [x] Add Channel: add channel categories (group channels under a category)
-- [x] Make all options in "My Server Profile" work + verify
-- [x] Badge (optional): replace with custom PNG upload shown next to the role
-- [x] Make the profile role size a bit bigger
-- [x] Permissions → General Server checkmarks: cleaner/better
-- [x] Fix the "Welcome to Servers" delay (still not fixed)
-- [x] Verify inline script syntax (node --check)
+- [x] Main chat: Panel Theme Color fills the WHOLE profile (no text/bio overwrite) — reverted to simple fill
+- [x] Servers (My Server Profile): Panel Theme Color fills the WHOLE profile
+- [x] Main chat: remove the X button in the upper-right when Preview Profile is clicked
+- [x] Verify inline script syntax (node --check) on both files
 - [x] Local smoke test (HTTP 200)
 - [x] Verify data/db.json preserved
 - [x] Commit + push to master

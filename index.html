@@ -3119,6 +3119,8 @@ body.no-anim .friend-item { animation: none !important; }
 #reactivate-modal { z-index: 370; }
 /* Profile preview (from Profile Settings) must sit ABOVE the settings panel (z 250) */
 #profile-view-modal.preview-mode { z-index: 400; }
+/* In preview mode, hide the X close button in the upper-right corner. */
+#profile-view-modal.preview-mode .modal-close-corner { display: none; }
 .modal-overlay.show { display: flex; animation: fadeIn 0.15s ease; }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 .modal {
@@ -23595,325 +23597,42 @@ async function openProfileView(username) {
   }
 }
 // Apply the OTHER user's Panel Theme Color to the profile-view modal.
-// Fills the entire modal background with the chosen color, forces all text
-// to white, and keeps clickable bio/website links blue. Inner cards get
-// semi-transparent dark overlays for readability.
+// Fills the ENTIRE profile with the chosen Panel Theme Color. We only set the
+// background — text, the bio, buttons and every other element keep their
+// normal styling so nothing gets overwritten.
 function applyProfileViewPanelColor(u) {
   const modal = document.querySelector('.profile-view-modal');
   if (!modal) return;
   const color = (u && u.panelColor) ? u.panelColor : null;
-  // Text-bearing element selectors inside the profile view modal.
-  const textSelector = [
-    'h3', '.profile-view-handle', '.profile-view-id', '.pv-id-text',
-    '.profile-view-status', '.profile-view-bio', '.profile-view-extra',
-    '.pv-extra-label', '.pv-extra-value', '.pv-status',
-    '.profile-view-status-msg', '.status-msg-bubble', '.sm-text',
-    '.profile-view-banner-placeholder',
-    '.pv-hidden-title', '.pv-hidden-sub', '.pv-hidden-badge', '.pv-hidden-text-wrap',
-    '.pv-displayname-text'
-  ].join(', ');
-  // Elements with their own background that need a dark overlay.
-  const cardSelector = [
-    '.profile-view-bio', '.profile-view-status', '.profile-view-extra',
-    '.profile-view-status-msg', '.status-msg-bubble', '.sm-text', '.sm-icon',
-    '.pv-copy-id-btn', '.pv-copy-id-menu', '.pv-copy-id-menu-item',
-    '.pv-copy-id-menu-name', '.pv-copy-id-menu-id', '.pv-copy-id-menu-header',
-    '.pv-copy-id-menu-empty',
-    '.pv-hidden-notice', '.pv-hidden-badge'
-  ].join(', ');
-
   // Reset any previously-applied inline styles first.
   modal.style.removeProperty('background');
   modal.style.removeProperty('border-color');
-  modal.querySelectorAll(textSelector).forEach(el => { el.style.removeProperty('color'); });
-  modal.querySelectorAll(cardSelector).forEach(el => {
-    el.style.removeProperty('background');
-    el.style.removeProperty('border-color');
-  });
-  // Reset status message bubble box-shadow (set when a panel color is
-  // applied) so it returns to the default status-colored glow.
-  modal.querySelectorAll('.status-msg-bubble .sm-icon').forEach(el => {
-    el.style.removeProperty('box-shadow');
-  });
-  modal.querySelectorAll('a').forEach(el => { el.style.removeProperty('color'); });
-  // Reset avatar + banner inline styles so they return to default CSS.
-  const av = modal.querySelector('.profile-view-avatar');
-  if (av) { av.style.removeProperty('border'); av.style.removeProperty('background'); av.style.removeProperty('box-shadow'); }
-  modal.querySelectorAll('.profile-view-status .status-dot, .profile-view-avatar-wrap .status-dot').forEach(el => { el.style.removeProperty('border'); });
-  const bn = modal.querySelector('.profile-view-banner');
-  if (bn) bn.style.removeProperty('background');
-  const bph = modal.querySelector('.profile-view-banner-placeholder');
-  if (bph) { bph.style.removeProperty('color'); bph.style.removeProperty('background'); }
-  // Reset the X close button inline styles (color + blended background).
-  const pvClose = modal.querySelector('.modal-close-corner');
-  if (pvClose) { pvClose.style.removeProperty('color'); pvClose.style.removeProperty('background'); }
-  // Remove any previously-created accent bar.
-  const oldBar = modal.querySelector('.panel-accent-bar');
-  if (oldBar) oldBar.remove();
-  // Reset accent variables.
-  modal.style.removeProperty('--accent');
-  modal.style.removeProperty('--accent-hover');
-  modal.style.removeProperty('--accent-dim');
-  modal.style.removeProperty('--accent-light');
-  modal.style.removeProperty('--accent-glow');
-  modal.style.removeProperty('--accent-text');
-
+  const headerCard = modal.querySelector('.profile-view-header-card');
+  if (headerCard) {
+    headerCard.style.removeProperty('background');
+    headerCard.style.removeProperty('border-color');
+  }
+  const banner = modal.querySelector('.profile-view-banner');
+  if (banner) banner.style.removeProperty('background');
+  const bannerPlaceholder = modal.querySelector('.profile-view-banner-placeholder');
+  if (bannerPlaceholder) bannerPlaceholder.style.removeProperty('background');
   if (color) {
-    // Set accent CSS variables on the modal scope.
-    modal.style.setProperty('--accent', color, 'important');
-    modal.style.setProperty('--accent-hover', lighten(color, 0.12), 'important');
-    modal.style.setProperty('--accent-dim', darken(color, 0.3), 'important');
-    modal.style.setProperty('--accent-light', lighten(color, 0.3), 'important');
-    const { r, g, b } = hexToRgb(color);
-    modal.style.setProperty('--accent-glow', 'rgba(' + r + ', ' + g + ', ' + b + ', 0.12)', 'important');
-    // Luminance-aware readable text color so the blend works for EVERY
-    // Panel Theme Color — dark text on light colors (yellow, light blue),
-    // white text on dark colors. This is what makes the whole modal blend
-    // instead of forcing unreadable white text on light backgrounds.
-    const vtxt = readableText(color);
-    const isLight = luminance(color) > 0.6;
-    // A muted readable text color for secondary/muted labels.
-    const mutedTxt = isLight ? 'rgba(26,26,46,0.62)' : 'rgba(255,255,255,0.62)';
-    const mutedTxt2 = isLight ? 'rgba(26,26,46,0.55)' : 'rgba(255,255,255,0.55)';
-    const mutedTxt3 = isLight ? 'rgba(26,26,46,0.85)' : 'rgba(255,255,255,0.85)';
-    // Luminance-aware borders so inner cards blend with the panel color
-    // instead of always using white borders (which clash on light colors).
-    const cardBorder = isLight ? 'rgba(0,0,0,0.12)' : 'rgba(255,255,255,0.18)';
-    const cardBorderSoft = isLight ? 'rgba(0,0,0,0.15)' : 'rgba(255,255,255,0.2)';
-    modal.style.setProperty('--accent-text', vtxt, 'important');
-
-    // Fill the entire modal background with the chosen color.
     modal.style.setProperty('background', color, 'important');
     modal.style.setProperty('border-color', color, 'important');
-
-    // Force ALL text inside the modal to the luminance-aware readable color.
-    modal.querySelectorAll(textSelector).forEach(el => {
-      el.style.setProperty('color', vtxt, 'important');
-    });
-
-    // ── OVERRIDE: identity + key fields forced to WHITE BOLD ──
-    // The user requested that the display name, username (handle), ID,
-    // Pronouns and Member Since — plus the Send Message action button —
-    // ALWAYS render in plain white bold text regardless of the chosen Panel
-    // Theme Color. This prevents the text from interfering with / overlapping
-    // the profile colors (it was unreadable on light colors and muddy on
-    // busy banner images). Every other element keeps the luminance-aware
-    // readable color so the modal still blends with the panel color.
-    const wbSelectors = [
-      '.pv-displayname-text',          // display name
-      '#pv-displayname',               // display name container (h3)
-      '.profile-view-handle',          // username (@handle + badges)
-      '#pv-handle',
-      '.profile-view-id',              // ID: row
-      '.pv-id-text',                   // ID: text
-      '.pv-extra-label',               // Pronouns / Member Since labels
-      '.pv-extra-value',               // Pronouns / Member Since values
-      '.profile-view-extra',           // extra info container (Pronouns, Member Since)
-      '#pv-extra'
-    ];
-    modal.querySelectorAll(wbSelectors.join(', ')).forEach(el => {
-      el.style.setProperty('color', '#ffffff', 'important');
-      el.style.setProperty('font-weight', '700', 'important');
-    });
-
-    // Keep clickable links (bio links, website links) a contrasting blue so
-    // they stay visible on every panel color.
-    modal.querySelectorAll('a').forEach(el => {
-      el.style.setProperty('color', '#6fb5ff', 'important');
-    });
-
-    // Inner cards get a TINTED overlay DERIVED FROM the chosen color (via
-    // blendOverlay) so they BLEND with the panel color instead of being
-    // generic black/grey boxes. For dark panel colors we lighten toward
-    // white; for light panel colors we darken toward black — the alpha
-    // keeps the panel color showing through so nothing looks "grey".
-    const cardBg = blendOverlay(color, 0.18);
-    modal.querySelectorAll(
-      '.profile-view-bio, .profile-view-status, .profile-view-extra, .profile-view-status-msg, .pv-hidden-notice'
-    ).forEach(el => {
-      el.style.setProperty('background', cardBg, 'important');
-      el.style.setProperty('border-color', cardBorder, 'important');
-    });
-    // pv-hidden-badge (the "Private Account" pill) — blend its background
-    // with the panel color too so it doesn't stay a dark box.
-    modal.querySelectorAll('.pv-hidden-badge').forEach(el => {
-      el.style.setProperty('background', blendOverlay(color, 0.25), 'important');
-      el.style.setProperty('border-color', cardBorderSoft, 'important');
-    });
-
-    // ── Status Message bubble: BLEND it fully with the Panel Theme Color ──
-    // The user asked that the Status Message "blind in" (blend in) with the
-    // panel color. So the dream-bubble orb + body derive directly from the
-    // chosen color (via blendOverlay) and all text uses the luminance-aware
-    // readable color, while keeping a faint status accent glow so you can
-    // still tell online/idle/dnd at a glance.
-    const smOrbBg  = blendOverlay(color, 0.28);
-    const smBodyBg = blendOverlay(color, 0.14);
-    const bubble = modal.querySelector('.status-msg-bubble');
-    if (bubble) {
-      bubble.style.setProperty('background', 'transparent', 'important');
-      bubble.style.setProperty('border-color', 'transparent', 'important');
+    // The header card (banner + identity) has its own dark background and
+    // border that would otherwise cover the top of the profile — make both
+    // transparent so the color fills the whole profile.
+    if (headerCard) {
+      headerCard.style.setProperty('background', 'transparent', 'important');
+      headerCard.style.setProperty('border-color', 'transparent', 'important');
     }
-    modal.querySelectorAll('.status-msg-bubble .sm-icon').forEach(el => {
-      el.style.setProperty('background', smOrbBg, 'important');
-      el.style.setProperty('border-color', cardBorder, 'important');
-      el.style.setProperty('color', vtxt, 'important');
-      // Keep a very faint status-colored glow so the orb still hints at the
-      // user's presence status without clashing with the panel color.
-      if (bubble && bubble.classList.contains('online'))
-        el.style.setProperty('box-shadow', '0 0 6px rgba(59,165,93,0.25)', 'important');
-      else if (bubble && bubble.classList.contains('idle'))
-        el.style.setProperty('box-shadow', '0 0 6px rgba(212,160,23,0.25)', 'important');
-      else if (bubble && bubble.classList.contains('dnd'))
-        el.style.setProperty('box-shadow', '0 0 6px rgba(216,58,58,0.25)', 'important');
-    });
-    modal.querySelectorAll('.status-msg-bubble .sm-text').forEach(el => {
-      el.style.setProperty('background', smBodyBg, 'important');
-      el.style.setProperty('border-color', cardBorderSoft, 'important');
-      el.style.setProperty('color', vtxt, 'important');
-    });
-
-    // Copy-ID buttons get a tinted overlay derived from the color (blends).
-    const btnBg = blendOverlay(color, 0.22);
-    modal.querySelectorAll('.pv-copy-id-btn').forEach(el => {
-      el.style.setProperty('background', btnBg, 'important');
-      el.style.setProperty('color', mutedTxt3, 'important');
-      el.style.setProperty('border-color', cardBorderSoft, 'important');
-    });
-    // The copy-ID dropdown menu — a stronger tinted overlay so the menu is
-    // clearly distinct but still blends with the panel color (not pure black).
-    const copyMenu = modal.querySelector('.pv-copy-id-menu');
-    if (copyMenu) {
-      copyMenu.style.setProperty('background', blendOverlay(color, 0.55), 'important');
-      copyMenu.style.setProperty('border-color', cardBorderSoft, 'important');
+    // When there is no banner image, the banner strip + its placeholder would
+    // otherwise show a grey gradient — make them transparent so the color
+    // shows through and the whole profile is filled.
+    if (banner && !banner.querySelector('img')) {
+      banner.style.setProperty('background', 'transparent', 'important');
+      if (bannerPlaceholder) bannerPlaceholder.style.setProperty('background', 'transparent', 'important');
     }
-    modal.querySelectorAll('.pv-copy-id-menu-item').forEach(el => {
-      el.style.removeProperty('background');
-    });
-
-    // Avatar — completely remove any ring / colored circle around the
-    // profile picture (no border, no shadow) so it blends cleanly.
-    const avatar = modal.querySelector('.profile-view-avatar');
-    if (avatar) {
-      avatar.style.setProperty('border', 'none', 'important');
-      avatar.style.setProperty('box-shadow', 'none', 'important');
-      // Avatar background (when no image) gets a slightly darker shade of
-      // the color so it blends instead of being a grey circle.
-      avatar.style.setProperty('background', darken(color, 0.2), 'important');
-    }
-    // Remove the ring around the small status-dot indicator too.
-    modal.querySelectorAll('.profile-view-status .status-dot, .profile-view-avatar-wrap .status-dot').forEach(el => {
-      el.style.setProperty('border', 'none', 'important');
-    });
-
-    // Banner area — fill with a darker shade of the chosen color so the
-    // top of the profile view blends with the panel color instead of being
-    // a grey strip.  When a real banner image is present we leave it alone.
-    const bannerContainer = modal.querySelector('.profile-view-banner');
-    if (bannerContainer) {
-      const hasImg = bannerContainer.querySelector('img');
-      if (!hasImg) {
-        bannerContainer.style.setProperty('background', darken(color, 0.15), 'important');
-      }
-    }
-    // Banner placeholder (the "No banner set" text) — a translucent overlay
-    // DERIVED FROM the color (not pure black) so the text stays readable
-    // while the area still blends with the panel color.
-    const bannerPlaceholder = modal.querySelector('.profile-view-banner-placeholder');
-    if (bannerPlaceholder) {
-      bannerPlaceholder.style.setProperty('color', mutedTxt3, 'important');
-      bannerPlaceholder.style.setProperty('background', blendOverlay(color, 0.2), 'important');
-    }
-
-    // The X close button uses the readable color + a blended background so
-    // the dark rgba(0,0,0,0.4) circle doesn't clash on light panel colors.
-    const closeBtn = modal.querySelector('.modal-close-corner');
-    if (closeBtn) {
-      closeBtn.style.setProperty('color', vtxt, 'important');
-      closeBtn.style.setProperty('background', blendOverlay(color, 0.3), 'important');
-    }
-
-    // Action buttons auto-blend with the user's Panel Theme Color so the
-    // Send Message, Add Friend / Accept / Cancel, and Block buttons all
-    // tint into the profile color instead of looking like generic grey/red
-    // boxes. Primary buttons are filled with the accent color (luminance-
-    // aware text so the label stays readable on every color); secondary
-    // buttons (Cancel/Decline) get a color-derived tinted overlay; the
-    // danger (Block/Unblock/Remove) button keeps a subtle red tint but its
-    // background still blends with the panel color.
-    const secBg = blendOverlay(color, 0.22);
-    const secBgHover = blendOverlay(color, 0.34);
-    modal.querySelectorAll('.profile-view-actions .modal-btn').forEach(el => {
-      if (el.classList.contains('primary')) {
-        // Filled with the accent color so it "binds in" with the profile.
-        el.style.setProperty('background', color, 'important');
-        el.style.setProperty('color', vtxt, 'important');
-        el.style.setProperty('font-weight', '600', 'important');
-        el.style.setProperty('border-color', color, 'important');
-        el.style.setProperty('box-shadow', '0 2px 8px ' + 'rgba(' + r + ',' + g + ',' + b + ',0.28)', 'important');
-        el.dataset.pvHover = lighten(color, 0.1);
-      } else if (el.classList.contains('danger')) {
-        // Block / Unblock / Remove Friend: blend the background with the
-        // panel color (tinted overlay) while keeping a readable red label
-        // and a faint red border so the destructive intent is still clear.
-        el.style.setProperty('background', secBg, 'important');
-        el.style.setProperty('color', '#ff7a7a', 'important');
-        el.style.setProperty('border-color', 'rgba(255,107,107,0.35)', 'important');
-        el.dataset.pvHover = secBgHover;
-      } else {
-        // Secondary buttons (Cancel Request / Decline) blend fully.
-        el.style.setProperty('background', secBg, 'important');
-        el.style.setProperty('color', vtxt, 'important');
-        el.style.setProperty('border-color', cardBorderSoft, 'important');
-        el.dataset.pvHover = secBgHover;
-      }
-    });
-    // Hover handlers: swap to the blended hover background, then restore the
-    // blended base background on leave. Re-bound per render so new buttons
-    // pick up the effect; we store the base background to restore exactly.
-    modal.querySelectorAll('.profile-view-actions .modal-btn').forEach(el => {
-      const baseBg = el.style.getPropertyValue('background');
-      if (el._pvHoverBound) { el._pvBaseBg = baseBg; return; }
-      el._pvHoverBound = true;
-      el._pvBaseBg = baseBg;
-      const enter = () => { if (el.dataset.pvHover) el.style.setProperty('background', el.dataset.pvHover, 'important'); };
-      const leave = () => { el.style.setProperty('background', el._pvBaseBg, 'important'); };
-      el.addEventListener('mouseenter', enter);
-      el.addEventListener('mouseleave', leave);
-    });
-
-    // Blocked notice stays readable and blends with the panel color.
-    modal.querySelectorAll('.blocked-notice').forEach(el => {
-      el.style.setProperty('color', vtxt, 'important');
-      el.style.setProperty('background', secBg, 'important');
-    });
-
-    // DM disabled button stays readable and blends.
-    modal.querySelectorAll('.dm-disabled-btn').forEach(el => {
-      el.style.setProperty('background', secBg, 'important');
-      el.style.setProperty('color', mutedTxt3, 'important');
-    });
-
-    // Muted text variants for visual hierarchy (luminance-aware so light
-    // panel colors get dark muted text instead of invisible white).
-    // NOTE: profile-view-id / pv-id-text / pv-extra-* are intentionally
-    // left at WHITE BOLD here (set in the override above) so the ID,
-    // Pronouns and Member Since never overlap the profile colors.
-    modal.querySelectorAll('.profile-view-status').forEach(el => {
-      el.style.setProperty('color', mutedTxt3, 'important');
-    });
-
-    // Hidden-profile notice \u2014 title uses full readable color, subtitle & badge
-    // use muted readable color, and the title-dot uses the accent color so the
-    // revamped private-profile notice blends with the panel color.
-    const pvHiddenTitle = modal.querySelector('.pv-hidden-title');
-    if (pvHiddenTitle) pvHiddenTitle.style.setProperty('color', vtxt, 'important');
-    const pvHiddenSub = modal.querySelector('.pv-hidden-sub');
-    if (pvHiddenSub) pvHiddenSub.style.setProperty('color', mutedTxt3, 'important');
-    const pvHiddenBadge = modal.querySelector('.pv-hidden-badge');
-    if (pvHiddenBadge) pvHiddenBadge.style.setProperty('color', mutedTxt3, 'important');
-    const pvHiddenTitleDot = modal.querySelector('.pv-hidden-title-dot');
-    if (pvHiddenTitleDot && color) pvHiddenTitleDot.style.setProperty('background', color, 'important');
   }
 }
 

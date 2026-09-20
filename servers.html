@@ -991,6 +991,9 @@ input, textarea { font-family: inherit; }
   content: ''; position: absolute; inset: 0; pointer-events: none;
   background: linear-gradient(180deg, rgba(0,0,0,0.05) 40%, rgba(0,0,0,0.55));
 }
+/* When a Panel Theme Color fills the whole profile and there is no banner
+   image, hide the dark banner overlay so the color shows through cleanly. */
+.member-profile-banner.mp-no-banner::after { display: none; }
 .member-profile-banner-img {
   position: absolute; inset: 0; background-size: cover; background-position: center;
   transform-origin: center center; transition: transform 0.15s ease;
@@ -6248,16 +6251,27 @@ function renderMemberProfileBody(m, roles, isMe, data) {
   // Profile mode: hide the generic header/footer so the profile fills the modal.
   const modalEl = $('member-modal').querySelector('.member-profile-modal');
   if (modalEl) { modalEl.classList.add('profile-mode'); modalEl.classList.remove('msp-editor-mode'); }
-  // Panel theme color: tint the FULL profile background (not just a strip) while
-  // keeping the text fully readable — we blend the color into the dark base
-  // rather than overlaying it on top of the text.
+  // Panel theme color: fill the ENTIRE profile with the chosen color while
+  // leaving all text, the bio and every other element untouched.
   const bodyEl = $('member-modal-body');
+  const mpBanner = bodyEl.querySelector('.member-profile-banner');
+  const mpBannerPlaceholder = bodyEl.querySelector('.member-profile-banner-placeholder');
   if (panelColor) {
-    bodyEl.style.background = 'linear-gradient(180deg, ' + hexToRgba(panelColor, 0.30) + ' 0%, ' + hexToRgba(panelColor, 0.14) + ' 55%, ' + hexToRgba(panelColor, 0.06) + ' 100%), var(--bg-dark)';
-    bodyEl.style.borderTop = '3px solid ' + hexToRgba(panelColor, 0.7);
+    bodyEl.style.background = panelColor;
+    bodyEl.style.borderTop = '';
+    // The banner strip has its own gradient background that would cover the
+    // top of the profile — make it (and its placeholder) transparent when
+    // there is no banner image so the color fills the whole profile.
+    if (mpBanner && !mpBanner.querySelector('.member-profile-banner-img')) {
+      mpBanner.style.background = 'transparent';
+      mpBanner.classList.add('mp-no-banner');
+      if (mpBannerPlaceholder) mpBannerPlaceholder.style.background = 'transparent';
+    }
   } else {
     bodyEl.style.background = '';
     bodyEl.style.borderTop = '';
+    if (mpBanner) { mpBanner.style.background = ''; mpBanner.classList.remove('mp-no-banner'); }
+    if (mpBannerPlaceholder) mpBannerPlaceholder.style.background = '';
   }
   $('member-modal-footer').innerHTML = '';
 
