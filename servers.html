@@ -435,6 +435,71 @@ input, textarea { font-family: inherit; }
 .srv-upload-row.done .srv-up-ic { color: var(--online); }
 .srv-upload-row.error .srv-up-ic { color: var(--danger); }
 
+/* ---- Media lightbox (click-to-zoom for images & GIFs) ---- */
+.msg-media[data-zoom] { cursor: zoom-in; }
+.image-lightbox {
+  position: fixed; inset: 0; z-index: 10050;
+  display: none; align-items: center; justify-content: center;
+  background: rgba(6, 7, 9, 0.92);
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  animation: lightboxIn 0.2s ease;
+}
+.image-lightbox.show { display: flex; }
+@keyframes lightboxIn { from { opacity: 0; } to { opacity: 1; } }
+.image-lightbox-stage {
+  position: relative; max-width: 92vw; max-height: 86vh;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 8px; overflow: hidden;
+}
+.image-lightbox-stage img {
+  max-width: 92vw; max-height: 86vh; object-fit: contain;
+  border-radius: 6px; box-shadow: 0 20px 70px rgba(0,0,0,0.6);
+  animation: lightboxZoom 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: zoom-in; transform-origin: center center;
+}
+@keyframes lightboxZoom {
+  from { opacity: 0; transform: scale(0.92); }
+  to { opacity: 1; transform: scale(1); }
+}
+.image-lightbox-stage img.zoomed { cursor: zoom-out; transform: scale(2.2); transition: transform 0.18s ease; }
+.image-lightbox-stage img.panning { transition: none !important; }
+.image-lightbox-close {
+  position: absolute; top: 18px; right: 22px; z-index: 2;
+  width: 42px; height: 42px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(20,22,24,0.7); color: #fff; font-size: 24px; line-height: 1;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: var(--transition);
+}
+.image-lightbox-close:hover { background: var(--danger); border-color: var(--danger); }
+.image-lightbox-nav {
+  position: absolute; top: 50%; transform: translateY(-50%); z-index: 2;
+  width: 44px; height: 44px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(20,22,24,0.7); color: #fff; font-size: 24px; line-height: 1;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: var(--transition);
+}
+.image-lightbox-nav:hover { background: var(--bg-hover); border-color: var(--border-light); }
+.image-lightbox-nav:disabled { opacity: 0.3; cursor: not-allowed; }
+.image-lightbox-prev { left: 18px; }
+.image-lightbox-next { right: 18px; }
+.image-lightbox-open-external {
+  position: absolute; bottom: 22px; left: 50%; transform: translateX(-50%); z-index: 2;
+  padding: 8px 16px; border-radius: var(--radius-sm); font-size: 12px; font-weight: 600;
+  background: rgba(20,22,24,0.7); color: var(--text-secondary);
+  border: 1px solid rgba(255,255,255,0.12); text-decoration: none; transition: var(--transition);
+}
+.image-lightbox-open-external:hover { background: var(--bg-hover); color: var(--text-primary); border-color: var(--border-light); }
+.image-lightbox-hint {
+  position: absolute; bottom: 22px; left: 22px; z-index: 2;
+  font-size: 11px; color: var(--text-muted); pointer-events: none;
+}
+@media (max-width: 600px) {
+  .image-lightbox-nav { width: 38px; height: 38px; font-size: 20px; }
+  .image-lightbox-prev { left: 10px; }
+  .image-lightbox-next { right: 10px; }
+  .image-lightbox-hint { display: none; }
+}
+
 /* ---- Reply preview (above the composer) ---- */
 .srv-reply-preview { display: flex; align-items: center; gap: 10px; background: var(--bg-dark); border: 1px solid var(--border-light); border-radius: 10px; padding: 8px 12px; margin-bottom: 8px; animation: replyIn 0.18s ease; }
 @keyframes replyIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
@@ -1806,6 +1871,18 @@ input, textarea { font-family: inherit; }
 
 <div id="toast-container"></div>
 
+<!-- Media lightbox (click-to-zoom for images & GIFs) -->
+<div class="image-lightbox" id="image-lightbox" aria-hidden="true">
+  <button class="image-lightbox-close" id="image-lightbox-close" aria-label="Close">&times;</button>
+  <button class="image-lightbox-nav image-lightbox-prev" id="image-lightbox-prev" aria-label="Previous">&#8249;</button>
+  <div class="image-lightbox-stage" id="image-lightbox-stage">
+    <img id="image-lightbox-img" alt="" />
+  </div>
+  <button class="image-lightbox-nav image-lightbox-next" id="image-lightbox-next" aria-label="Next">&#8250;</button>
+  <a class="image-lightbox-open-external" id="image-lightbox-open-external" target="_blank" rel="noopener">Open in new tab</a>
+  <div class="image-lightbox-hint">Click to zoom &middot; scroll to pan &middot; Esc to close</div>
+</div>
+
 <!-- Search messages panel -->
 <div class="search-msg-overlay" id="search-msg-overlay" style="display:none;">
   <div class="search-msg-panel">
@@ -2902,6 +2979,105 @@ function updateMessageElement(m) {
   existing.replaceWith(g);
   hydrateInviteEmbeds(g.querySelector('.msg-body'));
 }
+
+// ---------- Media lightbox (click-to-zoom for images & GIFs) ----------
+let lightboxImages = [];
+let lightboxIndex = 0;
+function openImageLightbox(src) {
+  const box = $('image-lightbox'); if (!box) return;
+  // Collect every zoomable media in the current channel so prev/next can cycle.
+  const c = $('server-messages');
+  const els = c ? Array.from(c.querySelectorAll('[data-zoom]')) : [];
+  lightboxImages = els.map(el => el.getAttribute('data-zoom-src') || el.getAttribute('src')).filter(Boolean);
+  if (lightboxImages.length === 0) lightboxImages = [src];
+  lightboxIndex = Math.max(0, lightboxImages.indexOf(src));
+  renderLightbox();
+  box.classList.add('show');
+  box.setAttribute('aria-hidden', 'false');
+  document.body.style.overflow = 'hidden';
+}
+function renderLightbox() {
+  const img = $('image-lightbox-img'); if (!img) return;
+  img.classList.remove('zoomed');
+  img.style.transformOrigin = '';
+  img.src = lightboxImages[lightboxIndex] || '';
+  const prev = $('image-lightbox-prev'), next = $('image-lightbox-next');
+  if (prev) prev.disabled = lightboxImages.length <= 1;
+  if (next) next.disabled = lightboxImages.length <= 1;
+  const ext = $('image-lightbox-open-external');
+  if (ext) ext.href = lightboxImages[lightboxIndex] || '#';
+}
+function closeImageLightbox() {
+  const box = $('image-lightbox'); if (!box) return;
+  box.classList.remove('show');
+  box.setAttribute('aria-hidden', 'true');
+  document.body.style.overflow = '';
+}
+function lightboxStep(delta) {
+  if (lightboxImages.length <= 1) return;
+  lightboxIndex = (lightboxIndex + delta + lightboxImages.length) % lightboxImages.length;
+  renderLightbox();
+}
+(function attachLightboxHandlers() {
+  function ready(fn) { if (document.readyState !== 'loading') fn(); else document.addEventListener('DOMContentLoaded', fn); }
+  ready(() => {
+    const box = $('image-lightbox'); if (!box) return;
+    const img = $('image-lightbox-img');
+    const close = $('image-lightbox-close');
+    if (close) close.addEventListener('click', closeImageLightbox);
+    const prevBtn = $('image-lightbox-prev'), nextBtn = $('image-lightbox-next');
+    if (prevBtn) prevBtn.addEventListener('click', (e) => { e.stopPropagation(); lightboxStep(-1); });
+    if (nextBtn) nextBtn.addEventListener('click', (e) => { e.stopPropagation(); lightboxStep(1); });
+    // Click backdrop closes; click image toggles zoom (focused on the click point).
+    box.addEventListener('click', (e) => { if (e.target === box || e.target.classList.contains('image-lightbox-stage')) closeImageLightbox(); });
+    if (img) img.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (!img.classList.contains('zoomed')) {
+        const rect = img.getBoundingClientRect();
+        const ox = ((e.clientX - rect.left) / rect.width) * 100;
+        const oy = ((e.clientY - rect.top) / rect.height) * 100;
+        img.style.transformOrigin = ox + '% ' + oy + '%';
+        img.classList.add('zoomed');
+      } else {
+        img.classList.remove('zoomed');
+        img.style.transformOrigin = '';
+      }
+    });
+    // Mouse wheel: when zoomed in, pan the image (Shift swaps to horizontal).
+    if (img) img.addEventListener('wheel', (e) => {
+      if (!img.classList.contains('zoomed')) return;
+      e.preventDefault();
+      const to = img.style.transformOrigin || '50% 50%';
+      const parts = to.split(/\s+/);
+      let ox = parseFloat(parts[0]) || 50;
+      let oy = parseFloat(parts[1]) || 50;
+      const step = 4;
+      if (e.shiftKey) ox = Math.max(0, Math.min(100, ox + (e.deltaY > 0 ? step : -step)));
+      else oy = Math.max(0, Math.min(100, oy + (e.deltaY > 0 ? step : -step)));
+      img.classList.add('panning');
+      img.style.transformOrigin = ox + '% ' + oy + '%';
+      clearTimeout(img._panTimer);
+      img._panTimer = setTimeout(() => { img.classList.remove('panning'); }, 120);
+    }, { passive: false });
+    // Keyboard: Esc close, arrows navigate.
+    document.addEventListener('keydown', (e) => {
+      if (!box.classList.contains('show')) return;
+      if (e.key === 'Escape') { e.preventDefault(); closeImageLightbox(); }
+      else if (e.key === 'ArrowLeft') { e.preventDefault(); lightboxStep(-1); }
+      else if (e.key === 'ArrowRight') { e.preventDefault(); lightboxStep(1); }
+    });
+  });
+})();
+// Delegated click: any zoomable media in the message list opens the lightbox.
+// Delegation means it keeps working after targeted message updates.
+document.addEventListener('click', (e) => {
+  const el = e.target.closest && e.target.closest('#server-messages [data-zoom]');
+  if (!el) return;
+  e.preventDefault();
+  e.stopPropagation();
+  const src = el.getAttribute('data-zoom-src') || el.getAttribute('src');
+  if (src) openImageLightbox(src);
+});
 function renderFile(f) {
   if (!f || !f.url) return '';
   const url = escapeAttr(f.url);
@@ -2909,10 +3085,11 @@ function renderFile(f) {
   const isGif = type === 'image/gif' || /\.gif$/i.test(f.url);
   if (isGif) {
     // Animated GIFs render as a looping, muted <video> so they play smoothly
-    // and never flicker/restart when the message list updates.
-    return '<video class="msg-media msg-gif" autoplay loop muted playsinline preload="auto"><source src="' + url + '" type="image/gif"></video>';
+    // and never flicker/restart when the message list updates. data-zoom makes
+    // them clickable to open the full-size lightbox.
+    return '<video class="msg-media msg-gif" data-zoom data-zoom-src="' + url + '" autoplay loop muted playsinline preload="auto"><source src="' + url + '" type="image/gif"></video>';
   }
-  if (type.startsWith('image') || /\.(png|jpe?g|webp|avif)$/i.test(f.url)) return '<img class="msg-media" src="' + url + '" alt="" loading="lazy">';
+  if (type.startsWith('image') || /\.(png|jpe?g|webp|avif)$/i.test(f.url)) return '<img class="msg-media" data-zoom data-zoom-src="' + url + '" src="' + url + '" alt="" loading="lazy">';
   if (type.startsWith('video') || /\.(mp4|webm|mov)$/i.test(f.url)) return '<video class="msg-media" src="' + url + '" controls preload="metadata"></video>';
   if (type.startsWith('audio') || /\.(mp3|wav|ogg|m4a)$/i.test(f.url)) return '<audio controls src="' + url + '" style="margin-top:6px;"></audio>';
   return '<a href="' + url + '" target="_blank" rel="noopener" style="color:var(--accent-light);font-size:13px;display:inline-flex;align-items:center;gap:5px;margin-top:4px;">' + icon('paperclip', 'sm') + escapeHtml(f.name || 'Attachment') + '</a>';
