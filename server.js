@@ -1424,6 +1424,28 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage, limits: { fileSize: 251 * 1024 * 1024 } }); // 250MB + 1MB headroom for chat attachments
 const avatarUpload = multer({ storage, limits: { fileSize: 26 * 1024 * 1024 } }); // 25MB + 1MB headroom for profile pic / banner (incl. GIFs)
+
+// Persist a base64 data-URL image (e.g. chosen in the Create-a-Server live
+// preview) to the uploads dir and return its public URL. Returns null on any
+// problem so callers can safely fall back to no image.
+function saveDataUrlImage(dataUrl, maxBytes) {
+  try {
+    const m = /^data:(image\/[a-zA-Z0-9.+-]+);base64,(.+)$/.exec(String(dataUrl || ''));
+    if (!m) return null;
+    const mime = m[1].toLowerCase();
+    const buf = Buffer.from(m[2], 'base64');
+    if (!buf.length || buf.length > (maxBytes || 8 * 1024 * 1024)) return null;
+    const extByMime = { 'image/gif': '.gif', 'image/png': '.png', 'image/jpeg': '.jpg', 'image/jpg': '.jpg', 'image/webp': '.webp', 'image/bmp': '.bmp', 'image/svg+xml': '.svg' };
+    const ext = extByMime[mime] || '.png';
+    const filename = genId() + ext;
+    fs.writeFileSync(path.join(UPLOAD_DIR, filename), buf);
+    backupUploadFile(filename);
+    return '/uploads/' + filename + '?t=' + Date.now();
+  } catch (e) {
+    console.error('[saveDataUrlImage] error:', e.message);
+    return null;
+  }
+}
 const badgeUpload = multer({ storage, limits: { fileSize: 11 * 1024 * 1024 } }); // 10MB + 1MB headroom for admin profile-badge images
 
 // ---------- Auth Routes ----------
@@ -1787,8 +1809,9 @@ app.get('/api/servers/:id/search-messages', authMiddleware, (req, res) => {
     const rawQ = String(req.query.q || '').trim();
     const q = rawQ.toLowerCase();
     const channelId = req.query.channelId ? String(req.query.channelId) : null;
+    const filesOnly = String(req.query.filesOnly || '') === '1';
     const results = [];
-    if (!q) return res.json({ results: [] });
+    if (!q && !filesOnly) return res.json({ results: [] });
     const usernameQuery = q.replace(/^@/, '');
     const channels = (s.channels || []).filter(c => !channelId || c.id === channelId);
     for (const ch of channels) {
@@ -1797,14 +1820,20 @@ app.get('/api/servers/:id/search-messages', authMiddleware, (req, res) => {
       msgs.slice(-1000).forEach(m => {
         if (m.deleted) return;
         const text = m.text || '';
-        const byUser = m.from && m.from.toLowerCase() === usernameQuery;
-        const byText = text && text.toLowerCase().includes(q);
-        // Server messages are end-to-end encrypted: the backend cannot read the
-        // plaintext, so it must hand every encrypted message to the client as a
-        // candidate. The client decrypts and keeps only real matches. Without
-        // this, searching would always report "No messages found".
-        const isEncrypted = !!m.e2e;
-        if (!byUser && !byText && !isEncrypted) return;
+        const hasFile = !!(m.file || (Array.isArray(m.files) && m.files.length));
+        // Files & Images tab: return every message that carries an attachment.
+        if (filesOnly) {
+          if (!hasFile) return;
+        } else {
+          const byUser = m.from && m.from.toLowerCase() === usernameQuery;
+          const byText = text && text.toLowerCase().includes(q);
+          // Server messages are end-to-end encrypted: the backend cannot read the
+          // plaintext, so it must hand every encrypted message to the client as a
+          // candidate. The client decrypts and keeps only real matches. Without
+          // this, searching would always report "No messages found".
+          const isEncrypted = !!m.e2e;
+          if (!byUser && !byText && !isEncrypted) return;
+        }
         results.push({
           id: m.id,
           channelId: ch.id,
@@ -1816,6 +1845,8 @@ app.get('/api/servers/:id/search-messages', authMiddleware, (req, res) => {
           e2e: !!m.e2e,
           e2eEnv: m.e2e || null,
           e2eKeys: m.e2eKeys || null,
+          file: m.file ? { url: m.file.url, name: m.file.name, type: m.file.type, size: m.file.size } : null,
+          files: Array.isArray(m.files) ? m.files.map(f => ({ url: f.url, name: f.name, type: f.type, size: f.size })) : null,
         });
       });
     }
@@ -2980,6 +3011,9 @@ function publicServer(s, viewerUsername) {
     effect: s.effect || 'none',
     iconScale: s.iconScale || 100,
     bannerScale: s.bannerScale || 100,
+    chatBackground: s.chatBackground || null,
+    chatBackgroundScale: (typeof s.chatBackgroundScale === 'number') ? s.chatBackgroundScale : 100,
+    chatBackgroundOpacity: (typeof s.chatBackgroundOpacity === 'number') ? s.chatBackgroundOpacity : 100,
     serverOrder: (s.serverOrder && typeof s.serverOrder === 'object') ? s.serverOrder : {},
     roles: (s.roles || []).map(r => ({ id: r.id, name: r.name, color: r.color, badge: r.badge || '', order: r.order || 0, system: !!r.system, permissions: r.permissions || {} })),
     channels: (s.channels || [])
@@ -3077,7 +3111,7 @@ function emitServerUpdate(server) {
 
 // ---- Create a server ----
 app.post('/api/servers/create', authMiddleware, (req, res) => {
-  const { name, bio, accentColor, serverType, isPublic } = req.body || {};
+  const { name, bio, accentColor, serverType, isPublic, icon, banner } = req.body || {};
   const serverName = String(name || '').trim().slice(0, 40);
   if (!serverName) return res.status(400).json({ error: 'Server name is required' });
   const owner = req.user.username;
@@ -3085,13 +3119,16 @@ app.post('/api/servers/create', authMiddleware, (req, res) => {
   const generalId = genId();
   const accent = /^#[0-9a-fA-F]{6}$/.test(String(accentColor || '')) ? accentColor : '#5865f2';
   const type = ['community','friends','gaming','study','club','other'].includes(String(serverType || '')) ? serverType : 'community';
+  // Optional icon/banner chosen in the live preview (base64 data URLs).
+  const iconUrl = (typeof icon === 'string' && icon.startsWith('data:image/')) ? saveDataUrlImage(icon, 8 * 1024 * 1024) : null;
+  const bannerUrl = (typeof banner === 'string' && banner.startsWith('data:image/')) ? saveDataUrlImage(banner, 12 * 1024 * 1024) : null;
   const server = {
     id,
     serverId: genServerId(),
     name: serverName,
     owner,
-    icon: null,
-    banner: null,
+    icon: iconUrl,
+    banner: bannerUrl,
     bio: String(bio || '').slice(0, 500),
     accentColor: accent,
     serverType: type,
@@ -3190,7 +3227,7 @@ app.post('/api/servers/:id/settings', authMiddleware, (req, res) => {
   const s = findServer(req.params.id);
   if (!s) return res.status(404).json({ error: 'Server not found' });
   if (!serverHasPerm(s, req.user.username, 'manageServer')) return res.status(403).json({ error: 'You do not have permission to manage this server' });
-  const { name, bio, systemChannelId, defaultNotifications, verificationLevel, welcomeMessage, discoverable, slowmodeSeconds, accentColor, effect, iconScale, bannerScale } = req.body || {};
+  const { name, bio, systemChannelId, defaultNotifications, verificationLevel, welcomeMessage, discoverable, slowmodeSeconds, accentColor, effect, iconScale, bannerScale, chatBackground, chatBackgroundScale, chatBackgroundOpacity } = req.body || {};
   if (name !== undefined) {
     const n = String(name).trim().slice(0, 40);
     if (!n) return res.status(400).json({ error: 'Server name is required' });
@@ -3230,6 +3267,19 @@ app.post('/api/servers/:id/settings', authMiddleware, (req, res) => {
   if (bannerScale !== undefined) {
     const v = Number(bannerScale);
     s.bannerScale = (Number.isFinite(v) && v >= 100 && v <= 220) ? Math.round(v) : 100;
+  }
+  if (chatBackground !== undefined) {
+    // null / empty clears the background; otherwise store the uploaded URL.
+    const u = String(chatBackground || '').trim();
+    s.chatBackground = u ? u.slice(0, 500) : null;
+  }
+  if (chatBackgroundScale !== undefined) {
+    const v = Number(chatBackgroundScale);
+    s.chatBackgroundScale = (Number.isFinite(v) && v >= 100 && v <= 220) ? Math.round(v) : 100;
+  }
+  if (chatBackgroundOpacity !== undefined) {
+    const v = Number(chatBackgroundOpacity);
+    s.chatBackgroundOpacity = (Number.isFinite(v) && v >= 0 && v <= 100) ? Math.round(v) : 100;
   }
   s.updatedAt = nowISO();
   saveDB();
@@ -3300,6 +3350,30 @@ app.post('/api/servers/:id/banner', authMiddleware, avatarUpload.single('image')
   } catch (e) {
     console.error('server banner upload error', e);
     res.status(500).json({ error: 'Failed to upload server banner' });
+  }
+});
+
+// ---- Owner/manager: upload server chat background image ----
+app.post('/api/servers/:id/chat-background', authMiddleware, avatarUpload.single('image'), async (req, res) => {
+  const s = findServer(req.params.id);
+  if (!s) return res.status(404).json({ error: 'Server not found' });
+  if (!serverHasPerm(s, req.user.username, 'manageServer')) return res.status(403).json({ error: 'You do not have permission to change the server chat background' });
+  if (!req.file) return res.status(400).json({ error: 'No image uploaded' });
+  try {
+    try { await enhanceWithTimeout(path.join(UPLOAD_DIR, req.file.filename), { maxStatic: 1920, maxAnimated: 1080, skipAnimated: true }, 10000); }
+    catch (e) { console.error('[server-chatbg] enhance error:', e.message); }
+    const fileUrl = '/uploads/' + req.file.filename + '?t=' + Date.now();
+    s.chatBackground = fileUrl;
+    if (typeof s.chatBackgroundScale !== 'number') s.chatBackgroundScale = 100;
+    if (typeof s.chatBackgroundOpacity !== 'number') s.chatBackgroundOpacity = 100;
+    s.updatedAt = nowISO();
+    saveDB();
+    backupUploadFile(req.file.filename);
+    emitServerUpdate(s);
+    res.json({ success: true, chatBackground: fileUrl, server: publicServer(s, req.user.username) });
+  } catch (e) {
+    console.error('server chat background upload error', e);
+    res.status(500).json({ error: 'Failed to upload server chat background' });
   }
 });
 

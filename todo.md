@@ -1,36 +1,42 @@
-# Hellobye Chat — Servers Polish (Request V)
+# Hellobye Chat — Servers Polish (Request W)
 
-## Search messages
-- [x] Fix "No messages found" showing even when messages exist
+## Script removal
+- [x] Remove ninja-daytona-script.js + add "do not re-add" reminder
 
-## Permissions
-- [x] Disable non-owner/admin from changing settings (revoke invites, etc.)
+## Profile
+- [x] Panel Theme Color → full profile color (no text overlay)
+- [x] Make My Server Profile modal wider (un-smush save/options)
 
-## Create/Join UI cleanup
-- [x] Remove SVG icon + emojis from Join a Server UI
-- [x] Remove SVG + emojis from Create a Server UI
-- [x] Remove "Server type" section from Create a Server
-- [x] Make Create/Join/Server Settings modals wider
-- [x] Make all UI layouts more advanced (no emojis anywhere)
+## Fonts
+- [x] Change servers fonts to GG Sans
 
-## Banner
-- [x] Make server banner shorter (less tall)
+## Chat message actions
+- [x] Make reply/react/edit/delete buttons a bit bigger
 
-## Media
-- [x] Click preview to zoom image while uploading
-- [x] Make sent media thumbnail a bit bigger
+## Server Appearance
+- [x] Add server chat background custom image (scale, transparency, etc.)
+
+## Create a Server
+- [x] Add image changer to the live preview
+
+## Refresh/update behavior
+- [x] Don't return to "Your Servers" page on refresh — professional message
+
+## Files
+- [x] Add download button + extra file details (name, image, etc.)
 
 ## Replies
-- [x] Show reply context + notify user when someone replies
+- [x] Fix reply system not replying to users' messages
 
-## Profiles
-- [x] Panel Theme Color applies to grey part of profile
-- [x] Make user profile layout more banner, less bland
-- [x] Click profile image to zoom
+## Search messages
+- [x] Add files/image tab
+
+## Roles
+- [x] Make Create Role UI wider
 
 ## Verify & Deploy
 - [x] Syntax check
-- [x] Local smoke test
-- [x] Commit + push
-- [x] Render deploy live
-- [x] No data wiped
+- [ ] Local smoke test
+- [ ] Commit + push
+- [ ] Render deploy live
+- [ ] No data wiped
