@@ -3360,7 +3360,12 @@ app.post('/api/servers/:id/chat-background', authMiddleware, avatarUpload.single
   if (!serverHasPerm(s, req.user.username, 'manageServer')) return res.status(403).json({ error: 'You do not have permission to change the server chat background' });
   if (!req.file) return res.status(400).json({ error: 'No image uploaded' });
   try {
-    try { await enhanceWithTimeout(path.join(UPLOAD_DIR, req.file.filename), { maxStatic: 1920, maxAnimated: 1080, skipAnimated: true }, 10000); }
+    // Chat backgrounds are full-bleed, so we resize to a crisp 2560px longest
+    // edge with the high-quality Lanczos3 kernel but SKIP the sharpening pass
+    // (noSharpen). Sharpening smooth regions (skies, gradients, soft bokeh)
+    // amplifies compression noise and upscaling artifacts, which is what made
+    // the background look "staticy"/grainy. A clean resize alone is smooth.
+    try { await enhanceWithTimeout(path.join(UPLOAD_DIR, req.file.filename), { maxStatic: 2560, maxAnimated: 1080, skipAnimated: true, noSharpen: true }, 10000); }
     catch (e) { console.error('[server-chatbg] enhance error:', e.message); }
     const fileUrl = '/uploads/' + req.file.filename + '?t=' + Date.now();
     s.chatBackground = fileUrl;

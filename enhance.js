@@ -61,12 +61,14 @@ async function readMeta(filePath) {
  * @param {number} [opts.maxStatic] override the static-image longest-edge target (default 3840)
  * @param {number} [opts.maxAnimated] override the animated-image longest-edge target (default 1080)
  * @param {boolean} [opts.skipAnimated] if true (default), animated GIF/WebP files are served as-is without per-frame resize (avoids lag/hangs). Set false to force heavy per-frame enhancement.
+ * @param {boolean} [opts.noSharpen] if true, skip the sharpening pass entirely. Used for large full-bleed backgrounds (e.g. the server chat background) where sharpening flat regions (skies, gradients, soft bokeh) amplifies compression noise and upscaling artifacts, producing a "staticy"/grainy look. A clean Lanczos3 resize alone looks far smoother.
  * @returns {Promise<{enhanced:boolean, width:number, height:number, format:string, reason?:string}>}
  */
 async function enhanceUpload(filePath, opts) {
   opts = opts || {};
   const staticTarget = opts.maxStatic || STATIC_TARGET;
   const animatedTarget = opts.maxAnimated || ANIMATED_TARGET;
+  const noSharpen = opts.noSharpen === true;
   if (!filePath || !fs.existsSync(filePath)) {
     return { enhanced: false, width: 0, height: 0, format: '', reason: 'file not found' };
   }
@@ -135,7 +137,9 @@ async function enhanceUpload(filePath, opts) {
   try {
     const pipeline = sharp(filePath, { animated: true });
     if (resizeOpts) pipeline.resize(resizeOpts);
-    pipeline.sharpen(SHARPEN);
+    // Sharpen only when requested. Full-bleed backgrounds opt out (noSharpen)
+    // because sharpening smooth regions introduces visible grain/static.
+    if (!noSharpen) pipeline.sharpen(SHARPEN);
 
     // Choose output format — keep the original type where possible so
     // transparency and animation are preserved.
