@@ -1809,6 +1809,8 @@ app.get('/api/servers/:id/search-messages', authMiddleware, (req, res) => {
           text: text.slice(0, 300),
           timestamp: m.timestamp,
           e2e: !!m.e2e,
+          e2eEnv: m.e2e || null,
+          e2eKeys: m.e2eKeys || null,
         });
       });
     }
@@ -2949,6 +2951,7 @@ function publicServer(s, viewerUsername) {
     effect: s.effect || 'none',
     iconScale: s.iconScale || 100,
     bannerScale: s.bannerScale || 100,
+    serverOrder: (s.serverOrder && typeof s.serverOrder === 'object') ? s.serverOrder : {},
     roles: (s.roles || []).map(r => ({ id: r.id, name: r.name, color: r.color, badge: r.badge || '', order: r.order || 0, system: !!r.system, permissions: r.permissions || {} })),
     channels: (s.channels || [])
       .filter(c => isOwner || canViewChannel(s, viewer, c))
@@ -2989,15 +2992,26 @@ function publicServer(s, viewerUsername) {
 // Public invite preview (for link embeds) — no auth required.
 function publicInvitePreview(server, invite) {
   if (!server) return null;
+  const ownerUser = db.users[server.owner];
+  const onlineCount = (server.members || []).filter(un => {
+    const u = db.users[un];
+    return u && connectedUsers.has(un) && u.status !== 'offline';
+  }).length;
   return {
     serverId: server.id,
     name: server.name,
     icon: server.icon || null,
     banner: server.banner || null,
     bio: server.bio || '',
+    accentColor: server.accentColor || null,
     memberCount: (server.members || []).length,
+    onlineCount,
     channelCount: (server.channels || []).length,
+    roleCount: (server.roles || []).length,
+    createdAt: server.createdAt || null,
+    verificationLevel: server.verificationLevel || 0,
     owner: server.owner,
+    ownerName: (ownerUser && ownerUser.displayName) ? ownerUser.displayName : server.owner,
     code: invite ? invite.code : null,
     expiresAt: invite ? (invite.expiresAt || 0) : 0,
   };
@@ -3066,6 +3080,14 @@ app.post('/api/servers/create', authMiddleware, (req, res) => {
 app.get('/api/servers', authMiddleware, (req, res) => {
   const me = req.user.username;
   const list = Object.values(db.servers || {}).filter(s => (s.members || []).includes(me));
+  // Sort by the user's personal rail order (serverOrder[me]); servers without
+  // a saved position keep their natural (creation) order at the end.
+  list.sort((a, b) => {
+    const ao = (a.serverOrder && typeof a.serverOrder[me] === 'number') ? a.serverOrder[me] : 1e9;
+    const bo = (b.serverOrder && typeof b.serverOrder[me] === 'number') ? b.serverOrder[me] : 1e9;
+    if (ao !== bo) return ao - bo;
+    return new Date(a.createdAt || 0) - new Date(b.createdAt || 0);
+  });
   res.json({ servers: list.map(s => publicServer(s, me)) });
 });
 
@@ -3075,9 +3097,33 @@ app.get('/api/servers/discover', authMiddleware, (req, res) => {
   const q = String(req.query.q || '').trim().toLowerCase();
   const me = req.user.username;
   let list = Object.values(db.servers || {}).filter(s => !!s.discoverable);
-  if (q) list = list.filter(s => (s.name || '').toLowerCase().includes(q));
+  if (q) list = list.filter(s => (s.name || '').toLowerCase().includes(q) || (s.bio || '').toLowerCase().includes(q));
   list = list.slice(0, 50);
-  res.json({ servers: list.map(s => ({ id: s.id, serverId: s.serverId || null, name: s.name, icon: s.icon || null, bio: s.bio || '', memberCount: (s.members || []).length, isMember: (s.members || []).includes(me) })) });
+  res.json({ servers: list.map(s => {
+    const ownerUser = db.users[s.owner];
+    const onlineCount = (s.members || []).filter(un => {
+      const u = db.users[un];
+      return u && connectedUsers.has(un) && u.status !== 'offline';
+    }).length;
+    return {
+      id: s.id,
+      serverId: s.serverId || null,
+      name: s.name,
+      icon: s.icon || null,
+      banner: s.banner || null,
+      bio: s.bio || '',
+      accentColor: s.accentColor || null,
+      memberCount: (s.members || []).length,
+      onlineCount,
+      channelCount: (s.channels || []).length,
+      roleCount: (s.roles || []).length,
+      createdAt: s.createdAt || null,
+      verificationLevel: s.verificationLevel || 0,
+      owner: s.owner,
+      ownerName: (ownerUser && ownerUser.displayName) ? ownerUser.displayName : s.owner,
+      isMember: (s.members || []).includes(me),
+    };
+  }) });
 });
 
 // ---- Get a single server (metadata + channels + members) ----
@@ -3157,6 +3203,28 @@ app.post('/api/servers/:id/settings', authMiddleware, (req, res) => {
   res.json({ success: true, server: publicServer(s, req.user.username) });
 });
 
+// ---- Reorder the servers in the current user's rail ----
+// Each user has their own personal ordering of the servers they belong to.
+// The order is stored per-server (serverOrder[username] = index) so it
+// persists across devices/redeploys without touching any other user's view.
+app.post('/api/servers/reorder', authMiddleware, (req, res) => {
+  const me = req.user.username;
+  const order = Array.isArray((req.body || {}).order) ? req.body.order : null;
+  if (!order) return res.status(400).json({ error: 'An order array is required' });
+  // Only accept ids for servers the user is actually a member of.
+  const mine = new Set(Object.values(db.servers || {}).filter(s => (s.members || []).includes(me)).map(s => s.id));
+  let idx = 0;
+  for (const id of order) {
+    if (!mine.has(id)) continue;
+    const s = db.servers[id];
+    if (!s) continue;
+    if (!s.serverOrder || typeof s.serverOrder !== 'object') s.serverOrder = {};
+    s.serverOrder[me] = idx++;
+  }
+  saveDB();
+  res.json({ success: true });
+});
+
 // ---- Owner/manager: upload server icon ----
 app.post('/api/servers/:id/icon', authMiddleware, avatarUpload.single('image'), async (req, res) => {
   const s = findServer(req.params.id);
@@ -3219,6 +3287,25 @@ app.post('/api/servers/:id/channels', authMiddleware, (req, res) => {
   saveDB();
   emitServerUpdate(s);
   res.json({ success: true, channel: ch, server: publicServer(s, req.user.username) });
+});
+
+// ---- Channels: reorder (owner / manageChannels) ----
+app.post('/api/servers/:id/channels/reorder', authMiddleware, (req, res) => {
+  const s = findServer(req.params.id);
+  if (!s) return res.status(404).json({ error: 'Server not found' });
+  if (!serverHasPerm(s, req.user.username, 'manageChannels')) return res.status(403).json({ error: 'You do not have permission to manage channels' });
+  const order = Array.isArray((req.body || {}).order) ? req.body.order : null;
+  if (!order) return res.status(400).json({ error: 'An order array is required' });
+  const byId = new Map((s.channels || []).map(c => [c.id, c]));
+  const next = [];
+  for (const id of order) { const c = byId.get(id); if (c) { next.push(c); byId.delete(id); } }
+  // Append any channels not mentioned in the order (safety).
+  for (const c of byId.values()) next.push(c);
+  s.channels = next;
+  s.updatedAt = nowISO();
+  saveDB();
+  emitServerUpdate(s);
+  res.json({ success: true, server: publicServer(s, req.user.username) });
 });
 
 // ---- Channels: rename / set topic ----
@@ -3343,7 +3430,23 @@ app.post('/api/servers/:id/members/:username/roles', authMiddleware, (req, res) 
   if (!serverHasPerm(s, req.user.username, 'manageRoles')) return res.status(403).json({ error: 'You do not have permission to manage roles' });
   const target = String(req.params.username || '').toLowerCase();
   if (!(s.members || []).includes(target)) return res.status(400).json({ error: 'That user is not a member of this server' });
-  const { roleId, action } = req.body || {};
+  const { roleId, action, roleIds } = req.body || {};
+  const prof = ensureServerMemberProfile(s, target);
+  if (!Array.isArray(prof.roleIds)) prof.roleIds = [];
+  // Batch mode: replace the whole role set atomically (fast, single request).
+  if (Array.isArray(roleIds)) {
+    const valid = new Set((s.roles || []).map(r => r.id));
+    let next = roleIds.filter(id => valid.has(id));
+    // Guard the Owner role: only the owner may hold it, only owner can set it.
+    if (next.includes('owner')) {
+      if (s.owner !== req.user.username || target !== s.owner) next = next.filter(id => id !== 'owner');
+    }
+    prof.roleIds = Array.from(new Set(next));
+    s.updatedAt = nowISO();
+    saveDB();
+    emitServerUpdate(s);
+    return res.json({ success: true, server: publicServer(s, req.user.username) });
+  }
   const role = (s.roles || []).find(r => r.id === roleId);
   if (!role) return res.status(404).json({ error: 'Role not found' });
   // The Owner role can only be toggled by the server owner, and only on
@@ -3353,8 +3456,6 @@ app.post('/api/servers/:id/members/:username/roles', authMiddleware, (req, res) 
     if (s.owner !== req.user.username) return res.status(403).json({ error: 'Only the server owner can change the Owner role' });
     if (target !== s.owner) return res.status(400).json({ error: 'The Owner role can only be applied to the server owner' });
   }
-  const prof = ensureServerMemberProfile(s, target);
-  if (!Array.isArray(prof.roleIds)) prof.roleIds = [];
   if (action === 'remove') prof.roleIds = prof.roleIds.filter(id => id !== role.id);
   else if (!prof.roleIds.includes(role.id)) prof.roleIds.push(role.id);
   s.updatedAt = nowISO();
@@ -6099,9 +6200,12 @@ io.on('connection', (socket) => {
       const s = findServer(serverId);
       if (!s) { if (typeof ack === 'function') ack({ error: 'Server not found' }); return; }
       if (!(s.members || []).includes(username)) { if (typeof ack === 'function') ack({ error: 'Not a member' }); return; }
-      const m = ((s.messages || {})[channelId] || []).find(x => x.id === id && x.username === username);
+      // Owners and members with manageMessages can delete ANY message; everyone
+      // else can only delete their own.
+      const canManage = serverHasPerm(s, username, 'manageMessages');
+      const m = ((s.messages || {})[channelId] || []).find(x => x.id === id && (canManage || x.username === username));
       if (!m) { if (typeof ack === 'function') ack({ error: 'Message not found' }); return; }
-      m.deleted = true; m.deletedAt = nowISO(); m.text = ''; m.file = null;
+      m.deleted = true; m.deletedAt = nowISO(); m.text = ''; m.file = null; m.deletedBy = username;
       saveDB();
       for (const mem of (s.members || [])) io.to('user:' + mem).emit('server-deleted', { serverId: s.id, channelId, id: m.id, from: username, deletedAt: m.deletedAt });
       if (typeof ack === 'function') ack({ success: true });
