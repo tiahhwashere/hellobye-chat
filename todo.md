@@ -8,5 +8,5 @@
 ## 2. Verify & Deploy
 - [x] node --check on extracted servers.html script
 - [x] Smoke test locally (servers.html 200, header icon gone, rail present)
-- [ ] Commit + push to GitHub master
-- [ ] Trigger/verify Render deploy (no data wiped)
+- [x] Commit + push to GitHub master (6598c4e)
+- [x] Trigger/verify Render deploy (live, no data wiped)
