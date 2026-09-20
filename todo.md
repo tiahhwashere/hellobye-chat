@@ -1,12 +1,12 @@
-# Request AE — Zoomed media should be bigger (fill the viewport)
+# Request AF — Make the Set Status dropdown better
 
-## 1. Fix
-- [x] `.image-lightbox-stage`: fixed `width:92vw; height:86vh` (was max-* only)
-- [x] `.image-lightbox-stage img`: `width:100%; height:100%; object-fit:contain` so small media scales UP to fill the stage (no stretching)
-- [x] Removed the full-stage box-shadow (looked odd when image fills the stage)
-
-## 2. Verify & Deploy
-- [x] node --check extracted servers.html script
-- [x] Smoke test locally (servers.html 200, new CSS served)
-- [x] Commit + push to GitHub master (d6fa5b3)
-- [x] Trigger/verify Render deploy (live, no data wiped)
+## Tasks
+- [x] Redesign `.status-menu` CSS (user header, larger status dots, label + description rows, selected state)
+- [x] Update `openStatusMenu()` JS to render the new structure (avatar/name header, option label + description, selected class + check)
+- [x] Verify inline script syntax (`node --check`)
+- [ ] Local smoke test (page loads, HTTP 200)
+- [ ] Verify `data/db.json` is the clean 218-byte seed
+- [ ] Commit + push to `master`
+- [ ] Verify Render deploy goes live
+- [ ] Verify live site serves the new status menu markers
+- [ ] Update todo.md and commit

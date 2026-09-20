@@ -1524,17 +1524,28 @@ input, textarea { font-family: inherit; }
 .rail-menu .rm-id { font-family: 'gg sans Mono', ui-monospace, monospace; font-size: 12px; color: var(--text-muted); padding: 4px 10px 8px; letter-spacing: 1px; }
 
 /* ---- Status picker menu (bottom-left footer) ---- */
-.status-menu { position: fixed; z-index: 1300; min-width: 200px; background: var(--bg-dark); border: 1px solid var(--border-light); border-radius: 12px; box-shadow: 0 18px 44px rgba(0,0,0,0.55); padding: 6px; animation: scaleIn 0.14s ease; }
-.status-menu .sm-head { padding: 8px 10px 6px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); }
-.status-menu button { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; padding: 9px 10px; border-radius: 8px; font-size: 13.5px; color: var(--text-secondary); }
+.status-menu { position: fixed; z-index: 1300; min-width: 252px; background: var(--bg-dark); border: 1px solid var(--border-light); border-radius: 14px; box-shadow: 0 18px 44px rgba(0,0,0,0.55); padding: 6px; animation: scaleIn 0.14s ease; overflow: hidden; }
+.status-menu .sm-user { display: flex; align-items: center; gap: 11px; padding: 10px 10px 12px; border-bottom: 1px solid var(--border); margin-bottom: 6px; }
+.status-menu .sm-user-av { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), var(--accent-dim)); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 15px; color: #fff; overflow: hidden; flex-shrink: 0; }
+.status-menu .sm-user-av img { width: 100%; height: 100%; object-fit: cover; }
+.status-menu .sm-user-info { min-width: 0; }
+.status-menu .sm-user-name { font-weight: 700; font-size: 14px; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.status-menu .sm-user-sub { font-size: 11.5px; color: var(--text-muted); margin-top: 1px; }
+.status-menu .sm-head { padding: 4px 10px 6px; font-size: 10.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text-muted); }
+.status-menu button { display: flex; align-items: center; gap: 11px; width: 100%; text-align: left; padding: 9px 10px; border-radius: 9px; font-size: 13.5px; color: var(--text-secondary); transition: background var(--transition), color var(--transition); }
 .status-menu button:hover { background: var(--bg-medium); color: var(--text-primary); }
-.status-menu .sm-dot { width: 16px; height: 16px; border-radius: 50%; flex-shrink: 0; background-size: contain; background-repeat: no-repeat; background-position: center; }
-.status-menu .sm-dot.online { background-image: url('online.png'); border-radius: 5px; }
+.status-menu button.selected { background: rgba(var(--accent-rgb), 0.14); color: var(--text-primary); }
+.status-menu .sm-dot { width: 18px; height: 18px; border-radius: 50%; flex-shrink: 0; background-size: contain; background-repeat: no-repeat; background-position: center; }
+.status-menu .sm-dot.online { background-image: url('online.png'); border-radius: 6px; }
 .status-menu .sm-dot.idle { background-image: url('idle.png'); }
 .status-menu .sm-dot.dnd { background-image: url('dnd.png'); }
 .status-menu .sm-dot.streaming { background-image: url('streaming.png'); }
 .status-menu .sm-dot.offline { background-image: url('offline.png'); }
-.status-menu .sm-check { margin-left: auto; color: var(--accent-light); display: inline-flex; }
+.status-menu .sm-opt { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.status-menu .sm-opt-label { font-weight: 600; }
+.status-menu .sm-opt-desc { font-size: 11px; color: var(--text-muted); }
+.status-menu button.selected .sm-opt-desc { color: var(--text-secondary); }
+.status-menu .sm-check { margin-left: auto; color: var(--accent-light); display: inline-flex; flex-shrink: 0; }
 
 /* ---- Channel right-click context menu ---- */
 .ctx-menu { position: fixed; z-index: 1300; min-width: 190px; background: var(--bg-dark); border: 1px solid var(--border-light); border-radius: 12px; box-shadow: 0 18px 44px rgba(0,0,0,0.55); padding: 6px; animation: scaleIn 0.14s ease; }
@@ -3050,18 +3061,38 @@ function openStatusMenu() {
   if (!info) return;
   const rect = info.getBoundingClientRect();
   const options = [
-    { s: 'online', label: 'Online' },
-    { s: 'idle', label: 'Idle' },
-    { s: 'dnd', label: 'Do Not Disturb' },
-    { s: 'offline', label: 'Invisible' },
+    { s: 'online', label: 'Online', desc: 'Active and available' },
+    { s: 'idle', label: 'Idle', desc: 'Away from keyboard' },
+    { s: 'dnd', label: 'Do Not Disturb', desc: 'Mute notifications' },
+    { s: 'offline', label: 'Invisible', desc: 'Appear offline to others' },
   ];
+  const cur = currentUser.status || 'online';
+  const displayName = currentUser.displayName || ('@' + currentUser.username);
+  const avatarHtml = currentUser.avatar
+    ? '<img src="' + escapeAttr(currentUser.avatar) + '" alt="">'
+    : escapeHtml(getInitials(displayName));
   const menu = document.createElement('div');
   menu.className = 'status-menu';
   menu.id = 'status-menu';
-  menu.innerHTML = '<div class="sm-head">Set Status</div>' + options.map(o =>
-    '<button data-status="' + o.s + '"><span class="sm-dot ' + o.s + '"></span>' + o.label +
-    (currentUser.status === o.s ? '<span class="sm-check">' + icon('check', 'sm') + '</span>' : '') + '</button>'
-  ).join('');
+  menu.innerHTML =
+    '<div class="sm-user">' +
+      '<div class="sm-user-av">' + avatarHtml + '</div>' +
+      '<div class="sm-user-info">' +
+        '<div class="sm-user-name">' + escapeHtml(displayName) + '</div>' +
+        '<div class="sm-user-sub">' + escapeHtml(getStatusText(cur)) + '</div>' +
+      '</div>' +
+    '</div>' +
+    '<div class="sm-head">Set Status</div>' +
+    options.map(o =>
+      '<button data-status="' + o.s + '"' + (cur === o.s ? ' class="selected"' : '') + '>' +
+        '<span class="sm-dot ' + o.s + '"></span>' +
+        '<span class="sm-opt">' +
+          '<span class="sm-opt-label">' + o.label + '</span>' +
+          '<span class="sm-opt-desc">' + o.desc + '</span>' +
+        '</span>' +
+        (cur === o.s ? '<span class="sm-check">' + icon('check', 'sm') + '</span>' : '') +
+      '</button>'
+    ).join('');
   document.body.appendChild(menu);
   const mw = menu.offsetWidth, mh = menu.offsetHeight;
   let left = rect.left;
