@@ -24,5 +24,5 @@
 ## 6. Verify & Deploy
 - [x] node --check on server.js + extracted servers.html script
 - [x] Smoke test locally (invite revoke 403/200 verified)
-- [ ] Commit + push to GitHub master
-- [ ] Trigger/verify Render deploy (no data wiped)
+- [x] Commit + push to GitHub master
+- [x] Trigger/verify Render deploy (no data wiped)
