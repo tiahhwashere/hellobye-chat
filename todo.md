@@ -1,43 +1,36 @@
-# Hellobye Chat — Servers Polish (Request U)
+# Hellobye Chat — Servers Polish (Request V)
 
-## Toasts
-- [x] Remove green checkmark SVG from toast UI
-- [x] Improve toast UI design
-- [x] Remove "Server order saved" toast entirely
+## Search messages
+- [x] Fix "No messages found" showing even when messages exist
 
-## Status icons
-- [x] Use main-chat status icons (online/offline/idle/dnd) in servers
-- [x] Fix status proportion in members list profile
-- [x] Fix status proportion bottom-left (user panel)
+## Permissions
+- [x] Disable non-owner/admin from changing settings (revoke invites, etc.)
 
-## Scale bugs
-- [x] Fix profile + banner scale both showing / blown out of proportion
-
-## Media
-- [x] Fix media upload loading bar proportion
-- [x] Show image/video/gif preview before sending
-- [x] Attach message text on top of media (no separate message)
-
-## Profile
-- [x] Fix "Edit my server profile" button (no-op / disappears)
+## Create/Join UI cleanup
+- [x] Remove SVG icon + emojis from Join a Server UI
+- [x] Remove SVG + emojis from Create a Server UI
+- [x] Remove "Server type" section from Create a Server
+- [x] Make Create/Join/Server Settings modals wider
+- [x] Make all UI layouts more advanced (no emojis anywhere)
 
 ## Banner
-- [x] Make server banner a bit longer
-- [x] Make banner clearer, remove darken shadow
+- [x] Make server banner shorter (less tall)
 
-## Create/Join UI
-- [x] Add more details to Create a Server UI
-- [x] Add more details to Join a Server UI
+## Media
+- [x] Click preview to zoom image while uploading
+- [x] Make sent media thumbnail a bit bigger
 
-## Invites
-- [x] Custom invite link (/test, /hello), 4-10 chars, validity/taken check
+## Replies
+- [x] Show reply context + notify user when someone replies
 
-## Members sidebar
-- [x] Add hide/show members sidebar toggle next to roles button (smooth animation)
+## Profiles
+- [x] Panel Theme Color applies to grey part of profile
+- [x] Make user profile layout more banner, less bland
+- [x] Click profile image to zoom
 
 ## Verify & Deploy
 - [x] Syntax check
 - [x] Local smoke test
-- [x] Commit + push
-- [x] Render deploy live
-- [x] No data wiped
+- [ ] Commit + push
+- [ ] Render deploy live
+- [ ] No data wiped

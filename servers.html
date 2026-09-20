@@ -332,8 +332,8 @@ input, textarea { font-family: inherit; }
 .msg-text { font-size: 15.5px; line-height: 1.55; word-wrap: break-word; white-space: pre-wrap; }
 .msg-group.own .msg-text { text-align: right; }
 .msg-text a { color: var(--accent-light); }
-.msg-media { max-width: 320px; border-radius: var(--radius); margin-top: 4px; display: block; }
-.msg-media.msg-gif { max-width: 320px; }
+.msg-media { max-width: 420px; border-radius: var(--radius); margin-top: 4px; display: block; }
+.msg-media.msg-gif { max-width: 420px; }
 .msg-reactions { display: flex; gap: 4px; margin-top: 4px; flex-wrap: wrap; }
 .msg-group.own .msg-reactions { justify-content: flex-end; }
 .reaction-chip {
@@ -349,8 +349,9 @@ input, textarea { font-family: inherit; }
 .msg-deleted { font-style: italic; color: var(--text-muted); font-size: 13px; }
 .msg-undecryptable { display: inline-flex; align-items: center; gap: 6px; font-style: italic; color: var(--text-muted); font-size: 13.5px; }
 .msg-undecryptable .ui-ic { width: 13px; height: 13px; }
-.settings-unsaved {
-  display: flex; align-items: center; gap: 10px; margin-right: auto;
+.settings-readonly-notice { display: flex; align-items: center; gap: 9px; background: rgba(240,169,46,0.12); border: 1px solid rgba(240,169,46,0.35); color: #f0c46e; border-radius: 10px; padding: 11px 14px; font-size: 12.5px; font-weight: 600; margin-bottom: 16px; }
+.settings-readonly-notice .ui-ic { flex-shrink: 0; }
+.settings-unsaved {  display: flex; align-items: center; gap: 10px; margin-right: auto;
   font-size: 12.5px; font-weight: 600; color: #f0a92e;
   background: linear-gradient(90deg, rgba(240,169,46,0.16), rgba(240,169,46,0.06));
   border: 1px solid rgba(240,169,46,0.4);
@@ -450,7 +451,9 @@ input, textarea { font-family: inherit; }
 }
 @keyframes pfIn { from { opacity: 0; transform: scale(0.94); } to { opacity: 1; transform: scale(1); } }
 .pending-files .pf-thumb { width: 96px; height: 72px; display: flex; align-items: center; justify-content: center; background: var(--bg-darkest); overflow: hidden; }
-.pending-files .pf-thumb img, .pending-files .pf-thumb video { width: 100%; height: 100%; object-fit: cover; display: block; }
+.pending-files .pf-thumb.pf-zoomable { cursor: zoom-in; }
+.pending-files .pf-thumb.pf-zoomable:hover img, .pending-files .pf-thumb.pf-zoomable:hover video { transform: scale(1.06); }
+.pending-files .pf-thumb img, .pending-files .pf-thumb video { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.18s ease; }
 .pending-files .pf-file-ic { color: var(--text-muted); }
 .pending-files .pf-file-ic .ui-ic { width: 26px; height: 26px; }
 .pending-files .pf-name { font-size: 10.5px; color: var(--text-secondary); padding: 4px 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -602,12 +605,12 @@ input, textarea { font-family: inherit; }
 .modal-overlay.show { display: flex; animation: fadeIn 0.15s ease; }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 .modal {
-  background: var(--bg-dark); border-radius: var(--radius-lg); width: 100%; max-width: 480px;
+  background: var(--bg-dark); border-radius: var(--radius-lg); width: 100%; max-width: 580px;
   max-height: 90vh; overflow-y: auto; box-shadow: var(--shadow-lg); border: 1px solid var(--border);
   animation: scaleIn 0.18s ease;
 }
 @keyframes scaleIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-.modal.wide { max-width: 640px; }
+.modal.wide { max-width: 860px; }
 .modal-header { padding: 20px 24px 0; display: flex; align-items: center; justify-content: space-between; }
 .modal-title { font-size: 18px; font-weight: 700; }
 .modal-close { color: var(--text-muted); font-size: 24px; line-height: 1; padding: 4px; }
@@ -857,9 +860,13 @@ input, textarea { font-family: inherit; }
 .member-profile-modal.profile-mode .modal-footer { display: none; }
 .member-profile-modal.profile-mode .modal-body { padding: 0; }
 .member-profile-banner {
-  height: 360px; background: var(--bg-medium);
+  height: 300px; background: linear-gradient(135deg,#6366f1,#4f46e5);
   background-size: cover; background-position: center;
   position: relative; overflow: hidden;
+}
+.member-profile-banner::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(180deg, rgba(0,0,0,0.05) 40%, rgba(0,0,0,0.55));
 }
 .member-profile-banner-img {
   position: absolute; inset: 0; background-size: cover; background-position: center;
@@ -896,6 +903,10 @@ input, textarea { font-family: inherit; }
 .member-profile-joined { font-size: 12px; color: var(--text-muted); }
 .member-profile-actions { display: flex; gap: 10px; padding: 0 32px 24px; }
 .member-profile-actions .btn { flex: 1; }
+.member-profile-banner.mp-zoomable { cursor: zoom-in; }
+.member-profile-avatar.mp-zoomable { cursor: zoom-in; }
+.member-profile-avatar.mp-zoomable:hover img { transform: scale(1.08); }
+.member-profile-info { border-radius: 0 12px 12px 0; transition: background var(--transition); }
 .modal-close-corner {
   position: absolute; top: 12px; right: 14px;
   width: 32px; height: 32px; border-radius: 50%;
@@ -1005,7 +1016,7 @@ input, textarea { font-family: inherit; }
 .btn-cartoon-pink:hover { background: var(--accent-light); border-color: rgba(0,0,0,0.2); }
 .btn-cartoon-amber { background: var(--accent); color: #fff; border-color: rgba(0,0,0,0.2); }
 .btn-cartoon-amber:hover { background: var(--accent-light); border-color: rgba(0,0,0,0.2); }
-.btn-cartoon .btn-emoji { display: inline-flex; align-items: center; }
+.btn-cartoon .btn-ic { display: inline-flex; align-items: center; }
 
 /* Big hero create button on empty state */
 .hero-create-btn {
@@ -1032,7 +1043,7 @@ input, textarea { font-family: inherit; }
 
 /* ---- Server header: banner fills the whole box, name overlaid on it ---- */
 .server-header {
-  height: 300px; min-height: 300px; flex-wrap: nowrap; padding: 14px 14px 0;
+  height: 176px; min-height: 176px; flex-wrap: nowrap; padding: 14px 14px 0;
   position: relative; overflow: hidden; align-items: flex-start;
   margin: 0; border-radius: 0;
   background-size: cover; background-position: center top; background-repeat: no-repeat;
@@ -1117,17 +1128,26 @@ input, textarea { font-family: inherit; }
 .server-accent-swatch.selected { border-color: #fff; box-shadow: 0 0 0 2px rgba(255,255,255,0.25); }
 
 /* ---- Create a Server: richer setup ---- */
-.create-hero { display: flex; align-items: center; gap: 14px; padding: 14px; border-radius: 12px; background: linear-gradient(135deg, rgba(var(--accent-rgb),0.14), rgba(var(--accent-rgb),0.04)); border: 1px solid rgba(var(--accent-rgb),0.22); margin-bottom: 18px; }
+.create-hero { display: flex; align-items: center; gap: 14px; padding: 16px 18px; border-radius: 12px; background: linear-gradient(135deg, rgba(var(--accent-rgb),0.14), rgba(var(--accent-rgb),0.04)); border: 1px solid rgba(var(--accent-rgb),0.22); margin-bottom: 18px; }
 .create-hero-icon { width: 52px; height: 52px; border-radius: 14px; background: linear-gradient(135deg,#6366f1,#4f46e5); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 20px; color: #fff; flex-shrink: 0; overflow: hidden; }
 .create-hero-icon img { width: 100%; height: 100%; object-fit: cover; }
-.create-hero-title { font-weight: 700; font-size: 14px; margin-bottom: 2px; }
-.create-hero-sub { font-size: 12px; color: var(--text-secondary); line-height: 1.45; }
+.create-hero-title { font-weight: 700; font-size: 15px; margin-bottom: 3px; }
+.create-hero-sub { font-size: 12.5px; color: var(--text-secondary); line-height: 1.5; }
 .field .req { color: var(--danger); }
-.create-type-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 4px; }
-.create-type-grid button { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 6px; border-radius: 10px; background: var(--bg-dark); border: 1px solid var(--border); color: var(--text-secondary); font-size: 11.5px; font-weight: 600; cursor: pointer; transition: background var(--transition), border-color var(--transition), color var(--transition); }
-.create-type-grid button:hover { background: var(--bg-light); color: var(--text-primary); }
-.create-type-grid button.selected { border-color: var(--accent); color: var(--accent-light); background: rgba(var(--accent-rgb),0.12); }
-.create-type-grid .ctg-emoji { font-size: 18px; line-height: 1; }
+.create-layout { display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 22px; align-items: start; }
+.create-form { min-width: 0; }
+.create-preview-col { position: sticky; top: 0; }
+.create-preview-label { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text-muted); margin-bottom: 8px; }
+.create-preview-card { border: 1px solid var(--border); border-radius: 14px; overflow: hidden; background: var(--bg-medium); box-shadow: 0 10px 30px rgba(0,0,0,0.25); }
+.cpc-banner { height: 74px; background: linear-gradient(135deg, rgba(var(--accent-rgb),0.55), rgba(var(--accent-rgb),0.18)); transition: background 0.25s ease; }
+.cpc-body { display: flex; gap: 12px; padding: 14px; }
+.cpc-icon { width: 52px; height: 52px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 20px; color: #fff; flex-shrink: 0; overflow: hidden; background: linear-gradient(135deg,#6366f1,#4f46e5); transition: background 0.25s ease; }
+.cpc-info { flex: 1; min-width: 0; }
+.cpc-name { font-weight: 700; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cpc-bio { font-size: 12px; color: var(--text-secondary); margin-top: 4px; line-height: 1.45; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.cpc-meta { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--text-muted); margin-top: 8px; }
+.cpc-dot { width: 7px; height: 7px; border-radius: 50%; background: #3ba55d; box-shadow: 0 0 0 3px rgba(59,165,93,0.18); }
+.create-preview-note { font-size: 11px; color: var(--text-muted); margin-top: 10px; line-height: 1.5; }
 .create-toggle { display: flex; align-items: flex-start; gap: 12px; padding: 12px 14px; border-radius: 10px; background: var(--bg-dark); border: 1px solid var(--border); cursor: pointer; margin-top: 4px; }
 .create-toggle input { display: none; }
 .create-toggle .ctg-switch { width: 38px; height: 22px; border-radius: 12px; background: var(--bg-lightest); position: relative; flex-shrink: 0; transition: background var(--transition); margin-top: 1px; }
@@ -1282,6 +1302,7 @@ input, textarea { font-family: inherit; }
 .channel-item .ch-ping-dot { width: 7px; height: 7px; border-radius: 50%; background: #e35d5d; margin-left: auto; flex-shrink: 0; box-shadow: 0 0 0 2px rgba(227,93,93,0.25); animation: pingPulse 1.6s ease-in-out infinite; }
 @keyframes pingPulse { 0%,100% { opacity: 1; } 50% { opacity: 0.45; } }
 .mention-toast { border-left: 3px solid #e35d5d; cursor: pointer; max-width: 340px; }
+.reply-toast { border-left: 3px solid #7ee0b0; cursor: pointer; max-width: 340px; }
 .mention-toast .mt-head { font-weight: 700; color: #ff8a8a; display: flex; align-items: center; gap: 6px; margin-bottom: 3px; }
 .mention-toast .mt-body { font-size: 12.5px; color: var(--text-secondary); line-height: 1.4; }
 
@@ -1605,33 +1626,41 @@ input, textarea { font-family: inherit; }
 <!-- ============ MODALS ============ -->
 <!-- Create server -->
 <div class="modal-overlay" id="create-modal">
-  <div class="modal">
+  <div class="modal wide">
     <div class="modal-header"><div class="modal-title">Create a Server</div><button class="modal-close" data-close="create-modal">&times;</button></div>
     <div class="modal-body">
       <div class="create-hero">
-        <div class="create-hero-icon" id="create-icon-preview">S</div>
         <div class="create-hero-text">
           <div class="create-hero-title">Your server is a home for your community</div>
           <div class="create-hero-sub">Give it a name, a look, and a purpose. You can change everything later.</div>
         </div>
       </div>
-      <div class="field"><label>Server name <span class="req">*</span></label><input type="text" id="create-name" placeholder="My awesome server" maxlength="40"><div class="hint">Up to 40 characters. This is how members will find you.</div></div>
-      <div class="field"><label>About (optional)</label><textarea id="create-bio" placeholder="What is your server about? Who is it for?" maxlength="500"></textarea><div class="hint"><span id="create-bio-count">0</span>/500</div></div>
-      <div class="field"><label>Server type</label>
-        <div class="create-type-grid" id="create-type-grid">
-          <button type="button" data-type="community" class="selected"><span class="ctg-emoji">🌍</span><span class="ctg-label">Community</span></button>
-          <button type="button" data-type="friends"><span class="ctg-emoji">👋</span><span class="ctg-label">Friends</span></button>
-          <button type="button" data-type="gaming"><span class="ctg-emoji">🎮</span><span class="ctg-label">Gaming</span></button>
-          <button type="button" data-type="study"><span class="ctg-emoji">📚</span><span class="ctg-label">Study</span></button>
-          <button type="button" data-type="club"><span class="ctg-emoji">🎨</span><span class="ctg-label">Club</span></button>
-          <button type="button" data-type="other"><span class="ctg-emoji">✨</span><span class="ctg-label">Other</span></button>
+      <div class="create-layout">
+        <div class="create-form">
+          <div class="field"><label>Server name <span class="req">*</span></label><input type="text" id="create-name" placeholder="My awesome server" maxlength="40"><div class="hint">Up to 40 characters. This is how members will find you.</div></div>
+          <div class="field"><label>About (optional)</label><textarea id="create-bio" placeholder="What is your server about? Who is it for?" maxlength="500"></textarea><div class="hint"><span id="create-bio-count">0</span>/500</div></div>
+          <div class="field"><label>Accent color</label>
+            <div class="server-accent-swatches" id="create-accent-swatches"></div>
+            <div class="hint">This tints your server's buttons and highlights.</div>
+          </div>
+          <label class="create-toggle"><input type="checkbox" id="create-public" checked><span class="ctg-switch"></span><span class="ctg-toggle-text"><b>List in Discovery</b><span>Let anyone find and join your server from the Discovery page.</span></span></label>
+        </div>
+        <div class="create-preview-col">
+          <div class="create-preview-label">Live preview</div>
+          <div class="create-preview-card" id="create-preview-card">
+            <div class="cpc-banner" id="create-preview-banner"></div>
+            <div class="cpc-body">
+              <div class="cpc-icon" id="create-icon-preview">S</div>
+              <div class="cpc-info">
+                <div class="cpc-name" id="create-preview-name">My awesome server</div>
+                <div class="cpc-bio" id="create-preview-bio">Your server description will appear here.</div>
+                <div class="cpc-meta"><span class="cpc-dot"></span>1 member &middot; just created</div>
+              </div>
+            </div>
+          </div>
+          <div class="create-preview-note">This is roughly how your server card will look in Discovery.</div>
         </div>
       </div>
-      <div class="field"><label>Accent color</label>
-        <div class="server-accent-swatches" id="create-accent-swatches"></div>
-        <div class="hint">This tints your server's buttons and highlights.</div>
-      </div>
-      <label class="create-toggle"><input type="checkbox" id="create-public" checked><span class="ctg-switch"></span><span class="ctg-toggle-text"><b>List in Discovery</b><span>Let anyone find and join your server from the Discovery page.</span></span></label>
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" data-close="create-modal">Cancel</button>
@@ -1646,9 +1675,6 @@ input, textarea { font-family: inherit; }
     <div class="modal-header"><div class="modal-title">Join a Server</div><button class="modal-close" data-close="join-modal">&times;</button></div>
     <div class="modal-body">
       <div class="create-hero join-hero">
-        <div class="create-hero-icon join-hero-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
-        </div>
         <div class="create-hero-text">
           <div class="create-hero-title">Join an existing community</div>
           <div class="create-hero-sub">Paste an invite link or code below and we'll show you a preview before you join.</div>
@@ -1665,14 +1691,11 @@ input, textarea { font-family: inherit; }
       <div id="join-preview" class="join-preview" style="display:none;"></div>
       <button class="btn btn-primary" id="join-confirm" style="width:100%;">Join Server</button>
       <div class="join-divider"><span>or</span></div>
-      <button class="btn btn-ghost" id="join-open-discover" style="width:100%;display:inline-flex;align-items:center;justify-content:center;gap:8px;">
-        <svg class="ui-ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
-        Browse Discovery
-      </button>
+      <button class="btn btn-ghost" id="join-open-discover" style="width:100%;">Browse Discovery</button>
       <div class="join-tips">
-        <div class="join-tip"><span class="jt-ic">🔗</span><div><b>Invite links</b><span>Look like <code>hellobye-chat.onrender.com/invite/test</code> or a short code.</span></div></div>
-        <div class="join-tip"><span class="jt-ic">🔒</span><div><b>Private servers</b><span>Only joinable with a valid invite from a member.</span></div></div>
-        <div class="join-tip"><span class="jt-ic">🌐</span><div><b>Public servers</b><span>Discoverable by anyone from the Discovery page.</span></div></div>
+        <div class="join-tip"><div><b>Invite links</b><span>Look like <code>hellobye-chat.onrender.com/invite/test</code> or a short code.</span></div></div>
+        <div class="join-tip"><div><b>Private servers</b><span>Only joinable with a valid invite from a member.</span></div></div>
+        <div class="join-tip"><div><b>Public servers</b><span>Discoverable by anyone from the Discovery page.</span></div></div>
       </div>
     </div>
   </div>
@@ -1818,14 +1841,14 @@ input, textarea { font-family: inherit; }
       <div style="border-top:1px solid var(--border);margin:20px 0;"></div>
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
         <div style="font-weight:700;font-size:15px;">Channels</div>
-        <button class="btn-cartoon btn-cartoon-blue" id="add-channel-btn" style="padding:8px 14px;font-size:13px;"><span class="btn-emoji"><svg class="ui-ic" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span>Add Channel</button>
+        <button class="btn-cartoon btn-cartoon-blue" id="add-channel-btn" style="padding:8px 14px;font-size:13px;"><span class="btn-ic"><svg class="ui-ic" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span>Add Channel</button>
       </div>
       <div id="settings-channels"></div>
 
       <div style="border-top:1px solid var(--border);margin:20px 0;"></div>
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
         <div style="font-weight:700;font-size:15px;">Roles &amp; Badges</div>
-        <button class="btn-cartoon btn-cartoon-purple" id="add-role-btn" style="padding:8px 14px;font-size:13px;"><span class="btn-emoji"><svg class="ui-ic" viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg></span>Add Role</button>
+        <button class="btn-cartoon btn-cartoon-purple" id="add-role-btn" style="padding:8px 14px;font-size:13px;"><span class="btn-ic"><svg class="ui-ic" viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg></span>Add Role</button>
       </div>
       <div id="settings-roles"></div>
 
@@ -2279,6 +2302,32 @@ function showPingToast(data) {
   c.appendChild(el);
   setTimeout(dismiss, 6500);
 }
+function showReplyToast(data) {
+  const c = $('toast-container');
+  if (!c) return;
+  const el = document.createElement('div');
+  el.className = 'toast reply-toast';
+  const who = escapeHtml(data.displayName || data.from);
+  const where = escapeHtml(data.channelName || 'a channel');
+  el.innerHTML =
+    '<div class="toast-content"><div class="toast-title" style="color:#7ee0b0;">' + who + ' replied to you</div>' +
+    '<div class="toast-msg">in #' + where + (data.text ? ' \u2014 ' + escapeHtml(data.text) : '') + '</div></div>' +
+    '<button class="toast-close" aria-label="Dismiss">' + icon('x', 'sm') + '</button>' +
+    '<span class="toast-bar" style="background:#7ee0b0;animation-duration:6500ms;"></span>';
+  const dismiss = () => { el.classList.add('toast-out'); setTimeout(() => el.remove(), 280); };
+  el.querySelector('.toast-close').addEventListener('click', (e) => { e.stopPropagation(); dismiss(); });
+  el.addEventListener('click', () => {
+    if (data.serverId === activeServerId) {
+      openChannel(data.channelId).then(() => {
+        const target = document.querySelector('.msg-group[data-msg-id="' + data.replyId + '"]');
+        if (target) { target.scrollIntoView({ behavior: 'smooth', block: 'center' }); target.classList.add('msg-flash'); setTimeout(() => target.classList.remove('msg-flash'), 1600); }
+      }).catch(() => {});
+    }
+    dismiss();
+  });
+  c.appendChild(el);
+  setTimeout(dismiss, 6500);
+}
 function timeAgo(iso) {
   const d = new Date(iso);
   const diff = (Date.now() - d.getTime()) / 1000;
@@ -2641,6 +2690,16 @@ function connectSocket() {
       renderChannels();
     }
     showPingToast(data);
+  });
+  socket.on('server-replied-to', (data) => {
+    if (!data) return;
+    if (data.from === currentUser.username) return;
+    // Mark the channel with a reply dot (cleared when the channel is opened).
+    if (data.serverId === activeServerId && data.channelId !== activeChannelId) {
+      channelPings[data.channelId] = true;
+      renderChannels();
+    }
+    showReplyToast(data);
   });
   socket.on('server-reaction', (data) => {
     if (!data || data.serverId !== activeServerId || data.channelId !== activeChannelId) return;
@@ -3155,7 +3214,7 @@ function hasPerm(perm) {
   if (!me) return false;
   for (const rid of (me.roleIds || [])) {
     const role = (activeServer.roles || []).find(r => r.id === rid);
-    if (role && role.permissions && role.permissions[perm]) return true;
+    if (role && role.permissions && (role.permissions[perm] || role.permissions.administrator)) return true;
   }
   return false;
 }
@@ -3408,6 +3467,9 @@ function openImageLightbox(src) {
   const c = $('server-messages');
   const els = c ? Array.from(c.querySelectorAll('[data-zoom]')) : [];
   lightboxImages = els.map(el => el.getAttribute('data-zoom-src') || el.getAttribute('src')).filter(Boolean);
+  // If the requested source isn't part of the current channel (e.g. a pending
+  // attachment preview before sending), show just that one image.
+  if (lightboxImages.indexOf(src) === -1) lightboxImages = [src];
   if (lightboxImages.length === 0) lightboxImages = [src];
   lightboxIndex = Math.max(0, lightboxImages.indexOf(src));
   renderLightbox();
@@ -3899,13 +3961,18 @@ function renderPendingFiles() {
     if (isImg) thumb = '<img src="' + url + '" alt="">';
     else if (isVid) thumb = '<video src="' + url + '" muted preload="metadata"></video>';
     else thumb = '<span class="pf-file-ic">' + icon('paperclip', 'sm') + '</span>';
+    const zoomable = isImg || isVid;
     return '<div class="pf-item" title="' + name + '">' +
-      '<div class="pf-thumb">' + thumb + '</div>' +
+      '<div class="pf-thumb' + (zoomable ? ' pf-zoomable' : '') + '"' + (zoomable ? ' data-pf-zoom="' + i + '"' : '') + '>' + thumb + '</div>' +
       '<button class="pf-remove" data-rm="' + i + '" aria-label="Remove">&times;</button>' +
       '<div class="pf-name">' + name + '</div>' +
     '</div>';
   }).join('');
-  el.querySelectorAll('[data-rm]').forEach(x => x.addEventListener('click', () => { pendingFiles.splice(Number(x.dataset.rm), 1); renderPendingFiles(); updateSendBtn(); }));
+  el.querySelectorAll('[data-rm]').forEach(x => x.addEventListener('click', (ev) => { ev.stopPropagation(); pendingFiles.splice(Number(x.dataset.rm), 1); renderPendingFiles(); updateSendBtn(); }));
+  el.querySelectorAll('[data-pf-zoom]').forEach(x => x.addEventListener('click', () => {
+    const f = pendingFiles[Number(x.dataset.pfZoom)];
+    if (f && f.url) openImageLightbox(f.url);
+  }));
 }
 // Max size for a single server attachment: 150 MB.
 const SRV_UPLOAD_MAX = 150 * 1024 * 1024;
@@ -4126,24 +4193,35 @@ function closeModal(id) {
    ============================================================ */
 $('rail-add').addEventListener('click', () => { resetCreateModal(); openModal('create-modal'); setTimeout(()=>$('create-name').focus(),50); });
 $('empty-create').addEventListener('click', () => { resetCreateModal(); openModal('create-modal'); });
-let createType = 'community';
 let createAccent = '#5865f2';
 function resetCreateModal() {
   $('create-name').value = ''; $('create-bio').value = '';
   $('create-bio-count').textContent = '0';
-  createType = 'community'; createAccent = '#5865f2';
+  createAccent = '#5865f2';
   $('create-public').checked = true;
-  const grid = $('create-type-grid');
-  if (grid) grid.querySelectorAll('button').forEach(b => b.classList.toggle('selected', b.dataset.type === 'community'));
   renderCreateAccentSwatches();
-  updateCreateIconPreview();
+  updateCreatePreview();
 }
-function updateCreateIconPreview() {
-  const el = $('create-icon-preview');
-  if (!el) return;
+function updateCreatePreview() {
   const name = $('create-name').value.trim();
-  el.textContent = name ? getInitials(name) : 'S';
-  el.style.background = 'linear-gradient(135deg,' + createAccent + ',' + shadeColor(createAccent, -18) + ')';
+  const bio = $('create-bio').value.trim();
+  const iconEl = $('create-icon-preview');
+  if (iconEl) {
+    iconEl.textContent = name ? getInitials(name) : 'S';
+    iconEl.style.background = 'linear-gradient(135deg,' + createAccent + ',' + shadeColor(createAccent, -18) + ')';
+  }
+  const nameEl = $('create-preview-name');
+  if (nameEl) nameEl.textContent = name || 'My awesome server';
+  const bioEl = $('create-preview-bio');
+  if (bioEl) bioEl.textContent = bio || 'Your server description will appear here.';
+  const bannerEl = $('create-preview-banner');
+  if (bannerEl) bannerEl.style.background = 'linear-gradient(135deg, ' + hexToRgba(createAccent, 0.55) + ', ' + hexToRgba(createAccent, 0.18) + ')';
+}
+function hexToRgba(hex, a) {
+  const h = String(hex || '').replace('#', '');
+  if (h.length !== 6) return 'rgba(99,102,241,' + a + ')';
+  const r = parseInt(h.slice(0,2),16), g = parseInt(h.slice(2,4),16), b = parseInt(h.slice(4,6),16);
+  return 'rgba(' + r + ',' + g + ',' + b + ',' + a + ')';
 }
 function renderCreateAccentSwatches() {
   const wrap = $('create-accent-swatches');
@@ -4155,22 +4233,17 @@ function renderCreateAccentSwatches() {
     createAccent = sw.dataset.color;
     wrap.querySelectorAll('.server-accent-swatch').forEach(x => x.classList.remove('selected'));
     sw.classList.add('selected');
-    updateCreateIconPreview();
+    updateCreatePreview();
   }));
 }
-$('create-name').addEventListener('input', updateCreateIconPreview);
-$('create-bio').addEventListener('input', () => { $('create-bio-count').textContent = $('create-bio').value.length; });
-$('create-type-grid').querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
-  createType = b.dataset.type;
-  $('create-type-grid').querySelectorAll('button').forEach(x => x.classList.remove('selected'));
-  b.classList.add('selected');
-}));
+$('create-name').addEventListener('input', updateCreatePreview);
+$('create-bio').addEventListener('input', () => { $('create-bio-count').textContent = $('create-bio').value.length; updateCreatePreview(); });
 $('create-confirm').addEventListener('click', async () => {
   const name = $('create-name').value.trim();
   if (!name) { toast('Please enter a server name', 'error'); return; }
   $('create-confirm').disabled = true;
   try {
-    const d = await api('/api/servers/create', { method: 'POST', body: { name, bio: $('create-bio').value.trim(), accentColor: createAccent, serverType: createType, isPublic: $('create-public').checked } });
+    const d = await api('/api/servers/create', { method: 'POST', body: { name, bio: $('create-bio').value.trim(), accentColor: createAccent, isPublic: $('create-public').checked } });
     closeModal('create-modal');
     servers.push(d.server);
     renderRail();
@@ -4340,9 +4413,14 @@ $('set-scale-reset').addEventListener('click', () => {
 });
 function openSettings() {
   if (!activeServer) return;
-  if (!(activeServer.isOwner || hasPerm('manageServer') || hasPerm('manageChannels') || hasPerm('manageRoles'))) {
-    // Non-managers can still view basic info + invites
-  }
+  // Only the owner or members with management permissions may change anything.
+  // Everyone else gets a read-only view: all controls are disabled and the
+  // Save button is hidden so they can't alter the server.
+  const canManageServer = activeServer.isOwner || hasPerm('manageServer');
+  const canManageChannels = activeServer.isOwner || hasPerm('manageChannels');
+  const canManageRoles = activeServer.isOwner || hasPerm('manageRoles');
+  const canManageInvites = activeServer.isOwner || hasPerm('invite');
+  const canEdit = canManageServer;
   $('set-name').value = activeServer.name;
   $('set-bio').value = activeServer.bio || '';
   $('set-member-count').textContent = activeServer.memberCount + ' member' + (activeServer.memberCount === 1 ? '' : 's');
@@ -4384,7 +4462,52 @@ function openSettings() {
   // Capture the baseline so we can detect unsaved changes.
   settingsBaseline = settingsSnapshot();
   clearSettingsDirty();
+  applySettingsPermissions(canEdit, canManageChannels, canManageRoles, canManageInvites);
   openModal('settings-modal');
+}
+// Disable every editable control for members who lack permission, and hide the
+// Save button. Managers keep full control.
+function applySettingsPermissions(canEdit, canManageChannels, canManageRoles, canManageInvites) {
+  const body = $('settings-modal').querySelector('.modal-body');
+  if (!body) return;
+  // Server-level fields (name, bio, system channel, notifications, verification,
+  // slowmode, welcome, discoverable, appearance, scale) require manageServer.
+  const serverFieldIds = ['set-name','set-bio','set-system-channel','set-verification','set-slowmode','set-welcome','set-discoverable','set-icon-scale','set-banner-scale','set-scale-reset','set-appearance-reset'];
+  serverFieldIds.forEach(id => { const el = $(id); if (el) el.disabled = !canEdit; });
+  const notifSeg = $('set-notif-seg');
+  if (notifSeg) notifSeg.querySelectorAll('button').forEach(b => { b.disabled = !canEdit; b.style.pointerEvents = canEdit ? '' : 'none'; b.style.opacity = canEdit ? '' : '0.5'; });
+  const effectSeg = $('set-effect-seg');
+  if (effectSeg) effectSeg.querySelectorAll('button').forEach(b => { b.disabled = !canEdit; b.style.pointerEvents = canEdit ? '' : 'none'; b.style.opacity = canEdit ? '' : '0.5'; });
+  const accentWrap = $('set-accent-swatches');
+  if (accentWrap) accentWrap.querySelectorAll('.color-swatch').forEach(s => { s.style.pointerEvents = canEdit ? '' : 'none'; s.style.opacity = canEdit ? '' : '0.5'; });
+  // Banner / icon pickers
+  ['set-banner','set-icon'].forEach(id => { const el = $(id); if (el) el.style.pointerEvents = canEdit ? '' : 'none'; });
+  // Channels / roles add buttons are handled in their render fns, but keep the
+  // invite controls gated here.
+  const genBtn = $('gen-invite-btn');
+  if (genBtn) genBtn.style.display = canManageInvites ? '' : 'none';
+  const customInv = $('custom-invite-input');
+  if (customInv) customInv.disabled = !canManageInvites;
+  const expiryGrid = $('invite-expiry-grid');
+  if (expiryGrid) expiryGrid.querySelectorAll('button').forEach(b => { b.disabled = !canManageInvites; b.style.pointerEvents = canManageInvites ? '' : 'none'; b.style.opacity = canManageInvites ? '' : '0.5'; });
+  // Save button only for managers.
+  const saveBtn = $('settings-save');
+  if (saveBtn) saveBtn.style.display = canEdit ? '' : 'none';
+  const unsaved = $('settings-unsaved');
+  if (unsaved && !canEdit) unsaved.style.display = 'none';
+  // Read-only notice.
+  let notice = $('settings-readonly-notice');
+  if (!canEdit) {
+    if (!notice) {
+      notice = document.createElement('div');
+      notice.id = 'settings-readonly-notice';
+      notice.className = 'settings-readonly-notice';
+      notice.innerHTML = icon('lock', 'sm') + '<span>You have view-only access. Only the server owner and admins can change these settings.</span>';
+      body.insertBefore(notice, body.firstChild);
+    }
+  } else if (notice) {
+    notice.remove();
+  }
 }
 function renderSettingsChannels() {
   const wrap = $('settings-channels');
@@ -4536,6 +4659,8 @@ $('set-appearance-reset').addEventListener('click', () => {
   updateAppearancePreview();
 });
 $('settings-save').addEventListener('click', async () => {
+  // Guard: only the owner or members with manageServer may save settings.
+  if (!(activeServer.isOwner || hasPerm('manageServer'))) { toast('You do not have permission to change these settings', 'error'); return; }
   const notifBtn = $('set-notif-seg').querySelector('button.selected');
   const effectBtn = $('set-effect-seg').querySelector('button.selected');
   try {
@@ -4728,6 +4853,7 @@ $('invite-expiry-grid').querySelectorAll('button').forEach(b => b.addEventListen
   selectedInviteMins = Number(b.dataset.mins);
 }));
 $('gen-invite-btn').addEventListener('click', async () => {
+  if (!(activeServer.isOwner || hasPerm('invite'))) { toast('You do not have permission to create invites', 'error'); return; }
   const custom = ($('custom-invite-input').value || '').trim().replace(/^\/+/, '');
   if (custom) {
     if (custom.length < 4 || custom.length > 10) { toast('Custom links must be 4–10 characters', 'error'); return; }
@@ -4772,9 +4898,10 @@ async function renderActiveInvites() {
     const d = await api('/api/servers/' + activeServerId + '/invites');
     const list = d.invites || [];
     if (!list.length) { $('active-invites').innerHTML = ''; return; }
+    const canManageInvites = activeServer.isOwner || hasPerm('invite');
     $('active-invites').innerHTML = '<div style="font-size:12px;color:var(--text-muted);margin-bottom:6px;">Active invites</div>' + list.map(i =>
       '<div class="list-row" style="padding:8px 10px;"><div class="lr-main"><div class="lr-title" style="font-size:12px;font-family:monospace;">/' + escapeHtml(i.code) + '</div><div class="lr-sub">' + (i.expiresAt ? 'expires ' + timeAgo(new Date(i.expiresAt).toISOString()) : 'never expires') + ' · ' + (i.uses||0) + ' uses</div></div>' +
-      '<div class="lr-actions"><button data-copy="' + escapeAttr(i.code) + '" title="Copy">' + icon('copy','sm') + '</button><button data-revoke="' + escapeAttr(i.code) + '" title="Revoke">' + icon('trash','sm') + '</button></div></div>'
+      '<div class="lr-actions"><button data-copy="' + escapeAttr(i.code) + '" title="Copy">' + icon('copy','sm') + '</button>' + (canManageInvites ? '<button data-revoke="' + escapeAttr(i.code) + '" title="Revoke">' + icon('trash','sm') + '</button>' : '') + '</div></div>'
     ).join('');
     $('active-invites').querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click', () => { copyText(window.location.origin + '/servers.html?invite=' + b.dataset.copy); toast('Copied!', 'success'); }));
     $('active-invites').querySelectorAll('[data-revoke]').forEach(b => b.addEventListener('click', async () => { try { await api('/api/servers/' + activeServerId + '/invites/' + b.dataset.revoke, { method: 'DELETE' }); renderActiveInvites(); toast('Invite revoked', 'success'); } catch(e) { toast(e.message, 'error'); } }));
@@ -4826,8 +4953,9 @@ async function runServerSearch() {
     // contain the query (or were sent by the queried user).
     const ql = q.toLowerCase();
     const usernameQuery = ql.replace(/^@/, '');
-    const decrypted = [];
-    for (const r of results) {
+    // Decrypt candidates in parallel (server messages are E2E-encrypted, so the
+    // backend returns them all and we filter locally).
+    const decrypted = (await Promise.all(results.map(async (r) => {
       let plain = r.text || '';
       if (r.e2e && r.e2eEnv) {
         try {
@@ -4837,9 +4965,9 @@ async function runServerSearch() {
       }
       const byUser = (r.username || '').toLowerCase() === usernameQuery;
       const byText = plain && plain.toLowerCase().includes(ql);
-      if (!byUser && !byText) continue;
-      decrypted.push(Object.assign({}, r, { _plain: plain }));
-    }
+      if (!byUser && !byText) return null;
+      return Object.assign({}, r, { _plain: plain });
+    }))).filter(Boolean);
     results = decrypted;
     if (!results.length) { box.innerHTML = '<div class="search-msg-hint">No messages found for \u201c' + escapeHtml(q) + '\u201d.</div>'; return; }
     const rx = new RegExp('(' + q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'ig');
@@ -4899,13 +5027,17 @@ function renderMemberProfileBody(m, roles, isMe, data) {
   // Banner (above the profile picture) — matches the main chat's profile view.
   const bannerScale = m.bannerScale || 100;
   const avatarScale = m.avatarScale || 100;
-  let html = '<div class="member-profile-banner">' +
+  // Panel theme color tints the grey part of the profile (the info panel + bio).
+  const panelColor = (u.panelColor || m.panelColor || '').trim();
+  const panelTint = panelColor ? hexToRgba(panelColor, 0.14) : '';
+  const panelEdge = panelColor ? hexToRgba(panelColor, 0.55) : '';
+  let html = '<div class="member-profile-banner' + (banner ? ' mp-zoomable' : '') + '"' + (banner ? ' data-mp-zoom="' + escapeAttr(banner) + '"' : '') + '>' +
     (banner ? '<div class="member-profile-banner-img" style="background-image:url(' + escapeAttr(banner) + ');' + (bannerScale !== 100 ? 'transform:scale(' + (bannerScale / 100) + ');' : '') + '"></div>' : '<div class="member-profile-banner-placeholder">No banner set</div>') + '</div>';
 
   // Avatar + identity row (avatar on the LEFT, info on the right)
   html += '<div class="member-profile-main">' +
-    '<div class="member-profile-avatar">' + (avatar ? '<img src="' + escapeAttr(avatar) + '"' + (avatarScale !== 100 ? ' style="transform:scale(' + (avatarScale / 100) + ');"' : '') + '>' : '<span class="mpa-initials"' + (avatarScale !== 100 ? ' style="transform:scale(' + (avatarScale / 100) + ');"' : '') + '>' + escapeHtml(getInitials(displayName)) + '</span>') + '</div>' +
-    '<div class="member-profile-info">' +
+    '<div class="member-profile-avatar' + (avatar ? ' mp-zoomable' : '') + '"' + (avatar ? ' data-mp-zoom="' + escapeAttr(avatar) + '"' : '') + '>' + (avatar ? '<img src="' + escapeAttr(avatar) + '"' + (avatarScale !== 100 ? ' style="transform:scale(' + (avatarScale / 100) + ');"' : '') + '>' : '<span class="mpa-initials"' + (avatarScale !== 100 ? ' style="transform:scale(' + (avatarScale / 100) + ');"' : '') + '>' + escapeHtml(getInitials(displayName)) + '</span>') + '</div>' +
+    '<div class="member-profile-info"' + (panelTint ? ' style="background:' + panelTint + ';border-left:3px solid ' + panelEdge + ';"' : '') + '>' +
     '<div class="member-profile-name">' + escapeHtml(displayName) + '</div>' +
     '<div class="member-profile-handle">@' + escapeHtml(m.username) + '</div>';
 
@@ -4980,6 +5112,13 @@ function renderMemberProfileBody(m, roles, isMe, data) {
 
   const editBtn = $('edit-my-server-profile');
   if (editBtn) editBtn.addEventListener('click', () => { openMyServerProfileEditor(); });
+  // Click the banner or avatar to zoom into the image.
+  $('member-modal-body').querySelectorAll('[data-mp-zoom]').forEach(el => {
+    el.addEventListener('click', () => {
+      const src = el.getAttribute('data-mp-zoom');
+      if (src) openImageLightbox(src);
+    });
+  });
   const assignBtn = $('assign-role-btn');
   if (assignBtn) assignBtn.addEventListener('click', () => openAssignRole(m));
   const kickBtn = $('kick-member-btn');
@@ -5079,12 +5218,14 @@ function openMyServerProfileEditor() {
   const banner = me.banner || u.banner || null;
   const panelColors = ['#4a9eff','#7c5cf0','#f0629f','#2fa457','#f0a92e','#e35d5d','#00c2b2','#ff7a45','#9b6bff','#3ba55d','#d4a017','#5865f2'];
   const curColor = u.panelColor || '#4a9eff';
+  const heroTint = hexToRgba(curColor, 0.16);
+  const heroEdge = hexToRgba(curColor, 0.6);
   $('member-modal-title').textContent = 'My Server Profile';
   $('member-modal-body').innerHTML =
     '<div class="msp-hero">' +
       '<div class="msp-hero-banner" id="msp-banner" style="' + (banner ? 'background-image:url(' + escapeAttr(banner) + ');' : '') + '"><div class="edit-overlay">Change Banner</div></div>' +
       '<div class="msp-hero-avatar" id="msp-avatar">' + (avatar ? '<img src="' + escapeAttr(avatar) + '">' : escapeHtml(getInitials(displayName))) + '<div class="edit-overlay">' + icon('camera', 'lg') + '</div></div>' +
-      '<div class="msp-hero-name"><div class="mhn-name">' + escapeHtml(displayName) + '</div><div class="mhn-handle">@' + escapeHtml(u.username || '') + '</div></div>' +
+      '<div class="msp-hero-name" id="msp-hero-name" style="background:' + heroTint + ';border-left:3px solid ' + heroEdge + ';"><div class="mhn-name">' + escapeHtml(displayName) + '</div><div class="mhn-handle">@' + escapeHtml(u.username || '') + '</div></div>' +
       '<input type="file" id="my-avatar" accept="image/*,image/gif" hidden>' +
       '<input type="file" id="my-banner" accept="image/*,image/gif" hidden>' +
     '</div>' +
@@ -5142,18 +5283,27 @@ function openMyServerProfileEditor() {
     $('msp-banner').style.backgroundImage = 'url(' + url + ')';
   });
   // Color swatches
+  function applyHeroTint(color) {
+    const hn = $('msp-hero-name');
+    if (!hn) return;
+    hn.style.background = hexToRgba(color, 0.16);
+    hn.style.borderLeft = '3px solid ' + hexToRgba(color, 0.6);
+  }
   $('msp-colors').querySelectorAll('.color-swatch').forEach(sw => sw.addEventListener('click', () => {
     $('msp-colors').querySelectorAll('.color-swatch').forEach(x => x.classList.remove('selected'));
     sw.classList.add('selected');
     $('my-panelcolor').value = sw.dataset.color;
+    applyHeroTint(sw.dataset.color);
   }));
   $('my-panelcolor').addEventListener('input', () => {
     $('msp-colors').querySelectorAll('.color-swatch').forEach(x => x.classList.remove('selected'));
+    applyHeroTint($('my-panelcolor').value);
   });
   $('my-panelcolor-clear').addEventListener('click', () => {
     $('msp-colors').querySelectorAll('.color-swatch').forEach(x => x.classList.remove('selected'));
     $('my-panelcolor').value = '#4a9eff';
     $('my-panelcolor').dataset.cleared = '1';
+    applyHeroTint('#4a9eff');
   });
   // Avatar / banner scale sliders
   $('my-avatar-scale').addEventListener('input', () => { $('my-avatar-scale-val').textContent = $('my-avatar-scale').value + '%'; });

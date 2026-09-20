@@ -1799,7 +1799,12 @@ app.get('/api/servers/:id/search-messages', authMiddleware, (req, res) => {
         const text = m.text || '';
         const byUser = m.from && m.from.toLowerCase() === usernameQuery;
         const byText = text && text.toLowerCase().includes(q);
-        if (!byUser && !byText) return;
+        // Server messages are end-to-end encrypted: the backend cannot read the
+        // plaintext, so it must hand every encrypted message to the client as a
+        // candidate. The client decrypts and keeps only real matches. Without
+        // this, searching would always report "No messages found".
+        const isEncrypted = !!m.e2e;
+        if (!byUser && !byText && !isEncrypted) return;
         results.push({
           id: m.id,
           channelId: ch.id,
@@ -1815,7 +1820,9 @@ app.get('/api/servers/:id/search-messages', authMiddleware, (req, res) => {
       });
     }
     results.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-    res.json({ results: results.slice(0, 60) });
+    // Return a generous candidate set: the client decrypts and filters locally,
+    // so we want enough history to actually find matches.
+    res.json({ results: results.slice(0, 300) });
   } catch (e) {
     console.error('server search-messages error', e);
     res.json({ results: [] });
@@ -6203,6 +6210,25 @@ io.on('connection', (socket) => {
             channelName: ch.name,
             serverName: s.name,
             type: 'mention',
+            from: username,
+            displayName: user.displayName,
+            text: textStr.slice(0, 140),
+            timestamp: nowISO(),
+          });
+        }
+      }
+      // Reply notification: tell the author of the original message that someone
+      // replied to them (unless they replied to themselves).
+      if (reply && reply.id && reply.from && reply.from !== username) {
+        const replyTarget = String(reply.from).toLowerCase();
+        if ((s.members || []).map(x => String(x).toLowerCase()).includes(replyTarget)) {
+          io.to('user:' + replyTarget).emit('server-replied-to', {
+            serverId: s.id,
+            channelId,
+            channelName: ch.name,
+            serverName: s.name,
+            messageId: reply.id,
+            replyId: msg.id,
             from: username,
             displayName: user.displayName,
             text: textStr.slice(0, 140),
