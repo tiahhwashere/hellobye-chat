@@ -1,18 +1,12 @@
-# Request AD — Auto-embed GIF links (Giphy etc.) in server chat
+# Request AE — Zoomed media should be bigger (fill the viewport)
 
-## 1. Root cause
-- [x] Giphy returns 403 to server-side scrapers -> no og:image -> no embed
-- [x] Tenor + direct .gif links already worked
+## 1. Fix
+- [x] `.image-lightbox-stage`: fixed `width:92vw; height:86vh` (was max-* only)
+- [x] `.image-lightbox-stage img`: `width:100%; height:100%; object-fit:contain` so small media scales UP to fill the stage (no stretching)
+- [x] Removed the full-stage box-shadow (looked odd when image fills the stage)
 
-## 2. Fix
-- [x] server.js: add `giphyGifUrl()` helper (extract id from giphy.com/gifs, /media, /embed URLs)
-- [x] server.js `/api/embed`: special-case Giphy -> return direct media.giphy.com GIF URL as gifUrl
-- [x] Client already renders gifUrl as an inline animated GIF (no change needed)
-
-## 3. Verify & Deploy
-- [x] node --check server.js
-- [x] Unit test: giphyGifUrl for all URL patterns
-- [x] E2E test: /api/embed returns gifUrl for giphy + tenor + direct gif
-- [x] Cleanup test file + restore data/db.json seed
-- [x] Commit + push to GitHub master (873c754)
-- [x] Trigger/verify Render deploy (live, no data wiped)
+## 2. Verify & Deploy
+- [x] node --check extracted servers.html script
+- [x] Smoke test locally (servers.html 200, new CSS served)
+- [ ] Commit + push to GitHub master
+- [ ] Trigger/verify Render deploy (no data wiped)
