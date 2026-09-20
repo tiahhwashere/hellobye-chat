@@ -1837,11 +1837,11 @@ input, textarea { font-family: inherit; }
     <div class="server-empty" id="server-empty" style="display:none;">
       <div class="se-hero"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></div>
       <h2>Welcome to Servers</h2>
-      <p>Pick up where you left off, or start something new. Create your own space, join with an invite link, or explore public communities &mdash; each server has channels, roles, badges, and a private, end-to-end encrypted chatroom.</p>
+      <p>Pick up where you left off, or start something new. Create your own space, join with an invite link, or explore public communities &mdash; each server has channels, roles, badges, and a shared chatroom everyone can read.</p>
       <div class="se-features">
         <span class="se-feature"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v12H5.17L4 17.17z"/></svg> Channels</span>
         <span class="se-feature"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3 6 6 .9-4.5 4.3 1.1 6.3L12 16.8 6.4 19.5l1.1-6.3L3 8.9 9 8z"/></svg> Roles &amp; badges</span>
-        <span class="se-feature"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> Encrypted chat</span>
+        <span class="se-feature"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v12H5.17L4 17.17z"/></svg> Shared chat</span>
       </div>
       <div class="server-empty-actions">
         <button class="hero-create-btn" id="empty-create"><span class="hc-emoji"><svg class="ui-ic lg" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span> Create a Server</button>
@@ -3196,17 +3196,13 @@ function connectSocket() {
     if (!data || data.serverId !== activeServerId) return;
     if (data.channelId !== activeChannelId) return;
     const m = data.message;
-    if (m.e2e && !m._plain) {
-      e2eDecryptServer(activeServerId, m.e2e, m.e2eKeys && m.e2eKeys[currentUser.username], m.from).then(pt => {
-        if (pt !== null) m._plain = pt;
-        serverMessages.push(m); appendMessage(m); scrollBottom();
-      });
-    } else { serverMessages.push(m); appendMessage(m); scrollBottom(); }
+    // Server chats are never encrypted — render the plaintext directly.
+    serverMessages.push(m); appendMessage(m); scrollBottom();
   });
   socket.on('server-edited', (data) => {
     if (!data || data.serverId !== activeServerId || data.channelId !== activeChannelId) return;
     const m = serverMessages.find(x => x.id === data.id);
-    if (m) { m.text = data.text; m.e2e = data.e2e; m.e2eKeys = data.e2eKeys; m.edited = true; m.editedAt = data.editedAt; if (data.e2e) { e2eDecryptServer(activeServerId, data.e2e, data.e2eKeys && data.e2eKeys[currentUser.username], data.from).then(pt => { if (pt !== null) m._plain = pt; updateMessageElement(m); }); } else { m._plain = null; updateMessageElement(m); } }
+    if (m) { m.text = data.text; m.e2e = null; m.e2eKeys = null; m.edited = true; m.editedAt = data.editedAt; m._plain = null; updateMessageElement(m); }
   });
   socket.on('server-deleted', (data) => {
     if (!data || data.serverId !== activeServerId || data.channelId !== activeChannelId) return;
@@ -3943,7 +3939,6 @@ async function openChannel(channelId) {
   try {
     const d = await api('/api/servers/' + encodeURIComponent(activeServerId) + '/channels/' + encodeURIComponent(channelId) + '/messages');
     serverMessages = d.messages || [];
-    if (__e2eReady) { try { await e2eDecryptAll(serverMessages, activeServerId); } catch(e) {} }
     renderMessages();
     scrollBottom();
     applyChannelChatState(ch, d.channel);
@@ -4002,7 +3997,6 @@ function buildMessageGroup(m) {
   body.className = 'msg-body';
   let head = '<div class="msg-head"><span class="msg-author" style="color:' + nameColor + ';">' + escapeHtml(displayName) + '</span>';
   if (topRole) head += '<span class="msg-role-badge" style="background:' + escapeAttr(topRole.color) + '22;color:' + escapeAttr(topRole.color) + ';">' + (topRole.badge ? '<img class="msg-role-badge-img" src="' + escapeAttr(topRole.badge) + '" alt="">' : '') + escapeHtml(topRole.name) + '</span>';
-  if (m.e2e) head += '<span class="msg-e2e-badge" title="End-to-end encrypted">Encrypted</span>';
   head += '</div>';
 
   let textHtml = '';
@@ -4014,7 +4008,6 @@ function buildMessageGroup(m) {
     const rName = escapeHtml(m.reply.displayName || m.reply.from || 'Unknown');
     let rText = m.reply.text || '';
     if (m.reply.deleted) rText = 'This message was deleted';
-    else if (m.reply.e2e && !rText) rText = 'Encrypted message';
     rText = escapeHtml(String(rText).slice(0, 180));
     replyHtml = '<div class="msg-reply-quote" data-reply-id="' + escapeAttr(m.reply.id || '') + '">' +
       '<span class="mrq-name">' + rName + '</span>' +
@@ -4022,19 +4015,9 @@ function buildMessageGroup(m) {
   }
   if (m.deleted) textHtml = '<div class="msg-deleted">This message was deleted</div>';
   else {
-    // Prefer the decrypted plaintext. Only fall back to a muted note when a
-    // message is genuinely encrypted and we could not decrypt it (e.g. it was
-    // sent before we had the shared key). Never show raw ciphertext.
-    let raw;
-    if (m._plain !== undefined && m._plain !== null) raw = m._plain;
-    else if (m.e2e) raw = null;
-    else raw = (m.text || '');
-    let contentHtml = '';
-    if (raw === null) {
-      contentHtml = '<div class="msg-text msg-undecryptable">' + icon('lock', 'sm') + 'Encrypted message</div>';
-    } else {
-      contentHtml = '<div class="msg-text">' + linkify(escapeHtml(raw)) + '</div>';
-    }
+    // Server chats are never encrypted — always render the plaintext.
+    const raw = (m._plain !== undefined && m._plain !== null) ? m._plain : (m.text || '');
+    let contentHtml = '<div class="msg-text">' + linkify(escapeHtml(raw)) + '</div>';
     if (m.file) contentHtml += renderFile(m.file);
     if (Array.isArray(m.files)) m.files.forEach(f => { contentHtml += renderFile(f); });
     // Spoiler messages: hide the text + attachments behind a click-to-reveal
@@ -4502,9 +4485,9 @@ function startReply(m) {
   if (!m || m.deleted) return;
   const member = (activeServer.members || []).find(x => x.username === m.from) || {};
   const displayName = member.nickname || member.displayName || m.displayName || m.from;
-  srvReplyTo = { id: m.id, from: m.from, displayName: displayName, text: m._plain !== undefined && m._plain !== null ? m._plain : (m.e2e ? '' : (m.text || '')), e2e: !!m.e2e };
+  srvReplyTo = { id: m.id, from: m.from, displayName: displayName, text: (m._plain !== undefined && m._plain !== null) ? m._plain : (m.text || '') };
   $('srv-reply-label').textContent = 'Replying to ' + displayName;
-  $('srv-reply-text').textContent = srvReplyTo.text ? String(srvReplyTo.text).slice(0, 140) : (m.e2e ? 'Encrypted message' : '');
+  $('srv-reply-text').textContent = srvReplyTo.text ? String(srvReplyTo.text).slice(0, 140) : '';
   $('srv-reply-preview').style.display = 'flex';
   $('srv-input').focus();
 }
@@ -4658,24 +4641,16 @@ async function sendMessage() {
     if (!text && !pendingFiles.length) { $('srv-input').value = ''; autoGrow($('srv-input')); updateSendBtn(); return; }
   }
   $('srv-send-btn').disabled = true;
-  let e2e = null, e2eKeys = null;
-  if (__e2eReady && text) {
-    try {
-      // Make sure we're using the SAME server key as everyone else before we
-      // encrypt — otherwise our messages would be undecryptable for others.
-      await e2eAdoptServerKey(activeServerId);
-      e2e = await e2eEncryptServer(activeServerId, text);
-      if (e2e) e2eKeys = await e2eBuildWrappedKeys(activeServerId, (activeServer.members || []).map(m => m.username));
-    } catch(e) { e2e = null; }
-  }
-  const payload = { serverId: activeServerId, channelId: activeChannelId, text: text, e2e, e2eKeys };
+  // Server chats are NEVER encrypted — every member must be able to read every
+  // message and attachment, so we always send plaintext.
+  const payload = { serverId: activeServerId, channelId: activeChannelId, text: text };
   if (pendingFiles.length) {
     payload.files = pendingFiles.slice(0, 5);
     // If any queued file was marked as a spoiler, flag the whole message so the
     // text + attachments stay hidden until the recipient clicks to reveal.
     if (pendingFiles.some(f => f && f.spoiler)) payload.spoiler = true;
   }
-  if (srvReplyTo) { payload.reply = { id: srvReplyTo.id, from: srvReplyTo.from, displayName: srvReplyTo.displayName, text: srvReplyTo.text, e2e: srvReplyTo.e2e }; }
+  if (srvReplyTo) { payload.reply = { id: srvReplyTo.id, from: srvReplyTo.from, displayName: srvReplyTo.displayName, text: srvReplyTo.text }; }
   socket.emit('server-send', payload, (resp) => {
     if (resp && resp.error) { toast(resp.error, 'error'); $('srv-send-btn').disabled = false; return; }
     $('srv-input').value = ''; autoGrow($('srv-input')); pendingFiles = []; renderPendingFiles(); updateSendBtn();
@@ -5025,9 +5000,8 @@ function editMessage(m) {
     const nt = input.value;
     if (nt === cur) { closeModal('edit-msg-modal'); return; }
     save.disabled = true;
-    let e2e = null, e2eKeys = null;
-    if (__e2eReady && nt) { try { e2e = await e2eEncryptServer(activeServerId, nt); if (e2e) e2eKeys = await e2eBuildWrappedKeys(activeServerId, (activeServer.members||[]).map(x=>x.username)); } catch(e){} }
-    socket.emit('server-edit', { serverId: activeServerId, channelId: activeChannelId, id: m.id, text: nt, e2e, e2eKeys }, (resp) => {
+    // Server chats are never encrypted — send the plaintext edit.
+    socket.emit('server-edit', { serverId: activeServerId, channelId: activeChannelId, id: m.id, text: nt }, (resp) => {
       save.disabled = false;
       if (resp && resp.error) { toast(resp.error, 'error'); return; }
       closeModal('edit-msg-modal');
@@ -6089,31 +6063,20 @@ async function runServerSearch() {
       }));
       return;
     }
-    // Server messages are end-to-end encrypted, so the backend cannot match
-    // plaintext. Decrypt each candidate locally and keep the ones that really
-    // contain the query (or were sent by the queried user).
+    // Server messages are never encrypted — the backend already matched the
+    // plaintext, so we just render the results directly.
     const ql = q.toLowerCase();
     const usernameQuery = ql.replace(/^@/, '');
-    // Decrypt candidates in parallel (server messages are E2E-encrypted, so the
-    // backend returns them all and we filter locally).
-    const decrypted = (await Promise.all(results.map(async (r) => {
-      let plain = r.text || '';
-      if (r.e2e && r.e2eEnv) {
-        try {
-          const pt = await e2eDecryptServer(activeServerId, r.e2eEnv, r.e2eKeys && r.e2eKeys[currentUser.username], r.username);
-          if (pt !== null && pt !== undefined) plain = pt;
-        } catch (e) { /* leave as-is */ }
-      }
+    results = results.filter(r => {
+      const plain = r.text || '';
       const byUser = (r.username || '').toLowerCase() === usernameQuery;
       const byText = plain && plain.toLowerCase().includes(ql);
-      if (!byUser && !byText) return null;
-      return Object.assign({}, r, { _plain: plain });
-    }))).filter(Boolean);
-    results = decrypted;
+      return byUser || byText;
+    }).map(r => Object.assign({}, r, { _plain: r.text || '' }));
     if (!results.length) { box.innerHTML = '<div class="search-msg-hint">No messages found for \u201c' + escapeHtml(q) + '\u201d.</div>'; return; }
     const rx = new RegExp('(' + q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'ig');
     box.innerHTML = results.map(r => {
-      const txt = r._plain ? escapeHtml(r._plain).replace(rx, '<mark>$1</mark>') : (r.e2e ? 'Encrypted message' : '');
+      const txt = r._plain ? escapeHtml(r._plain).replace(rx, '<mark>$1</mark>') : '';
       const hasFile = !!(r.file || (Array.isArray(r.files) && r.files.length));
       const fileChip = hasFile ? '<span class="smr-file-chip">' + icon('paperclip', 'sm') + 'file</span>' : '';
       return '<div class="search-msg-result" data-ch="' + escapeAttr(r.channelId) + '" data-id="' + escapeAttr(r.id) + '">' +

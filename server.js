@@ -1827,12 +1827,7 @@ app.get('/api/servers/:id/search-messages', authMiddleware, (req, res) => {
         } else {
           const byUser = m.from && m.from.toLowerCase() === usernameQuery;
           const byText = text && text.toLowerCase().includes(q);
-          // Server messages are end-to-end encrypted: the backend cannot read the
-          // plaintext, so it must hand every encrypted message to the client as a
-          // candidate. The client decrypts and keeps only real matches. Without
-          // this, searching would always report "No messages found".
-          const isEncrypted = !!m.e2e;
-          if (!byUser && !byText && !isEncrypted) return;
+          if (!byUser && !byText) return;
         }
         results.push({
           id: m.id,
@@ -1842,17 +1837,12 @@ app.get('/api/servers/:id/search-messages', authMiddleware, (req, res) => {
           displayName: m.displayName,
           text: text.slice(0, 300),
           timestamp: m.timestamp,
-          e2e: !!m.e2e,
-          e2eEnv: m.e2e || null,
-          e2eKeys: m.e2eKeys || null,
           file: m.file ? { url: m.file.url, name: m.file.name, type: m.file.type, size: m.file.size } : null,
           files: Array.isArray(m.files) ? m.files.map(f => ({ url: f.url, name: f.name, type: f.type, size: f.size })) : null,
         });
       });
     }
     results.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-    // Return a generous candidate set: the client decrypts and filters locally,
-    // so we want enough history to actually find matches.
     res.json({ results: results.slice(0, 300) });
   } catch (e) {
     console.error('server search-messages error', e);
@@ -6386,8 +6376,9 @@ io.on('connection', (socket) => {
         }
       } catch (e) {}
       const hasFiles = !!(file || (Array.isArray(files) && files.length));
-      const e2eEnv = (e2e && typeof e2e === 'object' && e2e.iv && e2e.ct) ? e2e : null;
-      const e2eKeysMap = (e2eKeys && typeof e2eKeys === 'object') ? e2eKeys : null;
+      // Server chats are NEVER encrypted — every member must be able to read
+      // every message and attachment. We always store the plaintext and ignore
+      // any e2e envelope a client might still send.
       const base = {
         from: username,
         username,
@@ -6398,7 +6389,7 @@ io.on('connection', (socket) => {
         deleted: false,
         deletedAt: null,
       };
-      const storedText = e2eEnv ? '' : textStr;
+      const storedText = textStr;
       // Text and media live in ONE message so the caption renders directly on
       // top of the attachment (no separate follow-up message).
       // Sanitise each attachment to a known shape so clients can't smuggle
@@ -6415,7 +6406,7 @@ io.on('connection', (socket) => {
           coverImage: f.coverImage ? String(f.coverImage).slice(0, 2000) : null,
         };
       }).filter(Boolean) : null;
-      const msgs = [Object.assign({}, base, { id: genId(), text: storedText, e2e: e2eEnv, e2eKeys: e2eKeysMap, file: file || null, files: cleanFiles, reply: reply || null, spoiler: !!spoiler })];
+      const msgs = [Object.assign({}, base, { id: genId(), text: storedText, file: file || null, files: cleanFiles, reply: reply || null, spoiler: !!spoiler })];
       const msg = msgs[0];
       msgs.forEach(m => s.messages[channelId].push(m));
       if (s.messages[channelId].length > 2000) s.messages[channelId] = s.messages[channelId].slice(-2000);
@@ -6490,12 +6481,12 @@ io.on('connection', (socket) => {
       if (!(s.members || []).includes(username)) { if (typeof ack === 'function') ack({ error: 'Not a member' }); return; }
       const m = ((s.messages || {})[channelId] || []).find(x => x.id === id && x.username === username);
       if (!m) { if (typeof ack === 'function') ack({ error: 'Message not found' }); return; }
-      const e2eEnv = (e2e && typeof e2e === 'object') ? e2e : null;
-      if (e2eEnv) { m.text = ''; m.e2e = e2eEnv; if (e2eKeys && typeof e2eKeys === 'object') m.e2eKeys = e2eKeys; }
-      else { m.text = String(text || '').slice(0, 5000); delete m.e2e; delete m.e2eKeys; }
+      // Server chats are never encrypted — always store the plaintext edit.
+      m.text = String(text || '').slice(0, 5000);
+      delete m.e2e; delete m.e2eKeys;
       m.edited = true; m.editedAt = nowISO();
       saveDB();
-      for (const mem of (s.members || [])) io.to('user:' + mem).emit('server-edited', { serverId: s.id, channelId, id: m.id, from: username, text: m.text, e2e: m.e2e || null, e2eKeys: m.e2eKeys || null, edited: true, editedAt: m.editedAt });
+      for (const mem of (s.members || [])) io.to('user:' + mem).emit('server-edited', { serverId: s.id, channelId, id: m.id, from: username, text: m.text, e2e: null, e2eKeys: null, edited: true, editedAt: m.editedAt });
       if (typeof ack === 'function') ack({ success: true });
     } catch (e) { if (typeof ack === 'function') ack({ error: 'Failed' }); }
   });
