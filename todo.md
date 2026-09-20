@@ -1,28 +1,16 @@
-# Request X — Servers polish round 5
+# Request Y — Chat background persistence + golden mention highlight
 
-## 1. Invite revoke permissions
-- [x] Frontend: only the server OWNER sees the revoke button on active invites
-- [x] Backend: DELETE /api/servers/:id/invites/:code requires owner (non-owners blocked)
+## 1. Chat background survives refresh
+- [x] Move `.server-chat-bg` out of `#server-messages` into a stable sibling layer (`#server-chat-body`)
+- [x] Update `applyServerChatBackground()` to target the stable element
+- [x] Persist last-opened server + channel (localStorage) and restore on boot
 
-## 2. @everyone / @here colors -> blueish
-- [x] .mention-everyone + .mention-here -> dark/light blueish
-- [x] .mention-ping message highlight -> blueish
-- [x] linkify + toast accents updated
+## 2. @everyone / @here red highlight -> darkish golden
+- [x] `.msg-group.mention-ping` -> golden tint + golden left border
+- [x] `.mention-toast` border -> golden
 
-## 3. Red notification -> darkish golden
-- [x] .ch-ping-dot -> darkish golden
-- [x] .mention-toast border/accent -> darkish golden
-- [x] showPingToast accent -> darkish golden
-
-## 4. Advanced placeholders (no emojis)
-- [x] Rewrite all input/textarea placeholders to be richer & professional
-- [x] Upgrade empty states (channel start, no roles, no results, assign empty)
-
-## 5. Assign Roles checkmark first-click fix
-- [x] Fix double-toggle so the check registers on the first click
-
-## 6. Verify & Deploy
+## 3. Verify & Deploy
 - [x] node --check on server.js + extracted servers.html script
-- [x] Smoke test locally (invite revoke 403/200 verified)
-- [x] Commit + push to GitHub master
-- [x] Trigger/verify Render deploy (no data wiped)
+- [x] Smoke test locally (bg persistence via API verified)
+- [ ] Commit + push to GitHub master
+- [ ] Trigger/verify Render deploy (no data wiped)
