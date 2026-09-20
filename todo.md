@@ -8,5 +8,5 @@
 ## 2. Verify & Deploy
 - [x] node --check extracted servers.html script
 - [x] Smoke test locally (servers.html 200, new CSS served)
-- [ ] Commit + push to GitHub master
-- [ ] Trigger/verify Render deploy (no data wiped)
+- [x] Commit + push to GitHub master (d6fa5b3)
+- [x] Trigger/verify Render deploy (live, no data wiped)
