@@ -4902,6 +4902,9 @@ app.get('/api/embed', authMiddleware, async (req, res) => {
       const isImg = ct.startsWith('image/');
       const isVid = ct.startsWith('video/');
       const isAud = ct.startsWith('audio/');
+      // A direct GIF link (by content-type or .gif extension) is surfaced as
+      // gifUrl so the client can render the animated GIF inline.
+      const isGif = ct.includes('gif') || /\.gif(\?|$)/i.test(parsed.pathname);
       const name = decodeURIComponent(parsed.pathname.split('/').pop() || parsed.hostname);
       return res.json({
         url,
@@ -4909,6 +4912,7 @@ app.get('/api/embed', authMiddleware, async (req, res) => {
         description: ct || 'Direct file link',
         image: isImg ? url : null,
         isImage: isImg, isVideo: isVid, isAudio: isAud,
+        gifUrl: isGif ? url : null,
         siteName: parsed.hostname,
         favicon: 'https://www.google.com/s2/favicons?domain=' + encodeURIComponent(parsed.hostname) + '&sz=64',
         contentType: ct,
@@ -4933,11 +4937,15 @@ app.get('/api/embed', authMiddleware, async (req, res) => {
     let image = meta['og:image'] || meta['og:image:url'] || meta['twitter:image'] || meta['og:image:secure_url'] || null;
     if (image && image.startsWith('/')) image = parsed.origin + image;
     if (image && image.startsWith('//')) image = parsed.protocol + image;
+    // If the URL itself points at a .gif, surface it as gifUrl so the client
+    // renders the animated GIF inline even when the host mislabels the type.
+    const gifUrl = /\.gif(\?|$)/i.test(parsed.pathname) ? url : null;
     res.json({
       url,
       title: meta['og:title'] || meta['twitter:title'] || meta['title'] || null,
       description: meta['og:description'] || meta['twitter:description'] || meta['description'] || null,
       image,
+      gifUrl,
       siteName,
       favicon: 'https://www.google.com/s2/favicons?domain=' + encodeURIComponent(parsed.hostname) + '&sz=64',
       author: meta['article:author'] || meta['author'] || meta['og:article:author'] || null,
@@ -4945,7 +4953,7 @@ app.get('/api/embed', authMiddleware, async (req, res) => {
     });
   } catch (e) {
     clearTimeout(timeout);
-    res.json({ url, title: null, description: null, image: null, siteName: parsed.hostname, favicon: 'https://www.google.com/s2/favicons?domain=' + encodeURIComponent(parsed.hostname) + '&sz=64' });
+    res.json({ url, title: null, description: null, image: null, gifUrl: /\.gif(\?|$)/i.test(parsed.pathname) ? url : null, siteName: parsed.hostname, favicon: 'https://www.google.com/s2/favicons?domain=' + encodeURIComponent(parsed.hostname) + '&sz=64' });
   }
 });
 

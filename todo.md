@@ -1,21 +1,24 @@
-# Fix: GIF not showing inline in Servers (only visible when zoomed)
+# Feature: Auto-embed GIF links in Servers
 
-## Root cause
-- [x] Confirmed: GIFs were rendered as `<video><source type="image/gif">`
-- [x] Browsers cannot decode GIF in a `<video>` (networkState=3 NETWORK_NO_SOURCE, videoWidth=0) → blank inline
-- [x] Lightbox uses `<img>` → GIF visible only when zoomed
+## Backend (server.js)
+- [x] `/api/embed`: detect direct GIF (content-type gif or .gif path) → return `gifUrl`
+- [x] HTML branch: surface `gifUrl` when path ends in .gif
+- [x] Catch/fallback: still return `gifUrl` for .gif URLs on fetch failure
 
-## Fix
-- [x] Render GIFs as native `<img class="msg-media msg-gif" data-zoom ...>` in `renderFile`
-- [x] Keep `data-zoom`/`data-zoom-src` so click-to-zoom still works
+## Frontend (servers.html)
+- [x] `linkify`: `.gif` URLs render the animated GIF inline (with GIF badge + data-zoom)
+- [x] `renderEmbed`: render inline GIF when backend returns `gifUrl` or a GIF og:image
+- [x] CSS: `.link-embed-gif` + transparent wrapper for GIF embeds; mobile rules
 
 ## Verification
-- [x] Syntax check passes
-- [x] Browser test: GIF `<img>` naturalWidth=200, complete=true, zoomable
-- [x] End-to-end: uploaded real animated GIF, sent via socket, rendered inline in channel
+- [x] Syntax check passes (server.js + servers.html)
+- [x] `/api/embed` returns gifUrl for giphy .gif URL
+- [x] Browser: GIF link renders inline (naturalWidth 478, complete, zoomable, badge)
+- [x] Click-to-zoom works on embedded GIF
+- [x] renderEmbed gifUrl path renders inline GIF
 
 ## Deploy
 - [x] Commit + push to GitHub master
 - [x] Render deploy live
-- [x] Live site serves fixed renderFile
+- [x] Live site serves new linkify/renderEmbed
 - [x] No data wiped (db.json at clean baseline)

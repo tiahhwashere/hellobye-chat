@@ -713,10 +713,26 @@ input, textarea { font-family: inherit; }
 .link-embed-type-badge { font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 5px; background: var(--accent-dim); color: #fff; text-transform: uppercase; letter-spacing: 0.4px; }
 .link-embed-readtime { font-size: 11px; color: var(--text-muted); display: inline-flex; align-items: center; gap: 4px; font-weight: 500; }
 .link-embed-readtime::before { content: ''; width: 9px; height: 9px; border-radius: 50%; background: var(--text-muted); opacity: 0.5; flex-shrink: 0; }
+/* Inline GIF embeds: a link that points at a .gif renders the animated GIF
+   directly in the message instead of a preview card. */
+.link-embed-gif { margin-top: 6px; display: inline-block; max-width: 100%; }
+.link-embed-gif img { max-width: 320px; max-height: 320px; border-radius: var(--radius); display: block; cursor: zoom-in; }
+.link-embed.link-embed-gif-wrap {
+  border: none; background: transparent; box-shadow: none; max-width: none; width: auto;
+  margin-top: 0; overflow: visible;
+}
+.link-embed.link-embed-gif-wrap:hover { border: none; background: transparent; transform: none; box-shadow: none; }
+.link-embed-gif .link-embed-gif-badge {
+  display: inline-flex; align-items: center; gap: 4px; margin-top: 4px;
+  font-size: 10.5px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase;
+  color: var(--text-muted); background: var(--bg-light); border: 1px solid var(--border-light);
+  border-radius: 6px; padding: 2px 7px;
+}
 @media (max-width: 640px) {
   .link-embed-image { width: 120px; min-height: 100px; }
   .link-embed-content { padding: 13px 15px; }
   .link-embed-title { font-size: 15px; }
+  .link-embed-gif img { max-width: 240px; max-height: 240px; }
 }
 
 /* Toast */
@@ -3119,6 +3135,11 @@ function linkify(html) {
     if (code) {
       return '<span class="invite-embed-slot" data-invite="' + escapeAttr(code) + '"></span>' + trail;
     }
+    // A direct .gif link auto-embeds as the animated GIF itself.
+    if (/\.gif(\?|#|$)/i.test(clean)) {
+      return '<a href="' + escapeAttr(clean) + '" target="_blank" rel="noopener noreferrer">' + escapeHtml(clean) + '</a>' +
+        '<span class="link-embed-gif"><img data-zoom data-zoom-src="' + escapeAttr(clean) + '" src="' + escapeAttr(clean) + '" alt="GIF" loading="lazy"><span class="link-embed-gif-badge">GIF</span></span>' + trail;
+    }
     // Any other URL gets a rich link-preview embed card.
     return '<a href="' + escapeAttr(clean) + '" target="_blank" rel="noopener noreferrer">' + escapeHtml(clean) + '</a>' +
       '<div class="link-embed" data-url="' + escapeAttr(clean) + '"><div class="link-embed-loading">Loading preview...</div></div>' + trail;
@@ -3201,6 +3222,14 @@ function renderEmbed(data, el) {
     return;
   }
   const url = data.url || '';
+  // If the link resolves to an animated GIF (direct .gif, gif content-type, or
+  // a GIF og:image), embed the GIF itself instead of a preview card.
+  const gifSrc = data.gifUrl || (/\.gif(\?|#|$)/i.test(data.image || '') ? data.image : null);
+  if (gifSrc) {
+    el.classList.add('link-embed-gif-wrap');
+    el.innerHTML = '<span class="link-embed-gif"><img data-zoom data-zoom-src="' + escapeAttr(gifSrc) + '" src="' + escapeAttr(gifSrc) + '" alt="GIF" loading="lazy"><span class="link-embed-gif-badge">GIF</span></span>';
+    return;
+  }
   const hasImg = !!data.image;
   const largeImg = hasImg && !data.isImage;
   const site = data.siteName ? '<div class="link-embed-site">' + (data.favicon ? '<img src="' + escapeAttr(data.favicon) + '" alt="" onerror="this.style.display=\'none\'">' : '') + escapeHtml(data.siteName) + '</div>' : '';
