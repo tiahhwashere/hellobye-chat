@@ -13,7 +13,7 @@
 - [x] Verify inline script syntax (node --check)
 - [x] Local smoke test (page loads, HTTP 200)
 - [x] Verify data/db.json preserved (no data wipe)
-- [ ] Commit + push to master
-- [ ] Verify Render deploy goes live
-- [ ] Verify live site serves new markers
-- [ ] Update todo.md and commit
+- [x] Commit + push to master
+- [x] Verify Render deploy goes live
+- [x] Verify live site serves new markers
+- [x] Update todo.md and commit
