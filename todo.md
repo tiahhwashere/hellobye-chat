@@ -1,12 +1,19 @@
-# Request AF — Make the Set Status dropdown better
+# Request AG — Servers page fixes + Server Settings revamp + profile/status polish
 
 ## Tasks
-- [x] Redesign `.status-menu` CSS (user header, larger status dots, label + description rows, selected state)
-- [x] Update `openStatusMenu()` JS to render the new structure (avatar/name header, option label + description, selected class + check)
-- [x] Verify inline script syntax (`node --check`)
+- [x] Fix "Welcome to Servers" flash on refresh/navigation (go straight to last server)
+- [x] Add file-send UI in servers.html (spoiler option + image-on-file option, both optional)
+- [x] Remove all cartoony styles from Server Settings UI
+- [x] Remove ONLY the lock SVG icon from the view-only access notice
+- [x] Revamp Server Settings UI to be advanced/professional/non-cartoony; ensure all options work
+- [x] Banner click: remove profile-picture option, add banner scale for banner, add profile-picture scale for avatar upload, add more scaling tools
+- [x] Remove status-change toast UI; add better notifications
+- [x] Fix split-second delay when clicking own/others' profiles
+- [x] Make profile UI/setup the same as main chat when viewing someone else's profile
+- [x] Verify inline script syntax (node --check)
 - [x] Local smoke test (page loads, HTTP 200)
-- [x] Verify `data/db.json` is the clean 218-byte seed
-- [x] Commit + push to `master`
-- [x] Verify Render deploy goes live
-- [x] Verify live site serves the new status menu markers
-- [x] Update todo.md and commit
+- [x] Verify data/db.json preserved (no data wipe)
+- [ ] Commit + push to master
+- [ ] Verify Render deploy goes live
+- [ ] Verify live site serves new markers
+- [ ] Update todo.md and commit

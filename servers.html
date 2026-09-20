@@ -141,6 +141,9 @@ input, textarea { font-family: inherit; }
 .server-empty .se-feature { display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; color: var(--text-secondary); background: var(--bg-medium); border: 1px solid var(--border); border-radius: 999px; padding: 6px 13px; }
 .server-empty .se-feature svg { width: 14px; height: 14px; color: var(--accent-light); }
 .server-empty-actions { display: flex; gap: 12px; margin-top: 8px; flex-wrap: wrap; justify-content: center; }
+/* Boot placeholder: shown while we restore the last-opened server so the
+   "Welcome to Servers" empty state never flashes on refresh/navigation. */
+.server-boot-loading { flex: 1; display: flex; align-items: center; justify-content: center; }
 
 /* ---------- Server view ---------- */
 .server-view { flex: 1; display: flex; min-width: 0; position: relative; overflow: hidden; }
@@ -905,6 +908,36 @@ input, textarea { font-family: inherit; }
 .toast.warn .toast-bar { background: #f0a92e; }
 @keyframes toastIn { from { opacity: 0; transform: translateY(-14px) scale(0.96); } to { opacity: 1; transform: translateY(0) scale(1); } }
 
+/* Status-change notice — replaces the old generic toast for status updates.
+   Compact professional pill with a live status dot + label, anchored near the
+   status control. Non-intrusive and auto-dismisses quickly. */
+.status-notice {
+  position: fixed; z-index: 2600; pointer-events: none;
+  display: flex; align-items: center; gap: 9px;
+  padding: 9px 14px 9px 12px;
+  background: rgba(18, 18, 22, 0.94);
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  box-shadow: 0 10px 34px rgba(0, 0, 0, 0.55), 0 2px 8px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  color: var(--text-primary); font-size: 12.5px; font-weight: 600; letter-spacing: 0.01em;
+  opacity: 0; transform: translateY(8px) scale(0.97);
+  transition: opacity 0.24s cubic-bezier(0.16, 1, 0.3, 1), transform 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+  max-width: min(320px, 86vw);
+}
+.status-notice.show { opacity: 1; transform: translateY(0) scale(1); }
+.status-notice.hide { opacity: 0; transform: translateY(6px) scale(0.98); }
+.status-notice .sn-dot { width: 15px; height: 15px; border-radius: 50%; flex-shrink: 0; background-size: contain; background-repeat: no-repeat; background-position: center; }
+.status-notice .sn-dot.online { background-image: url('online.png'); border-radius: 5px; }
+.status-notice .sn-dot.idle { background-image: url('idle.png'); }
+.status-notice .sn-dot.dnd { background-image: url('dnd.png'); }
+.status-notice .sn-dot.offline { background-image: url('offline.png'); }
+.status-notice .sn-dot.streaming { background-image: url('streaming.png'); }
+.status-notice .sn-text { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.status-notice .sn-text b { font-weight: 700; }
+.status-notice .sn-check { flex-shrink: 0; width: 15px; height: 15px; display: flex; align-items: center; justify-content: center; color: #3ba55d; }
+.status-notice .sn-check svg { width: 14px; height: 14px; stroke-width: 2.6; }
+
 /* Member profile modal */
 /* ---------- Member profile (matches the main chat's profile view) ---------- */
 .member-profile-modal { max-width: 900px; padding: 0; overflow: hidden; text-align: left; position: relative; }
@@ -990,7 +1023,63 @@ input, textarea { font-family: inherit; }
 .member-profile-role { font-size: 11px; padding: 4px 11px; border-radius: 10px; font-weight: 700; }
 .member-profile-joined { font-size: 12px; color: var(--text-muted); }
 
-/* Discover list */
+/* ============================================================
+   File send modal (spoiler + image-on-file options)
+   ============================================================ */
+.srv-media-send-modal { max-width: 460px; text-align: left; border-radius: 14px; overflow: hidden; }
+.srv-ms-header { display: flex; align-items: center; gap: 12px; margin-bottom: 6px; }
+.srv-ms-header-icon { width: 38px; height: 38px; border-radius: 9px; background: rgba(var(--accent-rgb),0.14); color: var(--accent-light); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.srv-ms-header-icon svg { width: 20px; height: 20px; }
+.srv-ms-header-text { flex: 1; min-width: 0; }
+.srv-ms-header-text h3 { margin: 0 0 2px; font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
+.srv-ms-sub { margin: 0; font-size: 12.5px; color: var(--text-muted); }
+.srv-ms-preview { margin: 16px 0 12px; background: var(--bg-darkest); border: 1px solid var(--border); border-radius: 10px; padding: 14px; display: flex; align-items: center; justify-content: center; min-height: 80px; max-height: 320px; overflow: hidden; position: relative; }
+.srv-ms-preview img { max-width: 100%; max-height: 260px; border-radius: 8px; object-fit: contain; }
+.srv-ms-preview video { max-width: 100%; max-height: 260px; border-radius: 8px; }
+.srv-ms-preview audio { width: 100%; }
+.srv-ms-preview .srv-ms-file-card { display: flex; align-items: center; gap: 12px; width: 100%; background: var(--bg-medium); padding: 14px; border-radius: 8px; border: 1px solid var(--border); }
+.srv-ms-preview .srv-ms-file-ic { width: 44px; height: 44px; border-radius: 9px; background: rgba(var(--accent-rgb),0.16); color: var(--accent-light); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; }
+.srv-ms-preview .srv-ms-file-name { font-size: 13px; font-weight: 600; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.srv-ms-preview .srv-ms-file-size { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+.srv-ms-extra-count { position: absolute; bottom: 10px; right: 10px; background: rgba(0,0,0,0.62); color: #fff; font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 20px; }
+.srv-ms-caption-row { margin-bottom: 12px; }
+.srv-ms-caption-row textarea { width: 100%; box-sizing: border-box; padding: 11px 13px; resize: vertical; background: var(--bg-darkest); border: 1px solid var(--border); border-radius: 9px; color: var(--text-primary); font-size: 14px; font-family: inherit; line-height: 1.5; transition: border-color 0.2s ease, box-shadow 0.2s ease; }
+.srv-ms-caption-row textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.12); }
+.srv-ms-options { margin-bottom: 16px; display: flex; flex-direction: column; gap: 8px; }
+.srv-ms-toggle { display: flex; align-items: center; gap: 10px; padding: 11px 13px; background: var(--bg-darkest); border: 1px solid var(--border); border-radius: 9px; cursor: pointer; transition: border-color 0.2s ease, background 0.2s ease; user-select: none; }
+.srv-ms-toggle:hover { border-color: var(--border-light); background: var(--bg-medium); }
+.srv-ms-toggle input[type="checkbox"] { display: none; }
+.srv-ms-track { width: 38px; height: 22px; border-radius: 11px; background: var(--bg-lighter); position: relative; transition: background 0.25s ease; flex-shrink: 0; }
+.srv-ms-thumb { position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: #fff; transition: transform 0.25s ease; box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+.srv-ms-toggle input:checked ~ .srv-ms-track { background: var(--accent); }
+.srv-ms-toggle input:checked ~ .srv-ms-track .srv-ms-thumb { transform: translateX(16px); }
+.srv-ms-toggle-label { display: flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 600; color: var(--text-primary); }
+.srv-ms-toggle-icon { width: 16px; height: 16px; color: var(--text-muted); }
+.srv-ms-toggle input:checked ~ .srv-ms-toggle-label .srv-ms-toggle-icon { color: var(--accent-light); }
+.srv-ms-toggle-hint { font-size: 11px; color: var(--text-muted); font-weight: 400; margin-left: auto; white-space: nowrap; }
+.srv-ms-cover-picker { display: flex; align-items: center; gap: 10px; padding: 10px 13px; background: var(--bg-darkest); border: 1px dashed var(--border-light); border-radius: 9px; }
+.srv-ms-cover-btn { display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; font-weight: 600; color: var(--text-primary); background: var(--bg-light); border: 1px solid var(--border-light); border-radius: 8px; padding: 8px 12px; cursor: pointer; transition: background var(--transition), border-color var(--transition); }
+.srv-ms-cover-btn:hover { background: var(--bg-hover); border-color: var(--accent); }
+.srv-ms-cover-thumb { position: relative; width: 46px; height: 46px; border-radius: 8px; overflow: hidden; border: 1px solid var(--border-light); flex-shrink: 0; }
+.srv-ms-cover-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.srv-ms-cover-thumb button { position: absolute; top: 1px; right: 1px; width: 16px; height: 16px; border-radius: 50%; background: rgba(0,0,0,0.7); color: #fff; font-size: 12px; line-height: 1; display: flex; align-items: center; justify-content: center; border: none; cursor: pointer; }
+.srv-ms-spinner { display: none; width: 15px; height: 15px; margin-right: 7px; border: 2px solid rgba(255,255,255,0.35); border-top-color: #fff; border-radius: 50%; animation: srvMsSpin 0.7s linear infinite; vertical-align: -2px; }
+.srv-ms-send.sending { pointer-events: none; opacity: 0.85; }
+.srv-ms-send.sending .srv-ms-spinner { display: inline-block; }
+@keyframes srvMsSpin { to { transform: rotate(360deg); } }
+/* Cover image overlay on a sent file card */
+.msg-file-card .mfc-preview { position: relative; }
+.mfc-cover { position: absolute; inset: 0; background-size: cover; background-position: center; background-repeat: no-repeat; z-index: 2; }
+.mfc-cover-badge { position: absolute; bottom: 8px; left: 8px; z-index: 3; font-size: 10px; font-weight: 700; letter-spacing: 0.3px; text-transform: uppercase; color: #fff; background: rgba(0,0,0,0.6); padding: 3px 8px; border-radius: 20px; }
+/* Spoiler wrapper for server messages */
+.srv-spoiler-wrapper { position: relative; display: inline-block; max-width: 100%; border-radius: 6px; overflow: hidden; }
+.srv-spoiler-content { filter: blur(12px); opacity: 0.5; transition: filter 0.3s ease, opacity 0.3s ease; pointer-events: none; user-select: none; }
+.srv-spoiler-wrapper.revealed .srv-spoiler-content { filter: none; opacity: 1; pointer-events: auto; user-select: auto; }
+.srv-spoiler-overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: 6px; background: rgba(20,20,25,0.85); backdrop-filter: blur(4px); color: var(--text-secondary); font-size: 13px; font-weight: 600; cursor: pointer; z-index: 5; border-radius: 6px; transition: background 0.2s ease, color 0.2s ease; padding: 8px 14px; text-align: center; }
+.srv-spoiler-overlay:hover { background: rgba(30,30,38,0.9); color: var(--text-primary); }
+.srv-spoiler-overlay svg { color: var(--accent-light); }
+.srv-spoiler-click-hint { font-size: 11px; font-weight: 400; color: var(--text-muted); margin-left: 4px; }
+.srv-spoiler-overlay:hover .srv-spoiler-click-hint { color: var(--text-secondary); }
 .discover-item { display: flex; align-items: center; gap: 12px; padding: 12px; background: var(--bg-medium); border-radius: var(--radius-sm); margin-bottom: 8px; }
 .discover-item .di-icon { width: 44px; height: 44px; border-radius: 12px; background: linear-gradient(135deg,#6366f1,#4f46e5); display: flex; align-items: center; justify-content: center; font-weight: 700; overflow: hidden; flex-shrink: 0; }
 .discover-item .di-icon img { width: 100%; height: 100%; object-fit: cover; }
@@ -1412,6 +1501,114 @@ input, textarea { font-family: inherit; }
 .settings-section-head { margin: 4px 0 14px; }
 @media (max-width: 760px) { .settings-grid { grid-template-columns: 1fr; } }
 
+/* ============================================================
+   Request AG — Advanced, professional Server Settings
+   (flat surfaces, hairline borders, no cartoony bounce/gloss)
+   ============================================================ */
+.settings-modal { max-width: 940px; }
+.settings-modal .modal-body { padding: 20px 28px 26px; }
+.settings-header { padding: 22px 28px 18px; border-bottom: 1px solid var(--border); align-items: flex-start; }
+.settings-header-main { display: flex; align-items: center; gap: 14px; min-width: 0; }
+.settings-header-icon { width: 42px; height: 42px; border-radius: 11px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: var(--accent-light); background: rgba(var(--accent-rgb),0.10); border: 1px solid rgba(var(--accent-rgb),0.22); }
+.settings-header-icon svg { width: 21px; height: 21px; }
+.settings-header-text { min-width: 0; }
+.settings-header-text .modal-title { font-size: 18px; font-weight: 700; letter-spacing: -0.2px; }
+.settings-header-sub { font-size: 12.5px; color: var(--text-muted); margin-top: 3px; }
+.settings-modal .modal-footer { padding: 16px 28px 22px; border-top: 1px solid var(--border); align-items: center; }
+
+/* Read-only notice (no icon, refined) */
+.settings-readonly-notice { display: flex; align-items: center; gap: 10px; padding: 12px 15px; margin-bottom: 18px; border-radius: 10px; background: rgba(var(--accent-rgb),0.07); border: 1px solid rgba(var(--accent-rgb),0.20); color: var(--text-secondary); font-size: 13px; line-height: 1.5; }
+
+/* Section headers: quiet, uppercase, hairline rule */
+.settings-section-head { display: flex; align-items: center; gap: 9px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.9px; color: var(--text-muted); margin: 2px 0 14px; }
+.settings-section-head .ui-ic { color: var(--accent-light); width: 15px; height: 15px; }
+.settings-section-head::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+/* Cards: flat, hairline, no gloss */
+.settings-card { background: var(--bg-dark); border: 1px solid var(--border); border-radius: 12px; padding: 16px 18px; margin-bottom: 12px; box-shadow: none; transition: border-color 0.18s ease; }
+.settings-card:hover { border-color: var(--border-light); }
+.settings-card .sc-title { font-size: 13.5px; font-weight: 650; letter-spacing: -0.1px; margin-bottom: 5px; display: flex; align-items: center; gap: 8px; color: var(--text-primary); }
+.settings-card .sc-title .ui-ic { color: var(--accent-light); width: 15px; height: 15px; }
+.settings-card .sc-desc { font-size: 12px; color: var(--text-muted); line-height: 1.55; margin-bottom: 12px; }
+
+/* Inputs / selects / textareas inside settings: consistent, flat */
+.settings-modal .field label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text-muted); margin-bottom: 7px; }
+.settings-modal .field input[type=text], .settings-modal .field input[type=number], .settings-modal .field textarea, .settings-modal .field select,
+.settings-modal select, .settings-modal textarea { background: var(--bg-darkest); border: 1px solid var(--border-light); border-radius: 9px; color: var(--text-primary); font-size: 13.5px; padding: 11px 13px; transition: border-color 0.18s ease, box-shadow 0.18s ease; }
+.settings-modal .field input:focus, .settings-modal .field textarea:focus, .settings-modal .field select:focus,
+.settings-modal select:focus, .settings-modal textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(var(--accent-rgb),0.12); }
+
+/* Segmented control: flat, no gradient gloss */
+.seg-control { display: flex; flex-wrap: wrap; gap: 4px; background: var(--bg-darkest); padding: 4px; border-radius: 10px; border: 1px solid var(--border); }
+.seg-control button { padding: 8px 12px; border-radius: 7px; font-size: 12.5px; font-weight: 600; color: var(--text-secondary); transition: background 0.16s ease, color 0.16s ease; }
+.seg-control button:hover { color: var(--text-primary); background: var(--bg-medium); }
+.seg-control button.selected { background: var(--accent); color: #fff; box-shadow: none; }
+.seg-control button.selected.warn { background: #d4881a; color: #fff; }
+.seg-control button.selected.danger { background: #c02e2e; color: #fff; }
+
+/* Scale rows: flat */
+.scale-row { display: flex; align-items: center; gap: 12px; background: var(--bg-darkest); border: 1px solid var(--border); border-radius: 9px; padding: 10px 13px; margin-bottom: 8px; }
+.scale-row label { display: flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 600; color: var(--text-secondary); white-space: nowrap; min-width: 66px; }
+.scale-row label .ui-ic { color: var(--accent-light); }
+.scale-row input[type=range] { flex: 1; min-width: 80px; accent-color: var(--accent); cursor: pointer; }
+.psr-val { font-size: 12px; font-weight: 600; color: var(--text-primary); min-width: 44px; text-align: right; font-variant-numeric: tabular-nums; }
+
+/* Switch: flat track */
+.switch .slider { background: var(--bg-lighter); }
+.switch input:checked + .slider { background: var(--accent); }
+
+/* Server ID chip */
+.server-id-chip { display: flex; align-items: center; gap: 8px; background: var(--bg-darkest); border: 1px solid var(--border); border-radius: 9px; padding: 9px 12px; }
+.server-id-chip span { flex: 1; font-size: 12.5px; color: var(--text-secondary); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.server-id-chip button { color: var(--text-muted); padding: 4px; border-radius: 6px; }
+.server-id-chip button:hover { color: var(--text-primary); background: var(--bg-hover); }
+
+/* Add Channel / Add Role: professional buttons (replaces .btn-cartoon) */
+.settings-add-btn { display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; font-weight: 600; padding: 8px 14px; border-radius: 8px; background: var(--bg-light); color: var(--text-primary); border: 1px solid var(--border-light); transition: background 0.16s ease, border-color 0.16s ease; }
+.settings-add-btn:hover { background: var(--bg-hover); border-color: var(--accent); }
+.settings-add-btn svg { width: 15px; height: 15px; }
+.settings-add-btn.primary { background: var(--accent); color: #fff; border-color: transparent; }
+.settings-add-btn.primary:hover { background: var(--accent-light); }
+
+/* Invite expiry grid: flat */
+.invite-expiry-grid button { background: var(--bg-darkest); border: 1px solid var(--border); border-radius: 9px; color: var(--text-secondary); font-size: 12.5px; font-weight: 600; padding: 10px; transition: border-color 0.16s ease, background 0.16s ease, color 0.16s ease; }
+.invite-expiry-grid button:hover { background: var(--bg-medium); color: var(--text-primary); border-color: var(--border-light); }
+.invite-expiry-grid button.selected { border-color: var(--accent); color: var(--accent-light); background: rgba(var(--accent-rgb),0.10); }
+
+/* List rows (channels / roles): flat */
+.list-row { background: var(--bg-darkest); border: 1px solid var(--border); border-radius: 10px; padding: 11px 13px; margin-bottom: 8px; transition: border-color 0.16s ease; }
+.list-row:hover { border-color: var(--border-light); }
+.list-row .lr-actions button { color: var(--text-muted); padding: 6px; border-radius: 7px; }
+.list-row .lr-actions button:hover { background: var(--bg-hover); color: var(--text-primary); }
+
+/* Unsaved-changes bar: flat, professional */
+.settings-unsaved { display: flex; align-items: center; gap: 10px; margin-right: auto; padding: 8px 12px; border-radius: 9px; background: rgba(240,169,46,0.10); border: 1px solid rgba(240,169,46,0.30); }
+.settings-unsaved .su-ic { color: #f0a92e; display: inline-flex; }
+.settings-unsaved .su-text { display: flex; flex-direction: column; line-height: 1.3; }
+.settings-unsaved .su-title { font-size: 12.5px; font-weight: 700; color: #f0c46a; }
+.settings-unsaved .su-sub { font-size: 11px; color: var(--text-muted); }
+.settings-unsaved .su-save { font-size: 12px; font-weight: 600; color: #fff; background: #d4881a; border-radius: 7px; padding: 6px 11px; }
+.settings-unsaved .su-save:hover { background: #e0951f; }
+.settings-unsaved .su-dot { width: 7px; height: 7px; border-radius: 50%; background: #f0a92e; animation: suPulse 1.6s ease-in-out infinite; }
+@keyframes suPulse { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
+
+/* Danger zone: flat */
+.settings-danger { border: 1px solid rgba(227,93,93,0.35); border-radius: 12px; padding: 16px 18px; background: rgba(227,93,93,0.05); }
+.settings-danger .sd-title { font-size: 13.5px; font-weight: 650; color: #ff9a9a; display: flex; align-items: center; gap: 8px; margin-bottom: 5px; }
+.settings-danger .sd-desc { font-size: 12px; color: var(--text-muted); line-height: 1.55; margin-bottom: 12px; }
+.settings-danger .btn-danger { background: #c02e2e; color: #fff; border: 1px solid transparent; border-radius: 8px; padding: 9px 15px; font-size: 12.5px; font-weight: 600; }
+.settings-danger .btn-danger:hover { background: #d63a3a; }
+
+/* Scale dialog: presets + nudge controls */
+.scale-modal { max-width: 480px; }
+.scale-presets { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; }
+.scale-presets button { flex: 1; min-width: 70px; padding: 8px 6px; font-size: 12px; font-weight: 600; color: var(--text-secondary); background: var(--bg-darkest); border: 1px solid var(--border); border-radius: 8px; transition: border-color 0.16s ease, background 0.16s ease, color 0.16s ease; }
+.scale-presets button:hover { background: var(--bg-medium); color: var(--text-primary); border-color: var(--border-light); }
+.scale-presets button.active { border-color: var(--accent); color: var(--accent-light); background: rgba(var(--accent-rgb),0.10); }
+.scale-nudge-row { display: flex; gap: 8px; margin-top: 10px; }
+.scale-nudge { flex: 1; padding: 9px; font-size: 12.5px; font-weight: 600; color: var(--text-secondary); background: var(--bg-darkest); border: 1px solid var(--border); border-radius: 8px; transition: border-color 0.16s ease, background 0.16s ease, color 0.16s ease; }
+.scale-nudge:hover { background: var(--bg-medium); color: var(--text-primary); border-color: var(--border-light); }
+
 /* ---- Wider My Server Profile ---- */
 .member-profile-modal { max-width: 880px; width: 94vw; }
 .msp-pane .field-row { gap: 24px; }
@@ -1601,6 +1798,8 @@ input, textarea { font-family: inherit; }
         <button class="hero-discover-btn" id="empty-discover"><span class="hc-emoji"><svg class="ui-ic lg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg></span> Discovery</button>
       </div>
     </div>
+
+    <div class="server-boot-loading" id="server-boot-loading"><div class="spinner"></div></div>
 
     <div class="server-view" id="server-view" style="display:none;">
       <!-- Channels -->
@@ -1821,8 +2020,19 @@ input, textarea { font-family: inherit; }
 
 <!-- Server settings -->
 <div class="modal-overlay" id="settings-modal">
-  <div class="modal wide">
-    <div class="modal-header"><div class="modal-title">Server Settings</div><button class="modal-close" data-close="settings-modal">&times;</button></div>
+  <div class="modal wide settings-modal">
+    <div class="modal-header settings-header">
+      <div class="settings-header-main">
+        <div class="settings-header-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        </div>
+        <div class="settings-header-text">
+          <div class="modal-title">Server Settings</div>
+          <div class="settings-header-sub">Manage identity, appearance, channels, roles and invites</div>
+        </div>
+      </div>
+      <button class="modal-close" data-close="settings-modal">&times;</button>
+    </div>
     <div class="modal-body">
       <div class="profile-editor">
         <div class="profile-banner" id="set-banner">
@@ -1844,12 +2054,12 @@ input, textarea { font-family: inherit; }
         <div class="sc-desc">Fine-tune how large your server icon and banner appear to everyone. 100% is the default size.</div>
         <div class="scale-row">
           <label><svg class="ui-ic sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg> Icon</label>
-          <input type="range" id="set-icon-scale" min="100" max="220" step="5" value="100">
+          <input type="range" id="set-icon-scale" min="50" max="300" step="5" value="100">
           <span class="psr-val" id="set-icon-scale-val">100%</span>
         </div>
         <div class="scale-row">
           <label><svg class="ui-ic sm" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 15l5-5 4 4 3-3 6 6"/></svg> Banner</label>
-          <input type="range" id="set-banner-scale" min="100" max="220" step="5" value="100">
+          <input type="range" id="set-banner-scale" min="50" max="300" step="5" value="100">
           <span class="psr-val" id="set-banner-scale-val">100%</span>
         </div>
         <div class="scale-preview" id="set-scale-preview"></div>
@@ -1950,29 +2160,24 @@ input, textarea { font-family: inherit; }
           <button class="btn btn-ghost" id="set-chatbg-upload" style="flex:1;font-size:12.5px;">Upload image</button>
           <button class="btn btn-ghost" id="set-chatbg-remove" style="flex:0 0 auto;font-size:12.5px;">Remove</button>
         </div>
-        <div class="scale-row"><label>Scale</label><input type="range" id="set-chatbg-scale" min="100" max="220" step="5" value="100"><span class="psr-val" id="set-chatbg-scale-val">100%</span></div>
+        <div class="scale-row"><label>Scale</label><input type="range" id="set-chatbg-scale" min="50" max="300" step="5" value="100"><span class="psr-val" id="set-chatbg-scale-val">100%</span></div>
         <div class="scale-row"><label>Transparency</label><input type="range" id="set-chatbg-opacity" min="0" max="100" step="5" value="100"><span class="psr-val" id="set-chatbg-opacity-val">100%</span></div>
       </div>
       </div>
       </div>
 
       <div class="settings-full">
-      <div style="border-top:1px solid var(--border);margin:20px 0;"></div>
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-        <div style="font-weight:700;font-size:15px;">Channels</div>
-        <button class="btn-cartoon btn-cartoon-blue" id="add-channel-btn" style="padding:8px 14px;font-size:13px;"><span class="btn-ic"><svg class="ui-ic" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span>Add Channel</button>
+      <div class="settings-section-head" style="margin-top:22px;"><svg class="ui-ic" viewBox="0 0 24 24"><line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/></svg> Channels
+        <button class="settings-add-btn primary" id="add-channel-btn" style="margin-left:auto;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Channel</button>
       </div>
       <div id="settings-channels"></div>
 
-      <div style="border-top:1px solid var(--border);margin:20px 0;"></div>
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-        <div style="font-weight:700;font-size:15px;">Roles &amp; Badges</div>
-        <button class="btn-cartoon btn-cartoon-purple" id="add-role-btn" style="padding:8px 14px;font-size:13px;"><span class="btn-ic"><svg class="ui-ic" viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg></span>Add Role</button>
+      <div class="settings-section-head" style="margin-top:22px;"><svg class="ui-ic" viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg> Roles &amp; Badges
+        <button class="settings-add-btn primary" id="add-role-btn" style="margin-left:auto;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Role</button>
       </div>
       <div id="settings-roles"></div>
 
-      <div style="border-top:1px solid var(--border);margin:20px 0;"></div>
-      <div style="font-weight:700;font-size:15px;margin-bottom:12px;">Invites</div>
+      <div class="settings-section-head" style="margin-top:22px;"><svg class="ui-ic" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg> Invites</div>
       <div class="field" style="margin-bottom:14px;">
         <label>Custom invite link (optional)</label>
         <div class="join-input-wrap">
@@ -2192,22 +2397,85 @@ input, textarea { font-family: inherit; }
 
 <!-- Image scale dialog (shown right after uploading a server icon/banner) -->
 <div class="modal-overlay" id="scale-modal">
-  <div class="modal msg-action-modal">
+  <div class="modal msg-action-modal scale-modal">
     <div class="modal-body">
       <div class="msg-action-head">
         <div class="mah-ic" id="scale-modal-ic"><svg class="ui-ic lg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg></div>
         <div><div class="mah-title" id="scale-modal-title">Adjust your icon</div><div class="mah-sub" id="scale-modal-sub">Drag the slider to scale how large it appears.</div></div>
       </div>
       <div class="scale-preview" id="scale-preview"></div>
-      <div class="psr-item" style="margin-top:14px;">
-        <label><svg class="ui-ic sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg> Scale</label>
-        <input type="range" id="scale-modal-range" min="100" max="220" step="5" value="100">
+      <div class="scale-presets" id="scale-presets">
+        <button type="button" data-scale="75">Small</button>
+        <button type="button" data-scale="100">Default</button>
+        <button type="button" data-scale="150">Large</button>
+        <button type="button" data-scale="200">Extra large</button>
+        <button type="button" data-scale="300">Max</button>
+      </div>
+      <div class="psr-item" style="margin-top:12px;">
+        <label id="scale-modal-label"><svg class="ui-ic sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg> Scale</label>
+        <input type="range" id="scale-modal-range" min="50" max="300" step="5" value="100">
         <span class="psr-val" id="scale-modal-val">100%</span>
+      </div>
+      <div class="scale-nudge-row">
+        <button type="button" class="scale-nudge" id="scale-nudge-down" title="Decrease by 5%">&minus;5%</button>
+        <button type="button" class="scale-nudge" id="scale-nudge-up" title="Increase by 5%">+5%</button>
+        <button type="button" class="scale-nudge" id="scale-reset" title="Reset to 100%">Reset</button>
       </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" data-close="scale-modal">Skip</button>
       <button class="btn btn-primary" id="scale-modal-save">Save scale</button>
+    </div>
+  </div>
+</div>
+
+<!-- File send modal (shown before a file is sent: spoiler + image-on-file, both optional) -->
+<div class="modal-overlay" id="srv-media-send-modal">
+  <div class="modal srv-media-send-modal">
+    <div class="srv-ms-header">
+      <div class="srv-ms-header-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      </div>
+      <div class="srv-ms-header-text">
+        <h3 id="srv-ms-title">Send Attachment</h3>
+        <p class="srv-ms-sub" id="srv-ms-subtitle">Add a caption and options, then send.</p>
+      </div>
+    </div>
+    <div class="srv-ms-preview" id="srv-ms-preview"></div>
+    <div class="srv-ms-caption-row">
+      <textarea id="srv-ms-caption" placeholder="Add a caption (optional)" rows="2" maxlength="500"></textarea>
+    </div>
+    <div class="srv-ms-options">
+      <label class="srv-ms-toggle">
+        <input type="checkbox" id="srv-ms-spoiler">
+        <span class="srv-ms-track"><span class="srv-ms-thumb"></span></span>
+        <span class="srv-ms-toggle-label">
+          <svg class="srv-ms-toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/><line x1="3" y1="3" x2="21" y2="21" stroke-width="2.5"/></svg>
+          Mark as Spoiler
+        </span>
+        <span class="srv-ms-toggle-hint">Hides content until clicked</span>
+      </label>
+      <label class="srv-ms-toggle">
+        <input type="checkbox" id="srv-ms-cover-toggle">
+        <span class="srv-ms-track"><span class="srv-ms-thumb"></span></span>
+        <span class="srv-ms-toggle-label">
+          <svg class="srv-ms-toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+          Image on File
+        </span>
+        <span class="srv-ms-toggle-hint">Overlay a cover image</span>
+      </label>
+      <div class="srv-ms-cover-picker" id="srv-ms-cover-picker" style="display:none;">
+        <input type="file" id="srv-ms-cover-input" accept="image/*,image/gif" hidden>
+        <button type="button" class="srv-ms-cover-btn" id="srv-ms-cover-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          <span id="srv-ms-cover-btn-text">Choose cover image</span>
+        </button>
+        <div class="srv-ms-cover-thumb" id="srv-ms-cover-thumb" style="display:none;"><img id="srv-ms-cover-img" alt=""><button type="button" id="srv-ms-cover-remove" title="Remove cover">&times;</button></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" id="srv-ms-cancel">Cancel</button>
+      <button class="btn btn-primary" id="srv-ms-send"><span class="srv-ms-spinner"></span><span class="srv-ms-send-label">Send</span></button>
     </div>
   </div>
 </div>
@@ -2323,6 +2591,8 @@ const ICONS = {
   edit: '<path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/>',
   trash: '<polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/>',
   lock: '<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
+  eye: '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>',
+  'eye-off': '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>',
   globe: '<circle cx="12" cy="12" r="9"/><line x1="3" y1="12" x2="21" y2="12"/><path d="M12 3a15 15 0 0 1 0 18 15 15 0 0 1 0-18z"/>',
   star: '<path d="M12 2l2.4 5.2L20 8l-4 3.9.9 5.6L12 15l-4.9 2.5.9-5.6L4 8l5.6-.8z"/>',
   ban: '<circle cx="12" cy="12" r="9"/><line x1="5.6" y1="5.6" x2="18.4" y2="18.4"/>',
@@ -2404,6 +2674,46 @@ function toast(msg, type) {
   el.querySelector('.toast-close').addEventListener('click', dismiss);
   c.appendChild(el);
   setTimeout(dismiss, dur);
+}
+// Status-change notice — replaces the old generic toast for status updates.
+// Compact professional pill with a live status dot + label, anchored near the
+// status control (or bottom-center fallback). Non-intrusive, auto-dismisses.
+let __statusNoticeEl = null;
+let __statusNoticeTimer = null;
+function showStatusNotice(status, anchorEl) {
+  const label = (typeof getStatusText === 'function') ? getStatusText(status) : status;
+  if (__statusNoticeEl) { __statusNoticeEl.remove(); __statusNoticeEl = null; }
+  clearTimeout(__statusNoticeTimer);
+  const el = document.createElement('div');
+  el.className = 'status-notice';
+  el.innerHTML =
+    '<span class="sn-dot ' + status + '"></span>' +
+    '<span class="sn-text">Status set to <b>' + escapeHtml(label) + '</b></span>' +
+    '<span class="sn-check">' + icon('check', 'sm') + '</span>';
+  document.body.appendChild(el);
+  __statusNoticeEl = el;
+  const place = () => {
+    const w = el.offsetWidth, h = el.offsetHeight;
+    let left, top;
+    if (anchorEl && anchorEl.getBoundingClientRect) {
+      const r = anchorEl.getBoundingClientRect();
+      left = r.left + r.width / 2 - w / 2;
+      top = r.top - h - 10;
+      if (top < 8) top = r.bottom + 10;
+    } else {
+      left = window.innerWidth / 2 - w / 2;
+      top = window.innerHeight - h - 96;
+    }
+    left = Math.max(8, Math.min(left, window.innerWidth - w - 8));
+    el.style.left = left + 'px';
+    el.style.top = top + 'px';
+  };
+  place();
+  requestAnimationFrame(() => el.classList.add('show'));
+  __statusNoticeTimer = setTimeout(() => {
+    el.classList.add('hide');
+    setTimeout(() => { if (el.parentNode) el.remove(); if (__statusNoticeEl === el) __statusNoticeEl = null; }, 260);
+  }, 1900);
 }
 function showPingToast(data) {
   const c = $('toast-container');
@@ -2700,16 +3010,26 @@ async function boot() {
   try { await loadServers(); } catch(e) { console.warn('[servers] load failed', e); }
   // Restore the last-opened server + channel so a refresh keeps you exactly
   // where you were (and the server's chat background stays applied).
+  // While this runs we keep the boot placeholder visible (instead of the
+  // "Welcome to Servers" empty state) so there is never a flash of the empty
+  // screen before the last server loads.
+  let restored = false;
   try {
     const lastServer = localStorage.getItem('hb_last_server');
     if (lastServer && servers.some(s => s.id === lastServer)) {
       await openServer(lastServer);
+      restored = true;
       const lastCh = localStorage.getItem('hb_last_channel');
       if (lastCh && (activeServer.channels || []).some(c => c.id === lastCh) && activeChannelId !== lastCh) {
         await openChannel(lastCh);
       }
     }
   } catch(e) { console.warn('[servers] restore failed', e); }
+  // Restore attempt finished: hide the placeholder. If we restored a server the
+  // server view is already showing; otherwise fall back to the empty state.
+  const bootLoading = $('server-boot-loading');
+  if (bootLoading) bootLoading.style.display = 'none';
+  if (!restored && !activeServerId) showEmpty();
   try { startVersionPolling(); } catch(e) {}
   // Handle ?invite=CODE deep link
   try {
@@ -3107,8 +3427,9 @@ function openStatusMenu() {
     currentUser.status = s;
     if (socket) socket.emit('set-status', s);
     renderSelfFooter();
+    const anchorRect = b.getBoundingClientRect();
     closeStatusMenu();
-    toast('Status set to ' + getStatusText(s), 'success');
+    showStatusNotice(s, { getBoundingClientRect: () => anchorRect });
   }));
   setTimeout(() => document.addEventListener('click', closeStatusMenu, { once: true }), 0);
 }
@@ -3562,13 +3883,22 @@ function buildMessageGroup(m) {
     if (m._plain !== undefined && m._plain !== null) raw = m._plain;
     else if (m.e2e) raw = null;
     else raw = (m.text || '');
+    let contentHtml = '';
     if (raw === null) {
-      textHtml = '<div class="msg-text msg-undecryptable">' + icon('lock', 'sm') + 'Encrypted message</div>';
+      contentHtml = '<div class="msg-text msg-undecryptable">' + icon('lock', 'sm') + 'Encrypted message</div>';
     } else {
-      textHtml = '<div class="msg-text">' + linkify(escapeHtml(raw)) + '</div>';
+      contentHtml = '<div class="msg-text">' + linkify(escapeHtml(raw)) + '</div>';
     }
-    if (m.file) textHtml += renderFile(m.file);
-    if (Array.isArray(m.files)) m.files.forEach(f => { textHtml += renderFile(f); });
+    if (m.file) contentHtml += renderFile(m.file);
+    if (Array.isArray(m.files)) m.files.forEach(f => { contentHtml += renderFile(f); });
+    // Spoiler messages: hide the text + attachments behind a click-to-reveal
+    // overlay (the timestamp stays visible below).
+    if (m.spoiler) {
+      textHtml = '<div class="srv-spoiler-wrapper"><div class="srv-spoiler-content">' + contentHtml + '</div>' +
+        '<div class="srv-spoiler-overlay">' + icon('eye-off', 'sm') + '<span>Spoiler</span><span class="srv-spoiler-click-hint">Click to reveal</span></div></div>';
+    } else {
+      textHtml = contentHtml;
+    }
   }
   // timestamp sits directly under the message text
   textHtml += '<div class="msg-time">' + fmtTime(m.timestamp) + (m.edited ? ' (edited)' : '') + '</div>';
@@ -3585,6 +3915,16 @@ function buildMessageGroup(m) {
     reactHtml += '</div>';
   }
   body.innerHTML = head + replyHtml + textHtml + reactHtml;
+  // Spoiler overlay: click to reveal the hidden text + attachments.
+  const spoilerOverlay = body.querySelector('.srv-spoiler-overlay');
+  if (spoilerOverlay) {
+    spoilerOverlay.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const wrap = spoilerOverlay.closest('.srv-spoiler-wrapper');
+      if (wrap) wrap.classList.add('revealed');
+      spoilerOverlay.style.display = 'none';
+    });
+  }
   // Clicking a reply quote jumps to the original message.
   const rq = body.querySelector('.msg-reply-quote');
   if (rq && rq.dataset.replyId) {
@@ -3804,6 +4144,12 @@ function renderFile(f) {
     preview = '<span class="mfc-preview"><video src="' + url + '" controls preload="metadata"></video></span>';
   } else if (isAudio) {
     preview = '<span class="mfc-preview"><audio controls src="' + url + '"></audio></span>';
+  }
+  // Optional cover image ("Image on File"): overlays the preview with the
+  // chosen image so the file's real contents stay hidden behind it.
+  if (f.coverImage && preview) {
+    const coverUrl = escapeAttr(f.coverImage);
+    preview = preview.replace('</span>', '<span class="mfc-cover" style="background-image:url(\'' + coverUrl + '\')"></span><span class="mfc-cover-badge">Cover</span></span>');
   }
   return '<div class="msg-file-card">' + preview + bar + '</div>';
 }
@@ -4169,7 +4515,12 @@ async function sendMessage() {
     } catch(e) { e2e = null; }
   }
   const payload = { serverId: activeServerId, channelId: activeChannelId, text: text, e2e, e2eKeys };
-  if (pendingFiles.length) { payload.files = pendingFiles.slice(0, 5); }
+  if (pendingFiles.length) {
+    payload.files = pendingFiles.slice(0, 5);
+    // If any queued file was marked as a spoiler, flag the whole message so the
+    // text + attachments stay hidden until the recipient clicks to reveal.
+    if (pendingFiles.some(f => f && f.spoiler)) payload.spoiler = true;
+  }
   if (srvReplyTo) { payload.reply = { id: srvReplyTo.id, from: srvReplyTo.from, displayName: srvReplyTo.displayName, text: srvReplyTo.text, e2e: srvReplyTo.e2e }; }
   socket.emit('server-send', payload, (resp) => {
     if (resp && resp.error) { toast(resp.error, 'error'); $('srv-send-btn').disabled = false; return; }
@@ -4279,11 +4630,157 @@ function srvUploadWithProgress(file, row, bar, pct) {
   });
 }
 
-// Shared change handler for all three attach inputs.
-async function handleSrvAttachFiles(input) {
+// Shared change handler for all three attach inputs. Instead of uploading
+// immediately, we open the "Send Attachment" modal first so the user can add a
+// caption, mark the file as a spoiler, and/or overlay a cover image (all
+// optional) before anything is sent.
+function handleSrvAttachFiles(input) {
   const files = Array.from(input.files || []);
   input.value = '';
   if (!files.length) return;
+  const room = SRV_MAX_ATTACHMENTS - pendingFiles.length;
+  if (room <= 0) { toast('You can attach up to ' + SRV_MAX_ATTACHMENTS + ' files at a time.', 'error'); return; }
+  const accepted = [];
+  for (const f of files) {
+    if (accepted.length >= room) { toast('You can attach up to ' + SRV_MAX_ATTACHMENTS + ' files at a time.', 'error'); break; }
+    if (f.size > SRV_UPLOAD_MAX) { toast('"' + f.name + '" is ' + (f.size / (1024*1024)).toFixed(1) + ' MB — the maximum is 150 MB.', 'error'); continue; }
+    accepted.push(f);
+  }
+  if (!accepted.length) return;
+  openSrvMediaSendModal(accepted);
+}
+$('srv-file-input').addEventListener('change', (e) => handleSrvAttachFiles(e.target));
+$('srv-image-input').addEventListener('change', (e) => handleSrvAttachFiles(e.target));
+$('srv-video-input').addEventListener('change', (e) => handleSrvAttachFiles(e.target));
+
+/* ============================================================
+   Send Attachment modal (caption + spoiler + image-on-file)
+   ============================================================ */
+let srvMediaSendFiles = [];   // File objects queued for the current send
+let srvMediaSendCover = '';   // uploaded cover image URL (optional)
+let srvMediaSendBusy = false; // true while uploading/sending
+
+function srvMsPreviewHtml(file) {
+  const type = String(file.type || '').toLowerCase();
+  const name = file.name || 'file';
+  const isGif = type === 'image/gif' || /\.gif$/i.test(name);
+  const isImage = isGif || type.startsWith('image/');
+  const isVideo = type.startsWith('video/');
+  const isAudio = type.startsWith('audio/');
+  if (isImage || isVideo) {
+    const url = URL.createObjectURL(file);
+    const tag = isVideo
+      ? '<video src="' + url + '" muted preload="metadata" playsinline></video>'
+      : '<img src="' + url + '" alt="">';
+    // Revoke the object URL once the media has loaded to free memory.
+    setTimeout(() => { try { URL.revokeObjectURL(url); } catch(e) {} }, 60000);
+    return tag;
+  }
+  if (isAudio) {
+    const url = URL.createObjectURL(file);
+    setTimeout(() => { try { URL.revokeObjectURL(url); } catch(e) {} }, 60000);
+    return '<audio controls src="' + url + '"></audio>';
+  }
+  const ext = (name.split('.').pop() || 'FILE').slice(0, 4).toUpperCase();
+  return '<div class="srv-ms-file-card"><div class="srv-ms-file-ic">' + escapeHtml(ext) + '</div>' +
+    '<div style="min-width:0;"><div class="srv-ms-file-name">' + escapeHtml(name) + '</div>' +
+    '<div class="srv-ms-file-size">' + escapeHtml(formatFileSize(file.size)) + '</div></div></div>';
+}
+
+function openSrvMediaSendModal(files) {
+  srvMediaSendFiles = files.slice();
+  srvMediaSendCover = '';
+  srvMediaSendBusy = false;
+  const preview = $('srv-ms-preview');
+  const first = files[0];
+  preview.innerHTML = srvMsPreviewHtml(first);
+  if (files.length > 1) {
+    const chip = document.createElement('div');
+    chip.className = 'srv-ms-extra-count';
+    chip.textContent = '+' + (files.length - 1) + ' more file' + (files.length - 1 !== 1 ? 's' : '');
+    preview.appendChild(chip);
+  }
+  $('srv-ms-title').textContent = files.length > 1 ? 'Send ' + files.length + ' Attachments' : 'Send Attachment';
+  $('srv-ms-subtitle').textContent = 'Add a caption and options, then send.';
+  $('srv-ms-caption').value = '';
+  $('srv-ms-spoiler').checked = false;
+  $('srv-ms-cover-toggle').checked = false;
+  $('srv-ms-cover-picker').style.display = 'none';
+  $('srv-ms-cover-thumb').style.display = 'none';
+  $('srv-ms-cover-img').removeAttribute('src');
+  $('srv-ms-cover-btn-text').textContent = 'Choose cover image';
+  $('srv-ms-cover-input').value = '';
+  setSrvMsSending(false);
+  openModal('srv-media-send-modal');
+  setTimeout(() => { const c = $('srv-ms-caption'); if (c) c.focus(); }, 60);
+}
+
+function setSrvMsSending(on) {
+  srvMediaSendBusy = !!on;
+  const btn = $('srv-ms-send');
+  if (!btn) return;
+  btn.classList.toggle('sending', !!on);
+  const label = btn.querySelector('.srv-ms-send-label');
+  if (label) label.textContent = on ? 'Sending…' : 'Send';
+}
+
+function closeSrvMediaSendModal() {
+  if (srvMediaSendBusy) return;
+  closeModal('srv-media-send-modal');
+  srvMediaSendFiles = [];
+  srvMediaSendCover = '';
+}
+
+// Toggle the cover picker when "Image on File" is switched on/off.
+$('srv-ms-cover-toggle').addEventListener('change', (e) => {
+  $('srv-ms-cover-picker').style.display = e.target.checked ? 'flex' : 'none';
+  if (!e.target.checked) {
+    srvMediaSendCover = '';
+    $('srv-ms-cover-thumb').style.display = 'none';
+    $('srv-ms-cover-img').removeAttribute('src');
+    $('srv-ms-cover-btn-text').textContent = 'Choose cover image';
+  }
+});
+$('srv-ms-cover-btn').addEventListener('click', () => $('srv-ms-cover-input').click());
+$('srv-ms-cover-remove').addEventListener('click', () => {
+  srvMediaSendCover = '';
+  $('srv-ms-cover-thumb').style.display = 'none';
+  $('srv-ms-cover-img').removeAttribute('src');
+  $('srv-ms-cover-btn-text').textContent = 'Choose cover image';
+  $('srv-ms-cover-input').value = '';
+});
+$('srv-ms-cover-input').addEventListener('change', async (e) => {
+  const f = (e.target.files || [])[0];
+  if (!f) return;
+  if (!validateImageFile(f)) { e.target.value = ''; return; }
+  const btnText = $('srv-ms-cover-btn-text');
+  btnText.textContent = 'Uploading…';
+  try {
+    const d = await srvUploadWithProgress(f, document.createElement('div'), document.createElement('span'), document.createElement('span'));
+    srvMediaSendCover = d.url;
+    $('srv-ms-cover-img').src = d.url;
+    $('srv-ms-cover-thumb').style.display = 'block';
+    btnText.textContent = 'Change cover image';
+  } catch(err) {
+    toast('Cover upload failed: ' + err.message, 'error');
+    btnText.textContent = 'Choose cover image';
+  }
+});
+$('srv-ms-cancel').addEventListener('click', closeSrvMediaSendModal);
+$('srv-media-send-modal').addEventListener('click', (e) => { if (e.target === $('srv-media-send-modal')) closeSrvMediaSendModal(); });
+$('srv-ms-caption').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); $('srv-ms-send').click(); }
+});
+
+// Upload every queued file (with progress rows), attach spoiler/cover metadata,
+// then send the message immediately.
+$('srv-ms-send').addEventListener('click', async () => {
+  if (srvMediaSendBusy) return;
+  if (!srvMediaSendFiles.length) { closeSrvMediaSendModal(); return; }
+  const caption = $('srv-ms-caption').value.trim();
+  const spoiler = $('srv-ms-spoiler').checked;
+  const cover = srvMediaSendCover;
+  setSrvMsSending(true);
   let container = $('srv-upload-progress');
   if (!container) {
     container = document.createElement('div');
@@ -4292,9 +4789,9 @@ async function handleSrvAttachFiles(input) {
     const area = $('server-input-area');
     area.insertBefore(container, area.firstChild);
   }
-  for (const f of files) {
-    if (pendingFiles.length >= SRV_MAX_ATTACHMENTS) { toast('You can attach up to ' + SRV_MAX_ATTACHMENTS + ' files at a time.', 'error'); break; }
-    if (f.size > SRV_UPLOAD_MAX) { toast('"' + f.name + '" is ' + (f.size / (1024*1024)).toFixed(1) + ' MB — the maximum is 150 MB.', 'error'); continue; }
+  const uploaded = [];
+  let failed = false;
+  for (const f of srvMediaSendFiles) {
     const row = document.createElement('div');
     row.className = 'srv-upload-row';
     row.innerHTML = '<span class="srv-up-ic">' + icon('paperclip', 'sm') + '</span>' +
@@ -4306,23 +4803,31 @@ async function handleSrvAttachFiles(input) {
     const pct = row.querySelector('.srv-up-pct');
     try {
       const d = await srvUploadWithProgress(f, row, bar, pct);
-      pendingFiles.push({ url: d.url, name: d.name || f.name, type: d.mimetype || d.type || f.type, size: d.size || f.size });
+      uploaded.push({ url: d.url, name: d.name || f.name, type: d.mimetype || d.type || f.type, size: d.size || f.size, spoiler: spoiler, coverImage: cover || null });
       row.classList.add('done');
       pct.textContent = 'Done';
       bar.style.width = '100%';
       setTimeout(() => { row.remove(); if (container && !container.children.length) container.remove(); }, 1400);
     } catch(err) {
+      failed = true;
       row.classList.add('error');
       pct.textContent = 'Failed';
       toast('Upload failed: ' + err.message, 'error');
       setTimeout(() => { row.remove(); if (container && !container.children.length) container.remove(); }, 2600);
     }
-    renderPendingFiles(); updateSendBtn();
   }
-}
-$('srv-file-input').addEventListener('change', (e) => handleSrvAttachFiles(e.target));
-$('srv-image-input').addEventListener('change', (e) => handleSrvAttachFiles(e.target));
-$('srv-video-input').addEventListener('change', (e) => handleSrvAttachFiles(e.target));
+  setSrvMsSending(false);
+  if (!uploaded.length) return; // nothing uploaded — keep the modal open
+  // Queue the uploaded files and send the message right away.
+  uploaded.forEach(u => { if (pendingFiles.length < SRV_MAX_ATTACHMENTS) pendingFiles.push(u); });
+  renderPendingFiles(); updateSendBtn();
+  closeModal('srv-media-send-modal');
+  srvMediaSendFiles = [];
+  srvMediaSendCover = '';
+  if (caption) $('srv-input').value = caption;
+  await sendMessage();
+  if (failed) toast('Some files failed to upload.', 'error');
+});
 
 function quickReact(m) {
   // Professional reaction picker popover (no browser prompt).
@@ -4781,7 +5286,7 @@ function applySettingsPermissions(canEdit, canManageChannels, canManageRoles, ca
       notice = document.createElement('div');
       notice.id = 'settings-readonly-notice';
       notice.className = 'settings-readonly-notice';
-      notice.innerHTML = icon('lock', 'sm') + '<span>You have view-only access. Only the server owner and admins can change these settings.</span>';
+      notice.innerHTML = '<span>You have view-only access. Only the server owner and admins can change these settings.</span>';
       body.insertBefore(notice, body.firstChild);
     }
   } else if (notice) {
@@ -4873,7 +5378,10 @@ $('del-server-confirm').addEventListener('click', async () => {
   } catch(e) { toast(e.message, 'error'); $('del-server-confirm').disabled = false; }
 });
 
-/* ---- Image scale dialog (shown right after uploading a server icon/banner) ---- */
+/* ---- Image scale dialog (shown right after uploading a server icon/banner) ----
+   The dialog is scoped to the element that was just changed: clicking the
+   banner only offers banner scaling, clicking the icon only offers icon
+   scaling. Extra presets + nudge buttons make fine-tuning quick. */
 let scaleModalKind = 'icon';   // 'icon' | 'banner'
 function openScaleModal(kind) {
   if (!activeServer) return;
@@ -4882,11 +5390,15 @@ function openScaleModal(kind) {
   const cur = isIcon ? (activeServer.iconScale || 100) : (activeServer.bannerScale || 100);
   $('scale-modal-title').textContent = isIcon ? 'Adjust your icon' : 'Adjust your banner';
   $('scale-modal-sub').textContent = isIcon
-    ? 'Drag the slider to scale how large your server icon appears.'
-    : 'Drag the slider to scale how large your server banner appears.';
+    ? 'Scale how large your server icon appears to everyone.'
+    : 'Scale how large your server banner appears to everyone.';
   $('scale-modal-ic').innerHTML = isIcon
     ? '<svg class="ui-ic lg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg>'
     : '<svg class="ui-ic lg" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 15l5-5 4 4 3-3 6 6"/></svg>';
+  const lbl = $('scale-modal-label');
+  if (lbl) lbl.innerHTML = (isIcon
+    ? '<svg class="ui-ic sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg>'
+    : '<svg class="ui-ic sm" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 15l5-5 4 4 3-3 6 6"/></svg>') + ' Scale';
   // Build the live preview
   const bannerUrl = activeServer.banner ? activeServer.banner : '';
   const iconUrl = activeServer.icon ? activeServer.icon : '';
@@ -4895,21 +5407,37 @@ function openScaleModal(kind) {
       (bannerUrl ? '<div class="sp-banner-img" id="sp-banner-img" style="background-image:url(' + escapeAttr(bannerUrl) + ')"></div>' : '') +
       '<div class="sp-icon" id="sp-icon">' + (iconUrl ? '<img src="' + escapeAttr(iconUrl) + '">' : escapeHtml(getInitials(activeServer.name))) + '</div>' +
     '</div><div class="sp-body"></div>';
-  $('scale-modal-range').value = String(cur);
-  $('scale-modal-val').textContent = cur + '%';
-  applyScalePreview(cur);
+  setScaleModalValue(cur);
   openModal('scale-modal');
+}
+// Update the slider, value label, preset highlight and live preview together.
+function setScaleModalValue(val) {
+  val = Math.max(50, Math.min(300, Math.round(val)));
+  const range = $('scale-modal-range');
+  if (range) range.value = String(val);
+  const valEl = $('scale-modal-val');
+  if (valEl) valEl.textContent = val + '%';
+  const presets = $('scale-presets');
+  if (presets) presets.querySelectorAll('button').forEach(b => b.classList.toggle('active', Number(b.dataset.scale) === val));
+  applyScalePreview(val);
 }
 function applyScalePreview(val) {
   const s = val / 100;
-  const bi = $('sp-banner-img'); if (bi) bi.style.transform = val !== 100 ? 'scale(' + s + ')' : '';
-  const ic = $('sp-icon'); if (ic) ic.style.transform = val !== 100 ? 'scale(' + s + ')' : '';
+  // Only scale the element this dialog is for, so the preview matches exactly
+  // what will change on the server header.
+  const isIcon = scaleModalKind === 'icon';
+  const bi = $('sp-banner-img');
+  const ic = $('sp-icon');
+  if (bi) bi.style.transform = (!isIcon && val !== 100) ? 'scale(' + s + ')' : '';
+  if (ic) ic.style.transform = (isIcon && val !== 100) ? 'scale(' + s + ')' : '';
 }
 $('scale-modal-range').addEventListener('input', () => {
-  const v = Number($('scale-modal-range').value);
-  $('scale-modal-val').textContent = v + '%';
-  applyScalePreview(v);
+  setScaleModalValue(Number($('scale-modal-range').value));
 });
+$('scale-presets').querySelectorAll('button').forEach(b => b.addEventListener('click', () => setScaleModalValue(Number(b.dataset.scale))));
+$('scale-nudge-down').addEventListener('click', () => setScaleModalValue(Number($('scale-modal-range').value) - 5));
+$('scale-nudge-up').addEventListener('click', () => setScaleModalValue(Number($('scale-modal-range').value) + 5));
+$('scale-reset').addEventListener('click', () => setScaleModalValue(100));
 $('scale-modal-save').addEventListener('click', async () => {
   const v = Number($('scale-modal-range').value);
   const body = scaleModalKind === 'icon' ? { iconScale: v } : { bannerScale: v };

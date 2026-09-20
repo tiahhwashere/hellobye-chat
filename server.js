@@ -3262,11 +3262,11 @@ app.post('/api/servers/:id/settings', authMiddleware, (req, res) => {
   }
   if (iconScale !== undefined) {
     const v = Number(iconScale);
-    s.iconScale = (Number.isFinite(v) && v >= 100 && v <= 220) ? Math.round(v) : 100;
+    s.iconScale = (Number.isFinite(v) && v >= 50 && v <= 300) ? Math.round(v) : 100;
   }
   if (bannerScale !== undefined) {
     const v = Number(bannerScale);
-    s.bannerScale = (Number.isFinite(v) && v >= 100 && v <= 220) ? Math.round(v) : 100;
+    s.bannerScale = (Number.isFinite(v) && v >= 50 && v <= 300) ? Math.round(v) : 100;
   }
   if (chatBackground !== undefined) {
     // null / empty clears the background; otherwise store the uploaded URL.
@@ -3275,7 +3275,7 @@ app.post('/api/servers/:id/settings', authMiddleware, (req, res) => {
   }
   if (chatBackgroundScale !== undefined) {
     const v = Number(chatBackgroundScale);
-    s.chatBackgroundScale = (Number.isFinite(v) && v >= 100 && v <= 220) ? Math.round(v) : 100;
+    s.chatBackgroundScale = (Number.isFinite(v) && v >= 50 && v <= 300) ? Math.round(v) : 100;
   }
   if (chatBackgroundOpacity !== undefined) {
     const v = Number(chatBackgroundOpacity);
@@ -6315,7 +6315,21 @@ io.on('connection', (socket) => {
       const storedText = e2eEnv ? '' : textStr;
       // Text and media live in ONE message so the caption renders directly on
       // top of the attachment (no separate follow-up message).
-      const msgs = [Object.assign({}, base, { id: genId(), text: storedText, e2e: e2eEnv, e2eKeys: e2eKeysMap, file: file || null, files: Array.isArray(files) ? files.slice(0, 5) : null, reply: reply || null, spoiler: !!spoiler })];
+      // Sanitise each attachment to a known shape so clients can't smuggle
+      // arbitrary data through, while preserving the optional spoiler flag and
+      // cover image ("image on file") chosen in the send modal.
+      const cleanFiles = Array.isArray(files) ? files.slice(0, 5).map(f => {
+        if (!f || typeof f !== 'object' || !f.url) return null;
+        return {
+          url: String(f.url).slice(0, 2000),
+          name: f.name ? String(f.name).slice(0, 300) : null,
+          type: f.type ? String(f.type).slice(0, 120) : null,
+          size: Number(f.size) || 0,
+          spoiler: !!f.spoiler,
+          coverImage: f.coverImage ? String(f.coverImage).slice(0, 2000) : null,
+        };
+      }).filter(Boolean) : null;
+      const msgs = [Object.assign({}, base, { id: genId(), text: storedText, e2e: e2eEnv, e2eKeys: e2eKeysMap, file: file || null, files: cleanFiles, reply: reply || null, spoiler: !!spoiler })];
       const msg = msgs[0];
       msgs.forEach(m => s.messages[channelId].push(m));
       if (s.messages[channelId].length > 2000) s.messages[channelId] = s.messages[channelId].slice(-2000);
