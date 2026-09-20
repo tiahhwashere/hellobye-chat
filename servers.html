@@ -273,9 +273,15 @@ input, textarea { font-family: inherit; }
 }
 .server-user-footer .sf-avatar img { width: 100%; height: 100%; object-fit: cover; }
 .server-user-footer .sf-status {
-  position: absolute; bottom: 0; right: 0; width: 11px; height: 11px; border-radius: 50%;
+  position: absolute; bottom: -1px; right: -1px; width: 14px; height: 14px; border-radius: 50%;
   border: 2.5px solid var(--bg-darker); background: var(--offline); box-shadow: 0 0 0 1px rgba(0,0,0,0.35);
+  background-size: contain; background-repeat: no-repeat; background-position: center;
 }
+.server-user-footer .sf-status.online { background-image: url('online.png'); background-color: transparent; border-radius: 5px; }
+.server-user-footer .sf-status.idle { background-image: url('idle.png'); background-color: transparent; }
+.server-user-footer .sf-status.dnd { background-image: url('dnd.png'); background-color: transparent; }
+.server-user-footer .sf-status.streaming { background-image: url('streaming.png'); background-color: transparent; }
+.server-user-footer .sf-status.offline { background-image: url('offline.png'); background-color: transparent; }
 .server-user-footer .sf-info { flex: 1; min-width: 0; cursor: pointer; border-radius: 6px; padding: 3px 6px; margin: -3px -6px; transition: background var(--transition); }
 .server-user-footer .sf-info:hover { background: var(--bg-medium); }
 .server-user-footer .sf-name { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -297,6 +303,8 @@ input, textarea { font-family: inherit; }
 .server-chat-header .sch-actions { display: flex; gap: 4px; }
 .server-chat-header .sch-actions button { color: var(--text-muted); padding: 6px; border-radius: 6px; }
 .server-chat-header .sch-actions button:hover { color: var(--text-primary); background: var(--bg-light); }
+.server-chat-header .sch-actions button.on { color: var(--accent-light); background: rgba(var(--accent-rgb),0.14); }
+.desktop-only { display: inline-flex; }
 .server-chat-header .sch-actions svg { width: 18px; height: 18px; }
 
 .server-messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 2px; }
@@ -418,21 +426,41 @@ input, textarea { font-family: inherit; }
 .srv-attach-item .srv-attach-hint { font-size: 11px; color: var(--text-muted); font-weight: 400; margin-top: 1px; }
 
 /* ---- Upload progress bar (servers) ---- */
-.srv-upload-progress { display: flex; flex-direction: column; gap: 6px; padding: 0 16px 8px; }
-.srv-upload-row {
-  display: flex; align-items: center; gap: 10px;
+.srv-upload-progress { display: flex; flex-direction: column; gap: 6px; padding: 0 16px 8px; }.srv-upload-row {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
   background: var(--bg-light); border: 1px solid var(--border-light);
   border-radius: 8px; padding: 8px 10px; font-size: 12px;
 }
-.srv-upload-row .srv-up-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-secondary); }
+.srv-upload-row .srv-up-name { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-secondary); }
 .srv-upload-row .srv-up-pct { color: var(--text-muted); font-variant-numeric: tabular-nums; flex-shrink: 0; }
-.srv-upload-row .srv-up-bar { flex: 0 0 100%; height: 4px; border-radius: 3px; background: var(--bg-dark); overflow: hidden; margin-top: 6px; }
+.srv-upload-row .srv-up-bar { flex: 1 1 100%; height: 4px; border-radius: 3px; background: var(--bg-dark); overflow: hidden; margin-top: 2px; }
 .srv-upload-row .srv-up-bar > span { display: block; height: 100%; width: 0%; background: var(--accent); transition: width 0.15s; }
 .srv-upload-row.done .srv-up-bar > span { background: var(--online); }
 .srv-upload-row.error .srv-up-bar > span { background: var(--danger); }
 .srv-upload-row .srv-up-ic { flex-shrink: 0; color: var(--accent); display: flex; }
 .srv-upload-row.done .srv-up-ic { color: var(--online); }
 .srv-upload-row.error .srv-up-ic { color: var(--danger); }
+
+/* ---- Pending attachment previews (before sending) ---- */
+.pending-files { display: flex; gap: 10px; flex-wrap: wrap; padding: 10px 16px 4px; }
+.pending-files .pf-item {
+  position: relative; width: 96px; border-radius: 10px; overflow: hidden;
+  background: var(--bg-light); border: 1px solid var(--border-light);
+  animation: pfIn 0.2s ease;
+}
+@keyframes pfIn { from { opacity: 0; transform: scale(0.94); } to { opacity: 1; transform: scale(1); } }
+.pending-files .pf-thumb { width: 96px; height: 72px; display: flex; align-items: center; justify-content: center; background: var(--bg-darkest); overflow: hidden; }
+.pending-files .pf-thumb img, .pending-files .pf-thumb video { width: 100%; height: 100%; object-fit: cover; display: block; }
+.pending-files .pf-file-ic { color: var(--text-muted); }
+.pending-files .pf-file-ic .ui-ic { width: 26px; height: 26px; }
+.pending-files .pf-name { font-size: 10.5px; color: var(--text-secondary); padding: 4px 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pending-files .pf-remove {
+  position: absolute; top: 4px; right: 4px; width: 20px; height: 20px; border-radius: 50%;
+  background: rgba(0,0,0,0.65); color: #fff; font-size: 15px; line-height: 1;
+  display: flex; align-items: center; justify-content: center; cursor: pointer;
+  border: none; transition: background var(--transition);
+}
+.pending-files .pf-remove:hover { background: var(--danger); }
 
 /* ---- Media lightbox (click-to-zoom for images & GIFs) ---- */
 .msg-media[data-zoom] { cursor: zoom-in; }
@@ -531,13 +559,20 @@ input, textarea { font-family: inherit; }
 .server-input-area { position: relative; }
 
 /* ---------- Member sidebar ---------- */
-.member-sidebar { width: 240px; background: var(--bg-dark); border-left: 1px solid var(--border); flex-shrink: 0; overflow-y: auto; padding: 12px 8px; }
+.member-sidebar { width: 240px; background: var(--bg-dark); border-left: 1px solid var(--border); flex-shrink: 0; overflow-y: auto; padding: 12px 8px; transition: width 0.28s cubic-bezier(0.4,0,0.2,1), padding 0.28s cubic-bezier(0.4,0,0.2,1), opacity 0.22s ease, border-color 0.28s ease; }
+.member-sidebar.collapsed { width: 0; padding-left: 0; padding-right: 0; opacity: 0; border-left-color: transparent; overflow: hidden; pointer-events: none; }
+.member-sidebar .member-sidebar-head, .member-sidebar .member-list { min-width: 224px; }
 .member-section-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); padding: 8px 8px 4px; }
 .member-item { display: flex; align-items: center; gap: 10px; padding: 6px 8px; border-radius: var(--radius-sm); cursor: pointer; transition: background var(--transition); }
 .member-item:hover { background: var(--bg-medium); }
 .member-item .mi-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; overflow: hidden; position: relative; flex-shrink: 0; }
 .member-item .mi-avatar img { width: 100%; height: 100%; object-fit: cover; }
-.member-item .mi-status { position: absolute; bottom: 0; right: 0; width: 12px; height: 12px; border-radius: 50%; border: 2.5px solid var(--bg-dark); box-shadow: 0 0 0 1px rgba(0,0,0,0.35); }
+.member-item .mi-status { position: absolute; bottom: -1px; right: -1px; width: 14px; height: 14px; border-radius: 50%; border: 2.5px solid var(--bg-dark); box-shadow: 0 0 0 1px rgba(0,0,0,0.35); background-size: contain; background-repeat: no-repeat; background-position: center; }
+.member-item .mi-status.online { background-image: url('online.png'); border-radius: 5px; }
+.member-item .mi-status.idle { background-image: url('idle.png'); }
+.member-item .mi-status.dnd { background-image: url('dnd.png'); }
+.member-item .mi-status.streaming { background-image: url('streaming.png'); }
+.member-item .mi-status.offline { background-image: url('offline.png'); }
 .member-item .mi-info { flex: 1; min-width: 0; }
 .member-item .mi-name { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .member-item .mi-roles { display: flex; gap: 3px; margin-top: 1px; flex-wrap: wrap; }
@@ -666,6 +701,10 @@ input, textarea { font-family: inherit; }
 }
 .invite-expiry-grid button:hover { background: var(--bg-light); color: var(--text-primary); }
 .invite-expiry-grid button.selected { border-color: var(--accent); color: var(--accent-light); background: rgba(var(--accent-rgb),0.1); }
+.ci-status { padding: 0 12px; font-size: 12px; font-weight: 700; white-space: nowrap; }
+.ci-status.ok { color: #3ba55d; }
+.ci-status.bad { color: #e35d5d; }
+.ci-status.checking { color: var(--text-muted); }
 
 /* Invite embed card (in chat) */
 .invite-embed {
@@ -779,35 +818,32 @@ input, textarea { font-family: inherit; }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes popIn { from { opacity: 0; transform: translateY(-8px) scale(0.98); } to { opacity: 1; transform: none; } }
 .toast {
-  position: relative; display: flex; align-items: flex-start; gap: 11px;
-  background: linear-gradient(180deg, var(--bg-light), var(--bg-medium));
-  border: 1px solid var(--border-light); border-radius: 12px;
-  padding: 13px 16px 13px 14px; font-size: 13.5px; box-shadow: 0 10px 34px rgba(0,0,0,0.45);
-  animation: toastIn 0.32s cubic-bezier(0.16,1,0.3,1); max-width: min(420px, 92vw);
+  position: relative; display: flex; align-items: flex-start; gap: 12px;
+  background: linear-gradient(180deg, #23262d, #1b1e24);
+  border: 1px solid rgba(255,255,255,0.08); border-radius: 14px;
+  padding: 14px 16px 15px 18px; font-size: 13.5px;
+  box-shadow: 0 16px 44px rgba(0,0,0,0.55), 0 2px 8px rgba(0,0,0,0.35);
+  animation: toastIn 0.34s cubic-bezier(0.16,1,0.3,1); max-width: min(430px, 92vw);
   pointer-events: auto; overflow: hidden;
 }
-.toast.toast-out { animation: toastOut 0.28s ease forwards; }
+.toast::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--accent); }
+.toast.toast-out { animation: toastOut 0.26s ease forwards; }
 @keyframes toastOut { to { opacity: 0; transform: translateY(-10px) scale(0.97); } }
-.toast .toast-ic { width: 30px; height: 30px; border-radius: 9px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: rgba(var(--accent-rgb),0.16); color: var(--accent-light); }
-.toast .toast-ic .ui-ic { width: 17px; height: 17px; }
-.toast .toast-content { flex: 1; min-width: 0; }
-.toast .toast-title { font-weight: 800; font-size: 13px; margin-bottom: 1px; }
-.toast .toast-msg { color: var(--text-secondary); line-height: 1.45; word-break: break-word; }
-.toast .toast-close { flex-shrink: 0; color: var(--text-muted); padding: 2px; border-radius: 6px; line-height: 0; }
-.toast .toast-close:hover { color: var(--text-primary); background: var(--bg-hover); }
-.toast .toast-close svg { width: 15px; height: 15px; }
-.toast .toast-bar { position: absolute; left: 0; bottom: 0; height: 3px; width: 100%; background: var(--accent); transform-origin: left; animation: toastBar linear forwards; }
+.toast .toast-content { flex: 1; min-width: 0; padding-top: 1px; }
+.toast .toast-title { font-weight: 700; font-size: 13.5px; letter-spacing: 0.1px; margin-bottom: 2px; color: var(--text-primary); }
+.toast .toast-msg { color: var(--text-secondary); line-height: 1.5; word-break: break-word; font-size: 13px; }
+.toast .toast-close { flex-shrink: 0; color: var(--text-muted); padding: 3px; border-radius: 7px; line-height: 0; transition: background var(--transition), color var(--transition); }
+.toast .toast-close:hover { color: var(--text-primary); background: rgba(255,255,255,0.08); }
+.toast .toast-close svg { width: 14px; height: 14px; }
+.toast .toast-bar { position: absolute; left: 0; bottom: 0; height: 2px; width: 100%; background: var(--accent); transform-origin: left; animation: toastBar linear forwards; opacity: 0.85; }
 @keyframes toastBar { from { transform: scaleX(1); } to { transform: scaleX(0); } }
-.toast.success { border-color: rgba(47,164,87,0.6); }
-.toast.success .toast-ic { background: rgba(47,164,87,0.18); color: #4fd07f; }
-.toast.success .toast-bar { background: #2fa457; }
-.toast.error { border-color: rgba(227,93,93,0.6); }
-.toast.error .toast-ic { background: rgba(227,93,93,0.18); color: #ff8a8a; }
+.toast.success::before { background: #3ba55d; }
+.toast.success .toast-bar { background: #3ba55d; }
+.toast.error::before { background: #e35d5d; }
 .toast.error .toast-bar { background: #e35d5d; }
-.toast.info .toast-ic { background: rgba(74,158,255,0.18); color: #6fb5ff; }
+.toast.info::before { background: #4a9eff; }
 .toast.info .toast-bar { background: #4a9eff; }
-.toast.warn { border-color: rgba(240,169,46,0.6); }
-.toast.warn .toast-ic { background: rgba(240,169,46,0.18); color: #ffc266; }
+.toast.warn::before { background: #f0a92e; }
 .toast.warn .toast-bar { background: #f0a92e; }
 @keyframes toastIn { from { opacity: 0; transform: translateY(-14px) scale(0.96); } to { opacity: 1; transform: translateY(0) scale(1); } }
 
@@ -823,7 +859,11 @@ input, textarea { font-family: inherit; }
 .member-profile-banner {
   height: 360px; background: var(--bg-medium);
   background-size: cover; background-position: center;
-  position: relative;
+  position: relative; overflow: hidden;
+}
+.member-profile-banner-img {
+  position: absolute; inset: 0; background-size: cover; background-position: center;
+  transform-origin: center center; transition: transform 0.15s ease;
 }
 .member-profile-banner img { width: 100%; height: 100%; object-fit: cover; }
 .member-profile-banner-placeholder {
@@ -838,13 +878,14 @@ input, textarea { font-family: inherit; }
   margin: -84px 0 0; position: relative; z-index: 1;
   border: none; box-shadow: none;
 }
-.member-profile-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.member-profile-avatar img { width: 100%; height: 100%; object-fit: cover; transform-origin: center center; transition: transform 0.15s ease; }
+.member-profile-avatar .mpa-initials { transform-origin: center center; transition: transform 0.15s ease; }
 .member-profile-info { padding: 14px 0 20px; text-align: left; flex: 1 1 auto; min-width: 0; overflow: visible; }
 .member-profile-name { font-size: 19px; font-weight: 700; color: #ffffff; margin-bottom: 3px; word-break: break-word; overflow-wrap: break-word; }
 .member-profile-handle { font-size: 17px; color: #ffffff; font-weight: 700; margin-bottom: 4px; word-break: break-word; overflow-wrap: break-word; }
 .member-profile-id { font-size: 11px; color: #ffffff; font-weight: 700; font-family: 'gg sans Mono', monospace; margin-bottom: 10px; display: flex; align-items: center; justify-content: flex-start; gap: 6px; position: relative; }
-.member-profile-status { font-size: 12px; color: var(--text-secondary); display: flex; align-items: center; justify-content: flex-start; gap: 6px; margin-bottom: 14px; }
-.member-profile-status .status-dot { position: static; border: none; width: 16px; height: 16px; }
+.member-profile-status { font-size: 12.5px; color: var(--text-secondary); display: flex; align-items: center; justify-content: flex-start; gap: 7px; margin-bottom: 14px; }
+.member-profile-status .status-dot { position: static; border: none; width: 15px; height: 15px; flex-shrink: 0; }
 .member-profile-extra { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 16px; margin-bottom: 16px; text-align: left; }
 .member-profile-extra .mp-extra-field { display: flex; flex-direction: column; gap: 2px; }
 .member-profile-extra .mp-extra-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.4px; color: #ffffff; font-weight: 700; }
@@ -863,12 +904,12 @@ input, textarea { font-family: inherit; }
   z-index: 2; border: none; cursor: pointer; line-height: 1;
 }
 .modal-close-corner:hover { background: rgba(0,0,0,0.6); }
-.status-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--offline); display: inline-block; flex-shrink: 0; }
-.status-dot.online { background: var(--online); }
-.status-dot.idle { background: var(--idle); }
-.status-dot.dnd { background: var(--dnd); }
-.status-dot.streaming { background: #9146ff; }
-.status-dot.offline { background: var(--offline); }
+.status-dot { width: 14px; height: 14px; border-radius: 50%; background: var(--offline); display: inline-block; flex-shrink: 0; background-size: contain; background-repeat: no-repeat; background-position: center; }
+.status-dot.online { background-image: url('online.png'); background-color: transparent; border-radius: 4px; }
+.status-dot.idle { background-image: url('idle.png'); background-color: transparent; }
+.status-dot.dnd { background-image: url('dnd.png'); background-color: transparent; }
+.status-dot.streaming { background-image: url('streaming.png'); background-color: transparent; }
+.status-dot.offline { background-image: url('offline.png'); background-color: transparent; }
 .member-profile-extra { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 20px; margin-bottom: 16px; }
 .member-profile-extra .mp-extra-field { display: flex; flex-direction: column; gap: 3px; }
 .member-profile-extra .mp-extra-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); font-weight: 800; }
@@ -891,6 +932,7 @@ input, textarea { font-family: inherit; }
 @media (max-width: 900px) {
   .member-sidebar { display: none; }
   .member-sidebar.mobile-show { display: block; position: fixed; right: 0; top: 0; bottom: 0; z-index: 500; width: 260px; }
+  .desktop-only { display: none; }
   .channel-sidebar { width: 200px; }
   .settings-grid { grid-template-columns: 1fr; }
 }
@@ -990,16 +1032,17 @@ input, textarea { font-family: inherit; }
 
 /* ---- Server header: banner fills the whole box, name overlaid on it ---- */
 .server-header {
-  height: 220px; min-height: 220px; flex-wrap: nowrap; padding: 14px 14px 0;
+  height: 300px; min-height: 300px; flex-wrap: nowrap; padding: 14px 14px 0;
   position: relative; overflow: hidden; align-items: flex-start;
   margin: 0; border-radius: 0;
   background-size: cover; background-position: center top; background-repeat: no-repeat;
 }
 .server-header::after {
   content: ''; position: absolute; inset: 0; z-index: 0;
-  background: linear-gradient(180deg, rgba(0,0,0,0.66) 0%, rgba(0,0,0,0.28) 42%, rgba(0,0,0,0.12) 100%);
+  background: linear-gradient(180deg, rgba(0,0,0,0.42) 0%, rgba(0,0,0,0.06) 34%, rgba(0,0,0,0) 60%);
   pointer-events: none;
 }
+.server-header:not(.has-banner)::after { background: none; }
 .server-header-banner {
   display: block; position: absolute; inset: 0; z-index: 0;
   background-size: cover; background-position: center top; background-repeat: no-repeat;
@@ -1072,6 +1115,28 @@ input, textarea { font-family: inherit; }
 .server-accent-swatch { width: 30px; height: 30px; border-radius: 8px; cursor: pointer; border: 2px solid transparent; transition: transform var(--transition), border-color var(--transition); }
 .server-accent-swatch:hover { transform: scale(1.08); }
 .server-accent-swatch.selected { border-color: #fff; box-shadow: 0 0 0 2px rgba(255,255,255,0.25); }
+
+/* ---- Create a Server: richer setup ---- */
+.create-hero { display: flex; align-items: center; gap: 14px; padding: 14px; border-radius: 12px; background: linear-gradient(135deg, rgba(var(--accent-rgb),0.14), rgba(var(--accent-rgb),0.04)); border: 1px solid rgba(var(--accent-rgb),0.22); margin-bottom: 18px; }
+.create-hero-icon { width: 52px; height: 52px; border-radius: 14px; background: linear-gradient(135deg,#6366f1,#4f46e5); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 20px; color: #fff; flex-shrink: 0; overflow: hidden; }
+.create-hero-icon img { width: 100%; height: 100%; object-fit: cover; }
+.create-hero-title { font-weight: 700; font-size: 14px; margin-bottom: 2px; }
+.create-hero-sub { font-size: 12px; color: var(--text-secondary); line-height: 1.45; }
+.field .req { color: var(--danger); }
+.create-type-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 4px; }
+.create-type-grid button { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 6px; border-radius: 10px; background: var(--bg-dark); border: 1px solid var(--border); color: var(--text-secondary); font-size: 11.5px; font-weight: 600; cursor: pointer; transition: background var(--transition), border-color var(--transition), color var(--transition); }
+.create-type-grid button:hover { background: var(--bg-light); color: var(--text-primary); }
+.create-type-grid button.selected { border-color: var(--accent); color: var(--accent-light); background: rgba(var(--accent-rgb),0.12); }
+.create-type-grid .ctg-emoji { font-size: 18px; line-height: 1; }
+.create-toggle { display: flex; align-items: flex-start; gap: 12px; padding: 12px 14px; border-radius: 10px; background: var(--bg-dark); border: 1px solid var(--border); cursor: pointer; margin-top: 4px; }
+.create-toggle input { display: none; }
+.create-toggle .ctg-switch { width: 38px; height: 22px; border-radius: 12px; background: var(--bg-lightest); position: relative; flex-shrink: 0; transition: background var(--transition); margin-top: 1px; }
+.create-toggle .ctg-switch::after { content: ''; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: #fff; transition: transform var(--transition); }
+.create-toggle input:checked + .ctg-switch { background: var(--accent); }
+.create-toggle input:checked + .ctg-switch::after { transform: translateX(16px); }
+.create-toggle .ctg-toggle-text { display: flex; flex-direction: column; gap: 2px; font-size: 13px; }
+.create-toggle .ctg-toggle-text b { font-weight: 700; }
+.create-toggle .ctg-toggle-text span { font-size: 11.5px; color: var(--text-muted); line-height: 1.4; }
 /* Live appearance preview */
 .server-appearance-preview { border: 1px solid var(--border-light); border-radius: 10px; overflow: hidden; margin: 4px 0 14px; background: var(--bg-darkest); }
 .server-appearance-preview .sap-bar { display: flex; gap: 5px; padding: 8px 10px; background: var(--bg-medium); }
@@ -1329,6 +1394,21 @@ input, textarea { font-family: inherit; }
 .join-preview .jp-stats .ui-ic { width: 12px; height: 12px; }
 .join-preview .jp-bio { font-size: 12.5px; color: var(--text-secondary); margin-top: 6px; line-height: 1.45; }
 .join-preview .jp-exp { font-size: 11.5px; color: var(--text-muted); margin-top: 6px; }
+.join-hero { background: linear-gradient(135deg, rgba(99,102,241,0.16), rgba(99,102,241,0.04)); border-color: rgba(99,102,241,0.24); }
+.join-hero-icon { background: linear-gradient(135deg,#6366f1,#4f46e5); }
+.join-hero-icon svg { width: 26px; height: 26px; }
+.join-input-wrap { display: flex; align-items: center; background: var(--bg-dark); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; transition: border-color var(--transition); }
+.join-input-wrap:focus-within { border-color: var(--accent); }
+.join-input-prefix { padding: 0 4px 0 12px; color: var(--text-muted); font-weight: 700; font-size: 15px; }
+.join-input-wrap input { border: none !important; background: transparent !important; flex: 1; padding-left: 2px !important; }
+.join-divider { display: flex; align-items: center; gap: 12px; margin: 16px 0; color: var(--text-muted); font-size: 12px; }
+.join-divider::before, .join-divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+.join-tips { display: flex; flex-direction: column; gap: 8px; margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--border); }
+.join-tip { display: flex; gap: 10px; align-items: flex-start; }
+.join-tip .jt-ic { font-size: 15px; line-height: 1.3; flex-shrink: 0; }
+.join-tip b { display: block; font-size: 12.5px; font-weight: 700; }
+.join-tip span { font-size: 11.5px; color: var(--text-muted); line-height: 1.45; }
+.join-tip code { background: var(--bg-dark); padding: 1px 5px; border-radius: 4px; font-size: 11px; color: var(--text-secondary); }
 .discover-item .di-icon { width: 44px; height: 44px; border-radius: 12px; background: linear-gradient(135deg,#6366f1,#4f46e5); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 16px; overflow: hidden; flex-shrink: 0; }
 .discover-item .di-icon img { width: 100%; height: 100%; object-fit: cover; }
 .discover-item .di-info { flex: 1; min-width: 0; }
@@ -1350,7 +1430,12 @@ input, textarea { font-family: inherit; }
 .status-menu .sm-head { padding: 8px 10px 6px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); }
 .status-menu button { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; padding: 9px 10px; border-radius: 8px; font-size: 13.5px; color: var(--text-secondary); }
 .status-menu button:hover { background: var(--bg-medium); color: var(--text-primary); }
-.status-menu .sm-dot { width: 11px; height: 11px; border-radius: 50%; flex-shrink: 0; }
+.status-menu .sm-dot { width: 16px; height: 16px; border-radius: 50%; flex-shrink: 0; background-size: contain; background-repeat: no-repeat; background-position: center; }
+.status-menu .sm-dot.online { background-image: url('online.png'); border-radius: 5px; }
+.status-menu .sm-dot.idle { background-image: url('idle.png'); }
+.status-menu .sm-dot.dnd { background-image: url('dnd.png'); }
+.status-menu .sm-dot.streaming { background-image: url('streaming.png'); }
+.status-menu .sm-dot.offline { background-image: url('offline.png'); }
 .status-menu .sm-check { margin-left: auto; color: var(--accent-light); display: inline-flex; }
 
 /* ---- Channel right-click context menu ---- */
@@ -1440,6 +1525,9 @@ input, textarea { font-family: inherit; }
           <span class="sch-topic" id="sch-topic"></span>
           <span class="sch-spacer"></span>
           <div class="sch-actions">
+            <button id="sch-members-toggle" title="Show/hide members" class="desktop-only">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            </button>
             <button id="sch-search-btn" title="Search messages">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
             </button>
@@ -1520,8 +1608,30 @@ input, textarea { font-family: inherit; }
   <div class="modal">
     <div class="modal-header"><div class="modal-title">Create a Server</div><button class="modal-close" data-close="create-modal">&times;</button></div>
     <div class="modal-body">
-      <div class="field"><label>Server name</label><input type="text" id="create-name" placeholder="My awesome server" maxlength="40"></div>
-      <div class="field"><label>About (optional)</label><textarea id="create-bio" placeholder="What is your server about?" maxlength="500"></textarea></div>
+      <div class="create-hero">
+        <div class="create-hero-icon" id="create-icon-preview">S</div>
+        <div class="create-hero-text">
+          <div class="create-hero-title">Your server is a home for your community</div>
+          <div class="create-hero-sub">Give it a name, a look, and a purpose. You can change everything later.</div>
+        </div>
+      </div>
+      <div class="field"><label>Server name <span class="req">*</span></label><input type="text" id="create-name" placeholder="My awesome server" maxlength="40"><div class="hint">Up to 40 characters. This is how members will find you.</div></div>
+      <div class="field"><label>About (optional)</label><textarea id="create-bio" placeholder="What is your server about? Who is it for?" maxlength="500"></textarea><div class="hint"><span id="create-bio-count">0</span>/500</div></div>
+      <div class="field"><label>Server type</label>
+        <div class="create-type-grid" id="create-type-grid">
+          <button type="button" data-type="community" class="selected"><span class="ctg-emoji">🌍</span><span class="ctg-label">Community</span></button>
+          <button type="button" data-type="friends"><span class="ctg-emoji">👋</span><span class="ctg-label">Friends</span></button>
+          <button type="button" data-type="gaming"><span class="ctg-emoji">🎮</span><span class="ctg-label">Gaming</span></button>
+          <button type="button" data-type="study"><span class="ctg-emoji">📚</span><span class="ctg-label">Study</span></button>
+          <button type="button" data-type="club"><span class="ctg-emoji">🎨</span><span class="ctg-label">Club</span></button>
+          <button type="button" data-type="other"><span class="ctg-emoji">✨</span><span class="ctg-label">Other</span></button>
+        </div>
+      </div>
+      <div class="field"><label>Accent color</label>
+        <div class="server-accent-swatches" id="create-accent-swatches"></div>
+        <div class="hint">This tints your server's buttons and highlights.</div>
+      </div>
+      <label class="create-toggle"><input type="checkbox" id="create-public" checked><span class="ctg-switch"></span><span class="ctg-toggle-text"><b>List in Discovery</b><span>Let anyone find and join your server from the Discovery page.</span></span></label>
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" data-close="create-modal">Cancel</button>
@@ -1535,18 +1645,35 @@ input, textarea { font-family: inherit; }
   <div class="modal">
     <div class="modal-header"><div class="modal-title">Join a Server</div><button class="modal-close" data-close="join-modal">&times;</button></div>
     <div class="modal-body">
+      <div class="create-hero join-hero">
+        <div class="create-hero-icon join-hero-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+        </div>
+        <div class="create-hero-text">
+          <div class="create-hero-title">Join an existing community</div>
+          <div class="create-hero-sub">Paste an invite link or code below and we'll show you a preview before you join.</div>
+        </div>
+      </div>
       <div class="field">
-        <label>Invite link or code</label>
-        <input type="text" id="join-code" placeholder="Paste an invite link or code">
-        <div class="hint">Ask a server member for their invite link.</div>
+        <label>Invite link or code <span class="req">*</span></label>
+        <div class="join-input-wrap">
+          <span class="join-input-prefix">/</span>
+          <input type="text" id="join-code" placeholder="test, hello, or a full invite link" autocomplete="off" spellcheck="false">
+        </div>
+        <div class="hint">Ask a server member for their invite link, or browse public servers in Discovery.</div>
       </div>
       <div id="join-preview" class="join-preview" style="display:none;"></div>
       <button class="btn btn-primary" id="join-confirm" style="width:100%;">Join Server</button>
-      <div style="text-align:center;color:var(--text-muted);font-size:12px;margin:16px 0;">— or —</div>
+      <div class="join-divider"><span>or</span></div>
       <button class="btn btn-ghost" id="join-open-discover" style="width:100%;display:inline-flex;align-items:center;justify-content:center;gap:8px;">
         <svg class="ui-ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
-        Discovery
+        Browse Discovery
       </button>
+      <div class="join-tips">
+        <div class="join-tip"><span class="jt-ic">🔗</span><div><b>Invite links</b><span>Look like <code>hellobye-chat.onrender.com/invite/test</code> or a short code.</span></div></div>
+        <div class="join-tip"><span class="jt-ic">🔒</span><div><b>Private servers</b><span>Only joinable with a valid invite from a member.</span></div></div>
+        <div class="join-tip"><span class="jt-ic">🌐</span><div><b>Public servers</b><span>Discoverable by anyone from the Discovery page.</span></div></div>
+      </div>
     </div>
   </div>
 </div>
@@ -1704,6 +1831,15 @@ input, textarea { font-family: inherit; }
 
       <div style="border-top:1px solid var(--border);margin:20px 0;"></div>
       <div style="font-weight:700;font-size:15px;margin-bottom:12px;">Invites</div>
+      <div class="field" style="margin-bottom:14px;">
+        <label>Custom invite link (optional)</label>
+        <div class="join-input-wrap">
+          <span class="join-input-prefix">/</span>
+          <input type="text" id="custom-invite-input" placeholder="test, hello, my-server" maxlength="10" autocomplete="off" spellcheck="false">
+          <span class="ci-status" id="custom-invite-status"></span>
+        </div>
+        <div class="hint">4–10 characters. Letters, numbers, hyphens and underscores. Leave blank for a random link.</div>
+      </div>
       <div class="invite-expiry-grid" id="invite-expiry-grid">
         <button data-mins="30">30 minutes</button>
         <button data-mins="60">1 hour</button>
@@ -2107,12 +2243,10 @@ function toast(msg, type) {
   if (!c) return;
   const el = document.createElement('div');
   el.className = 'toast ' + (type || 'info');
-  const icons = { success: 'check', error: 'alert', warn: 'alert', info: 'bell' };
   const titles = { success: 'Success', error: 'Something went wrong', warn: 'Heads up', info: 'Notice' };
   const t = type || 'info';
   const dur = t === 'error' ? 5200 : 3600;
   el.innerHTML =
-    '<span class="toast-ic">' + icon(icons[t] || 'bell', 'sm') + '</span>' +
     '<div class="toast-content"><div class="toast-title">' + (titles[t] || 'Notice') + '</div><div class="toast-msg">' + escapeHtml(msg) + '</div></div>' +
     '<button class="toast-close" aria-label="Dismiss">' + icon('x', 'sm') + '</button>' +
     '<span class="toast-bar" style="animation-duration:' + dur + 'ms;"></span>';
@@ -2131,9 +2265,7 @@ function showPingToast(data) {
   const isMention = data.type === 'mention';
   const tag = isMention ? ('@' + escapeHtml(currentUser.username)) : (data.type === 'here' ? '@here' : '@everyone');
   const accent = isMention ? '#8ab4ff' : '#ff8a8a';
-  const accentBg = isMention ? 'rgba(138,180,255,0.18)' : 'rgba(227,93,93,0.18)';
   el.innerHTML =
-    '<span class="toast-ic" style="background:' + accentBg + ';color:' + accent + ';">' + icon('at', 'sm') + '</span>' +
     '<div class="toast-content"><div class="toast-title" style="color:' + accent + ';">' + who + ' ' + (isMention ? 'mentioned you' : 'pinged <b>' + tag + '</b>') + '</div>' +
     '<div class="toast-msg">in #' + where + (data.text ? ' \u2014 ' + escapeHtml(data.text) : '') + '</div></div>' +
     '<button class="toast-close" aria-label="Dismiss">' + icon('x', 'sm') + '</button>' +
@@ -2657,7 +2789,6 @@ function moveServerBy(id, dir) {
 }
 function persistServerOrder() {
   api('/api/servers/reorder', { method: 'POST', body: { order: servers.map(s => s.id) } })
-    .then(() => toast('Server order saved', 'success'))
     .catch(() => toast('Could not save server order', 'error'));
 }
 function showRailMenu(anchor, s) {
@@ -2715,7 +2846,7 @@ function renderSelfFooter() {
   // never a hardcoded "Online".
   const st = currentUser.status || 'online';
   const dot = $('sf-status-dot');
-  if (dot) dot.style.background = statusColorFor(st);
+  if (dot) { dot.className = 'sf-status ' + (['online','idle','dnd','streaming','offline'].includes(st) ? st : 'offline'); }
   const sub = $('sf-sub');
   let label = getStatusText(st);
   if (st !== 'offline' && currentUser.statusMessage) label = currentUser.statusMessage;
@@ -2741,7 +2872,7 @@ function openStatusMenu() {
   menu.className = 'status-menu';
   menu.id = 'status-menu';
   menu.innerHTML = '<div class="sm-head">Set Status</div>' + options.map(o =>
-    '<button data-status="' + o.s + '"><span class="sm-dot" style="background:' + statusColorFor(o.s) + ';"></span>' + o.label +
+    '<button data-status="' + o.s + '"><span class="sm-dot ' + o.s + '"></span>' + o.label +
     (currentUser.status === o.s ? '<span class="sm-check">' + icon('check', 'sm') + '</span>' : '') + '</button>'
   ).join('');
   document.body.appendChild(menu);
@@ -2960,7 +3091,6 @@ function moveChannelBy(id, dir) {
 }
 function persistChannelOrder() {
   api('/api/servers/' + activeServerId + '/channels/reorder', { method: 'POST', body: { order: (activeServer.channels || []).map(c => c.id) } })
-    .then(() => toast('Channel order saved', 'success'))
     .catch(() => toast('Could not save channel order', 'error'));
 }
 // Right-click context menu for a channel (owners / managers only).
@@ -3089,10 +3219,10 @@ function memberRowHtml(m) {
   const topRole = roles.sort((a,b) => (a.order||0)-(b.order||0))[0];
   const nameColor = topRole ? topRole.color : 'var(--text-primary)';
   const av = m.avatar ? '<img src="' + escapeAttr(m.avatar) + '">' : getInitials(m.nickname || m.displayName || m.username);
-  const statusColor = m.status === 'online' ? 'var(--online)' : m.status === 'idle' ? 'var(--idle)' : m.status === 'dnd' ? 'var(--dnd)' : 'var(--offline)';
+  const statusCls = ['online','idle','dnd','streaming','offline'].includes(m.status) ? m.status : 'offline';
   const roleChips = roles.slice(0, 3).map(r => '<span class="mi-role" style="background:' + escapeAttr(r.color) + '22;color:' + escapeAttr(r.color) + ';">' + escapeHtml(r.name) + '</span>').join('');
   return '<div class="member-item' + (m.status === 'offline' ? ' offline' : '') + '" data-member="' + escapeAttr(m.username) + '">' +
-    '<div class="mi-avatar">' + av + '<span class="mi-status" style="background:' + statusColor + ';"></span></div>' +
+    '<div class="mi-avatar">' + av + '<span class="mi-status ' + statusCls + '"></span></div>' +
     '<div class="mi-info"><div class="mi-name" style="color:' + nameColor + ';">' + escapeHtml(m.nickname || m.displayName || m.username) + '</div>' +
     (roleChips ? '<div class="mi-roles">' + roleChips + '</div>' : '') + '</div></div>';
 }
@@ -3758,8 +3888,23 @@ async function sendMessage() {
 function renderPendingFiles() {
   let el = $('pending-files');
   if (!pendingFiles.length) { if (el) el.remove(); return; }
-  if (!el) { el = document.createElement('div'); el.id = 'pending-files'; el.style.cssText = 'display:flex;gap:6px;flex-wrap:wrap;padding:0 16px 8px;'; $('server-input-area').insertBefore(el, $('server-input-area').firstChild); }
-  el.innerHTML = pendingFiles.map((f, i) => '<span style="background:var(--bg-light);border-radius:6px;padding:4px 8px;font-size:12px;display:inline-flex;align-items:center;gap:5px;">' + icon('paperclip', 'sm') + escapeHtml(f.name) + ' <span data-rm="' + i + '" style="cursor:pointer;color:var(--danger);">&times;</span></span>').join('');
+  if (!el) { el = document.createElement('div'); el.id = 'pending-files'; el.className = 'pending-files'; $('server-input-area').insertBefore(el, $('server-input-area').firstChild); }
+  el.innerHTML = pendingFiles.map((f, i) => {
+    const url = escapeAttr(f.url || '');
+    const type = String(f.type || '');
+    const name = escapeHtml(f.name || 'file');
+    const isImg = type.startsWith('image') || /\.(png|jpe?g|webp|avif|gif)$/i.test(f.url || '');
+    const isVid = type.startsWith('video') || /\.(mp4|webm|mov)$/i.test(f.url || '');
+    let thumb;
+    if (isImg) thumb = '<img src="' + url + '" alt="">';
+    else if (isVid) thumb = '<video src="' + url + '" muted preload="metadata"></video>';
+    else thumb = '<span class="pf-file-ic">' + icon('paperclip', 'sm') + '</span>';
+    return '<div class="pf-item" title="' + name + '">' +
+      '<div class="pf-thumb">' + thumb + '</div>' +
+      '<button class="pf-remove" data-rm="' + i + '" aria-label="Remove">&times;</button>' +
+      '<div class="pf-name">' + name + '</div>' +
+    '</div>';
+  }).join('');
   el.querySelectorAll('[data-rm]').forEach(x => x.addEventListener('click', () => { pendingFiles.splice(Number(x.dataset.rm), 1); renderPendingFiles(); updateSendBtn(); }));
 }
 // Max size for a single server attachment: 150 MB.
@@ -3979,14 +4124,53 @@ function closeModal(id) {
 /* ============================================================
    Create / Join
    ============================================================ */
-$('rail-add').addEventListener('click', () => { $('create-name').value = ''; $('create-bio').value = ''; openModal('create-modal'); setTimeout(()=>$('create-name').focus(),50); });
-$('empty-create').addEventListener('click', () => { $('create-name').value = ''; $('create-bio').value = ''; openModal('create-modal'); });
+$('rail-add').addEventListener('click', () => { resetCreateModal(); openModal('create-modal'); setTimeout(()=>$('create-name').focus(),50); });
+$('empty-create').addEventListener('click', () => { resetCreateModal(); openModal('create-modal'); });
+let createType = 'community';
+let createAccent = '#5865f2';
+function resetCreateModal() {
+  $('create-name').value = ''; $('create-bio').value = '';
+  $('create-bio-count').textContent = '0';
+  createType = 'community'; createAccent = '#5865f2';
+  $('create-public').checked = true;
+  const grid = $('create-type-grid');
+  if (grid) grid.querySelectorAll('button').forEach(b => b.classList.toggle('selected', b.dataset.type === 'community'));
+  renderCreateAccentSwatches();
+  updateCreateIconPreview();
+}
+function updateCreateIconPreview() {
+  const el = $('create-icon-preview');
+  if (!el) return;
+  const name = $('create-name').value.trim();
+  el.textContent = name ? getInitials(name) : 'S';
+  el.style.background = 'linear-gradient(135deg,' + createAccent + ',' + shadeColor(createAccent, -18) + ')';
+}
+function renderCreateAccentSwatches() {
+  const wrap = $('create-accent-swatches');
+  if (!wrap) return;
+  wrap.innerHTML = SERVER_ACCENTS.map(c =>
+    '<div class="server-accent-swatch' + (c.toLowerCase() === createAccent.toLowerCase() ? ' selected' : '') + '" data-color="' + c + '" style="background:' + c + ';" title="' + c + '"></div>'
+  ).join('');
+  wrap.querySelectorAll('.server-accent-swatch').forEach(sw => sw.addEventListener('click', () => {
+    createAccent = sw.dataset.color;
+    wrap.querySelectorAll('.server-accent-swatch').forEach(x => x.classList.remove('selected'));
+    sw.classList.add('selected');
+    updateCreateIconPreview();
+  }));
+}
+$('create-name').addEventListener('input', updateCreateIconPreview);
+$('create-bio').addEventListener('input', () => { $('create-bio-count').textContent = $('create-bio').value.length; });
+$('create-type-grid').querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
+  createType = b.dataset.type;
+  $('create-type-grid').querySelectorAll('button').forEach(x => x.classList.remove('selected'));
+  b.classList.add('selected');
+}));
 $('create-confirm').addEventListener('click', async () => {
   const name = $('create-name').value.trim();
   if (!name) { toast('Please enter a server name', 'error'); return; }
   $('create-confirm').disabled = true;
   try {
-    const d = await api('/api/servers/create', { method: 'POST', body: { name, bio: $('create-bio').value.trim() } });
+    const d = await api('/api/servers/create', { method: 'POST', body: { name, bio: $('create-bio').value.trim(), accentColor: createAccent, serverType: createType, isPublic: $('create-public').checked } });
     closeModal('create-modal');
     servers.push(d.server);
     renderRail();
@@ -4004,6 +4188,8 @@ function extractInviteCode(raw) {
   let code = String(raw || '').trim();
   const m = code.match(/[?&]invite=([^&\s]+)/) || code.match(/\/invite\/([A-Za-z0-9_-]+)/);
   if (m) code = m[1];
+  // Allow users to type a leading slash (e.g. "/test") — strip it.
+  code = code.replace(/^\/+/, '');
   return code;
 }
 async function previewJoinCode(raw) {
@@ -4031,11 +4217,8 @@ $('join-code').addEventListener('input', () => {
   joinPreviewTimer = setTimeout(() => previewJoinCode($('join-code').value), 350);
 });
 $('join-confirm').addEventListener('click', async () => {
-  let code = $('join-code').value.trim();
+  let code = extractInviteCode($('join-code').value);
   if (!code) { toast('Enter an invite link or code', 'error'); return; }
-  // Accept full URLs too
-  const m = code.match(/invite=([a-z0-9]+)/i);
-  if (m) code = m[1];
   $('join-confirm').disabled = true;
   try {
     const d = await api('/api/servers/join', { method: 'POST', body: { code } });
@@ -4197,6 +4380,7 @@ function openSettings() {
   renderActiveInvites();
   renderSettingsDanger();
   $('invite-result').innerHTML = '';
+  if ($('custom-invite-input')) { $('custom-invite-input').value = ''; $('custom-invite-status').textContent = ''; $('custom-invite-status').className = 'ci-status'; }
   // Capture the baseline so we can detect unsaved changes.
   settingsBaseline = settingsSnapshot();
   clearSettingsDirty();
@@ -4544,14 +4728,42 @@ $('invite-expiry-grid').querySelectorAll('button').forEach(b => b.addEventListen
   selectedInviteMins = Number(b.dataset.mins);
 }));
 $('gen-invite-btn').addEventListener('click', async () => {
+  const custom = ($('custom-invite-input').value || '').trim().replace(/^\/+/, '');
+  if (custom) {
+    if (custom.length < 4 || custom.length > 10) { toast('Custom links must be 4–10 characters', 'error'); return; }
+    if (!/^[a-z0-9_-]+$/i.test(custom)) { toast('Use only letters, numbers, hyphens and underscores', 'error'); return; }
+  }
   try {
-    const d = await api('/api/servers/' + activeServerId + '/invites', { method: 'POST', body: { expiresIn: selectedInviteMins } });
+    const body = { expiresIn: selectedInviteMins };
+    if (custom) body.code = custom;
+    const d = await api('/api/servers/' + activeServerId + '/invites', { method: 'POST', body });
     const full = window.location.origin + d.url;
     $('invite-result').innerHTML = '<div class="invite-link-box"><input type="text" readonly value="' + escapeAttr(full) + '" id="invite-link-input"><button class="btn btn-primary" id="copy-invite" style="padding:8px 14px;font-size:13px;">Copy</button></div>' +
-      '<div class="hint" style="font-size:11px;color:var(--text-muted);margin-top:6px;">' + (selectedInviteMins ? 'Expires in ' + fmtMins(selectedInviteMins) : 'Never expires') + '</div>';
+      '<div class="hint" style="font-size:11px;color:var(--text-muted);margin-top:6px;">' + (selectedInviteMins ? 'Expires in ' + fmtMins(selectedInviteMins) : 'Never expires') + (d.invite && d.invite.custom ? ' · custom link' : '') + '</div>';
     $('copy-invite').addEventListener('click', () => { copyText(full); toast('Invite link copied!', 'success'); });
+    $('custom-invite-input').value = '';
+    $('custom-invite-status').textContent = '';
+    $('custom-invite-status').className = 'ci-status';
     renderActiveInvites();
   } catch(e) { toast(e.message, 'error'); }
+});
+// Live availability check for the custom invite link.
+let ciTimer = null;
+$('custom-invite-input').addEventListener('input', () => {
+  const el = $('custom-invite-status');
+  const raw = ($('custom-invite-input').value || '').trim().replace(/^\/+/, '');
+  clearTimeout(ciTimer);
+  if (!raw) { el.textContent = ''; el.className = 'ci-status'; return; }
+  if (raw.length < 4 || raw.length > 10) { el.textContent = '4–10 chars'; el.className = 'ci-status bad'; return; }
+  if (!/^[a-z0-9_-]+$/i.test(raw)) { el.textContent = 'invalid'; el.className = 'ci-status bad'; return; }
+  el.textContent = '…'; el.className = 'ci-status checking';
+  ciTimer = setTimeout(async () => {
+    try {
+      const d = await api('/api/servers/' + activeServerId + '/invites/check?code=' + encodeURIComponent(raw));
+      if (d.available) { el.textContent = 'available'; el.className = 'ci-status ok'; }
+      else { el.textContent = 'taken'; el.className = 'ci-status bad'; }
+    } catch(e) { el.textContent = ''; el.className = 'ci-status'; }
+  }, 350);
 });
 function fmtMins(m) { if (m < 60) return m + ' minutes'; if (m < 1440) return (m/60) + ' hours'; return (m/1440) + ' days'; }
 function copyText(t) { try { navigator.clipboard.writeText(t); } catch(e) { const i = document.createElement('input'); i.value = t; document.body.appendChild(i); i.select(); document.execCommand('copy'); i.remove(); } }
@@ -4687,12 +4899,12 @@ function renderMemberProfileBody(m, roles, isMe, data) {
   // Banner (above the profile picture) — matches the main chat's profile view.
   const bannerScale = m.bannerScale || 100;
   const avatarScale = m.avatarScale || 100;
-  let html = '<div class="member-profile-banner" style="' + (banner ? 'background-image:url(' + escapeAttr(banner) + ');' : '') + (bannerScale !== 100 ? 'transform:scale(' + (bannerScale / 100) + ');transform-origin:center;' : '') + '">' +
-    (banner ? '' : '<div class="member-profile-banner-placeholder">No banner set</div>') + '</div>';
+  let html = '<div class="member-profile-banner">' +
+    (banner ? '<div class="member-profile-banner-img" style="background-image:url(' + escapeAttr(banner) + ');' + (bannerScale !== 100 ? 'transform:scale(' + (bannerScale / 100) + ');' : '') + '"></div>' : '<div class="member-profile-banner-placeholder">No banner set</div>') + '</div>';
 
   // Avatar + identity row (avatar on the LEFT, info on the right)
   html += '<div class="member-profile-main">' +
-    '<div class="member-profile-avatar"' + (avatarScale !== 100 ? ' style="transform:scale(' + (avatarScale / 100) + ');transform-origin:center;"' : '') + '>' + (avatar ? '<img src="' + escapeAttr(avatar) + '">' : escapeHtml(getInitials(displayName))) + '</div>' +
+    '<div class="member-profile-avatar">' + (avatar ? '<img src="' + escapeAttr(avatar) + '"' + (avatarScale !== 100 ? ' style="transform:scale(' + (avatarScale / 100) + ');"' : '') + '>' : '<span class="mpa-initials"' + (avatarScale !== 100 ? ' style="transform:scale(' + (avatarScale / 100) + ');"' : '') + '>' + escapeHtml(getInitials(displayName)) + '</span>') + '</div>' +
     '<div class="member-profile-info">' +
     '<div class="member-profile-name">' + escapeHtml(displayName) + '</div>' +
     '<div class="member-profile-handle">@' + escapeHtml(m.username) + '</div>';
@@ -4767,7 +4979,7 @@ function renderMemberProfileBody(m, roles, isMe, data) {
   $('member-modal-footer').innerHTML = '';
 
   const editBtn = $('edit-my-server-profile');
-  if (editBtn) editBtn.addEventListener('click', () => { closeModal('member-modal'); openMyServerProfileEditor(); });
+  if (editBtn) editBtn.addEventListener('click', () => { openMyServerProfileEditor(); });
   const assignBtn = $('assign-role-btn');
   if (assignBtn) assignBtn.addEventListener('click', () => openAssignRole(m));
   const kickBtn = $('kick-member-btn');
@@ -4855,6 +5067,8 @@ function openAssignRole(m) {
   });
 }
 function openMyServerProfileEditor() {
+  // Cancel any in-flight member-profile fetch so it can't overwrite this editor.
+  viewingMember = null;
   // Leave profile mode \u2014 this editor uses the standard header/footer chrome.
   const _mpm = $('member-modal').querySelector('.member-profile-modal');
   if (_mpm) _mpm.classList.remove('profile-mode');
@@ -5051,6 +5265,22 @@ $('rail-home').addEventListener('click', async () => {
 });
 $('mobile-channels-btn').addEventListener('click', () => $('channel-sidebar').classList.toggle('mobile-show'));
 $('sch-members-btn').addEventListener('click', () => $('member-sidebar').classList.toggle('mobile-show'));
+
+// Show/hide the members sidebar with a smooth collapse animation.
+let membersHidden = localStorage.getItem('hb_members_hidden') === '1';
+function applyMembersVisibility() {
+  const sb = $('member-sidebar');
+  if (!sb) return;
+  sb.classList.toggle('collapsed', membersHidden);
+  const btn = $('sch-members-toggle');
+  if (btn) btn.classList.toggle('on', !membersHidden);
+}
+$('sch-members-toggle').addEventListener('click', () => {
+  membersHidden = !membersHidden;
+  localStorage.setItem('hb_members_hidden', membersHidden ? '1' : '0');
+  applyMembersVisibility();
+});
+applyMembersVisibility();
 
 // Suppress the browser's native right-click context menu across the servers app.
 // The servers UI uses its own action menus (rail menu, channel menus, etc.), so

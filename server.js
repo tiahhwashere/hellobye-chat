@@ -2826,6 +2826,28 @@ function genInviteCode() {
   for (let i = 0; i < 20; i++) out += alphabet[bytes[i] % alphabet.length];
   return out;
 }
+// Custom invite codes must be 4-10 chars, lowercase letters/numbers/-/_ only.
+const INVITE_CODE_RE = /^[a-z0-9_-]{4,10}$/;
+// Words that would collide with real routes/assets and must never be used.
+const RESERVED_INVITE_CODES = new Set([
+  'api', 'uploads', 'upload', 'socket', 'socket.io', 'servers', 'server',
+  'index', 'admin', 'login', 'logout', 'signup', 'signin', 'register',
+  'assets', 'fonts', 'font', 'static', 'data', 'invite', 'invites',
+  'discover', 'settings', 'app', 'www', 'health', 'version', 'favicon',
+  'robots', 'manifest', 'service-worker', 'sw', 'null', 'undefined',
+  'true', 'false', 'test', 'demo', 'about', 'help', 'support', 'terms',
+  'privacy', 'home', 'main', 'public', 'private', 'user', 'users', 'me',
+]);
+// Validate a user-supplied custom invite code. Returns { ok, code, error }.
+function validateCustomInviteCode(raw) {
+  const code = String(raw || '').trim().toLowerCase().replace(/^\/+/, '');
+  if (!code) return { ok: false, error: 'Enter a custom link' };
+  if (code.length < 4) return { ok: false, error: 'Custom links must be at least 4 characters' };
+  if (code.length > 10) return { ok: false, error: 'Custom links must be at most 10 characters' };
+  if (!INVITE_CODE_RE.test(code)) return { ok: false, error: 'Use only letters, numbers, hyphens and underscores' };
+  if (RESERVED_INVITE_CODES.has(code)) return { ok: false, error: 'That link is reserved — try another' };
+  return { ok: true, code };
+}
 // Default role set created with every new server.
 function defaultServerRoles(owner) {
   return [
@@ -3048,12 +3070,14 @@ function emitServerUpdate(server) {
 
 // ---- Create a server ----
 app.post('/api/servers/create', authMiddleware, (req, res) => {
-  const { name, bio } = req.body || {};
+  const { name, bio, accentColor, serverType, isPublic } = req.body || {};
   const serverName = String(name || '').trim().slice(0, 40);
   if (!serverName) return res.status(400).json({ error: 'Server name is required' });
   const owner = req.user.username;
   const id = genId();
   const generalId = genId();
+  const accent = /^#[0-9a-fA-F]{6}$/.test(String(accentColor || '')) ? accentColor : '#5865f2';
+  const type = ['community','friends','gaming','study','club','other'].includes(String(serverType || '')) ? serverType : 'community';
   const server = {
     id,
     serverId: genServerId(),
@@ -3062,6 +3086,9 @@ app.post('/api/servers/create', authMiddleware, (req, res) => {
     icon: null,
     banner: null,
     bio: String(bio || '').slice(0, 500),
+    accentColor: accent,
+    serverType: type,
+    isPublic: isPublic !== false,
     members: [owner],
     memberProfiles: { [owner]: { nickname: null, avatar: null, banner: null, bio: '', roleIds: ['owner'], joinedAt: nowISO() } },
     roles: defaultServerRoles(owner),
@@ -3548,17 +3575,37 @@ app.post('/api/servers/:id/invites', authMiddleware, (req, res) => {
   const s = findServer(req.params.id);
   if (!s) return res.status(404).json({ error: 'Server not found' });
   if (!serverHasPerm(s, req.user.username, 'invite')) return res.status(403).json({ error: 'You do not have permission to create invites' });
-  const { expiresIn } = req.body || {}; // minutes; 0 = never
+  const { expiresIn, code: customCode } = req.body || {}; // minutes; 0 = never
   const mins = Number(expiresIn);
   const expiresAt = (!mins || mins <= 0) ? 0 : Date.now() + mins * 60 * 1000;
   let code;
-  do { code = genInviteCode(); } while (findInviteByCode(code));
-  const invite = { code, createdBy: req.user.username, createdAt: nowISO(), expiresAt, uses: 0, maxUses: 0 };
+  if (customCode != null && String(customCode).trim() !== '') {
+    // User wants a custom vanity link (e.g. /test, /hello).
+    const v = validateCustomInviteCode(customCode);
+    if (!v.ok) return res.status(400).json({ error: v.error });
+    if (findInviteByCode(v.code)) return res.status(409).json({ error: 'That link is already taken — try another' });
+    code = v.code;
+  } else {
+    do { code = genInviteCode(); } while (findInviteByCode(code));
+  }
+  const invite = { code, createdBy: req.user.username, createdAt: nowISO(), expiresAt, uses: 0, maxUses: 0, custom: !!(customCode && String(customCode).trim() !== '') };
   if (!s.invites) s.invites = [];
   s.invites.push(invite);
   s.updatedAt = nowISO();
   saveDB();
   res.json({ success: true, invite, url: '/servers.html?invite=' + code });
+});
+
+// ---- Invites: check whether a custom code is available ----
+app.get('/api/servers/:id/invites/check', authMiddleware, (req, res) => {
+  const s = findServer(req.params.id);
+  if (!s) return res.status(404).json({ error: 'Server not found' });
+  if (!serverHasPerm(s, req.user.username, 'invite')) return res.status(403).json({ error: 'You do not have permission to manage invites' });
+  const v = validateCustomInviteCode(req.query.code);
+  if (!v.ok) return res.json({ available: false, error: v.error });
+  const existing = findInviteByCode(v.code);
+  if (existing) return res.json({ available: false, error: 'That link is already taken — try another' });
+  res.json({ available: true, code: v.code });
 });
 
 // ---- Invites: list ----
@@ -3590,11 +3637,11 @@ app.get('/api/server-invite/:code', (req, res) => {
   res.json({ invite: publicInvitePreview(found.server, found.invite) });
 });
 
-// ---- Short invite links: /<code> (e.g. /mbatkwjgfoaxngkwohak) ----
-// A bare 20-char invite code in the path redirects to the servers page with
-// the invite pre-loaded. Only matches the exact code shape so it never
-// shadows real routes (index.html, /uploads, /api, /socket.io, etc.).
-app.get('/:code([a-z0-9]{20})', (req, res, next) => {
+// ---- Short invite links: /<code> (e.g. /test, /hello, /mbatkwjgfoaxngkwohak) ----
+// A bare invite code in the path redirects to the servers page with the invite
+// pre-loaded. Only redirects when the code actually matches a live invite, so
+// it never shadows real routes (index.html, /uploads, /api, /socket.io, etc.).
+app.get('/:code([a-z0-9_-]{4,10})', (req, res, next) => {
   const code = String(req.params.code || '').toLowerCase();
   const found = findInviteByCode(code);
   if (!found) return next();
@@ -6120,15 +6167,9 @@ io.on('connection', (socket) => {
         deletedAt: null,
       };
       const storedText = e2eEnv ? '' : textStr;
-      let msgs;
-      if (textStr && hasFiles) {
-        msgs = [
-          Object.assign({}, base, { id: genId(), text: storedText, e2e: e2eEnv, e2eKeys: e2eKeysMap, file: null, files: null, reply: reply || null, spoiler: false }),
-          Object.assign({}, base, { id: genId(), text: '', file: file || null, files: Array.isArray(files) ? files.slice(0, 5) : null, reply: null, spoiler: !!spoiler, followup: true }),
-        ];
-      } else {
-        msgs = [Object.assign({}, base, { id: genId(), text: storedText, e2e: e2eEnv, e2eKeys: e2eKeysMap, file: file || null, files: Array.isArray(files) ? files.slice(0, 5) : null, reply: reply || null, spoiler: !!spoiler })];
-      }
+      // Text and media live in ONE message so the caption renders directly on
+      // top of the attachment (no separate follow-up message).
+      const msgs = [Object.assign({}, base, { id: genId(), text: storedText, e2e: e2eEnv, e2eKeys: e2eKeysMap, file: file || null, files: Array.isArray(files) ? files.slice(0, 5) : null, reply: reply || null, spoiler: !!spoiler })];
       const msg = msgs[0];
       msgs.forEach(m => s.messages[channelId].push(m));
       if (s.messages[channelId].length > 2000) s.messages[channelId] = s.messages[channelId].slice(-2000);
