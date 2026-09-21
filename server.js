@@ -3836,6 +3836,81 @@ app.delete('/api/servers/:id/invites/:code', authMiddleware, (req, res) => {
   res.json({ success: true });
 });
 
+// ---- Channel webhooks (owner/manager) ----
+// A webhook lets external services post messages into a channel under a custom
+// name/avatar. Each webhook has a secret token; the execute URL is
+// /api/webhooks/<id>/<token>.
+function findWebhook(webhookId) {
+  for (const s of Object.values(db.servers || {})) {
+    const wh = (s.webhooks || []).find(w => w.id === webhookId);
+    if (wh) return { server: s, webhook: wh };
+  }
+  return null;
+}
+function publicWebhook(w) {
+  return { id: w.id, channelId: w.channelId, name: w.name, avatar: w.avatar || null, token: w.token, createdBy: w.createdBy || null, createdAt: w.createdAt || null };
+}
+app.get('/api/servers/:id/channels/:channelId/webhooks', authMiddleware, (req, res) => {
+  const s = findServer(req.params.id);
+  if (!s) return res.status(404).json({ error: 'Server not found' });
+  if (!serverHasPerm(s, req.user.username, 'manageChannels')) return res.status(403).json({ error: 'You do not have permission to manage webhooks' });
+  const list = (s.webhooks || []).filter(w => w.channelId === req.params.channelId).map(publicWebhook);
+  res.json({ webhooks: list });
+});
+app.post('/api/servers/:id/channels/:channelId/webhooks', authMiddleware, (req, res) => {
+  const s = findServer(req.params.id);
+  if (!s) return res.status(404).json({ error: 'Server not found' });
+  if (!serverHasPerm(s, req.user.username, 'manageChannels')) return res.status(403).json({ error: 'You do not have permission to manage webhooks' });
+  const ch = (s.channels || []).find(c => c.id === req.params.channelId);
+  if (!ch) return res.status(404).json({ error: 'Channel not found' });
+  const name = String((req.body || {}).name || '').trim().slice(0, 80) || 'Webhook';
+  let avatar = (req.body || {}).avatar;
+  avatar = (typeof avatar === 'string' && avatar.startsWith('data:image/')) ? saveDataUrlImage(avatar, 4 * 1024 * 1024)
+    : (typeof avatar === 'string' && /^https?:\/\//.test(avatar) ? avatar.slice(0, 2000) : null);
+  const wh = { id: genId(), channelId: ch.id, name, avatar, token: genId().replace(/-/g, ''), createdBy: req.user.username, createdAt: nowISO() };
+  if (!s.webhooks) s.webhooks = [];
+  s.webhooks.push(wh);
+  s.updatedAt = nowISO();
+  saveDB();
+  res.json({ success: true, webhook: publicWebhook(wh) });
+});
+app.delete('/api/servers/:id/webhooks/:webhookId', authMiddleware, (req, res) => {
+  const s = findServer(req.params.id);
+  if (!s) return res.status(404).json({ error: 'Server not found' });
+  if (!serverHasPerm(s, req.user.username, 'manageChannels')) return res.status(403).json({ error: 'You do not have permission to manage webhooks' });
+  const before = (s.webhooks || []).length;
+  s.webhooks = (s.webhooks || []).filter(w => w.id !== req.params.webhookId);
+  if (s.webhooks.length === before) return res.status(404).json({ error: 'Webhook not found' });
+  s.updatedAt = nowISO();
+  saveDB();
+  res.json({ success: true });
+});
+// Execute a webhook: post a message into its channel under the webhook identity.
+app.post('/api/webhooks/:webhookId/:token', (req, res) => {
+  const found = findWebhook(req.params.webhookId);
+  if (!found) return res.status(404).json({ error: 'Unknown webhook' });
+  if (String(req.params.token) !== String(found.webhook.token)) return res.status(401).json({ error: 'Invalid webhook token' });
+  const s = found.server, wh = found.webhook;
+  const ch = (s.channels || []).find(c => c.id === wh.channelId);
+  if (!ch) return res.status(404).json({ error: 'Channel not found' });
+  const body = req.body || {};
+  const content = String(body.content || body.text || '').slice(0, 2000);
+  if (!content) return res.status(400).json({ error: 'content is required' });
+  if (!s.messages) s.messages = {};
+  if (!Array.isArray(s.messages[ch.id])) s.messages[ch.id] = [];
+  const msg = {
+    id: genId(), from: wh.name, username: wh.name, displayName: wh.name,
+    text: content, timestamp: nowISO(), edited: false, deleted: false,
+    webhook: { id: wh.id, name: wh.name, avatar: wh.avatar || null },
+    files: null, file: null, reactions: {},
+  };
+  s.messages[ch.id].push(msg);
+  if (s.messages[ch.id].length > 2000) s.messages[ch.id] = s.messages[ch.id].slice(-2000);
+  saveDB();
+  for (const mem of (s.members || [])) io.to('user:' + mem).emit('server-message', { serverId: s.id, channelId: ch.id, message: msg });
+  res.json({ success: true, message: msg });
+});
+
 // ---- Invite preview (public, for link embeds) ----
 app.get('/api/server-invite/:code', (req, res) => {
   const found = findInviteByCode(req.params.code);
@@ -6367,7 +6442,7 @@ io.on('connection', (socket) => {
 
   // ===================== SERVER CHAT (E2E) =====================
   // ---- Send a message to a server channel ----
-  socket.on('server-send', ({ serverId, channelId, text, e2e, e2eKeys, file, files, reply, spoiler, clientId }, ack) => {
+  socket.on('server-send', ({ serverId, channelId, text, e2e, e2eKeys, file, files, reply, spoiler, clientId, mediaClientId }, ack) => {
     try {
       const s = findServer(serverId);
       if (!s) { if (typeof ack === 'function') ack({ error: 'Server not found' }); return; }
@@ -6444,8 +6519,12 @@ io.on('connection', (socket) => {
         clientId: clientId ? String(clientId).slice(0, 80) : null,
       };
       const storedText = textStr;
-      // Text and media live in ONE message so the caption renders directly on
-      // top of the attachment (no separate follow-up message).
+      // Media (GIF / image / video / voice) is sent as its OWN message so it
+      // renders standalone (no embed outline), while any caption text is kept
+      // in a separate message above it. The download button travels with the
+      // media message. The client-generated id is attached to whichever message
+      // the sender's optimistic echo should reconcile with (the text message
+      // when there is text, otherwise the media message).
       // Sanitise each attachment to a known shape so clients can't smuggle
       // arbitrary data through, while preserving the optional spoiler flag and
       // cover image ("image on file") chosen in the send modal.
@@ -6460,7 +6539,21 @@ io.on('connection', (socket) => {
           coverImage: f.coverImage ? String(f.coverImage).slice(0, 2000) : null,
         };
       }).filter(Boolean) : null;
-      const msgs = [Object.assign({}, base, { id: genId(), text: storedText, file: file || null, files: cleanFiles, reply: reply || null, spoiler: !!spoiler })];
+      const hasText = !!storedText;
+      const msgs = [];
+      if (hasText) {
+        msgs.push(Object.assign({}, base, { id: genId(), text: storedText, file: null, files: null, reply: reply || null, spoiler: !!spoiler }));
+      }
+      if (hasFiles) {
+        msgs.push(Object.assign({}, base, {
+          clientId: hasText ? (mediaClientId ? String(mediaClientId).slice(0, 80) : null) : base.clientId,
+          id: genId(), text: '', file: file || null, files: cleanFiles, reply: null, spoiler: !!spoiler,
+        }));
+      }
+      if (!msgs.length) {
+        // Defensive: never store an empty message.
+        msgs.push(Object.assign({}, base, { id: genId(), text: storedText, file: file || null, files: cleanFiles, reply: reply || null, spoiler: !!spoiler }));
+      }
       const msg = msgs[0];
       msgs.forEach(m => s.messages[channelId].push(m));
       if (s.messages[channelId].length > 2000) s.messages[channelId] = s.messages[channelId].slice(-2000);

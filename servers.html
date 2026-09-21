@@ -404,6 +404,9 @@ input, textarea { font-family: inherit; }
 .msg-group.own .msg-time { text-align: right; }
 .msg-role-badge { font-size: 11px; padding: 2px 7px; border-radius: 8px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; }
 .msg-role-badge-img { width: 16px; height: 16px; object-fit: contain; flex-shrink: 0; }
+/* Webhook messages: a small "Webhook" tag next to the author name. */
+.msg-webhook-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 800; letter-spacing: 0.4px; text-transform: uppercase; color: var(--accent-light); background: rgba(var(--accent-rgb),0.14); border: 1px solid rgba(var(--accent-rgb),0.3); border-radius: 6px; padding: 2px 6px; }
+.msg-webhook-badge .ui-ic { width: 11px; height: 11px; }
 /* Role chip + badge: the badge sits OUTSIDE the chip, on the right. */
 .role-chip-wrap { display: inline-flex; align-items: center; gap: 4px; }
 .role-chip-wrap .member-profile-role-badge,
@@ -425,14 +428,20 @@ input, textarea { font-family: inherit; }
 .msg-file-card .mfc-preview { display: block; max-width: 100%; }
 .msg-file-card .mfc-preview img, .msg-file-card .mfc-preview video { display: block; width: 100%; max-height: 360px; object-fit: contain; background: var(--bg-darkest); }
 .msg-file-card .mfc-preview audio { display: block; width: 100%; padding: 10px; }
+/* Media attachments (image / video / voice) render as their own clean message:
+   no card outline or background \u2014 just the media with a subtle download bar. */
+.msg-file-card.msg-file-card-media { border: none; background: transparent; border-radius: 0; overflow: visible; }
+.msg-file-card.msg-file-card-media .mfc-preview img,
+.msg-file-card.msg-file-card-media .mfc-preview video { border-radius: 12px; }
+.msg-file-card.msg-file-card-media .mfc-bar { padding: 8px 2px 2px; }
 /* Clean GIF card: just the GIF with a subtle download overlay + corner tag. */
 .msg-file-card.msg-file-card-gif { position: relative; border: none; background: transparent; overflow: visible; max-width: 360px; }
-.msg-file-card.msg-file-card-gif .mfc-preview img { border-radius: 12px; border: 1px solid var(--border-light); box-shadow: 0 2px 10px rgba(0,0,0,0.22); max-height: 360px; object-fit: contain; }
+.msg-file-card.msg-file-card-gif .mfc-preview img { border-radius: 12px; max-height: 360px; object-fit: contain; }
 .msg-file-card.msg-file-card-gif .mfc-gif-dl {
   position: absolute; top: 8px; right: 8px; width: 32px; height: 32px; border-radius: 9px;
   display: inline-flex; align-items: center; justify-content: center; color: #fff;
   background: rgba(0,0,0,0.5); backdrop-filter: blur(6px); border: 1px solid rgba(255,255,255,0.14);
-  opacity: 0; transition: opacity 0.15s ease, background 0.15s ease;
+  opacity: 0.9; transition: opacity 0.15s ease, background 0.15s ease;
 }
 .msg-file-card.msg-file-card-gif:hover .mfc-gif-dl { opacity: 1; }
 .msg-file-card.msg-file-card-gif .mfc-gif-dl:hover { background: rgba(0,0,0,0.72); }
@@ -836,32 +845,26 @@ input, textarea { font-family: inherit; }
 
 /* ---------- Voice call stage (enhanced) ---------- */
 .voice-stage { flex: 1; display: flex; flex-direction: column; min-height: 0; position: relative; overflow: hidden;
-  transition: opacity 0.22s ease, transform 0.22s ease;
-  background:
-    radial-gradient(120% 80% at 50% -10%, rgba(var(--accent-rgb),0.20), transparent 55%),
-    radial-gradient(90% 70% at 100% 110%, rgba(var(--accent-rgb),0.10), transparent 60%),
-    var(--bg-medium); }
+  transition: opacity 0.18s ease;
+  background: var(--bg-medium); }
 /* Smooth enter/exit for the call view (hide call view / switch channel). */
-.voice-stage.vs-stage-enter { opacity: 0; transform: translateY(12px) scale(0.992); }
-.voice-stage.vs-stage-hide { opacity: 0; transform: translateY(12px) scale(0.992); pointer-events: none; }
-.voice-stage::before { content: ''; position: absolute; inset: 0; pointer-events: none; opacity: 0.5;
-  background-image: radial-gradient(rgba(255,255,255,0.045) 1px, transparent 1px); background-size: 22px 22px; }
-.vs-head { position: relative; z-index: 2; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 22px; border-bottom: 1px solid var(--border); flex-shrink: 0; backdrop-filter: blur(6px); background: linear-gradient(180deg, rgba(0,0,0,0.10), transparent); }
+.voice-stage.vs-stage-enter { opacity: 0; }
+.voice-stage.vs-stage-hide { opacity: 0; pointer-events: none; }
+.vs-head { position: relative; z-index: 2; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 15px 22px; border-bottom: 1px solid var(--border); flex-shrink: 0; background: var(--bg-dark); }
 .vs-head-info { display: flex; align-items: center; gap: 12px; min-width: 0; }
-.vs-title { font-size: 16px; font-weight: 800; letter-spacing: -0.01em; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.vs-title { font-size: 15.5px; font-weight: 700; letter-spacing: -0.01em; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .vs-sub { font-size: 12px; color: var(--text-muted); white-space: nowrap; display: inline-flex; align-items: center; gap: 6px; }
 .vs-sub::before { content: ''; width: 4px; height: 4px; border-radius: 50%; background: var(--text-muted); opacity: 0.6; }
 .vs-head-actions { display: flex; gap: 8px; flex-shrink: 0; }
-.vs-icon-btn { width: 36px; height: 36px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; color: var(--text-muted); background: var(--bg-dark); border: 1px solid var(--border); transition: var(--transition); }
-.vs-icon-btn:hover { color: var(--text-primary); border-color: var(--border-light); transform: translateY(-1px); }
+.vs-icon-btn { width: 36px; height: 36px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; color: var(--text-muted); background: var(--bg-dark); border: 1px solid var(--border); transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease; }
+.vs-icon-btn:hover { color: var(--text-primary); border-color: var(--border-light); background: var(--bg-light); }
 .vs-icon-btn svg { width: 17px; height: 17px; }
-.vs-grid { position: relative; z-index: 2; flex: 1; min-height: 0; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(172px, 1fr)); gap: 16px; align-content: start; padding: 26px; }
-.vs-tile { position: relative; display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 22px 16px 18px; border-radius: 16px; background: linear-gradient(180deg, rgba(255,255,255,0.028), rgba(0,0,0,0.16)), var(--bg-dark); border: 1px solid var(--border); transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease; cursor: context-menu; overflow: hidden; }
-.vs-tile::after { content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; box-shadow: inset 0 1px 0 rgba(255,255,255,0.05); }
-.vs-tile:hover { transform: translateY(-2px); border-color: var(--border-light); }
-.vs-tile.speaking { border-color: rgba(59,165,93,0.75); box-shadow: 0 0 0 1px rgba(59,165,93,0.4), 0 14px 34px rgba(59,165,93,0.22); }
-.vs-avatar-wrap { position: relative; width: 88px; height: 88px; }
-.vs-avatar { width: 88px; height: 88px; border-radius: 50%; background: linear-gradient(140deg, var(--accent), var(--accent-dim, var(--accent))); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 32px; color: #fff; overflow: hidden; position: relative; z-index: 1; box-shadow: 0 8px 22px rgba(0,0,0,0.4); }
+.vs-grid { position: relative; z-index: 2; flex: 1; min-height: 0; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 14px; align-content: start; padding: 22px; }
+.vs-tile { position: relative; display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 22px 16px 18px; border-radius: 14px; background: var(--bg-dark); border: 1px solid var(--border); transition: border-color 0.15s ease, background 0.15s ease; cursor: context-menu; overflow: hidden; }
+.vs-tile:hover { border-color: var(--border-light); background: var(--bg-medium); }
+.vs-tile.speaking { border-color: rgba(59,165,93,0.85); background: rgba(59,165,93,0.06); box-shadow: 0 0 0 1px rgba(59,165,93,0.35); }
+.vs-avatar-wrap { position: relative; width: 84px; height: 84px; }
+.vs-avatar { width: 84px; height: 84px; border-radius: 50%; background: linear-gradient(140deg, var(--accent), var(--accent-dim, var(--accent))); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 30px; color: #fff; overflow: hidden; position: relative; z-index: 1; box-shadow: 0 6px 18px rgba(0,0,0,0.35); }
 .vs-avatar img { width: 100%; height: 100%; object-fit: cover; }
 .vs-avatar canvas { width: 100%; height: 100%; object-fit: cover; display: block; }
 /* GIF avatars: only animate while the user is speaking (voice chat only). */
@@ -869,10 +872,9 @@ input, textarea { font-family: inherit; }
 .vs-avatar .vs-avatar-gif-static { display: block; }
 .vs-tile.speaking .vs-avatar .vs-avatar-gif-anim { display: block; }
 .vs-tile.speaking .vs-avatar .vs-avatar-gif-static { display: none; }
-.vs-ring { position: absolute; inset: -6px; border-radius: 50%; border: 3px solid var(--online); opacity: 0; transform: scale(0.9); transition: opacity 0.12s ease, transform 0.12s ease; pointer-events: none; }
-.vs-tile.speaking .vs-ring { opacity: 1; transform: scale(1); animation: vsRingPulse 1.1s ease-in-out infinite; }
-@keyframes vsRingPulse { 0%,100% { box-shadow: 0 0 0 0 rgba(59,165,93,0.45); } 50% { box-shadow: 0 0 0 8px rgba(59,165,93,0); } }
-.vs-name { font-size: 14px; font-weight: 700; color: var(--text-primary); max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.vs-ring { position: absolute; inset: -5px; border-radius: 50%; border: 2.5px solid var(--online); opacity: 0; transition: opacity 0.12s ease; pointer-events: none; }
+.vs-tile.speaking .vs-ring { opacity: 1; }
+.vs-name { font-size: 14px; font-weight: 600; color: var(--text-primary); max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .vs-badges { display: flex; gap: 6px; }
 .vs-badge { width: 24px; height: 24px; border-radius: 7px; display: inline-flex; align-items: center; justify-content: center; background: var(--bg-darkest); color: var(--text-muted); }
 .vs-badge.on { background: rgba(224,82,82,0.16); color: #e05252; }
@@ -936,10 +938,10 @@ input, textarea { font-family: inherit; }
 .vs-ctl.vs-ctl-on:hover { background: rgba(var(--accent-rgb),0.24); }
 .vs-empty { grid-column: 1 / -1; text-align: center; color: var(--text-muted); font-size: 14px; padding: 40px 0; }
 /* ---- Control bar: a single professional pill with grouped controls ---- */
-.vs-controls { position: relative; z-index: 2; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 16px 20px; border-top: 1px solid var(--border); flex-shrink: 0; background: linear-gradient(0deg, rgba(0,0,0,0.16), transparent); }
-.vs-ctl { display: inline-flex; align-items: center; gap: 9px; height: 46px; padding: 0 18px; border-radius: 12px; background: var(--bg-dark); border: 1px solid var(--border); color: var(--text-secondary); font-size: 13px; font-weight: 600; transition: var(--transition); }
+.vs-controls { position: relative; z-index: 2; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 14px 20px; border-top: 1px solid var(--border); flex-shrink: 0; background: var(--bg-dark); }
+.vs-ctl { display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 16px; border-radius: 10px; background: var(--bg-medium); border: 1px solid var(--border); color: var(--text-secondary); font-size: 13px; font-weight: 600; transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease; }
 .vs-ctl:hover { border-color: var(--border-light); color: var(--text-primary); background: var(--bg-light); }
-.vs-ctl svg { width: 19px; height: 19px; flex-shrink: 0; }
+.vs-ctl svg { width: 18px; height: 18px; flex-shrink: 0; }
 .vs-ctl-label { font-size: 13px; font-weight: 600; letter-spacing: 0.01em; }
 .vs-ctl.active { background: rgba(224,82,82,0.14); border-color: rgba(224,82,82,0.5); color: #e05252; }
 .vs-ctl.active:hover { background: rgba(224,82,82,0.2); }
@@ -1280,7 +1282,7 @@ input, textarea { font-family: inherit; }
 .scale-row input[type=range] { flex: 1; min-width: 80px; accent-color: var(--accent); cursor: pointer; }
 /* Scale dialog preview */
 .scale-preview { margin-top: 14px; border: 1px solid var(--border-light); border-radius: 10px; overflow: hidden; background: var(--bg-darkest); }
-.scale-preview .sp-banner { height: 176px; background-size: cover; background-position: center center; background-repeat: no-repeat; position: relative; overflow: hidden; }
+.scale-preview .sp-banner { height: 196px; background-size: cover; background-position: center center; background-repeat: no-repeat; position: relative; overflow: hidden; }
 .scale-preview .sp-banner .sp-banner-img { position: absolute; inset: 0; background-size: cover; background-position: center center; background-repeat: no-repeat; transform-origin: center center; }
 .scale-preview .sp-icon { width: 60px; height: 60px; border-radius: 50%; border: 4px solid var(--bg-dark); background: var(--accent); position: absolute; left: 16px; bottom: -30px; overflow: hidden; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 22px; z-index: 2; }
 .scale-preview .sp-icon img { width: 100%; height: 100%; object-fit: cover; transform-origin: center center; }
@@ -1360,6 +1362,9 @@ input, textarea { font-family: inherit; }
 .invite-embed-meta { font-size: 12px; color: var(--text-secondary); }
 .invite-embed-bio { font-size: 12px; color: var(--text-muted); margin-top: 6px; line-height: 1.45; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .invite-embed-slot { display: block; }
+/* The raw /invite link shown above the server card. */
+.invite-link-text { color: var(--accent-light); text-decoration: none; word-break: break-all; }
+.invite-link-text:hover { text-decoration: underline; }
 .invite-embed-join { margin-top: 8px; }
 .invite-embed-open-hint { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 600; color: var(--online); }
 .invite-embed-open-hint .ui-ic { width: 14px; height: 14px; }
@@ -1878,7 +1883,7 @@ input, textarea { font-family: inherit; }
 
 /* ---- Server header: banner fills the whole box, name overlaid on it ---- */
 .server-header {
-  height: 176px; min-height: 176px; flex-wrap: nowrap; padding: 14px 14px 0;
+  height: 196px; min-height: 196px; flex-wrap: nowrap; padding: 14px 14px 0;
   position: relative; overflow: hidden; align-items: flex-start;
   margin: 0; border-radius: 0;
   background-size: cover; background-position: center top; background-repeat: no-repeat;
@@ -1947,6 +1952,27 @@ input, textarea { font-family: inherit; }
 .ch-block-num { font-size: 11px; font-weight: 800; letter-spacing: 0.5px; color: var(--accent-light); background: rgba(var(--accent-rgb),0.12); border: 1px solid rgba(var(--accent-rgb),0.28); border-radius: 7px; padding: 3px 7px; flex-shrink: 0; margin-top: 1px; }
 .ch-block-title { font-size: 14px; font-weight: 750; color: var(--text-primary); }
 .ch-block-sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+/* ---- Webhook manager (Edit Channel) ---- */
+.wh-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+.wh-item { display: flex; align-items: center; gap: 11px; padding: 10px 12px; background: var(--bg-darkest); border: 1px solid var(--border); border-radius: 10px; }
+.wh-item-av { width: 38px; height: 38px; border-radius: 10px; flex-shrink: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; background: linear-gradient(140deg, var(--accent), var(--accent-dim, var(--accent))); color: #fff; font-weight: 700; font-size: 15px; }
+.wh-item-av img { width: 100%; height: 100%; object-fit: cover; }
+.wh-item-body { flex: 1; min-width: 0; }
+.wh-item-name { font-size: 13.5px; font-weight: 700; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wh-item-url { font-size: 11.5px; color: var(--text-muted); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
+.wh-item-actions { display: flex; gap: 6px; flex-shrink: 0; }
+.wh-item-actions button { width: 32px; height: 32px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; background: var(--bg-medium); border: 1px solid var(--border); color: var(--text-muted); transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease; }
+.wh-item-actions button:hover { color: var(--text-primary); border-color: var(--border-light); background: var(--bg-light); }
+.wh-item-actions button.wh-del:hover { color: #e05252; border-color: rgba(224,82,82,0.5); background: rgba(224,82,82,0.12); }
+.wh-item-actions button svg { width: 15px; height: 15px; }
+.wh-empty { font-size: 12.5px; color: var(--text-muted); padding: 10px 2px; }
+.wh-create-row { display: flex; gap: 8px; align-items: center; }
+.wh-avatar-pick { width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0; cursor: pointer; overflow: hidden; display: flex; align-items: center; justify-content: center; background: var(--bg-darkest); border: 1px dashed var(--border-light); color: var(--text-muted); transition: border-color 0.15s ease, color 0.15s ease; }
+.wh-avatar-pick:hover { border-color: var(--accent); color: var(--accent-light); }
+.wh-avatar-pick img { width: 100%; height: 100%; object-fit: cover; }
+.wh-avatar-empty { font-size: 20px; font-weight: 400; line-height: 1; }
+.wh-create .ch-hint { margin-top: 8px; }
+.wh-create .ch-hint code { background: var(--bg-darkest); border: 1px solid var(--border); border-radius: 5px; padding: 1px 5px; font-size: 11px; }
 .ch-opt { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; color: var(--text-muted); background: var(--bg-medium); border-radius: 5px; padding: 2px 6px; margin-left: 4px; }
 .ch-input-prefix { display: flex; align-items: center; background: var(--bg-darkest); border: 1px solid var(--border-light); border-radius: var(--radius-sm); padding: 0 12px; transition: border-color var(--transition); }
 .ch-input-prefix:focus-within { border-color: var(--accent); }
@@ -3427,6 +3453,25 @@ input, textarea { font-family: inherit; }
         <div class="ch-hint" id="ch-chat-hint">Everyone can send messages in this channel.</div>
       </div>
 
+      <div class="ch-block" id="ch-webhook-block" style="display:none;">
+        <div class="ch-block-head">
+          <span class="ch-block-num">06</span>
+          <div><div class="ch-block-title">Webhooks</div><div class="ch-block-sub">Post messages into this channel from other apps and services.</div></div>
+        </div>
+        <div class="wh-list" id="ch-webhook-list"></div>
+        <div class="wh-create">
+          <div class="wh-create-row">
+            <div class="wh-avatar-pick" id="ch-webhook-avatar" title="Upload a webhook avatar">
+              <span class="wh-avatar-empty">+</span>
+            </div>
+            <input type="text" id="ch-webhook-name" class="ch-inline-input" placeholder="Webhook name (e.g. GitHub)" maxlength="60">
+            <button type="button" class="btn btn-secondary ch-inline-btn" id="ch-webhook-create">Create</button>
+          </div>
+          <input type="file" id="ch-webhook-avatar-file" accept="image/*" style="display:none;">
+          <div class="ch-hint">Webhooks post as their own identity. Copy the URL and send a JSON body like <code>{"content":"Hello"}</code> to it.</div>
+        </div>
+      </div>
+
     </div>
     <div class="modal-footer">
       <button class="btn btn-danger" id="channel-delete" style="display:none;margin-right:auto;">Delete Channel</button>
@@ -4435,9 +4480,17 @@ async function boot() {
     if (lastServer && servers.some(s => s.id === lastServer)) {
       await openServer(lastServer);
       restored = true;
-      const lastCh = localStorage.getItem('hb_last_channel');
+      let lastCh = null;
+      try { lastCh = localStorage.getItem('hb_last_channel_' + lastServer) || localStorage.getItem('hb_last_channel'); } catch (e) {}
       if (lastCh && (activeServer.channels || []).some(c => c.id === lastCh) && activeChannelId !== lastCh) {
-        await openChannel(lastCh);
+        const lastChObj = (activeServer.channels || []).find(c => c.id === lastCh);
+        if (lastChObj && lastChObj.type === 'voice') {
+          // Land back on the voice channel row without auto-joining the call.
+          activeChannelId = lastCh;
+          renderChannels();
+        } else {
+          await openChannel(lastCh);
+        }
       }
     }
   } catch(e) { console.warn('[servers] restore failed', e); }
@@ -4518,6 +4571,20 @@ function startVersionPolling() {
   __updatePollTimer = setInterval(pollVersion, 30000);
   document.addEventListener('visibilitychange', () => { if (!document.hidden) pollVersion(); });
 }
+// When the user tabs back in, make sure they are still on the channel they
+// left. If the active channel was somehow lost (e.g. a reconnect cleared it),
+// restore it from the persisted value instead of falling back to the top one.
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) return;
+  try {
+    if (!activeServerId) return;
+    let lastCh = null;
+    try { lastCh = localStorage.getItem('hb_last_channel'); } catch (e) {}
+    if (!lastCh) return;
+    if (!activeServer || !(activeServer.channels || []).some(c => c.id === lastCh)) return;
+    if (activeChannelId !== lastCh) openChannel(lastCh);
+  } catch (e) {}
+});
 
 function connectSocket() {
   if (typeof io === 'undefined') { console.warn('[socket] socket.io client not loaded'); return; }
@@ -5062,10 +5129,26 @@ async function loadServer(id, silent) {
     if (!activeChannelId || !(activeServer.channels || []).some(c => c.id === activeChannelId)) {
       let target = null;
       try {
+        // Prefer this server's own remembered channel, then the global last
+        // channel, so switching servers restores each one's last position.
+        const perServer = localStorage.getItem('hb_last_channel_' + id);
         const lastCh = localStorage.getItem('hb_last_channel');
-        if (lastCh && (activeServer.channels || []).some(c => c.id === lastCh)) target = lastCh;
+        if (perServer && (activeServer.channels || []).some(c => c.id === perServer)) target = perServer;
+        else if (lastCh && (activeServer.channels || []).some(c => c.id === lastCh)) target = lastCh;
       } catch (e) {}
-      if ((activeServer.channels || []).length) openChannel(target || activeServer.channels[0].id);
+      const chans = activeServer.channels || [];
+      if (chans.length) {
+        const pick = target || chans[0].id;
+        const pickCh = chans.find(c => c.id === pick);
+        if (pickCh && pickCh.type === 'voice') {
+          // Voice channels have no text history \u2014 just highlight the row so
+          // the user lands back on it without auto-joining the call.
+          activeChannelId = pick;
+          renderChannels();
+        } else {
+          openChannel(pick);
+        }
+      }
     }
   } catch(e) { if (!silent) toast(e.message, 'error'); }
 }
@@ -5621,6 +5704,15 @@ async function openChannel(channelId) {
   // newly-loaded server, producing a "Channel not found" toast.
   if (!activeServer || !(activeServer.channels || []).some(c => c.id === channelId)) return;
   activeChannelId = channelId;
+  // Persist the active server + channel so a refresh, tab-out/tab-in, or a
+  // reconnect always lands the user back on the exact channel they were on
+  // (never snapping back to the first/top channel). We also remember the last
+  // channel per server so switching between servers restores each one.
+  try {
+    localStorage.setItem('hb_last_server', activeServerId);
+    localStorage.setItem('hb_last_channel', channelId);
+    if (activeServerId) localStorage.setItem('hb_last_channel_' + activeServerId, channelId);
+  } catch (e) {}
   delete channelPings[channelId];
   closeThread();
   channelThreads = {};
@@ -5686,15 +5778,16 @@ function renderMessages() {
 }
 function buildMessageGroup(m, inThread) {
   const c = $('server-messages');
-  const isOwn = m.from === currentUser.username;
+  const isWebhook = !!(m.webhook && m.webhook.id);
+  const isOwn = !isWebhook && m.from === currentUser.username;
   const member = (activeServer.members || []).find(x => x.username === m.from) || {};
   const roles = (member.roleIds || []).map(id => (activeServer.roles || []).find(r => r.id === id)).filter(Boolean).sort((a,b)=>(a.order||0)-(b.order||0));
-  const topRole = roles[0];
+  const topRole = isWebhook ? null : roles[0];
   const nameColor = topRole ? topRole.color : 'var(--text-primary)';
-  const displayName = member.nickname || member.displayName || m.displayName || m.from;
+  const displayName = isWebhook ? (m.webhook.name || m.displayName || m.from) : (member.nickname || member.displayName || m.displayName || m.from);
 
   const g = document.createElement('div');
-  g.className = 'msg-group' + (isOwn ? ' own' : '');
+  g.className = 'msg-group' + (isOwn ? ' own' : '') + (isWebhook ? ' msg-webhook' : '');
   g.dataset.msgId = m.id;
   // Highlight messages that ping @everyone / @here
   const _rawText = m._plain !== undefined && m._plain !== null ? m._plain : (m.text || '');
@@ -5704,13 +5797,17 @@ function buildMessageGroup(m, inThread) {
   const av = document.createElement('div');
   av.className = 'msg-avatar';
   av.dataset.member = m.from;
-  if (member.avatar) av.innerHTML = '<img src="' + escapeAttr(member.avatar) + '">';
+  if (isWebhook) {
+    if (m.webhook.avatar) av.innerHTML = '<img src="' + escapeAttr(m.webhook.avatar) + '">';
+    else av.textContent = getInitials(displayName);
+  } else if (member.avatar) av.innerHTML = '<img src="' + escapeAttr(member.avatar) + '">';
   else av.textContent = getInitials(displayName);
-  av.addEventListener('click', () => openMemberProfile(m.from));
+  if (!isWebhook) av.addEventListener('click', () => openMemberProfile(m.from));
 
   const body = document.createElement('div');
   body.className = 'msg-body';
   let head = '<div class="msg-head"><span class="msg-author" style="color:' + nameColor + ';">' + escapeHtml(displayName) + '</span>';
+  if (isWebhook) head += '<span class="msg-webhook-badge">' + icon('link', 'sm') + 'Webhook</span>';
   if (topRole) head += '<span class="role-chip-wrap"><span class="msg-role-badge" style="background:' + escapeAttr(topRole.color) + '22;color:' + escapeAttr(topRole.color) + ';">' + escapeHtml(topRole.name) + '</span>' + (topRole.badge ? '<img class="msg-role-badge-img" src="' + escapeAttr(topRole.badge) + '" alt="">' : '') + '</span>';
   head += '</div>';
 
@@ -6310,7 +6407,10 @@ function renderFile(f) {
     const coverUrl = escapeAttr(f.coverImage);
     preview = preview.replace('</span>', '<span class="mfc-cover" style="background-image:url(\'' + coverUrl + '\')"></span><span class="mfc-cover-badge">Cover</span></span>');
   }
-  return '<div class="msg-file-card">' + preview + bar + '</div>';
+  // Image / video / voice attachments render as their own clean message with no
+  // card outline \u2014 just the media plus a subtle download bar underneath.
+  const mediaClass = (isImage || isVideo || isAudio) ? ' msg-file-card-media' : '';
+  return '<div class="msg-file-card' + mediaClass + '">' + preview + bar + '</div>';
 }
 function linkify(html) {
   // Highlight @everyone / @here mentions (red / amber), then linkify URLs.
@@ -6330,10 +6430,12 @@ function linkify(html) {
   return html.replace(/(https?:\/\/[^\s<]+)/g, (u) => {
     const clean = u.replace(/[.,;:!?)]+$/, '');
     const trail = u.slice(clean.length);
-    // Server invite links get a rich embed card instead of a plain link.
+    // Server invite links: show the /invite link text, then the rich server
+    // card directly beneath it (instead of replacing the URL entirely).
     const code = inviteCodeFromUrl(clean);
     if (code) {
-      return '<span class="invite-embed-slot" data-invite="' + escapeAttr(code) + '"></span>' + trail;
+      return '<a class="invite-link-text" href="' + escapeAttr(clean) + '" target="_blank" rel="noopener noreferrer">' + escapeHtml(clean) + '</a>' +
+        '<span class="invite-embed-slot" data-invite="' + escapeAttr(code) + '"></span>' + trail;
     }
     // A direct .gif link auto-embeds as the animated GIF itself (no raw URL
     // text \u2014 just the GIF, like a normal chat client).
@@ -6647,9 +6749,11 @@ async function sendMessage() {
   // Server chats are NEVER encrypted — every member must be able to read every
   // message and attachment, so we always send plaintext.
   const clientId = 'tmp-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7);
+  const mediaClientId = clientId + '-media';
   const payload = { serverId: activeServerId, channelId: activeChannelId, text: text, clientId: clientId };
   if (pendingFiles.length) {
     payload.files = pendingFiles.slice(0, 5);
+    payload.mediaClientId = mediaClientId;
     // If any queued file was marked as a spoiler, flag the whole message so the
     // text + attachments stay hidden until the recipient clicks to reveal.
     if (pendingFiles.some(f => f && f.spoiler)) payload.spoiler = true;
@@ -6657,26 +6761,47 @@ async function sendMessage() {
   if (srvReplyTo) { payload.reply = { id: srvReplyTo.id, from: srvReplyTo.from, displayName: srvReplyTo.displayName, text: srvReplyTo.text }; }
   // OPTIMISTIC ECHO: render the message instantly so the sender never waits for
   // the server round-trip. The authoritative echo (matched by clientId) replaces
-  // this local copy when it arrives.
+  // this local copy when it arrives. Media is echoed as its OWN message (no
+  // embed outline) with any caption text kept in a separate message above it,
+  // mirroring exactly how the server stores it.
+  const _files = payload.files || null;
+  const _hasText = !!text;
   const optimistic = {
     id: clientId, serverId: activeServerId, channelId: activeChannelId,
     from: currentUser.username, displayName: currentUser.displayName || currentUser.username,
-    text: text, files: payload.files || null, reply: payload.reply || null,
+    text: text, files: _hasText ? null : _files, reply: payload.reply || null,
     spoiler: !!payload.spoiler, timestamp: new Date().toISOString(),
     reactions: {}, _optimistic: true,
   };
   serverMessages.push(optimistic); serverMsgIndex.set(clientId, optimistic);
-  appendMessage(optimistic); scrollBottom();
+  appendMessage(optimistic);
+  if (_hasText && _files) {
+    // Separate optimistic media message (no clientId \u2014 the server echo for the
+    // media message has none, so it simply appends as a normal message).
+    const optMedia = {
+      id: mediaClientId, serverId: activeServerId, channelId: activeChannelId,
+      from: currentUser.username, displayName: currentUser.displayName || currentUser.username,
+      text: '', files: _files, reply: null,
+      spoiler: !!payload.spoiler, timestamp: new Date().toISOString(),
+      reactions: {}, _optimistic: true,
+    };
+    serverMessages.push(optMedia); serverMsgIndex.set(optMedia.id, optMedia);
+    appendMessage(optMedia);
+  }
+  scrollBottom();
   $('srv-input').value = ''; autoGrow($('srv-input')); pendingFiles = []; renderPendingFiles(); updateSendBtn();
   cancelReply();
   socket.emit('server-send', payload, (resp) => {
     if (resp && resp.error) {
-      // Roll back the optimistic message on failure.
-      serverMessages = serverMessages.filter(x => x.id !== clientId);
+      // Roll back the optimistic message(s) on failure.
+      serverMessages = serverMessages.filter(x => x.id !== clientId && x.id !== mediaClientId);
       serverMsgIndex.delete(clientId);
+      serverMsgIndex.delete(mediaClientId);
       const c = $('server-messages');
-      const el = c && c.querySelector('.msg-group[data-msg-id="' + (window.CSS && CSS.escape ? CSS.escape(clientId) : clientId) + '"]');
-      if (el) el.remove();
+      [clientId, mediaClientId].forEach(rid => {
+        const el = c && c.querySelector('.msg-group[data-msg-id="' + (window.CSS && CSS.escape ? CSS.escape(rid) : rid) + '"]');
+        if (el) el.remove();
+      });
       toast(resp.error, 'error');
       $('srv-send-btn').disabled = false;
     }
@@ -7449,6 +7574,12 @@ async function joinVoiceChannel(channelId) {
   }
   const ch = (activeServer.channels || []).find(c => c.id === channelId);
   if (!ch) return;
+  // Remember the voice channel too, so a refresh/tab-return keeps you on it.
+  try {
+    localStorage.setItem('hb_last_server', activeServerId);
+    localStorage.setItem('hb_last_channel', channelId);
+    if (activeServerId) localStorage.setItem('hb_last_channel_' + activeServerId, channelId);
+  } catch (e) {}
   if (voiceCall.active) await leaveVoiceChannel(true);
   // Acquire the mic through the in-app permission prompt (unless the user
   // chose "never ask again" or the browser already granted access).
@@ -7650,7 +7781,7 @@ function voiceCreatePeer(username, initiator) {
   let p = voiceCall.peers.get(username);
   if (p && p.pc) return p;
   if (!p) { p = { username, muted: false, deafened: false, speaking: false }; voiceCall.peers.set(username, p); }
-  const pc = new RTCPeerConnection({ iceServers: VOICE_ICE_SERVERS, iceCandidatePoolSize: 4 });
+  const pc = new RTCPeerConnection({ iceServers: VOICE_ICE_SERVERS, iceCandidatePoolSize: 4, bundlePolicy: 'max-bundle', rtcpMuxPolicy: 'require' });
   p.pc = pc;
   p.pendingCandidates = [];
   p.initiator = !!initiator;
@@ -10210,6 +10341,7 @@ function openChannelEditor(ch, presetCategoryId) {
   renderChannelPrivacyUI();
   renderChannelChatUI();
   renderChannelTypeUI();
+  renderChannelWebhooks();
   openModal('channel-modal');
 }
 function renderChannelTypeUI() {
@@ -10224,6 +10356,12 @@ function renderChannelTypeUI() {
   // Voice channels don't carry text-chat permissions \u2014 hide the chat block.
   const chatBlock = $('ch-chat-seg') ? $('ch-chat-seg').closest('.ch-block') : null;
   if (chatBlock) chatBlock.style.display = chEditorType === 'voice' ? 'none' : '';
+  // Webhooks only apply to saved text channels.
+  const whBlock = $('ch-webhook-block');
+  if (whBlock) {
+    const canManage = activeServer && (activeServer.isOwner || hasPerm('manageChannels'));
+    whBlock.style.display = (editingChannelId && canManage && chEditorType === 'text') ? '' : 'none';
+  }
 }
 function renderChannelPrivacyUI() {
   $('ch-privacy-seg').querySelectorAll('button').forEach(b => b.classList.toggle('selected', b.dataset.priv === chEditorPrivacy));
@@ -10312,6 +10450,98 @@ $('channel-save').addEventListener('click', async () => {
     else d = await api('/api/servers/' + activeServerId + '/channels', { method: 'POST', body });
     activeServer = d.server; renderServerView(); renderSettingsChannels(); closeModal('channel-modal'); toast('Channel saved', 'success');
   } catch(e) { toast(e.message, 'error'); }
+});
+
+/* ---- Channel webhooks (Edit Channel) ---- */
+let chWebhookAvatar = null;
+function webhookUrl(wh) {
+  return location.origin + '/api/webhooks/' + wh.id + '/' + wh.token;
+}
+function renderChannelWebhooks() {
+  const block = $('ch-webhook-block');
+  if (!block) return;
+  const canManage = activeServer && (activeServer.isOwner || hasPerm('manageChannels'));
+  // Webhooks only make sense for saved text channels the user can manage.
+  const show = !!(editingChannelId && canManage && chEditorType === 'text');
+  block.style.display = show ? '' : 'none';
+  if (!show) return;
+  const list = $('ch-webhook-list');
+  list.innerHTML = '<div class="wh-empty">Loading webhooks\u2026</div>';
+  api('/api/servers/' + activeServerId + '/channels/' + editingChannelId + '/webhooks')
+    .then(d => {
+      const hooks = (d && d.webhooks) || [];
+      if (!hooks.length) { list.innerHTML = '<div class="wh-empty">No webhooks yet. Create one below.</div>'; return; }
+      list.innerHTML = hooks.map(wh => {
+        const url = webhookUrl(wh);
+        const initials = escapeHtml((wh.name || 'W').slice(0, 1).toUpperCase());
+        return '<div class="wh-item" data-wh="' + escapeAttr(wh.id) + '">' +
+          '<div class="wh-item-av">' + (wh.avatar ? '<img src="' + escapeAttr(wh.avatar) + '">' : initials) + '</div>' +
+          '<div class="wh-item-body"><div class="wh-item-name">' + escapeHtml(wh.name) + '</div>' +
+          '<div class="wh-item-url" title="' + escapeAttr(url) + '">' + escapeHtml(url) + '</div></div>' +
+          '<div class="wh-item-actions">' +
+            '<button class="wh-copy" title="Copy webhook URL">' + icon('copy', 'sm') + '</button>' +
+            '<button class="wh-del" title="Delete webhook">' + icon('trash', 'sm') + '</button>' +
+          '</div></div>';
+      }).join('');
+      list.querySelectorAll('.wh-item').forEach(item => {
+        const id = item.dataset.wh;
+        const wh = hooks.find(h => h.id === id);
+        const copyBtn = item.querySelector('.wh-copy');
+        if (copyBtn) copyBtn.addEventListener('click', () => {
+          const url = webhookUrl(wh);
+          try { navigator.clipboard.writeText(url); toast('Webhook URL copied', 'success'); }
+          catch (e) { toast('Copy failed', 'error'); }
+        });
+        const delBtn = item.querySelector('.wh-del');
+        if (delBtn) delBtn.addEventListener('click', async () => {
+          if (!confirm('Delete webhook "' + wh.name + '"? This cannot be undone.')) return;
+          try {
+            await api('/api/servers/' + activeServerId + '/webhooks/' + id, { method: 'DELETE' });
+            toast('Webhook deleted', 'success');
+            renderChannelWebhooks();
+          } catch (e) { toast(e.message, 'error'); }
+        });
+      });
+    })
+    .catch(e => { list.innerHTML = '<div class="wh-empty">' + escapeHtml(e.message || 'Could not load webhooks') + '</div>'; });
+}
+// Avatar picker for a new webhook.
+(function wireWebhookAvatar() {
+  const pick = $('ch-webhook-avatar');
+  const file = $('ch-webhook-avatar-file');
+  if (!pick || !file) return;
+  pick.addEventListener('click', () => file.click());
+  file.addEventListener('change', () => {
+    const f = file.files && file.files[0];
+    if (!f) return;
+    if (f.size > 2 * 1024 * 1024) { toast('Avatar must be under 2MB', 'error'); file.value = ''; return; }
+    const reader = new FileReader();
+    reader.onload = () => {
+      chWebhookAvatar = reader.result;
+      pick.innerHTML = '<img src="' + escapeAttr(chWebhookAvatar) + '">';
+    };
+    reader.readAsDataURL(f);
+  });
+})();
+$('ch-webhook-create').addEventListener('click', async () => {
+  if (!editingChannelId) { toast('Save the channel first', 'error'); return; }
+  const name = $('ch-webhook-name').value.trim();
+  if (!name) { toast('Enter a webhook name', 'error'); return; }
+  const btn = $('ch-webhook-create');
+  btn.disabled = true; btn.textContent = 'Creating\u2026';
+  try {
+    await api('/api/servers/' + activeServerId + '/channels/' + editingChannelId + '/webhooks', {
+      method: 'POST', body: { name, avatar: chWebhookAvatar || null },
+    });
+    $('ch-webhook-name').value = '';
+    chWebhookAvatar = null;
+    const pick = $('ch-webhook-avatar');
+    if (pick) pick.innerHTML = '<span class="wh-avatar-empty">+</span>';
+    const file = $('ch-webhook-avatar-file'); if (file) file.value = '';
+    toast('Webhook created', 'success');
+    renderChannelWebhooks();
+  } catch (e) { toast(e.message, 'error'); }
+  btn.disabled = false; btn.textContent = 'Create';
 });
 
 /* ---- Role editor ---- */
