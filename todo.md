@@ -1,22 +1,18 @@
-# Request AY — remote speaking ring + downloadable PC app + soft update
+# Request AZ — download page cleanup + favicon app icon
 
-## A. Remote speaking ring (green circle for OTHER people)
-- [x] Verify server relays voice-speaking/voice-state to all room members
-- [x] Add client-side remote VAD fallback (analyse remote audio streams)
-- [x] Ensure voiceUpdateTile reliably toggles .speaking ring for remote users
-- [x] Test multi-speaker ring logic (hysteresis + per-peer analyser)
+## A. Remove ninja script
+- [x] Remove ninja-daytona-script.js from download.html (never re-add)
 
-## B. Downloadable PC file (desktop app)
-- [x] Build Electron desktop wrapper for the website
-- [x] Package into a downloadable file (portable exe)
-- [x] Host the file and get a public link (GitHub Release)
-- [x] Add /download page + in-app download buttons
+## B. PC app icon = favicon
+- [x] Convert /uploads/favicon.jpg to icon.png + icon.ico
+- [x] Update desktop app icon assets
+- [ ] Rebuild the portable exe
+- [ ] Re-upload exe to GitHub release
 
-## C. Soft update for PC version
-- [x] PC app detects when website has been updated (/api/version poll)
-- [x] Show soft update banner / perform soft update
+## C. Download page redesign
+- [x] Make "Get HelloBye for PC" UI less cartoony (more professional)
+- [x] Remove all emojis
 
 ## D. Verify + deploy
-- [ ] Syntax check + smoke test, no data loss
+- [ ] Syntax check + smoke test
 - [ ] Commit + push + verify Render deploy live
-- [ ] Provide file link in chat
