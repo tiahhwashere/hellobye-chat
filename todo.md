@@ -17,4 +17,4 @@
 - [x] Fix voice send latency (optimistic local echo)
 - [x] Fix render lag (O(1) message index, rAF batched scroll, fragment render)
 - [x] Verify syntax + local smoke test, no data loss
-- [ ] Commit + push + verify Render deploy live
+- [x] Commit + push + verify Render deploy live
