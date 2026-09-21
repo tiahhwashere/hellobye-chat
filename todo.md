@@ -1,14 +1,12 @@
-# Request AL — Rename category UI, wider toasts, remove Open Server dropdown, category right-click menu
+# Request AO — Custom "Delete this role?" UI + role icon on right of rank/role + bigger sizes
 
 ## Tasks
-- [x] servers.html: add a proper Rename Category modal UI (replace `prompt()`)
-- [x] servers.html: make toast UIs wider left-to-right
-- [x] index.html: make toast UIs wider left-to-right
-- [x] servers.html: remove "Open server" option from rail dropdown; clicking someone else's server auto-opens it
-- [x] servers.html: add right-click context menu on categories (Edit Category / Delete Category)
-- [x] Verify inline script syntax (node --check) on both files
-- [x] Local smoke test (HTTP 200)
-- [x] Verify data/db.json preserved
-- [x] Commit + push to master
-- [x] Verify Render deploy live + markers
-- [x] Update todo.md and commit
+- [x] servers.html: add custom "Delete this role?" modal UI (`#del-role-modal` + `confirmDeleteRole()`)
+- [ ] servers.html: role icon on the RIGHT side of the rank (role-group-head) + make both sizes bigger
+- [ ] servers.html: role icon on the RIGHT side of the role (member-profile-role, settings-role-badge, msg-role-badge, mi-role) + make sizes bigger
+- [ ] Verify inline script syntax (node --check) on servers.html
+- [ ] Local smoke test (HTTP 200)
+- [ ] Verify data/db.json preserved
+- [ ] Commit + push to master
+- [ ] Verify Render deploy live + markers
+- [ ] Update todo.md and commit
