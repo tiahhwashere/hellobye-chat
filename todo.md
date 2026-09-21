@@ -1,30 +1,22 @@
-# Request AX — voice chat overhaul
+# Request AY — remote speaking ring + downloadable PC app + soft update
 
-## A. Remove emojis + layout
-- [x] Remove 🔊 emoji from voice stage title
-- [x] Make voice stage layout much better (not basic)
+## A. Remote speaking ring (green circle for OTHER people)
+- [x] Verify server relays voice-speaking/voice-state to all room members
+- [x] Add client-side remote VAD fallback (analyse remote audio streams)
+- [x] Ensure voiceUpdateTile reliably toggles .speaking ring for remote users
+- [x] Test multi-speaker ring logic (hysteresis + per-peer analyser)
 
-## B. Persistence across navigation
-- [x] Keep voice call connected when switching servers
-- [x] Keep voice call connected when switching channels
-- [x] Fix bug where voice audio stops working
+## B. Downloadable PC file (desktop app)
+- [x] Build Electron desktop wrapper for the website
+- [x] Package into a downloadable file (portable exe)
+- [x] Host the file and get a public link (GitHub Release)
+- [x] Add /download page + in-app download buttons
 
-## C. Per-user context menu
-- [x] Right-click a user in voice chat -> dropdown (deafen them, volume up, etc.)
+## C. Soft update for PC version
+- [x] PC app detects when website has been updated (/api/version poll)
+- [x] Show soft update banner / perform soft update
 
-## D. Volume + sync + quality
-- [x] Default voice volume 150
-- [x] Sync voice when more than one person talks
-- [x] Ensure very clear voice quality
-
-## E. Notifications + navigation guard
-- [x] Change green notification number to red
-- [x] "Go back to main chat" -> tell user they must leave VC first
-
-## F. Voice Settings
-- [x] Make Voice Settings UI more enhanced
-- [x] Add mic test option in Voice Settings
-
-## G. Verify + deploy
-- [x] Syntax check + smoke test, no data loss
+## D. Verify + deploy
+- [ ] Syntax check + smoke test, no data loss
 - [ ] Commit + push + verify Render deploy live
+- [ ] Provide file link in chat

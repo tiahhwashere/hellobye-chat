@@ -9,6 +9,12 @@ __pycache__/
 .psiphon_data/
 .agent_hooks/
 
+# Desktop app build artifacts (the packaged exe is hosted on GitHub Releases,
+# not committed to the repo). Source lives in desktop/.
+desktop/node_modules/
+desktop/dist/
+download/
+
 # NOTE: we DO commit uploads/ (role badge icons) and data/db.json
 # so the app has its badge images and a fresh DB on first deploy.
 # User-uploaded files added at runtime are ephemeral on Render free tier;

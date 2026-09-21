@@ -7778,6 +7778,9 @@ body.no-anim .friend-item { animation: none !important; }
           <button class="icon-btn" id="profile-btn" title="Profile Settings">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg>
           </button>
+          <button class="icon-btn" id="download-pc-btn" title="Download for PC">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+          </button>
           <button class="icon-btn danger" id="logout-btn" title="Log Out">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
           </button>
@@ -21870,6 +21873,9 @@ $('profile-btn').addEventListener('click', () => {
   if (checkDirtyBeforeAction(openProfilePanel)) return;
   openProfilePanel();
 });
+// Download the HelloBye desktop (PC) app.
+const _dlPcBtn = $('download-pc-btn');
+if (_dlPcBtn) _dlPcBtn.addEventListener('click', () => { window.open('/download', '_blank'); });
 $('profile-close').addEventListener('click', () => {
   if (checkDirtyBeforeAction(() => $('profile-panel').classList.remove('show'))) return;
   $('profile-panel').classList.remove('show');

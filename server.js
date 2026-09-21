@@ -5419,6 +5419,11 @@ app.get('/servers.html', (req, res) => {
   res.set('Expires', '0');
   res.sendFile(path.join(__dirname, 'servers.html'));
 });
+// Download page for the HelloBye desktop (PC) app.
+app.get('/download', (req, res) => {
+  res.set('Cache-Control', 'no-cache');
+  res.sendFile(path.join(__dirname, 'download.html'));
+});
 // Cache root static assets (favicon, icons, etc.) for a day. index.html is
 // served fresh via the catch-all below with no-cache so new deploys are seen
 // immediately, while uploaded images (avatars/banners/GIFs) are already

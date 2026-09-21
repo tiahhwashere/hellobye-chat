@@ -2388,6 +2388,9 @@ input, textarea { font-family: inherit; }
     <button class="rail-btn rail-discover" id="rail-discover" title="Discover servers">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:22px;height:22px;"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
     </button>
+    <button class="rail-btn rail-download" id="rail-download" title="Download for PC">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px;"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+    </button>
   </aside>
 
   <!-- Main -->
@@ -4384,7 +4387,7 @@ function connectSocket() {
       if (u === currentUser.username) return;
       if (!seen.has(u)) {
         const rec = voiceCall.peers.get(u);
-        if (rec) { if (rec.pc) { try { rec.pc.close(); } catch (e) {} } if (rec.audioEl) { try { rec.audioEl.pause(); rec.audioEl.srcObject = null; } catch (e) {} } }
+        if (rec) { if (rec.pc) { try { rec.pc.close(); } catch (e) {} } if (rec.audioEl) { try { rec.audioEl.pause(); rec.audioEl.srcObject = null; } catch (e) {} } if (rec.remoteAnalyser) { try { rec.remoteAnalyser.disconnect(); } catch (e) {} rec.remoteAnalyser = null; } }
         voiceCall.peers.delete(u);
       }
     });
@@ -4406,7 +4409,7 @@ function connectSocket() {
     const rec = voiceCall.peers.get(data.username);
     if (rec) {
       if (rec.pc) { try { rec.pc.close(); } catch (e) {} }
-      if (rec.audioEl) { try { rec.audioEl.pause(); rec.audioEl.srcObject = null; } catch (e) {} }
+      if (rec.audioEl) { try { rec.audioEl.pause(); rec.audioEl.srcObject = null; } catch (e) {} } if (rec.remoteAnalyser) { try { rec.remoteAnalyser.disconnect(); } catch (e) {} rec.remoteAnalyser = null; }
       voiceCall.peers.delete(data.username);
       voiceRenderStage();
     }
@@ -4417,7 +4420,10 @@ function connectSocket() {
     if (!rec) return;
     if (data.muted !== undefined) rec.muted = !!data.muted;
     if (data.deafened !== undefined) rec.deafened = !!data.deafened;
-    if (data.speaking !== undefined) rec.speaking = !!data.speaking;
+    // Speaking: the local remote-VAD is authoritative when we have an analyser
+    // for this peer (it reflects the real audio). The server relay is a fast
+    // path / fallback used before the analyser is attached.
+    if (data.speaking !== undefined && !rec.remoteAnalyser) rec.speaking = !!data.speaking;
     voiceUpdateTile(data.username);
   });
   socket.on('voice-signal', (data) => {
@@ -6805,6 +6811,7 @@ const voiceCall = {
   userDeaf: new Set(),       // usernames muted locally (deafened just for me)
   audioPrefs: { noiseSuppression: true, echoCancellation: true, autoGainControl: true },
   audioCtx: null, analyser: null, vadRaf: 0, lastSpeaking: false,
+  remoteVadRaf: 0,
   minimized: false, healthTimer: 0,
 };
 // channelId -> live occupancy count (drives the sidebar badge).
@@ -6884,6 +6891,7 @@ async function leaveVoiceChannel(silent) {
   const sid = voiceCall.serverId, cid = voiceCall.channelId;
   try { socket.emit('voice-leave', { serverId: sid, channelId: cid }); } catch (e) {}
   voiceStopVAD();
+  voiceStopRemoteVAD();
   voiceStopHealthCheck();
   // Close every peer connection.
   voiceCall.peers.forEach(p => {
@@ -6969,6 +6977,7 @@ function voiceCreatePeer(username, initiator) {
   pc.ontrack = (ev) => {
     if (ev.streams && ev.streams[0]) {
       audioEl.srcObject = ev.streams[0];
+      p.remoteStream = ev.streams[0];
       // Route through a WebAudio gain node so we can amplify past 100%.
       try {
         const ctx = voiceGainCtx();
@@ -6981,6 +6990,8 @@ function voiceCreatePeer(username, initiator) {
           audioEl.volume = 0;   // gain node is now the sole output path
         }
       } catch (e) { /* fall back to element volume */ }
+      // Local analysis of the incoming audio -> reliable green speaking ring.
+      voiceAttachRemoteAnalyser(p);
       const tryPlay = () => audioEl.play().catch(() => {});
       tryPlay();
       // Autoplay policies can block the first play; retry on the next gesture.
@@ -7186,6 +7197,65 @@ function voiceStopVAD() {
   if (voiceCall.audioCtx) { try { voiceCall.audioCtx.close(); } catch (e) {} voiceCall.audioCtx = null; }
   voiceCall.analyser = null;
   voiceCall.lastSpeaking = false;
+}
+
+// ---- Remote VAD (green speaking ring for OTHER people) ----
+// The server relays each speaker's VAD transitions, but that relay can be
+// delayed or dropped. To make the green ring rock-solid we ALSO analyse the
+// actual incoming audio of every remote peer locally: if their stream is
+// producing sound, we light their ring immediately. This is the primary
+// source of truth for "who is talking", with the server relay as a fast path.
+function voiceAttachRemoteAnalyser(p) {
+  if (!p || p.self || p.remoteAnalyser) return;
+  try {
+    const ctx = voiceGainCtx();
+    if (!ctx || !p.remoteStream) return;
+    const src = ctx.createMediaStreamSource(p.remoteStream);
+    const an = ctx.createAnalyser();
+    an.fftSize = 512;
+    an.smoothingTimeConstant = 0.6;
+    src.connect(an);
+    p.remoteAnalyser = an;
+    p.remoteBuf = new Uint8Array(an.fftSize);
+    p.remoteSpeaking = false;
+    p.remoteLastLoud = 0;
+    voiceStartRemoteVAD();
+  } catch (e) { /* remote VAD optional */ }
+}
+function voiceStartRemoteVAD() {
+  if (voiceCall.remoteVadRaf) return;
+  const loop = () => {
+    if (!voiceCall.active) { voiceCall.remoteVadRaf = 0; return; }
+    const now = performance.now();
+    voiceCall.peers.forEach((p) => {
+      if (p.self || !p.remoteAnalyser) return;
+      p.remoteAnalyser.getByteTimeDomainData(p.remoteBuf);
+      let sum = 0;
+      const buf = p.remoteBuf;
+      for (let i = 0; i < buf.length; i++) { const v = (buf[i] - 128) / 128; sum += v * v; }
+      const rms = Math.sqrt(sum / buf.length);
+      // Hysteresis: a higher bar to start speaking, a lower bar to stop, so the
+      // ring doesn't flicker on background noise or between syllables.
+      const startTh = 0.035, stopTh = 0.018;
+      if (rms > startTh) p.remoteLastLoud = now;
+      const loud = (now - p.remoteLastLoud) < 220;
+      const speaking = loud && !p.muted && !p.deafened;
+      if (speaking !== p.remoteSpeaking) {
+        p.remoteSpeaking = speaking;
+        p.speaking = speaking;
+        voiceUpdateTile(p.username);
+      }
+    });
+    voiceCall.remoteVadRaf = requestAnimationFrame(loop);
+  };
+  voiceCall.remoteVadRaf = requestAnimationFrame(loop);
+}
+function voiceStopRemoteVAD() {
+  if (voiceCall.remoteVadRaf) { cancelAnimationFrame(voiceCall.remoteVadRaf); voiceCall.remoteVadRaf = 0; }
+  voiceCall.peers.forEach((p) => {
+    if (p.remoteAnalyser) { try { p.remoteAnalyser.disconnect(); } catch (e) {} }
+    p.remoteAnalyser = null; p.remoteBuf = null; p.remoteSpeaking = false;
+  });
 }
 
 // ---- Per-user context menu (right-click a tile) ----
@@ -8157,6 +8227,8 @@ $('discover-search').addEventListener('input', () => {
 });
 $('empty-discover').addEventListener('click', openDiscover);
 $('rail-discover').addEventListener('click', openDiscover);
+const _railDl = $('rail-download');
+if (_railDl) _railDl.addEventListener('click', () => { window.open('/download', '_blank'); });
 $('join-open-discover').addEventListener('click', () => { closeModal('join-modal'); openDiscover(); });
 
 /* ============================================================
