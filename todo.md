@@ -1,42 +1,32 @@
-# Request BI — webhook delete UI, short invite links, embed icons, role UI, audit logs, private server, profile roles, private profile UI, leave server UI
+# Request BJ — free invite codes, Create Role UI, remove SVGs, revamp UIs, bigger role icons
 
-## 1. Custom "Delete webhook" confirmation UI (replace browser confirm)
-- [x] Build custom confirm modal
-- [x] Wire into webhook delete
+## 1. Free up custom invite codes when changed/removed
+- [x] Backend: prune expired invites so codes free up
+- [x] Backend: isInviteCodeTaken only counts live invites
+- [x] Backend: same-server re-claim refreshes instead of erroring
+- [x] node --check server.js
 
-## 2. Short invite links display (./code) when custom link used
-- [x] Detect custom short links vs long servers.html?invite=
-- [x] Render as ./code
+## 2. Create Role UI — make role options visible & better
+- [x] Replace tabbed perm-shell with fully-visible grouped layout
+- [x] Verify inline JS (checkjs.py)
 
-## 3. Remove icon/SVG on video/audio/gif/image embeds
-- [x] Remove mfc-ic icon from media download bar
+## 3. Remove SVG icon from Leave Server + Delete webhook UIs
+- [x] Remove wh-del-mark from leave-server-modal
+- [x] Remove wh-del-mark from wh-delete-modal
+- [x] Remove associated CSS
 
-## 4. "Create Role" UI — General Server options well made, no emojis/cartoony
-- [x] Review role editor General tab
-- [x] Redesign options
+## 4. Revamp Preferences, Channels, Invites, Server Overview UIs
+- [x] Revamp Preferences pane (pref-rows)
+- [x] Revamp Channels pane (grouped list)
+- [x] Revamp Invites pane (create card + list)
+- [x] Revamp Server Overview pane (hero)
 
-## 5. Server Settings — Audit Logs (owner/admins only)
-- [x] Backend audit log storage + endpoints
-- [x] Frontend audit log UI
-- [x] Log messages/media/kick/ban
+## 5. Bigger role icons (Assign Roles, profile, chat, members list)
+- [x] Increase badge sizes in CSS
+- [x] Add badge image to Assign Roles rows
 
-## 6. Better Accent color / custom UI (no emojis/cartoony)
-- [x] Review accent color UI
-- [x] Improve
-
-## 7. Server Settings — private server + request-to-join (accept/decline)
-- [x] Backend private flag + join requests
-- [x] Frontend request management UI
-
-## 8. Profile roles bigger
-- [x] Increase role chip size
-
-## 9. Main chat "This Profile is Private" UI — better/advanced, no icons/SVG
-- [x] Redesign private profile UI
-
-## 10. "Leave Server" UI
-- [x] Build leave server UI
-
-## 11. Verify + deploy
-- [ ] Syntax checks
-- [ ] Commit + push + Render deploy + verify
+## 6. Verify + deploy
+- [ ] node --check server.js
+- [ ] python3 checkjs.py servers.html
+- [ ] git commit + push
+- [ ] Render deploy + verify live

@@ -3109,6 +3109,24 @@ function findInviteByCode(code) {
   }
   return null;
 }
+// Is a custom code currently in use by a LIVE (non-expired) invite? Expired
+// invites no longer reserve their code, so the name frees up automatically.
+function isInviteCodeTaken(code) {
+  const found = findInviteByCode(code);
+  return !!(found && !found.expired);
+}
+// Drop expired invites across every server so their codes become reusable.
+function pruneExpiredInvites() {
+  const now = Date.now();
+  let changed = false;
+  for (const s of Object.values(db.servers || {})) {
+    if (!Array.isArray(s.invites)) continue;
+    const before = s.invites.length;
+    s.invites = s.invites.filter(i => !i.expiresAt || i.expiresAt > now);
+    if (s.invites.length !== before) changed = true;
+  }
+  return changed;
+}
 // Ensure a user has a member profile record inside a server.
 function ensureServerMemberProfile(server, username) {
   if (!server.memberProfiles) server.memberProfiles = {};
@@ -3902,7 +3920,21 @@ app.post('/api/servers/:id/invites', authMiddleware, (req, res) => {
     // User wants a custom vanity link (e.g. /test, /hello).
     const v = validateCustomInviteCode(customCode);
     if (!v.ok) return res.status(400).json({ error: v.error });
-    if (findInviteByCode(v.code)) return res.status(409).json({ error: 'That link is already taken — try another' });
+    // Expired invites don't reserve their code — prune them so the name frees up.
+    if (pruneExpiredInvites()) saveDB();
+    const taken = findInviteByCode(v.code);
+    if (taken && !taken.expired) {
+      // If this server already owns the code, refresh it instead of erroring.
+      if (taken.server.id === s.id) {
+        taken.invite.expiresAt = expiresAt;
+        taken.invite.createdBy = req.user.username;
+        taken.invite.custom = true;
+        s.updatedAt = nowISO();
+        saveDB();
+        return res.json({ success: true, invite: taken.invite, url: '/servers.html?invite=' + v.code });
+      }
+      return res.status(409).json({ error: 'That link is already taken — try another' });
+    }
     code = v.code;
   } else {
     do { code = genInviteCode(); } while (findInviteByCode(code));
@@ -3922,8 +3954,8 @@ app.get('/api/servers/:id/invites/check', authMiddleware, (req, res) => {
   if (!serverHasPerm(s, req.user.username, 'invite')) return res.status(403).json({ error: 'You do not have permission to manage invites' });
   const v = validateCustomInviteCode(req.query.code);
   if (!v.ok) return res.json({ available: false, error: v.error });
-  const existing = findInviteByCode(v.code);
-  if (existing) return res.json({ available: false, error: 'That link is already taken — try another' });
+  if (pruneExpiredInvites()) saveDB();
+  if (isInviteCodeTaken(v.code)) return res.json({ available: false, error: 'That link is already taken — try another' });
   res.json({ available: true, code: v.code });
 });
 
