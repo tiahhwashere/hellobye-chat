@@ -873,19 +873,32 @@ input, textarea { font-family: inherit; }
 .vs-badge { width: 24px; height: 24px; border-radius: 7px; display: inline-flex; align-items: center; justify-content: center; background: var(--bg-darkest); color: var(--text-muted); }
 .vs-badge.on { background: rgba(224,82,82,0.16); color: #e05252; }
 .vs-badge svg { width: 14px; height: 14px; }
-/* Video tiles (camera / screen share) */
-.vs-tile.has-video { padding: 0; align-items: stretch; justify-content: stretch; background: #000; }
+/* Video tiles (camera / screen share) — rendered much larger than avatar tiles */
+.vs-tile.has-video { padding: 0; align-items: stretch; justify-content: stretch; background: #000; grid-column: span 2; grid-row: span 2; min-height: 300px; cursor: zoom-in; }
 .vs-tile.has-video .vs-avatar-wrap, .vs-tile.has-video .vs-name, .vs-tile.has-video .vs-badges { display: none; }
 .vs-video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; background: #000; border-radius: inherit; }
 .vs-tile.has-video .vs-video { position: relative; }
-.vs-video-label { position: absolute; left: 10px; bottom: 10px; z-index: 3; display: inline-flex; align-items: center; gap: 6px; padding: 4px 9px; border-radius: 8px; background: rgba(0,0,0,0.62); color: #fff; font-size: 11.5px; font-weight: 600; backdrop-filter: blur(4px); }
-.vs-video-label svg { width: 13px; height: 13px; }
-.vs-video-badges { position: absolute; right: 10px; bottom: 10px; z-index: 3; display: flex; gap: 6px; }
+.vs-video-label { position: absolute; left: 12px; bottom: 12px; z-index: 3; display: inline-flex; align-items: center; gap: 7px; padding: 6px 12px; border-radius: 9px; background: rgba(0,0,0,0.66); color: #fff; font-size: 13px; font-weight: 700; backdrop-filter: blur(4px); }
+.vs-video-label svg { width: 15px; height: 15px; }
+.vs-video-badges { position: absolute; right: 12px; bottom: 12px; z-index: 3; display: flex; gap: 6px; }
+.vs-video-expand { position: absolute; top: 12px; right: 12px; z-index: 3; width: 34px; height: 34px; border-radius: 9px; display: inline-flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.55); color: #fff; border: 1px solid rgba(255,255,255,0.18); opacity: 0; transition: opacity 0.15s ease, background 0.15s ease; }
+.vs-tile.has-video:hover .vs-video-expand { opacity: 1; }
+.vs-video-expand:hover { background: rgba(0,0,0,0.8); }
+.vs-video-expand svg { width: 17px; height: 17px; }
 .vs-tile.screen .vs-video { object-fit: contain; }
+/* Fullscreen video lightbox (click a video tile to zoom in) */
+.vs-lightbox { position: fixed; inset: 0; z-index: 6000; display: none; align-items: center; justify-content: center; background: rgba(0,0,0,0.92); backdrop-filter: blur(6px); }
+.vs-lightbox.show { display: flex; animation: vsLbIn 0.16s ease; }
+@keyframes vsLbIn { from { opacity: 0; } to { opacity: 1; } }
+.vs-lightbox video { max-width: 96vw; max-height: 92vh; width: auto; height: auto; background: #000; border-radius: 12px; box-shadow: 0 30px 90px rgba(0,0,0,0.7); }
+.vs-lightbox-label { position: absolute; top: 20px; left: 24px; display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 10px; background: rgba(0,0,0,0.6); color: #fff; font-size: 14px; font-weight: 700; }
+.vs-lightbox-label svg { width: 16px; height: 16px; }
+.vs-lightbox-close { position: absolute; top: 18px; right: 22px; width: 42px; height: 42px; border-radius: 11px; display: inline-flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.18); transition: var(--transition); }
+.vs-lightbox-close:hover { background: var(--danger); border-color: var(--danger); }
+.vs-lightbox-close svg { width: 20px; height: 20px; }
 /* Screen-share / camera control buttons */
 .vs-ctl.vs-ctl-on { background: rgba(var(--accent-rgb),0.16); border-color: rgba(var(--accent-rgb),0.5); color: var(--accent); }
 .vs-ctl.vs-ctl-on:hover { background: rgba(var(--accent-rgb),0.24); }
-.vs-tile.self .vs-name::after { content: ' (you)'; color: var(--text-muted); font-weight: 500; }
 .vs-empty { grid-column: 1 / -1; text-align: center; color: var(--text-muted); font-size: 14px; padding: 40px 0; }
 /* ---- Control bar: a single professional pill with grouped controls ---- */
 .vs-controls { position: relative; z-index: 2; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 16px 20px; border-top: 1px solid var(--border); flex-shrink: 0; background: linear-gradient(0deg, rgba(0,0,0,0.16), transparent); }
@@ -1032,6 +1045,7 @@ input, textarea { font-family: inherit; }
   .vs-avatar { font-size: 25px; }
   .vs-ctl { min-width: 62px; padding: 9px 10px; }
   .vs-title { font-size: 14px; }
+  .vs-tile.has-video { grid-column: 1 / -1; grid-row: auto; min-height: 200px; }
 }
 
 /* ---------- Microphone permission modal (in-app, replaces the browser prompt) ---------- */
@@ -2714,6 +2728,14 @@ input, textarea { font-family: inherit; }
               <span class="vs-ctl-label">Leave</span>
             </button>
           </div>
+        </div>
+        <!-- Fullscreen video lightbox (click a camera/screen tile to zoom in) -->
+        <div class="vs-lightbox" id="vs-lightbox">
+          <div class="vs-lightbox-label" id="vs-lightbox-label"></div>
+          <button class="vs-lightbox-close" id="vs-lightbox-close" title="Close" aria-label="Close">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+          <video id="vs-lightbox-video" autoplay playsinline></video>
         </div>
         <div class="server-input-area" id="server-input-area">
           <div class="srv-reply-preview" id="srv-reply-preview" style="display:none;">
@@ -7429,6 +7451,7 @@ async function leaveVoiceChannel(silent) {
   voiceStopHealthCheck();
   voiceStopTimer();
   // Tear down any active screen-share / camera streams.
+  try { voiceCloseLightbox(); } catch (e) {}
   try { voiceStopScreenShare(true); } catch (e) {}
   try { voiceStopCamera(true); } catch (e) {}
   // Close every peer connection.
@@ -7845,6 +7868,7 @@ function voiceRenderStage() {
         : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>';
       return '<div class="vs-tile has-video' + (p.self ? ' self' : '') + (p.speaking ? ' speaking' : '') + (isScreen ? ' screen' : '') + '" data-voice-user="' + escapeAttr(p.username) + '">' +
         '<video class="vs-video" autoplay playsinline' + (p.self ? ' muted' : '') + '></video>' +
+        '<button class="vs-video-expand" title="Fullscreen" aria-label="Fullscreen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg></button>' +
         '<div class="vs-video-label">' + label + escapeHtml(name) + (isScreen ? ' \u00b7 Screen' : '') + '</div>' +
         '<div class="vs-video-badges">' + micBadge + deafBadge + '</div>' +
       '</div>';
@@ -7866,10 +7890,44 @@ function voiceRenderStage() {
     const stream = p.self ? (voiceCall.screenStream || voiceCall.cameraStream) : p.remoteVideoStream;
     if (stream && vid.srcObject !== stream) { try { vid.srcObject = stream; vid.play().catch(() => {}); } catch (e) {} }
   });
+  // Click a video tile (or its expand button) to zoom it to fullscreen.
+  grid.querySelectorAll('.vs-tile.has-video').forEach(tile => {
+    const open = (e) => { e.stopPropagation(); voiceOpenLightbox(tile.dataset.voiceUser); };
+    tile.addEventListener('click', open);
+    const exp = tile.querySelector('.vs-video-expand');
+    if (exp) exp.addEventListener('click', open);
+  });
   // Paint the static first frame for any GIF avatars just rendered.
   grid.querySelectorAll('canvas.vs-avatar-gif-static').forEach(voicePaintGifStatic);
   voiceUpdateSub();
   voiceUpdateMiniBar();
+}
+// ---- Fullscreen video lightbox ----
+function voiceOpenLightbox(username) {
+  const p = voiceCall.peers.get(username);
+  if (!p) return;
+  const lb = $('vs-lightbox'), vid = $('vs-lightbox-video'), lbl = $('vs-lightbox-label');
+  if (!lb || !vid) return;
+  const member = (activeServer && activeServer.members || []).find(x => x.username === username) || {};
+  const name = member.nickname || member.displayName || username;
+  const sharing = p.self ? !!voiceCall.screenSharing : !!p.screenSharing;
+  const stream = p.self ? (voiceCall.screenStream || voiceCall.cameraStream) : p.remoteVideoStream;
+  if (!stream) return;
+  if (lbl) {
+    const ic = sharing
+      ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>'
+      : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>';
+    lbl.innerHTML = ic + escapeHtml(name) + (sharing ? ' \u00b7 Screen' : '');
+  }
+  // Always mute the lightbox video: audio is played through the peer's own
+  // audio element, so this avoids any double-audio / echo.
+  try { vid.srcObject = stream; vid.muted = true; vid.play().catch(() => {}); } catch (e) {}
+  lb.classList.add('show');
+}
+function voiceCloseLightbox() {
+  const lb = $('vs-lightbox'), vid = $('vs-lightbox-video');
+  if (lb) lb.classList.remove('show');
+  if (vid) { try { vid.pause(); vid.srcObject = null; } catch (e) {} }
 }
 function voiceUpdateTile(username) {
   const p = voiceCall.peers.get(username);
@@ -8059,6 +8117,17 @@ function voiceChatPush(msg) {
   if (!msg) return;
   // De-dupe by id (the server echoes our own message back).
   if (voiceChat.messages.some(m => m.id === msg.id)) return;
+  // De-dupe our own optimistic echo: the server broadcast carries the same
+  // clientId as our optimistic copy, so replace it instead of adding a second
+  // one (this is what caused messages to appear twice for the sender).
+  if (msg.clientId) {
+    const idx = voiceChat.messages.findIndex(m => m.clientId && m.clientId === msg.clientId);
+    if (idx >= 0) {
+      voiceChat.messages[idx] = msg;
+      if (voiceChat.open) voiceChatRender();
+      return;
+    }
+  }
   voiceChat.messages.push(msg);
   if (voiceChat.messages.length > VS_CHAT_MAX) voiceChat.messages = voiceChat.messages.slice(-VS_CHAT_MAX);
   if (voiceChat.open) {
@@ -8451,6 +8520,10 @@ if ($('vs-minimize-btn')) $('vs-minimize-btn').addEventListener('click', () => {
 if ($('vs-settings-btn')) $('vs-settings-btn').addEventListener('click', () => voiceOpenSettings());
 if ($('vs-camera')) $('vs-camera').addEventListener('click', () => voiceToggleCamera());
 if ($('vs-screenshare')) $('vs-screenshare').addEventListener('click', () => voiceToggleScreenShare());
+// Fullscreen video lightbox.
+if ($('vs-lightbox-close')) $('vs-lightbox-close').addEventListener('click', voiceCloseLightbox);
+if ($('vs-lightbox')) $('vs-lightbox').addEventListener('click', (e) => { if (e.target === $('vs-lightbox')) voiceCloseLightbox(); });
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') voiceCloseLightbox(); });
 // Mini voice bar controls.
 if ($('mini-voice')) $('mini-voice').addEventListener('click', (e) => { if (e.target.closest('.mv-btn')) return; voiceReturnToCall(); });
 if ($('mv-mute')) $('mv-mute').addEventListener('click', (e) => { e.stopPropagation(); voiceSetMuted(!voiceCall.muted); });
