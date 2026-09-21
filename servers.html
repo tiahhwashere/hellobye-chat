@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Servers — hellobye</title>
 <link rel="icon" type="image/jpeg" href="/uploads/favicon.jpg">
 <link rel="apple-touch-icon" href="/uploads/favicon.jpg">
@@ -1838,6 +1838,22 @@ input, textarea { font-family: inherit; }
   body { overscroll-behavior-y: contain; }
 }
 
+/* Request BL — responsive support for the wider Server Settings modal and
+   the full-bleed profile preview banner on small screens. */
+@media (max-width: 900px) {
+  .settings-modal { max-width: 100% !important; width: 100vw !important; }
+  .settings-body { padding: 20px 18px 26px; }
+  .settings-modal .modal-body { padding: 16px 16px 20px; }
+}
+@media (max-width: 640px) {
+  .settings-modal { width: 100vw !important; max-width: 100% !important; height: 100dvh; max-height: 100dvh; border-radius: 0; }
+  .settings-body { padding: 16px 14px 24px; }
+  .settings-modal .modal-body { padding: 14px 14px 18px; }
+  .pref-row { padding: 16px 12px; }
+  .member-profile-modal { max-width: 100% !important; width: 100vw !important; }
+  .member-profile-banner { height: 180px; }
+}
+
 /* Phones: keep the composer usable and the header compact. */
 @media (max-width: 640px) {
   .server-messages { padding: 12px 10px calc(12px + env(safe-area-inset-bottom, 0px)); }
@@ -2305,10 +2321,22 @@ input, textarea { font-family: inherit; }
 .mention-user { background: rgba(74,158,255,0.16); color: var(--accent-light); font-weight: 600; border-radius: 4px; padding: 0 4px; cursor: pointer; transition: background var(--transition), color var(--transition); }
 .mention-user:hover { background: rgba(74,158,255,0.30); color: #cfe6ff; }
 .mention-user.mention-me { background: rgba(74,158,255,0.32); color: #cfe6ff; }
+/* #channel mentions — clickable, jumps to that channel. */
+.mention-channel { background: rgba(74,158,255,0.14); color: var(--accent-light); font-weight: 600; border-radius: 4px; padding: 0 4px; cursor: pointer; transition: background var(--transition), color var(--transition); }
+.mention-channel:hover { background: rgba(74,158,255,0.30); color: #cfe6ff; }
+.mention-channel.mention-channel-missing { background: rgba(120,120,130,0.16); color: var(--text-muted); cursor: not-allowed; }
 .msg-group.mention-ping { background: rgba(201,162,39,0.10); border-left: 3px solid #c9a227; border-radius: 6px; }
+/* @here / @everyone sent by the owner or an admin glows RED instead of yellow. */
+.msg-group.mention-ping.mention-admin { background: rgba(216,58,58,0.13); border-left: 3px solid #d83a3a; box-shadow: inset 0 0 22px rgba(216,58,58,0.10); }
+.msg-group.mention-ping.mention-admin .mention-everyone { background: rgba(216,58,58,0.30); color: #ffb3b3; }
+.msg-group.mention-ping.mention-admin .mention-here { background: rgba(216,58,58,0.24); color: #ffc2c2; }
 .msg-group.msg-flash { animation: msgFlash 1.2s ease; }
 @keyframes msgFlash { 0%,100% { background: transparent; } 30% { background: rgba(74,158,255,0.18); } }
 .channel-item .ch-ping-dot { width: 7px; height: 7px; border-radius: 50%; background: #c9a227; margin-left: auto; flex-shrink: 0; box-shadow: 0 0 0 2px rgba(201,162,39,0.28); animation: pingPulse 1.6s ease-in-out infinite; }
+/* Unread message indicator — a small white dot beside the channel name,
+   cleared as soon as the user opens that channel. */
+.channel-item .ch-unread-dot { width: 8px; height: 8px; border-radius: 50%; background: #ffffff; margin-left: auto; flex-shrink: 0; box-shadow: 0 0 0 2px rgba(255,255,255,0.22); }
+.channel-item .ch-unread-dot + .ch-ping-dot { margin-left: 6px; }
 /* Voice channels: speaker icon + live occupancy badge */
 .channel-item.voice-ch svg { opacity: 0.85; }
 .channel-item.voice-ch.active { background: rgba(var(--accent-rgb),0.14); }
@@ -2352,8 +2380,8 @@ input, textarea { font-family: inherit; }
    Request AG — Advanced, professional Server Settings
    (flat surfaces, hairline borders, no cartoony bounce/gloss)
    ============================================================ */
-.settings-modal { max-width: 1240px; width: 97vw; }
-.settings-modal .modal-body { padding: 20px 28px 26px; }
+.settings-modal { max-width: 1480px; width: 98vw; }
+.settings-modal .modal-body { padding: 20px 30px 28px; }
 /* Tabbed shell: nav rail on the left, scrollable pane on the right */
 .settings-shell { display: flex; align-items: stretch; min-height: 460px; max-height: 74vh; }
 .settings-nav { flex: 0 0 208px; display: flex; flex-direction: column; gap: 3px; padding: 16px 12px; border-right: 1px solid var(--border); background: var(--bg-darker); overflow-y: auto; }
@@ -2365,7 +2393,7 @@ input, textarea { font-family: inherit; }
 .settings-nav-item.danger { color: #ff9a9a; }
 .settings-nav-item.danger:hover { background: rgba(227,93,93,0.12); color: #ffb3b3; }
 .settings-nav-item.danger.active { background: rgba(227,93,93,0.16); color: #ffb3b3; }
-.settings-body { flex: 1; min-width: 0; overflow-y: auto; padding: 22px 26px 26px; }
+.settings-body { flex: 1; min-width: 0; overflow-y: auto; padding: 26px 38px 34px; }
 .settings-pane { display: none; }
 .settings-pane.active { display: block; animation: paneIn 0.2s ease; }
 @keyframes paneIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
@@ -2524,25 +2552,26 @@ input, textarea { font-family: inherit; }
 .ov-hero-name { font-size: 20px; font-weight: 800; letter-spacing: -0.3px; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ov-hero-meta { font-size: 12.5px; color: var(--text-muted); margin-top: 3px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
 
-/* Preferences: setting rows */
-.pref-row { display: flex; align-items: center; gap: 20px; padding: 18px 0; border-top: 1px solid var(--border); }
-.pref-row:first-of-type { border-top: none; padding-top: 4px; }
-.pref-row:last-of-type { padding-bottom: 4px; }
-.pref-row .pref-info { flex: 1; min-width: 0; }
-.pref-row .pref-label { font-size: 14px; font-weight: 650; color: var(--text-primary); letter-spacing: -0.1px; }
-.pref-row .pref-sub { font-size: 12.5px; color: var(--text-muted); margin-top: 4px; line-height: 1.55; max-width: 46ch; }
-.pref-row .pref-control { flex-shrink: 0; min-width: 220px; }
+/* Preferences: setting rows — roomy, clearly separated, easy to read */
+.pref-row { display: flex; align-items: center; gap: 28px; padding: 20px 16px; border-top: 1px solid var(--border); border-radius: 10px; transition: background 0.16s ease; }
+.pref-row:hover { background: var(--bg-darkest); }
+.pref-row:first-of-type { border-top: none; padding-top: 8px; }
+.pref-row:last-of-type { padding-bottom: 8px; }
+.pref-row .pref-info { flex: 1 1 auto; min-width: 0; }
+.pref-row .pref-label { font-size: 14.5px; font-weight: 700; color: var(--text-primary); letter-spacing: -0.1px; line-height: 1.35; }
+.pref-row .pref-sub { font-size: 13px; color: var(--text-secondary); margin-top: 6px; line-height: 1.6; max-width: 54ch; }
+.pref-row .pref-control { flex: 0 0 auto; min-width: 260px; max-width: 320px; }
 .pref-row .pref-control select { width: 100%; }
 .pref-row .pref-control .seg-control { width: 100%; }
 .pref-row .pref-control .seg-control button { flex: 1; text-align: center; }
 .pref-row .pref-control .switch { margin-left: auto; }
 .pref-row .pref-control textarea { width: 100%; }
 /* Preferences: roomier cards + section titles */
-.settings-pane[data-pane="preferences"] .settings-card { padding: 20px 22px; }
-.settings-pane[data-pane="preferences"] .settings-card .sc-title { font-size: 14.5px; font-weight: 750; margin-bottom: 4px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
-.settings-pane[data-pane="preferences"] .settings-card .sc-desc { margin-top: 10px; }
-.settings-pane[data-pane="preferences"] .settings-grid { gap: 20px 24px; }
-@media (max-width: 620px) { .pref-row { flex-direction: column; align-items: stretch; gap: 10px; } .pref-row .pref-control { min-width: 0; } .pref-row .pref-sub { max-width: none; } }
+.settings-pane[data-pane="preferences"] .settings-card { padding: 22px 24px; }
+.settings-pane[data-pane="preferences"] .settings-card .sc-title { font-size: 15px; font-weight: 750; margin-bottom: 6px; padding-bottom: 14px; border-bottom: 1px solid var(--border); }
+.settings-pane[data-pane="preferences"] .settings-card .sc-desc { margin-top: 12px; }
+.settings-pane[data-pane="preferences"] .settings-grid { gap: 22px 28px; }
+@media (max-width: 900px) { .pref-row { flex-direction: column; align-items: stretch; gap: 12px; } .pref-row .pref-control { min-width: 0; max-width: none; } .pref-row .pref-sub { max-width: none; } }
 
 /* Channels: grouped list */
 .ch-group { margin-bottom: 18px; }
@@ -4343,6 +4372,7 @@ let selectedInviteMins = 0;
 let viewingMember = null;
 let displayRolesSeparately = localStorage.getItem('hb_roles_separate') === '1';
 let channelPings = {};        // channelId -> true when an unread @everyone/@here ping exists
+let channelUnread = {};       // channelId -> true when an unread message exists (white dot)
 let chEditorPrivacy = 'public';
 let chEditorChat = 'none';
 let chEditorType = 'text';
@@ -4952,7 +4982,16 @@ function connectSocket() {
   socket.on('connect', () => { if (activeServerId) loadServer(activeServerId, true); try { voiceRejoinAfterReconnect(); } catch (e) {} });
   socket.on('server-message', (data) => {
     if (!data || data.serverId !== activeServerId) return;
-    if (data.channelId !== activeChannelId) return;
+    if (data.channelId !== activeChannelId) {
+      // A message arrived in a channel the user isn't viewing — flag it with a
+      // white unread dot (cleared the moment they open that channel).
+      const _m = data.message;
+      if (_m && _m.from !== currentUser.username) {
+        channelUnread[data.channelId] = true;
+        renderChannels();
+      }
+      return;
+    }
     const m = data.message;
     // Server chats are never encrypted — render the plaintext directly.
     // Reconcile any optimistic (locally-echoed) message that this echo replaces.
@@ -5627,6 +5666,7 @@ function renderChannels() {
     el.className = 'channel-item' + (c.id === activeChannelId ? ' active' : '') + (c.private ? ' private-ch' : '') + (isVoice ? ' voice-ch' : '');
     const lock = c.private ? '<span class="ch-lock" title="Private channel">' + icon('lock', 'sm') + '</span>' : '';
     const muted = (!isVoice && c.chatDisabledFor && c.chatDisabledFor !== 'none') ? '<span class="ch-muted" title="Chat restricted">' + (c.chatDisabledFor === 'everyone' ? icon('ban', 'sm') : icon('star', 'sm')) + '</span>' : '';
+    const unreadDot = (!isVoice && channelUnread[c.id] && c.id !== activeChannelId) ? '<span class="ch-unread-dot" title="Unread messages"></span>' : '';
     const pingDot = (!isVoice && channelPings[c.id]) ? '<span class="ch-ping-dot" title="You were pinged"></span>' : '';
     const chIcon = isVoice
       ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>'
@@ -5635,7 +5675,7 @@ function renderChannels() {
     const occ = isVoice ? voiceOccupancy(c.id) : 0;
     const occBadge = occ ? '<span class="ch-voice-count" title="' + occ + ' in call">' + occ + '</span>' : '';
     el.innerHTML = chIcon +
-      '<span class="ch-name">' + escapeHtml(c.name) + lock + muted + '</span>' + pingDot + occBadge +
+      '<span class="ch-name">' + escapeHtml(c.name) + lock + muted + '</span>' + unreadDot + pingDot + occBadge +
       (canManage ? '<span class="ch-edit" title="Edit">' + icon('edit', 'sm') + '</span>' : '');
     el.addEventListener('click', (e) => {
       if (e.target.closest('.ch-edit')) { e.stopPropagation(); openChannelEditor(c); return; }
@@ -6073,6 +6113,7 @@ async function openChannel(channelId) {
     if (activeServerId) localStorage.setItem('hb_last_channel_' + activeServerId, channelId);
   } catch (e) {}
   delete channelPings[channelId];
+  delete channelUnread[channelId];
   closeThread();
   channelThreads = {};
   // Opening a text channel hides the voice stage (the call keeps running in
@@ -6148,10 +6189,23 @@ function buildMessageGroup(m, inThread) {
   const g = document.createElement('div');
   g.className = 'msg-group' + (isOwn ? ' own' : '') + (isWebhook ? ' msg-webhook' : '');
   g.dataset.msgId = m.id;
-  // Highlight messages that ping @everyone / @here
+  // Highlight messages that ping @everyone / @here. When the sender is the
+  // server owner or an admin, the highlight glows RED instead of yellow.
   const _rawText = m._plain !== undefined && m._plain !== null ? m._plain : (m.text || '');
-  if (/@everyone\b/.test(_rawText) || /@here\b/.test(_rawText)) g.classList.add('mention-ping');
-  else if (new RegExp('@' + currentUser.username.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b').test(_rawText)) g.classList.add('mention-ping');
+  const _senderMember = (activeServer.members || []).find(x => x.username === m.from) || {};
+  const _senderIsAdmin = !!_senderMember.isOwner || (activeServer.owner === m.from) || (function () {
+    for (const rid of (_senderMember.roleIds || [])) {
+      const role = (activeServer.roles || []).find(r => r.id === rid);
+      if (role && role.permissions && (role.permissions.administrator || role.permissions.manageMessages || role.permissions.mentionEveryone)) return true;
+    }
+    return false;
+  })();
+  if (/@everyone\b/.test(_rawText) || /@here\b/.test(_rawText)) {
+    g.classList.add('mention-ping');
+    if (_senderIsAdmin) g.classList.add('mention-admin');
+  } else if (new RegExp('@' + currentUser.username.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b').test(_rawText)) {
+    g.classList.add('mention-ping');
+  }
 
   const av = document.createElement('div');
   av.className = 'msg-avatar';
@@ -6674,6 +6728,24 @@ document.addEventListener('keydown', (e) => {
   const uname = el.getAttribute('data-mention-user');
   if (uname) openMemberProfile(uname);
 });
+// Delegated click: clicking a #channel mention jumps to that channel.
+document.addEventListener('click', (e) => {
+  const el = e.target.closest && e.target.closest('#server-messages [data-mention-channel]');
+  if (!el) return;
+  e.preventDefault();
+  e.stopPropagation();
+  const cid = el.getAttribute('data-mention-channel');
+  if (cid) openChannel(cid);
+});
+// Keyboard access for #channel mention chips (Enter / Space).
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'Enter' && e.key !== ' ') return;
+  const el = e.target.closest && e.target.closest('#server-messages [data-mention-channel]');
+  if (!el) return;
+  e.preventDefault();
+  const cid = el.getAttribute('data-mention-channel');
+  if (cid) openChannel(cid);
+});
 function formatFileSize(bytes) {
   const n = Number(bytes);
   if (!Number.isFinite(n) || n <= 0) return '';
@@ -6791,6 +6863,18 @@ function linkify(html) {
       });
     }
   }
+  // Highlight #channel mentions that match a real channel in this server.
+  if (activeServer && Array.isArray(activeServer.channels) && activeServer.channels.length) {
+    const chNames = activeServer.channels.map(c => c.name).filter(Boolean).sort((a, b) => b.length - a.length);
+    if (chNames.length) {
+      const chRe = new RegExp('(^|\\s)#(' + chNames.map(n => n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|') + ')(?=\\s|$|[.,!?;:])', 'g');
+      html = html.replace(chRe, (full, pre, cname) => {
+        const ch = activeServer.channels.find(c => c.name === cname);
+        if (!ch) return full;
+        return pre + '<span class="mention-channel" data-mention-channel="' + escapeAttr(ch.id) + '" role="button" tabindex="0" title="Go to #' + escapeAttr(cname) + '">#' + escapeHtml(cname) + '</span>';
+      });
+    }
+  }
   return html.replace(/(https?:\/\/[^\s<]+)/g, (u) => {
     const clean = u.replace(/[.,;:!?)]+$/, '');
     const trail = u.slice(clean.length);
@@ -6814,8 +6898,15 @@ function linkify(html) {
 // Extract an invite code from a hellobye invite URL (or a bare /invite/CODE path).
 function inviteCodeFromUrl(url) {
   try {
-    const m = String(url).match(/[?&]invite=([a-z0-9]+)/i) || String(url).match(/\/invite\/([a-z0-9]+)/i);
-    return m ? m[1] : null;
+    const s = String(url);
+    // Long form: ...?invite=CODE  or  .../invite/CODE  (codes may contain - and _)
+    let m = s.match(/[?&]invite=([a-z0-9_-]+)/i) || s.match(/\/invite\/([a-z0-9_-]+)/i);
+    if (m) return m[1];
+    // Short custom (vanity) link on our own origin: origin/<code>
+    const host = window.location.host.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    m = s.match(new RegExp('^https?://' + host + '/([a-z0-9_-]{4,10})/?(?:[?#].*)?$', 'i'));
+    if (m) return m[1];
+    return null;
   } catch (e) { return null; }
 }
 // Hydrate any invite-embed placeholders inside a container by fetching the
@@ -11615,8 +11706,6 @@ function renderMemberProfileBody(m, roles, isMe, data) {
       '</div>' +
       '<div class="mp-private-rows">' +
         '<div class="mp-private-row"><div class="mp-private-row-label">Bio</div><div class="mp-private-redact w-85"></div></div>' +
-        '<div class="mp-private-row"><div class="mp-private-row-label">Location</div><div class="mp-private-redact w-50"></div></div>' +
-        '<div class="mp-private-row"><div class="mp-private-row-label">Website</div><div class="mp-private-redact w-70"></div></div>' +
         '<div class="mp-private-row"><div class="mp-private-row-label">Joined</div><div class="mp-private-redact w-50"></div></div>' +
       '</div>' +
       '<div class="mp-private-foot">Profile details are only visible to the member themselves. You can still message them in shared channels.</div>' +
@@ -11981,6 +12070,12 @@ function openMyServerProfileEditor() {
 }
 $('sf-profile-btn').addEventListener('click', () => { if (activeServer) openMyServerProfileEditor(); });
 $('sf-info').addEventListener('click', openStatusMenu);
+// Clicking your own avatar in the bottom-left opens your own profile view.
+$('sf-avatar').addEventListener('click', () => {
+  if (activeServer && (activeServer.members || []).some(x => x.username === currentUser.username)) {
+    openMemberProfile(currentUser.username);
+  }
+});
 
 /* ============================================================
    Invite preview (deep link / embed)

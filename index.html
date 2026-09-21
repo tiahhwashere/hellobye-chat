@@ -3137,6 +3137,10 @@ body.no-anim .friend-item { animation: none !important; }
 #profile-view-modal.preview-mode { z-index: 400; }
 /* In preview mode, hide the X close button in the upper-right corner. */
 #profile-view-modal.preview-mode .modal-close-corner { display: none; }
+/* In preview mode the header card goes FULL-BLEED: the banner connects to the
+   left, right and top edges of the modal (no inset margins, no rounded top). */
+#profile-view-modal.preview-mode .profile-view-header-card { margin: 0; border: none; border-radius: 0; }
+#profile-view-modal.preview-mode .profile-view-banner { border-radius: 0; }
 .modal-overlay.show { display: flex; animation: fadeIn 0.15s ease; }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 .modal {
