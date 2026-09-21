@@ -1,18 +1,20 @@
-# Request AZ — download page cleanup + favicon app icon
+# Request BA — voice chat text chat + 30-person limit + GIF-avatar-on-speak
 
-## A. Remove ninja script
-- [x] Remove ninja-daytona-script.js from download.html (never re-add)
+## A. Voice channel text chat (beside voice settings)
+- [x] Server: `voice-chat-send` handler relays to voice room (ephemeral)
+- [x] Frontend: toggle button, panel HTML, CSS, JS (send/render/unread)
+- [x] Socket wiring: `voice-chat-message` handler
+- [x] Clear chat on join/leave
 
-## B. PC app icon = favicon
-- [x] Convert /uploads/favicon.jpg to icon.png + icon.ico
-- [x] Update desktop app icon assets
-- [ ] Rebuild the portable exe
-- [ ] Re-upload exe to GitHub release
+## B. 30-person voice limit
+- [x] Server: `VOICE_MAX_PEOPLE = 30` + full check in `voice-join`
+- [x] Client: shows server error toast on full
 
-## C. Download page redesign
-- [x] Make "Get HelloBye for PC" UI less cartoony (more professional)
-- [x] Remove all emojis
+## C. GIF avatar animates only when speaking (VC only)
+- [x] CSS: static canvas default, animated img only under `.speaking`
+- [x] JS: `voiceAvatarHtml` + `voicePaintGifStatic` first-frame capture
+- [x] Wire into `voiceRenderStage`
 
 ## D. Verify + deploy
-- [ ] Syntax check + smoke test
+- [x] Syntax check server.js + inline JS
 - [ ] Commit + push + verify Render deploy live

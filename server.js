@@ -6894,6 +6894,8 @@ io.on('connection', (socket) => {
   // signaling between peers (mesh) and broadcasts presence + speaking state
   // so every client stays perfectly in sync in real time.
   // ============================================================
+  // Hard cap on simultaneous participants in a single voice channel.
+  const VOICE_MAX_PEOPLE = 30;
   function voiceRoomKey(serverId, channelId) { return 'voice:' + serverId + ':' + channelId; }
   function voiceRoomPeers(serverId, channelId) {
     const room = voiceRooms.get(voiceRoomKey(serverId, channelId));
@@ -6943,6 +6945,11 @@ io.on('connection', (socket) => {
       const key = voiceRoomKey(serverId, channelId);
       if (!voiceRooms.has(key)) voiceRooms.set(key, new Map());
       const room = voiceRooms.get(key);
+      // Enforce the 30-person cap. Rejoining an existing seat is always allowed.
+      if (!room.has(username) && room.size >= VOICE_MAX_PEOPLE) {
+        if (typeof ack === 'function') ack({ error: 'This voice channel is full (max ' + VOICE_MAX_PEOPLE + ' people).', full: true });
+        return;
+      }
       const existing = voiceRoomPeers(serverId, channelId).filter(p => p.username !== username);
       room.set(username, { username, socketId: socket.id, muted: false, deafened: false, speaking: false, joinedAt: Date.now() });
       socket.join(key);
@@ -6987,6 +6994,40 @@ io.on('connection', (socket) => {
   // Query who is currently in a voice channel (used to render the sidebar).
   socket.on('voice-peers-get', ({ serverId, channelId }, ack) => {
     if (typeof ack === 'function') ack({ peers: voiceRoomPeers(serverId, channelId) });
+  });
+  // ---- Voice channel text chat ----
+  // A lightweight, ephemeral chat that lives beside the voice stage so people
+  // can type while they talk. Messages are relayed to everyone currently in the
+  // voice room (and echoed back to the sender) and are NOT persisted to the DB.
+  socket.on('voice-chat-send', ({ serverId, channelId, text, clientId }, ack) => {
+    try {
+      if (!serverId || !channelId) { if (typeof ack === 'function') ack({ error: 'Invalid channel' }); return; }
+      const room = voiceRooms.get(voiceRoomKey(serverId, channelId));
+      if (!room || !room.has(username)) { if (typeof ack === 'function') ack({ error: 'You are not in this voice channel' }); return; }
+      const textStr = String(text || '').trim().slice(0, 2000);
+      if (!textStr) { if (typeof ack === 'function') ack({ error: 'Message is empty' }); return; }
+      // Light 0.3s cooldown to prevent spam (exempt users skip it).
+      const exempt = (db.cooldownExempt || []).includes(username);
+      if (!exempt) {
+        const vkey = username + ':vchat:' + serverId + ':' + channelId;
+        const last = lastGroupTime[vkey] || 0;
+        if (Date.now() - last < 300) { if (typeof ack === 'function') ack({ error: 'Sending too fast \u2014 please slow down' }); return; }
+        lastGroupTime[vkey] = Date.now();
+      }
+      const msg = {
+        id: genId(),
+        clientId: clientId ? String(clientId).slice(0, 80) : null,
+        serverId, channelId,
+        from: username,
+        displayName: user.displayName,
+        text: textStr,
+        timestamp: nowISO(),
+      };
+      io.to(voiceRoomKey(serverId, channelId)).emit('voice-chat-message', msg);
+      if (typeof ack === 'function') ack({ success: true, message: msg });
+    } catch (e) {
+      if (typeof ack === 'function') ack({ error: 'Failed to send message' });
+    }
   });
 
   // ---- Activity ----
