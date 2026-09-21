@@ -844,8 +844,6 @@ input, textarea { font-family: inherit; }
   background-image: radial-gradient(rgba(255,255,255,0.045) 1px, transparent 1px); background-size: 22px 22px; }
 .vs-head { position: relative; z-index: 2; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 22px; border-bottom: 1px solid var(--border); flex-shrink: 0; backdrop-filter: blur(6px); background: linear-gradient(180deg, rgba(0,0,0,0.10), transparent); }
 .vs-head-info { display: flex; align-items: center; gap: 12px; min-width: 0; }
-.vs-live-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--online); box-shadow: 0 0 0 0 rgba(59,165,93,0.6); animation: vsLive 1.8s ease-out infinite; flex-shrink: 0; }
-@keyframes vsLive { 0% { box-shadow: 0 0 0 0 rgba(59,165,93,0.55); } 70% { box-shadow: 0 0 0 10px rgba(59,165,93,0); } 100% { box-shadow: 0 0 0 0 rgba(59,165,93,0); } }
 .vs-title { font-size: 16px; font-weight: 800; letter-spacing: -0.01em; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .vs-sub { font-size: 12px; color: var(--text-muted); white-space: nowrap; display: inline-flex; align-items: center; gap: 6px; }
 .vs-sub::before { content: ''; width: 4px; height: 4px; border-radius: 50%; background: var(--text-muted); opacity: 0.6; }
@@ -875,6 +873,18 @@ input, textarea { font-family: inherit; }
 .vs-badge { width: 24px; height: 24px; border-radius: 7px; display: inline-flex; align-items: center; justify-content: center; background: var(--bg-darkest); color: var(--text-muted); }
 .vs-badge.on { background: rgba(224,82,82,0.16); color: #e05252; }
 .vs-badge svg { width: 14px; height: 14px; }
+/* Video tiles (camera / screen share) */
+.vs-tile.has-video { padding: 0; align-items: stretch; justify-content: stretch; background: #000; }
+.vs-tile.has-video .vs-avatar-wrap, .vs-tile.has-video .vs-name, .vs-tile.has-video .vs-badges { display: none; }
+.vs-video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; background: #000; border-radius: inherit; }
+.vs-tile.has-video .vs-video { position: relative; }
+.vs-video-label { position: absolute; left: 10px; bottom: 10px; z-index: 3; display: inline-flex; align-items: center; gap: 6px; padding: 4px 9px; border-radius: 8px; background: rgba(0,0,0,0.62); color: #fff; font-size: 11.5px; font-weight: 600; backdrop-filter: blur(4px); }
+.vs-video-label svg { width: 13px; height: 13px; }
+.vs-video-badges { position: absolute; right: 10px; bottom: 10px; z-index: 3; display: flex; gap: 6px; }
+.vs-tile.screen .vs-video { object-fit: contain; }
+/* Screen-share / camera control buttons */
+.vs-ctl.vs-ctl-on { background: rgba(var(--accent-rgb),0.16); border-color: rgba(var(--accent-rgb),0.5); color: var(--accent); }
+.vs-ctl.vs-ctl-on:hover { background: rgba(var(--accent-rgb),0.24); }
 .vs-tile.self .vs-name::after { content: ' (you)'; color: var(--text-muted); font-weight: 500; }
 .vs-empty { grid-column: 1 / -1; text-align: center; color: var(--text-muted); font-size: 14px; padding: 40px 0; }
 /* ---- Control bar: a single professional pill with grouped controls ---- */
@@ -896,7 +906,6 @@ input, textarea { font-family: inherit; }
 @keyframes vsChatIn { from { transform: translateX(24px); opacity: 0; } to { transform: none; opacity: 1; } }
 .vs-chat-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 14px 16px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
 .vs-chat-title { font-size: 13px; font-weight: 800; letter-spacing: 0.02em; color: var(--text-primary); display: inline-flex; align-items: center; gap: 8px; }
-.vs-chat-title::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: var(--online); box-shadow: 0 0 0 3px rgba(59,165,93,0.18); }
 .vs-chat-close { width: 30px; height: 30px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; color: var(--text-muted); background: transparent; border: 1px solid transparent; transition: var(--transition); }
 .vs-chat-close:hover { color: var(--text-primary); background: var(--bg-light); border-color: var(--border); }
 .vs-chat-close svg { width: 15px; height: 15px; }
@@ -912,6 +921,37 @@ input, textarea { font-family: inherit; }
 .vs-cmsg-time { font-size: 10.5px; color: var(--text-muted); flex-shrink: 0; }
 .vs-cmsg-text { font-size: 13px; color: var(--text-secondary); line-height: 1.5; word-break: break-word; white-space: pre-wrap; }
 .vs-cmsg.self .vs-cmsg-name { color: var(--accent); }
+/* Role badge shown beside the author name (mirrors the server chat). */
+.vs-cmsg-role { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 6px; line-height: 1.5; flex-shrink: 0; }
+.vs-cmsg-role img { width: 12px; height: 12px; border-radius: 3px; object-fit: cover; }
+.vs-cmsg-edited { font-size: 10px; color: var(--text-muted); font-style: italic; }
+/* Header sizes: "# hi" -> big bold, "## hi" -> medium, "### hi" -> small. */
+.vs-cmsg-text.vs-h1 { font-size: 19px; font-weight: 800; color: var(--text-primary); line-height: 1.3; }
+.vs-cmsg-text.vs-h2 { font-size: 16px; font-weight: 800; color: var(--text-primary); line-height: 1.35; }
+.vs-cmsg-text.vs-h3 { font-size: 14.5px; font-weight: 700; color: var(--text-primary); line-height: 1.4; }
+/* Per-message hover actions (edit / delete / copy) with a custom menu. */
+.vs-cmsg { position: relative; }
+.vs-cmsg-actions { position: absolute; top: -2px; right: 0; opacity: 0; transition: opacity 0.12s ease; }
+.vs-cmsg:hover .vs-cmsg-actions, .vs-cmsg.menu-open .vs-cmsg-actions { opacity: 1; }
+.vs-cmsg-actions-btn { width: 24px; height: 24px; border-radius: 7px; display: inline-flex; align-items: center; justify-content: center; color: var(--text-muted); background: var(--bg-light); border: 1px solid var(--border); }
+.vs-cmsg-actions-btn:hover { color: var(--text-primary); border-color: var(--accent); }
+.vs-cmsg-actions-btn svg { width: 14px; height: 14px; }
+.vs-cmsg-menu { position: absolute; top: 26px; right: 0; z-index: 20; min-width: 150px; padding: 5px; border-radius: 11px; background: var(--bg-dark); border: 1px solid var(--border); box-shadow: 0 14px 34px rgba(0,0,0,0.5); display: none; }
+.vs-cmsg-menu.show { display: block; animation: vsMenuIn 0.12s ease; }
+@keyframes vsMenuIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+.vs-cmsg-menu-item { display: flex; align-items: center; gap: 9px; width: 100%; padding: 8px 10px; border-radius: 8px; font-size: 12.5px; color: var(--text-secondary); text-align: left; }
+.vs-cmsg-menu-item:hover { background: var(--bg-light); color: var(--text-primary); }
+.vs-cmsg-menu-item.danger { color: #e06868; }
+.vs-cmsg-menu-item.danger:hover { background: rgba(224,82,82,0.12); color: #ff8080; }
+.vs-cmsg-menu-item svg { width: 15px; height: 15px; flex-shrink: 0; }
+/* Inline edit box */
+.vs-cmsg-edit { display: flex; flex-direction: column; gap: 6px; margin-top: 2px; }
+.vs-cmsg-edit textarea { width: 100%; min-height: 38px; max-height: 120px; resize: none; padding: 8px 10px; border-radius: 9px; background: var(--bg-darkest); border: 1px solid var(--accent); color: var(--text-primary); font-size: 13px; font-family: inherit; line-height: 1.4; }
+.vs-cmsg-edit-hint { font-size: 10.5px; color: var(--text-muted); }
+.vs-cmsg-edit-hint b { color: var(--accent); }
+/* Live "active for" timer beside the connected count. */
+.vs-timer-sep { opacity: 0.5; margin: 0 2px; }
+.vs-timer { font-variant-numeric: tabular-nums; color: var(--text-secondary); font-weight: 600; }
 .vs-chat-input-wrap { display: flex; align-items: flex-end; gap: 8px; padding: 12px 14px 14px; border-top: 1px solid var(--border); flex-shrink: 0; }
 .vs-chat-input-wrap textarea { flex: 1; min-height: 40px; max-height: 120px; resize: none; padding: 10px 12px; border-radius: 11px; background: var(--bg-darkest); border: 1px solid var(--border); color: var(--text-primary); font-size: 13px; line-height: 1.4; font-family: inherit; }
 .vs-chat-input-wrap textarea:focus { outline: none; border-color: var(--accent); }
@@ -2617,7 +2657,6 @@ input, textarea { font-family: inherit; }
         <div class="voice-stage" id="voice-stage" style="display:none;">
           <div class="vs-head">
             <div class="vs-head-info">
-              <span class="vs-live-dot"></span>
               <span class="vs-title" id="vs-title">Voice</span>
               <span class="vs-sub" id="vs-sub">Connecting\u2026</span>
             </div>
@@ -2661,6 +2700,14 @@ input, textarea { font-family: inherit; }
               <svg class="vs-ic-deaf" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg>
               <svg class="vs-ic-deaf-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;"><line x1="1" y1="1" x2="23" y2="23"/><path d="M3 18v-6a9 9 0 0 1 9-9"/><path d="M21 12v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg>
               <span class="vs-ctl-label">Deafen</span>
+            </button>
+            <button class="vs-ctl" id="vs-camera" title="Turn on camera">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+              <span class="vs-ctl-label">Camera</span>
+            </button>
+            <button class="vs-ctl" id="vs-screenshare" title="Share your screen">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+              <span class="vs-ctl-label">Share</span>
             </button>
             <button class="vs-ctl vs-ctl-leave" id="vs-leave" title="Leave call">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.68 13.31a16 16 0 0 0 3.41 2.6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91"/><line x1="23" y1="1" x2="1" y2="23"/></svg>
@@ -4549,6 +4596,17 @@ function connectSocket() {
     if (!msg || !voiceCall.active || msg.channelId !== voiceCall.channelId) return;
     voiceChatPush(msg);
   });
+  socket.on('voice-chat-edited', (data) => {
+    if (!data || !voiceCall.active || data.channelId !== voiceCall.channelId) return;
+    const m = voiceChat.messages.find(x => x.id === data.id);
+    if (m) { m.text = data.text; m.edited = true; m.editedAt = data.editedAt; voiceChatRender(); }
+  });
+  socket.on('voice-chat-deleted', (data) => {
+    if (!data || !voiceCall.active || data.channelId !== voiceCall.channelId) return;
+    const before = voiceChat.messages.length;
+    voiceChat.messages = voiceChat.messages.filter(x => x.id !== data.id);
+    if (voiceChat.messages.length !== before) voiceChatRender();
+  });
   socket.on('voice-peers', (data) => {
     if (!data || !data.serverId || !data.channelId) return;
     voiceOccupancyMap[data.channelId] = (data.peers || []).length;
@@ -4608,6 +4666,15 @@ function connectSocket() {
     // for this peer (it reflects the real audio). The server relay is a fast
     // path / fallback used before the analyser is attached.
     if (data.speaking !== undefined && !rec.remoteAnalyser) rec.speaking = !!data.speaking;
+    if (data.screenSharing !== undefined) rec.screenSharing = !!data.screenSharing;
+    if (data.cameraOn !== undefined) rec.cameraOn = !!data.cameraOn;
+    // If the peer stopped all video, drop the stale stream and re-render.
+    if (!rec.screenSharing && !rec.cameraOn && rec.remoteVideoStream) {
+      rec.remoteVideoStream = null;
+      voiceRenderStage();
+      return;
+    }
+    if (rec.screenSharing || rec.cameraOn) { voiceRenderStage(); return; }
     voiceUpdateTile(data.username);
   });
   socket.on('voice-signal', (data) => {
@@ -4862,6 +4929,13 @@ async function loadServer(id, silent) {
   try {
     const d = await api('/api/servers/' + encodeURIComponent(id));
     if (d.preview) { toast('You are not a member of this server', 'error'); return; }
+    // Keep the global active server id in lock-step with the server we're
+    // loading. loadServer can be called directly (socket reconnect, returning
+    // to a voice call) without going through openServer, and a stale
+    // activeServerId here is what caused "Channel not found" when the channel
+    // list was then opened against the wrong server.
+    activeServerId = id;
+    try { localStorage.setItem('hb_last_server', id); } catch(e) {}
     // A voice call keeps running when you switch servers — the stage simply
     // hides and the persistent mini voice bar appears so you can jump back.
     activeServer = d.server;
@@ -5439,6 +5513,11 @@ function memberRowHtml(m) {
    Channels + messages
    ============================================================ */
 async function openChannel(channelId) {
+  // Guard against a stale channel id (e.g. a channel from the previous server
+  // that no longer exists here). Without this, switching servers while in a
+  // voice call could fire a messages request for a channel that isn't in the
+  // newly-loaded server, producing a "Channel not found" toast.
+  if (!activeServer || !(activeServer.channels || []).some(c => c.id === channelId)) return;
   activeChannelId = channelId;
   delete channelPings[channelId];
   closeThread();
@@ -5452,14 +5531,18 @@ async function openChannel(channelId) {
   if (ch) { $('sch-name').textContent = ch.name; $('sch-topic').textContent = ch.topic || ''; $('srv-input').placeholder = 'Message #' + ch.name; }
   serverMessages = [];
   $('server-messages').innerHTML = '<div class="server-empty-chat"><div class="spinner" style="margin:0 auto 12px;"></div></div>';
+  // Capture the server this fetch belongs to so a late response from a server
+  // we've since navigated away from can't clobber the current view.
+  const reqServerId = activeServerId;
   try {
-    const d = await api('/api/servers/' + encodeURIComponent(activeServerId) + '/channels/' + encodeURIComponent(channelId) + '/messages');
+    const d = await api('/api/servers/' + encodeURIComponent(reqServerId) + '/channels/' + encodeURIComponent(channelId) + '/messages');
+    if (reqServerId !== activeServerId || channelId !== activeChannelId) return; // stale response
     serverMessages = d.messages || [];
     channelThreads = d.threads || {};
     renderMessages();
     scrollBottom();
     applyChannelChatState(ch, d.channel);
-  } catch(e) { toast(e.message, 'error'); }
+  } catch(e) { if (reqServerId === activeServerId && channelId === activeChannelId) toast(e.message, 'error'); }
 }
 function applyChannelChatState(ch, chData) {
   const canChat = chData ? chData.canChat !== false : (ch ? ch.canChat !== false : true);
@@ -6456,7 +6539,8 @@ async function sendMessage() {
   if (!activeServerId || !activeChannelId) return;
   // Respect the channel's chat permissions — never send when chat is disabled.
   const _ch = (activeServer && activeServer.channels || []).find(c => c.id === activeChannelId);
-  if (_ch && _ch.canChat === false) { toast('Chat is disabled in this channel', 'error'); return; }
+  if (!_ch) return; // stale channel id (e.g. just switched servers)
+  if (_ch.canChat === false) { toast('Chat is disabled in this channel', 'error'); return; }
   $('srv-send-btn').disabled = true;
   // Server chats are NEVER encrypted — every member must be able to read every
   // message and attachment, so we always send plaintext.
@@ -7032,6 +7116,12 @@ const voiceCall = {
   remoteVadRaf: 0,
   minimized: false, healthTimer: 0,
   inputDevice: '', outputDevice: '',
+  startedAt: 0,              // epoch ms the voice room first became active
+  timerInterval: 0,          // live "active for" timer handle
+  screenStream: null,        // active screen-share stream (if any)
+  screenSharing: false,
+  cameraStream: null,        // active camera stream (if any)
+  cameraOn: false,
 };
 // ---- Voice & Video settings persistence ----
 // The settings used to live only in the in-memory voiceCall object, so every
@@ -7288,6 +7378,12 @@ async function joinVoiceChannel(channelId) {
     if (resp && resp.error) { toast(resp.error, 'error'); leaveVoiceChannel(); return; }
     const peers = (resp && resp.peers) || [];
     peers.forEach(p => voiceCreatePeer(p.username, true));
+    // Restore the persisted voice-chat history for this room (kept alive while
+    // anyone is in the call) and adopt the room's start time for the timer.
+    if (resp && resp.startedAt) voiceCall.startedAt = resp.startedAt;
+    else if (!voiceCall.startedAt) voiceCall.startedAt = Date.now();
+    if (resp && Array.isArray(resp.chat)) { voiceChat.messages = resp.chat.slice(-VS_CHAT_MAX); voiceChatRender(); }
+    voiceStartTimer();
     voiceRenderStage();
   });
 }
@@ -7317,6 +7413,9 @@ function voiceRejoinAfterReconnect() {
     }
     const peers = (resp && resp.peers) || [];
     peers.forEach(p => { if (p.username !== currentUser.username) voiceCreatePeer(p.username, true); });
+    if (resp && resp.startedAt) voiceCall.startedAt = resp.startedAt;
+    if (resp && Array.isArray(resp.chat)) { voiceChat.messages = resp.chat.slice(-VS_CHAT_MAX); voiceChatRender(); }
+    voiceStartTimer();
     voiceRenderStage();
     voiceUpdateSub();
   });
@@ -7328,6 +7427,10 @@ async function leaveVoiceChannel(silent) {
   voiceStopVAD();
   voiceStopRemoteVAD();
   voiceStopHealthCheck();
+  voiceStopTimer();
+  // Tear down any active screen-share / camera streams.
+  try { voiceStopScreenShare(true); } catch (e) {}
+  try { voiceStopCamera(true); } catch (e) {}
   // Close every peer connection.
   voiceCall.peers.forEach(p => {
     if (p.pc) { try { p.pc.close(); } catch (e) {} }
@@ -7337,6 +7440,7 @@ async function leaveVoiceChannel(silent) {
   if (voiceCall.localStream) { try { voiceCall.localStream.getTracks().forEach(t => t.stop()); } catch (e) {} }
   voiceCall.localStream = null;
   voiceCall.active = false; voiceCall.serverId = null; voiceCall.channelId = null;
+  voiceCall.startedAt = 0;
   voiceChatClear();
   voiceShowStage(false);
   voiceRenderStage();
@@ -7367,7 +7471,25 @@ function voiceUpdateSub() {
   const sub = $('vs-sub');
   if (!sub) return;
   const n = voiceCall.peers.size;
-  sub.textContent = voiceFmtCount(n) + ' connected';
+  const elapsed = voiceCall.startedAt ? Math.max(0, Date.now() - voiceCall.startedAt) : 0;
+  sub.innerHTML = escapeHtml(voiceFmtCount(n) + ' connected') +
+    (voiceCall.startedAt ? '<span class="vs-timer-sep">\u00b7</span><span class="vs-timer" title="Voice chat active for">' + escapeHtml(voiceFmtDuration(elapsed)) + '</span>' : '');
+}
+// Format a duration (ms) as H:MM:SS (or M:SS under an hour).
+function voiceFmtDuration(ms) {
+  const total = Math.floor(ms / 1000);
+  const h = Math.floor(total / 3600);
+  const m = Math.floor((total % 3600) / 60);
+  const s = total % 60;
+  const pad = (x) => String(x).padStart(2, '0');
+  return h > 0 ? (h + ':' + pad(m) + ':' + pad(s)) : (m + ':' + pad(s));
+}
+function voiceStartTimer() {
+  voiceStopTimer();
+  voiceCall.timerInterval = setInterval(() => { voiceUpdateSub(); voiceUpdateMiniBar(); }, 1000);
+}
+function voiceStopTimer() {
+  if (voiceCall.timerInterval) { clearInterval(voiceCall.timerInterval); voiceCall.timerInterval = 0; }
 }
 // Persistent mini bar shown while the call runs in the background.
 function voiceUpdateMiniBar() {
@@ -7378,7 +7500,10 @@ function voiceUpdateMiniBar() {
   if (!show) return;
   const nm = $('mv-name'), sb = $('mv-sub');
   if (nm) nm.textContent = voiceCall.channelName || 'Voice';
-  if (sb) sb.textContent = voiceFmtCount(voiceCall.peers.size) + ' connected';
+  if (sb) {
+    const elapsed = voiceCall.startedAt ? Math.max(0, Date.now() - voiceCall.startedAt) : 0;
+    sb.textContent = voiceFmtCount(voiceCall.peers.size) + ' connected' + (voiceCall.startedAt ? ' \u00b7 ' + voiceFmtDuration(elapsed) : '');
+  }
   const mb = $('mv-mute'), db = $('mv-deafen');
   if (mb) mb.classList.toggle('active', voiceCall.muted);
   if (db) db.classList.toggle('active', voiceCall.deafened);
@@ -7415,13 +7540,20 @@ function voiceCreatePeer(username, initiator) {
   p.audioEl = audioEl;
   pc.ontrack = (ev) => {
     if (ev.streams && ev.streams[0]) {
-      audioEl.srcObject = ev.streams[0];
-      p.remoteStream = ev.streams[0];
+      const stream = ev.streams[0];
+      p.remoteStream = stream;
+      // Video track (screen share / camera) -> render it in the tile.
+      if (ev.track && ev.track.kind === 'video') {
+        p.remoteVideoStream = stream;
+        voiceRenderStage();
+        return;
+      }
+      audioEl.srcObject = stream;
       // Route through a WebAudio gain node so we can amplify past 100%.
       try {
         const ctx = voiceGainCtx();
         if (ctx && !p.gainNode) {
-          const src = ctx.createMediaStreamSource(ev.streams[0]);
+          const src = ctx.createMediaStreamSource(stream);
           const g = ctx.createGain();
           g.gain.value = voicePeerVolume(username);
           src.connect(g); g.connect(ctx.destination);
@@ -7460,8 +7592,144 @@ function voiceCreatePeer(username, initiator) {
       } catch (e) {}
     };
   }
+  // Attach any already-active screen-share / camera video tracks so a peer that
+  // joins mid-share still receives the video.
+  voiceAttachLocalVideoTracks(pc);
   voiceRenderStage();
   return p;
+}
+// Add the local screen-share / camera video tracks to a peer connection (if any).
+function voiceAttachLocalVideoTracks(pc) {
+  if (!pc) return;
+  try {
+    if (voiceCall.screenStream) {
+      const t = voiceCall.screenStream.getVideoTracks()[0];
+      if (t && !pc.getSenders().some(s => s.track === t)) pc.addTrack(t, voiceCall.screenStream);
+    }
+    if (voiceCall.cameraStream) {
+      const t = voiceCall.cameraStream.getVideoTracks()[0];
+      if (t && !pc.getSenders().some(s => s.track === t)) pc.addTrack(t, voiceCall.cameraStream);
+    }
+  } catch (e) {}
+}
+// Re-negotiate every peer connection (used after adding/removing a video track).
+function voiceRenegotiateAll() {
+  voiceCall.peers.forEach((p, u) => {
+    if (p.self || !p.pc) return;
+    try {
+      p.pc.onnegotiationneeded = async () => {
+        try {
+          const offer = await p.pc.createOffer();
+          await p.pc.setLocalDescription(offer);
+          socket.emit('voice-signal', { serverId: voiceCall.serverId, channelId: voiceCall.channelId, to: u, data: { sdp: p.pc.localDescription } });
+        } catch (e) {}
+      };
+      // Nudge negotiation (some browsers only fire it on track changes).
+      p.pc.dispatchEvent(new Event('negotiationneeded'));
+    } catch (e) {}
+  });
+}
+// ---- Screen share (high framerate, 100+ FPS capable) ----
+async function voiceToggleScreenShare() {
+  if (!voiceCall.active) return;
+  if (voiceCall.screenSharing) { voiceStopScreenShare(); return; }
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
+    toast('Screen sharing is not supported in this browser.', 'error'); return;
+  }
+  let stream;
+  try {
+    stream = await navigator.mediaDevices.getDisplayMedia({
+      video: { frameRate: { ideal: 120, max: 144 }, cursor: 'always' },
+      audio: false,
+    });
+  } catch (e) {
+    if (e && e.name !== 'NotAllowedError') toast('Could not start screen share.', 'error');
+    return;
+  }
+  voiceCall.screenStream = stream;
+  voiceCall.screenSharing = true;
+  const track = stream.getVideoTracks()[0];
+  if (track) track.onended = () => voiceStopScreenShare();
+  // Push the new video track to every peer, then renegotiate.
+  voiceCall.peers.forEach((p) => {
+    if (p.self || !p.pc) return;
+    try { if (track && !p.pc.getSenders().some(s => s.track === track)) p.pc.addTrack(track, stream); } catch (e) {}
+  });
+  voiceRenegotiateAll();
+  socket.emit('voice-state', { serverId: voiceCall.serverId, channelId: voiceCall.channelId, screenSharing: true });
+  voiceUpdateControls();
+  voiceRenderStage();
+  toast('Screen sharing started', 'success');
+}
+function voiceStopScreenShare(silent) {
+  if (!voiceCall.screenSharing && !voiceCall.screenStream) return;
+  const stream = voiceCall.screenStream;
+  voiceCall.screenStream = null;
+  voiceCall.screenSharing = false;
+  if (stream) {
+    const track = stream.getVideoTracks()[0];
+    if (track) track.onended = null;
+    try { stream.getTracks().forEach(t => t.stop()); } catch (e) {}
+    voiceCall.peers.forEach((p) => {
+      if (p.self || !p.pc) return;
+      try { p.pc.getSenders().forEach((s) => { if (s.track === track) { try { p.pc.removeTrack(s); } catch (e) {} } }); } catch (e) {}
+    });
+    voiceRenegotiateAll();
+  }
+  if (voiceCall.active) socket.emit('voice-state', { serverId: voiceCall.serverId, channelId: voiceCall.channelId, screenSharing: false });
+  voiceUpdateControls();
+  voiceRenderStage();
+  if (!silent) toast('Screen sharing stopped');
+}
+// ---- Camera ----
+async function voiceToggleCamera() {
+  if (!voiceCall.active) return;
+  if (voiceCall.cameraOn) { voiceStopCamera(); return; }
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    toast('Camera is not supported in this browser.', 'error'); return;
+  }
+  let stream;
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({
+      video: { width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 30, max: 60 } },
+      audio: false,
+    });
+  } catch (e) {
+    toast('Camera access was blocked. Allow it to turn on your camera.', 'error');
+    return;
+  }
+  voiceCall.cameraStream = stream;
+  voiceCall.cameraOn = true;
+  const track = stream.getVideoTracks()[0];
+  if (track) track.onended = () => voiceStopCamera();
+  voiceCall.peers.forEach((p) => {
+    if (p.self || !p.pc) return;
+    try { if (track && !p.pc.getSenders().some(s => s.track === track)) p.pc.addTrack(track, stream); } catch (e) {}
+  });
+  voiceRenegotiateAll();
+  socket.emit('voice-state', { serverId: voiceCall.serverId, channelId: voiceCall.channelId, cameraOn: true });
+  voiceUpdateControls();
+  voiceRenderStage();
+}
+function voiceStopCamera(silent) {
+  if (!voiceCall.cameraOn && !voiceCall.cameraStream) return;
+  const stream = voiceCall.cameraStream;
+  voiceCall.cameraStream = null;
+  voiceCall.cameraOn = false;
+  if (stream) {
+    const track = stream.getVideoTracks()[0];
+    if (track) track.onended = null;
+    try { stream.getTracks().forEach(t => t.stop()); } catch (e) {}
+    voiceCall.peers.forEach((p) => {
+      if (p.self || !p.pc) return;
+      try { p.pc.getSenders().forEach((s) => { if (s.track === track) { try { p.pc.removeTrack(s); } catch (e) {} } }); } catch (e) {}
+    });
+    voiceRenegotiateAll();
+  }
+  if (voiceCall.active) socket.emit('voice-state', { serverId: voiceCall.serverId, channelId: voiceCall.channelId, cameraOn: false });
+  voiceUpdateControls();
+  voiceRenderStage();
+  if (!silent) toast('Camera turned off');
 }
 async function voiceHandleSignal(from, data) {
   if (!voiceCall.active || !from) return;
@@ -7566,12 +7834,38 @@ function voiceRenderStage() {
         ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="1" y1="1" x2="23" y2="23"/><path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6"/><path d="M17 16.95A7 7 0 0 1 5 12v-2m14 0v2a7 7 0 0 1-.11 1.23"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>'
         : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>') + '</span>';
     const deafBadge = p.deafened ? '<span class="vs-badge on" title="Deafened"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="1" y1="1" x2="23" y2="23"/><path d="M3 18v-6a9 9 0 0 1 9-9"/><path d="M21 12v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg></span>' : '';
+    // Does this tile have live video (screen share or camera)?
+    const sharing = p.self ? !!voiceCall.screenSharing : !!p.screenSharing;
+    const camOn = p.self ? !!voiceCall.cameraOn : !!p.cameraOn;
+    const hasVideo = !!p.remoteVideoStream || sharing || camOn;
+    if (hasVideo) {
+      const isScreen = sharing;
+      const label = isScreen
+        ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>'
+        : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>';
+      return '<div class="vs-tile has-video' + (p.self ? ' self' : '') + (p.speaking ? ' speaking' : '') + (isScreen ? ' screen' : '') + '" data-voice-user="' + escapeAttr(p.username) + '">' +
+        '<video class="vs-video" autoplay playsinline' + (p.self ? ' muted' : '') + '></video>' +
+        '<div class="vs-video-label">' + label + escapeHtml(name) + (isScreen ? ' \u00b7 Screen' : '') + '</div>' +
+        '<div class="vs-video-badges">' + micBadge + deafBadge + '</div>' +
+      '</div>';
+    }
     return '<div class="vs-tile' + (p.self ? ' self' : '') + (p.speaking ? ' speaking' : '') + '" data-voice-user="' + escapeAttr(p.username) + '">' +
       '<div class="vs-avatar-wrap"><div class="vs-avatar">' + av + '</div><div class="vs-ring"></div></div>' +
       '<div class="vs-name">' + escapeHtml(name) + '</div>' +
       '<div class="vs-badges">' + micBadge + deafBadge + '</div>' +
     '</div>';
   }).join('');
+  // Attach live video streams to the freshly-rendered <video> elements.
+  order.forEach(p => {
+    const sharing = p.self ? !!voiceCall.screenSharing : !!p.screenSharing;
+    const camOn = p.self ? !!voiceCall.cameraOn : !!p.cameraOn;
+    if (!p.remoteVideoStream && !sharing && !camOn) return;
+    const tile = grid.querySelector('.vs-tile[data-voice-user="' + (window.CSS && CSS.escape ? CSS.escape(p.username) : p.username) + '"]');
+    const vid = tile && tile.querySelector('video.vs-video');
+    if (!vid) return;
+    const stream = p.self ? (voiceCall.screenStream || voiceCall.cameraStream) : p.remoteVideoStream;
+    if (stream && vid.srcObject !== stream) { try { vid.srcObject = stream; vid.play().catch(() => {}); } catch (e) {} }
+  });
   // Paint the static first frame for any GIF avatars just rendered.
   grid.querySelectorAll('canvas.vs-avatar-gif-static').forEach(voicePaintGifStatic);
   voiceUpdateSub();
@@ -7607,7 +7901,7 @@ function voiceUpdateTile(username) {
    can type while they talk. Messages are relayed by the server to
    everyone in the voice room and are not persisted.
    ============================================================ */
-const voiceChat = { open: false, unread: 0, messages: [] };
+const voiceChat = { open: false, unread: 0, messages: [], editingId: null };
 const VS_CHAT_MAX = 200; // keep the DOM light
 function voiceChatToggle(force) {
   const panel = $('vs-chat');
@@ -7625,8 +7919,19 @@ function voiceChatToggle(force) {
 function voiceChatClear() {
   voiceChat.messages = [];
   voiceChat.unread = 0;
+  voiceChat.editingId = null;
   const btn = $('vs-chat-btn'); if (btn) btn.classList.remove('has-unread');
   voiceChatRender();
+}
+// Render a message body, honouring simple "# heading" sizes.
+function voiceChatTextHtml(text) {
+  const raw = String(text || '');
+  const m = raw.match(/^(#{1,3})\s+(.*)$/);
+  if (m) {
+    const level = m[1].length;
+    return '<div class="vs-cmsg-text vs-h' + level + '">' + linkify(escapeHtml(m[2])) + '</div>';
+  }
+  return '<div class="vs-cmsg-text">' + linkify(escapeHtml(raw)) + '</div>';
 }
 function voiceChatRender() {
   const box = $('vs-chat-msgs');
@@ -7642,15 +7947,113 @@ function voiceChatRender() {
     const av = member.avatar ? '<img src="' + escapeAttr(member.avatar) + '">' : escapeHtml(getInitials(member.nickname || member.displayName || m.from));
     const name = member.nickname || member.displayName || m.from;
     const self = (m.from === currentUser.username);
-    return '<div class="vs-cmsg' + (self ? ' self' : '') + '">' +
+    // Role badge (mirrors the server chat): top role by order, with its icon.
+    const roles = (member.roleIds || []).map(id => (activeServer && activeServer.roles || []).find(r => r.id === id)).filter(Boolean).sort((a, b) => (a.order || 0) - (b.order || 0));
+    const topRole = roles[0];
+    const roleBadge = topRole
+      ? '<span class="vs-cmsg-role" style="background:' + escapeAttr(topRole.color) + '22;color:' + escapeAttr(topRole.color) + ';">' +
+          (topRole.badge ? '<img src="' + escapeAttr(topRole.badge) + '" alt="">' : '') + escapeHtml(topRole.name) + '</span>'
+      : '';
+    const edited = m.edited ? '<span class="vs-cmsg-edited">(edited)</span>' : '';
+    const editing = voiceChat.editingId === m.id;
+    const bodyInner = editing
+      ? '<div class="vs-cmsg-edit">' +
+          '<textarea class="vs-cmsg-edit-input" data-edit-id="' + escapeAttr(m.id) + '" maxlength="2000">' + escapeHtml(m.text) + '</textarea>' +
+          '<div class="vs-cmsg-edit-hint">escape to <b>cancel</b> \u00b7 enter to <b>save</b></div>' +
+        '</div>'
+      : voiceChatTextHtml(m.text);
+    // Only the author gets the action menu.
+    const actions = self && !editing
+      ? '<div class="vs-cmsg-actions">' +
+          '<button class="vs-cmsg-actions-btn" data-menu-id="' + escapeAttr(m.id) + '" title="More">' + icon('chevron-down', 'sm') + '</button>' +
+          '<div class="vs-cmsg-menu" data-menu-for="' + escapeAttr(m.id) + '">' +
+            '<button class="vs-cmsg-menu-item" data-act="edit" data-id="' + escapeAttr(m.id) + '">' + icon('edit', 'sm') + 'Edit</button>' +
+            '<button class="vs-cmsg-menu-item" data-act="copy" data-id="' + escapeAttr(m.id) + '">' + icon('copy', 'sm') + 'Copy text</button>' +
+            '<button class="vs-cmsg-menu-item danger" data-act="delete" data-id="' + escapeAttr(m.id) + '">' + icon('trash', 'sm') + 'Delete</button>' +
+          '</div>' +
+        '</div>'
+      : '';
+    return '<div class="vs-cmsg' + (self ? ' self' : '') + '" data-cmsg-id="' + escapeAttr(m.id) + '">' +
       '<div class="vs-cmsg-av">' + av + '</div>' +
       '<div class="vs-cmsg-body">' +
-        '<div class="vs-cmsg-top"><span class="vs-cmsg-name">' + escapeHtml(name) + '</span><span class="vs-cmsg-time">' + fmtTime(m.timestamp) + '</span></div>' +
-        '<div class="vs-cmsg-text">' + linkify(escapeHtml(m.text)) + '</div>' +
+        '<div class="vs-cmsg-top"><span class="vs-cmsg-name">' + escapeHtml(name) + '</span>' + roleBadge + '<span class="vs-cmsg-time">' + fmtTime(m.timestamp) + '</span>' + edited + '</div>' +
+        bodyInner +
       '</div>' +
+      actions +
     '</div>';
   }).join('');
+  voiceChatWireActions();
   box.scrollTop = box.scrollHeight;
+}
+// Wire the per-message action menu + inline edit controls after each render.
+function voiceChatWireActions() {
+  const box = $('vs-chat-msgs');
+  if (!box) return;
+  box.querySelectorAll('.vs-cmsg-actions-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const id = btn.dataset.menuId;
+      const menu = box.querySelector('.vs-cmsg-menu[data-menu-for="' + (window.CSS && CSS.escape ? CSS.escape(id) : id) + '"]');
+      const open = menu && menu.classList.contains('show');
+      box.querySelectorAll('.vs-cmsg-menu.show').forEach(m => m.classList.remove('show'));
+      box.querySelectorAll('.vs-cmsg.menu-open').forEach(m => m.classList.remove('menu-open'));
+      if (menu && !open) { menu.classList.add('show'); const wrap = btn.closest('.vs-cmsg'); if (wrap) wrap.classList.add('menu-open'); }
+    });
+  });
+  box.querySelectorAll('.vs-cmsg-menu-item').forEach(item => {
+    item.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const id = item.dataset.id, act = item.dataset.act;
+      box.querySelectorAll('.vs-cmsg-menu.show').forEach(m => m.classList.remove('show'));
+      box.querySelectorAll('.vs-cmsg.menu-open').forEach(m => m.classList.remove('menu-open'));
+      if (act === 'edit') voiceChatStartEdit(id);
+      else if (act === 'copy') voiceChatCopy(id);
+      else if (act === 'delete') voiceChatDelete(id);
+    });
+  });
+  box.querySelectorAll('.vs-cmsg-edit-input').forEach(ta => {
+    ta.focus();
+    const val = ta.value; ta.setSelectionRange(val.length, val.length);
+    ta.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); voiceChatSaveEdit(ta.dataset.editId, ta.value); }
+      else if (e.key === 'Escape') { e.preventDefault(); voiceChat.editingId = null; voiceChatRender(); }
+    });
+  });
+}
+function voiceChatStartEdit(id) {
+  voiceChat.editingId = id;
+  voiceChatRender();
+}
+function voiceChatSaveEdit(id, text) {
+  const t = String(text || '').trim();
+  if (!t) { toast('Message cannot be empty', 'error'); return; }
+  const m = voiceChat.messages.find(x => x.id === id);
+  if (!m) return;
+  voiceChat.editingId = null;
+  // Optimistic update.
+  m.text = t; m.edited = true;
+  voiceChatRender();
+  socket.emit('voice-chat-edit', { serverId: voiceCall.serverId, channelId: voiceCall.channelId, id, text: t }, (resp) => {
+    if (resp && resp.error) { toast(resp.error, 'error'); }
+  });
+}
+function voiceChatCopy(id) {
+  const m = voiceChat.messages.find(x => x.id === id);
+  if (!m) return;
+  const done = () => toast('Copied to clipboard', 'success');
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(m.text).then(done).catch(() => {});
+    else { const ta = document.createElement('textarea'); ta.value = m.text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); done(); }
+  } catch (e) {}
+}
+function voiceChatDelete(id) {
+  const m = voiceChat.messages.find(x => x.id === id);
+  if (!m) return;
+  voiceChat.messages = voiceChat.messages.filter(x => x.id !== id);
+  voiceChatRender();
+  socket.emit('voice-chat-delete', { serverId: voiceCall.serverId, channelId: voiceCall.channelId, id }, (resp) => {
+    if (resp && resp.error) toast(resp.error, 'error');
+  });
 }
 function voiceChatPush(msg) {
   if (!msg) return;
@@ -7711,6 +8114,13 @@ if ($('vs-chat-input')) {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); voiceChatSend(); }
   });
 }
+// Close any open message menu when clicking elsewhere.
+document.addEventListener('click', () => {
+  const box = $('vs-chat-msgs');
+  if (!box) return;
+  box.querySelectorAll('.vs-cmsg-menu.show').forEach(m => m.classList.remove('show'));
+  box.querySelectorAll('.vs-cmsg.menu-open').forEach(m => m.classList.remove('menu-open'));
+});
 
 // ---- Controls ----
 function voiceUpdateControls() {
@@ -7728,6 +8138,18 @@ function voiceUpdateControls() {
     if (on) on.style.display = voiceCall.deafened ? 'none' : '';
     if (off) off.style.display = voiceCall.deafened ? '' : 'none';
     const lbl = deafBtn.querySelector('.vs-ctl-label'); if (lbl) lbl.textContent = voiceCall.deafened ? 'Undeafen' : 'Deafen';
+  }
+  const camBtn = $('vs-camera');
+  if (camBtn) {
+    camBtn.classList.toggle('vs-ctl-on', !!voiceCall.cameraOn);
+    camBtn.title = voiceCall.cameraOn ? 'Turn off camera' : 'Turn on camera';
+    const lbl = camBtn.querySelector('.vs-ctl-label'); if (lbl) lbl.textContent = voiceCall.cameraOn ? 'Stop cam' : 'Camera';
+  }
+  const ssBtn = $('vs-screenshare');
+  if (ssBtn) {
+    ssBtn.classList.toggle('vs-ctl-on', !!voiceCall.screenSharing);
+    ssBtn.title = voiceCall.screenSharing ? 'Stop sharing' : 'Share your screen';
+    const lbl = ssBtn.querySelector('.vs-ctl-label'); if (lbl) lbl.textContent = voiceCall.screenSharing ? 'Stop' : 'Share';
   }
   voiceUpdateMiniBar();
 }
@@ -8027,6 +8449,8 @@ if ($('vs-deafen')) $('vs-deafen').addEventListener('click', () => voiceSetDeafe
 if ($('vs-leave')) $('vs-leave').addEventListener('click', () => leaveVoiceChannel());
 if ($('vs-minimize-btn')) $('vs-minimize-btn').addEventListener('click', () => { voiceCall.minimized = true; voiceShowStage(false); });
 if ($('vs-settings-btn')) $('vs-settings-btn').addEventListener('click', () => voiceOpenSettings());
+if ($('vs-camera')) $('vs-camera').addEventListener('click', () => voiceToggleCamera());
+if ($('vs-screenshare')) $('vs-screenshare').addEventListener('click', () => voiceToggleScreenShare());
 // Mini voice bar controls.
 if ($('mini-voice')) $('mini-voice').addEventListener('click', (e) => { if (e.target.closest('.mv-btn')) return; voiceReturnToCall(); });
 if ($('mv-mute')) $('mv-mute').addEventListener('click', (e) => { e.stopPropagation(); voiceSetMuted(!voiceCall.muted); });

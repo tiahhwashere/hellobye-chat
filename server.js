@@ -5566,6 +5566,11 @@ const connectedUsers = new Map(); // username -> Set(socketIds)
 const socketToUser = new Map(); // socketId -> username
 // Voice channel presence registry: roomKey -> Map(username -> { username, socketId, muted, deafened, speaking, joinedAt })
 const voiceRooms = new Map();
+// Voice channel text-chat registry: roomKey -> { startedAt, messages: [] }.
+// Messages live only while at least one person is in the voice room; the whole
+// entry is dropped the instant the room empties (see voiceRemoveUser / disconnect).
+const voiceChatRooms = new Map();
+const VOICE_CHAT_MAX = 300; // cap stored history per room
 const lastMessageTime = {}; // username -> timestamp (chatroom cooldown)
 const lastGroupTime = {}; // username:groupId -> timestamp (group chat cooldown, 0.3s)
 
@@ -6900,11 +6905,28 @@ io.on('connection', (socket) => {
   function voiceRoomPeers(serverId, channelId) {
     const room = voiceRooms.get(voiceRoomKey(serverId, channelId));
     if (!room) return [];
-    return Array.from(room.values()).map(p => ({ username: p.username, muted: !!p.muted, deafened: !!p.deafened, speaking: !!p.speaking, joinedAt: p.joinedAt }));
+    return Array.from(room.values()).map(p => ({ username: p.username, muted: !!p.muted, deafened: !!p.deafened, speaking: !!p.speaking, joinedAt: p.joinedAt, screenSharing: !!p.screenSharing, cameraOn: !!p.cameraOn }));
   }
   function voiceBroadcastPeers(serverId, channelId) {
     const peers = voiceRoomPeers(serverId, channelId);
     io.to(voiceRoomKey(serverId, channelId)).emit('voice-peers', { serverId, channelId, peers });
+  }
+  // ---- Voice chat history helpers ----
+  // The text chat that lives beside the voice stage is persisted for as long as
+  // the voice room is occupied. When the last person leaves, the room (and its
+  // chat history) is discarded so the next session starts fresh.
+  function voiceChatRoom(serverId, channelId) {
+    const key = voiceRoomKey(serverId, channelId);
+    let room = voiceChatRooms.get(key);
+    if (!room) { room = { startedAt: Date.now(), messages: [] }; voiceChatRooms.set(key, room); }
+    return room;
+  }
+  function voiceChatHistory(serverId, channelId) {
+    const room = voiceChatRooms.get(voiceRoomKey(serverId, channelId));
+    return room ? room.messages.slice(-VOICE_CHAT_MAX) : [];
+  }
+  function voiceChatDrop(serverId, channelId) {
+    voiceChatRooms.delete(voiceRoomKey(serverId, channelId));
   }
   // Authoritative occupancy broadcast to EVERY member of the server (not just
   // people inside the voice room). This is what keeps the sidebar's red count
@@ -6928,7 +6950,8 @@ io.on('connection', (socket) => {
       room.delete(username);
       socket.leave(key);
       io.to(key).emit('voice-peer-left', { serverId, channelId, username });
-      if (room.size === 0) voiceRooms.delete(key); else voiceBroadcastPeers(serverId, channelId);
+      if (room.size === 0) { voiceRooms.delete(key); voiceChatDrop(serverId, channelId); }
+      else voiceBroadcastPeers(serverId, channelId);
       // Always refresh the authoritative count for everyone in the server so
       // the badge drops to 0 (and disappears) when the room empties.
       voiceBroadcastOccupancy(serverId, channelId);
@@ -6953,8 +6976,11 @@ io.on('connection', (socket) => {
       const existing = voiceRoomPeers(serverId, channelId).filter(p => p.username !== username);
       room.set(username, { username, socketId: socket.id, muted: false, deafened: false, speaking: false, joinedAt: Date.now() });
       socket.join(key);
+      // Ensure a chat room exists for this session and hand the joiner the
+      // history + the time the room first became active (for the live timer).
+      const chatRoom = voiceChatRoom(serverId, channelId);
       // Tell the joiner who is already here, and tell everyone else about them.
-      if (typeof ack === 'function') ack({ success: true, peers: existing });
+      if (typeof ack === 'function') ack({ success: true, peers: existing, chat: voiceChatHistory(serverId, channelId), startedAt: chatRoom.startedAt });
       socket.to(key).emit('voice-peer-joined', { serverId, channelId, peer: { username, muted: false, deafened: false, speaking: false, joinedAt: Date.now() } });
       voiceBroadcastPeers(serverId, channelId);
       voiceBroadcastOccupancy(serverId, channelId);
@@ -6971,7 +6997,7 @@ io.on('connection', (socket) => {
     io.to('user:' + String(to).toLowerCase()).emit('voice-signal', { serverId, channelId, from: username, data });
   });
   // Broadcast mute / deafen / speaking state changes instantly.
-  socket.on('voice-state', ({ serverId, channelId, muted, deafened, speaking }) => {
+  socket.on('voice-state', ({ serverId, channelId, muted, deafened, speaking, screenSharing, cameraOn }) => {
     if (!serverId || !channelId) return;
     const room = voiceRooms.get(voiceRoomKey(serverId, channelId));
     if (!room || !room.has(username)) return;
@@ -6979,7 +7005,9 @@ io.on('connection', (socket) => {
     if (muted !== undefined) p.muted = !!muted;
     if (deafened !== undefined) p.deafened = !!deafened;
     if (speaking !== undefined) p.speaking = !!speaking;
-    io.to(voiceRoomKey(serverId, channelId)).emit('voice-peer-state', { serverId, channelId, username, muted: p.muted, deafened: p.deafened, speaking: p.speaking });
+    if (screenSharing !== undefined) p.screenSharing = !!screenSharing;
+    if (cameraOn !== undefined) p.cameraOn = !!cameraOn;
+    io.to(voiceRoomKey(serverId, channelId)).emit('voice-peer-state', { serverId, channelId, username, muted: p.muted, deafened: p.deafened, speaking: p.speaking, screenSharing: !!p.screenSharing, cameraOn: !!p.cameraOn });
   });
   // Lightweight speaking-only ping (fired on VAD transitions, not every frame).
   socket.on('voice-speaking', ({ serverId, channelId, speaking }) => {
@@ -7046,10 +7074,48 @@ io.on('connection', (socket) => {
         text: textStr,
         timestamp: nowISO(),
       };
+      // Persist for the lifetime of the voice room so a refresh keeps history.
+      const chatRoom = voiceChatRoom(serverId, channelId);
+      chatRoom.messages.push(msg);
+      if (chatRoom.messages.length > VOICE_CHAT_MAX) chatRoom.messages = chatRoom.messages.slice(-VOICE_CHAT_MAX);
       io.to(voiceRoomKey(serverId, channelId)).emit('voice-chat-message', msg);
       if (typeof ack === 'function') ack({ success: true, message: msg });
     } catch (e) {
       if (typeof ack === 'function') ack({ error: 'Failed to send message' });
+    }
+  });
+  // ---- Voice chat: edit your own message ----
+  socket.on('voice-chat-edit', ({ serverId, channelId, id, text }, ack) => {
+    try {
+      if (!serverId || !channelId || !id) { if (typeof ack === 'function') ack({ error: 'Invalid request' }); return; }
+      const room = voiceChatRooms.get(voiceRoomKey(serverId, channelId));
+      const msg = room && room.messages.find(m => m.id === id);
+      if (!msg) { if (typeof ack === 'function') ack({ error: 'Message not found' }); return; }
+      if (msg.from !== username) { if (typeof ack === 'function') ack({ error: 'You can only edit your own messages' }); return; }
+      const textStr = String(text || '').trim().slice(0, 2000);
+      if (!textStr) { if (typeof ack === 'function') ack({ error: 'Message is empty' }); return; }
+      msg.text = textStr;
+      msg.edited = true;
+      msg.editedAt = nowISO();
+      io.to(voiceRoomKey(serverId, channelId)).emit('voice-chat-edited', { serverId, channelId, id, text: textStr, editedAt: msg.editedAt });
+      if (typeof ack === 'function') ack({ success: true, message: msg });
+    } catch (e) {
+      if (typeof ack === 'function') ack({ error: 'Failed to edit message' });
+    }
+  });
+  // ---- Voice chat: delete your own message ----
+  socket.on('voice-chat-delete', ({ serverId, channelId, id }, ack) => {
+    try {
+      if (!serverId || !channelId || !id) { if (typeof ack === 'function') ack({ error: 'Invalid request' }); return; }
+      const room = voiceChatRooms.get(voiceRoomKey(serverId, channelId));
+      const idx = room ? room.messages.findIndex(m => m.id === id) : -1;
+      if (idx < 0) { if (typeof ack === 'function') ack({ error: 'Message not found' }); return; }
+      if (room.messages[idx].from !== username) { if (typeof ack === 'function') ack({ error: 'You can only delete your own messages' }); return; }
+      room.messages.splice(idx, 1);
+      io.to(voiceRoomKey(serverId, channelId)).emit('voice-chat-deleted', { serverId, channelId, id });
+      if (typeof ack === 'function') ack({ success: true });
+    } catch (e) {
+      if (typeof ack === 'function') ack({ error: 'Failed to delete message' });
     }
   });
 
@@ -7095,7 +7161,7 @@ io.on('connection', (socket) => {
         const serverId = parts[1], channelId = parts.slice(2).join(':');
         room.delete(username);
         io.to(key).emit('voice-peer-left', { serverId, channelId, username });
-        if (room.size === 0) voiceRooms.delete(key);
+        if (room.size === 0) { voiceRooms.delete(key); voiceChatDrop(serverId, channelId); }
         else io.to(key).emit('voice-peers', { serverId, channelId, peers: Array.from(room.values()).map(p => ({ username: p.username, muted: !!p.muted, deafened: !!p.deafened, speaking: !!p.speaking, joinedAt: p.joinedAt })) });
         // Refresh the authoritative occupancy for the whole server so the
         // sidebar badge clears for everyone when the room empties.
