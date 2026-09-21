@@ -4764,8 +4764,13 @@ function connectSocket() {
     if (data.speaking !== undefined && !rec.remoteAnalyser) rec.speaking = !!data.speaking;
     if (data.screenSharing !== undefined) rec.screenSharing = !!data.screenSharing;
     if (data.cameraOn !== undefined) rec.cameraOn = !!data.cameraOn;
-    // If the peer stopped all video, drop the stale stream and re-render.
-    if (!rec.screenSharing && !rec.cameraOn && rec.remoteVideoStream) {
+    // If the peer explicitly stopped all video, drop the stale stream and
+    // re-render. IMPORTANT: only do this when the message actually carried
+    // video state. Speaking-only pings (which omit screenSharing/cameraOn)
+    // must NOT clear the stream, otherwise they race with the incoming
+    // video track's ontrack event and wipe the just-received video.
+    const carriedVideoState = (data.screenSharing !== undefined) || (data.cameraOn !== undefined);
+    if (carriedVideoState && !rec.screenSharing && !rec.cameraOn && rec.remoteVideoStream) {
       rec.remoteVideoStream = null;
       voiceRenderStage();
       voiceUpdatePip();
@@ -7705,15 +7710,26 @@ function voiceCreatePeer(username, initiator) {
       try { pc.restartIce(); } catch (e) {}
     }
   };
-  if (initiator) {
-    pc.onnegotiationneeded = async () => {
-      try {
-        const offer = await pc.createOffer();
-        await pc.setLocalDescription(offer);
-        socket.emit('voice-signal', { serverId: voiceCall.serverId, channelId: voiceCall.channelId, to: username, data: { sdp: pc.localDescription } });
-      } catch (e) {}
-    };
-  }
+  // Perfect-negotiation (W3C): the peer that was already in the call is
+  // "impolite" and wins offer collisions; the newcomer is "polite" and rolls
+  // back. Crucially, onnegotiationneeded is installed on BOTH sides so that
+  // adding a screen-share / camera track later always renegotiates the
+  // connection and the remote peer actually receives the new video.
+  p.polite = !initiator;
+  p.makingOffer = false;
+  p.ignoreOffer = false;
+  pc.onnegotiationneeded = async () => {
+    try {
+      if (pc.signalingState !== 'stable') return; // a negotiation is already in flight
+      p.makingOffer = true;
+      const offer = await pc.createOffer();
+      await pc.setLocalDescription(offer);
+      socket.emit('voice-signal', { serverId: voiceCall.serverId, channelId: voiceCall.channelId, to: username, data: { sdp: pc.localDescription } });
+    } catch (e) {
+    } finally {
+      p.makingOffer = false;
+    }
+  };
   // Attach any already-active screen-share / camera video tracks so a peer that
   // joins mid-share still receives the video.
   voiceAttachLocalVideoTracks(pc);
@@ -7735,21 +7751,34 @@ function voiceAttachLocalVideoTracks(pc) {
   } catch (e) {}
 }
 // Re-negotiate every peer connection (used after adding/removing a video track).
+// We build and send the offer directly instead of relying on a synthetic
+// 'negotiationneeded' event, which browsers do not reliably honour.
 function voiceRenegotiateAll() {
   voiceCall.peers.forEach((p, u) => {
     if (p.self || !p.pc) return;
-    try {
-      p.pc.onnegotiationneeded = async () => {
-        try {
-          const offer = await p.pc.createOffer();
-          await p.pc.setLocalDescription(offer);
-          socket.emit('voice-signal', { serverId: voiceCall.serverId, channelId: voiceCall.channelId, to: u, data: { sdp: p.pc.localDescription } });
-        } catch (e) {}
-      };
-      // Nudge negotiation (some browsers only fire it on track changes).
-      p.pc.dispatchEvent(new Event('negotiationneeded'));
-    } catch (e) {}
+    voiceRenegotiatePeer(p, u);
   });
+}
+// Send a fresh offer to a single peer so newly added/removed tracks take effect.
+async function voiceRenegotiatePeer(p, u, attempt) {
+  if (!p || !p.pc || p.self) return;
+  const pc = p.pc;
+  attempt = attempt || 0;
+  try {
+    if (pc.signalingState !== 'stable') {
+      // A negotiation is already in flight; retry shortly so the track change
+      // is not silently dropped.
+      if (attempt < 10) setTimeout(() => voiceRenegotiatePeer(p, u, attempt + 1), 250);
+      return;
+    }
+    p.makingOffer = true;
+    const offer = await pc.createOffer();
+    await pc.setLocalDescription(offer);
+    socket.emit('voice-signal', { serverId: voiceCall.serverId, channelId: voiceCall.channelId, to: u, data: { sdp: pc.localDescription } });
+  } catch (e) {
+  } finally {
+    p.makingOffer = false;
+  }
 }
 // ---- Screen share (high framerate, 100+ FPS capable) ----
 // The button opens an in-app picker so the user chooses the POV (entire screen,
@@ -7885,15 +7914,21 @@ async function voiceHandleSignal(from, data) {
   const pc = p.pc;
   try {
     if (data.sdp) {
-      // Perfect-negotiation guard: ignore an offer that collides with our own.
-      if (data.sdp.type === 'offer' && pc.signalingState !== 'stable' && pc.signalingState !== 'have-local-offer') {
-        // fall through and let setRemoteDescription handle glare
+      const desc = new RTCSessionDescription(data.sdp);
+      // Perfect-negotiation glare handling: if we have a local offer in flight
+      // and an offer arrives, the polite peer rolls back and accepts the remote
+      // offer; the impolite peer ignores the colliding offer.
+      const offerCollision = desc.type === 'offer' && (p.makingOffer || pc.signalingState !== 'stable');
+      p.ignoreOffer = !p.polite && offerCollision;
+      if (p.ignoreOffer) return;
+      if (offerCollision) {
+        try { await pc.setLocalDescription({ type: 'rollback' }); } catch (e) {}
       }
-      await pc.setRemoteDescription(new RTCSessionDescription(data.sdp));
+      await pc.setRemoteDescription(desc);
       // Flush any queued ICE candidates now that remote desc is set.
       (p.pendingCandidates || []).forEach(c => pc.addIceCandidate(new RTCIceCandidate(c)).catch(() => {}));
       p.pendingCandidates = [];
-      if (data.sdp.type === 'offer') {
+      if (desc.type === 'offer') {
         const answer = await pc.createAnswer();
         await pc.setLocalDescription(answer);
         socket.emit('voice-signal', { serverId: voiceCall.serverId, channelId: voiceCall.channelId, to: from, data: { sdp: pc.localDescription } });

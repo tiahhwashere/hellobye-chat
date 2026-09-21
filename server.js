@@ -1309,15 +1309,17 @@ app.use((req, res, next) => {
   // Security headers (safe, non-breaking for this SPA):
   //  - nosniff: prevent MIME-type sniffing on uploaded files / responses.
   //  - Referrer-Policy: only send origin (not full URL) to other sites.
-  //  - Permissions-Policy: allow the microphone for this origin so voice
-  //    channels and voice messages work. Previously this was set to
-  //    `microphone=()` which DISABLED the mic for the whole page and made
-  //    every getUserMedia() call fail with "Microphone access was blocked".
-  //    `microphone=(self)` permits the site's own origin while still denying
-  //    third-party iframes. Camera/geolocation/payment stay disabled.
+  //  - Permissions-Policy: allow the microphone AND camera for this origin so
+  //    voice channels, voice messages, screen sharing and the camera toggle
+  //    all work. Previously this was set to `microphone=()` / `camera=()`
+  //    which DISABLED those devices for the whole page and made every
+  //    getUserMedia() call fail ("Microphone access was blocked" / camera
+  //    "Permission denied"). `(self)` permits the site's own origin while
+  //    still denying third-party iframes. display-capture is allowed so
+  //    getDisplayMedia() (screen sharing) works too.
   res.header('X-Content-Type-Options', 'nosniff');
   res.header('Referrer-Policy', 'strict-origin-when-cross-origin');
-  res.header('Permissions-Policy', 'camera=(), microphone=(self), geolocation=(), payment=()');
+  res.header('Permissions-Policy', 'camera=(self), microphone=(self), display-capture=(self), geolocation=(), payment=()');
   if (req.method === 'OPTIONS') return res.sendStatus(200);
   next();
 });
