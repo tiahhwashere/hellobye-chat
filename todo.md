@@ -10,4 +10,4 @@
 - [x] Discovery: show server ID on result cards
 - [x] Add message threads (reply-in-thread) + other server features
 - [x] Verify syntax, local smoke test, no data loss
-- [ ] Commit + push + verify Render deploy live
+- [x] Commit + push + verify Render deploy live
