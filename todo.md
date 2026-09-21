@@ -24,5 +24,5 @@
 - [x] Fix all voice chat / voice message lag — everything synced in real time
 
 ## E. Verify + deploy
-- [ ] Syntax check + local smoke test, no data loss
-- [ ] Commit + push + verify Render deploy live
+- [x] Syntax check + local smoke test, no data loss
+- [x] Commit + push + verify Render deploy live
