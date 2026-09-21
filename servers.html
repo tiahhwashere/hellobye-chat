@@ -754,8 +754,9 @@ input, textarea { font-family: inherit; }
 .scale-preview { margin-top: 14px; border: 1px solid var(--border-light); border-radius: 10px; overflow: hidden; background: var(--bg-darkest); }
 .scale-preview .sp-banner { height: 176px; background-size: cover; background-position: center center; background-repeat: no-repeat; position: relative; overflow: hidden; }
 .scale-preview .sp-banner .sp-banner-img { position: absolute; inset: 0; background-size: cover; background-position: center center; background-repeat: no-repeat; transform-origin: center center; }
-.scale-preview .sp-icon { width: 60px; height: 60px; border-radius: 50%; border: 4px solid var(--bg-dark); background: var(--accent); position: absolute; left: 16px; bottom: -30px; overflow: hidden; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 22px; transform-origin: center; z-index: 2; }
-.scale-preview .sp-icon img { width: 100%; height: 100%; object-fit: cover; }
+.scale-preview .sp-icon { width: 60px; height: 60px; border-radius: 50%; border: 4px solid var(--bg-dark); background: var(--accent); position: absolute; left: 16px; bottom: -30px; overflow: hidden; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 22px; z-index: 2; }
+.scale-preview .sp-icon img { width: 100%; height: 100%; object-fit: cover; transform-origin: center center; }
+.scale-preview .sp-icon .sp-icon-initials { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; transform-origin: center center; }
 /* Tall enough that a fully-scaled icon (up to 220%) never clips into the
    banner or gets cut off by the preview's rounded frame. */
 .scale-preview .sp-body { height: 78px; position: relative; }
@@ -1037,12 +1038,22 @@ input, textarea { font-family: inherit; }
 .member-profile-name { font-size: 19px; font-weight: 700; color: #ffffff; margin-bottom: 3px; word-break: break-word; overflow-wrap: break-word; }
 .member-profile-handle { font-size: 17px; color: #ffffff; font-weight: 700; margin-bottom: 4px; word-break: break-word; overflow-wrap: break-word; }
 .member-profile-id { font-size: 11px; color: #ffffff; font-weight: 700; font-family: 'gg sans Mono', monospace; margin-bottom: 10px; display: flex; align-items: center; justify-content: flex-start; gap: 6px; position: relative; }
+/* Click-to-copy username / ID */
+.mp-copyable { cursor: pointer; border-radius: 6px; padding: 2px 6px; margin-left: -6px; transition: background 0.15s ease; }
+.mp-copyable:hover { background: rgba(255,255,255,0.12); }
+.mp-copyable .mp-copy-hint { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; opacity: 0; margin-left: 6px; color: #cfe3ff; transition: opacity 0.15s ease; }
+.mp-copyable:hover .mp-copy-hint { opacity: 0.85; }
+.mp-copyable.copied { background: rgba(46,204,113,0.22); }
+.mp-copyable.copied .mp-copy-hint { opacity: 1; color: #7ee2a8; }
 .member-profile-status { font-size: 12.5px; color: var(--text-secondary); display: flex; align-items: center; justify-content: flex-start; gap: 7px; margin-bottom: 14px; }
 .member-profile-status .status-dot { position: static; border: none; width: 15px; height: 15px; flex-shrink: 0; }
 .member-profile-extra { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 16px; margin-bottom: 16px; text-align: left; }
 .member-profile-extra .mp-extra-field { display: flex; flex-direction: column; gap: 2px; }
 .member-profile-extra .mp-extra-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.4px; color: #ffffff; font-weight: 700; }
-.member-profile-extra .mp-extra-value { font-size: 13px; color: #ffffff; font-weight: 700; }
+.member-profile-extra .mp-extra-value { font-size: 13px; color: #ffffff; font-weight: 700; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+/* Roles shown inline, right beside the "Member Since" value. */
+.member-profile-roles.inline { display: inline-flex; gap: 6px; flex-wrap: wrap; margin: 0; }
+.member-profile-roles.inline .member-profile-role { font-size: 11px; padding: 2px 8px; }
 .member-profile-bio { font-size: 13px; color: var(--text-secondary); line-height: 1.6; padding: 12px 16px; background: var(--bg-medium); border-radius: var(--radius-sm); margin-bottom: 20px; text-align: left; white-space: pre-wrap; word-wrap: break-word; min-height: 20px; }
 .member-profile-roles { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
 .member-profile-role { font-size: 13px; padding: 5px 13px; border-radius: 11px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; }
@@ -1337,10 +1348,18 @@ input, textarea { font-family: inherit; }
 /* ---- Richer settings: cards ---- */
 .settings-card { background: var(--bg-dark); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 12px; }
 /* Server appearance: accent swatches + effect preview */
-.server-accent-swatches { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; }
-.server-accent-swatch { width: 30px; height: 30px; border-radius: 8px; cursor: pointer; border: 2px solid transparent; transition: transform var(--transition), border-color var(--transition); }
-.server-accent-swatch:hover { transform: scale(1.08); }
+.server-accent-swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(34px, 1fr)); gap: 8px; margin-top: 8px; }
+.server-accent-swatch { width: 100%; aspect-ratio: 1 / 1; border-radius: 9px; cursor: pointer; border: 2px solid transparent; transition: transform var(--transition), border-color var(--transition), box-shadow var(--transition); position: relative; }
+.server-accent-swatch:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.35); }
 .server-accent-swatch.selected { border-color: #fff; box-shadow: 0 0 0 2px rgba(255,255,255,0.25); }
+.server-accent-swatch.selected::after { content: ''; position: absolute; inset: 0; margin: auto; width: 9px; height: 5px; border-left: 2px solid #fff; border-bottom: 2px solid #fff; transform: rotate(-45deg) translateY(-1px); }
+/* Accent picker: swatch grid + custom color row */
+.accent-picker { margin-top: 8px; }
+.accent-custom-row { display: flex; align-items: center; gap: 10px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
+.accent-custom-label { display: flex; align-items: center; gap: 8px; font-size: 12.5px; font-weight: 600; color: var(--text-secondary); cursor: pointer; }
+.accent-custom-chip { width: 22px; height: 22px; border-radius: 6px; border: 2px solid var(--border-light); background: #5865f2; flex-shrink: 0; }
+.accent-custom-row input[type="color"] { width: 40px; height: 34px; padding: 0; border: 1px solid var(--border-light); border-radius: 8px; background: var(--bg-darkest); cursor: pointer; }
+.accent-hex { margin-left: auto; font-family: 'gg sans Mono', ui-monospace, monospace; font-size: 12px; font-weight: 700; color: var(--text-muted); letter-spacing: 0.5px; }
 
 /* ---- Create a Server: richer setup ---- */
 .create-hero { display: flex; align-items: center; gap: 14px; padding: 16px 18px; border-radius: 12px; background: linear-gradient(135deg, rgba(var(--accent-rgb),0.14), rgba(var(--accent-rgb),0.04)); border: 1px solid rgba(var(--accent-rgb),0.22); margin-bottom: 18px; }
@@ -1575,7 +1594,7 @@ input, textarea { font-family: inherit; }
    Request AG — Advanced, professional Server Settings
    (flat surfaces, hairline borders, no cartoony bounce/gloss)
    ============================================================ */
-.settings-modal { max-width: 1040px; width: 96vw; }
+.settings-modal { max-width: 1240px; width: 97vw; }
 .settings-modal .modal-body { padding: 20px 28px 26px; }
 /* Tabbed shell: nav rail on the left, scrollable pane on the right */
 .settings-shell { display: flex; align-items: stretch; min-height: 460px; max-height: 74vh; }
@@ -1610,8 +1629,6 @@ input, textarea { font-family: inherit; }
 }
 .settings-header { padding: 22px 28px 18px; border-bottom: 1px solid var(--border); align-items: flex-start; }
 .settings-header-main { display: flex; align-items: center; gap: 14px; min-width: 0; }
-.settings-header-icon { width: 42px; height: 42px; border-radius: 11px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: var(--accent-light); background: rgba(var(--accent-rgb),0.10); border: 1px solid rgba(var(--accent-rgb),0.22); }
-.settings-header-icon svg { width: 21px; height: 21px; }
 .settings-header-text { min-width: 0; }
 .settings-header-text .modal-title { font-size: 18px; font-weight: 700; letter-spacing: -0.2px; }
 .settings-header-sub { font-size: 12.5px; color: var(--text-muted); margin-top: 3px; }
@@ -1859,8 +1876,6 @@ input, textarea { font-family: inherit; }
 .ctx-menu button.danger:hover { background: rgba(227,93,93,0.14); }
 .ctx-menu .cm-sep { height: 1px; background: var(--border); margin: 5px 6px; }
 </style>
-<!-- NOTE: Do NOT re-add the ninja-daytona-script.js tag here. It was intentionally
-     removed and must stay removed. -->
 <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 </head>
 <body>
@@ -1913,7 +1928,6 @@ input, textarea { font-family: inherit; }
         <div class="server-header" id="server-header">
           <div class="server-header-banner" id="server-header-banner"></div>
           <div class="server-header-top">
-            <div class="server-header-icon" id="server-header-icon">S</div>
             <div class="server-header-info">
               <div class="server-header-name" id="server-header-name">Server</div>
               <div class="server-header-count" id="server-header-count">0 members</div>
@@ -2130,9 +2144,6 @@ input, textarea { font-family: inherit; }
   <div class="modal wide settings-modal">
     <div class="modal-header settings-header">
       <div class="settings-header-main">
-        <div class="settings-header-icon" id="settings-header-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-        </div>
         <div class="settings-header-text">
           <div class="modal-title">Server Settings</div>
           <div class="settings-header-sub" id="settings-header-sub">Manage identity, appearance, channels, roles and invites</div>
@@ -2236,8 +2247,19 @@ input, textarea { font-family: inherit; }
                     <div class="sap-main"><span class="sap-pill"></span><span class="sap-line"></span><span class="sap-line short"></span></div>
                   </div>
                 </div>
-                <div class="field" style="margin-bottom:12px;"><label style="text-transform:none;font-size:12px;color:var(--text-secondary);">Accent color</label>
-                  <div class="server-accent-swatches" id="set-accent-swatches"></div>
+                <div class="field" style="margin-bottom:14px;">
+                  <label style="text-transform:none;font-size:12px;color:var(--text-secondary);">Accent color</label>
+                  <div class="accent-picker">
+                    <div class="server-accent-swatches" id="set-accent-swatches"></div>
+                    <div class="accent-custom-row">
+                      <label class="accent-custom-label" for="set-accent-custom">
+                        <span class="accent-custom-chip" id="set-accent-custom-chip"></span>
+                        <span>Custom</span>
+                      </label>
+                      <input type="color" id="set-accent-custom" value="#5865f2" title="Pick a custom accent color">
+                      <span class="accent-hex" id="set-accent-hex">#5865F2</span>
+                    </div>
+                  </div>
                 </div>
                 <div class="field" style="margin-bottom:12px;"><label style="text-transform:none;font-size:12px;color:var(--text-secondary);">Effect</label>
                   <div class="seg-control" id="set-effect-seg">
@@ -2541,7 +2563,6 @@ input, textarea { font-family: inherit; }
     <div class="modal-header"><div class="modal-title" id="member-modal-title">Member</div><button class="modal-close" data-close="member-modal">&times;</button></div>
     <div class="modal-body" id="member-modal-body"></div>
     <div class="modal-footer" id="member-modal-footer"></div>
-    <button class="modal-close-corner" id="member-modal-corner-close" data-close="member-modal">&times;</button>
   </div>
 </div>
 
@@ -3777,19 +3798,26 @@ function applyServerChatBackground() {
   layer.style.transformOrigin = 'center center';
 }
 // Apply the server's icon + banner scale (visible to every member).
+// The scale zooms the IMAGE CONTENT inside a fixed frame rather than resizing
+// the frame itself, so nothing ever blows out of proportion or overlaps the
+// server name. The icon frame clips its <img>; the banner element is clipped by
+// the header's overflow:hidden.
 function applyServerImageScale() {
   const iconScale = (activeServer && activeServer.iconScale) ? activeServer.iconScale : 100;
   const bannerScale = (activeServer && activeServer.bannerScale) ? activeServer.bannerScale : 100;
-  const iconEl = $('server-header-icon');
-  const bannerEl = $('server-header-banner');
-  if (iconEl) {
-    iconEl.style.transformOrigin = 'center center';
-    iconEl.style.transform = iconScale !== 100 ? 'scale(' + (iconScale / 100) + ')' : '';
+  // The server header no longer shows an icon (only the name + banner), so the
+  // icon scale is applied to the server's icon in the left rail instead.
+  const railBtn = document.querySelector('#rail-servers .rail-btn[data-server-id="' + (activeServerId || '') + '"]');
+  if (railBtn) {
+    const img = railBtn.querySelector('img');
+    const target = img || railBtn;
+    target.style.transformOrigin = 'center center';
+    target.style.transform = iconScale !== 100 ? 'scale(' + (iconScale / 100) + ')' : '';
   }
+  const bannerEl = $('server-header-banner');
   if (bannerEl) {
-    // Scale the banner from the top so the server name stays pinned at the top
-    // while the image grows downward.
-    bannerEl.style.transformOrigin = 'center top';
+    // Zoom the banner image within the header frame (clipped by overflow:hidden).
+    bannerEl.style.transformOrigin = 'center center';
     bannerEl.style.transform = bannerScale !== 100 ? 'scale(' + (bannerScale / 100) + ')' : '';
   }
 }
@@ -3812,12 +3840,7 @@ function shadeColor(hex, percent) {
 }
 function renderServerView() {
   if (!activeServer) return;
-  // Header
-  const headerIconEl = $('server-header-icon');
-  if (headerIconEl) {
-    if (activeServer.icon) headerIconEl.innerHTML = '<img src="' + escapeAttr(activeServer.icon) + '">';
-    else headerIconEl.textContent = getInitials(activeServer.name);
-  }
+  // Header (name + banner only; the icon lives in the left rail)
   $('server-header-name').textContent = activeServer.name;
   $('server-header-count').textContent = activeServer.memberCount + ' member' + (activeServer.memberCount === 1 ? '' : 's');
   // The banner fills the whole server header box; the name/count overlay it.
@@ -4280,7 +4303,7 @@ function applyChannelChatState(ch, chData) {
 function renderMessages() {
   const c = $('server-messages');
   if (!serverMessages.length) {
-    c.innerHTML = '<div class="server-empty-chat"><div class="sec-icon">' + icon('hash', 'lg') + '</div><h3>Welcome to #' + escapeHtml((activeServer.channels.find(x=>x.id===activeChannelId)||{}).name || 'channel') + '</h3><p>This is the very beginning of the channel. Share a thought, drop a file, or say hello to get the conversation started.</p><div class="sec-hints"><span class="sec-hint"><b>/</b> commands</span><span class="sec-hint"><b>@</b> mention someone</span><span class="sec-hint"><b>+</b> attach a file</span></div></div>';
+    c.innerHTML = '';
     return;
   }
   c.innerHTML = '';
@@ -4794,6 +4817,29 @@ $('srv-input').addEventListener('keydown', (e) => {
   if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
 });
 $('srv-send-btn').addEventListener('click', sendMessage);
+
+// Global "/" shortcut: pressing the slash key anywhere (when not already typing
+// in a field and no modal is open) focuses the chat input and opens the slash
+// command popover, so users don't have to click the input first.
+document.addEventListener('keydown', (e) => {
+  if (e.key !== '/' || e.ctrlKey || e.metaKey || e.altKey) return;
+  const t = e.target;
+  const typing = t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable);
+  if (typing) return;
+  // Don't hijack the key while any modal / overlay is open.
+  if (document.querySelector('.modal-overlay.show')) return;
+  const sv = $('server-view');
+  if (!sv || sv.style.display === 'none') return;
+  const el = $('srv-input');
+  if (!el || el.disabled) return;
+  e.preventDefault();
+  el.focus();
+  if (!el.value.startsWith('/')) el.value = '/' + el.value;
+  const pos = el.value.length;
+  el.setSelectionRange(pos, pos);
+  updateSendBtn(); autoGrow(el);
+  updateSlashPop();
+});
 
 /* ============================================================
    Reply system
@@ -5576,6 +5622,7 @@ function renderServerAccentSwatches() {
   const wrap = $('set-accent-swatches');
   if (!wrap) return;
   setAccentColor = (activeServer && activeServer.accentColor) || '#5865f2';
+  const isPreset = SERVER_ACCENTS.some(c => c.toLowerCase() === setAccentColor.toLowerCase());
   wrap.innerHTML = SERVER_ACCENTS.map(c =>
     '<div class="server-accent-swatch' + (c.toLowerCase() === setAccentColor.toLowerCase() ? ' selected' : '') + '" data-color="' + c + '" style="background:' + c + ';" title="' + c + '"></div>'
   ).join('');
@@ -5583,8 +5630,20 @@ function renderServerAccentSwatches() {
     setAccentColor = sw.dataset.color;
     wrap.querySelectorAll('.server-accent-swatch').forEach(x => x.classList.remove('selected'));
     sw.classList.add('selected');
+    syncAccentCustom();
     updateAppearancePreview();
   }));
+  syncAccentCustom();
+}
+// Keep the custom color input, chip and hex label in sync with the accent.
+function syncAccentCustom() {
+  const inp = $('set-accent-custom');
+  const chip = $('set-accent-custom-chip');
+  const hex = $('set-accent-hex');
+  const c = /^#[0-9a-fA-F]{6}$/.test(setAccentColor) ? setAccentColor : '#5865f2';
+  if (inp) inp.value = c;
+  if (chip) chip.style.background = c;
+  if (hex) hex.textContent = c.toUpperCase();
 }
 // Live preview of the chosen accent color + effect inside Server Settings.
 function updateAppearancePreview() {
@@ -5605,15 +5664,21 @@ function renderSettingsScalePreview() {
   el.innerHTML =
     '<div class="sp-banner" style="' + (bannerUrl ? '' : 'background:linear-gradient(135deg,#6366f1,#4f46e5);') + '">' +
       (bannerUrl ? '<div class="sp-banner-img" id="set-sp-banner-img" style="background-image:url(' + escapeAttr(bannerUrl) + ')"></div>' : '') +
-      '<div class="sp-icon" id="set-sp-icon">' + (iconUrl ? '<img src="' + escapeAttr(iconUrl) + '">' : escapeHtml(getInitials(activeServer.name))) + '</div>' +
+      '<div class="sp-icon" id="set-sp-icon">' + (iconUrl ? '<img src="' + escapeAttr(iconUrl) + '">' : '<span class="sp-icon-initials">' + escapeHtml(getInitials(activeServer.name)) + '</span>') + '</div>' +
     '</div><div class="sp-body"></div>';
   applySettingsScalePreview();
 }
 function applySettingsScalePreview() {
   const iScale = Number($('set-icon-scale').value) || 100;
   const bScale = Number($('set-banner-scale').value) || 100;
+  // Zoom the image CONTENT inside the fixed preview frames (never the frames
+  // themselves) so the preview matches the real server header exactly.
   const bi = $('set-sp-banner-img'); if (bi) bi.style.transform = bScale !== 100 ? 'scale(' + (bScale / 100) + ')' : '';
-  const ic = $('set-sp-icon'); if (ic) ic.style.transform = iScale !== 100 ? 'scale(' + (iScale / 100) + ')' : '';
+  const ic = $('set-sp-icon');
+  if (ic) {
+    const t = ic.querySelector('img') || ic.querySelector('.sp-icon-initials');
+    if (t) t.style.transform = iScale !== 100 ? 'scale(' + (iScale / 100) + ')' : '';
+  }
 }
 $('set-icon-scale').addEventListener('input', () => {
   $('set-icon-scale-val').textContent = $('set-icon-scale').value + '%';
@@ -5903,7 +5968,7 @@ function openScaleModal(kind) {
   if (isIcon) {
     $('scale-preview').innerHTML =
       '<div class="sp-icon-only"><div class="sp-icon" id="sp-icon">' +
-        (iconUrl ? '<img src="' + escapeAttr(iconUrl) + '">' : escapeHtml(getInitials(activeServer.name))) +
+        (iconUrl ? '<img src="' + escapeAttr(iconUrl) + '">' : '<span class="sp-icon-initials">' + escapeHtml(getInitials(activeServer.name)) + '</span>') +
       '</div></div>';
   } else {
     $('scale-preview').innerHTML =
@@ -5929,13 +5994,16 @@ function setScaleModalValue(val) {
 }
 function applyScalePreview(val) {
   const s = val / 100;
-  // Only scale the element this dialog is for, so the preview matches exactly
-  // what will change on the server header.
+  // Only scale the image CONTENT of the element this dialog is for, inside its
+  // fixed frame, so the preview matches exactly what will change on the header.
   const isIcon = scaleModalKind === 'icon';
   const bi = $('sp-banner-img');
   const ic = $('sp-icon');
   if (bi) bi.style.transform = (!isIcon && val !== 100) ? 'scale(' + s + ')' : '';
-  if (ic) ic.style.transform = (isIcon && val !== 100) ? 'scale(' + s + ')' : '';
+  if (ic) {
+    const t = ic.querySelector('img') || ic.querySelector('.sp-icon-initials');
+    if (t) t.style.transform = (isIcon && val !== 100) ? 'scale(' + s + ')' : '';
+  }
 }
 $('scale-modal-range').addEventListener('input', () => {
   setScaleModalValue(Number($('scale-modal-range').value));
@@ -6066,6 +6134,13 @@ $('settings-save').addEventListener('click', async () => {
 $('set-notif-seg').querySelectorAll('button').forEach(b => b.addEventListener('click', markSettingsDirty));
 $('set-effect-seg').querySelectorAll('button').forEach(b => b.addEventListener('click', markSettingsDirty));
 $('set-accent-swatches').addEventListener('click', markSettingsDirty);
+$('set-accent-custom').addEventListener('input', () => {
+  setAccentColor = $('set-accent-custom').value;
+  $('set-accent-swatches').querySelectorAll('.server-accent-swatch').forEach(x => x.classList.remove('selected'));
+  syncAccentCustom();
+  updateAppearancePreview();
+  markSettingsDirty();
+});
 $('set-appearance-reset').addEventListener('click', markSettingsDirty);
 $('settings-unsaved-save').addEventListener('click', () => $('settings-save').click());
 $('set-icon').addEventListener('click', () => $('set-icon-input').click());
@@ -6558,11 +6633,12 @@ function renderMemberProfileBody(m, roles, isMe, data) {
     '<div class="member-profile-avatar' + (avatar ? ' mp-zoomable' : '') + '"' + (avatar ? ' data-mp-zoom="' + escapeAttr(avatar) + '"' : '') + '>' + (avatar ? '<img src="' + escapeAttr(avatar) + '"' + (avatarScale !== 100 ? ' style="transform:scale(' + (avatarScale / 100) + ');"' : '') + '>' : '<span class="mpa-initials"' + (avatarScale !== 100 ? ' style="transform:scale(' + (avatarScale / 100) + ');"' : '') + '>' + escapeHtml(getInitials(displayName)) + '</span>') + '</div>' +
     '<div class="member-profile-info">' +
     '<div class="member-profile-name">' + escapeHtml(displayName) + '</div>' +
-    '<div class="member-profile-handle">@' + escapeHtml(m.username) + '</div>';
+    '<div class="member-profile-handle mp-copyable" data-copy="' + escapeAttr(m.username) + '" title="Click to copy username">@' + escapeHtml(m.username) + '<span class="mp-copy-hint">Copy</span></div>';
 
-  // ID (short id) — same as main chat
+  // ID (short id) — same as main chat; click to copy.
   if (u.shortId || u.id) {
-    html += '<div class="member-profile-id">ID: ' + escapeHtml(u.shortId || '') + '</div>';
+    const idVal = u.shortId || u.id;
+    html += '<div class="member-profile-id mp-copyable" data-copy="' + escapeAttr(idVal) + '" title="Click to copy ID">ID: ' + escapeHtml(u.shortId || '') + '<span class="mp-copy-hint">Copy</span></div>';
   }
 
   // Status
@@ -6575,17 +6651,26 @@ function renderMemberProfileBody(m, roles, isMe, data) {
     }
   }
 
-  // Extra info: pronouns, location, website, member since
+  // Server roles markup (rendered beside "Member Since").
+  const rolesChips = roles.map(r =>
+      '<span class="role-chip-wrap"><span class="member-profile-role" style="background:' + escapeAttr(r.color) + '22;color:' + escapeAttr(r.color) + ';">' +
+        escapeHtml(r.name) + '</span>' +
+        (r.badge ? '<img class="member-profile-role-badge" src="' + escapeAttr(r.badge) + '" alt="">' : '') + '</span>'
+    ).join('');
+  const rolesHtml = roles.length ? '<div class="member-profile-roles inline">' + rolesChips + '</div>' : '';
+
+  // Extra info: pronouns, location, website, member since (+ roles beside it)
+  let rolesPlaced = false;
   if (data && !isHidden) {
     const extraFields = [];
     if (u.pronouns) extraFields.push({ label: 'Pronouns', value: u.pronouns });
     if (u.location) extraFields.push({ label: 'Location', value: u.location });
     if (u.website) extraFields.push({ label: 'Website', value: u.website.replace(/^https?:\/\//, '').replace(/\/$/, ''), href: u.website });
-    if (u.createdAt) extraFields.push({ label: 'Member Since', value: new Date(u.createdAt).toLocaleDateString() });
+    if (u.createdAt) { extraFields.push({ label: 'Member Since', value: new Date(u.createdAt).toLocaleDateString(), roles: rolesHtml }); rolesPlaced = true; }
     if (extraFields.length) {
       html += '<div class="member-profile-extra">' + extraFields.map(f =>
         '<div class="mp-extra-field"><div class="mp-extra-label">' + escapeHtml(f.label) + '</div>' +
-        '<div class="mp-extra-value">' + (f.href ? '<a href="' + escapeAttr(f.href) + '" target="_blank" rel="noopener" style="color:#6fb5ff;">' + escapeHtml(f.value) + '</a>' : escapeHtml(f.value)) + '</div></div>'
+        '<div class="mp-extra-value">' + (f.href ? '<a href="' + escapeAttr(f.href) + '" target="_blank" rel="noopener" style="color:#6fb5ff;">' + escapeHtml(f.value) + '</a>' : escapeHtml(f.value)) + (f.roles || '') + '</div></div>'
       ).join('') + '</div>';
     }
   }
@@ -6598,13 +6683,9 @@ function renderMemberProfileBody(m, roles, isMe, data) {
     html += '<div class="member-profile-bio">' + escapeHtml(bio) + '</div>';
   }
 
-  // Server roles
-  if (roles.length) {
-    html += '<div class="member-profile-roles">' + roles.map(r =>
-      '<span class="role-chip-wrap"><span class="member-profile-role" style="background:' + escapeAttr(r.color) + '22;color:' + escapeAttr(r.color) + ';">' +
-        escapeHtml(r.name) + '</span>' +
-        (r.badge ? '<img class="member-profile-role-badge" src="' + escapeAttr(r.badge) + '" alt="">' : '') + '</span>'
-    ).join('') + '</div>';
+  // Server roles (only if they weren't already placed beside "Member Since")
+  if (roles.length && !rolesPlaced) {
+    html += '<div class="member-profile-roles">' + rolesChips + '</div>';
   }
 
   // Joined date
@@ -6660,6 +6741,22 @@ function renderMemberProfileBody(m, roles, isMe, data) {
     el.addEventListener('click', () => {
       const src = el.getAttribute('data-mp-zoom');
       if (src) openImageLightbox(src);
+    });
+  });
+  // Click the username or ID to copy it to the clipboard.
+  $('member-modal-body').querySelectorAll('.mp-copyable').forEach(el => {
+    el.addEventListener('click', async () => {
+      const val = el.getAttribute('data-copy') || '';
+      if (!val) return;
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) await navigator.clipboard.writeText(val);
+        else { const ta = document.createElement('textarea'); ta.value = val; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); }
+        el.classList.add('copied');
+        const hint = el.querySelector('.mp-copy-hint');
+        if (hint) hint.textContent = 'Copied';
+        toast('Copied: ' + val, 'success');
+        setTimeout(() => { el.classList.remove('copied'); if (hint) hint.textContent = 'Copy'; }, 1400);
+      } catch(_) { toast('Could not copy', 'error'); }
     });
   });
   const assignBtn = $('assign-role-btn');
@@ -6803,7 +6900,7 @@ function openMyServerProfileEditor() {
         '<div class="scale-row"><label>' + icon('image', 'sm') + ' Banner</label><input type="range" id="my-banner-scale" min="100" max="220" step="5" value="' + (me.bannerScale || 100) + '"><span class="psr-val" id="my-banner-scale-val">' + (me.bannerScale || 100) + '%</span></div>' +
       '</div>' +
     '</div>';
-  $('member-modal-footer').innerHTML = '<button class="btn btn-ghost" data-close="member-modal">Cancel</button><button class="btn btn-primary" id="my-profile-save">Save Changes</button>';
+  $('member-modal-footer').innerHTML = '<button class="btn btn-ghost" data-close="member-modal">Cancel</button><button class="btn btn-primary" id="my-profile-save">Save Settings</button>';
   $('member-modal-footer').querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', () => closeModal('member-modal')));
 
   // Tabs
@@ -6879,7 +6976,7 @@ function openMyServerProfileEditor() {
       await loadServer(activeServerId, true);
       renderSelfFooter();
       closeModal('member-modal'); toast('Profile updated', 'success');
-    } catch(e) { toast(e.message, 'error'); btn.disabled = false; btn.textContent = 'Save Changes'; }
+    } catch(e) { toast(e.message, 'error'); btn.disabled = false; btn.textContent = 'Save Settings'; }
   });
   openModal('member-modal');
 }
