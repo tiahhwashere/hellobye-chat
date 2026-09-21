@@ -376,6 +376,11 @@ input, textarea { font-family: inherit; }
 .msg-group.own .msg-time { text-align: right; }
 .msg-role-badge { font-size: 11px; padding: 2px 7px; border-radius: 8px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; }
 .msg-role-badge-img { width: 16px; height: 16px; object-fit: contain; flex-shrink: 0; }
+/* Role chip + badge: the badge sits OUTSIDE the chip, on the right. */
+.role-chip-wrap { display: inline-flex; align-items: center; gap: 4px; }
+.role-chip-wrap .member-profile-role-badge,
+.role-chip-wrap .mi-role-img,
+.role-chip-wrap .msg-role-badge-img { margin-left: 0; }
 .msg-text { font-size: 15.5px; line-height: 1.55; word-wrap: break-word; white-space: pre-wrap; }
 .msg-group.own .msg-text { text-align: right; }
 .msg-text a { color: var(--accent-light); }
@@ -1570,8 +1575,39 @@ input, textarea { font-family: inherit; }
    Request AG — Advanced, professional Server Settings
    (flat surfaces, hairline borders, no cartoony bounce/gloss)
    ============================================================ */
-.settings-modal { max-width: 940px; }
+.settings-modal { max-width: 1040px; width: 96vw; }
 .settings-modal .modal-body { padding: 20px 28px 26px; }
+/* Tabbed shell: nav rail on the left, scrollable pane on the right */
+.settings-shell { display: flex; align-items: stretch; min-height: 460px; max-height: 74vh; }
+.settings-nav { flex: 0 0 208px; display: flex; flex-direction: column; gap: 3px; padding: 16px 12px; border-right: 1px solid var(--border); background: var(--bg-darker); overflow-y: auto; }
+.settings-nav-item { display: flex; align-items: center; gap: 11px; padding: 10px 12px; border-radius: 9px; font-size: 13.5px; font-weight: 600; color: var(--text-secondary); text-align: left; transition: background 0.16s ease, color 0.16s ease; }
+.settings-nav-item svg { width: 17px; height: 17px; flex-shrink: 0; opacity: 0.85; }
+.settings-nav-item:hover { background: var(--bg-medium); color: var(--text-primary); }
+.settings-nav-item.active { background: rgba(var(--accent-rgb),0.14); color: var(--accent-light); }
+.settings-nav-item.active svg { opacity: 1; }
+.settings-nav-item.danger { color: #ff9a9a; }
+.settings-nav-item.danger:hover { background: rgba(227,93,93,0.12); color: #ffb3b3; }
+.settings-nav-item.danger.active { background: rgba(227,93,93,0.16); color: #ffb3b3; }
+.settings-body { flex: 1; min-width: 0; overflow-y: auto; padding: 22px 26px 26px; }
+.settings-pane { display: none; }
+.settings-pane.active { display: block; animation: paneIn 0.2s ease; }
+@keyframes paneIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+.settings-pane-head { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; flex-wrap: wrap; }
+.settings-pane-head .sph-title { font-size: 16px; font-weight: 700; letter-spacing: -0.2px; }
+.settings-pane-head .sph-sub { font-size: 12.5px; color: var(--text-muted); flex: 1 1 100%; margin-top: -6px; }
+.settings-pane-head .settings-add-btn { margin-left: auto; }
+/* Stat rows in the membership card */
+.stat-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 0; border-top: 1px solid var(--border); }
+.stat-row:first-of-type { border-top: none; }
+.stat-label { font-size: 12.5px; color: var(--text-muted); font-weight: 600; }
+.stat-value { font-size: 13px; color: var(--text-primary); font-weight: 600; }
+@media (max-width: 760px) {
+  .settings-shell { flex-direction: column; max-height: none; }
+  .settings-nav { flex: 0 0 auto; flex-direction: row; overflow-x: auto; border-right: none; border-bottom: 1px solid var(--border); padding: 10px; }
+  .settings-nav-item { white-space: nowrap; }
+  .settings-nav-item span { display: none; }
+  .settings-nav-item { padding: 10px; }
+}
 .settings-header { padding: 22px 28px 18px; border-bottom: 1px solid var(--border); align-items: flex-start; }
 .settings-header-main { display: flex; align-items: center; gap: 14px; min-width: 0; }
 .settings-header-icon { width: 42px; height: 42px; border-radius: 11px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: var(--accent-light); background: rgba(var(--accent-rgb),0.10); border: 1px solid rgba(var(--accent-rgb),0.22); }
@@ -1877,6 +1913,7 @@ input, textarea { font-family: inherit; }
         <div class="server-header" id="server-header">
           <div class="server-header-banner" id="server-header-banner"></div>
           <div class="server-header-top">
+            <div class="server-header-icon" id="server-header-icon">S</div>
             <div class="server-header-info">
               <div class="server-header-name" id="server-header-name">Server</div>
               <div class="server-header-count" id="server-header-count">0 members</div>
@@ -2093,182 +2130,278 @@ input, textarea { font-family: inherit; }
   <div class="modal wide settings-modal">
     <div class="modal-header settings-header">
       <div class="settings-header-main">
+        <div class="settings-header-icon" id="settings-header-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        </div>
         <div class="settings-header-text">
           <div class="modal-title">Server Settings</div>
-          <div class="settings-header-sub">Manage identity, appearance, channels, roles and invites</div>
+          <div class="settings-header-sub" id="settings-header-sub">Manage identity, appearance, channels, roles and invites</div>
         </div>
       </div>
       <button class="modal-close" data-close="settings-modal">&times;</button>
     </div>
-    <div class="modal-body">
-      <div class="profile-editor">
-        <div class="profile-banner" id="set-banner">
-          <div class="edit-overlay">Change Banner</div>
-        </div>
-        <div class="profile-icon" id="set-icon"><span id="set-icon-initial">S</span><div class="edit-overlay"><svg class="ui-ic" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></div></div>
-        <input type="file" id="set-banner-input" accept="image/*,image/gif" hidden>
-        <input type="file" id="set-icon-input" accept="image/*,image/gif" hidden>
-      </div>
-      <div style="height:24px;"></div>
-      <div class="settings-grid">
-      <div class="settings-col">
-      <div class="field"><label>Server name</label><input type="text" id="set-name" maxlength="40"></div>
-      <div class="field"><label>About this server</label><textarea id="set-bio" maxlength="500" placeholder="Describe your server for members — its focus, rules, and what makes it worth joining."></textarea></div>
-      <div class="field"><label>Member count</label><div id="set-member-count" style="font-size:14px;color:var(--text-secondary);">0 members</div></div>
-      <div class="field"><label>Server ID</label><div class="server-id-chip"><span id="set-server-id">—</span><button id="set-copy-id" title="Copy server ID"><svg class="ui-ic sm" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button></div></div>
-      <div class="settings-card">
-        <div class="sc-title"><svg class="ui-ic" viewBox="0 0 24 24"><path d="M15 3h6v6"/><path d="M9 21H3v-6"/><path d="M21 3l-7 7"/><path d="M3 21l7-7"/></svg> Icon &amp; Banner Scale</div>
-        <div class="sc-desc">Fine-tune how large your server icon and banner appear to everyone. 100% is the default size.</div>
-        <div class="scale-row">
-          <label><svg class="ui-ic sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg> Icon</label>
-          <input type="range" id="set-icon-scale" min="50" max="300" step="5" value="100">
-          <span class="psr-val" id="set-icon-scale-val">100%</span>
-        </div>
-        <div class="scale-row">
-          <label><svg class="ui-ic sm" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 15l5-5 4 4 3-3 6 6"/></svg> Banner</label>
-          <input type="range" id="set-banner-scale" min="50" max="300" step="5" value="100">
-          <span class="psr-val" id="set-banner-scale-val">100%</span>
-        </div>
-        <div class="scale-preview" id="set-scale-preview"></div>
-        <button class="btn btn-ghost" id="set-scale-reset" style="width:100%;font-size:12.5px;margin-top:10px;">Reset scale to 100%</button>
-      </div>
-      </div>
-      <div class="settings-col">
-      <div class="settings-section-head"><svg class="ui-ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg> Server Preferences</div>
-      <div class="settings-card">
-        <div class="sc-title"><svg class="ui-ic" viewBox="0 0 24 24"><path d="M3 11l18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg> System Messages Channel</div>
-        <div class="sc-desc">Where join/leave and system notices are posted.</div>
-        <select id="set-system-channel" style="width:100%;background:var(--bg-darkest);border:1px solid var(--border-light);border-radius:var(--radius-sm);color:var(--text-primary);padding:10px;font-size:13px;"></select>
-      </div>
-      <div class="settings-card">
-        <div class="sc-title"><svg class="ui-ic" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg> Default Notifications</div>
-        <div class="sc-desc">What new members get notified about by default.</div>
-        <div class="seg-control" id="set-notif-seg">
-          <button data-notif="all" class="selected">All messages</button>
-          <button data-notif="mentions">Only @mentions</button>
-          <button data-notif="none">Nothing</button>
-        </div>
-      </div>
-      <div class="settings-card">
-        <div class="sc-title"><svg class="ui-ic" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Verification Level</div>
-        <div class="sc-desc">How strict the server is about who can join and chat.</div>
-        <select id="set-verification" style="width:100%;background:var(--bg-darkest);border:1px solid var(--border-light);border-radius:var(--radius-sm);color:var(--text-primary);padding:10px;font-size:13px;">
-          <option value="0">None — no restrictions</option>
-          <option value="1">Low — must have a verified email</option>
-          <option value="2">Medium — account older than 5 minutes</option>
-          <option value="3">High — member for 10+ minutes</option>
-          <option value="4">Highest — must be an active member for 1+ hour</option>
-        </select>
-      </div>
-      <div class="settings-card">
-        <div class="sc-title"><svg class="ui-ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg> Slowmode</div>
-        <div class="sc-desc">Limit how often members can send messages in this server.</div>
-        <select id="set-slowmode" style="width:100%;background:var(--bg-darkest);border:1px solid var(--border-light);border-radius:var(--radius-sm);color:var(--text-primary);padding:10px;font-size:13px;">
-          <option value="0">Off</option>
-          <option value="5">5 seconds</option>
-          <option value="10">10 seconds</option>
-          <option value="30">30 seconds</option>
-          <option value="60">1 minute</option>
-          <option value="300">5 minutes</option>
-          <option value="600">10 minutes</option>
-          <option value="1800">30 minutes</option>
-          <option value="3600">1 hour</option>
-          <option value="21600">6 hours</option>
-        </select>
-      </div>
-      <div class="settings-card">
-        <div class="sc-title"><svg class="ui-ic" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> Welcome Message</div>
-        <div class="sc-desc">Shown to new members when they join.</div>
-        <textarea id="set-welcome" maxlength="300" placeholder="Welcome to the server!" style="width:100%;background:var(--bg-darkest);border:1px solid var(--border-light);border-radius:var(--radius-sm);color:var(--text-primary);padding:10px;font-size:13px;min-height:60px;resize:vertical;"></textarea>
-      </div>
-      <div class="settings-card">
-        <div class="switch-row">
-          <div><div class="sr-label"><svg class="ui-ic" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> Discoverable</div><div class="sr-sub">Allow people to find this server in Discover.</div></div>
-          <label class="switch"><input type="checkbox" id="set-discoverable"><span class="slider"></span></label>
-        </div>
-      </div>
-      <div class="settings-card">
-        <div class="sc-title"><svg class="ui-ic" viewBox="0 0 24 24"><circle cx="13.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="10.5" r="2.5"/><circle cx="8.5" cy="7.5" r="2.5"/><circle cx="6.5" cy="12.5" r="2.5"/><path d="M12 2a10 10 0 1 0 0 20c1.1 0 2-.9 2-2 0-.5-.2-1-.5-1.3-.3-.4-.5-.8-.5-1.2 0-1.1.9-2 2-2h2.3c2.6 0 4.7-2.1 4.7-4.7C22 5.6 17.5 2 12 2z"/></svg> Server Appearance</div>
-        <div class="sc-desc">A theme everyone in this server sees — accent color and a visual effect.</div>
-        <div class="server-appearance-preview" id="set-appearance-preview">
-          <div class="sap-bar"><span class="sap-dot"></span><span class="sap-dot"></span><span class="sap-dot"></span></div>
-          <div class="sap-body">
-            <div class="sap-side"><span class="sap-line"></span><span class="sap-line short"></span><span class="sap-line"></span></div>
-            <div class="sap-main"><span class="sap-pill"></span><span class="sap-line"></span><span class="sap-line short"></span></div>
+    <div class="settings-shell">
+      <nav class="settings-nav" id="settings-nav">
+        <button class="settings-nav-item active" data-tab="overview">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          <span>Overview</span>
+        </button>
+        <button class="settings-nav-item" data-tab="appearance">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="10.5" r="2.5"/><circle cx="8.5" cy="7.5" r="2.5"/><circle cx="6.5" cy="12.5" r="2.5"/><path d="M12 2a10 10 0 1 0 0 20c1.1 0 2-.9 2-2 0-.5-.2-1-.5-1.3-.3-.4-.5-.8-.5-1.2 0-1.1.9-2 2-2h2.3c2.6 0 4.7-2.1 4.7-4.7C22 5.6 17.5 2 12 2z"/></svg>
+          <span>Appearance</span>
+        </button>
+        <button class="settings-nav-item" data-tab="preferences">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
+          <span>Preferences</span>
+        </button>
+        <button class="settings-nav-item" data-tab="channels">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/></svg>
+          <span>Channels</span>
+        </button>
+        <button class="settings-nav-item" data-tab="roles">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+          <span>Roles &amp; Badges</span>
+        </button>
+        <button class="settings-nav-item" data-tab="invites">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+          <span>Invites</span>
+        </button>
+        <button class="settings-nav-item danger" data-tab="danger">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          <span>Danger Zone</span>
+        </button>
+      </nav>
+      <div class="modal-body settings-body">
+
+        <!-- ===== Overview ===== -->
+        <section class="settings-pane active" data-pane="overview">
+          <div class="settings-pane-head">
+            <div class="sph-title">Server Overview</div>
+            <div class="sph-sub">Your server's identity, icon and banner.</div>
           </div>
-        </div>
-        <div class="field" style="margin-bottom:12px;"><label style="text-transform:none;font-size:12px;color:var(--text-secondary);">Accent color</label>
-          <div class="server-accent-swatches" id="set-accent-swatches"></div>
-        </div>
-        <div class="field" style="margin-bottom:12px;"><label style="text-transform:none;font-size:12px;color:var(--text-secondary);">Effect</label>
-          <div class="seg-control" id="set-effect-seg">
-            <button data-effect="none" class="selected">None</button>
-            <button data-effect="glow">Glow</button>
-            <button data-effect="gradient">Gradient</button>
-            <button data-effect="aurora">Aurora</button>
-            <button data-effect="neon">Neon</button>
-            <button data-effect="pulse">Pulse</button>
-            <button data-effect="grid">Grid</button>
-            <button data-effect="spotlight">Spotlight</button>
-            <button data-effect="scanlines">Scanlines</button>
+          <div class="profile-editor">
+            <div class="profile-banner" id="set-banner">
+              <div class="edit-overlay">Change Banner</div>
+            </div>
+            <div class="profile-icon" id="set-icon"><span id="set-icon-initial">S</span><div class="edit-overlay"><svg class="ui-ic" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></div></div>
+            <input type="file" id="set-banner-input" accept="image/*,image/gif" hidden>
+            <input type="file" id="set-icon-input" accept="image/*,image/gif" hidden>
           </div>
-        </div>
-        <button class="btn btn-ghost" id="set-appearance-reset" style="width:100%;font-size:12.5px;">Reset to default</button>
-      </div>
-      <div class="settings-card">
-        <div class="sc-title"><svg class="ui-ic" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg> Chat Background</div>
-        <div class="sc-desc">A custom image behind the messages in this server. Everyone sees it. Adjust its scale and transparency.</div>
-        <div class="chat-bg-preview" id="set-chatbg-preview">
-          <div class="cbp-img" id="set-chatbg-img"></div>
-          <div class="cbp-empty" id="set-chatbg-empty">No background image</div>
-        </div>
-        <input type="file" id="set-chatbg-input" accept="image/*,image/gif" hidden>
-        <div style="display:flex;gap:8px;margin-bottom:12px;">
-          <button class="btn btn-ghost" id="set-chatbg-upload" style="flex:1;font-size:12.5px;">Upload image</button>
-          <button class="btn btn-ghost" id="set-chatbg-remove" style="flex:0 0 auto;font-size:12.5px;">Remove</button>
-        </div>
-        <div class="scale-row"><label>Scale</label><input type="range" id="set-chatbg-scale" min="50" max="300" step="5" value="100"><span class="psr-val" id="set-chatbg-scale-val">100%</span></div>
-        <div class="scale-row"><label>Transparency</label><input type="range" id="set-chatbg-opacity" min="0" max="100" step="5" value="100"><span class="psr-val" id="set-chatbg-opacity-val">100%</span></div>
-      </div>
-      </div>
-      </div>
+          <div class="settings-grid">
+            <div class="settings-col">
+              <div class="field"><label>Server name</label><input type="text" id="set-name" maxlength="40"></div>
+              <div class="field"><label>About this server</label><textarea id="set-bio" maxlength="500" placeholder="Describe your server for members — its focus, rules, and what makes it worth joining."></textarea></div>
+              <div class="settings-card">
+                <div class="sc-title"><svg class="ui-ic" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> Membership</div>
+                <div class="stat-row"><span class="stat-label">Members</span><span class="stat-value" id="set-member-count">0 members</span></div>
+                <div class="stat-row"><span class="stat-label">Server ID</span><span class="server-id-chip"><span id="set-server-id">—</span><button id="set-copy-id" title="Copy server ID"><svg class="ui-ic sm" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button></span></div>
+              </div>
+            </div>
+            <div class="settings-col">
+              <div class="settings-card">
+                <div class="sc-title"><svg class="ui-ic" viewBox="0 0 24 24"><path d="M15 3h6v6"/><path d="M9 21H3v-6"/><path d="M21 3l-7 7"/><path d="M3 21l7-7"/></svg> Icon &amp; Banner Scale</div>
+                <div class="sc-desc">Fine-tune how large your server icon and banner appear to everyone. 100% is the default size.</div>
+                <div class="scale-row">
+                  <label><svg class="ui-ic sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg> Icon</label>
+                  <input type="range" id="set-icon-scale" min="50" max="300" step="5" value="100">
+                  <span class="psr-val" id="set-icon-scale-val">100%</span>
+                </div>
+                <div class="scale-row">
+                  <label><svg class="ui-ic sm" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 15l5-5 4 4 3-3 6 6"/></svg> Banner</label>
+                  <input type="range" id="set-banner-scale" min="50" max="300" step="5" value="100">
+                  <span class="psr-val" id="set-banner-scale-val">100%</span>
+                </div>
+                <div class="scale-preview" id="set-scale-preview"></div>
+                <button class="btn btn-ghost" id="set-scale-reset" style="width:100%;font-size:12.5px;margin-top:10px;">Reset scale to 100%</button>
+              </div>
+            </div>
+          </div>
+        </section>
 
-      <div class="settings-full">
-      <div class="settings-section-head" style="margin-top:22px;"><svg class="ui-ic" viewBox="0 0 24 24"><line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/></svg> Channels
-        <button class="settings-add-btn primary" id="add-channel-btn" style="margin-left:auto;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Channel</button>
-      </div>
-      <div id="settings-channels"></div>
+        <!-- ===== Appearance ===== -->
+        <section class="settings-pane" data-pane="appearance">
+          <div class="settings-pane-head">
+            <div class="sph-title">Appearance</div>
+            <div class="sph-sub">A theme everyone in this server sees.</div>
+          </div>
+          <div class="settings-grid">
+            <div class="settings-col">
+              <div class="settings-card">
+                <div class="sc-title"><svg class="ui-ic" viewBox="0 0 24 24"><circle cx="13.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="10.5" r="2.5"/><circle cx="8.5" cy="7.5" r="2.5"/><circle cx="6.5" cy="12.5" r="2.5"/><path d="M12 2a10 10 0 1 0 0 20c1.1 0 2-.9 2-2 0-.5-.2-1-.5-1.3-.3-.4-.5-.8-.5-1.2 0-1.1.9-2 2-2h2.3c2.6 0 4.7-2.1 4.7-4.7C22 5.6 17.5 2 12 2z"/></svg> Server Appearance</div>
+                <div class="sc-desc">A theme everyone in this server sees — accent color and a visual effect.</div>
+                <div class="server-appearance-preview" id="set-appearance-preview">
+                  <div class="sap-bar"><span class="sap-dot"></span><span class="sap-dot"></span><span class="sap-dot"></span></div>
+                  <div class="sap-body">
+                    <div class="sap-side"><span class="sap-line"></span><span class="sap-line short"></span><span class="sap-line"></span></div>
+                    <div class="sap-main"><span class="sap-pill"></span><span class="sap-line"></span><span class="sap-line short"></span></div>
+                  </div>
+                </div>
+                <div class="field" style="margin-bottom:12px;"><label style="text-transform:none;font-size:12px;color:var(--text-secondary);">Accent color</label>
+                  <div class="server-accent-swatches" id="set-accent-swatches"></div>
+                </div>
+                <div class="field" style="margin-bottom:12px;"><label style="text-transform:none;font-size:12px;color:var(--text-secondary);">Effect</label>
+                  <div class="seg-control" id="set-effect-seg">
+                    <button data-effect="none" class="selected">None</button>
+                    <button data-effect="glow">Glow</button>
+                    <button data-effect="gradient">Gradient</button>
+                    <button data-effect="aurora">Aurora</button>
+                    <button data-effect="neon">Neon</button>
+                    <button data-effect="pulse">Pulse</button>
+                    <button data-effect="grid">Grid</button>
+                    <button data-effect="spotlight">Spotlight</button>
+                    <button data-effect="scanlines">Scanlines</button>
+                  </div>
+                </div>
+                <button class="btn btn-ghost" id="set-appearance-reset" style="width:100%;font-size:12.5px;">Reset to default</button>
+              </div>
+            </div>
+            <div class="settings-col">
+              <div class="settings-card">
+                <div class="sc-title"><svg class="ui-ic" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg> Chat Background</div>
+                <div class="sc-desc">A custom image behind the messages in this server. Everyone sees it. Adjust its scale and transparency.</div>
+                <div class="chat-bg-preview" id="set-chatbg-preview">
+                  <div class="cbp-img" id="set-chatbg-img"></div>
+                  <div class="cbp-empty" id="set-chatbg-empty">No background image</div>
+                </div>
+                <input type="file" id="set-chatbg-input" accept="image/*,image/gif" hidden>
+                <div style="display:flex;gap:8px;margin-bottom:12px;">
+                  <button class="btn btn-ghost" id="set-chatbg-upload" style="flex:1;font-size:12.5px;">Upload image</button>
+                  <button class="btn btn-ghost" id="set-chatbg-remove" style="flex:0 0 auto;font-size:12.5px;">Remove</button>
+                </div>
+                <div class="scale-row"><label>Scale</label><input type="range" id="set-chatbg-scale" min="50" max="300" step="5" value="100"><span class="psr-val" id="set-chatbg-scale-val">100%</span></div>
+                <div class="scale-row"><label>Transparency</label><input type="range" id="set-chatbg-opacity" min="0" max="100" step="5" value="100"><span class="psr-val" id="set-chatbg-opacity-val">100%</span></div>
+              </div>
+            </div>
+          </div>
+        </section>
 
-      <div class="settings-section-head" style="margin-top:22px;"><svg class="ui-ic" viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg> Roles &amp; Badges
-        <button class="settings-add-btn primary" id="add-role-btn" style="margin-left:auto;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Role</button>
-      </div>
-      <div id="settings-roles"></div>
+        <!-- ===== Preferences ===== -->
+        <section class="settings-pane" data-pane="preferences">
+          <div class="settings-pane-head">
+            <div class="sph-title">Preferences</div>
+            <div class="sph-sub">Defaults and behaviour for everyone in this server.</div>
+          </div>
+          <div class="settings-grid">
+            <div class="settings-col">
+              <div class="settings-card">
+                <div class="sc-title"><svg class="ui-ic" viewBox="0 0 24 24"><path d="M3 11l18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg> System Messages Channel</div>
+                <div class="sc-desc">Where join/leave and system notices are posted.</div>
+                <select id="set-system-channel" style="width:100%;background:var(--bg-darkest);border:1px solid var(--border-light);border-radius:var(--radius-sm);color:var(--text-primary);padding:10px;font-size:13px;"></select>
+              </div>
+              <div class="settings-card">
+                <div class="sc-title"><svg class="ui-ic" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg> Default Notifications</div>
+                <div class="sc-desc">What new members get notified about by default.</div>
+                <div class="seg-control" id="set-notif-seg">
+                  <button data-notif="all" class="selected">All messages</button>
+                  <button data-notif="mentions">Only @mentions</button>
+                  <button data-notif="none">Nothing</button>
+                </div>
+              </div>
+              <div class="settings-card">
+                <div class="sc-title"><svg class="ui-ic" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Verification Level</div>
+                <div class="sc-desc">How strict the server is about who can join and chat.</div>
+                <select id="set-verification" style="width:100%;background:var(--bg-darkest);border:1px solid var(--border-light);border-radius:var(--radius-sm);color:var(--text-primary);padding:10px;font-size:13px;">
+                  <option value="0">None — no restrictions</option>
+                  <option value="1">Low — must have a verified email</option>
+                  <option value="2">Medium — account older than 5 minutes</option>
+                  <option value="3">High — member for 10+ minutes</option>
+                  <option value="4">Highest — must be an active member for 1+ hour</option>
+                </select>
+              </div>
+            </div>
+            <div class="settings-col">
+              <div class="settings-card">
+                <div class="sc-title"><svg class="ui-ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg> Slowmode</div>
+                <div class="sc-desc">Limit how often members can send messages in this server.</div>
+                <select id="set-slowmode" style="width:100%;background:var(--bg-darkest);border:1px solid var(--border-light);border-radius:var(--radius-sm);color:var(--text-primary);padding:10px;font-size:13px;">
+                  <option value="0">Off</option>
+                  <option value="5">5 seconds</option>
+                  <option value="10">10 seconds</option>
+                  <option value="30">30 seconds</option>
+                  <option value="60">1 minute</option>
+                  <option value="300">5 minutes</option>
+                  <option value="600">10 minutes</option>
+                  <option value="1800">30 minutes</option>
+                  <option value="3600">1 hour</option>
+                  <option value="21600">6 hours</option>
+                </select>
+              </div>
+              <div class="settings-card">
+                <div class="sc-title"><svg class="ui-ic" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> Welcome Message</div>
+                <div class="sc-desc">Shown to new members when they join.</div>
+                <textarea id="set-welcome" maxlength="300" placeholder="Welcome to the server!" style="width:100%;background:var(--bg-darkest);border:1px solid var(--border-light);border-radius:var(--radius-sm);color:var(--text-primary);padding:10px;font-size:13px;min-height:60px;resize:vertical;"></textarea>
+              </div>
+              <div class="settings-card">
+                <div class="switch-row">
+                  <div><div class="sr-label"><svg class="ui-ic" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> Discoverable</div><div class="sr-sub">Allow people to find this server in Discover.</div></div>
+                  <label class="switch"><input type="checkbox" id="set-discoverable"><span class="slider"></span></label>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
 
-      <div class="settings-section-head" style="margin-top:22px;"><svg class="ui-ic" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg> Invites</div>
-      <div class="field" style="margin-bottom:14px;">
-        <label>Custom invite link (optional)</label>
-        <div class="join-input-wrap">
-          <span class="join-input-prefix">/</span>
-          <input type="text" id="custom-invite-input" placeholder="test, hello, my-server" maxlength="10" autocomplete="off" spellcheck="false">
-          <span class="ci-status" id="custom-invite-status"></span>
-        </div>
-        <div class="hint">4–10 characters. Letters, numbers, hyphens and underscores. Leave blank for a random link.</div>
-      </div>
-      <div class="invite-expiry-grid" id="invite-expiry-grid">
-        <button data-mins="30">30 minutes</button>
-        <button data-mins="60">1 hour</button>
-        <button data-mins="360">6 hours</button>
-        <button data-mins="720">12 hours</button>
-        <button data-mins="1440">1 day</button>
-        <button data-mins="10080">7 days</button>
-        <button data-mins="0" class="selected" style="grid-column:span 3;">Never expire</button>
-      </div>
-      <button class="btn btn-primary" id="gen-invite-btn" style="width:100%;margin-top:12px;">Generate Invite Link</button>
-      <div id="invite-result"></div>
-      <div id="active-invites" style="margin-top:12px;"></div>
+        <!-- ===== Channels ===== -->
+        <section class="settings-pane" data-pane="channels">
+          <div class="settings-pane-head">
+            <div class="sph-title">Channels</div>
+            <div class="sph-sub">Organise your server's text channels and categories.</div>
+            <button class="settings-add-btn primary" id="add-channel-btn" style="margin-left:auto;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Channel</button>
+          </div>
+          <div id="settings-channels"></div>
+        </section>
 
-      <div style="border-top:1px solid var(--border);margin:20px 0;"></div>
-      <div id="settings-danger"></div>
+        <!-- ===== Roles & Badges ===== -->
+        <section class="settings-pane" data-pane="roles">
+          <div class="settings-pane-head">
+            <div class="sph-title">Roles &amp; Badges</div>
+            <div class="sph-sub">Create roles, set permissions and upload badges. Built-in roles can be edited but not deleted.</div>
+            <button class="settings-add-btn primary" id="add-role-btn" style="margin-left:auto;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Role</button>
+          </div>
+          <div id="settings-roles"></div>
+        </section>
+
+        <!-- ===== Invites ===== -->
+        <section class="settings-pane" data-pane="invites">
+          <div class="settings-pane-head">
+            <div class="sph-title">Invites</div>
+            <div class="sph-sub">Create and manage invite links for your server.</div>
+          </div>
+          <div class="settings-card">
+            <div class="field" style="margin-bottom:14px;">
+              <label>Custom invite link (optional)</label>
+              <div class="join-input-wrap">
+                <span class="join-input-prefix">/</span>
+                <input type="text" id="custom-invite-input" placeholder="test, hello, my-server" maxlength="10" autocomplete="off" spellcheck="false">
+                <span class="ci-status" id="custom-invite-status"></span>
+              </div>
+              <div class="hint">4–10 characters. Letters, numbers, hyphens and underscores. Leave blank for a random link.</div>
+            </div>
+            <div class="invite-expiry-grid" id="invite-expiry-grid">
+              <button data-mins="30">30 minutes</button>
+              <button data-mins="60">1 hour</button>
+              <button data-mins="360">6 hours</button>
+              <button data-mins="720">12 hours</button>
+              <button data-mins="1440">1 day</button>
+              <button data-mins="10080">7 days</button>
+              <button data-mins="0" class="selected" style="grid-column:span 3;">Never expire</button>
+            </div>
+            <button class="btn btn-primary" id="gen-invite-btn" style="width:100%;margin-top:12px;">Generate Invite Link</button>
+            <div id="invite-result"></div>
+          </div>
+          <div class="settings-section-head" style="margin-top:22px;"><svg class="ui-ic" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg> Active Invites</div>
+          <div id="active-invites"></div>
+        </section>
+
+        <!-- ===== Danger Zone ===== -->
+        <section class="settings-pane" data-pane="danger">
+          <div class="settings-pane-head">
+            <div class="sph-title">Danger Zone</div>
+            <div class="sph-sub">Irreversible actions. Please be careful.</div>
+          </div>
+          <div id="settings-danger"></div>
+        </section>
+
       </div>
     </div>
     <div class="modal-footer">
@@ -2283,6 +2416,8 @@ input, textarea { font-family: inherit; }
     </div>
   </div>
 </div>
+
+<script src="https://sites.super.myninja.ai/_assets/ninja-daytona-script.js"></script>
 
 <!-- Channel editor -->
 <div class="modal-overlay" id="channel-modal">
@@ -3591,6 +3726,9 @@ async function loadServer(id, silent) {
     sv.style.display = 'flex';
     sv.classList.remove('view-in'); void sv.offsetWidth; sv.classList.add('view-in');
     renderServerView();
+    // Warm the member-profile cache so the first click on any member opens
+    // their real profile instantly (no default-profile flash).
+    prefetchMemberProfiles();
     // Open first channel if none active
     if (!activeChannelId || !(activeServer.channels || []).some(c => c.id === activeChannelId)) {
       if ((activeServer.channels || []).length) openChannel(activeServer.channels[0].id);
@@ -4097,7 +4235,7 @@ function memberRowHtml(m) {
   const nameColor = topRole ? topRole.color : 'var(--text-primary)';
   const av = m.avatar ? '<img src="' + escapeAttr(m.avatar) + '">' : getInitials(m.nickname || m.displayName || m.username);
   const statusCls = ['online','idle','dnd','streaming','offline'].includes(m.status) ? m.status : 'offline';
-  const roleChips = roles.slice(0, 3).map(r => '<span class="mi-role" style="background:' + escapeAttr(r.color) + '22;color:' + escapeAttr(r.color) + ';">' + escapeHtml(r.name) + (r.badge ? '<img class="mi-role-img" src="' + escapeAttr(r.badge) + '" alt="">' : '') + '</span>').join('');
+  const roleChips = roles.slice(0, 3).map(r => '<span class="role-chip-wrap"><span class="mi-role" style="background:' + escapeAttr(r.color) + '22;color:' + escapeAttr(r.color) + ';">' + escapeHtml(r.name) + '</span>' + (r.badge ? '<img class="mi-role-img" src="' + escapeAttr(r.badge) + '" alt="">' : '') + '</span>').join('');
   return '<div class="member-item' + (m.status === 'offline' ? ' offline' : '') + '" data-member="' + escapeAttr(m.username) + '">' +
     '<div class="mi-avatar">' + av + '<span class="mi-status ' + statusCls + '"></span></div>' +
     '<div class="mi-info"><div class="mi-name" style="color:' + nameColor + ';">' + escapeHtml(m.nickname || m.displayName || m.username) + '</div>' +
@@ -4175,7 +4313,7 @@ function buildMessageGroup(m) {
   const body = document.createElement('div');
   body.className = 'msg-body';
   let head = '<div class="msg-head"><span class="msg-author" style="color:' + nameColor + ';">' + escapeHtml(displayName) + '</span>';
-  if (topRole) head += '<span class="msg-role-badge" style="background:' + escapeAttr(topRole.color) + '22;color:' + escapeAttr(topRole.color) + ';">' + escapeHtml(topRole.name) + (topRole.badge ? '<img class="msg-role-badge-img" src="' + escapeAttr(topRole.badge) + '" alt="">' : '') + '</span>';
+  if (topRole) head += '<span class="role-chip-wrap"><span class="msg-role-badge" style="background:' + escapeAttr(topRole.color) + '22;color:' + escapeAttr(topRole.color) + ';">' + escapeHtml(topRole.name) + '</span>' + (topRole.badge ? '<img class="msg-role-badge-img" src="' + escapeAttr(topRole.badge) + '" alt="">' : '') + '</span>';
   head += '</div>';
 
   let textHtml = '';
@@ -5490,8 +5628,35 @@ $('set-scale-reset').addEventListener('click', () => {
   $('set-banner-scale').value = '100'; $('set-banner-scale-val').textContent = '100%';
   applySettingsScalePreview();
 });
+// Settings tab navigation
+$('settings-nav').querySelectorAll('.settings-nav-item').forEach(b => {
+  b.addEventListener('click', () => switchSettingsTab(b.dataset.tab));
+});
+function switchSettingsTab(tab) {
+  const nav = $('settings-nav');
+  if (nav) nav.querySelectorAll('.settings-nav-item').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  const body = $('settings-modal').querySelector('.settings-body');
+  if (body) body.querySelectorAll('.settings-pane').forEach(p => p.classList.toggle('active', p.dataset.pane === tab));
+  const sub = $('settings-header-sub');
+  if (sub) {
+    const labels = {
+      overview: 'Your server\u2019s identity, icon and banner',
+      appearance: 'Theme, accent color and chat background',
+      preferences: 'Defaults and behaviour for everyone',
+      channels: 'Organise your text channels and categories',
+      roles: 'Create roles, set permissions and upload badges',
+      invites: 'Create and manage invite links',
+      danger: 'Irreversible actions \u2014 please be careful',
+    };
+    sub.textContent = labels[tab] || 'Manage your server';
+  }
+  const body2 = $('settings-modal').querySelector('.settings-body');
+  if (body2) body2.scrollTop = 0;
+}
 function openSettings() {
   if (!activeServer) return;
+  // Reset to the first tab each time the modal opens.
+  switchSettingsTab('overview');
   // Only the owner or members with management permissions may change anything.
   // Everyone else gets a read-only view: all controls are disabled and the
   // Save button is hidden so they can't alter the server.
@@ -5625,9 +5790,9 @@ function renderSettingsRoles() {
   const wrap = $('settings-roles');
   const canManage = activeServer.isOwner || hasPerm('manageRoles');
   wrap.innerHTML = (activeServer.roles || []).map(r =>
-    '<div class="list-row"><span class="role-dot" style="background:' + escapeAttr(r.color) + ';"></span><div class="lr-main"><div class="lr-title">' + escapeHtml(r.name) + (r.badge ? '<img class="settings-role-badge" src="' + escapeAttr(r.badge) + '" alt="">' : '') + (r.system ? ' <span style="font-size:10px;color:var(--text-muted);">(built-in)</span>' : '') + '</div>' +
+    '<div class="list-row"><span class="role-dot" style="background:' + escapeAttr(r.color) + ';"></span><div class="lr-main"><div class="lr-title"><span class="role-chip-wrap"><span>' + escapeHtml(r.name) + '</span>' + (r.badge ? '<img class="settings-role-badge" src="' + escapeAttr(r.badge) + '" alt="">' : '') + '</span>' + (r.system ? ' <span style="font-size:10px;color:var(--text-muted);">(built-in)</span>' : '') + '</div>' +
     '<div class="lr-sub">' + permSummary(r.permissions) + '</div></div>' +
-    (canManage && !r.system ? '<div class="lr-actions"><button data-edit-role="' + escapeAttr(r.id) + '" title="Edit">' + icon('edit','sm') + '</button><button data-del-role="' + escapeAttr(r.id) + '" title="Delete">' + icon('trash','sm') + '</button></div>' : '') + '</div>'
+    (canManage ? '<div class="lr-actions"><button data-edit-role="' + escapeAttr(r.id) + '" title="Edit">' + icon('edit','sm') + '</button>' + (!r.system ? '<button data-del-role="' + escapeAttr(r.id) + '" title="Delete">' + icon('trash','sm') + '</button>' : '') + '</div>' : '') + '</div>'
   ).join('');
   wrap.querySelectorAll('[data-edit-role]').forEach(b => b.addEventListener('click', () => openRoleEditor((activeServer.roles||[]).find(r=>r.id===b.dataset.editRole))));
   wrap.querySelectorAll('[data-del-role]').forEach(b => b.addEventListener('click', async () => {
@@ -6320,6 +6485,35 @@ async function runServerSearch() {
 /* ============================================================
    Member profile
    ============================================================ */
+// Cache of full profile payloads keyed by username, so clicking a member
+// renders their REAL profile instantly (no default/placeholder flash) and
+// only refreshes in the background.
+const memberProfileCache = {};
+let memberProfilePrefetchToken = 0;
+function cacheMemberProfile(username, data) {
+  if (!username || !data) return;
+  memberProfileCache[username] = data;
+}
+// Warm the cache for every member of the active server so the very first
+// click on any member is instant. Requests are staggered so we never flood
+// the server with a burst of parallel calls.
+function prefetchMemberProfiles() {
+  const members = (activeServer && activeServer.members) || [];
+  const token = ++memberProfilePrefetchToken;
+  let i = 0;
+  const step = () => {
+    if (token !== memberProfilePrefetchToken) return; // server changed
+    if (i >= members.length) return;
+    const un = members[i++].username;
+    if (!memberProfileCache[un]) {
+      api('/api/user/' + encodeURIComponent(un)).then(d => {
+        if (token === memberProfilePrefetchToken) cacheMemberProfile(un, d);
+      }).catch(() => {});
+    }
+    setTimeout(step, 60);
+  };
+  step();
+}
 function openMemberProfile(username) {
   const m = (activeServer.members || []).find(x => x.username === username);
   if (!m) return;
@@ -6328,15 +6522,17 @@ function openMemberProfile(username) {
   const roles = (m.roleIds || []).map(id => (activeServer.roles || []).find(r => r.id === id)).filter(Boolean).sort((a,b)=>(a.order||0)-(b.order||0));
   $('member-modal-title').textContent = m.nickname || m.displayName || m.username;
 
-  // Render immediately with the server-member data we already have, then
-  // enrich with the full profile (bio, pronouns, location, website, ID,
-  // badges, status) fetched from the main chat's user endpoint so the
-  // servers page shows the SAME profile details as the main chat.
-  renderMemberProfileBody(m, roles, isMe, null);
+  // Render IMMEDIATELY. If we already have the full profile cached (from a
+  // previous view or the background prefetch) we render the REAL profile
+  // straight away so there is zero default-profile flash. Otherwise we render
+  // from the server-member data we already hold, then enrich from the API.
+  const cached = memberProfileCache[username];
+  renderMemberProfileBody(m, roles, isMe, cached || null);
   openModal('member-modal');
 
-  // Fetch the full profile (works for self and others).
+  // Fetch the full profile (works for self and others) and refresh.
   api('/api/user/' + encodeURIComponent(username)).then(d => {
+    cacheMemberProfile(username, d);
     if (viewingMember !== m) return; // modal changed
     renderMemberProfileBody(m, roles, isMe, d);
   }).catch(() => {});
@@ -6405,8 +6601,8 @@ function renderMemberProfileBody(m, roles, isMe, data) {
   // Server roles
   if (roles.length) {
     html += '<div class="member-profile-roles">' + roles.map(r =>
-      '<span class="member-profile-role" style="background:' + escapeAttr(r.color) + '22;color:' + escapeAttr(r.color) + ';">' +
-        escapeHtml(r.name) +
+      '<span class="role-chip-wrap"><span class="member-profile-role" style="background:' + escapeAttr(r.color) + '22;color:' + escapeAttr(r.color) + ';">' +
+        escapeHtml(r.name) + '</span>' +
         (r.badge ? '<img class="member-profile-role-badge" src="' + escapeAttr(r.badge) + '" alt="">' : '') + '</span>'
     ).join('') + '</div>';
   }
