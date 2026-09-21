@@ -3022,6 +3022,7 @@ function publicServer(s, viewerUsername) {
     isOwner,
   };
   if (isMember) {
+    base.pins = (s.pins && typeof s.pins === 'object') ? s.pins : {};
     base.members = (s.members || []).map(un => {
       const u = db.users[un];
       const prof = (s.memberProfiles || {})[un] || {};
@@ -6521,8 +6522,14 @@ io.on('connection', (socket) => {
       const m = ((s.messages || {})[channelId] || []).find(x => x.id === id && (canManage || x.username === username));
       if (!m) { if (typeof ack === 'function') ack({ error: 'Message not found' }); return; }
       m.deleted = true; m.deletedAt = nowISO(); m.text = ''; m.file = null; m.deletedBy = username;
+      // A deleted message can no longer be pinned.
+      if (s.pins && Array.isArray(s.pins[channelId])) {
+        const pi = s.pins[channelId].indexOf(m.id);
+        if (pi >= 0) s.pins[channelId].splice(pi, 1);
+      }
       saveDB();
       for (const mem of (s.members || [])) io.to('user:' + mem).emit('server-deleted', { serverId: s.id, channelId, id: m.id, from: username, deletedAt: m.deletedAt });
+      for (const mem of (s.members || [])) io.to('user:' + mem).emit('server-pins-updated', { serverId: s.id, channelId, pins: ((s.pins && s.pins[channelId]) || []).slice() });
       if (typeof ack === 'function') ack({ success: true });
     } catch (e) { if (typeof ack === 'function') ack({ error: 'Failed' }); }
   });
@@ -6565,8 +6572,59 @@ io.on('connection', (socket) => {
     } catch (e) { if (typeof ack === 'function') ack({ error: 'Failed to react' }); }
   });
 
+  // ---- Pinned messages ----
+  // Owners and members with manageMessages can pin/unpin any message in a
+  // channel. Pins are stored per-channel as s.pins[channelId] = [messageId,...]
+  // and every member can browse the pinned list.
+  function emitPinsUpdate(s, channelId) {
+    const pins = (s.pins && s.pins[channelId]) || [];
+    for (const mem of (s.members || [])) io.to('user:' + mem).emit('server-pins-updated', { serverId: s.id, channelId, pins: pins.slice() });
+  }
+  socket.on('server-pin', ({ serverId, channelId, id }, ack) => {
+    try {
+      const s = findServer(serverId);
+      if (!s) { if (typeof ack === 'function') ack({ error: 'Server not found' }); return; }
+      if (!(s.members || []).includes(username)) { if (typeof ack === 'function') ack({ error: 'Not a member' }); return; }
+      if (!serverHasPerm(s, username, 'manageMessages')) { if (typeof ack === 'function') ack({ error: 'You do not have permission to pin messages' }); return; }
+      const msg = ((s.messages || {})[channelId] || []).find(m => m.id === id);
+      if (!msg || msg.deleted) { if (typeof ack === 'function') ack({ error: 'Message not found' }); return; }
+      if (!s.pins || typeof s.pins !== 'object') s.pins = {};
+      if (!Array.isArray(s.pins[channelId])) s.pins[channelId] = [];
+      if (!s.pins[channelId].includes(id)) s.pins[channelId].push(id);
+      saveDB();
+      emitPinsUpdate(s, channelId);
+      if (typeof ack === 'function') ack({ success: true, pins: s.pins[channelId].slice() });
+    } catch (e) { if (typeof ack === 'function') ack({ error: 'Failed to pin' }); }
+  });
+  socket.on('server-unpin', ({ serverId, channelId, id }, ack) => {
+    try {
+      const s = findServer(serverId);
+      if (!s) { if (typeof ack === 'function') ack({ error: 'Server not found' }); return; }
+      if (!(s.members || []).includes(username)) { if (typeof ack === 'function') ack({ error: 'Not a member' }); return; }
+      if (!serverHasPerm(s, username, 'manageMessages')) { if (typeof ack === 'function') ack({ error: 'You do not have permission to unpin messages' }); return; }
+      if (s.pins && Array.isArray(s.pins[channelId])) {
+        const i = s.pins[channelId].indexOf(id);
+        if (i >= 0) s.pins[channelId].splice(i, 1);
+        saveDB();
+      }
+      emitPinsUpdate(s, channelId);
+      if (typeof ack === 'function') ack({ success: true, pins: (s.pins && s.pins[channelId] || []).slice() });
+    } catch (e) { if (typeof ack === 'function') ack({ error: 'Failed to unpin' }); }
+  });
+  // Fetch the full pinned message objects for a channel (any member may browse).
+  socket.on('server-pins-get', ({ serverId, channelId }, ack) => {
+    try {
+      const s = findServer(serverId);
+      if (!s) { if (typeof ack === 'function') ack({ error: 'Server not found' }); return; }
+      if (!(s.members || []).includes(username)) { if (typeof ack === 'function') ack({ error: 'Not a member' }); return; }
+      const ids = (s.pins && s.pins[channelId]) || [];
+      const all = (s.messages || {})[channelId] || [];
+      const pinned = ids.map(id => all.find(m => m.id === id)).filter(m => m && !m.deleted);
+      if (typeof ack === 'function') ack({ success: true, pinned, pins: ids.slice() });
+    } catch (e) { if (typeof ack === 'function') ack({ error: 'Failed to load pins' }); }
+  });
+
   // ---- Message threads ----
-  // A thread is a side conversation anchored to a parent message. Threads are
   // stored per-channel on the server as s.threads[channelId][parentId] = { id,
   // parentId, channelId, createdAt, messages: [] }. Thread replies reuse the
   // same message shape as channel messages so the client can render them with

@@ -414,6 +414,31 @@ input, textarea { font-family: inherit; }
 .msg-actions button { padding: 6px 8px; border-radius: 7px; font-size: 15px; color: var(--text-secondary); display: flex; align-items: center; justify-content: center; }
 .msg-actions button .ui-ic { width: 18px; height: 18px; }
 .msg-actions button:hover { background: var(--bg-hover); color: var(--text-primary); }
+.msg-actions button.pinned { color: var(--accent-light); background: rgba(var(--accent-rgb),0.14); }
+/* ---- Pinned messages panel ---- */
+.modal.pins-modal { max-width: 560px; }
+.pins-header { display: flex; align-items: center; gap: 12px; padding: 18px 22px; border-bottom: 1px solid var(--border); }
+.pins-head-ic { width: 40px; height: 40px; border-radius: 11px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: var(--accent-light); background: linear-gradient(135deg, rgba(var(--accent-rgb),0.22), rgba(var(--accent-rgb),0.06)); border: 1px solid rgba(var(--accent-rgb),0.3); }
+.pins-head-ic .ui-ic { width: 19px; height: 19px; }
+.pins-head-meta { flex: 1; min-width: 0; }
+.pins-head-meta .modal-title { font-size: 16px; font-weight: 800; }
+.pins-sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+.pins-body { padding: 14px 18px 18px; max-height: 62vh; overflow-y: auto; }
+.pins-loading, .pins-empty { text-align: center; padding: 34px 16px; color: var(--text-muted); font-size: 13px; }
+.pins-empty-title { font-size: 14px; font-weight: 700; color: var(--text-secondary); margin-bottom: 6px; }
+.pins-empty-sub { font-size: 12.5px; color: var(--text-muted); line-height: 1.5; max-width: 320px; margin: 0 auto; }
+.pin-item { display: flex; gap: 11px; align-items: flex-start; padding: 12px 13px; border-radius: 11px; background: var(--bg-darkest); border: 1px solid var(--border); margin-bottom: 9px; cursor: pointer; transition: all var(--transition); }
+.pin-item:hover { border-color: var(--border-light); background: var(--bg-dark); }
+.pin-av { width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0; overflow: hidden; background: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: #fff; }
+.pin-av img { width: 100%; height: 100%; object-fit: cover; }
+.pin-main { flex: 1; min-width: 0; }
+.pin-head { display: flex; align-items: baseline; gap: 8px; margin-bottom: 3px; }
+.pin-author { font-size: 13px; font-weight: 700; color: var(--text-primary); }
+.pin-time { font-size: 11px; color: var(--text-muted); }
+.pin-text { font-size: 13px; color: var(--text-secondary); line-height: 1.5; word-break: break-word; }
+.pin-unpin { width: 26px; height: 26px; border-radius: 7px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: var(--text-muted); }
+.pin-unpin:hover { background: rgba(227,93,93,0.15); color: #e35d5d; }
+.pin-unpin .ui-ic { width: 14px; height: 14px; }
 .msg-deleted { font-style: italic; color: var(--text-muted); font-size: 13px; }
 .msg-undecryptable { display: inline-flex; align-items: center; gap: 6px; font-style: italic; color: var(--text-muted); font-size: 13.5px; }
 .msg-undecryptable .ui-ic { width: 13px; height: 13px; }
@@ -1369,7 +1394,7 @@ input, textarea { font-family: inherit; }
 .allow-empty { font-size: 12px; color: var(--text-muted); font-style: italic; }
 
 /* ---- Revamped channel editor ---- */
-.modal.channel-modal-wide { max-width: 640px; }
+.modal.channel-modal-wide { max-width: 880px; }
 .ch-modal-header { display: flex; align-items: center; gap: 13px; padding: 18px 22px; border-bottom: 1px solid var(--border); }
 .ch-modal-head-ic { width: 42px; height: 42px; border-radius: 12px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: var(--accent-light); background: linear-gradient(135deg, rgba(var(--accent-rgb),0.22), rgba(var(--accent-rgb),0.06)); border: 1px solid rgba(var(--accent-rgb),0.3); }
 .ch-modal-head-ic .ui-ic { width: 20px; height: 20px; }
@@ -1396,24 +1421,14 @@ input, textarea { font-family: inherit; }
 .ch-inline-btn { white-space: nowrap; padding: 10px 16px; font-size: 13px; }
 .ch-choice-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .ch-choice-grid-3 { grid-template-columns: 1fr 1fr 1fr; }
-.ch-choice { position: relative; display: flex; align-items: center; gap: 11px; text-align: left; padding: 13px 14px; border-radius: 12px; background: var(--bg-darkest); border: 1.5px solid var(--border); cursor: pointer; transition: all var(--transition); }
+.ch-choice { position: relative; display: flex; align-items: center; text-align: left; padding: 15px 16px; border-radius: 12px; background: var(--bg-darkest); border: 1.5px solid var(--border); cursor: pointer; transition: all var(--transition); }
 .ch-choice:hover { border-color: var(--border-light); background: var(--bg-dark); }
 .ch-choice.selected { border-color: var(--accent); background: rgba(var(--accent-rgb),0.08); box-shadow: 0 0 0 1px rgba(var(--accent-rgb),0.35); }
-.ch-choice-ic { width: 34px; height: 34px; border-radius: 9px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: var(--text-secondary); background: var(--bg-medium); transition: all var(--transition); }
-.ch-choice-ic .ui-ic { width: 17px; height: 17px; }
-.ch-choice.selected .ch-choice-ic { color: #fff; background: linear-gradient(180deg, var(--accent), var(--accent-dim)); }
-.ch-choice-meta { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
-.ch-choice-name { font-size: 13px; font-weight: 700; color: var(--text-primary); }
-.ch-choice-desc { font-size: 11px; color: var(--text-muted); line-height: 1.35; }
-.ch-choice-check { width: 18px; height: 18px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: #fff; background: var(--accent); opacity: 0; transform: scale(0.6); transition: all var(--transition); }
-.ch-choice-check .ui-ic { width: 11px; height: 11px; }
-.ch-choice.selected .ch-choice-check { opacity: 1; transform: scale(1); }
+.ch-choice-meta { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.ch-choice-name { font-size: 13.5px; font-weight: 700; color: var(--text-primary); }
+.ch-choice-desc { font-size: 11.5px; color: var(--text-muted); line-height: 1.4; }
 .ch-choice.selected[data-chat="members"] { border-color: #d4881a; background: rgba(212,136,26,0.08); box-shadow: 0 0 0 1px rgba(212,136,26,0.35); }
-.ch-choice.selected[data-chat="members"] .ch-choice-ic { background: linear-gradient(180deg, #f0a92e, #d4881a); }
-.ch-choice.selected[data-chat="members"] .ch-choice-check { background: #d4881a; }
 .ch-choice.selected[data-chat="everyone"] { border-color: #c02e2e; background: rgba(192,46,46,0.08); box-shadow: 0 0 0 1px rgba(192,46,46,0.35); }
-.ch-choice.selected[data-chat="everyone"] .ch-choice-ic { background: linear-gradient(180deg, #e35d5d, #c02e2e); }
-.ch-choice.selected[data-chat="everyone"] .ch-choice-check { background: #c02e2e; }
 .ch-privacy-extra { margin-top: 14px; padding: 14px; border-radius: 12px; background: var(--bg-darkest); border: 1px solid var(--border); }
 .ch-allow-label { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-secondary); margin: 4px 0 2px; }
 .ch-hint { font-size: 11.5px; color: var(--text-muted); margin-top: 10px; line-height: 1.5; }
@@ -2008,6 +2023,8 @@ input, textarea { font-family: inherit; }
 .ctx-menu button.danger { color: #ff8a8a; }
 .ctx-menu button.danger:hover { background: rgba(227,93,93,0.14); }
 .ctx-menu .cm-sep { height: 1px; background: var(--border); margin: 5px 6px; }
+.ctx-menu button.cm-edit { padding: 13px 12px; font-size: 15px; font-weight: 700; color: var(--text-primary); background: rgba(var(--accent-rgb),0.08); border: 1px solid rgba(var(--accent-rgb),0.22); margin-bottom: 4px; }
+.ctx-menu button.cm-edit:hover { background: rgba(var(--accent-rgb),0.16); color: var(--accent-light); }
 </style>
 <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 </head>
@@ -2098,6 +2115,9 @@ input, textarea { font-family: inherit; }
             </button>
             <button id="sch-search-btn" title="Search messages">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            </button>
+            <button id="sch-pins-btn" title="Pinned messages">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14l-1.5-4.5V6a1 1 0 0 0-1-1H7.5a1 1 0 0 0-1 1v6.5z"/></svg>
             </button>
             <button id="sch-invite-btn" title="Invite people">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
@@ -2601,7 +2621,6 @@ input, textarea { font-family: inherit; }
 <div class="modal-overlay" id="channel-modal">
   <div class="modal channel-modal-wide">
     <div class="modal-header ch-modal-header">
-      <div class="ch-modal-head-ic"><svg class="ui-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/></svg></div>
       <div class="ch-modal-head-meta">
         <div class="modal-title" id="channel-modal-title">Add Channel</div>
         <div class="ch-modal-sub" id="channel-modal-sub">Create a new space for your community to talk.</div>
@@ -2651,14 +2670,10 @@ input, textarea { font-family: inherit; }
         </div>
         <div class="ch-choice-grid" id="ch-privacy-seg">
           <button type="button" data-priv="public" class="ch-choice selected">
-            <span class="ch-choice-ic"><svg class="ui-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="3" y1="12" x2="21" y2="12"/><path d="M12 3a15 15 0 0 1 0 18 15 15 0 0 1 0-18z"/></svg></span>
             <span class="ch-choice-meta"><span class="ch-choice-name">Public</span><span class="ch-choice-desc">Anyone in the server can join.</span></span>
-            <span class="ch-choice-check"><svg class="ui-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
           </button>
           <button type="button" data-priv="private" class="ch-choice">
-            <span class="ch-choice-ic"><svg class="ui-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
             <span class="ch-choice-meta"><span class="ch-choice-name">Private</span><span class="ch-choice-desc">Only chosen roles and members.</span></span>
-            <span class="ch-choice-check"><svg class="ui-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
           </button>
         </div>
         <div id="ch-privacy-extra" class="ch-privacy-extra" style="display:none;">
@@ -2677,19 +2692,13 @@ input, textarea { font-family: inherit; }
         </div>
         <div class="ch-choice-grid ch-choice-grid-3" id="ch-chat-seg">
           <button type="button" data-chat="none" class="ch-choice selected">
-            <span class="ch-choice-ic"><svg class="ui-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>
             <span class="ch-choice-meta"><span class="ch-choice-name">Everyone</span><span class="ch-choice-desc">All members can chat.</span></span>
-            <span class="ch-choice-check"><svg class="ui-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
           </button>
           <button type="button" data-chat="members" class="ch-choice">
-            <span class="ch-choice-ic"><svg class="ui-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.4 5.2L20 8l-4 3.9.9 5.6L12 15l-4.9 2.5.9-5.6L4 8l5.6-.8z"/></svg></span>
             <span class="ch-choice-meta"><span class="ch-choice-name">Members w/ role</span><span class="ch-choice-desc">Only role holders can chat.</span></span>
-            <span class="ch-choice-check"><svg class="ui-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
           </button>
           <button type="button" data-chat="everyone" class="ch-choice">
-            <span class="ch-choice-ic"><svg class="ui-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="5.6" y1="5.6" x2="18.4" y2="18.4"/></svg></span>
             <span class="ch-choice-meta"><span class="ch-choice-name">Disabled</span><span class="ch-choice-desc">Read-only for members.</span></span>
-            <span class="ch-choice-check"><svg class="ui-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
           </button>
         </div>
         <div class="ch-hint" id="ch-chat-hint">Everyone can send messages in this channel.</div>
@@ -2885,6 +2894,21 @@ input, textarea { font-family: inherit; }
   </div>
 </div>
 
+<!-- Pinned messages -->
+<div class="modal-overlay" id="pins-modal">
+  <div class="modal pins-modal">
+    <div class="modal-header pins-header">
+      <div class="pins-head-ic"><svg class="ui-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14l-1.5-4.5V6a1 1 0 0 0-1-1H7.5a1 1 0 0 0-1 1v6.5z"/></svg></div>
+      <div class="pins-head-meta">
+        <div class="modal-title">Pinned messages</div>
+        <div class="pins-sub" id="pins-sub">Loading\u2026</div>
+      </div>
+      <button class="modal-close" data-close="pins-modal">&times;</button>
+    </div>
+    <div class="modal-body pins-body" id="pins-body"></div>
+  </div>
+</div>
+
 <!-- Delete server confirmation -->
 <div class="modal-overlay" id="del-server-modal">
   <div class="modal msg-action-modal">
@@ -3066,6 +3090,7 @@ let activeServer = null;     // full server object (publicServer shape)
 let activeChannelId = null;
 let serverMessages = [];     // messages of the active channel
 let channelThreads = {};     // parentId -> thread summary for the active channel
+let channelPins = [];        // message ids pinned in the active channel
 let activeThreadParentId = null; // parent message id of the open thread (or null)
 let activeThread = null;     // full thread object { id, parentId, messages: [] }
 let threadPendingFiles = []; // attachments queued for the thread composer
@@ -3174,7 +3199,8 @@ const ICONS = {
   music: '<path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>',
   download: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>',
   hash: '<line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/>',
-  folder: '<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>'
+  folder: '<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
+  pin: '<line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14l-1.5-4.5V6a1 1 0 0 0-1-1H7.5a1 1 0 0 0-1 1v6.5z"/>'
 };
 function icon(name, cls) {
   const p = ICONS[name] || '';
@@ -3704,6 +3730,12 @@ function connectSocket() {
     if (!data || data.serverId !== activeServerId || data.channelId !== activeChannelId) return;
     const m = serverMessages.find(x => x.id === data.id);
     if (m) { m.reactions = data.reactions; updateMessageElement(m); }
+  });
+  socket.on('server-pins-updated', (data) => {
+    if (!data || data.serverId !== activeServerId || data.channelId !== activeChannelId) return;
+    channelPins = Array.isArray(data.pins) ? data.pins : [];
+    renderMessages();
+    if ($('pins-modal') && $('pins-modal').classList.contains('show')) openPinsPanel();
   });
   socket.on('server-thread-updated', (data) => {
     if (!data || data.serverId !== activeServerId || data.channelId !== activeChannelId) return;
@@ -4402,7 +4434,7 @@ function openChannelContextMenu(c, x, y) {
   menu.id = 'channel-ctx-menu';
   menu.innerHTML =
     '<div class="cm-head">' + icon('tag', 'sm') + '#' + escapeHtml(c.name) + '</div>' +
-    '<button data-act="edit">' + icon('edit', 'sm') + 'Edit Channel</button>' +
+    '<button data-act="edit" class="cm-edit">Edit Channel</button>' +
     '<button data-act="up">' + icon('chevron-up', 'sm') + 'Move Up</button>' +
     '<button data-act="down">' + icon('chevron-down', 'sm') + 'Move Down</button>' +
     '<button data-act="copy">' + icon('link', 'sm') + 'Copy Channel Link</button>' +
@@ -4568,6 +4600,7 @@ async function openChannel(channelId) {
   delete channelPings[channelId];
   closeThread();
   channelThreads = {};
+  channelPins = (activeServer && activeServer.pins && activeServer.pins[channelId]) ? activeServer.pins[channelId].slice() : [];
   renderChannels();
   const ch = (activeServer.channels || []).find(c => c.id === channelId);
   if (ch) { $('sch-name').textContent = ch.name; $('sch-topic').textContent = ch.topic || ''; $('srv-input').placeholder = 'Message #' + ch.name; }
@@ -4710,9 +4743,12 @@ function buildMessageGroup(m, inThread) {
   const actions = document.createElement('div');
   actions.className = 'msg-actions';
   const canDelete = !m.deleted && (isOwn || hasPerm('manageMessages'));
+  const canPin = !m.deleted && hasPerm('manageMessages');
+  const isPinned = !!(m.id && channelPins.includes(m.id));
   actions.innerHTML = '<button data-act="reply" title="Reply">' + icon('reply', 'sm') + '</button>' +
     '<button data-act="thread" title="Create thread">' + icon('chat', 'sm') + '</button>' +
     '<button data-act="react" title="React">' + icon('smile', 'sm') + '</button>' +
+    (canPin ? '<button data-act="pin" title="' + (isPinned ? 'Unpin message' : 'Pin message') + '"' + (isPinned ? ' class="pinned"' : '') + '>' + icon('pin', 'sm') + '</button>' : '') +
     (isOwn && !m.deleted ? '<button data-act="edit" title="Edit">' + icon('edit', 'sm') + '</button>' : '') +
     (canDelete ? '<button data-act="delete" title="' + (isOwn ? 'Delete' : 'Delete (moderator)') + '">' + icon('trash', 'sm') + '</button>' : '');
   actions.querySelectorAll('button').forEach(b => b.addEventListener('click', (e) => {
@@ -4721,8 +4757,14 @@ function buildMessageGroup(m, inThread) {
     if (act === 'reply') startReply(m);
     else if (act === 'thread') createThread(m);
     else if (act === 'react') quickReact(m);
+    else if (act === 'pin') togglePin(m);
     else if (act === 'edit') editMessage(m);
-    else if (act === 'delete') deleteMessage(m);
+    else if (act === 'delete') {
+      // Hold Shift while clicking delete to remove the message instantly,
+      // skipping the confirmation dialog entirely.
+      if (e.shiftKey) deleteMessageInstant(m);
+      else deleteMessage(m);
+    }
   }));
   body.querySelectorAll('[data-react]').forEach(chip => chip.addEventListener('click', () => react(m, chip.dataset.react)));
 
@@ -4863,7 +4905,10 @@ function renderThreadReplies() {
         const act = b.dataset.tact;
         if (act === 'react') quickReactThread(m);
         else if (act === 'edit') editThreadReply(m);
-        else if (act === 'delete') deleteThreadReply(m);
+        else if (act === 'delete') {
+          if (e.shiftKey) deleteThreadReplyInstant(m);
+          else deleteThreadReply(m);
+        }
       }));
     }
     g.querySelectorAll('[data-react]').forEach(chip => chip.addEventListener('click', () => reactThread(m, chip.dataset.react)));
@@ -4932,6 +4977,14 @@ function editThreadReply(m) {
   socket.emit('server-thread-edit', { serverId: activeServerId, channelId: activeChannelId, parentId: activeThreadParentId, id: m.id, text }, (resp) => {
     if (resp && resp.error) toast(resp.error, 'error');
     else { m.text = text; m.edited = true; renderThreadReplies(); }
+  });
+}
+// Instantly delete a thread reply with no confirmation UI (Shift+click shortcut).
+function deleteThreadReplyInstant(m) {
+  if (!m || m.deleted) return;
+  socket.emit('server-thread-delete', { serverId: activeServerId, channelId: activeChannelId, parentId: activeThreadParentId, id: m.id }, (resp) => {
+    if (resp && resp.error) toast(resp.error, 'error');
+    else { m.deleted = true; m.text = ''; renderThreadReplies(); updateThreadHead(); }
   });
 }
 function deleteThreadReply(m) {
@@ -5824,6 +5877,87 @@ function editMessage(m) {
   };
   save.onclick = handler;
   input.onkeydown = (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handler(); } };
+}
+// Instantly delete a message with no confirmation UI (Shift+click shortcut).
+function deleteMessageInstant(m) {
+  if (!m || m.deleted) return;
+  socket.emit('server-delete', { serverId: activeServerId, channelId: activeChannelId, id: m.id }, (resp) => {
+    if (resp && resp.error) toast(resp.error, 'error');
+  });
+}
+// ---- Pinned messages ----
+function togglePin(m) {
+  if (!m || m.deleted) return;
+  const isPinned = channelPins.includes(m.id);
+  const evt = isPinned ? 'server-unpin' : 'server-pin';
+  socket.emit(evt, { serverId: activeServerId, channelId: activeChannelId, id: m.id }, (resp) => {
+    if (resp && resp.error) { toast(resp.error, 'error'); return; }
+    if (resp && Array.isArray(resp.pins)) channelPins = resp.pins;
+    toast(isPinned ? 'Message unpinned' : 'Message pinned', 'success');
+    renderMessages();
+    if ($('pins-modal') && $('pins-modal').classList.contains('show')) openPinsPanel();
+  });
+}
+function openPinsPanel() {
+  const body = $('pins-body');
+  if (!body) return;
+  body.innerHTML = '<div class="pins-loading"><div class="spinner" style="margin:0 auto 10px;"></div>Loading pinned messages\u2026</div>';
+  openModal('pins-modal');
+  socket.emit('server-pins-get', { serverId: activeServerId, channelId: activeChannelId }, (resp) => {
+    if (!resp || resp.error) { body.innerHTML = '<div class="pins-empty">' + (resp && resp.error ? escapeHtml(resp.error) : 'Could not load pinned messages.') + '</div>'; return; }
+    if (Array.isArray(resp.pins)) channelPins = resp.pins;
+    const pinned = resp.pinned || [];
+    const ch = (activeServer && activeServer.channels || []).find(c => c.id === activeChannelId) || {};
+    const sub = $('pins-sub');
+    if (sub) sub.textContent = pinned.length ? (pinned.length + (pinned.length === 1 ? ' pinned message in #' : ' pinned messages in #') + (ch.name || 'channel')) : ('Nothing pinned in #' + (ch.name || 'channel') + ' yet');
+    if (!pinned.length) {
+      body.innerHTML = '<div class="pins-empty"><div class="pins-empty-title">No pinned messages</div><div class="pins-empty-sub">Messages pinned by owners and managers will show up here for everyone to browse.</div></div>';
+      return;
+    }
+    body.innerHTML = pinned.map(m => renderPinnedItem(m)).join('');
+    body.querySelectorAll('[data-pin-jump]').forEach(el => el.addEventListener('click', () => {
+      const id = el.dataset.pinJump;
+      closeModal('pins-modal');
+      jumpToMessage(id);
+    }));
+    body.querySelectorAll('[data-pin-unpin]').forEach(el => el.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const id = el.dataset.pinUnpin;
+      socket.emit('server-unpin', { serverId: activeServerId, channelId: activeChannelId, id }, (resp) => {
+        if (resp && resp.error) { toast(resp.error, 'error'); return; }
+        if (resp && Array.isArray(resp.pins)) channelPins = resp.pins;
+        toast('Message unpinned', 'success');
+        openPinsPanel();
+        renderMessages();
+      });
+    }));
+  });
+}
+function renderPinnedItem(m) {
+  const member = (activeServer && activeServer.members || []).find(x => x.username === m.from) || {};
+  const authorName = member.nickname || member.displayName || m.displayName || m.from || 'Unknown';
+  const raw = m._plain !== undefined && m._plain !== null ? m._plain : (m.text || '');
+  const preview = raw ? escapeHtml(raw.slice(0, 300)) : ((m.file || (m.files && m.files.length)) ? '<em>Attachment</em>' : '<em>No text</em>');
+  const canUnpin = hasPerm('manageMessages');
+  const av = member.avatar
+    ? '<img src="' + escapeAttr(member.avatar) + '" alt="">'
+    : escapeHtml(getInitials(authorName));
+  return '<div class="pin-item" data-pin-jump="' + escapeAttr(m.id) + '">' +
+    '<div class="pin-av">' + av + '</div>' +
+    '<div class="pin-main">' +
+      '<div class="pin-head"><span class="pin-author">' + escapeHtml(authorName) + '</span>' +
+      '<span class="pin-time">' + escapeHtml(m.timestamp ? fmtTime(m.timestamp) : '') + '</span></div>' +
+      '<div class="pin-text">' + preview + '</div>' +
+    '</div>' +
+    (canUnpin ? '<button class="pin-unpin" data-pin-unpin="' + escapeAttr(m.id) + '" title="Unpin">' + icon('x', 'sm') + '</button>' : '') +
+  '</div>';
+}
+function jumpToMessage(id) {
+  const c = $('server-messages');
+  if (!c) return;
+  const el = c.querySelector('.msg-group[data-msg-id="' + (window.CSS && CSS.escape ? CSS.escape(id) : id) + '"]');
+  if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); el.classList.add('msg-flash'); setTimeout(() => el.classList.remove('msg-flash'), 1200); }
+  else toast('That message is not in the loaded history', 'error');
 }
 function deleteMessage(m) {
   const raw = m._plain !== undefined && m._plain !== null ? m._plain : (m.text || '');
@@ -6927,6 +7061,7 @@ function openSearchMessages() {
 }
 function closeSearchMessages() { $('search-msg-overlay').style.display = 'none'; }
 $('sch-search-btn').addEventListener('click', openSearchMessages);
+$('sch-pins-btn').addEventListener('click', openPinsPanel);
 $('search-msg-close').addEventListener('click', closeSearchMessages);
 $('search-msg-overlay').addEventListener('click', (e) => { if (e.target === $('search-msg-overlay')) closeSearchMessages(); });
 document.addEventListener('keydown', (e) => {

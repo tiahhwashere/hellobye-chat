@@ -1,9 +1,11 @@
-# Request AS — slash key shortcut, Delete reply UI, remove Delete-message icon, revamp Add Channel UI
+# Request AT — shift-delete shortcut, pinned messages, Edit Channel button/UI tweaks
 
 ## Tasks
-- [x] Add a "/" keyboard shortcut to focus the chat input (no manual click needed)
-- [x] Add a proper "Delete this reply?" UI (replace the plain confirm dialog)
-- [x] Remove the SVG icon from the "Delete this message?" UI
-- [x] Revamp the "Add Channel" UI
+- [x] Shift+click the delete-message button deletes instantly (no modal)
+- [x] Add pinned messages (owners/managers can pin; everyone can browse pinned)
+- [x] Make the "Edit Channel" context-menu button bigger
+- [x] Remove the SVG icon from the "Edit Channel" context-menu button
+- [x] Make the Edit Channel modal wider left-to-right
+- [x] Remove the remaining SVG icons from the Edit Channel modal UI
 - [x] Verify syntax, local smoke test, no data loss
-- [x] Commit + push + verify Render deploy live
+- [ ] Commit + push + verify Render deploy live
