@@ -56,6 +56,15 @@ const server = http.createServer(app);
 const io = new Server(server, {
   cors: { origin: '*', methods: ['GET', 'POST'], credentials: true, allowedHeaders: ['Content-Type', 'X-Session-Id'] },
   maxHttpBufferSize: 1e8, // 100MB — file metadata only; actual files go through /api/upload via multer
+  // Lower-latency transport tuning. The defaults (pingInterval 25s /
+  // pingTimeout 20s) are fine for stability, but we also disable per-message
+  // deflate compression: chat payloads are tiny, and compressing every frame
+  // adds CPU + latency for no real bandwidth win. This noticeably speeds up
+  // message delivery on the free tier.
+  pingInterval: 20000,
+  pingTimeout: 20000,
+  perMessageDeflate: false,
+  httpCompression: false,
 });
 
 const PORT = process.env.PORT || 3000;
@@ -6335,7 +6344,7 @@ io.on('connection', (socket) => {
 
   // ===================== SERVER CHAT (E2E) =====================
   // ---- Send a message to a server channel ----
-  socket.on('server-send', ({ serverId, channelId, text, e2e, e2eKeys, file, files, reply, spoiler }, ack) => {
+  socket.on('server-send', ({ serverId, channelId, text, e2e, e2eKeys, file, files, reply, spoiler, clientId }, ack) => {
     try {
       const s = findServer(serverId);
       if (!s) { if (typeof ack === 'function') ack({ error: 'Server not found' }); return; }
@@ -6407,6 +6416,9 @@ io.on('connection', (socket) => {
         editedAt: null,
         deleted: false,
         deletedAt: null,
+        // Echo the client-generated id back so the sender can reconcile its
+        // optimistic (locally-rendered) copy with the authoritative message.
+        clientId: clientId ? String(clientId).slice(0, 80) : null,
       };
       const storedText = textStr;
       // Text and media live in ONE message so the caption renders directly on

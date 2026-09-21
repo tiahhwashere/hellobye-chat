@@ -1,16 +1,20 @@
-# Request AU — message layout, mobile, server fixes, voice messages
+# Request AV — advanced voice UI + fix lag / voice delay / whole delay
 
-## Diagnosis (done)
-- [x] Invisible messages root cause: 7 legacy "zombie" messages stored with only an `e2e` envelope (no plaintext `text`), key is client-side only & unrecoverable → render as empty divs. Fix = graceful placeholder.
-- [x] Channel drag-out bug: top-level "Text Channels" drop target only renders when uncategorised channels exist → can't drag out when all channels are categorised.
-- [x] Scale preview bug: settings preview clips the icon (bottom:-30px inside overflow:hidden banner) and shows an icon the header no longer displays.
+## Diagnosis
+- [x] Socket starts on `['polling','websocket']` → every message waits for the HTTP long-poll upgrade (~1-2s). Should try websocket first.
+- [x] Voice start delay: `getUserMedia` is awaited on every tap (device init + permission). No pre-warm.
+- [x] Voice stop→preview delay: `recorder.start()` with NO timeslice → all data buffered until stop; `onstop` waits for the final blob.
+- [x] Voice send delay: upload round-trip blocks any feedback; nothing shown until the server echoes back.
+- [x] Render lag: `markContinuation` does `serverMessages.find()` (O(n)) per message → O(n²) on render; `scrollBottom()` writes scrollTop synchronously on every append (layout thrash).
+- [x] Audio in messages uses bare `<audio controls>` (no preload, no custom UI).
 
 ## Tasks
-- [x] Improve message layout (grouping/spacing/typography, NO background layouts behind messages) — servers.html + index.html
-- [x] Fix mobile support (100dvh, safe-area, scrolling, sizing) — servers.html + index.html
-- [x] Fix Icon & Banner Scale preview in servers (settings + modal)
-- [x] Allow dragging a channel back out of a category (always render top-level drop target)
-- [x] Fix remaining invisible messages in server (graceful placeholder)
-- [x] Add voice message system beside send media (record, preview, send)
+- [x] Advanced voice recorder panel: live waveform canvas, timer, pause/resume, discard, send, sending spinner
+- [x] Advanced in-chat voice player: custom play/pause, waveform seek, duration, speed toggle, download
+- [x] Fix socket transport (websocket-first) + server ping tuning
+- [x] Fix voice start latency (pre-warm mic on pointerdown)
+- [x] Fix voice stop latency (timeslice recording)
+- [x] Fix voice send latency (optimistic local echo)
+- [x] Fix render lag (O(1) message index, rAF batched scroll, fragment render)
 - [x] Verify syntax + local smoke test, no data loss
 - [ ] Commit + push + verify Render deploy live
