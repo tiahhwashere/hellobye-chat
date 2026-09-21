@@ -617,18 +617,14 @@ input, textarea { font-family: inherit; }
 .msg-reply-quote .mrq-text { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; opacity: 0.85; }
 .msg-group.own .msg-reply-quote { background: rgba(0,0,0,0.16); }
 
-/* ---- @mention autocomplete + slash command popovers ---- */
-.srv-mention-pop, .srv-slash-pop { position: absolute; left: 16px; right: 16px; bottom: 100%; margin-bottom: 8px; background: var(--bg-dark); border: 1px solid var(--border-light); border-radius: 12px; box-shadow: 0 14px 40px rgba(0,0,0,0.5); overflow: hidden; z-index: 60; max-height: 260px; overflow-y: auto; }
-.srv-mention-item, .srv-slash-item { display: flex; align-items: center; gap: 10px; padding: 9px 12px; cursor: pointer; font-size: 13.5px; }
-.srv-mention-item:hover, .srv-mention-item.active, .srv-slash-item:hover, .srv-slash-item.active { background: var(--bg-light); }
+/* ---- @mention autocomplete popover ---- */
+.srv-mention-pop { position: absolute; left: 16px; right: 16px; bottom: 100%; margin-bottom: 8px; background: var(--bg-dark); border: 1px solid var(--border-light); border-radius: 12px; box-shadow: 0 14px 40px rgba(0,0,0,0.5); overflow: hidden; z-index: 60; max-height: 260px; overflow-y: auto; }
+.srv-mention-item { display: flex; align-items: center; gap: 10px; padding: 9px 12px; cursor: pointer; font-size: 13.5px; }
+.srv-mention-item:hover, .srv-mention-item.active { background: var(--bg-light); }
 .srv-mention-av { width: 28px; height: 28px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; overflow: hidden; flex-shrink: 0; }
 .srv-mention-av img { width: 100%; height: 100%; object-fit: cover; }
 .srv-mention-name { font-weight: 600; }
 .srv-mention-handle { color: var(--text-muted); font-size: 12px; }
-.srv-slash-cmd { font-weight: 700; color: var(--accent-light); font-family: 'gg sans Mono', ui-monospace, monospace; }
-.srv-slash-desc { color: var(--text-muted); font-size: 12.5px; }
-.srv-slash-ic { width: 28px; height: 28px; border-radius: 8px; background: var(--bg-light); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-.srv-slash-ic svg { width: 15px; height: 15px; color: var(--accent-light); }
 .server-input-area { position: relative; }
 
 /* ---------- Member sidebar ---------- */
@@ -652,6 +648,55 @@ input, textarea { font-family: inherit; }
 .member-item .mi-role { font-size: 10px; padding: 1px 6px; border-radius: 6px; font-weight: 700; display: inline-flex; align-items: center; gap: 3px; }
 .member-item .mi-role-img { width: 12px; height: 12px; object-fit: contain; flex-shrink: 0; }
 .member-item.offline { opacity: 0.5; }
+
+/* ---------- Message threads ---------- */
+.thread-panel { width: 0; flex-shrink: 0; background: var(--bg-dark); border-left: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden; transition: width 0.28s cubic-bezier(0.4,0,0.2,1), border-color 0.28s ease; }
+.thread-panel.open { width: 400px; }
+.thread-panel-inner { width: 400px; display: flex; flex-direction: column; height: 100%; min-height: 0; }
+.thread-head { display: flex; align-items: center; gap: 10px; padding: 14px 16px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+.thread-head-ic { width: 34px; height: 34px; border-radius: 10px; background: linear-gradient(135deg, rgba(var(--accent-rgb),0.22), rgba(var(--accent-rgb),0.06)); border: 1px solid rgba(var(--accent-rgb),0.3); display: flex; align-items: center; justify-content: center; color: var(--accent-light); flex-shrink: 0; }
+.thread-head-ic .ui-ic { width: 18px; height: 18px; }
+.thread-head-meta { flex: 1; min-width: 0; }
+.thread-head-title { font-size: 14px; font-weight: 800; letter-spacing: 0.2px; }
+.thread-head-sub { font-size: 11.5px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.thread-close { width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: var(--text-muted); flex-shrink: 0; }
+.thread-close:hover { background: var(--bg-light); color: var(--text-primary); }
+.thread-parent { padding: 12px 16px; border-bottom: 1px solid var(--border); background: rgba(0,0,0,0.16); flex-shrink: 0; max-height: 40%; overflow-y: auto; }
+.thread-parent-label { font-size: 10.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text-muted); margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+.thread-parent-label .ui-ic { width: 13px; height: 13px; }
+.thread-parent .msg-group { margin: 0; }
+.thread-parent .msg-actions { display: none !important; }
+.thread-replies { flex: 1; overflow-y: auto; padding: 12px 16px; display: flex; flex-direction: column; gap: 2px; min-height: 0; }
+.thread-replies .msg-group { margin: 0; }
+.thread-empty { text-align: center; color: var(--text-muted); font-size: 13px; padding: 28px 16px; }
+.thread-empty .ui-ic { width: 30px; height: 30px; opacity: 0.4; margin-bottom: 10px; }
+.thread-input-area { padding: 12px 16px 16px; border-top: 1px solid var(--border); flex-shrink: 0; }
+.thread-input-wrap { display: flex; align-items: flex-end; gap: 8px; background: var(--bg-medium); border: 1px solid var(--border-light); border-radius: 12px; padding: 8px 10px; }
+.thread-input-wrap:focus-within { border-color: rgba(var(--accent-rgb),0.55); }
+.thread-input { flex: 1; background: none; border: none; color: var(--text-primary); font-size: 14px; resize: none; max-height: 140px; line-height: 1.45; font-family: inherit; }
+.thread-input::placeholder { color: var(--text-muted); }
+.thread-send { width: 34px; height: 34px; border-radius: 9px; background: var(--accent); color: #fff; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.thread-send:disabled { opacity: 0.4; cursor: not-allowed; }
+.thread-send .ui-ic { width: 17px; height: 17px; }
+.thread-attach { width: 34px; height: 34px; border-radius: 9px; color: var(--text-muted); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.thread-attach:hover { background: var(--bg-light); color: var(--text-primary); }
+.thread-attach .ui-ic { width: 18px; height: 18px; }
+.thread-pending { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+.thread-pending .pf-item { width: 64px; }
+/* Thread indicator on a channel message */
+.msg-thread-bar { display: inline-flex; align-items: center; gap: 8px; margin-top: 6px; padding: 5px 10px; border-radius: 9px; background: rgba(var(--accent-rgb),0.1); border: 1px solid rgba(var(--accent-rgb),0.22); cursor: pointer; font-size: 12.5px; font-weight: 600; color: var(--accent-light); transition: background var(--transition); }
+.msg-thread-bar:hover { background: rgba(var(--accent-rgb),0.2); }
+.msg-thread-bar .ui-ic { width: 14px; height: 14px; }
+.msg-thread-bar .mtb-count { font-weight: 800; }
+.msg-thread-bar .mtb-last { color: var(--text-muted); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 220px; }
+.msg-thread-bar .mtb-avs { display: flex; }
+.msg-thread-bar .mtb-av { width: 18px; height: 18px; border-radius: 50%; background: var(--accent); border: 1.5px solid var(--bg-medium); display: flex; align-items: center; justify-content: center; font-size: 8px; font-weight: 700; overflow: hidden; margin-left: -6px; }
+.msg-thread-bar .mtb-av:first-child { margin-left: 0; }
+.msg-thread-bar .mtb-av img { width: 100%; height: 100%; object-fit: cover; }
+@media (max-width: 900px) {
+  .thread-panel.open { position: fixed; right: 0; top: 0; bottom: 0; z-index: 600; width: min(92vw, 400px); box-shadow: -12px 0 40px rgba(0,0,0,0.55); }
+  .thread-panel-inner { width: min(92vw, 400px); }
+}
 
 /* ---------- Buttons ---------- */
 .btn {
@@ -1544,6 +1589,22 @@ input, textarea { font-family: inherit; }
 /* Delete-role quote: shows the role dot + badge + name */
 .msg-action-quote .drq-dot { display: inline-block; width: 12px; height: 12px; border-radius: 50%; vertical-align: -1px; margin-right: 7px; }
 .msg-action-quote .drq-badge { width: 18px; height: 18px; object-fit: contain; vertical-align: -4px; margin-right: 6px; }
+/* Delete-message detail block */
+.del-msg-meta { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+.del-msg-meta .dmm-chip { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--text-secondary); background: var(--bg-darkest); border: 1px solid var(--border); border-radius: 8px; padding: 5px 10px; }
+.del-msg-meta .dmm-chip b { color: var(--text-primary); font-weight: 650; }
+.del-msg-meta .dmm-chip svg { width: 13px; height: 13px; color: var(--text-muted); }
+.del-msg-note { display: flex; gap: 9px; align-items: flex-start; font-size: 12px; line-height: 1.5; color: var(--text-muted); background: rgba(227,93,93,0.07); border: 1px solid rgba(227,93,93,0.22); border-radius: 9px; padding: 10px 12px; margin-top: 4px; }
+.del-msg-note svg { width: 15px; height: 15px; flex-shrink: 0; color: #e35d5d; margin-top: 1px; }
+/* Category (rename/create) modal detail */
+.cat-modal-head { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+.cat-modal-head .cmh-ic { width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; background: rgba(var(--accent-rgb),0.15); color: var(--accent-light); }
+.cat-modal-head .cmh-title { font-size: 15px; font-weight: 700; }
+.cat-modal-head .cmh-sub { font-size: 12.5px; color: var(--text-muted); margin-top: 2px; line-height: 1.45; }
+.cat-char-count { text-align: right; font-size: 11px; color: var(--text-muted); margin-top: 5px; }
+.cat-detail-list { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
+.cat-detail { display: flex; gap: 9px; align-items: flex-start; font-size: 12px; line-height: 1.5; color: var(--text-secondary); background: var(--bg-darkest); border: 1px solid var(--border); border-radius: 9px; padding: 9px 11px; }
+.cat-detail svg { width: 15px; height: 15px; flex-shrink: 0; color: var(--accent-light); margin-top: 1px; }
 
 /* @everyone / @here mention highlight (dark / light blueish) + golden notification */
 .mention-everyone { background: rgba(47,96,168,0.30); color: #9cc2ff; font-weight: 700; border-radius: 4px; padding: 0 4px; }
@@ -1753,26 +1814,45 @@ input, textarea { font-family: inherit; }
 .perm-toggle.perm-danger input:hover { border-color: #e35d5d; }
 
 /* Assign roles UI */
-.assign-head { display: flex; align-items: center; gap: 12px; padding: 12px; background: var(--bg-darkest); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 14px; }
-.assign-av { width: 46px; height: 46px; border-radius: 50%; overflow: hidden; flex-shrink: 0; background: linear-gradient(135deg, var(--accent), #7c5cff); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 17px; color: #fff; }
+.assign-head { position: relative; display: flex; align-items: center; gap: 14px; padding: 16px; background: linear-gradient(135deg, rgba(74,158,255,0.10), rgba(124,92,255,0.06) 60%, transparent); border: 1px solid var(--border-light); border-radius: 14px; margin-bottom: 14px; overflow: hidden; }
+.assign-head::before { content: ''; position: absolute; inset: 0; background: radial-gradient(120% 140% at 0% 0%, rgba(74,158,255,0.14), transparent 55%); pointer-events: none; }
+.assign-av { position: relative; width: 52px; height: 52px; border-radius: 50%; overflow: hidden; flex-shrink: 0; background: linear-gradient(135deg, var(--accent), #7c5cff); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 18px; color: #fff; box-shadow: 0 0 0 2px var(--bg-darkest), 0 0 0 4px rgba(74,158,255,0.35); }
 .assign-av img { width: 100%; height: 100%; object-fit: cover; }
-.assign-info { flex: 1; min-width: 0; }
-.assign-name { font-weight: 700; font-size: 15px; }
-.assign-handle { font-size: 12.5px; color: var(--text-muted); }
-.assign-count { font-size: 12px; font-weight: 600; color: var(--accent-light); background: rgba(74,158,255,0.12); padding: 4px 10px; border-radius: 20px; flex-shrink: 0; }
-.assign-search { display: flex; align-items: center; gap: 8px; background: var(--bg-darkest); border: 1px solid var(--border); border-radius: 10px; padding: 8px 12px; margin-bottom: 12px; }
+.assign-info { flex: 1; min-width: 0; position: relative; }
+.assign-name { font-weight: 700; font-size: 15.5px; letter-spacing: 0.1px; }
+.assign-handle { font-size: 12.5px; color: var(--text-muted); margin-top: 1px; }
+.assign-meta { display: flex; align-items: center; gap: 8px; margin-top: 7px; flex-wrap: wrap; }
+.assign-count { font-size: 11.5px; font-weight: 700; color: var(--accent-light); background: rgba(74,158,255,0.14); border: 1px solid rgba(74,158,255,0.28); padding: 3px 10px; border-radius: 20px; flex-shrink: 0; letter-spacing: 0.2px; }
+.assign-hint { font-size: 11.5px; color: var(--text-muted); }
+.assign-toolbar { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+.assign-search { flex: 1; display: flex; align-items: center; gap: 8px; background: var(--bg-darkest); border: 1px solid var(--border); border-radius: 10px; padding: 9px 12px; transition: border var(--transition); }
+.assign-search:focus-within { border-color: var(--accent); }
 .assign-search span { color: var(--text-muted); display: flex; }
 .assign-search input { flex: 1; background: transparent; border: none; outline: none; color: var(--text-primary); font-size: 13.5px; }
-.assign-list { display: flex; flex-direction: column; gap: 6px; max-height: 320px; overflow-y: auto; }
-.assign-role { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px; background: var(--bg-darkest); border: 1px solid var(--border); cursor: pointer; transition: border var(--transition), background var(--transition); }
+.assign-tool-btn { font-size: 12px; font-weight: 600; color: var(--text-secondary); background: var(--bg-darkest); border: 1px solid var(--border); border-radius: 9px; padding: 9px 12px; cursor: pointer; white-space: nowrap; transition: border var(--transition), color var(--transition); }
+.assign-tool-btn:hover { border-color: var(--border-light); color: var(--text-primary); }
+.assign-list { display: flex; flex-direction: column; gap: 7px; max-height: 340px; overflow-y: auto; padding-right: 2px; }
+.assign-role { position: relative; display: flex; align-items: center; gap: 12px; padding: 11px 13px 11px 15px; border-radius: 11px; background: var(--bg-darkest); border: 1px solid var(--border); cursor: pointer; transition: border var(--transition), background var(--transition), transform 0.08s ease; overflow: hidden; }
+.assign-role::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--role-color, var(--border-light)); opacity: 0.55; transition: opacity var(--transition); }
 .assign-role:hover { border-color: var(--border-light); background: var(--bg-medium); }
-.assign-role.on { border-color: var(--accent); background: rgba(74,158,255,0.08); }
-.assign-check { width: 20px; height: 20px; border-radius: 6px; border: 1.5px solid var(--border-light); display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: #fff; }
-.assign-role.on .assign-check { background: var(--accent); border-color: var(--accent); }
-.assign-check svg { width: 13px; height: 13px; }
-.assign-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
-.assign-role-name { font-size: 13.5px; font-weight: 600; }
-.assign-empty { padding: 24px; text-align: center; color: var(--text-muted); font-size: 13px; }
+.assign-role:hover::before { opacity: 1; }
+.assign-role.on { border-color: var(--accent); background: rgba(74,158,255,0.09); }
+.assign-role.on::before { opacity: 1; }
+.assign-role-main { flex: 1; min-width: 0; }
+.assign-role-name { font-size: 13.5px; font-weight: 650; display: flex; align-items: center; gap: 8px; }
+.assign-role-badge { font-size: 9.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); background: var(--bg-light); border: 1px solid var(--border); border-radius: 5px; padding: 1px 6px; }
+.assign-role-sub { font-size: 11.5px; color: var(--text-muted); margin-top: 2px; display: flex; align-items: center; gap: 6px; }
+.assign-role-perms { display: inline-flex; align-items: center; gap: 4px; }
+.assign-dot { width: 11px; height: 11px; border-radius: 50%; flex-shrink: 0; box-shadow: 0 0 0 2px rgba(255,255,255,0.06); }
+.assign-switch { position: relative; width: 40px; height: 22px; border-radius: 20px; background: var(--bg-light); border: 1px solid var(--border-light); flex-shrink: 0; transition: background var(--transition), border var(--transition); }
+.assign-switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: #fff; transition: transform var(--transition); box-shadow: 0 1px 3px rgba(0,0,0,0.4); }
+.assign-role.on .assign-switch { background: var(--accent); border-color: var(--accent); }
+.assign-role.on .assign-switch::after { transform: translateX(18px); }
+.assign-empty { padding: 30px 24px; text-align: center; color: var(--text-muted); font-size: 13px; }
+.assign-empty .ae-icon { width: 46px; height: 46px; margin: 0 auto 12px; border-radius: 12px; background: var(--bg-darkest); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; color: var(--text-muted); }
+.assign-empty .ae-icon svg { width: 22px; height: 22px; }
+.assign-empty .ae-title { font-size: 14px; font-weight: 700; color: var(--text-secondary); margin-bottom: 4px; }
+.assign-empty .ae-sub { font-size: 12.5px; line-height: 1.5; max-width: 320px; margin: 0 auto; }
 .perm-group-label { grid-column: 1 / -1; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text-muted); margin: 6px 0 2px; }
 @media (max-width: 560px) { .perm-grid { grid-template-columns: 1fr; } }
 
@@ -2012,16 +2092,12 @@ input, textarea { font-family: inherit; }
                 <div><div class="srv-attach-label">Any File</div><div class="srv-attach-hint">Documents, audio, archives \u2014 up to 150 MB</div></div>
               </div>
             </div>
-            <button id="srv-slash-btn" title="Commands & shortcuts (/)">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="5" x2="5" y2="19"/><circle cx="6.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/></svg>
-            </button>
-            <textarea id="srv-input" placeholder="Message #general — type a message, or press / for commands" rows="1"></textarea>
+            <textarea id="srv-input" placeholder="Message #general" rows="1"></textarea>
             <button class="send-btn" id="srv-send-btn" disabled>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
             </button>
           </div>
           <div class="srv-mention-pop" id="srv-mention-pop" style="display:none;"></div>
-          <div class="srv-slash-pop" id="srv-slash-pop" style="display:none;"></div>
         </div>
       </main>
 
@@ -2035,6 +2111,35 @@ input, textarea { font-family: inherit; }
           </button>
         </div>
         <div class="member-list" id="member-list"></div>
+      </aside>
+
+      <!-- Threads -->
+      <aside class="thread-panel" id="thread-panel">
+        <div class="thread-panel-inner">
+          <div class="thread-head">
+            <div class="thread-head-ic" id="thread-head-ic"></div>
+            <div class="thread-head-meta">
+              <div class="thread-head-title" id="thread-head-title">Thread</div>
+              <div class="thread-head-sub" id="thread-head-sub"></div>
+            </div>
+            <button class="thread-close" id="thread-close" title="Close thread">&times;</button>
+          </div>
+          <div class="thread-parent" id="thread-parent"></div>
+          <div class="thread-replies" id="thread-replies"></div>
+          <div class="thread-input-area">
+            <div class="thread-pending" id="thread-pending"></div>
+            <div class="thread-input-wrap">
+              <button class="thread-attach" id="thread-attach" title="Attach a file">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+              </button>
+              <input type="file" id="thread-file-input" hidden multiple>
+              <textarea class="thread-input" id="thread-input" rows="1" placeholder="Reply in thread"></textarea>
+              <button class="thread-send" id="thread-send" disabled title="Send reply">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
       </aside>
     </div>
   </div>
@@ -2130,7 +2235,7 @@ input, textarea { font-family: inherit; }
   <div class="modal wide">
     <div class="modal-header"><div class="modal-title">Discovery</div><button class="modal-close" data-close="discover-modal">&times;</button></div>
     <div class="modal-body">
-      <div class="field"><label>Search servers</label><input type="text" id="discover-search" placeholder="Search servers by name"></div>
+      <div class="field"><label>Search servers</label><input type="text" id="discover-search" placeholder="Search servers by name, description, or server ID"></div>
       <div class="discover-list" id="discover-results"></div>
     </div>
     <div class="modal-footer">
@@ -2439,8 +2544,6 @@ input, textarea { font-family: inherit; }
   </div>
 </div>
 
-<script src="https://sites.super.myninja.ai/_assets/ninja-daytona-script.js"></script>
-
 <!-- Channel editor -->
 <div class="modal-overlay" id="channel-modal">
   <div class="modal channel-modal-wide">
@@ -2591,17 +2694,26 @@ input, textarea { font-family: inherit; }
 
 <!-- Rename / create category -->
 <div class="modal-overlay" id="category-modal">
-  <div class="modal" style="max-width:440px;">
+  <div class="modal" style="max-width:460px;">
     <div class="modal-header">
       <div class="modal-title" id="category-modal-title">Rename Category</div>
       <button class="modal-close" data-close="category-modal">&times;</button>
     </div>
     <div class="modal-body">
+      <div class="cat-modal-head">
+        <div class="cmh-ic"><svg class="ui-ic lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></div>
+        <div class="cmh-text"><div class="cmh-title" id="category-modal-heading">Rename this category</div><div class="cmh-sub" id="category-modal-sub">Give the category a clear name so members can find related channels quickly.</div></div>
+      </div>
       <div class="field">
         <label>Category name</label>
         <input type="text" id="category-name-input" placeholder="e.g. General, Projects, Voice" maxlength="40" autocomplete="off">
+        <div class="cat-char-count"><span id="category-char-count">0</span>/40</div>
       </div>
-      <div class="hint" style="font-size:12px;color:var(--text-muted);margin-top:2px;">Channels can be dragged into this category to group them together.</div>
+      <div class="cat-detail-list">
+        <div class="cat-detail"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/></svg><span>Channels can be dragged into this category to group them together.</span></div>
+        <div class="cat-detail"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/></svg><span>Renaming only changes the label — channels and their messages stay exactly the same.</span></div>
+        <div class="cat-detail"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg><span>Everyone in the server sees the new name immediately after saving.</span></div>
+      </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" data-close="category-modal">Cancel</button>
@@ -2632,9 +2744,15 @@ input, textarea { font-family: inherit; }
   <div class="modal msg-action-modal">
     <div class="modal-body">
       <div class="msg-action-head">
-        <div><div class="mah-title">Delete this message?</div><div class="mah-sub">This action cannot be undone.</div></div>
+        <div class="mah-ic del"><svg class="ui-ic lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg></div>
+        <div><div class="mah-title">Delete this message?</div><div class="mah-sub">This permanently removes the message for everyone in the channel. This action cannot be undone.</div></div>
       </div>
+      <div class="del-msg-meta" id="del-msg-meta"></div>
       <div class="msg-action-quote" id="del-msg-quote"></div>
+      <div class="del-msg-note">
+        <svg class="ui-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        <span>Anyone who has already seen this message may still remember its contents. Deleted messages leave a placeholder in the channel.</span>
+      </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" data-close="del-msg-modal">Cancel</button>
@@ -2823,11 +2941,14 @@ let activeServerId = null;
 let activeServer = null;     // full server object (publicServer shape)
 let activeChannelId = null;
 let serverMessages = [];     // messages of the active channel
+let channelThreads = {};     // parentId -> thread summary for the active channel
+let activeThreadParentId = null; // parent message id of the open thread (or null)
+let activeThread = null;     // full thread object { id, parentId, messages: [] }
+let threadPendingFiles = []; // attachments queued for the thread composer
 let typingTimeout = null;
 let pendingFiles = [];
 let srvReplyTo = null;        // message object we're replying to (or null)
 let mentionState = null;      // { start, query } while typing an @mention
-let slashState = null;        // { start, query } while typing a /command
 let editingChannelId = null;
 let editingRoleId = null;
 let pendingRoleBadge = '';
@@ -3460,6 +3581,41 @@ function connectSocket() {
     const m = serverMessages.find(x => x.id === data.id);
     if (m) { m.reactions = data.reactions; updateMessageElement(m); }
   });
+  socket.on('server-thread-updated', (data) => {
+    if (!data || data.serverId !== activeServerId || data.channelId !== activeChannelId) return;
+    if (data.summary) channelThreads[data.parentId] = data.summary;
+    else delete channelThreads[data.parentId];
+    refreshThreadBar(data.parentId);
+  });
+  socket.on('server-thread-reply', (data) => {
+    if (!data || data.serverId !== activeServerId || data.channelId !== activeChannelId) return;
+    if (data.summary) channelThreads[data.parentId] = data.summary;
+    refreshThreadBar(data.parentId);
+    if (activeThreadParentId === data.parentId) {
+      if (!activeThread) activeThread = { id: null, parentId: data.parentId, channelId: activeChannelId, messages: [] };
+      if (!activeThread.messages.some(m => m.id === data.message.id)) activeThread.messages.push(data.message);
+      renderThreadReplies();
+      updateThreadHead();
+    }
+  });
+  socket.on('server-thread-edited', (data) => {
+    if (!data || data.serverId !== activeServerId || data.channelId !== activeChannelId) return;
+    if (activeThreadParentId !== data.parentId || !activeThread) return;
+    const m = activeThread.messages.find(x => x.id === data.id);
+    if (m) { m.text = data.text; m.edited = true; m.editedAt = data.editedAt; renderThreadReplies(); }
+  });
+  socket.on('server-thread-deleted', (data) => {
+    if (!data || data.serverId !== activeServerId || data.channelId !== activeChannelId) return;
+    if (activeThreadParentId !== data.parentId || !activeThread) return;
+    const m = activeThread.messages.find(x => x.id === data.id);
+    if (m) { m.deleted = true; m.text = ''; renderThreadReplies(); updateThreadHead(); }
+  });
+  socket.on('server-thread-reaction', (data) => {
+    if (!data || data.serverId !== activeServerId || data.channelId !== activeChannelId) return;
+    if (activeThreadParentId !== data.parentId || !activeThread) return;
+    const m = activeThread.messages.find(x => x.id === data.id);
+    if (m) { m.reactions = data.reactions; renderThreadReplies(); }
+  });
   socket.on('server-typing', (data) => {
     if (!data || data.serverId !== activeServerId || data.channelId !== activeChannelId) return;
     if (data.from === currentUser.username) return;
@@ -3639,6 +3795,7 @@ function showEmpty() {
   e.style.display = 'flex';
   e.classList.remove('view-in'); void e.offsetWidth; e.classList.add('view-in');
   $('server-view').style.display = 'none';
+  try { closeThread(); } catch (err) {}
   // Reset server-wide appearance so it doesn't leak into the empty state.
   const root = document.documentElement;
   ['--accent','--accent-hover','--accent-dim','--accent-light','--accent-rgb'].forEach(v => root.style.removeProperty(v));
@@ -3960,6 +4117,16 @@ function promptCategoryName(opts) {
   inp.value = opts.value || '';
   const save = $('category-save-btn');
   save.textContent = opts.okText || 'Save';
+  // Contextual heading/sub + live character counter.
+  const isRename = /rename/i.test(opts.title || '');
+  const heading = $('category-modal-heading');
+  const sub = $('category-modal-sub');
+  if (heading) heading.textContent = isRename ? 'Rename this category' : 'Create a new category';
+  if (sub) sub.textContent = isRename
+    ? 'Give the category a clear name so members can find related channels quickly.'
+    : 'Categories group related channels together in the sidebar. You can rename or delete it later.';
+  const cc = $('category-char-count');
+  if (cc) cc.textContent = String(inp.value.length);
   openModal('category-modal');
   setTimeout(() => { try { inp.focus(); inp.select(); } catch(e) {} }, 50);
   return new Promise(resolve => {
@@ -3979,6 +4146,10 @@ $('category-save-btn').addEventListener('click', () => {
 $('category-name-input').addEventListener('keydown', (e) => {
   if (e.key === 'Enter') { e.preventDefault(); $('category-save-btn').click(); }
   else if (e.key === 'Escape') { e.preventDefault(); finishCategoryModal(null); }
+});
+$('category-name-input').addEventListener('input', () => {
+  const cc = $('category-char-count');
+  if (cc) cc.textContent = String($('category-name-input').value.length);
 });
 document.querySelectorAll('#category-modal [data-close]').forEach(b => b.addEventListener('click', () => finishCategoryModal(null)));
 // Delete a category (channels inside move back to the top level).
@@ -4271,6 +4442,8 @@ function memberRowHtml(m) {
 async function openChannel(channelId) {
   activeChannelId = channelId;
   delete channelPings[channelId];
+  closeThread();
+  channelThreads = {};
   renderChannels();
   const ch = (activeServer.channels || []).find(c => c.id === channelId);
   if (ch) { $('sch-name').textContent = ch.name; $('sch-topic').textContent = ch.topic || ''; $('srv-input').placeholder = 'Message #' + ch.name; }
@@ -4279,6 +4452,7 @@ async function openChannel(channelId) {
   try {
     const d = await api('/api/servers/' + encodeURIComponent(activeServerId) + '/channels/' + encodeURIComponent(channelId) + '/messages');
     serverMessages = d.messages || [];
+    channelThreads = d.threads || {};
     renderMessages();
     scrollBottom();
     applyChannelChatState(ch, d.channel);
@@ -4309,7 +4483,7 @@ function renderMessages() {
   c.innerHTML = '';
   serverMessages.forEach(m => appendMessage(m, true));
 }
-function buildMessageGroup(m) {
+function buildMessageGroup(m, inThread) {
   const c = $('server-messages');
   const isOwn = m.from === currentUser.username;
   const member = (activeServer.members || []).find(x => x.username === m.from) || {};
@@ -4384,6 +4558,11 @@ function buildMessageGroup(m) {
     reactHtml += '</div>';
   }
   body.innerHTML = head + replyHtml + textHtml + reactHtml;
+  // Thread indicator (N replies) — shown under channel messages that have a thread.
+  if (!inThread) {
+    const tbar = buildThreadBar(m.id);
+    if (tbar) body.appendChild(tbar);
+  }
   // Spoiler overlay: click to reveal the hidden text + attachments.
   const spoilerOverlay = body.querySelector('.srv-spoiler-overlay');
   if (spoilerOverlay) {
@@ -4408,6 +4587,7 @@ function buildMessageGroup(m) {
   actions.className = 'msg-actions';
   const canDelete = !m.deleted && (isOwn || hasPerm('manageMessages'));
   actions.innerHTML = '<button data-act="reply" title="Reply">' + icon('reply', 'sm') + '</button>' +
+    '<button data-act="thread" title="Create thread">' + icon('chat', 'sm') + '</button>' +
     '<button data-act="react" title="React">' + icon('smile', 'sm') + '</button>' +
     (isOwn && !m.deleted ? '<button data-act="edit" title="Edit">' + icon('edit', 'sm') + '</button>' : '') +
     (canDelete ? '<button data-act="delete" title="' + (isOwn ? 'Delete' : 'Delete (moderator)') + '">' + icon('trash', 'sm') + '</button>' : '');
@@ -4415,6 +4595,7 @@ function buildMessageGroup(m) {
     e.stopPropagation();
     const act = b.dataset.act;
     if (act === 'reply') startReply(m);
+    else if (act === 'thread') createThread(m);
     else if (act === 'react') quickReact(m);
     else if (act === 'edit') editMessage(m);
     else if (act === 'delete') deleteMessage(m);
@@ -4444,6 +4625,197 @@ function updateMessageElement(m) {
   const g = buildMessageGroup(m);
   existing.replaceWith(g);
   hydrateInviteEmbeds(g.querySelector('.msg-body'));
+}
+
+/* ============================================================
+   Message threads
+   ============================================================ */
+function threadSummaryFor(parentId) { return channelThreads[parentId] || null; }
+
+// Build the "N replies" bar shown under a parent message in the channel.
+function buildThreadBar(parentId) {
+  const t = threadSummaryFor(parentId);
+  if (!t || !t.replyCount) return null;
+  const bar = document.createElement('div');
+  bar.className = 'msg-thread-bar';
+  bar.dataset.threadParent = parentId;
+  const avs = (t.participants || []).slice(0, 4).map(un => {
+    const mem = (activeServer.members || []).find(x => x.username === un) || {};
+    const dn = mem.nickname || mem.displayName || un;
+    return '<span class="mtb-av">' + (mem.avatar ? '<img src="' + escapeAttr(mem.avatar) + '">' : escapeHtml(getInitials(dn))) + '</span>';
+  }).join('');
+  const lastMem = (activeServer.members || []).find(x => x.username === t.lastReplyFrom) || {};
+  const lastDn = lastMem.nickname || lastMem.displayName || t.lastReplyFrom || '';
+  bar.innerHTML = icon('chat', 'sm') +
+    '<span class="mtb-count">' + t.replyCount + ' ' + (t.replyCount === 1 ? 'reply' : 'replies') + '</span>' +
+    (avs ? '<span class="mtb-avs">' + avs + '</span>' : '') +
+    (t.lastReplyText ? '<span class="mtb-last">' + escapeHtml(lastDn) + ': ' + escapeHtml(t.lastReplyText) + '</span>' : '');
+  bar.addEventListener('click', (e) => { e.stopPropagation(); openThread(parentId); });
+  return bar;
+}
+
+// Attach (or refresh) the thread bar on a rendered message group.
+function refreshThreadBar(parentId) {
+  const c = $('server-messages');
+  if (!c) return;
+  const g = c.querySelector('.msg-group[data-msg-id="' + (window.CSS && CSS.escape ? CSS.escape(parentId) : parentId) + '"]');
+  if (!g) return;
+  const body = g.querySelector('.msg-body');
+  if (!body) return;
+  const existing = body.querySelector('.msg-thread-bar');
+  const bar = buildThreadBar(parentId);
+  if (existing) existing.remove();
+  if (bar) body.appendChild(bar);
+}
+
+async function openThread(parentId) {
+  if (!parentId || !activeServerId || !activeChannelId) return;
+  activeThreadParentId = parentId;
+  const panel = $('thread-panel');
+  panel.classList.add('open');
+  $('thread-head-ic').innerHTML = icon('chat', 'sm');
+  $('thread-head-title').textContent = 'Thread';
+  $('thread-head-sub').textContent = 'Loading\u2026';
+  $('thread-replies').innerHTML = '<div class="thread-empty"><div class="spinner" style="margin:0 auto;"></div></div>';
+  // Render the parent message at the top of the panel.
+  const parent = serverMessages.find(m => m.id === parentId);
+  const parentWrap = $('thread-parent');
+  parentWrap.innerHTML = '<div class="thread-parent-label">' + icon('chat', 'sm') + 'Thread started from</div>';
+  if (parent) {
+    const pg = buildMessageGroup(parent, true);
+    pg.querySelectorAll('.msg-actions').forEach(a => a.remove());
+    parentWrap.appendChild(pg);
+  }
+  try {
+    const resp = await new Promise((resolve, reject) => {
+      socket.emit('server-thread-get', { serverId: activeServerId, channelId: activeChannelId, parentId }, (r) => {
+        if (r && r.error) reject(new Error(r.error)); else resolve(r);
+      });
+    });
+    activeThread = resp.thread || { id: null, parentId, channelId: activeChannelId, messages: [] };
+    if (resp.summary) channelThreads[parentId] = resp.summary;
+    renderThreadReplies();
+    updateThreadHead();
+  } catch (e) {
+    $('thread-replies').innerHTML = '<div class="thread-empty">' + escapeHtml(e.message || 'Could not load thread') + '</div>';
+  }
+  $('thread-input').focus();
+}
+
+function updateThreadHead() {
+  const t = activeThread;
+  const n = t && Array.isArray(t.messages) ? t.messages.filter(m => !m.deleted).length : 0;
+  $('thread-head-sub').textContent = n ? (n + ' ' + (n === 1 ? 'reply' : 'replies')) : 'No replies yet';
+}
+
+function closeThread() {
+  activeThreadParentId = null;
+  activeThread = null;
+  threadPendingFiles = [];
+  renderThreadPending();
+  $('thread-panel').classList.remove('open');
+}
+
+function renderThreadReplies() {
+  const wrap = $('thread-replies');
+  const msgs = (activeThread && Array.isArray(activeThread.messages)) ? activeThread.messages : [];
+  if (!msgs.length) {
+    wrap.innerHTML = '<div class="thread-empty">' + icon('chat', 'sm') + '<div>No replies yet. Start the conversation.</div></div>';
+    return;
+  }
+  wrap.innerHTML = '';
+  msgs.forEach(m => {
+    const g = buildMessageGroup(m, true);
+    // Thread replies use thread-scoped actions.
+    const actions = g.querySelector('.msg-actions');
+    if (actions) {
+      const isOwn = m.from === currentUser.username;
+      const canDelete = !m.deleted && (isOwn || hasPerm('manageMessages'));
+      actions.innerHTML = '<button data-tact="react" title="React">' + icon('smile', 'sm') + '</button>' +
+        (isOwn && !m.deleted ? '<button data-tact="edit" title="Edit">' + icon('edit', 'sm') + '</button>' : '') +
+        (canDelete ? '<button data-tact="delete" title="Delete">' + icon('trash', 'sm') + '</button>' : '');
+      actions.querySelectorAll('button').forEach(b => b.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const act = b.dataset.tact;
+        if (act === 'react') quickReactThread(m);
+        else if (act === 'edit') editThreadReply(m);
+        else if (act === 'delete') deleteThreadReply(m);
+      }));
+    }
+    g.querySelectorAll('[data-react]').forEach(chip => chip.addEventListener('click', () => reactThread(m, chip.dataset.react)));
+    wrap.appendChild(g);
+  });
+  wrap.scrollTop = wrap.scrollHeight;
+}
+
+function renderThreadPending() {
+  const el = $('thread-pending');
+  if (!threadPendingFiles.length) { el.innerHTML = ''; return; }
+  el.innerHTML = threadPendingFiles.map((f, i) => {
+    const url = escapeAttr(f.url || '');
+    const type = String(f.type || '');
+    const name = escapeHtml(f.name || 'file');
+    const isImg = type.startsWith('image') || /\.(png|jpe?g|webp|avif|gif)$/i.test(f.url || '');
+    const isVid = type.startsWith('video') || /\.(mp4|webm|mov)$/i.test(f.url || '');
+    let thumb;
+    if (isImg) thumb = '<img src="' + url + '" alt="">';
+    else if (isVid) thumb = '<video src="' + url + '" muted preload="metadata"></video>';
+    else thumb = '<span class="pf-file-ic">' + icon('paperclip', 'sm') + '</span>';
+    return '<div class="pf-item" title="' + name + '"><div class="pf-thumb">' + thumb + '</div>' +
+      '<button class="pf-remove" data-trm="' + i + '" aria-label="Remove">&times;</button><div class="pf-name">' + name + '</div></div>';
+  }).join('');
+  el.querySelectorAll('[data-trm]').forEach(x => x.addEventListener('click', (ev) => { ev.stopPropagation(); threadPendingFiles.splice(Number(x.dataset.trm), 1); renderThreadPending(); updateThreadSendBtn(); }));
+}
+
+function updateThreadSendBtn() {
+  const input = $('thread-input');
+  $('thread-send').disabled = !input.value.trim() && !threadPendingFiles.length;
+}
+
+async function sendThreadReply() {
+  const input = $('thread-input');
+  const text = input.value.trim();
+  if (!text && !threadPendingFiles.length) return;
+  if (!activeThreadParentId) return;
+  $('thread-send').disabled = true;
+  const payload = { serverId: activeServerId, channelId: activeChannelId, parentId: activeThreadParentId, text };
+  if (threadPendingFiles.length) {
+    payload.files = threadPendingFiles.slice(0, 5);
+    if (threadPendingFiles.some(f => f && f.spoiler)) payload.spoiler = true;
+  }
+  socket.emit('server-thread-send', payload, (resp) => {
+    if (resp && resp.error) { toast(resp.error, 'error'); updateThreadSendBtn(); return; }
+    input.value = ''; autoGrow(input); threadPendingFiles = []; renderThreadPending(); updateThreadSendBtn();
+  });
+}
+
+function quickReactThread(m) {
+  const emojis = ['\uD83D\uDC4D', '\u2764\uFE0F', '\uD83D\uDE02', '\uD83D\uDE2E', '\uD83D\uDE22'];
+  const pick = emojis[Math.floor(Math.random() * emojis.length)];
+  reactThread(m, pick);
+}
+function reactThread(m, emoji) {
+  socket.emit('server-thread-react', { serverId: activeServerId, channelId: activeChannelId, parentId: activeThreadParentId, id: m.id, emoji }, (resp) => {
+    if (resp && resp.error) toast(resp.error, 'error');
+    else if (resp && resp.reactions) { m.reactions = resp.reactions; renderThreadReplies(); }
+  });
+}
+function editThreadReply(m) {
+  const next = prompt('Edit your reply', m.text || '');
+  if (next === null) return;
+  const text = String(next).trim();
+  if (!text) return;
+  socket.emit('server-thread-edit', { serverId: activeServerId, channelId: activeChannelId, parentId: activeThreadParentId, id: m.id, text }, (resp) => {
+    if (resp && resp.error) toast(resp.error, 'error');
+    else { m.text = text; m.edited = true; renderThreadReplies(); }
+  });
+}
+function deleteThreadReply(m) {
+  if (!confirm('Delete this reply?')) return;
+  socket.emit('server-thread-delete', { serverId: activeServerId, channelId: activeChannelId, parentId: activeThreadParentId, id: m.id }, (resp) => {
+    if (resp && resp.error) toast(resp.error, 'error');
+    else { m.deleted = true; m.text = ''; renderThreadReplies(); updateThreadHead(); }
+  });
 }
 
 // ---------- Media lightbox (click-to-zoom for images & GIFs) ----------
@@ -4785,7 +5157,6 @@ $('srv-input').addEventListener('input', () => {
   updateSendBtn();
   autoGrow($('srv-input'));
   updateMentionPop();
-  updateSlashPop();
   if (socket && activeServerId && activeChannelId) {
     socket.emit('server-typing', { serverId: activeServerId, channelId: activeChannelId, typing: true });
     clearTimeout(typingTimeout);
@@ -4804,42 +5175,9 @@ $('srv-input').addEventListener('keydown', (e) => {
       if (e.key === 'Escape') { e.preventDefault(); closeMentionPop(); return; }
     }
   }
-  // Slash popover navigation
-  if (slashState && $('srv-slash-pop').style.display !== 'none') {
-    const items = Array.from($('srv-slash-pop').querySelectorAll('.srv-slash-item'));
-    if (items.length) {
-      if (e.key === 'ArrowDown') { e.preventDefault(); slashState.idx = (slashState.idx + 1) % items.length; highlightSlash(); return; }
-      if (e.key === 'ArrowUp') { e.preventDefault(); slashState.idx = (slashState.idx - 1 + items.length) % items.length; highlightSlash(); return; }
-      if (e.key === 'Enter' || e.key === 'Tab') { e.preventDefault(); items[slashState.idx || 0].click(); return; }
-      if (e.key === 'Escape') { e.preventDefault(); closeSlashPop(); return; }
-    }
-  }
   if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
 });
 $('srv-send-btn').addEventListener('click', sendMessage);
-
-// Global "/" shortcut: pressing the slash key anywhere (when not already typing
-// in a field and no modal is open) focuses the chat input and opens the slash
-// command popover, so users don't have to click the input first.
-document.addEventListener('keydown', (e) => {
-  if (e.key !== '/' || e.ctrlKey || e.metaKey || e.altKey) return;
-  const t = e.target;
-  const typing = t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable);
-  if (typing) return;
-  // Don't hijack the key while any modal / overlay is open.
-  if (document.querySelector('.modal-overlay.show')) return;
-  const sv = $('server-view');
-  if (!sv || sv.style.display === 'none') return;
-  const el = $('srv-input');
-  if (!el || el.disabled) return;
-  e.preventDefault();
-  el.focus();
-  if (!el.value.startsWith('/')) el.value = '/' + el.value;
-  const pos = el.value.length;
-  el.setSelectionRange(pos, pos);
-  updateSendBtn(); autoGrow(el);
-  updateSlashPop();
-});
 
 /* ============================================================
    Reply system
@@ -4859,6 +5197,49 @@ function cancelReply() {
   $('srv-reply-preview').style.display = 'none';
 }
 $('srv-reply-cancel').addEventListener('click', cancelReply);
+
+/* ============================================================
+   Thread composer wiring
+   ============================================================ */
+function createThread(m) {
+  if (!m || m.deleted) return;
+  socket.emit('server-thread-create', { serverId: activeServerId, channelId: activeChannelId, parentId: m.id }, (resp) => {
+    if (resp && resp.error) { toast(resp.error, 'error'); return; }
+    if (resp && resp.summary) { channelThreads[m.id] = resp.summary; refreshThreadBar(m.id); }
+    openThread(m.id);
+  });
+}
+$('thread-close').addEventListener('click', closeThread);
+$('thread-input').addEventListener('input', () => { updateThreadSendBtn(); autoGrow($('thread-input')); });
+$('thread-input').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendThreadReply(); }
+});
+$('thread-send').addEventListener('click', sendThreadReply);
+$('thread-attach').addEventListener('click', () => $('thread-file-input').click());
+$('thread-file-input').addEventListener('change', async (e) => {
+  const files = Array.from(e.target.files || []);
+  e.target.value = '';
+  for (const f of files) {
+    if (threadPendingFiles.length >= SRV_MAX_ATTACHMENTS) { toast('You can attach up to ' + SRV_MAX_ATTACHMENTS + ' files per message', 'error'); break; }
+    if (f.size > SRV_UPLOAD_MAX) { toast('"' + f.name + '" is larger than 150 MB', 'error'); continue; }
+    try {
+      const up = await uploadFileSimple(f);
+      threadPendingFiles.push({ url: up.url, name: f.name, type: f.type, size: f.size });
+      renderThreadPending(); updateThreadSendBtn();
+    } catch (err) { toast(err.message || 'Upload failed', 'error'); }
+  }
+});
+// Lightweight upload helper (no progress UI) used by the thread composer.
+async function uploadFileSimple(file) {
+  const fd = new FormData();
+  fd.append('file', file);
+  const res = await fetch(API_BASE + '/api/upload', { method: 'POST', headers: getAuthHeaders(), body: fd });
+  let data = {};
+  try { data = await res.json(); } catch (e) {}
+  const f = data && data.file;
+  if (res.ok && f && f.url) return f;
+  throw new Error((data && data.error) || ('Upload failed (' + res.status + ')'));
+}
 
 /* ============================================================
    @mention autocomplete
@@ -4911,84 +5292,6 @@ function insertMention(username) {
   updateSendBtn(); autoGrow(el); el.focus();
 }
 
-/* ============================================================
-   Slash commands / shortcuts
-   ============================================================ */
-const SRV_SLASH_CMDS = [
-  { cmd: '/shrug', desc: 'Append ¯\\_(ツ)_/¯ to your message' },
-  { cmd: '/me', desc: 'Send an action message (italic)' },
-  { cmd: '/spoiler', desc: 'Wrap your message in a spoiler' },
-  { cmd: '/invite', desc: 'Create a server invite link' },
-  { cmd: '/search', desc: 'Search messages in this server' },
-  { cmd: '/edit', desc: 'Edit your last message' },
-  { cmd: '/delete', desc: 'Delete your last message' },
-  { cmd: '/nick', desc: 'Edit your server profile' },
-  { cmd: '/clear', desc: 'Clear the message input' }
-];
-function closeSlashPop() { slashState = null; $('srv-slash-pop').style.display = 'none'; }
-function highlightSlash() {
-  const items = Array.from($('srv-slash-pop').querySelectorAll('.srv-slash-item'));
-  items.forEach((it, i) => it.classList.toggle('active', i === (slashState.idx || 0)));
-  const act = items[slashState.idx || 0];
-  if (act) act.scrollIntoView({ block: 'nearest' });
-}
-function updateSlashPop() {
-  const el = $('srv-input');
-  const val = el.value;
-  const caret = el.selectionStart;
-  const before = val.slice(0, caret);
-  const m = before.match(/^\/([a-zA-Z]*)$/);
-  if (!m) { closeSlashPop(); return; }
-  const query = m[1].toLowerCase();
-  const cmds = SRV_SLASH_CMDS.filter(c => c.cmd.slice(1).startsWith(query));
-  if (!cmds.length) { closeSlashPop(); return; }
-  slashState = { query, idx: 0 };
-  const pop = $('srv-slash-pop');
-  pop.innerHTML = cmds.map((c, i) =>
-    '<div class="srv-slash-item' + (i === 0 ? ' active' : '') + '" data-cmd="' + escapeAttr(c.cmd) + '">' +
-      '<span class="srv-slash-ic">' + icon('chat', 'sm') + '</span>' +
-      '<span class="srv-slash-cmd">' + escapeHtml(c.cmd) + '</span>' +
-      '<span class="srv-slash-desc">' + escapeHtml(c.desc) + '</span></div>'
-  ).join('');
-  pop.querySelectorAll('.srv-slash-item').forEach(it => it.addEventListener('click', () => applySlash(it.dataset.cmd)));
-  pop.style.display = 'block';
-}
-function applySlash(cmd) {
-  const el = $('srv-input');
-  el.value = cmd + ' ';
-  closeSlashPop();
-  updateSendBtn(); autoGrow(el); el.focus();
-  const pos = el.value.length; el.setSelectionRange(pos, pos);
-}
-$('srv-slash-btn').addEventListener('click', () => {
-  const el = $('srv-input');
-  if (!el.value.startsWith('/')) { el.value = '/' + el.value; }
-  el.focus();
-  const pos = el.value.length; el.setSelectionRange(pos, pos);
-  updateSlashPop();
-});
-
-/* ============================================================
-   Slash command execution (runs when a message starts with /)
-   ============================================================ */
-function runSlashCommand(text) {
-  const sp = text.indexOf(' ');
-  const cmd = (sp === -1 ? text : text.slice(0, sp)).toLowerCase();
-  const rest = sp === -1 ? '' : text.slice(sp + 1);
-  switch (cmd) {
-    case '/shrug': return { text: (rest ? rest + ' ' : '') + '¯\\_(ツ)_/¯' };
-    case '/me': return { text: '*' + (rest || '') + '*' };
-    case '/spoiler': return { text: '||' + (rest || '') + '||' };
-    case '/clear': $('srv-input').value = ''; autoGrow($('srv-input')); updateSendBtn(); return { handled: true };
-    case '/invite': $('sch-invite-btn').click(); return { handled: true };
-    case '/search': openSearchMessages(); return { handled: true };
-    case '/edit': { const last = [...serverMessages].reverse().find(m => m.from === currentUser.username && !m.deleted); if (last) editMessage(last); return { handled: true }; }
-    case '/delete': { const last = [...serverMessages].reverse().find(m => m.from === currentUser.username && !m.deleted); if (last) deleteMessage(last); return { handled: true }; }
-    case '/nick': openMyServerProfileEditor(); return { handled: true };
-    default: return { text };
-  }
-}
-
 async function sendMessage() {
   let text = $('srv-input').value.trim();
   if (!text && !pendingFiles.length) return;
@@ -4996,13 +5299,6 @@ async function sendMessage() {
   // Respect the channel's chat permissions — never send when chat is disabled.
   const _ch = (activeServer && activeServer.channels || []).find(c => c.id === activeChannelId);
   if (_ch && _ch.canChat === false) { toast('Chat is disabled in this channel', 'error'); return; }
-  // Slash commands
-  if (text.startsWith('/')) {
-    const res = runSlashCommand(text);
-    if (res.handled) { $('srv-input').value = ''; autoGrow($('srv-input')); updateSendBtn(); return; }
-    text = res.text;
-    if (!text && !pendingFiles.length) { $('srv-input').value = ''; autoGrow($('srv-input')); updateSendBtn(); return; }
-  }
   $('srv-send-btn').disabled = true;
   // Server chats are NEVER encrypted — every member must be able to read every
   // message and attachment, so we always send plaintext.
@@ -5377,6 +5673,18 @@ function deleteMessage(m) {
   const raw = m._plain !== undefined && m._plain !== null ? m._plain : (m.text || '');
   const preview = raw ? escapeHtml(raw.slice(0, 200)) : (m.file || (m.files && m.files.length) ? 'Attachment' : '');
   $('del-msg-quote').innerHTML = preview || '<em>This message has no text.</em>';
+  // Detail chips: author, channel, time, and attachment count.
+  const member = (activeServer && activeServer.members || []).find(x => x.username === m.from) || {};
+  const authorName = member.nickname || member.displayName || m.displayName || m.from || 'Unknown';
+  const ch = (activeServer && activeServer.channels || []).find(c => c.id === activeChannelId) || {};
+  const fileCount = (m.file ? 1 : 0) + (Array.isArray(m.files) ? m.files.length : 0);
+  const chips = [];
+  chips.push('<span class="dmm-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Author: <b>' + escapeHtml(authorName) + '</b></span>');
+  if (ch.name) chips.push('<span class="dmm-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/></svg>Channel: <b>#' + escapeHtml(ch.name) + '</b></span>');
+  if (m.timestamp) chips.push('<span class="dmm-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Sent: <b>' + escapeHtml(fmtTime(m.timestamp)) + '</b></span>');
+  if (fileCount) chips.push('<span class="dmm-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>Attachments: <b>' + fileCount + '</b></span>');
+  const metaEl = $('del-msg-meta');
+  if (metaEl) metaEl.innerHTML = chips.join('');
   openModal('del-msg-modal');
   $('del-msg-confirm').onclick = () => {
     closeModal('del-msg-modal');
@@ -6777,7 +7085,7 @@ function renderMemberProfileBody(m, roles, isMe, data) {
   });
 }
 function openAssignRole(m) {
-  // Leave profile mode \u2014 this view uses the standard header/footer chrome.
+  // Leave profile mode — this view uses the standard header/footer chrome.
   const _mpm = $('member-modal').querySelector('.member-profile-modal');
   if (_mpm) _mpm.classList.remove('profile-mode');
   // The Owner role is a display badge the owner can toggle on themselves.
@@ -6789,21 +7097,55 @@ function openAssignRole(m) {
   const current = (m.roleIds || []).slice();
   const dn = m.nickname || m.displayName || m.username;
   const av = m.avatar ? '<img src="' + escapeAttr(m.avatar) + '">' : escapeHtml(getInitials(dn));
+  // Short, human-readable permission labels used to summarise each role.
+  const PERM_LABELS = {
+    administrator: 'Administrator', manageServer: 'Manage Server', manageChannels: 'Manage Channels',
+    manageRoles: 'Manage Roles', manageMessages: 'Manage Messages', manageNicknames: 'Manage Nicknames',
+    kick: 'Kick Members', ban: 'Ban Members', muteMembers: 'Mute Members', deafenMembers: 'Deafen Members',
+    moveMembers: 'Move Members', invite: 'Create Invites', manageInvites: 'Manage Invites',
+    viewAuditLog: 'View Audit Log', mentionEveryone: 'Mention Everyone', sendMessages: 'Send Messages',
+    attachFiles: 'Attach Files', embedLinks: 'Embed Links', addReactions: 'Add Reactions',
+    externalEmojis: 'External Emojis', readHistory: 'Read History', createThreads: 'Create Threads',
+    manageWebhooks: 'Manage Webhooks', prioritySpeaker: 'Priority Speaker',
+  };
+  function permSummary(r) {
+    const p = r.permissions || {};
+    if (p.administrator) return 'Full administrative access';
+    const keys = Object.keys(PERM_LABELS).filter(k => p[k] && k !== 'administrator');
+    if (!keys.length) return 'No special permissions';
+    const shown = keys.slice(0, 3).map(k => PERM_LABELS[k]);
+    const extra = keys.length - shown.length;
+    return shown.join(' \u00b7 ') + (extra > 0 ? ' \u00b7 +' + extra + ' more' : '');
+  }
+  function permCount(r) {
+    const p = r.permissions || {};
+    if (p.administrator) return 'All';
+    return String(Object.keys(PERM_LABELS).filter(k => p[k] && k !== 'administrator').length);
+  }
   $('member-modal-title').textContent = 'Assign Roles';
   $('member-modal-body').innerHTML =
     '<div class="assign-head">' +
       '<div class="assign-av">' + av + '</div>' +
       '<div class="assign-info"><div class="assign-name">' + escapeHtml(dn) + '</div>' +
-      '<div class="assign-handle">@' + escapeHtml(m.username) + '</div></div>' +
-      '<div class="assign-count" id="assign-count">' + current.length + ' role' + (current.length === 1 ? '' : 's') + '</div>' +
+      '<div class="assign-handle">@' + escapeHtml(m.username) + '</div>' +
+      '<div class="assign-meta"><span class="assign-count" id="assign-count">' + current.length + ' role' + (current.length === 1 ? '' : 's') + ' assigned</span>' +
+      '<span class="assign-hint">Toggle a role to grant or revoke it. Changes apply when you save.</span></div></div>' +
     '</div>' +
-    '<div class="assign-search"><span>' + icon('search', 'sm') + '</span><input type="text" id="assign-search-input" placeholder="Filter roles by name…" autocomplete="off"></div>' +
+    '<div class="assign-toolbar">' +
+      '<div class="assign-search"><span>' + icon('search', 'sm') + '</span><input type="text" id="assign-search-input" placeholder="Filter roles by name or permission\u2026" autocomplete="off"></div>' +
+      '<button type="button" class="assign-tool-btn" id="assign-select-all">Select all</button>' +
+      '<button type="button" class="assign-tool-btn" id="assign-clear-all">Clear</button>' +
+    '</div>' +
     (roles.length ? '<div class="assign-list" id="assign-list">' + roles.map(r => {
       const on = current.includes(r.id);
-      return '<label class="assign-role' + (on ? ' on' : '') + '" data-name="' + escapeAttr((r.name || '').toLowerCase()) + '">' +
-        '<span class="assign-check">' + (on ? icon('check', 'sm') : '') + '</span>' +
+      const isSystem = !!r.system;
+      return '<label class="assign-role' + (on ? ' on' : '') + '" data-name="' + escapeAttr(((r.name || '') + ' ' + permSummary(r)).toLowerCase()) + '" style="--role-color:' + escapeAttr(r.color) + ';">' +
         '<span class="assign-dot" style="background:' + escapeAttr(r.color) + ';"></span>' +
-        '<span class="assign-role-name">' + escapeHtml(r.name) + '</span>' +
+        '<span class="assign-role-main">' +
+          '<span class="assign-role-name">' + escapeHtml(r.name) + (isSystem ? '<span class="assign-role-badge">System</span>' : '') + '</span>' +
+          '<span class="assign-role-sub"><span class="assign-role-perms">' + permCount(r) + ' permission' + (permCount(r) === '1' ? '' : 's') + '</span> \u00b7 ' + escapeHtml(permSummary(r)) + '</span>' +
+        '</span>' +
+        '<span class="assign-switch"></span>' +
         '<input type="checkbox" data-role="' + escapeAttr(r.id) + '"' + (on ? ' checked' : '') + ' hidden>' +
       '</label>';
     }).join('') + '</div>' : '<div class="assign-empty"><div class="ae-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3 6 6 .9-4.5 4.3 1.1 6.3L12 16.8 6.4 19.5l1.1-6.3L3 8.9 9 8z"/></svg></div><div class="ae-title">No roles yet</div><div class="ae-sub">Create roles in Server Settings \u2192 Roles to start assigning permissions and badges to members.</div></div>');
@@ -6812,7 +7154,7 @@ function openAssignRole(m) {
   const list = $('assign-list');
   function refreshCount() {
     const n = $('member-modal-body').querySelectorAll('[data-role]:checked').length;
-    $('assign-count').textContent = n + ' role' + (n === 1 ? '' : 's');
+    $('assign-count').textContent = n + ' role' + (n === 1 ? '' : 's') + ' assigned';
   }
   if (list) {
     list.querySelectorAll('.assign-role').forEach(lbl => {
@@ -6823,7 +7165,6 @@ function openAssignRole(m) {
         e.preventDefault();
         cb.checked = !cb.checked;
         lbl.classList.toggle('on', cb.checked);
-        lbl.querySelector('.assign-check').innerHTML = cb.checked ? icon('check', 'sm') : '';
         refreshCount();
       });
     });
@@ -6834,6 +7175,24 @@ function openAssignRole(m) {
     (list ? list.querySelectorAll('.assign-role') : []).forEach(lbl => {
       lbl.style.display = !q || lbl.dataset.name.includes(q) ? '' : 'none';
     });
+  });
+  const selAll = $('assign-select-all');
+  if (selAll) selAll.addEventListener('click', () => {
+    (list ? list.querySelectorAll('.assign-role') : []).forEach(lbl => {
+      if (lbl.style.display === 'none') return;
+      const cb = lbl.querySelector('input');
+      cb.checked = true; lbl.classList.add('on');
+    });
+    refreshCount();
+  });
+  const clrAll = $('assign-clear-all');
+  if (clrAll) clrAll.addEventListener('click', () => {
+    (list ? list.querySelectorAll('.assign-role') : []).forEach(lbl => {
+      if (lbl.style.display === 'none') return;
+      const cb = lbl.querySelector('input');
+      cb.checked = false; lbl.classList.remove('on');
+    });
+    refreshCount();
   });
   $('assign-back').addEventListener('click', () => openMemberProfile(m.username));
   $('assign-save').addEventListener('click', async () => {

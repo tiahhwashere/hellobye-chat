@@ -3160,7 +3160,13 @@ app.get('/api/servers/discover', authMiddleware, (req, res) => {
   const q = String(req.query.q || '').trim().toLowerCase();
   const me = req.user.username;
   let list = Object.values(db.servers || {}).filter(s => !!s.discoverable);
-  if (q) list = list.filter(s => (s.name || '').toLowerCase().includes(q) || (s.bio || '').toLowerCase().includes(q));
+  if (q) list = list.filter(s =>
+    (s.name || '').toLowerCase().includes(q) ||
+    (s.bio || '').toLowerCase().includes(q) ||
+    // Match by the public server ID (e.g. "1464618225") as well as the internal id.
+    String(s.serverId || '').toLowerCase().includes(q) ||
+    String(s.id || '').toLowerCase().includes(q)
+  );
   list = list.slice(0, 50);
   res.json({ servers: list.map(s => {
     const ownerUser = db.users[s.owner];
@@ -3211,7 +3217,19 @@ app.get('/api/servers/:id/channels/:channelId/messages', authMiddleware, (req, r
   if (!ch) return res.status(404).json({ error: 'Channel not found' });
   if (!canViewChannel(s, me, ch)) return res.status(403).json({ error: 'This channel is private' });
   const msgs = ((s.messages || {})[ch.id] || []).slice(-1000);
-  res.json({ channel: { id: ch.id, name: ch.name, type: ch.type || 'text', topic: ch.topic || '', private: !!ch.private, chatDisabledFor: ch.chatDisabledFor || 'none', canChat: canChatInChannel(s, me, ch) }, messages: msgs });
+  // Attach a lightweight thread summary to each parent message so the client
+  // can render a "N replies" indicator without a second round-trip.
+  const chThreads = (s.threads && s.threads[ch.id]) || {};
+  const threads = {};
+  for (const [pid, t] of Object.entries(chThreads)) {
+    const tm = Array.isArray(t.messages) ? t.messages : [];
+    const last = tm.length ? tm[tm.length - 1] : null;
+    const participants = [];
+    const seen = new Set();
+    for (const m of tm) { if (m && m.from && !seen.has(m.from)) { seen.add(m.from); participants.push(m.from); } }
+    threads[pid] = { id: t.id, parentId: pid, channelId: ch.id, createdAt: t.createdAt, replyCount: tm.length, participants, lastReplyAt: last ? last.timestamp : null, lastReplyFrom: last ? last.from : null, lastReplyText: last ? String(last.text || '').slice(0, 140) : '' };
+  }
+  res.json({ channel: { id: ch.id, name: ch.name, type: ch.type || 'text', topic: ch.topic || '', private: !!ch.private, chatDisabledFor: ch.chatDisabledFor || 'none', canChat: canChatInChannel(s, me, ch) }, messages: msgs, threads });
 });
 
 // ---- Owner/manager: update server settings (name, bio) ----
@@ -6543,6 +6561,211 @@ io.on('connection', (socket) => {
       }
       saveDB();
       for (const mem of (s.members || [])) io.to('user:' + mem).emit('server-reaction', { serverId: s.id, channelId, id: msg.id, reactions: msg.reactions });
+      if (typeof ack === 'function') ack({ success: true, reactions: msg.reactions });
+    } catch (e) { if (typeof ack === 'function') ack({ error: 'Failed to react' }); }
+  });
+
+  // ---- Message threads ----
+  // A thread is a side conversation anchored to a parent message. Threads are
+  // stored per-channel on the server as s.threads[channelId][parentId] = { id,
+  // parentId, channelId, createdAt, messages: [] }. Thread replies reuse the
+  // same message shape as channel messages so the client can render them with
+  // the existing message renderer.
+  function findThread(s, channelId, parentId) {
+    if (!s.threads || !s.threads[channelId]) return null;
+    return s.threads[channelId][parentId] || null;
+  }
+  function threadSummary(t) {
+    if (!t) return null;
+    const msgs = Array.isArray(t.messages) ? t.messages : [];
+    const last = msgs.length ? msgs[msgs.length - 1] : null;
+    const participants = [];
+    const seen = new Set();
+    for (const m of msgs) {
+      if (m && m.from && !seen.has(m.from)) { seen.add(m.from); participants.push(m.from); }
+    }
+    return {
+      id: t.id,
+      parentId: t.parentId,
+      channelId: t.channelId,
+      createdAt: t.createdAt,
+      replyCount: msgs.length,
+      participants,
+      lastReplyAt: last ? last.timestamp : null,
+      lastReplyFrom: last ? last.from : null,
+      lastReplyText: last ? String(last.text || '').slice(0, 140) : '',
+    };
+  }
+  function emitThreadUpdate(s, channelId, parentId) {
+    const t = findThread(s, channelId, parentId);
+    const summary = threadSummary(t);
+    for (const mem of (s.members || [])) io.to('user:' + mem).emit('server-thread-updated', { serverId: s.id, channelId, parentId, summary });
+  }
+
+  // Create (or fetch) a thread for a parent message.
+  socket.on('server-thread-create', ({ serverId, channelId, parentId }, ack) => {
+    try {
+      const s = findServer(serverId);
+      if (!s) { if (typeof ack === 'function') ack({ error: 'Server not found' }); return; }
+      if (!(s.members || []).includes(username)) { if (typeof ack === 'function') ack({ error: 'Not a member' }); return; }
+      const ch = (s.channels || []).find(c => c.id === channelId);
+      if (!ch) { if (typeof ack === 'function') ack({ error: 'Channel not found' }); return; }
+      if (!canViewChannel(s, username, ch)) { if (typeof ack === 'function') ack({ error: 'This channel is private' }); return; }
+      const parent = ((s.messages || {})[channelId] || []).find(m => m.id === parentId);
+      if (!parent) { if (typeof ack === 'function') ack({ error: 'Message not found' }); return; }
+      if (!s.threads) s.threads = {};
+      if (!s.threads[channelId]) s.threads[channelId] = {};
+      let t = s.threads[channelId][parentId];
+      if (!t) {
+        t = { id: genId(), parentId, channelId, createdAt: nowISO(), messages: [] };
+        s.threads[channelId][parentId] = t;
+        saveDB();
+        emitThreadUpdate(s, channelId, parentId);
+      }
+      if (typeof ack === 'function') ack({ success: true, thread: t, summary: threadSummary(t) });
+    } catch (e) { console.error('server-thread-create error', e); if (typeof ack === 'function') ack({ error: 'Failed to open thread' }); }
+  });
+
+  // Fetch a thread's replies.
+  socket.on('server-thread-get', ({ serverId, channelId, parentId }, ack) => {
+    try {
+      const s = findServer(serverId);
+      if (!s) { if (typeof ack === 'function') ack({ error: 'Server not found' }); return; }
+      if (!(s.members || []).includes(username)) { if (typeof ack === 'function') ack({ error: 'Not a member' }); return; }
+      const ch = (s.channels || []).find(c => c.id === channelId);
+      if (!ch) { if (typeof ack === 'function') ack({ error: 'Channel not found' }); return; }
+      if (!canViewChannel(s, username, ch)) { if (typeof ack === 'function') ack({ error: 'This channel is private' }); return; }
+      const t = findThread(s, channelId, parentId);
+      if (typeof ack === 'function') ack({ success: true, thread: t || null, summary: threadSummary(t) });
+    } catch (e) { if (typeof ack === 'function') ack({ error: 'Failed to load thread' }); }
+  });
+
+  // Post a reply inside a thread.
+  socket.on('server-thread-send', ({ serverId, channelId, parentId, text, files, spoiler }, ack) => {
+    try {
+      const s = findServer(serverId);
+      if (!s) { if (typeof ack === 'function') ack({ error: 'Server not found' }); return; }
+      if (!(s.members || []).includes(username)) { if (typeof ack === 'function') ack({ error: 'Not a member' }); return; }
+      const ch = (s.channels || []).find(c => c.id === channelId);
+      if (!ch) { if (typeof ack === 'function') ack({ error: 'Channel not found' }); return; }
+      if (!canViewChannel(s, username, ch)) { if (typeof ack === 'function') ack({ error: 'This channel is private' }); return; }
+      if (!canChatInChannel(s, username, ch)) { if (typeof ack === 'function') ack({ error: 'Chat is disabled in this channel' }); return; }
+      const parent = ((s.messages || {})[channelId] || []).find(m => m.id === parentId);
+      if (!parent) { if (typeof ack === 'function') ack({ error: 'Message not found' }); return; }
+      // 0.3s cooldown (skip if exempt)
+      const srvExempt = (db.cooldownExempt || []).includes(username);
+      if (!srvExempt) {
+        const skey = username + ':thr:' + serverId + ':' + parentId;
+        const slast = lastGroupTime[skey] || 0;
+        if (Date.now() - slast < 300) { if (typeof ack === 'function') ack({ error: 'Sending too fast \u2014 please slow down', cooldown: 0.3 }); return; }
+        lastGroupTime[skey] = Date.now();
+      }
+      if (!s.threads) s.threads = {};
+      if (!s.threads[channelId]) s.threads[channelId] = {};
+      let t = s.threads[channelId][parentId];
+      if (!t) { t = { id: genId(), parentId, channelId, createdAt: nowISO(), messages: [] }; s.threads[channelId][parentId] = t; }
+      let textStr = String(text || '').slice(0, 5000);
+      const canPing = (s.owner === username) || serverHasPerm(s, username, 'manageMessages') || serverHasPerm(s, username, 'mentionEveryone');
+      if ((/@everyone\b/.test(textStr) || /@here\b/.test(textStr)) && !canPing) {
+        textStr = textStr.replace(/@everyone\b/g, '@everyone\u200b').replace(/@here\b/g, '@here\u200b');
+      }
+      const cleanFiles = Array.isArray(files) ? files.slice(0, 5).map(f => {
+        if (!f || typeof f !== 'object' || !f.url) return null;
+        return {
+          url: String(f.url).slice(0, 2000),
+          name: f.name ? String(f.name).slice(0, 300) : null,
+          type: f.type ? String(f.type).slice(0, 120) : null,
+          size: Number(f.size) || 0,
+          spoiler: !!f.spoiler,
+          coverImage: f.coverImage ? String(f.coverImage).slice(0, 2000) : null,
+        };
+      }).filter(Boolean) : null;
+      const msg = {
+        id: genId(),
+        from: username,
+        username,
+        displayName: user.displayName,
+        timestamp: nowISO(),
+        edited: false,
+        editedAt: null,
+        deleted: false,
+        deletedAt: null,
+        text: textStr,
+        file: null,
+        files: cleanFiles,
+        reply: null,
+        spoiler: !!spoiler,
+      };
+      t.messages.push(msg);
+      if (t.messages.length > 1000) t.messages = t.messages.slice(-1000);
+      saveDB();
+      const summary = threadSummary(t);
+      for (const mem of (s.members || [])) io.to('user:' + mem).emit('server-thread-reply', { serverId: s.id, channelId, parentId, message: msg, summary });
+      // Notify the parent author (unless replying to yourself).
+      if (parent.from && parent.from !== username && (s.members || []).map(x => String(x).toLowerCase()).includes(String(parent.from).toLowerCase())) {
+        io.to('user:' + String(parent.from).toLowerCase()).emit('server-replied-to', {
+          serverId: s.id, channelId, channelName: ch.name, serverName: s.name,
+          messageId: parentId, replyId: msg.id, from: username, displayName: user.displayName,
+          text: textStr.slice(0, 140), timestamp: nowISO(), thread: true,
+        });
+      }
+      if (typeof ack === 'function') ack({ success: true, message: msg, summary });
+    } catch (e) { console.error('server-thread-send error', e); if (typeof ack === 'function') ack({ error: 'Failed to send thread reply' }); }
+  });
+
+  // Edit a thread reply.
+  socket.on('server-thread-edit', ({ serverId, channelId, parentId, id, text }, ack) => {
+    try {
+      const s = findServer(serverId);
+      if (!s) { if (typeof ack === 'function') ack({ error: 'Server not found' }); return; }
+      if (!(s.members || []).includes(username)) { if (typeof ack === 'function') ack({ error: 'Not a member' }); return; }
+      const t = findThread(s, channelId, parentId);
+      const m = t && (t.messages || []).find(x => x.id === id && x.username === username);
+      if (!m) { if (typeof ack === 'function') ack({ error: 'Message not found' }); return; }
+      m.text = String(text || '').slice(0, 5000);
+      m.edited = true; m.editedAt = nowISO();
+      saveDB();
+      for (const mem of (s.members || [])) io.to('user:' + mem).emit('server-thread-edited', { serverId: s.id, channelId, parentId, id, text: m.text, edited: true, editedAt: m.editedAt });
+      if (typeof ack === 'function') ack({ success: true });
+    } catch (e) { if (typeof ack === 'function') ack({ error: 'Failed' }); }
+  });
+
+  // Delete a thread reply.
+  socket.on('server-thread-delete', ({ serverId, channelId, parentId, id }, ack) => {
+    try {
+      const s = findServer(serverId);
+      if (!s) { if (typeof ack === 'function') ack({ error: 'Server not found' }); return; }
+      if (!(s.members || []).includes(username)) { if (typeof ack === 'function') ack({ error: 'Not a member' }); return; }
+      const canManage = serverHasPerm(s, username, 'manageMessages');
+      const t = findThread(s, channelId, parentId);
+      const m = t && (t.messages || []).find(x => x.id === id && (canManage || x.username === username));
+      if (!m) { if (typeof ack === 'function') ack({ error: 'Message not found' }); return; }
+      m.deleted = true; m.deletedAt = nowISO(); m.text = ''; m.file = null; m.files = null; m.deletedBy = username;
+      saveDB();
+      for (const mem of (s.members || [])) io.to('user:' + mem).emit('server-thread-deleted', { serverId: s.id, channelId, parentId, id, deletedAt: m.deletedAt });
+      emitThreadUpdate(s, channelId, parentId);
+      if (typeof ack === 'function') ack({ success: true });
+    } catch (e) { if (typeof ack === 'function') ack({ error: 'Failed' }); }
+  });
+
+  // React to a thread reply.
+  socket.on('server-thread-react', ({ serverId, channelId, parentId, id, emoji }, ack) => {
+    try {
+      const s = findServer(serverId);
+      if (!s) { if (typeof ack === 'function') ack({ error: 'Server not found' }); return; }
+      if (!(s.members || []).includes(username)) { if (typeof ack === 'function') ack({ error: 'Not a member' }); return; }
+      const t = findThread(s, channelId, parentId);
+      const msg = t && (t.messages || []).find(m => m.id === id);
+      if (!msg) { if (typeof ack === 'function') ack({ error: 'Message not found' }); return; }
+      if (!msg.reactions || typeof msg.reactions !== 'object') msg.reactions = {};
+      const e = String(emoji || '').slice(0, 10);
+      if (!e) { if (typeof ack === 'function') ack({ error: 'Invalid emoji' }); return; }
+      if (!Array.isArray(msg.reactions[e])) msg.reactions[e] = [];
+      const idx = msg.reactions[e].indexOf(username);
+      if (idx >= 0) { msg.reactions[e].splice(idx, 1); if (msg.reactions[e].length === 0) delete msg.reactions[e]; }
+      else msg.reactions[e].push(username);
+      saveDB();
+      for (const mem of (s.members || [])) io.to('user:' + mem).emit('server-thread-reaction', { serverId: s.id, channelId, parentId, id: msg.id, reactions: msg.reactions });
       if (typeof ack === 'function') ack({ success: true, reactions: msg.reactions });
     } catch (e) { if (typeof ack === 'function') ack({ error: 'Failed to react' }); }
   });
