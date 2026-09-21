@@ -1,13 +1,9 @@
-# Request AR — slash removal, script removal, Assign Roles revamp, delete/rename detail, discovery by ID, threads
+# Request AS — slash key shortcut, Delete reply UI, remove Delete-message icon, revamp Add Channel UI
 
 ## Tasks
-- [x] Remove the "Commands & shortcuts (/)" slash button + popover + command system
-- [x] Remove the ninja-daytona-script.js tag from the code (do not re-add)
-- [x] Revamp "Assign Roles" UI — advanced, non-cartoonish, no emojis
-- [x] Add more detail to the "Delete this message?" UI
-- [x] Add more detail to the "Rename Category" UI
-- [x] Discovery: allow searching servers by server ID as well as name (backend + placeholder)
-- [x] Discovery: show server ID on result cards
-- [x] Add message threads (reply-in-thread) + other server features
-- [x] Verify syntax, local smoke test, no data loss
-- [x] Commit + push + verify Render deploy live
+- [x] Add a "/" keyboard shortcut to focus the chat input (no manual click needed)
+- [x] Add a proper "Delete this reply?" UI (replace the plain confirm dialog)
+- [x] Remove the SVG icon from the "Delete this message?" UI
+- [x] Revamp the "Add Channel" UI
+- [ ] Verify syntax, local smoke test, no data loss
+- [ ] Commit + push + verify Render deploy live

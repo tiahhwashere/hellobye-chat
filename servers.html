@@ -1367,6 +1367,59 @@ input, textarea { font-family: inherit; }
 .allow-chip .ac-av { width: 18px; height: 18px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 700; overflow: hidden; }
 .allow-chip .ac-av img { width: 100%; height: 100%; object-fit: cover; }
 .allow-empty { font-size: 12px; color: var(--text-muted); font-style: italic; }
+
+/* ---- Revamped channel editor ---- */
+.modal.channel-modal-wide { max-width: 640px; }
+.ch-modal-header { display: flex; align-items: center; gap: 13px; padding: 18px 22px; border-bottom: 1px solid var(--border); }
+.ch-modal-head-ic { width: 42px; height: 42px; border-radius: 12px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: var(--accent-light); background: linear-gradient(135deg, rgba(var(--accent-rgb),0.22), rgba(var(--accent-rgb),0.06)); border: 1px solid rgba(var(--accent-rgb),0.3); }
+.ch-modal-head-ic .ui-ic { width: 20px; height: 20px; }
+.ch-modal-head-meta { flex: 1; min-width: 0; }
+.ch-modal-head-meta .modal-title { font-size: 17px; font-weight: 800; letter-spacing: 0.2px; }
+.ch-modal-sub { font-size: 12.5px; color: var(--text-muted); margin-top: 2px; }
+.ch-modal-body { padding: 20px 22px 8px; max-height: 66vh; overflow-y: auto; }
+.ch-block { padding: 16px 0; border-bottom: 1px solid var(--border); }
+.ch-block:last-child { border-bottom: none; }
+.ch-block-head { display: flex; align-items: flex-start; gap: 11px; margin-bottom: 13px; }
+.ch-block-num { font-size: 11px; font-weight: 800; letter-spacing: 0.5px; color: var(--accent-light); background: rgba(var(--accent-rgb),0.12); border: 1px solid rgba(var(--accent-rgb),0.28); border-radius: 7px; padding: 3px 7px; flex-shrink: 0; margin-top: 1px; }
+.ch-block-title { font-size: 14px; font-weight: 750; color: var(--text-primary); }
+.ch-block-sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+.ch-opt { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; color: var(--text-muted); background: var(--bg-medium); border-radius: 5px; padding: 2px 6px; margin-left: 4px; }
+.ch-input-prefix { display: flex; align-items: center; background: var(--bg-darkest); border: 1px solid var(--border-light); border-radius: var(--radius-sm); padding: 0 12px; transition: border-color var(--transition); }
+.ch-input-prefix:focus-within { border-color: var(--accent); }
+.ch-prefix-hash { color: var(--text-muted); font-size: 15px; font-weight: 700; margin-right: 4px; }
+.ch-input-prefix input { flex: 1; background: none; border: none; outline: none; color: var(--text-primary); font-size: 14px; font-family: inherit; padding: 11px 0; }
+.ch-select { width: 100%; padding: 11px 13px; background: var(--bg-darkest); border: 1px solid var(--border-light); border-radius: var(--radius-sm); color: var(--text-primary); font-size: 14px; font-family: inherit; cursor: pointer; }
+.ch-select:focus { outline: none; border-color: var(--accent); }
+.ch-inline { display: flex; gap: 8px; align-items: center; }
+.ch-inline-input { flex: 1; padding: 10px 13px; background: var(--bg-darkest); border: 1px solid var(--border-light); border-radius: var(--radius-sm); color: var(--text-primary); font-size: 13px; font-family: inherit; }
+.ch-inline-input:focus { outline: none; border-color: var(--accent); }
+.ch-inline-btn { white-space: nowrap; padding: 10px 16px; font-size: 13px; }
+.ch-choice-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.ch-choice-grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+.ch-choice { position: relative; display: flex; align-items: center; gap: 11px; text-align: left; padding: 13px 14px; border-radius: 12px; background: var(--bg-darkest); border: 1.5px solid var(--border); cursor: pointer; transition: all var(--transition); }
+.ch-choice:hover { border-color: var(--border-light); background: var(--bg-dark); }
+.ch-choice.selected { border-color: var(--accent); background: rgba(var(--accent-rgb),0.08); box-shadow: 0 0 0 1px rgba(var(--accent-rgb),0.35); }
+.ch-choice-ic { width: 34px; height: 34px; border-radius: 9px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: var(--text-secondary); background: var(--bg-medium); transition: all var(--transition); }
+.ch-choice-ic .ui-ic { width: 17px; height: 17px; }
+.ch-choice.selected .ch-choice-ic { color: #fff; background: linear-gradient(180deg, var(--accent), var(--accent-dim)); }
+.ch-choice-meta { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.ch-choice-name { font-size: 13px; font-weight: 700; color: var(--text-primary); }
+.ch-choice-desc { font-size: 11px; color: var(--text-muted); line-height: 1.35; }
+.ch-choice-check { width: 18px; height: 18px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: #fff; background: var(--accent); opacity: 0; transform: scale(0.6); transition: all var(--transition); }
+.ch-choice-check .ui-ic { width: 11px; height: 11px; }
+.ch-choice.selected .ch-choice-check { opacity: 1; transform: scale(1); }
+.ch-choice.selected[data-chat="members"] { border-color: #d4881a; background: rgba(212,136,26,0.08); box-shadow: 0 0 0 1px rgba(212,136,26,0.35); }
+.ch-choice.selected[data-chat="members"] .ch-choice-ic { background: linear-gradient(180deg, #f0a92e, #d4881a); }
+.ch-choice.selected[data-chat="members"] .ch-choice-check { background: #d4881a; }
+.ch-choice.selected[data-chat="everyone"] { border-color: #c02e2e; background: rgba(192,46,46,0.08); box-shadow: 0 0 0 1px rgba(192,46,46,0.35); }
+.ch-choice.selected[data-chat="everyone"] .ch-choice-ic { background: linear-gradient(180deg, #e35d5d, #c02e2e); }
+.ch-choice.selected[data-chat="everyone"] .ch-choice-check { background: #c02e2e; }
+.ch-privacy-extra { margin-top: 14px; padding: 14px; border-radius: 12px; background: var(--bg-darkest); border: 1px solid var(--border); }
+.ch-allow-label { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-secondary); margin: 4px 0 2px; }
+.ch-hint { font-size: 11.5px; color: var(--text-muted); margin-top: 10px; line-height: 1.5; }
+@media (max-width: 560px) {
+  .ch-choice-grid, .ch-choice-grid-3 { grid-template-columns: 1fr; }
+}
 /* ---- Member sidebar: role grouping ---- */
 .member-sidebar-head { display: flex; align-items: center; justify-content: space-between; padding: 4px 8px 8px; }
 .member-sidebar-head .msh-title { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-secondary); }
@@ -2547,50 +2600,101 @@ input, textarea { font-family: inherit; }
 <!-- Channel editor -->
 <div class="modal-overlay" id="channel-modal">
   <div class="modal channel-modal-wide">
-    <div class="modal-header"><div class="modal-title" id="channel-modal-title">Add Channel</div><button class="modal-close" data-close="channel-modal">&times;</button></div>
-    <div class="modal-body">
-      <div class="field"><label>Channel name</label><input type="text" id="channel-name" placeholder="new-channel" maxlength="30"></div>
-      <div class="field"><label>Topic (optional)</label><input type="text" id="channel-topic" placeholder="What's this channel about?" maxlength="200"></div>
+    <div class="modal-header ch-modal-header">
+      <div class="ch-modal-head-ic"><svg class="ui-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/></svg></div>
+      <div class="ch-modal-head-meta">
+        <div class="modal-title" id="channel-modal-title">Add Channel</div>
+        <div class="ch-modal-sub" id="channel-modal-sub">Create a new space for your community to talk.</div>
+      </div>
+      <button class="modal-close" data-close="channel-modal">&times;</button>
+    </div>
+    <div class="modal-body ch-modal-body">
 
-      <div class="ch-section">
-        <div class="ch-section-title"><svg class="ui-ic" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg> Category</div>
-        <div class="field" style="margin-bottom:8px;">
-          <select id="channel-category" style="width:100%;padding:11px 13px;background:var(--bg-darkest);border:1px solid var(--border-light);border-radius:var(--radius-sm);color:var(--text-primary);font-size:14px;font-family:inherit;cursor:pointer;">
+      <div class="ch-block">
+        <div class="ch-block-head">
+          <span class="ch-block-num">01</span>
+          <div><div class="ch-block-title">Channel details</div><div class="ch-block-sub">Give your channel a name and an optional topic.</div></div>
+        </div>
+        <div class="field">
+          <label>Channel name</label>
+          <div class="ch-input-prefix">
+            <span class="ch-prefix-hash">#</span>
+            <input type="text" id="channel-name" placeholder="new-channel" maxlength="30">
+          </div>
+        </div>
+        <div class="field" style="margin-bottom:0;">
+          <label>Topic <span class="ch-opt">optional</span></label>
+          <input type="text" id="channel-topic" placeholder="What's this channel about?" maxlength="200">
+        </div>
+      </div>
+
+      <div class="ch-block">
+        <div class="ch-block-head">
+          <span class="ch-block-num">02</span>
+          <div><div class="ch-block-title">Category</div><div class="ch-block-sub">Group this channel under a category in the sidebar.</div></div>
+        </div>
+        <div class="field" style="margin-bottom:10px;">
+          <select id="channel-category" class="ch-select">
             <option value="">No category (top level)</option>
           </select>
         </div>
-        <div style="display:flex;gap:8px;align-items:center;">
-          <input type="text" id="new-category-name" placeholder="New category name" maxlength="40" style="flex:1;padding:10px 13px;background:var(--bg-darkest);border:1px solid var(--border-light);border-radius:var(--radius-sm);color:var(--text-primary);font-size:13px;font-family:inherit;">
-          <button type="button" class="btn btn-secondary" id="create-category-btn" style="white-space:nowrap;padding:10px 14px;font-size:13px;">Create</button>
+        <div class="ch-inline">
+          <input type="text" id="new-category-name" class="ch-inline-input" placeholder="New category name" maxlength="40">
+          <button type="button" class="btn btn-secondary ch-inline-btn" id="create-category-btn">Create</button>
         </div>
-        <div class="hint" style="font-size:11px;color:var(--text-muted);margin-top:8px;">Group channels under a category. Create a new one or pick an existing category above.</div>
       </div>
 
-      <div class="ch-section">
-        <div class="ch-section-title"><svg class="ui-ic" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> Channel Privacy</div>
-        <div class="seg-control" id="ch-privacy-seg">
-          <button data-priv="public" class="selected"><svg class="ui-ic sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><line x1="3" y1="12" x2="21" y2="12"/><path d="M12 3a15 15 0 0 1 0 18 15 15 0 0 1 0-18z"/></svg> Public</button>
-          <button data-priv="private"><svg class="ui-ic sm" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> Private</button>
+      <div class="ch-block">
+        <div class="ch-block-head">
+          <span class="ch-block-num">03</span>
+          <div><div class="ch-block-title">Channel privacy</div><div class="ch-block-sub">Control who can find and open this channel.</div></div>
         </div>
-        <div id="ch-privacy-extra" style="display:none;margin-top:12px;">
-          <div class="field" style="margin-bottom:8px;"><label style="text-transform:none;font-size:12px;color:var(--text-secondary);">Who can see this channel?</label></div>
-          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--text-muted);margin:8px 0 4px;">Roles</div>
+        <div class="ch-choice-grid" id="ch-privacy-seg">
+          <button type="button" data-priv="public" class="ch-choice selected">
+            <span class="ch-choice-ic"><svg class="ui-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="3" y1="12" x2="21" y2="12"/><path d="M12 3a15 15 0 0 1 0 18 15 15 0 0 1 0-18z"/></svg></span>
+            <span class="ch-choice-meta"><span class="ch-choice-name">Public</span><span class="ch-choice-desc">Anyone in the server can join.</span></span>
+            <span class="ch-choice-check"><svg class="ui-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+          </button>
+          <button type="button" data-priv="private" class="ch-choice">
+            <span class="ch-choice-ic"><svg class="ui-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
+            <span class="ch-choice-meta"><span class="ch-choice-name">Private</span><span class="ch-choice-desc">Only chosen roles and members.</span></span>
+            <span class="ch-choice-check"><svg class="ui-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+          </button>
+        </div>
+        <div id="ch-privacy-extra" class="ch-privacy-extra" style="display:none;">
+          <div class="ch-allow-label">Roles with access</div>
           <div class="allow-grid" id="ch-allow-roles"></div>
-          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--text-muted);margin:12px 0 4px;">Members</div>
+          <div class="ch-allow-label">Members with access</div>
           <div class="allow-grid" id="ch-allow-members"></div>
-          <div class="hint" style="font-size:11px;color:var(--text-muted);margin-top:8px;">Owners &amp; managers always see private channels. Everyone else needs an allowed role or to be picked here.</div>
+          <div class="ch-hint">Owners &amp; managers always see private channels. Everyone else needs an allowed role or to be picked here.</div>
         </div>
       </div>
 
-      <div class="ch-section">
-        <div class="ch-section-title"><svg class="ui-ic" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> Chat Permissions</div>
-        <div class="seg-control" id="ch-chat-seg">
-          <button data-chat="none" class="selected"><svg class="ui-ic sm" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Everyone</button>
-          <button data-chat="members"><svg class="ui-ic sm" viewBox="0 0 24 24"><path d="M12 2l2.4 5.2L20 8l-4 3.9.9 5.6L12 15l-4.9 2.5.9-5.6L4 8l5.6-.8z"/></svg> Members w/ role</button>
-          <button data-chat="everyone"><svg class="ui-ic sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><line x1="5.6" y1="5.6" x2="18.4" y2="18.4"/></svg> Disabled</button>
+      <div class="ch-block">
+        <div class="ch-block-head">
+          <span class="ch-block-num">04</span>
+          <div><div class="ch-block-title">Chat permissions</div><div class="ch-block-sub">Decide who is allowed to send messages here.</div></div>
         </div>
-        <div class="hint" style="font-size:11px;color:var(--text-muted);margin-top:8px;" id="ch-chat-hint">Everyone can send messages in this channel.</div>
+        <div class="ch-choice-grid ch-choice-grid-3" id="ch-chat-seg">
+          <button type="button" data-chat="none" class="ch-choice selected">
+            <span class="ch-choice-ic"><svg class="ui-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>
+            <span class="ch-choice-meta"><span class="ch-choice-name">Everyone</span><span class="ch-choice-desc">All members can chat.</span></span>
+            <span class="ch-choice-check"><svg class="ui-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+          </button>
+          <button type="button" data-chat="members" class="ch-choice">
+            <span class="ch-choice-ic"><svg class="ui-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.4 5.2L20 8l-4 3.9.9 5.6L12 15l-4.9 2.5.9-5.6L4 8l5.6-.8z"/></svg></span>
+            <span class="ch-choice-meta"><span class="ch-choice-name">Members w/ role</span><span class="ch-choice-desc">Only role holders can chat.</span></span>
+            <span class="ch-choice-check"><svg class="ui-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+          </button>
+          <button type="button" data-chat="everyone" class="ch-choice">
+            <span class="ch-choice-ic"><svg class="ui-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="5.6" y1="5.6" x2="18.4" y2="18.4"/></svg></span>
+            <span class="ch-choice-meta"><span class="ch-choice-name">Disabled</span><span class="ch-choice-desc">Read-only for members.</span></span>
+            <span class="ch-choice-check"><svg class="ui-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+          </button>
+        </div>
+        <div class="ch-hint" id="ch-chat-hint">Everyone can send messages in this channel.</div>
       </div>
+
     </div>
     <div class="modal-footer">
       <button class="btn btn-danger" id="channel-delete" style="display:none;margin-right:auto;">Delete Channel</button>
@@ -2744,7 +2848,6 @@ input, textarea { font-family: inherit; }
   <div class="modal msg-action-modal">
     <div class="modal-body">
       <div class="msg-action-head">
-        <div class="mah-ic del"><svg class="ui-ic lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg></div>
         <div><div class="mah-title">Delete this message?</div><div class="mah-sub">This permanently removes the message for everyone in the channel. This action cannot be undone.</div></div>
       </div>
       <div class="del-msg-meta" id="del-msg-meta"></div>
@@ -2757,6 +2860,27 @@ input, textarea { font-family: inherit; }
     <div class="modal-footer">
       <button class="btn btn-ghost" data-close="del-msg-modal">Cancel</button>
       <button class="btn btn-primary" id="del-msg-confirm" style="background:#e35d5d;">Delete message</button>
+    </div>
+  </div>
+</div>
+
+<!-- Delete thread reply dialog -->
+<div class="modal-overlay" id="del-reply-modal">
+  <div class="modal msg-action-modal">
+    <div class="modal-body">
+      <div class="msg-action-head">
+        <div><div class="mah-title">Delete this reply?</div><div class="mah-sub">This permanently removes the reply from the thread for everyone. This action cannot be undone.</div></div>
+      </div>
+      <div class="del-msg-meta" id="del-reply-meta"></div>
+      <div class="msg-action-quote" id="del-reply-quote"></div>
+      <div class="del-msg-note">
+        <svg class="ui-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        <span>Anyone who has already seen this reply may still remember its contents. Deleted replies leave a placeholder in the thread.</span>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" data-close="del-reply-modal">Cancel</button>
+      <button class="btn btn-primary" id="del-reply-confirm" style="background:#e35d5d;">Delete reply</button>
     </div>
   </div>
 </div>
@@ -4811,11 +4935,29 @@ function editThreadReply(m) {
   });
 }
 function deleteThreadReply(m) {
-  if (!confirm('Delete this reply?')) return;
-  socket.emit('server-thread-delete', { serverId: activeServerId, channelId: activeChannelId, parentId: activeThreadParentId, id: m.id }, (resp) => {
-    if (resp && resp.error) toast(resp.error, 'error');
-    else { m.deleted = true; m.text = ''; renderThreadReplies(); updateThreadHead(); }
-  });
+  if (!m || m.deleted) return;
+  const raw = m._plain !== undefined && m._plain !== null ? m._plain : (m.text || '');
+  const preview = raw ? escapeHtml(raw.slice(0, 200)) : ((m.file || (m.files && m.files.length)) ? 'Attachment' : '');
+  $('del-reply-quote').innerHTML = preview || '<em>This reply has no text.</em>';
+  // Detail chips: author, thread, time, and attachment count.
+  const member = (activeServer && activeServer.members || []).find(x => x.username === m.from) || {};
+  const authorName = member.nickname || member.displayName || m.displayName || m.from || 'Unknown';
+  const fileCount = (m.file ? 1 : 0) + (Array.isArray(m.files) ? m.files.length : 0);
+  const chips = [];
+  chips.push('<span class="dmm-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Author: <b>' + escapeHtml(authorName) + '</b></span>');
+  chips.push('<span class="dmm-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Reply in thread</span>');
+  if (m.timestamp) chips.push('<span class="dmm-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Sent: <b>' + escapeHtml(fmtTime(m.timestamp)) + '</b></span>');
+  if (fileCount) chips.push('<span class="dmm-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>Attachments: <b>' + fileCount + '</b></span>');
+  const metaEl = $('del-reply-meta');
+  if (metaEl) metaEl.innerHTML = chips.join('');
+  openModal('del-reply-modal');
+  $('del-reply-confirm').onclick = () => {
+    closeModal('del-reply-modal');
+    socket.emit('server-thread-delete', { serverId: activeServerId, channelId: activeChannelId, parentId: activeThreadParentId, id: m.id }, (resp) => {
+      if (resp && resp.error) toast(resp.error, 'error');
+      else { m.deleted = true; m.text = ''; renderThreadReplies(); updateThreadHead(); }
+    });
+  };
 }
 
 // ---------- Media lightbox (click-to-zoom for images & GIFs) ----------
@@ -5178,6 +5320,20 @@ $('srv-input').addEventListener('keydown', (e) => {
   if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
 });
 $('srv-send-btn').addEventListener('click', sendMessage);
+
+// Press "/" anywhere to jump straight into the chat input \u2014 no need to click first.
+document.addEventListener('keydown', (e) => {
+  if (e.key !== '/' || e.ctrlKey || e.metaKey || e.altKey) return;
+  // Ignore when the user is already typing in a field, or a modal is open.
+  const t = e.target;
+  const tag = t && t.tagName ? t.tagName.toLowerCase() : '';
+  if (tag === 'input' || tag === 'textarea' || tag === 'select' || (t && t.isContentEditable)) return;
+  if (document.querySelector('.modal-overlay.show')) return;
+  const input = $('srv-input');
+  if (!input || !input.offsetParent) return; // chat input not visible
+  e.preventDefault();
+  input.focus();
+});
 
 /* ============================================================
    Reply system
@@ -6475,6 +6631,8 @@ $('set-banner-input').addEventListener('change', async (e) => {
 function openChannelEditor(ch, presetCategoryId) {
   editingChannelId = ch ? ch.id : null;
   $('channel-modal-title').textContent = ch ? 'Edit Channel' : 'Add Channel';
+  const subEl = $('channel-modal-sub');
+  if (subEl) subEl.textContent = ch ? 'Update this channel\u2019s details, privacy, and permissions.' : 'Create a new space for your community to talk.';
   $('channel-name').value = ch ? ch.name : '';
   $('channel-topic').value = ch ? (ch.topic || '') : '';
   chEditorPrivacy = (ch && ch.private) ? 'private' : 'public';
@@ -6538,10 +6696,7 @@ function renderChannelPrivacyUI() {
 }
 function renderChannelChatUI() {
   $('ch-chat-seg').querySelectorAll('button').forEach(b => {
-    const on = b.dataset.chat === chEditorChat;
-    b.classList.toggle('selected', on);
-    b.classList.toggle('warn', on && b.dataset.chat === 'members');
-    b.classList.toggle('danger', on && b.dataset.chat === 'everyone');
+    b.classList.toggle('selected', b.dataset.chat === chEditorChat);
   });
   const hints = {
     none: 'Everyone can send messages in this channel.',
