@@ -11,6 +11,6 @@
 - [x] Verify inline script syntax (node --check) on both files
 - [x] Local smoke test (HTTP 200)
 - [x] Verify data/db.json preserved
-- [ ] Commit + push to master
-- [ ] Verify Render deploy live + markers
-- [ ] Update todo.md and commit
+- [x] Commit + push to master
+- [x] Verify Render deploy live + markers
+- [x] Update todo.md and commit
