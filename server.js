@@ -1309,10 +1309,15 @@ app.use((req, res, next) => {
   // Security headers (safe, non-breaking for this SPA):
   //  - nosniff: prevent MIME-type sniffing on uploaded files / responses.
   //  - Referrer-Policy: only send origin (not full URL) to other sites.
-  //  - Permissions-Policy: deny access to sensitive device APIs.
+  //  - Permissions-Policy: allow the microphone for this origin so voice
+  //    channels and voice messages work. Previously this was set to
+  //    `microphone=()` which DISABLED the mic for the whole page and made
+  //    every getUserMedia() call fail with "Microphone access was blocked".
+  //    `microphone=(self)` permits the site's own origin while still denying
+  //    third-party iframes. Camera/geolocation/payment stay disabled.
   res.header('X-Content-Type-Options', 'nosniff');
   res.header('Referrer-Policy', 'strict-origin-when-cross-origin');
-  res.header('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), payment=()');
+  res.header('Permissions-Policy', 'camera=(), microphone=(self), geolocation=(), payment=()');
   if (req.method === 'OPTIONS') return res.sendStatus(200);
   next();
 });
@@ -6899,6 +6904,20 @@ io.on('connection', (socket) => {
     const peers = voiceRoomPeers(serverId, channelId);
     io.to(voiceRoomKey(serverId, channelId)).emit('voice-peers', { serverId, channelId, peers });
   }
+  // Authoritative occupancy broadcast to EVERY member of the server (not just
+  // people inside the voice room). This is what keeps the sidebar's red count
+  // badge accurate for users who are not in the call, and — crucially — clears
+  // it the instant the last person leaves. Previously the badge was only
+  // updated for people inside the room, so non-participants kept a stale red
+  // "1" forever after everyone had left.
+  function voiceBroadcastOccupancy(serverId, channelId) {
+    const s = findServer(serverId);
+    if (!s) return;
+    const count = voiceRoomPeers(serverId, channelId).length;
+    for (const m of (s.members || [])) {
+      io.to('user:' + m).emit('voice-occupancy', { serverId, channelId, count });
+    }
+  }
   function voiceRemoveUser(serverId, channelId) {
     const key = voiceRoomKey(serverId, channelId);
     const room = voiceRooms.get(key);
@@ -6908,6 +6927,9 @@ io.on('connection', (socket) => {
       socket.leave(key);
       io.to(key).emit('voice-peer-left', { serverId, channelId, username });
       if (room.size === 0) voiceRooms.delete(key); else voiceBroadcastPeers(serverId, channelId);
+      // Always refresh the authoritative count for everyone in the server so
+      // the badge drops to 0 (and disappears) when the room empties.
+      voiceBroadcastOccupancy(serverId, channelId);
     }
   }
   socket.on('voice-join', ({ serverId, channelId }, ack) => {
@@ -6928,6 +6950,7 @@ io.on('connection', (socket) => {
       if (typeof ack === 'function') ack({ success: true, peers: existing });
       socket.to(key).emit('voice-peer-joined', { serverId, channelId, peer: { username, muted: false, deafened: false, speaking: false, joinedAt: Date.now() } });
       voiceBroadcastPeers(serverId, channelId);
+      voiceBroadcastOccupancy(serverId, channelId);
     } catch (e) { if (typeof ack === 'function') ack({ error: 'Could not join voice channel' }); }
   });
   socket.on('voice-leave', ({ serverId, channelId }) => {
@@ -7010,6 +7033,9 @@ io.on('connection', (socket) => {
         io.to(key).emit('voice-peer-left', { serverId, channelId, username });
         if (room.size === 0) voiceRooms.delete(key);
         else io.to(key).emit('voice-peers', { serverId, channelId, peers: Array.from(room.values()).map(p => ({ username: p.username, muted: !!p.muted, deafened: !!p.deafened, speaking: !!p.speaking, joinedAt: p.joinedAt })) });
+        // Refresh the authoritative occupancy for the whole server so the
+        // sidebar badge clears for everyone when the room empties.
+        voiceBroadcastOccupancy(serverId, channelId);
       }
     }
   });

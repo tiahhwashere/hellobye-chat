@@ -902,6 +902,32 @@ input, textarea { font-family: inherit; }
   .vs-title { font-size: 14px; }
 }
 
+/* ---------- Microphone permission modal (in-app, replaces the browser prompt) ---------- */
+.mic-perm-overlay { position: fixed; inset: 0; z-index: 5000; display: none; align-items: center; justify-content: center; padding: 20px; background: rgba(0,0,0,0.62); backdrop-filter: blur(4px); }
+.mic-perm-overlay.show { display: flex; animation: micPermFade 0.18s ease; }
+@keyframes micPermFade { from { opacity: 0; } to { opacity: 1; } }
+.mic-perm-card { width: 100%; max-width: 430px; background: linear-gradient(180deg, var(--bg-dark), var(--bg-darker)); border: 1px solid var(--border-light); border-radius: 18px; padding: 26px 24px 22px; box-shadow: 0 26px 70px rgba(0,0,0,0.6); animation: micPermPop 0.22s cubic-bezier(0.2,0.9,0.3,1.2); text-align: center; }
+@keyframes micPermPop { from { opacity: 0; transform: translateY(14px) scale(0.96); } to { opacity: 1; transform: none; } }
+.mic-perm-ic { width: 66px; height: 66px; margin: 0 auto 16px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: radial-gradient(circle at 50% 35%, rgba(var(--accent-rgb),0.35), rgba(var(--accent-rgb),0.10)); color: var(--accent); position: relative; }
+.mic-perm-ic::after { content: ''; position: absolute; inset: -6px; border-radius: 50%; border: 2px solid rgba(var(--accent-rgb),0.35); animation: micPermPulse 2s ease-out infinite; }
+@keyframes micPermPulse { 0% { transform: scale(0.92); opacity: 0.9; } 70% { transform: scale(1.18); opacity: 0; } 100% { opacity: 0; } }
+.mic-perm-ic svg { width: 30px; height: 30px; }
+.mic-perm-title { font-size: 19px; font-weight: 800; color: var(--text-primary); letter-spacing: -0.01em; margin-bottom: 8px; }
+.mic-perm-desc { font-size: 13.5px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 20px; }
+.mic-perm-desc b { color: var(--text-primary); }
+.mic-perm-actions { display: flex; flex-direction: column; gap: 10px; }
+.mic-perm-allow { width: 100%; padding: 13px 18px; border-radius: 12px; background: var(--accent); color: #fff; font-size: 14.5px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; gap: 9px; transition: var(--transition); }
+.mic-perm-allow:hover { filter: brightness(1.08); transform: translateY(-1px); }
+.mic-perm-allow:disabled { opacity: 0.65; cursor: default; transform: none; }
+.mic-perm-allow svg { width: 18px; height: 18px; }
+.mic-perm-cancel { width: 100%; padding: 11px 18px; border-radius: 12px; background: transparent; border: 1px solid var(--border); color: var(--text-secondary); font-size: 13.5px; font-weight: 600; transition: var(--transition); }
+.mic-perm-cancel:hover { border-color: var(--border-light); color: var(--text-primary); }
+.mic-perm-never { display: flex; align-items: center; justify-content: center; gap: 9px; margin-top: 16px; font-size: 12.5px; color: var(--text-muted); cursor: pointer; user-select: none; }
+.mic-perm-never input { width: 16px; height: 16px; accent-color: var(--accent); cursor: pointer; }
+.mic-perm-err { margin-top: 14px; font-size: 12.5px; color: #e05252; line-height: 1.5; display: none; }
+.mic-perm-err.show { display: block; }
+.mic-perm-hint { margin-top: 14px; font-size: 11.5px; color: var(--text-muted); line-height: 1.5; }
+
 /* ---------- Member sidebar ---------- */
 .member-sidebar { width: 240px; background: var(--bg-dark); border-left: 1px solid var(--border); flex-shrink: 0; overflow-y: auto; padding: 12px 8px; transition: width 0.28s cubic-bezier(0.4,0,0.2,1), padding 0.28s cubic-bezier(0.4,0,0.2,1), opacity 0.22s ease, border-color 0.28s ease; }
 .member-sidebar.collapsed { width: 0; padding-left: 0; padding-right: 0; opacity: 0; border-left-color: transparent; overflow: hidden; pointer-events: none; }
@@ -3243,6 +3269,28 @@ input, textarea { font-family: inherit; }
   </div>
 </div>
 
+<!-- In-app microphone permission prompt (replaces the browser's native
+     "allow ... to use your microphone" dialog with a branded UI). -->
+<div class="mic-perm-overlay" id="mic-perm-overlay" role="dialog" aria-modal="true" aria-labelledby="mic-perm-title">
+  <div class="mic-perm-card">
+    <div class="mic-perm-ic">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+    </div>
+    <div class="mic-perm-title" id="mic-perm-title">Enable your microphone</div>
+    <div class="mic-perm-desc" id="mic-perm-desc">To join <b id="mic-perm-channel">voice</b> and talk with everyone, this site needs access to your microphone. Your audio is only shared with people in the same voice channel.</div>
+    <div class="mic-perm-actions">
+      <button class="mic-perm-allow" id="mic-perm-allow">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+        <span id="mic-perm-allow-label">Allow microphone &amp; join</span>
+      </button>
+      <button class="mic-perm-cancel" id="mic-perm-cancel">Not now</button>
+    </div>
+    <label class="mic-perm-never"><input type="checkbox" id="mic-perm-never"> Never ask again on this device</label>
+    <div class="mic-perm-err" id="mic-perm-err"></div>
+    <div class="mic-perm-hint" id="mic-perm-hint">If your browser shows its own permission prompt, choose <b>Allow</b> so you can be heard.</div>
+  </div>
+</div>
+
 <!-- Role editor -->
 <div class="modal-overlay" id="role-modal">
   <div class="modal role-modal-wide">
@@ -4369,6 +4417,14 @@ function connectSocket() {
   });
 
   // ---- Voice channel real-time events ----
+  // Authoritative occupancy from the server (sent to every server member).
+  // This is the single source of truth for the sidebar's red count badge, so
+  // it always clears the moment the last person leaves the call.
+  socket.on('voice-occupancy', (data) => {
+    if (!data || !data.channelId) return;
+    voiceOccupancyMap[data.channelId] = Math.max(0, Number(data.count) || 0);
+    if (activeServerId === data.serverId) renderChannels();
+  });
   socket.on('voice-peers', (data) => {
     if (!data || !data.serverId || !data.channelId) return;
     voiceOccupancyMap[data.channelId] = (data.peers || []).length;
@@ -4395,16 +4451,18 @@ function connectSocket() {
   });
   socket.on('voice-peer-joined', (data) => {
     if (!data || !data.peer) return;
-    if (data.channelId) { voiceOccupancyMap[data.channelId] = (voiceOccupancyMap[data.channelId] || 0) + 1; if (activeServerId === data.serverId) renderChannels(); }
+    // Occupancy is driven by the authoritative 'voice-occupancy' event.
     if (!voiceCall.active || voiceCall.channelId !== data.channelId) return;
     if (data.peer.username === currentUser.username) return;
     // The newcomer initiates the offer to us; we just register the peer.
     voiceCreatePeer(data.peer.username, false);
     voiceRenderStage();
+    // Subtle chime so you hear when someone joins the call.
+    voicePlayChime('join');
   });
   socket.on('voice-peer-left', (data) => {
     if (!data) return;
-    if (data.channelId) { voiceOccupancyMap[data.channelId] = Math.max(0, (voiceOccupancyMap[data.channelId] || 1) - 1); if (activeServerId === data.serverId) renderChannels(); }
+    // Occupancy is driven by the authoritative 'voice-occupancy' event.
     if (!voiceCall.active || voiceCall.channelId !== data.channelId) return;
     const rec = voiceCall.peers.get(data.username);
     if (rec) {
@@ -4412,6 +4470,8 @@ function connectSocket() {
       if (rec.audioEl) { try { rec.audioEl.pause(); rec.audioEl.srcObject = null; } catch (e) {} } if (rec.remoteAnalyser) { try { rec.remoteAnalyser.disconnect(); } catch (e) {} rec.remoteAnalyser = null; }
       voiceCall.peers.delete(data.username);
       voiceRenderStage();
+      // Subtle chime so you hear when someone leaves the call.
+      voicePlayChime('leave');
     }
   });
   socket.on('voice-peer-state', (data) => {
@@ -4690,6 +4750,9 @@ async function loadServer(id, silent) {
     sv.style.display = 'flex';
     sv.classList.remove('view-in'); void sv.offsetWidth; sv.classList.add('view-in');
     renderServerView();
+    // Pull the current voice occupancy for every voice channel so the sidebar
+    // badges are correct immediately on load (and never show a stale count).
+    voiceRefreshOccupancy();
     // Warm the member-profile cache so the first click on any member opens
     // their real profile instantly (no default-profile flash).
     prefetchMemberProfiles();
@@ -6454,8 +6517,22 @@ function srvVoiceFmt(ms) {
   return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
 }
 // Pre-warm the microphone so the first tap starts recording instantly.
+// Only pre-warms when access is already granted (or the user opted out of the
+// prompt) so we never trigger the browser's native permission dialog on a
+// stray pointerdown — the in-app prompt handles that instead.
 function srvVoicePrewarm() {
   if (!srvVoiceSupported() || srvVoiceWarmStream || srvVoiceStream || srvVoiceWarmPromise) return;
+  if (!micNeverAsk()) {
+    micPermissionState().then((state) => {
+      if (state !== 'granted') return;
+      try {
+        srvVoiceWarmPromise = navigator.mediaDevices.getUserMedia({ audio: true })
+          .then((stream) => { srvVoiceWarmStream = stream; srvVoiceWarmPromise = null; return stream; })
+          .catch(() => { srvVoiceWarmPromise = null; return null; });
+      } catch (e) { srvVoiceWarmPromise = null; }
+    });
+    return;
+  }
   try {
     srvVoiceWarmPromise = navigator.mediaDevices.getUserMedia({ audio: true })
       .then((stream) => { srvVoiceWarmStream = stream; srvVoiceWarmPromise = null; return stream; })
@@ -6554,16 +6631,13 @@ async function srvVoiceStart() {
   let stream = srvVoiceStream || srvVoiceWarmStream;
   if (!stream) {
     try {
-      stream = srvVoiceWarmPromise ? await srvVoiceWarmPromise : await navigator.mediaDevices.getUserMedia({ audio: true });
+      stream = await acquireMic(null, 'voice messages', 'Allow microphone & record');
     } catch (e) {
       toast('Microphone access was blocked. Allow it in your browser to record.', 'error');
       return;
     }
   }
-  if (!stream) {
-    try { stream = await navigator.mediaDevices.getUserMedia({ audio: true }); }
-    catch (e) { toast('Microphone access was blocked. Allow it in your browser to record.', 'error'); return; }
-  }
+  if (!stream) return; // user cancelled the in-app prompt
   srvVoiceWarmStream = null; srvVoiceWarmPromise = null;
   srvVoiceStream = stream;
   srvVoiceChunks = [];
@@ -6817,10 +6891,153 @@ const voiceCall = {
 // channelId -> live occupancy count (drives the sidebar badge).
 const voiceOccupancyMap = {};
 function voiceOccupancy(channelId) { return voiceOccupancyMap[channelId] || 0; }
+// Ask the server for the current occupancy of every voice channel in the
+// active server, so badges are accurate on load and stale counts are cleared.
+function voiceRefreshOccupancy() {
+  if (!activeServer || !socket || !socket.connected) return;
+  const chans = (activeServer.channels || []).filter(c => c.type === 'voice');
+  chans.forEach(c => {
+    try {
+      socket.emit('voice-peers-get', { serverId: activeServerId, channelId: c.id }, (resp) => {
+        const count = (resp && resp.peers) ? resp.peers.length : 0;
+        voiceOccupancyMap[c.id] = count;
+        if (activeServerId === activeServer.id) renderChannels();
+      });
+    } catch (e) {}
+  });
+}
 function voiceSupported() {
   return !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia && window.RTCPeerConnection);
 }
 function voiceFmtCount(n) { return n + (n === 1 ? ' person' : ' people'); }
+
+/* ============================================================
+   Microphone permission manager
+   ------------------------------------------------------------
+   Instead of letting the browser throw its native
+   "allow https://hellobye-chat.onrender.com to use your microphone"
+   dialog at the user, we show a branded in-app prompt first. The
+   user can tick "Never ask again on this device" (persisted in
+   localStorage) so future joins skip the prompt entirely and go
+   straight into the call.
+   ============================================================ */
+const MIC_PERM_KEY = 'hb_mic_never_ask';
+function micNeverAsk() { try { return localStorage.getItem(MIC_PERM_KEY) === '1'; } catch (e) { return false; } }
+function setMicNeverAsk(v) { try { if (v) localStorage.setItem(MIC_PERM_KEY, '1'); else localStorage.removeItem(MIC_PERM_KEY); } catch (e) {} }
+// Query the current permission state without triggering a prompt (where supported).
+async function micPermissionState() {
+  try {
+    if (navigator.permissions && navigator.permissions.query) {
+      const st = await navigator.permissions.query({ name: 'microphone' });
+      return st.state; // 'granted' | 'denied' | 'prompt'
+    }
+  } catch (e) {}
+  return 'unknown';
+}
+// Show the in-app prompt and resolve true (allowed) / false (cancelled).
+function showMicPermissionPrompt(channelName, allowLabelText) {
+  return new Promise((resolve) => {
+    const overlay = $('mic-perm-overlay');
+    if (!overlay) { resolve(true); return; }
+    const chEl = $('mic-perm-channel');
+    if (chEl) chEl.textContent = channelName ? ('“' + channelName + '”') : 'this voice channel';
+    const errEl = $('mic-perm-err'); if (errEl) { errEl.textContent = ''; errEl.classList.remove('show'); }
+    const neverEl = $('mic-perm-never'); if (neverEl) neverEl.checked = micNeverAsk();
+    const allowBtn = $('mic-perm-allow');
+    const allowLabel = $('mic-perm-allow-label');
+    if (allowLabel) allowLabel.textContent = allowLabelText || 'Allow microphone & join';
+    if (allowBtn) allowBtn.disabled = false;
+    overlay.classList.add('show');
+    let settled = false;
+    const cleanup = () => {
+      overlay.classList.remove('show');
+      allowBtn && allowBtn.removeEventListener('click', onAllow);
+      cancelBtn && cancelBtn.removeEventListener('click', onCancel);
+      overlay.removeEventListener('click', onBackdrop);
+      document.removeEventListener('keydown', onKey);
+    };
+    const finish = (val) => { if (settled) return; settled = true; cleanup(); resolve(val); };
+    const onAllow = () => {
+      if (neverEl) setMicNeverAsk(neverEl.checked);
+      if (allowLabel) allowLabel.textContent = 'Requesting access…';
+      if (allowBtn) allowBtn.disabled = true;
+      // Resolve true; the caller performs the actual getUserMedia() so the
+      // browser's own prompt (if any) appears right after this gesture.
+      finish(true);
+    };
+    const onCancel = () => finish(false);
+    const onBackdrop = (e) => { if (e.target === overlay) finish(false); };
+    const onKey = (e) => { if (e.key === 'Escape') finish(false); };
+    const cancelBtn = $('mic-perm-cancel');
+    allowBtn && allowBtn.addEventListener('click', onAllow);
+    cancelBtn && cancelBtn.addEventListener('click', onCancel);
+    overlay.addEventListener('click', onBackdrop);
+    document.addEventListener('keydown', onKey);
+  });
+}
+// Surface a friendly error inside the prompt (used when the browser denies).
+function micPromptError(msg) {
+  const overlay = $('mic-perm-overlay');
+  const errEl = $('mic-perm-err');
+  const allowBtn = $('mic-perm-allow');
+  const allowLabel = $('mic-perm-allow-label');
+  if (allowLabel) allowLabel.textContent = 'Allow microphone & join';
+  if (allowBtn) allowBtn.disabled = false;
+  if (errEl) { errEl.textContent = msg; errEl.classList.add('show'); }
+  if (overlay) overlay.classList.add('show');
+}
+// Acquire the microphone, showing the in-app prompt first unless the user
+// chose "never ask again" or the permission is already granted.
+async function acquireMic(constraints, channelName, allowLabelText) {
+  const opts = Object.assign({}, voiceCall.audioPrefs, constraints || {});
+  // Fast path: already granted, or user opted out of the prompt.
+  const state = await micPermissionState();
+  if (state === 'granted' || micNeverAsk()) {
+    try { return await navigator.mediaDevices.getUserMedia({ audio: opts }); }
+    catch (e) {
+      // If we skipped the prompt but the browser still blocks us, fall back
+      // to the in-app prompt so the user understands what to do.
+      if (state === 'granted') throw e;
+    }
+  }
+  const allowed = await showMicPermissionPrompt(channelName, allowLabelText);
+  if (!allowed) return null;
+  try {
+    return await navigator.mediaDevices.getUserMedia({ audio: opts });
+  } catch (e) {
+    const denied = e && (e.name === 'NotAllowedError' || e.name === 'SecurityError');
+    micPromptError(denied
+      ? 'Your browser blocked microphone access. Click the microphone/lock icon in the address bar, set it to “Allow”, then press the button above again.'
+      : 'We could not access a microphone. Make sure one is connected and not in use by another app, then try again.');
+    return null;
+  }
+}
+
+/* ============================================================
+   Voice join / leave sound effects
+   ------------------------------------------------------------
+   Short, subtle WebAudio chimes (no external assets) played when
+   someone joins or leaves the voice channel you're in.
+   ============================================================ */
+function voicePlayChime(kind) {
+  try {
+    const ctx = voiceGainCtx() || new (window.AudioContext || window.webkitAudioContext)();
+    if (ctx.state === 'suspended') { try { ctx.resume(); } catch (e) {} }
+    const now = ctx.currentTime;
+    // Join = rising two-note; Leave = falling two-note.
+    const notes = kind === 'leave' ? [587.33, 392.00] : [523.25, 783.99];
+    notes.forEach((f, i) => {
+      const o = ctx.createOscillator(), g = ctx.createGain();
+      o.type = 'sine'; o.frequency.value = f;
+      const t = now + i * 0.11;
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(0.14, t + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.22);
+      o.connect(g); g.connect(ctx.destination);
+      o.start(t); o.stop(t + 0.24);
+    });
+  } catch (e) {}
+}
 // Effective playback volume for a peer = master output * per-user multiplier.
 function voicePeerVolume(username) {
   if (voiceCall.deafened || voiceCall.userDeaf.has(username)) return 0;
@@ -6857,12 +7074,15 @@ async function joinVoiceChannel(channelId) {
   const ch = (activeServer.channels || []).find(c => c.id === channelId);
   if (!ch) return;
   if (voiceCall.active) await leaveVoiceChannel(true);
+  // Acquire the mic through the in-app permission prompt (unless the user
+  // chose "never ask again" or the browser already granted access).
   let stream;
   try {
-    stream = await navigator.mediaDevices.getUserMedia({ audio: Object.assign({}, voiceCall.audioPrefs) });
+    stream = await acquireMic(null, ch.name);
   } catch (e) {
     toast('Microphone access was blocked. Allow it to join voice.', 'error'); return;
   }
+  if (!stream) return; // user cancelled the in-app prompt
   voiceCall.active = true;
   voiceCall.serverId = activeServerId;
   voiceCall.channelId = channelId;
@@ -6878,6 +7098,8 @@ async function joinVoiceChannel(channelId) {
   voiceUpdateMiniBar();
   voiceStartVAD();
   voiceStartHealthCheck();
+  // Play the join chime for the user who just joined.
+  voicePlayChime('join');
   // Tell the server we joined; it returns who is already here.
   socket.emit('voice-join', { serverId: activeServerId, channelId }, (resp) => {
     if (resp && resp.error) { toast(resp.error, 'error'); leaveVoiceChannel(); return; }
@@ -6905,7 +7127,8 @@ async function leaveVoiceChannel(silent) {
   voiceShowStage(false);
   voiceRenderStage();
   voiceUpdateMiniBar();
-  if (!silent) toast('Left the voice channel', 'success');
+  // Play the leave chime for the user who is leaving (no toast UI).
+  if (!silent) voicePlayChime('leave');
 }
 function voiceShowStage(show) {
   const stage = $('voice-stage');
@@ -7374,7 +7597,13 @@ async function voiceStartMicTest() {
   voiceStopMicTest();
   const status = $('vs-mic-test-status');
   try {
-    _vsMicTestStream = await navigator.mediaDevices.getUserMedia({ audio: Object.assign({}, voiceCall.audioPrefs) });
+    // Route through the shared permission flow so the in-app prompt appears
+    // (and "never ask again" is honoured) instead of a silent failure.
+    _vsMicTestStream = await acquireMic(null, 'the microphone test', 'Allow microphone & test');
+    if (!_vsMicTestStream) {
+      if (status) { status.textContent = 'Microphone access was not granted.'; status.classList.remove('live'); }
+      return;
+    }
     _vsMicTestCtx = new (window.AudioContext || window.webkitAudioContext)();
     const src = _vsMicTestCtx.createMediaStreamSource(_vsMicTestStream);
     const an = _vsMicTestCtx.createAnalyser(); an.fftSize = 512; src.connect(an);
