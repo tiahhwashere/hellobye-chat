@@ -5,5 +5,5 @@
 - [x] Add a proper "Delete this reply?" UI (replace the plain confirm dialog)
 - [x] Remove the SVG icon from the "Delete this message?" UI
 - [x] Revamp the "Add Channel" UI
-- [ ] Verify syntax, local smoke test, no data loss
-- [ ] Commit + push + verify Render deploy live
+- [x] Verify syntax, local smoke test, no data loss
+- [x] Commit + push + verify Render deploy live
