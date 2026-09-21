@@ -151,56 +151,71 @@ input, textarea { font-family: inherit; }
 /* Server-wide visual effects (chosen in Server Settings, seen by everyone).
    The overlay effects are painted ABOVE the opaque sidebar/chat panels
    (z-index:3, pointer-events:none) so the theme is actually visible instead
-   of being hidden behind them. */
-.server-view.fx-glow .server-header { box-shadow: inset 0 0 0 2px var(--accent), 0 0 26px rgba(var(--accent-rgb),0.45); }
-.server-view.fx-glow .channel-sidebar { box-shadow: inset -1px 0 0 rgba(var(--accent-rgb),0.35); }
-.server-view.fx-glow .server-input-wrap { box-shadow: 0 0 0 1px rgba(var(--accent-rgb),0.4), 0 0 22px rgba(var(--accent-rgb),0.22); }
+   of being hidden behind them. All effects are accent-driven and tuned to the
+   site's dark palette so they feel native rather than bolted-on. */
+.server-view.fx-glow .server-header { box-shadow: inset 0 0 0 1px rgba(var(--accent-rgb),0.55), 0 0 30px rgba(var(--accent-rgb),0.30); }
+.server-view.fx-glow .channel-sidebar { box-shadow: inset -1px 0 0 rgba(var(--accent-rgb),0.30); }
+.server-view.fx-glow .server-input-wrap { box-shadow: 0 0 0 1px rgba(var(--accent-rgb),0.35), 0 0 24px rgba(var(--accent-rgb),0.18); }
 .server-view.fx-gradient::before {
   content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 3;
-  background: linear-gradient(135deg, rgba(var(--accent-rgb),0.20), transparent 45%, rgba(var(--accent-rgb),0.14));
+  background: linear-gradient(135deg, rgba(var(--accent-rgb),0.16), transparent 48%, rgba(var(--accent-rgb),0.10));
 }
 .server-view.fx-aurora::before {
-  content: ''; position: absolute; inset: -30%; pointer-events: none; z-index: 3; opacity: 0.42;
+  content: ''; position: absolute; inset: -30%; pointer-events: none; z-index: 3; opacity: 0.34;
   background:
     radial-gradient(38% 42% at 18% 22%, rgba(var(--accent-rgb),0.55), transparent 70%),
     radial-gradient(34% 40% at 82% 30%, rgba(var(--accent-rgb),0.40), transparent 72%),
     radial-gradient(40% 46% at 50% 88%, rgba(var(--accent-rgb),0.45), transparent 74%);
-  filter: blur(46px); animation: auroraDrift 16s ease-in-out infinite alternate;
+  filter: blur(52px); animation: auroraDrift 18s ease-in-out infinite alternate;
 }
 @keyframes auroraDrift {
   0% { transform: translate3d(-3%, -2%, 0) scale(1.02); }
   100% { transform: translate3d(3%, 2%, 0) scale(1.08); }
 }
 /* Neon: crisp accent outline + glow */
-.server-view.fx-neon .server-header { box-shadow: inset 0 0 0 2px var(--accent), 0 0 18px rgba(var(--accent-rgb),0.6); }
+.server-view.fx-neon .server-header { box-shadow: inset 0 0 0 1px var(--accent), 0 0 20px rgba(var(--accent-rgb),0.5); }
 .server-view.fx-neon .channel-sidebar { box-shadow: inset -2px 0 0 var(--accent); }
-.server-view.fx-neon .server-input-wrap { box-shadow: 0 0 0 2px var(--accent), 0 0 20px rgba(var(--accent-rgb),0.5); }
-.server-view.fx-neon .sch-name { text-shadow: 0 0 10px rgba(var(--accent-rgb),0.85); }
+.server-view.fx-neon .server-input-wrap { box-shadow: 0 0 0 1px var(--accent), 0 0 22px rgba(var(--accent-rgb),0.42); }
+.server-view.fx-neon .sch-name { text-shadow: 0 0 10px rgba(var(--accent-rgb),0.75); }
 /* Pulse: breathing accent glow */
-.server-view.fx-pulse .server-header { animation: fxPulse 2.6s ease-in-out infinite; }
-.server-view.fx-pulse .server-input-wrap { animation: fxPulse 2.6s ease-in-out infinite; }
+.server-view.fx-pulse .server-header { animation: fxPulse 3s ease-in-out infinite; }
+.server-view.fx-pulse .server-input-wrap { animation: fxPulse 3s ease-in-out infinite; }
 @keyframes fxPulse {
-  0%, 100% { box-shadow: 0 0 0 1px rgba(var(--accent-rgb),0.35), 0 0 10px rgba(var(--accent-rgb),0.25); }
-  50% { box-shadow: 0 0 0 2px rgba(var(--accent-rgb),0.7), 0 0 26px rgba(var(--accent-rgb),0.55); }
+  0%, 100% { box-shadow: 0 0 0 1px rgba(var(--accent-rgb),0.28), 0 0 10px rgba(var(--accent-rgb),0.18); }
+  50% { box-shadow: 0 0 0 1px rgba(var(--accent-rgb),0.6), 0 0 26px rgba(var(--accent-rgb),0.42); }
 }
 /* Grid: subtle accent grid overlay */
 .server-view.fx-grid::before {
-  content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 3; opacity: 0.5;
+  content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 3; opacity: 0.4;
   background-image:
-    linear-gradient(rgba(var(--accent-rgb),0.10) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(var(--accent-rgb),0.10) 1px, transparent 1px);
-  background-size: 34px 34px;
+    linear-gradient(rgba(var(--accent-rgb),0.09) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(var(--accent-rgb),0.09) 1px, transparent 1px);
+  background-size: 36px 36px;
+  -webkit-mask-image: radial-gradient(120% 100% at 50% 0%, #000 40%, transparent 100%);
+  mask-image: radial-gradient(120% 100% at 50% 0%, #000 40%, transparent 100%);
 }
 /* Spotlight: radial light from the top */
 .server-view.fx-spotlight::before {
   content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 3;
-  background: radial-gradient(60% 55% at 50% -12%, rgba(var(--accent-rgb),0.42), transparent 70%);
+  background: radial-gradient(62% 58% at 50% -14%, rgba(var(--accent-rgb),0.34), transparent 72%);
 }
 /* Scanlines: retro accent scanline overlay */
 .server-view.fx-scanlines::before {
-  content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 3; opacity: 0.35;
-  background: repeating-linear-gradient(0deg, rgba(var(--accent-rgb),0.16) 0px, rgba(var(--accent-rgb),0.16) 1px, transparent 1px, transparent 4px);
+  content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 3; opacity: 0.28;
+  background: repeating-linear-gradient(0deg, rgba(var(--accent-rgb),0.14) 0px, rgba(var(--accent-rgb),0.14) 1px, transparent 1px, transparent 4px);
 }
+/* Halo: soft accent vignette hugging the edges */
+.server-view.fx-halo::before {
+  content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 3;
+  box-shadow: inset 0 0 120px rgba(var(--accent-rgb),0.28), inset 0 0 40px rgba(var(--accent-rgb),0.16);
+}
+/* Waves: slow diagonal accent sheen */
+.server-view.fx-waves::before {
+  content: ''; position: absolute; inset: -20%; pointer-events: none; z-index: 3; opacity: 0.22;
+  background: repeating-linear-gradient(115deg, rgba(var(--accent-rgb),0.5) 0px, rgba(var(--accent-rgb),0.5) 2px, transparent 2px, transparent 26px);
+  animation: fxWaves 22s linear infinite;
+}
+@keyframes fxWaves { from { transform: translate3d(0,0,0); } to { transform: translate3d(-52px,26px,0); } }
 @keyframes viewIn {
   from { opacity: 0; transform: translateX(8px); }
   to { opacity: 1; transform: translateX(0); }
@@ -231,6 +246,8 @@ input, textarea { font-family: inherit; }
 }
 .server-appearance-preview.fx-spotlight::before { background: radial-gradient(60% 55% at 50% -12%, rgba(var(--accent-rgb),0.5), transparent 70%); }
 .server-appearance-preview.fx-scanlines::before { opacity: 0.4; background: repeating-linear-gradient(0deg, rgba(var(--accent-rgb),0.18) 0px, rgba(var(--accent-rgb),0.18) 1px, transparent 1px, transparent 4px); }
+.server-appearance-preview.fx-halo { box-shadow: inset 0 0 40px rgba(var(--accent-rgb),0.4), inset 0 0 14px rgba(var(--accent-rgb),0.25); }
+.server-appearance-preview.fx-waves::before { opacity: 0.3; background: repeating-linear-gradient(115deg, rgba(var(--accent-rgb),0.5) 0px, rgba(var(--accent-rgb),0.5) 2px, transparent 2px, transparent 16px); animation: fxWaves 14s linear infinite; }
 .server-appearance-preview.fx-glow { box-shadow: 0 0 0 1px rgba(var(--accent-rgb),0.5), 0 0 22px rgba(var(--accent-rgb),0.35); }
 .server-appearance-preview.fx-neon { box-shadow: 0 0 0 2px var(--accent), 0 0 20px rgba(var(--accent-rgb),0.55); }
 .server-appearance-preview.fx-pulse { animation: fxPulse 2.6s ease-in-out infinite; }
@@ -408,10 +425,27 @@ input, textarea { font-family: inherit; }
 .msg-file-card .mfc-preview { display: block; max-width: 100%; }
 .msg-file-card .mfc-preview img, .msg-file-card .mfc-preview video { display: block; width: 100%; max-height: 360px; object-fit: contain; background: var(--bg-darkest); }
 .msg-file-card .mfc-preview audio { display: block; width: 100%; padding: 10px; }
+/* Clean GIF card: just the GIF with a subtle download overlay + corner tag. */
+.msg-file-card.msg-file-card-gif { position: relative; border: none; background: transparent; overflow: visible; max-width: 360px; }
+.msg-file-card.msg-file-card-gif .mfc-preview img { border-radius: 12px; border: 1px solid var(--border-light); box-shadow: 0 2px 10px rgba(0,0,0,0.22); max-height: 360px; object-fit: contain; }
+.msg-file-card.msg-file-card-gif .mfc-gif-dl {
+  position: absolute; top: 8px; right: 8px; width: 32px; height: 32px; border-radius: 9px;
+  display: inline-flex; align-items: center; justify-content: center; color: #fff;
+  background: rgba(0,0,0,0.5); backdrop-filter: blur(6px); border: 1px solid rgba(255,255,255,0.14);
+  opacity: 0; transition: opacity 0.15s ease, background 0.15s ease;
+}
+.msg-file-card.msg-file-card-gif:hover .mfc-gif-dl { opacity: 1; }
+.msg-file-card.msg-file-card-gif .mfc-gif-dl:hover { background: rgba(0,0,0,0.72); }
+.msg-file-card.msg-file-card-gif .mfc-gif-dl svg { width: 16px; height: 16px; }
+.msg-file-card.msg-file-card-gif .mfc-gif-tag {
+  position: absolute; left: 8px; bottom: 8px; font-size: 9.5px; font-weight: 800; letter-spacing: 0.7px;
+  text-transform: uppercase; color: #fff; background: rgba(0,0,0,0.55); backdrop-filter: blur(6px);
+  border: 1px solid rgba(255,255,255,0.14); border-radius: 6px; padding: 2px 7px; pointer-events: none;
+}
 /* ---- Advanced in-chat voice player (redesigned) ---- */
 .voice-player {
   display: flex; align-items: center; gap: 12px;
-  padding: 10px 14px 10px 10px; min-width: 280px; max-width: 440px;
+  padding: 12px 14px 12px 12px; min-width: 300px; max-width: 460px;
   background: linear-gradient(180deg, var(--bg-light), var(--bg-medium));
   border: 1px solid var(--border-light); border-radius: 16px;
   box-shadow: 0 2px 10px rgba(0,0,0,0.18);
@@ -419,7 +453,7 @@ input, textarea { font-family: inherit; }
 }
 .voice-player:hover { border-color: rgba(var(--accent-rgb),0.45); box-shadow: 0 5px 18px rgba(0,0,0,0.28); }
 .voice-player .vp-play {
-  flex: 0 0 auto; width: 44px; height: 44px; border-radius: 50%; position: relative;
+  flex: 0 0 auto; width: 46px; height: 46px; border-radius: 50%; position: relative;
   display: inline-flex; align-items: center; justify-content: center;
   background: linear-gradient(180deg, var(--accent-light), var(--accent)); color: #fff; border: none;
   box-shadow: 0 4px 14px rgba(var(--accent-rgb),0.4); transition: transform 0.15s ease, filter 0.15s ease;
@@ -433,8 +467,8 @@ input, textarea { font-family: inherit; }
   border: 2px solid rgba(255,255,255,0.35); border-top-color: #fff; animation: vpSpin 0.7s linear infinite;
 }
 @keyframes vpSpin { to { transform: rotate(360deg); } }
-.voice-player .vp-body { position: relative; flex: 1; min-width: 100px; height: 44px; cursor: pointer; border-radius: 10px; }
-.voice-player .vp-wave { display: block; width: 100%; height: 100%; }
+.voice-player .vp-body { position: relative; flex: 1; min-width: 120px; height: 46px; cursor: pointer; border-radius: 10px; display: flex; flex-direction: column; justify-content: center; gap: 3px; }
+.voice-player .vp-wave { display: block; width: 100%; height: 30px; }
 .voice-player .vp-progress {
   position: absolute; left: 0; top: 0; bottom: 0; width: 0%;
   background: linear-gradient(90deg, rgba(var(--accent-rgb),0.22), rgba(var(--accent-rgb),0.05));
@@ -446,6 +480,11 @@ input, textarea { font-family: inherit; }
   box-shadow: 0 0 8px rgba(var(--accent-rgb),0.85);
 }
 .voice-player.playing .vp-cursor { opacity: 1; }
+/* Meta row under the waveform: elapsed / total + a small "voice message" tag */
+.voice-player .vp-meta { display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.voice-player .vp-meta .vp-tag { display: inline-flex; align-items: center; gap: 4px; font-weight: 700; letter-spacing: 0.02em; text-transform: uppercase; color: var(--accent); }
+.voice-player .vp-meta .vp-tag svg { width: 12px; height: 12px; }
+.voice-player .vp-meta .vp-sep { opacity: 0.5; }
 .voice-player .vp-time {
   flex: 0 0 auto; font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums;
   color: var(--text-secondary); min-width: 40px; text-align: right; letter-spacing: 0.2px;
@@ -814,12 +853,13 @@ input, textarea { font-family: inherit; }
 .vs-icon-btn { width: 36px; height: 36px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; color: var(--text-muted); background: var(--bg-dark); border: 1px solid var(--border); transition: var(--transition); }
 .vs-icon-btn:hover { color: var(--text-primary); border-color: var(--border-light); transform: translateY(-1px); }
 .vs-icon-btn svg { width: 17px; height: 17px; }
-.vs-grid { position: relative; z-index: 2; flex: 1; min-height: 0; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(158px, 1fr)); gap: 18px; align-content: start; padding: 26px; }
-.vs-tile { position: relative; display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 20px 14px 16px; border-radius: 18px; background: linear-gradient(180deg, var(--bg-dark), var(--bg-darker)); border: 1px solid var(--border); transition: border-color 0.16s ease, box-shadow 0.16s ease, transform 0.16s ease; cursor: context-menu; }
+.vs-grid { position: relative; z-index: 2; flex: 1; min-height: 0; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(172px, 1fr)); gap: 16px; align-content: start; padding: 26px; }
+.vs-tile { position: relative; display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 22px 16px 18px; border-radius: 16px; background: linear-gradient(180deg, rgba(255,255,255,0.028), rgba(0,0,0,0.16)), var(--bg-dark); border: 1px solid var(--border); transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease; cursor: context-menu; overflow: hidden; }
+.vs-tile::after { content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; box-shadow: inset 0 1px 0 rgba(255,255,255,0.05); }
 .vs-tile:hover { transform: translateY(-2px); border-color: var(--border-light); }
-.vs-tile.speaking { border-color: var(--online); box-shadow: 0 0 0 2px rgba(59,165,93,0.35), 0 12px 30px rgba(59,165,93,0.20); }
+.vs-tile.speaking { border-color: rgba(59,165,93,0.75); box-shadow: 0 0 0 1px rgba(59,165,93,0.4), 0 14px 34px rgba(59,165,93,0.22); }
 .vs-avatar-wrap { position: relative; width: 88px; height: 88px; }
-.vs-avatar { width: 88px; height: 88px; border-radius: 50%; background: linear-gradient(140deg, var(--accent), var(--accent-dim, var(--accent))); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 32px; color: #fff; overflow: hidden; position: relative; z-index: 1; box-shadow: 0 6px 18px rgba(0,0,0,0.35); }
+.vs-avatar { width: 88px; height: 88px; border-radius: 50%; background: linear-gradient(140deg, var(--accent), var(--accent-dim, var(--accent))); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 32px; color: #fff; overflow: hidden; position: relative; z-index: 1; box-shadow: 0 8px 22px rgba(0,0,0,0.4); }
 .vs-avatar img { width: 100%; height: 100%; object-fit: cover; }
 .vs-avatar canvas { width: 100%; height: 100%; object-fit: cover; display: block; }
 /* GIF avatars: only animate while the user is speaking (voice chat only). */
@@ -837,12 +877,14 @@ input, textarea { font-family: inherit; }
 .vs-badge svg { width: 14px; height: 14px; }
 .vs-tile.self .vs-name::after { content: ' (you)'; color: var(--text-muted); font-weight: 500; }
 .vs-empty { grid-column: 1 / -1; text-align: center; color: var(--text-muted); font-size: 14px; padding: 40px 0; }
-.vs-controls { position: relative; z-index: 2; display: flex; align-items: center; justify-content: center; gap: 12px; padding: 16px 20px; border-top: 1px solid var(--border); flex-shrink: 0; background: linear-gradient(0deg, rgba(0,0,0,0.12), transparent); }
-.vs-ctl { display: inline-flex; flex-direction: column; align-items: center; gap: 5px; min-width: 78px; padding: 11px 16px; border-radius: 13px; background: var(--bg-dark); border: 1px solid var(--border); color: var(--text-secondary); transition: var(--transition); }
-.vs-ctl:hover { border-color: var(--border-light); color: var(--text-primary); transform: translateY(-1px); }
-.vs-ctl svg { width: 20px; height: 20px; }
-.vs-ctl-label { font-size: 11px; font-weight: 600; }
+/* ---- Control bar: a single professional pill with grouped controls ---- */
+.vs-controls { position: relative; z-index: 2; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 16px 20px; border-top: 1px solid var(--border); flex-shrink: 0; background: linear-gradient(0deg, rgba(0,0,0,0.16), transparent); }
+.vs-ctl { display: inline-flex; align-items: center; gap: 9px; height: 46px; padding: 0 18px; border-radius: 12px; background: var(--bg-dark); border: 1px solid var(--border); color: var(--text-secondary); font-size: 13px; font-weight: 600; transition: var(--transition); }
+.vs-ctl:hover { border-color: var(--border-light); color: var(--text-primary); background: var(--bg-light); }
+.vs-ctl svg { width: 19px; height: 19px; flex-shrink: 0; }
+.vs-ctl-label { font-size: 13px; font-weight: 600; letter-spacing: 0.01em; }
 .vs-ctl.active { background: rgba(224,82,82,0.14); border-color: rgba(224,82,82,0.5); color: #e05252; }
+.vs-ctl.active:hover { background: rgba(224,82,82,0.2); }
 .vs-ctl-leave { background: rgba(224,82,82,0.14); border-color: rgba(224,82,82,0.45); color: #e05252; }
 .vs-ctl-leave:hover { background: #e05252; color: #fff; border-color: #e05252; }
 .vs-mic-test { height: 12px; border-radius: 7px; background: var(--bg-darkest); border: 1px solid var(--border); overflow: hidden; }
@@ -888,7 +930,15 @@ input, textarea { font-family: inherit; }
 .vs-modal-ic { width: 40px; height: 40px; border-radius: 11px; display: inline-flex; align-items: center; justify-content: center; background: rgba(var(--accent-rgb),0.16); color: var(--accent); flex-shrink: 0; }
 .vs-modal-ic svg { width: 20px; height: 20px; }
 .vs-modal-sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+/* Wider, two-column layout so nothing needs scrolling. */
+.modal.vs-modal-wide { max-width: 900px; }
 .vs-modal-body { display: flex; flex-direction: column; gap: 18px; }
+.vs-modal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; align-items: start; }
+.vs-col { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+@media (max-width: 760px) {
+  .vs-modal-grid { grid-template-columns: 1fr; }
+  .modal.vs-modal-wide { max-width: 560px; }
+}
 .vs-section { background: var(--bg-dark); border: 1px solid var(--border); border-radius: 14px; padding: 14px 16px; }
 .vs-section-title { font-size: 11px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 12px; }
 .vs-section .field { margin-bottom: 12px; }
@@ -1262,9 +1312,9 @@ input, textarea { font-family: inherit; }
 /* Inline GIF embeds: a link that points at a .gif renders the animated GIF
    directly in the message. Refined frame — soft border, subtle shadow, a
    quiet corner tag instead of a loud badge. */
-.link-embed-gif { margin-top: 6px; display: inline-block; max-width: 100%; position: relative; }
+.link-embed-gif { margin-top: 6px; display: inline-block; max-width: 100%; position: relative; line-height: 0; }
 .link-embed-gif img {
-  max-width: 340px; max-height: 340px; border-radius: 12px; display: block; cursor: zoom-in;
+  max-width: 360px; max-height: 360px; border-radius: 12px; display: block; cursor: zoom-in;
   border: 1px solid var(--border-light); background: var(--bg-darkest);
   box-shadow: 0 2px 10px rgba(0,0,0,0.22);
   transition: box-shadow 0.16s ease, border-color 0.16s ease;
@@ -2961,6 +3011,8 @@ input, textarea { font-family: inherit; }
                     <button data-effect="grid">Grid</button>
                     <button data-effect="spotlight">Spotlight</button>
                     <button data-effect="scanlines">Scanlines</button>
+                    <button data-effect="halo">Halo</button>
+                    <button data-effect="waves">Waves</button>
                   </div>
                 </div>
                 <button class="btn btn-ghost" id="set-appearance-reset" style="width:100%;font-size:12.5px;">Reset to default</button>
@@ -3243,7 +3295,7 @@ input, textarea { font-family: inherit; }
 
 <!-- Voice settings (enhanced) -->
 <div class="modal-overlay" id="voice-settings-modal">
-  <div class="modal vs-modal" style="max-width:560px;">
+  <div class="modal vs-modal vs-modal-wide">
     <div class="modal-header vs-modal-head">
       <div class="vs-modal-ic">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
@@ -3255,72 +3307,78 @@ input, textarea { font-family: inherit; }
       <button class="modal-close" data-close="voice-settings-modal">&times;</button>
     </div>
     <div class="modal-body vs-modal-body">
-      <div class="vs-section">
-        <div class="vs-section-title">Devices</div>
-        <div class="field">
-          <label>Microphone</label>
-          <select id="vs-input-device" class="ch-select"></select>
-        </div>
-        <div class="field" style="margin-bottom:0;">
-          <label>Speaker / Output</label>
-          <select id="vs-output-device" class="ch-select"></select>
-        </div>
-      </div>
-
-      <div class="vs-section">
-        <div class="vs-section-title">Volume</div>
-        <div class="field">
-          <label>Input volume <span class="ch-opt" id="vs-in-vol-val">100%</span></label>
-          <input type="range" id="vs-in-vol" min="0" max="200" value="100" style="width:100%;">
-        </div>
-        <div class="field" style="margin-bottom:0;">
-          <label>Output volume <span class="ch-opt" id="vs-out-vol-val">150%</span></label>
-          <input type="range" id="vs-out-vol" min="0" max="200" value="150" style="width:100%;">
-          <div class="ch-hint">Boosted to 150% by default so everyone is easy to hear.</div>
-        </div>
-      </div>
-
-      <div class="vs-section">
-        <div class="vs-section-title">Audio processing</div>
-        <div class="vs-toggle-row">
-          <div class="vs-toggle-info"><div class="vs-toggle-name">Noise suppression</div><div class="vs-toggle-desc">Filter out background noise</div></div>
-          <button class="vs-switch on" id="vs-noise" role="switch" aria-checked="true"><span></span></button>
-        </div>
-        <div class="vs-toggle-row">
-          <div class="vs-toggle-info"><div class="vs-toggle-name">Echo cancellation</div><div class="vs-toggle-desc">Prevent feedback loops</div></div>
-          <button class="vs-switch on" id="vs-echo" role="switch" aria-checked="true"><span></span></button>
-        </div>
-        <div class="vs-toggle-row" style="border-bottom:none;">
-          <div class="vs-toggle-info"><div class="vs-toggle-name">Automatic gain control</div><div class="vs-toggle-desc">Keep your level consistent</div></div>
-          <button class="vs-switch on" id="vs-agc" role="switch" aria-checked="true"><span></span></button>
-        </div>
-      </div>
-
-      <div class="vs-section">
-        <div class="vs-section-title">Voice activity</div>
-        <div class="field" style="margin-bottom:0;">
-          <label>Speaking sensitivity <span class="ch-opt" id="vs-vad-val">Auto</span></label>
-          <input type="range" id="vs-vad" min="1" max="100" value="35" style="width:100%;">
-          <div class="ch-hint">Lower = easier to trigger the green speaking ring. Higher = only loud speech triggers it.</div>
-        </div>
-      </div>
-
-      <div class="vs-section" style="margin-bottom:0;">
-        <div class="vs-section-title">Test your voice</div>
-        <div class="vs-test-box">
-          <div class="vs-test-head">
-            <div class="vs-test-label">Microphone test</div>
-            <button class="btn btn-primary vs-test-btn" id="vs-mic-test-btn">Start test</button>
+      <div class="vs-modal-grid">
+        <div class="vs-col">
+          <div class="vs-section">
+            <div class="vs-section-title">Devices</div>
+            <div class="field">
+              <label>Microphone</label>
+              <select id="vs-input-device" class="ch-select"></select>
+            </div>
+            <div class="field" style="margin-bottom:0;">
+              <label>Speaker / Output</label>
+              <select id="vs-output-device" class="ch-select"></select>
+            </div>
           </div>
-          <div class="vs-mic-test"><div class="vs-mic-test-bar" id="vs-mic-test-bar"></div></div>
-          <div class="vs-test-status" id="vs-mic-test-status">Press <b>Start test</b>, then speak \u2014 the bar should move.</div>
-        </div>
-        <div class="vs-test-box" style="margin-top:10px;">
-          <div class="vs-test-head">
-            <div class="vs-test-label">Speaker test</div>
-            <button class="btn btn-ghost vs-test-btn" id="vs-test-tone-btn">Play test sound</button>
+
+          <div class="vs-section">
+            <div class="vs-section-title">Volume</div>
+            <div class="field">
+              <label>Input volume <span class="ch-opt" id="vs-in-vol-val">100%</span></label>
+              <input type="range" id="vs-in-vol" min="0" max="200" value="100" style="width:100%;">
+            </div>
+            <div class="field" style="margin-bottom:0;">
+              <label>Output volume <span class="ch-opt" id="vs-out-vol-val">150%</span></label>
+              <input type="range" id="vs-out-vol" min="0" max="200" value="150" style="width:100%;">
+              <div class="ch-hint">Boosted to 150% by default so everyone is easy to hear.</div>
+            </div>
           </div>
-          <div class="vs-test-status">Plays a short chime through your selected output at the current volume.</div>
+
+          <div class="vs-section" style="margin-bottom:0;">
+            <div class="vs-section-title">Voice activity</div>
+            <div class="field" style="margin-bottom:0;">
+              <label>Speaking sensitivity <span class="ch-opt" id="vs-vad-val">Auto</span></label>
+              <input type="range" id="vs-vad" min="1" max="100" value="35" style="width:100%;">
+              <div class="ch-hint">Lower = easier to trigger the green speaking ring. Higher = only loud speech triggers it.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="vs-col">
+          <div class="vs-section">
+            <div class="vs-section-title">Audio processing</div>
+            <div class="vs-toggle-row">
+              <div class="vs-toggle-info"><div class="vs-toggle-name">Noise suppression</div><div class="vs-toggle-desc">Filter out background noise</div></div>
+              <button class="vs-switch on" id="vs-noise" role="switch" aria-checked="true"><span></span></button>
+            </div>
+            <div class="vs-toggle-row">
+              <div class="vs-toggle-info"><div class="vs-toggle-name">Echo cancellation</div><div class="vs-toggle-desc">Prevent feedback loops</div></div>
+              <button class="vs-switch on" id="vs-echo" role="switch" aria-checked="true"><span></span></button>
+            </div>
+            <div class="vs-toggle-row" style="border-bottom:none;">
+              <div class="vs-toggle-info"><div class="vs-toggle-name">Automatic gain control</div><div class="vs-toggle-desc">Keep your level consistent</div></div>
+              <button class="vs-switch on" id="vs-agc" role="switch" aria-checked="true"><span></span></button>
+            </div>
+          </div>
+
+          <div class="vs-section" style="margin-bottom:0;">
+            <div class="vs-section-title">Test your voice</div>
+            <div class="vs-test-box">
+              <div class="vs-test-head">
+                <div class="vs-test-label">Microphone test</div>
+                <button class="btn btn-primary vs-test-btn" id="vs-mic-test-btn">Start test</button>
+              </div>
+              <div class="vs-mic-test"><div class="vs-mic-test-bar" id="vs-mic-test-bar"></div></div>
+              <div class="vs-test-status" id="vs-mic-test-status">Press <b>Start test</b>, then speak \u2014 the bar should move.</div>
+            </div>
+            <div class="vs-test-box" style="margin-top:10px;">
+              <div class="vs-test-head">
+                <div class="vs-test-label">Speaker test</div>
+                <button class="btn btn-ghost vs-test-btn" id="vs-test-tone-btn">Play test sound</button>
+              </div>
+              <div class="vs-test-status">Plays a short chime through your selected output at the current volume.</div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -3758,7 +3816,7 @@ let chEditorType = 'text';
 const SERVER_ACCENTS = ['#5865f2','#4a9eff','#7c5cf0','#f0629f','#2fa457','#f0a92e','#e35d5d','#00c2b2','#ff7a45','#9b6bff','#3ba55d','#d4a017'];
 let setAccentColor = '#5865f2';
 let setEffect = 'none';
-const FX_CLASSES = ['fx-glow','fx-gradient','fx-aurora','fx-neon','fx-pulse','fx-grid','fx-spotlight','fx-scanlines'];
+const FX_CLASSES = ['fx-glow','fx-gradient','fx-aurora','fx-neon','fx-pulse','fx-grid','fx-spotlight','fx-scanlines','fx-halo','fx-waves'];
 // Unsaved-changes tracking for Server Settings.
 let settingsDirty = false;
 let settingsBaseline = null;
@@ -4334,7 +4392,7 @@ function connectSocket() {
     reconnectionDelayMax: 2000,
     timeout: 8000,
   });
-  socket.on('connect', () => { if (activeServerId) loadServer(activeServerId, true); });
+  socket.on('connect', () => { if (activeServerId) loadServer(activeServerId, true); try { voiceRejoinAfterReconnect(); } catch (e) {} });
   socket.on('server-message', (data) => {
     if (!data || data.serverId !== activeServerId) return;
     if (data.channelId !== activeChannelId) return;
@@ -4822,9 +4880,16 @@ async function loadServer(id, silent) {
     // Warm the member-profile cache so the first click on any member opens
     // their real profile instantly (no default-profile flash).
     prefetchMemberProfiles();
-    // Open first channel if none active
+    // Open first channel if none active. Prefer the channel the user was last
+    // on (persisted in localStorage) so a refresh keeps them where they were
+    // instead of snapping back to the first channel in the list.
     if (!activeChannelId || !(activeServer.channels || []).some(c => c.id === activeChannelId)) {
-      if ((activeServer.channels || []).length) openChannel(activeServer.channels[0].id);
+      let target = null;
+      try {
+        const lastCh = localStorage.getItem('hb_last_channel');
+        if (lastCh && (activeServer.channels || []).some(c => c.id === lastCh)) target = lastCh;
+      } catch (e) {}
+      if ((activeServer.channels || []).length) openChannel(target || activeServer.channels[0].id);
     }
   } catch(e) { if (!silent) toast(e.message, 'error'); }
 }
@@ -6001,11 +6066,17 @@ function renderVoicePlayer(f, url, rawUrl, name, dlName) {
       '<span class="vp-spin" style="display:none;"></span>' +
     '</button>' +
     '<div class="vp-body">' +
-      '<canvas class="vp-wave" width="320" height="44"></canvas>' +
+      '<canvas class="vp-wave" width="320" height="30"></canvas>' +
       '<div class="vp-progress"></div>' +
       '<div class="vp-cursor"></div>' +
+      '<div class="vp-meta">' +
+        '<span class="vp-tag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>Voice message</span>' +
+        '<span class="vp-sep">\u00b7</span>' +
+        '<span class="vp-elapsed">0:00</span>' +
+        '<span class="vp-sep">/</span>' +
+        '<span class="vp-total">' + durLabel + '</span>' +
+      '</div>' +
     '</div>' +
-    '<span class="vp-time">' + durLabel + '</span>' +
     '<button class="vp-speed" type="button" title="Playback speed">1x</button>' +
     dl +
   '</div>';
@@ -6032,8 +6103,15 @@ function renderFile(f) {
   if (isGif) {
     // Animated GIFs render as a native <img> so the browser decodes and
     // animates them directly. data-zoom makes them clickable to open the
-    // full-size lightbox.
-    preview = '<span class="mfc-preview"><img class="msg-gif" data-zoom data-zoom-src="' + url + '" src="' + url + '" alt="" loading="lazy"></span>';
+    // full-size lightbox. GIFs get a clean, minimal card (no heavy metadata
+    // bar) with a small download overlay, like a normal chat client.
+    return '<div class="msg-file-card msg-file-card-gif">' +
+      '<span class="mfc-preview"><img class="msg-gif" data-zoom data-zoom-src="' + url + '" src="' + url + '" alt="" loading="lazy"></span>' +
+      '<a class="mfc-gif-dl" href="' + url + '" download="' + dlName + '" target="_blank" rel="noopener" title="Download ' + escapeAttr(name) + '">' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>' +
+      '</a>' +
+      '<span class="mfc-gif-tag">GIF</span>' +
+    '</div>';
   } else if (isImage) {
     preview = '<span class="mfc-preview"><img data-zoom data-zoom-src="' + url + '" src="' + url + '" alt="" loading="lazy"></span>';
   } else if (isVideo) {
@@ -6072,10 +6150,10 @@ function linkify(html) {
     if (code) {
       return '<span class="invite-embed-slot" data-invite="' + escapeAttr(code) + '"></span>' + trail;
     }
-    // A direct .gif link auto-embeds as the animated GIF itself.
+    // A direct .gif link auto-embeds as the animated GIF itself (no raw URL
+    // text \u2014 just the GIF, like a normal chat client).
     if (/\.gif(\?|#|$)/i.test(clean)) {
-      return '<a href="' + escapeAttr(clean) + '" target="_blank" rel="noopener noreferrer">' + escapeHtml(clean) + '</a>' +
-        '<span class="link-embed-gif"><img data-zoom data-zoom-src="' + escapeAttr(clean) + '" src="' + escapeAttr(clean) + '" alt="GIF" loading="lazy"><span class="link-embed-gif-badge">GIF</span></span>' + trail;
+      return '<span class="link-embed-gif"><img data-zoom data-zoom-src="' + escapeAttr(clean) + '" src="' + escapeAttr(clean) + '" alt="GIF" loading="lazy"><span class="link-embed-gif-badge">GIF</span></span>' + trail;
     }
     // Any other URL gets a rich link-preview embed card.
     return '<a href="' + escapeAttr(clean) + '" target="_blank" rel="noopener noreferrer">' + escapeHtml(clean) + '</a>' +
@@ -6953,7 +7031,41 @@ const voiceCall = {
   audioCtx: null, analyser: null, vadRaf: 0, lastSpeaking: false,
   remoteVadRaf: 0,
   minimized: false, healthTimer: 0,
+  inputDevice: '', outputDevice: '',
 };
+// ---- Voice & Video settings persistence ----
+// The settings used to live only in the in-memory voiceCall object, so every
+// reload reverted them to defaults. Persist them to localStorage and restore
+// on load so the user's choices actually stick.
+const VS_PREFS_KEY = 'hb_voice_prefs';
+function voiceLoadPrefs() {
+  try {
+    const raw = localStorage.getItem(VS_PREFS_KEY);
+    if (!raw) return;
+    const p = JSON.parse(raw) || {};
+    if (typeof p.inputVol === 'number') voiceCall.inputVol = p.inputVol;
+    if (typeof p.outputVol === 'number') voiceCall.outputVol = p.outputVol;
+    if (typeof p.vadThreshold === 'number') voiceCall.vadThreshold = p.vadThreshold;
+    if (p.audioPrefs && typeof p.audioPrefs === 'object') {
+      voiceCall.audioPrefs = Object.assign({ noiseSuppression: true, echoCancellation: true, autoGainControl: true }, p.audioPrefs);
+    }
+    if (typeof p.inputDevice === 'string') voiceCall.inputDevice = p.inputDevice;
+    if (typeof p.outputDevice === 'string') voiceCall.outputDevice = p.outputDevice;
+  } catch (e) {}
+}
+function voiceSavePrefs() {
+  try {
+    localStorage.setItem(VS_PREFS_KEY, JSON.stringify({
+      inputVol: voiceCall.inputVol,
+      outputVol: voiceCall.outputVol,
+      vadThreshold: voiceCall.vadThreshold,
+      audioPrefs: voiceCall.audioPrefs,
+      inputDevice: voiceCall.inputDevice || '',
+      outputDevice: voiceCall.outputDevice || '',
+    }));
+  } catch (e) {}
+}
+voiceLoadPrefs();
 // channelId -> live occupancy count (drives the sidebar badge).
 const voiceOccupancyMap = {};
 function voiceOccupancy(channelId) { return voiceOccupancyMap[channelId] || 0; }
@@ -7056,6 +7168,9 @@ function micPromptError(msg) {
 // chose "never ask again" or the permission is already granted.
 async function acquireMic(constraints, channelName, allowLabelText) {
   const opts = Object.assign({}, voiceCall.audioPrefs, constraints || {});
+  // Honour the user's saved input device unless the caller asked for a
+  // specific one (e.g. the mic test passes its own constraints).
+  if (voiceCall.inputDevice && !opts.deviceId) opts.deviceId = { exact: voiceCall.inputDevice };
   // Fast path: already granted, or user opted out of the prompt.
   const state = await micPermissionState();
   if (state === 'granted' || micNeverAsk()) {
@@ -7176,6 +7291,36 @@ async function joinVoiceChannel(channelId) {
     voiceRenderStage();
   });
 }
+// After a socket reconnect the server has already dropped our stale voice seat
+// (its disconnect handler removes the entry whose socketId matches the old
+// socket). Re-register with the voice room so text chat and signalling keep
+// working, and rebuild the peer mesh against whoever is still in the channel.
+function voiceRejoinAfterReconnect() {
+  if (!voiceCall.active || !voiceCall.serverId || !voiceCall.channelId) return;
+  if (!socket || !socket.connected) return;
+  const sid = voiceCall.serverId, cid = voiceCall.channelId;
+  // Tear down stale peer connections (their signalling sockets are gone too).
+  voiceCall.peers.forEach((p, uname) => {
+    if (p.self) return;
+    if (p.pc) { try { p.pc.close(); } catch (e) {} }
+    if (p.audioEl) { try { p.audioEl.pause(); p.audioEl.srcObject = null; } catch (e) {} }
+    voiceCall.peers.delete(uname);
+  });
+  // Keep the self tile, re-render, then re-join and rebuild the mesh.
+  voiceRenderStage();
+  socket.emit('voice-join', { serverId: sid, channelId: cid }, (resp) => {
+    if (resp && resp.error) {
+      // Channel vanished or we were removed — leave cleanly.
+      toast(resp.error, 'error');
+      leaveVoiceChannel(true);
+      return;
+    }
+    const peers = (resp && resp.peers) || [];
+    peers.forEach(p => { if (p.username !== currentUser.username) voiceCreatePeer(p.username, true); });
+    voiceRenderStage();
+    voiceUpdateSub();
+  });
+}
 async function leaveVoiceChannel(silent) {
   if (!voiceCall.active) return;
   const sid = voiceCall.serverId, cid = voiceCall.channelId;
@@ -7265,6 +7410,8 @@ function voiceCreatePeer(username, initiator) {
   audioEl.autoplay = true;
   audioEl.setAttribute('playsinline', '');
   audioEl.volume = Math.min(1, voicePeerVolume(username));
+  // Route to the user's saved output device, if the browser supports it.
+  if (voiceCall.outputDevice && audioEl.setSinkId) { try { audioEl.setSinkId(voiceCall.outputDevice); } catch (e) {} }
   p.audioEl = audioEl;
   pc.ontrack = (ev) => {
     if (ev.streams && ev.streams[0]) {
@@ -7777,6 +7924,9 @@ async function voiceOpenSettings() {
     const inSel = $('vs-input-device'), outSel = $('vs-output-device');
     if (inSel) inSel.innerHTML = ins.map((d, i) => '<option value="' + escapeAttr(d.deviceId) + '">' + escapeHtml(d.label || ('Microphone ' + (i + 1))) + '</option>').join('') || '<option>Default</option>';
     if (outSel) outSel.innerHTML = outs.map((d, i) => '<option value="' + escapeAttr(d.deviceId) + '">' + escapeHtml(d.label || ('Speaker ' + (i + 1))) + '</option>').join('') || '<option>Default</option>';
+    // Restore the previously chosen devices (if they still exist).
+    if (inSel && voiceCall.inputDevice && ins.some(d => d.deviceId === voiceCall.inputDevice)) inSel.value = voiceCall.inputDevice;
+    if (outSel && voiceCall.outputDevice && outs.some(d => d.deviceId === voiceCall.outputDevice)) outSel.value = voiceCall.outputDevice;
   } catch (e) {}
   const iv = $('vs-in-vol'), ov = $('vs-out-vol'), vad = $('vs-vad');
   if (iv) iv.value = Math.round(voiceCall.inputVol * 100);
@@ -7882,12 +8032,13 @@ if ($('mini-voice')) $('mini-voice').addEventListener('click', (e) => { if (e.ta
 if ($('mv-mute')) $('mv-mute').addEventListener('click', (e) => { e.stopPropagation(); voiceSetMuted(!voiceCall.muted); });
 if ($('mv-deafen')) $('mv-deafen').addEventListener('click', (e) => { e.stopPropagation(); voiceSetDeafened(!voiceCall.deafened); });
 if ($('mv-leave')) $('mv-leave').addEventListener('click', (e) => { e.stopPropagation(); leaveVoiceChannel(); });
-if ($('vs-in-vol')) $('vs-in-vol').addEventListener('input', (e) => { voiceCall.inputVol = Number(e.target.value) / 100; voiceUpdateSettingsLabels(); });
+if ($('vs-in-vol')) $('vs-in-vol').addEventListener('input', (e) => { voiceCall.inputVol = Number(e.target.value) / 100; voiceUpdateSettingsLabels(); voiceSavePrefs(); });
 if ($('vs-out-vol')) $('vs-out-vol').addEventListener('input', (e) => {
   voiceCall.outputVol = Number(e.target.value) / 100; voiceUpdateSettingsLabels();
   voiceApplyAllVolumes();
+  voiceSavePrefs();
 });
-if ($('vs-vad')) $('vs-vad').addEventListener('input', (e) => { voiceCall.vadThreshold = Number(e.target.value) / 1000; voiceUpdateSettingsLabels(); });
+if ($('vs-vad')) $('vs-vad').addEventListener('input', (e) => { voiceCall.vadThreshold = Number(e.target.value) / 1000; voiceUpdateSettingsLabels(); voiceSavePrefs(); });
 // Audio-processing toggles.
 function _vsToggle(id, key) {
   const b = $(id); if (!b) return;
@@ -7896,6 +8047,7 @@ function _vsToggle(id, key) {
     b.classList.toggle('on', voiceCall.audioPrefs[key]);
     b.setAttribute('aria-checked', voiceCall.audioPrefs[key] ? 'true' : 'false');
     voiceApplyAudioPrefs();
+    voiceSavePrefs();
   });
 }
 _vsToggle('vs-noise', 'noiseSuppression');
@@ -7906,6 +8058,8 @@ if ($('vs-mic-test-btn')) $('vs-mic-test-btn').addEventListener('click', () => {
 if ($('vs-test-tone-btn')) $('vs-test-tone-btn').addEventListener('click', () => voicePlayTestTone());
 if ($('vs-input-device')) $('vs-input-device').addEventListener('change', async (e) => {
   const id = e.target.value;
+  voiceCall.inputDevice = id || '';
+  voiceSavePrefs();
   if (!voiceCall.active) return;
   try {
     const ns = await navigator.mediaDevices.getUserMedia({ audio: Object.assign({ deviceId: id ? { exact: id } : undefined }, voiceCall.audioPrefs) });
@@ -7921,6 +8075,8 @@ if ($('vs-input-device')) $('vs-input-device').addEventListener('change', async 
 });
 if ($('vs-output-device')) $('vs-output-device').addEventListener('change', async (e) => {
   const id = e.target.value;
+  voiceCall.outputDevice = id || '';
+  voiceSavePrefs();
   const els = [];
   voiceCall.peers.forEach(p => { if (p.audioEl) els.push(p.audioEl); });
   for (const el of els) { if (el.setSinkId) { try { await el.setSinkId(id || ''); } catch (err) {} } }
@@ -7935,7 +8091,7 @@ function vpDrawWave(canvas, peaks, progress) {
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
   const dpr = window.devicePixelRatio || 1;
-  const w = canvas.clientWidth || 320, h = canvas.clientHeight || 44;
+  const w = canvas.clientWidth || 320, h = canvas.clientHeight || 30;
   if (canvas.width !== Math.round(w * dpr) || canvas.height !== Math.round(h * dpr)) {
     canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr);
   }
@@ -8010,6 +8166,8 @@ function vpInit(el) {
   audio.src = src;
   el._vpAudio = audio;
   const timeEl = el.querySelector('.vp-time');
+  const elapsedEl = el.querySelector('.vp-elapsed');
+  const totalEl = el.querySelector('.vp-total');
   const prog = el.querySelector('.vp-progress');
   const cursor = el.querySelector('.vp-cursor');
   const icPlay = el.querySelector('.vp-ic-play');
@@ -8028,6 +8186,7 @@ function vpInit(el) {
   };
   audio.addEventListener('loadedmetadata', () => {
     if (timeEl && isFinite(audio.duration)) timeEl.textContent = srvVoiceFmt(audio.duration * 1000);
+    if (totalEl && isFinite(audio.duration)) totalEl.textContent = srvVoiceFmt(audio.duration * 1000);
   });
   audio.addEventListener('timeupdate', () => {
     const d = audio.duration || 0;
@@ -8035,6 +8194,7 @@ function vpInit(el) {
     if (prog) prog.style.width = (pct * 100) + '%';
     if (cursor) cursor.style.left = (pct * 100) + '%';
     if (timeEl) timeEl.textContent = srvVoiceFmt(audio.currentTime * 1000);
+    if (elapsedEl) elapsedEl.textContent = srvVoiceFmt(audio.currentTime * 1000);
     vpDrawWave(canvas, el._vpPeaks, pct);
   });
   audio.addEventListener('ended', () => {
@@ -8042,6 +8202,7 @@ function vpInit(el) {
     if (prog) prog.style.width = '0%';
     if (cursor) cursor.style.left = '0%';
     if (timeEl) timeEl.textContent = srvVoiceFmt((audio.duration || dur / 1000) * 1000);
+    if (elapsedEl) elapsedEl.textContent = '0:00';
     vpDrawWave(canvas, el._vpPeaks, 0);
   });
   audio.addEventListener('play', () => setPlaying(true));

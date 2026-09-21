@@ -3283,7 +3283,7 @@ app.post('/api/servers/:id/settings', authMiddleware, (req, res) => {
   }
   if (effect !== undefined) {
     const e = String(effect || 'none');
-    s.effect = ['none', 'glow', 'gradient', 'aurora', 'neon', 'pulse', 'grid', 'spotlight', 'scanlines'].includes(e) ? e : 'none';
+    s.effect = ['none', 'glow', 'gradient', 'aurora', 'neon', 'pulse', 'grid', 'spotlight', 'scanlines', 'halo', 'waves'].includes(e) ? e : 'none';
   }
   if (iconScale !== undefined) {
     const v = Number(iconScale);
@@ -7002,8 +7002,31 @@ io.on('connection', (socket) => {
   socket.on('voice-chat-send', ({ serverId, channelId, text, clientId }, ack) => {
     try {
       if (!serverId || !channelId) { if (typeof ack === 'function') ack({ error: 'Invalid channel' }); return; }
-      const room = voiceRooms.get(voiceRoomKey(serverId, channelId));
-      if (!room || !room.has(username)) { if (typeof ack === 'function') ack({ error: 'You are not in this voice channel' }); return; }
+      const key = voiceRoomKey(serverId, channelId);
+      let room = voiceRooms.get(key);
+      // Auto-heal: if the user is a valid member of the server and the channel
+      // is a real voice channel but they are not currently registered in the
+      // room (e.g. their socket reconnected and the disconnect handler removed
+      // their stale seat), silently re-add them instead of rejecting the
+      // message with "You are not in this voice channel".
+      if (!room || !room.has(username)) {
+        const s = findServer(serverId);
+        const ch = s && (s.channels || []).find(c => c.id === channelId);
+        const isMember = s && (s.members || []).includes(username);
+        if (s && ch && ch.type === 'voice' && isMember) {
+          if (!voiceRooms.has(key)) voiceRooms.set(key, new Map());
+          room = voiceRooms.get(key);
+          if (!room.has(username)) {
+            room.set(username, { username, socketId: socket.id, muted: false, deafened: false, speaking: false, joinedAt: Date.now() });
+            socket.join(key);
+            voiceBroadcastPeers(serverId, channelId);
+            voiceBroadcastOccupancy(serverId, channelId);
+          }
+        } else {
+          if (typeof ack === 'function') ack({ error: 'You are not in this voice channel' });
+          return;
+        }
+      }
       const textStr = String(text || '').trim().slice(0, 2000);
       if (!textStr) { if (typeof ack === 'function') ack({ error: 'Message is empty' }); return; }
       // Light 0.3s cooldown to prevent spam (exempt users skip it).
