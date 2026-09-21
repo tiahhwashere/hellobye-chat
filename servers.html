@@ -1282,7 +1282,7 @@ input, textarea { font-family: inherit; }
 .scale-row input[type=range] { flex: 1; min-width: 80px; accent-color: var(--accent); cursor: pointer; }
 /* Scale dialog preview */
 .scale-preview { margin-top: 14px; border: 1px solid var(--border-light); border-radius: 10px; overflow: hidden; background: var(--bg-darkest); }
-.scale-preview .sp-banner { height: 196px; background-size: cover; background-position: center center; background-repeat: no-repeat; position: relative; overflow: hidden; }
+.scale-preview .sp-banner { height: 250px; background-size: cover; background-position: center center; background-repeat: no-repeat; position: relative; overflow: hidden; }
 .scale-preview .sp-banner .sp-banner-img { position: absolute; inset: 0; background-size: cover; background-position: center center; background-repeat: no-repeat; transform-origin: center center; }
 .scale-preview .sp-icon { width: 60px; height: 60px; border-radius: 50%; border: 4px solid var(--bg-dark); background: var(--accent); position: absolute; left: 16px; bottom: -30px; overflow: hidden; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 22px; z-index: 2; }
 .scale-preview .sp-icon img { width: 100%; height: 100%; object-fit: cover; transform-origin: center center; }
@@ -1293,16 +1293,16 @@ input, textarea { font-family: inherit; }
 .scale-preview .sp-body::after { content: ''; position: absolute; left: 16px; right: 16px; top: 34px; height: 9px; border-radius: 5px; background: var(--bg-light); opacity: 0.5; }
 .scale-preview .sp-body::before { content: ''; position: absolute; left: 16px; top: 50px; width: 42%; height: 7px; border-radius: 4px; background: var(--bg-light); opacity: 0.32; }
 /* Icon-only preview (banner dialog never shows the icon and vice-versa). */
-.scale-preview .sp-icon-only { height: 150px; display: flex; align-items: center; justify-content: center; background: radial-gradient(circle at 50% 45%, var(--bg-light) 0%, var(--bg-darkest) 72%); overflow: hidden; }
-.scale-preview .sp-icon-only .sp-icon { position: static; left: auto; bottom: auto; width: 84px; height: 84px; font-size: 30px; }
+.scale-preview .sp-icon-only { height: 240px; display: flex; align-items: center; justify-content: center; background: radial-gradient(circle at 50% 45%, var(--bg-light) 0%, var(--bg-darkest) 72%); overflow: hidden; }
+.scale-preview .sp-icon-only .sp-icon { position: static; left: auto; bottom: auto; width: 132px; height: 132px; font-size: 46px; }
 /* Settings preview: two accurate, self-contained frames — a banner strip (the
    server header) and a rounded icon tile (the left rail button). Each frame
    clips its own image, so the icon is never cut off and the preview matches
    exactly what changes on the real UI. */
 .scale-preview .sp-split { display: flex; gap: 14px; padding: 14px; align-items: center; }
-.scale-preview .sp-frame-banner { flex: 1; min-width: 0; height: 118px; border-radius: 10px; overflow: hidden; position: relative; background: linear-gradient(135deg,#6366f1,#4f46e5); }
+.scale-preview .sp-frame-banner { flex: 1; min-width: 0; height: 150px; border-radius: 10px; overflow: hidden; position: relative; background: linear-gradient(135deg,#6366f1,#4f46e5); }
 .scale-preview .sp-frame-banner .sp-banner-img { position: absolute; inset: 0; background-size: cover; background-position: center center; background-repeat: no-repeat; transform-origin: center center; }
-.scale-preview .sp-frame-icon { width: 84px; height: 84px; border-radius: 22px; overflow: hidden; background: var(--accent); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 30px; flex-shrink: 0; }
+.scale-preview .sp-frame-icon { width: 110px; height: 110px; border-radius: 26px; overflow: hidden; background: var(--accent); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 38px; flex-shrink: 0; }
 .scale-preview .sp-frame-icon img { width: 100%; height: 100%; object-fit: cover; transform-origin: center center; }
 .scale-preview .sp-frame-icon .sp-icon-initials { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; transform-origin: center center; }
 .scale-preview .sp-frame-cap { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); text-align: center; margin-top: 6px; }
@@ -1346,28 +1346,37 @@ input, textarea { font-family: inherit; }
 .ci-status.bad { color: #e35d5d; }
 .ci-status.checking { color: var(--text-muted); }
 
-/* Invite embed card (in chat) — refined, understated surface */
+/* Invite embed card (in chat) — rich card with banner, icon, stats & join */
 .invite-embed {
-  display: flex; gap: 12px; background: var(--bg-darker); border: 1px solid var(--border);
-  border-radius: 12px; padding: 13px; margin-top: 6px; max-width: 400px; cursor: pointer;
-  transition: border-color 0.16s ease, background 0.16s ease, box-shadow 0.16s ease; text-decoration: none; color: inherit;
+  display: block; background: var(--bg-darker); border: 1px solid var(--border);
+  border-radius: 14px; margin-top: 8px; max-width: 440px; overflow: hidden;
+  transition: border-color 0.16s ease, box-shadow 0.16s ease; text-decoration: none; color: inherit;
   box-shadow: 0 1px 2px rgba(0,0,0,0.16);
 }
-.invite-embed:hover { border-color: rgba(var(--accent-rgb),0.5); background: var(--bg-dark); box-shadow: 0 6px 20px rgba(0,0,0,0.3); }
-.invite-embed-icon { width: 48px; height: 48px; border-radius: 12px; background: linear-gradient(160deg, var(--bg-light), var(--bg-darkest)); border: 1px solid var(--border-light); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 18px; overflow: hidden; flex-shrink: 0; color: var(--text-primary); }
+.invite-embed:hover { border-color: rgba(var(--accent-rgb),0.5); box-shadow: 0 8px 26px rgba(0,0,0,0.34); }
+.invite-embed-banner { height: 88px; background: linear-gradient(135deg, var(--bg-light), var(--bg-darkest)); background-size: cover; background-position: center; position: relative; }
+.invite-embed-banner::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0.04), rgba(0,0,0,0.42)); }
+.invite-embed-inner { padding: 0 16px 16px; }
+.invite-embed-top { display: flex; align-items: flex-end; gap: 12px; margin-top: -32px; position: relative; }
+.invite-embed-icon { width: 66px; height: 66px; border-radius: 17px; border: 4px solid var(--bg-darker); background: linear-gradient(160deg, var(--bg-light), var(--bg-darkest)); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 25px; overflow: hidden; flex-shrink: 0; color: var(--text-primary); }
 .invite-embed-icon img { width: 100%; height: 100%; object-fit: cover; }
-.invite-embed-body { flex: 1; min-width: 0; }
+.invite-embed-headtext { flex: 1; min-width: 0; padding-bottom: 3px; }
 .invite-embed-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); }
-.invite-embed-name { font-size: 15px; font-weight: 700; margin: 2px 0; }
-.invite-embed-meta { font-size: 12px; color: var(--text-secondary); }
-.invite-embed-bio { font-size: 12px; color: var(--text-muted); margin-top: 6px; line-height: 1.45; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.invite-embed-name { font-size: 17px; font-weight: 800; margin: 2px 0 0; letter-spacing: -0.2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.invite-embed-bio { font-size: 12.5px; color: var(--text-secondary); margin-top: 11px; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.invite-embed-stats { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+.invite-embed-stat { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 600; color: var(--text-secondary); background: var(--bg-darkest); border: 1px solid var(--border); border-radius: 20px; padding: 4px 10px; }
+.invite-embed-stat .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--online); box-shadow: 0 0 0 2px rgba(59,165,93,0.2); }
+.invite-embed-owner { font-size: 11.5px; color: var(--text-muted); margin-top: 11px; }
+.invite-embed-owner b { color: var(--text-secondary); font-weight: 700; }
 .invite-embed-slot { display: block; }
 /* The raw /invite link shown above the server card. */
 .invite-link-text { color: var(--accent-light); text-decoration: none; word-break: break-all; }
 .invite-link-text:hover { text-decoration: underline; }
-.invite-embed-join { margin-top: 8px; }
-.invite-embed-open-hint { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 600; color: var(--online); }
-.invite-embed-open-hint .ui-ic { width: 14px; height: 14px; }
+.invite-embed-join { margin-top: 14px; }
+.invite-embed-join .btn { width: 100%; padding: 10px 16px; font-size: 13.5px; font-weight: 700; }
+.invite-embed-open-hint { display: inline-flex; align-items: center; justify-content: center; gap: 6px; width: 100%; font-size: 13px; font-weight: 700; color: var(--online); padding: 10px; border: 1px solid rgba(59,165,93,0.35); border-radius: 10px; background: rgba(59,165,93,0.08); }
+.invite-embed-open-hint .ui-ic { width: 15px; height: 15px; }
 
 /* Generic link embeds (rich preview cards for any URL) — refined, modern,
    understated. No loud accent fills; a quiet left accent bar + soft surface. */
@@ -1961,13 +1970,13 @@ input, textarea { font-family: inherit; }
 .ch-modal-head-meta { flex: 1; min-width: 0; }
 .ch-modal-head-meta .modal-title { font-size: 17px; font-weight: 800; letter-spacing: 0.2px; }
 .ch-modal-sub { font-size: 12.5px; color: var(--text-muted); margin-top: 2px; }
-.ch-modal-body { padding: 20px 22px 8px; max-height: 66vh; overflow-y: auto; }
-.ch-block { padding: 16px 0; border-bottom: 1px solid var(--border); }
+.ch-modal-body { padding: 18px 22px 22px; max-height: 68vh; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; }
+.ch-block { padding: 18px 18px 20px; border-radius: 14px; background: var(--bg-dark); border: 1px solid var(--border); }
 .ch-block:last-child { border-bottom: none; }
-.ch-block-head { display: flex; align-items: flex-start; gap: 11px; margin-bottom: 13px; }
-.ch-block-num { font-size: 11px; font-weight: 800; letter-spacing: 0.5px; color: var(--accent-light); background: rgba(var(--accent-rgb),0.12); border: 1px solid rgba(var(--accent-rgb),0.28); border-radius: 7px; padding: 3px 7px; flex-shrink: 0; margin-top: 1px; }
-.ch-block-title { font-size: 14px; font-weight: 750; color: var(--text-primary); }
-.ch-block-sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+.ch-block-head { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 15px; }
+.ch-block-num { font-size: 11px; font-weight: 800; letter-spacing: 0.5px; color: var(--accent-light); background: rgba(var(--accent-rgb),0.12); border: 1px solid rgba(var(--accent-rgb),0.28); border-radius: 8px; padding: 4px 8px; flex-shrink: 0; margin-top: 1px; }
+.ch-block-title { font-size: 14.5px; font-weight: 750; color: var(--text-primary); }
+.ch-block-sub { font-size: 12px; color: var(--text-muted); margin-top: 3px; line-height: 1.45; }
 /* ---- Webhook manager (Edit Channel) ---- */
 .wh-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
 .wh-item { display: flex; align-items: center; gap: 11px; padding: 10px 12px; background: var(--bg-darkest); border: 1px solid var(--border); border-radius: 10px; }
@@ -2234,6 +2243,16 @@ input, textarea { font-family: inherit; }
 .msp-pane .field { margin-bottom: 22px; }
 .msp-pane .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
 .msp-pane .field-row .field { margin-bottom: 22px; }
+/* My Server Profile: sectioned layout */
+.msp-section { padding: 20px 22px; border: 1px solid var(--border); border-radius: 14px; background: var(--bg-dark); margin-bottom: 18px; }
+.msp-section:last-child { margin-bottom: 0; }
+.msp-section-title { display: flex; align-items: center; gap: 8px; font-size: 14.5px; font-weight: 750; color: var(--text-primary); }
+.msp-section-title .ui-ic { color: var(--accent-light); width: 16px; height: 16px; }
+.msp-section-sub { font-size: 12.5px; color: var(--text-muted); margin: 4px 0 18px; line-height: 1.5; }
+.msp-section .field:last-child { margin-bottom: 0; }
+/* Sticky save bar so the Save Settings button is always reachable */
+.member-profile-modal.msp-editor-mode .modal-footer { position: sticky; bottom: 0; background: var(--bg-darker); border-top: 1px solid var(--border); padding: 16px 40px; margin-top: 4px; }
+.member-profile-modal.msp-editor-mode .modal-footer #my-profile-save { min-width: 170px; font-weight: 700; }
 .msp-pane textarea { min-height: 100px; }
 .msp-pane .field input[type=text], .msp-pane .field textarea { padding: 13px 16px; font-size: 14px; }
 .color-swatches { gap: 14px; }
@@ -2506,17 +2525,24 @@ input, textarea { font-family: inherit; }
 .ov-hero-meta { font-size: 12.5px; color: var(--text-muted); margin-top: 3px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
 
 /* Preferences: setting rows */
-.pref-row { display: flex; align-items: center; gap: 14px; padding: 13px 0; border-top: 1px solid var(--border); }
-.pref-row:first-of-type { border-top: none; }
+.pref-row { display: flex; align-items: center; gap: 20px; padding: 18px 0; border-top: 1px solid var(--border); }
+.pref-row:first-of-type { border-top: none; padding-top: 4px; }
+.pref-row:last-of-type { padding-bottom: 4px; }
 .pref-row .pref-info { flex: 1; min-width: 0; }
-.pref-row .pref-label { font-size: 13.5px; font-weight: 650; color: var(--text-primary); }
-.pref-row .pref-sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; line-height: 1.5; }
-.pref-row .pref-control { flex-shrink: 0; min-width: 190px; }
+.pref-row .pref-label { font-size: 14px; font-weight: 650; color: var(--text-primary); letter-spacing: -0.1px; }
+.pref-row .pref-sub { font-size: 12.5px; color: var(--text-muted); margin-top: 4px; line-height: 1.55; max-width: 46ch; }
+.pref-row .pref-control { flex-shrink: 0; min-width: 220px; }
 .pref-row .pref-control select { width: 100%; }
 .pref-row .pref-control .seg-control { width: 100%; }
 .pref-row .pref-control .seg-control button { flex: 1; text-align: center; }
 .pref-row .pref-control .switch { margin-left: auto; }
-@media (max-width: 620px) { .pref-row { flex-direction: column; align-items: stretch; } .pref-row .pref-control { min-width: 0; } }
+.pref-row .pref-control textarea { width: 100%; }
+/* Preferences: roomier cards + section titles */
+.settings-pane[data-pane="preferences"] .settings-card { padding: 20px 22px; }
+.settings-pane[data-pane="preferences"] .settings-card .sc-title { font-size: 14.5px; font-weight: 750; margin-bottom: 4px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+.settings-pane[data-pane="preferences"] .settings-card .sc-desc { margin-top: 10px; }
+.settings-pane[data-pane="preferences"] .settings-grid { gap: 20px 24px; }
+@media (max-width: 620px) { .pref-row { flex-direction: column; align-items: stretch; gap: 10px; } .pref-row .pref-control { min-width: 0; } .pref-row .pref-sub { max-width: none; } }
 
 /* Channels: grouped list */
 .ch-group { margin-bottom: 18px; }
@@ -2583,11 +2609,13 @@ input, textarea { font-family: inherit; }
 .ban-unban:hover { color: var(--text-primary); border-color: var(--border-light); }
 
 /* Scale dialog: presets + nudge controls */
-.scale-modal { max-width: 480px; }
+.scale-modal { max-width: 560px; }
 .scale-presets { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; }
 .scale-presets button { flex: 1; min-width: 70px; padding: 8px 6px; font-size: 12px; font-weight: 600; color: var(--text-secondary); background: var(--bg-darkest); border: 1px solid var(--border); border-radius: 8px; transition: border-color 0.16s ease, background 0.16s ease, color 0.16s ease; }
 .scale-presets button:hover { background: var(--bg-medium); color: var(--text-primary); border-color: var(--border-light); }
 .scale-presets button.active { border-color: var(--accent); color: var(--accent-light); background: rgba(var(--accent-rgb),0.10); }
+.scale-fine { background: var(--bg-darkest); }
+.scale-fine-hint { font-size: 11px; color: var(--text-muted); white-space: nowrap; }
 .scale-nudge-row { display: flex; gap: 8px; margin-top: 10px; }
 .scale-nudge { flex: 1; padding: 9px; font-size: 12.5px; font-weight: 600; color: var(--text-secondary); background: var(--bg-darkest); border: 1px solid var(--border); border-radius: 8px; transition: border-color 0.16s ease, background 0.16s ease, color 0.16s ease; }
 .scale-nudge:hover { background: var(--bg-medium); color: var(--text-primary); border-color: var(--border-light); }
@@ -2730,6 +2758,8 @@ input, textarea { font-family: inherit; }
 .join-input-wrap:focus-within { border-color: var(--accent); }
 .join-input-prefix { padding: 0 4px 0 12px; color: var(--text-muted); font-weight: 700; font-size: 15px; }
 .join-input-wrap input { border: none !important; background: transparent !important; flex: 1; padding-left: 2px !important; }
+#custom-invite-input { font-size: 15px; padding-top: 12px !important; padding-bottom: 12px !important; }
+#custom-invite-input::placeholder { font-size: 15px; color: var(--text-muted); opacity: 0.85; }
 .join-divider { display: flex; align-items: center; gap: 12px; margin: 16px 0; color: var(--text-muted); font-size: 12px; }
 .join-divider::before, .join-divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
 .join-tips { display: flex; flex-direction: column; gap: 8px; margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--border); }
@@ -3586,6 +3616,7 @@ input, textarea { font-family: inherit; }
 <div class="modal-overlay" id="channel-modal">
   <div class="modal channel-modal-wide">
     <div class="modal-header ch-modal-header">
+      <div class="ch-modal-head-ic" id="ch-modal-head-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h16M4 15h16M10 3L8 21M16 3l-2 18"/></svg></div>
       <div class="ch-modal-head-meta">
         <div class="modal-title" id="channel-modal-title">Add Channel</div>
         <div class="ch-modal-sub" id="channel-modal-sub">Create a new space for your community to talk.</div>
@@ -3647,7 +3678,7 @@ input, textarea { font-family: inherit; }
 
       <div class="ch-block">
         <div class="ch-block-head">
-          <span class="ch-block-num">03</span>
+          <span class="ch-block-num">04</span>
           <div><div class="ch-block-title">Channel privacy</div><div class="ch-block-sub">Control who can find and open this channel.</div></div>
         </div>
         <div class="ch-choice-grid" id="ch-privacy-seg">
@@ -4150,6 +4181,7 @@ input, textarea { font-family: inherit; }
       </div>
       <div class="scale-preview" id="scale-preview"></div>
       <div class="scale-presets" id="scale-presets">
+        <button type="button" data-scale="25">25%</button>
         <button type="button" data-scale="50">50%</button>
         <button type="button" data-scale="75">75%</button>
         <button type="button" data-scale="100">100%</button>
@@ -4158,11 +4190,17 @@ input, textarea { font-family: inherit; }
         <button type="button" data-scale="200">200%</button>
         <button type="button" data-scale="250">250%</button>
         <button type="button" data-scale="300">300%</button>
+        <button type="button" data-scale="400">400%</button>
       </div>
       <div class="psr-item" style="margin-top:12px;">
         <label id="scale-modal-label"><svg class="ui-ic sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg> Scale</label>
-        <input type="range" id="scale-modal-range" min="50" max="300" step="1" value="100">
-        <span class="scale-num-wrap"><input type="number" id="scale-modal-num" min="50" max="300" step="1" value="100"><span class="scale-num-pct">%</span></span>
+        <input type="range" id="scale-modal-range" min="25" max="400" step="1" value="100">
+        <span class="scale-num-wrap"><input type="number" id="scale-modal-num" min="25" max="400" step="1" value="100"><span class="scale-num-pct">%</span></span>
+      </div>
+      <div class="psr-item scale-fine" style="margin-top:8px;">
+        <label><svg class="ui-ic sm" viewBox="0 0 24 24"><path d="M12 20V10M18 20V4M6 20v-4"/></svg> Fine tune</label>
+        <input type="range" id="scale-modal-fine" min="-25" max="25" step="1" value="0">
+        <span class="scale-fine-hint">nudge &plusmn;25%</span>
       </div>
       <div class="scale-nudge-row">
         <button type="button" class="scale-nudge" id="scale-nudge-down" title="Decrease by 5%">&minus;5%</button>
@@ -6807,18 +6845,31 @@ function hydrateInviteEmbeds(container) {
       }
       const already = servers.some(s => s.id === inv.serverId);
       const expires = inv.expiresAt ? 'Expires ' + timeAgo(new Date(inv.expiresAt).toISOString()) : 'Never expires';
+      const accent = inv.accentColor || '#4a9eff';
+      const stats = [];
+      stats.push('<span class="invite-embed-stat"><span class="dot"></span>' + (inv.onlineCount || 0) + ' online</span>');
+      stats.push('<span class="invite-embed-stat">' + inv.memberCount + ' member' + (inv.memberCount === 1 ? '' : 's') + '</span>');
+      stats.push('<span class="invite-embed-stat">' + inv.channelCount + ' channel' + (inv.channelCount === 1 ? '' : 's') + '</span>');
+      if (inv.roleCount) stats.push('<span class="invite-embed-stat">' + inv.roleCount + ' role' + (inv.roleCount === 1 ? '' : 's') + '</span>');
+      stats.push('<span class="invite-embed-stat">' + escapeHtml(expires) + '</span>');
       const card = document.createElement('div');
       card.className = 'invite-embed';
       card.innerHTML =
-        '<div class="invite-embed-icon">' + (inv.icon ? '<img src="' + escapeAttr(inv.icon) + '">' : escapeHtml(getInitials(inv.name))) + '</div>' +
-        '<div class="invite-embed-body">' +
-          '<div class="invite-embed-label">You\u2019ve been invited to join a server</div>' +
-          '<div class="invite-embed-name">' + escapeHtml(inv.name) + '</div>' +
-          '<div class="invite-embed-meta">' + inv.memberCount + ' member' + (inv.memberCount === 1 ? '' : 's') + ' \u00b7 ' + inv.channelCount + ' channel' + (inv.channelCount === 1 ? '' : 's') + ' \u00b7 ' + escapeHtml(expires) + '</div>' +
+        '<div class="invite-embed-banner" style="' + (inv.banner ? 'background-image:url(' + escapeAttr(inv.banner) + ');' : 'background:linear-gradient(135deg,' + escapeAttr(accent) + '33,' + escapeAttr(accent) + '0d);') + '"></div>' +
+        '<div class="invite-embed-inner">' +
+          '<div class="invite-embed-top">' +
+            '<div class="invite-embed-icon">' + (inv.icon ? '<img src="' + escapeAttr(inv.icon) + '">' : escapeHtml(getInitials(inv.name))) + '</div>' +
+            '<div class="invite-embed-headtext">' +
+              '<div class="invite-embed-label">You\u2019ve been invited to join a server</div>' +
+              '<div class="invite-embed-name">' + escapeHtml(inv.name) + '</div>' +
+            '</div>' +
+          '</div>' +
           (inv.bio ? '<div class="invite-embed-bio">' + escapeHtml(inv.bio) + '</div>' : '') +
+          '<div class="invite-embed-stats">' + stats.join('') + '</div>' +
+          (inv.ownerName ? '<div class="invite-embed-owner">Owned by <b>' + escapeHtml(inv.ownerName) + '</b></div>' : '') +
           (already
             ? '<div class="invite-embed-join"><span class="invite-embed-open-hint">' + icon('check', 'sm') + ' You\u2019re a member \u2014 click to open</span></div>'
-            : '<div class="invite-embed-join"><button class="btn btn-primary" style="padding:7px 16px;font-size:12.5px;">Join Server</button></div>') +
+            : '<div class="invite-embed-join"><button class="btn btn-primary">Join Server</button></div>') +
         '</div>';
       if (already) {
         // Already a member: the whole card is a shortcut straight into the
@@ -6827,7 +6878,8 @@ function hydrateInviteEmbeds(container) {
         card.addEventListener('click', () => openServer(inv.serverId));
       } else {
         const btn = card.querySelector('button');
-        btn.addEventListener('click', async () => {
+        btn.addEventListener('click', async (ev) => {
+          ev.stopPropagation();
           try {
             const r = await api('/api/servers/join', { method: 'POST', body: { code } });
             if (!servers.some(s => s.id === r.server.id)) servers.push(r.server);
@@ -9231,20 +9283,35 @@ function voiceStopMicTest() {
 // Play a short chime through the current output so the user can verify speakers.
 function voicePlayTestTone() {
   try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    const now = ctx.currentTime;
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) { toast('Audio is not supported in this browser', 'error'); return; }
+    const ctx = new AC();
+    // Browsers start the context suspended until a user gesture resumes it.
+    // The click IS a gesture, but we still resume explicitly so the tone is
+    // never silently dropped.
+    if (ctx.state === 'suspended' && ctx.resume) { try { ctx.resume(); } catch (e) {} }
+    // Route the tone through the user's chosen output device when the browser
+    // supports setSinkId, so the test matches what they'll actually hear.
+    if (voiceCall.outputDevice && typeof ctx.setSinkId === 'function') {
+      try { ctx.setSinkId(voiceCall.outputDevice); } catch (e) {}
+    }
+    // Never let a 0 / undefined output volume mute the test entirely — clamp
+    // to a clearly audible level so the user always hears the chime.
+    const vol = (typeof voiceCall.outputVol === 'number' && voiceCall.outputVol > 0) ? voiceCall.outputVol : 1;
+    const peak = Math.max(0.12, Math.min(0.5, 0.22 * vol));
+    const now = ctx.currentTime + 0.02;
     [523.25, 659.25, 783.99].forEach((f, i) => {
       const o = ctx.createOscillator(), g = ctx.createGain();
       o.type = 'sine'; o.frequency.value = f;
       const t = now + i * 0.16;
       g.gain.setValueAtTime(0.0001, t);
-      g.gain.exponentialRampToValueAtTime(0.22 * Math.min(1, voiceCall.outputVol), t + 0.03);
+      g.gain.exponentialRampToValueAtTime(peak, t + 0.03);
       g.gain.exponentialRampToValueAtTime(0.0001, t + 0.28);
       o.connect(g); g.connect(ctx.destination);
       o.start(t); o.stop(t + 0.3);
     });
-    setTimeout(() => { try { ctx.close(); } catch (e) {} }, 1200);
-  } catch (e) {}
+    setTimeout(() => { try { ctx.close(); } catch (e) {} }, 1400);
+  } catch (e) { toast('Could not play the test sound', 'error'); }
 }
 
 // ---- Wire up controls ----
@@ -10513,7 +10580,7 @@ function openScaleModal(kind) {
 }
 // Update the slider, value label, preset highlight and live preview together.
 function setScaleModalValue(val) {
-  val = Math.max(50, Math.min(300, Math.round(val)));
+  val = Math.max(25, Math.min(400, Math.round(val)));
   const range = $('scale-modal-range');
   if (range) range.value = String(val);
   const num = $('scale-modal-num');
@@ -10522,6 +10589,8 @@ function setScaleModalValue(val) {
   if (valEl) valEl.textContent = val + '%';
   const presets = $('scale-presets');
   if (presets) presets.querySelectorAll('button').forEach(b => b.classList.toggle('active', Number(b.dataset.scale) === val));
+  const fine = $('scale-modal-fine');
+  if (fine && document.activeElement !== fine) fine.value = '0';
   applyScalePreview(val);
 }
 function applyScalePreview(val) {
@@ -10547,6 +10616,17 @@ $('scale-modal-num').addEventListener('input', () => {
 $('scale-modal-num').addEventListener('blur', () => {
   setScaleModalValue(Number($('scale-modal-num').value) || 100);
 });
+// Fine-tune slider: relative nudge from the current value, snaps back to 0.
+if ($('scale-modal-fine')) {
+  let fineBase = 100;
+  $('scale-modal-fine').addEventListener('pointerdown', () => { fineBase = Number($('scale-modal-range').value); });
+  $('scale-modal-fine').addEventListener('input', () => {
+    const delta = Number($('scale-modal-fine').value);
+    setScaleModalValue(fineBase + delta);
+    $('scale-modal-fine').value = String(delta);
+  });
+  $('scale-modal-fine').addEventListener('change', () => { $('scale-modal-fine').value = '0'; });
+}
 $('scale-presets').querySelectorAll('button').forEach(b => b.addEventListener('click', () => setScaleModalValue(Number(b.dataset.scale))));
 $('scale-nudge-down').addEventListener('click', () => setScaleModalValue(Number($('scale-modal-range').value) - 5));
 $('scale-nudge-down1').addEventListener('click', () => setScaleModalValue(Number($('scale-modal-range').value) - 1));
@@ -10752,7 +10832,15 @@ function openChannelEditor(ch, presetCategoryId) {
   renderChannelChatUI();
   renderChannelTypeUI();
   renderChannelWebhooks();
+  updateChannelModalHeadIcon();
   openModal('channel-modal');
+}
+function updateChannelModalHeadIcon() {
+  const el = $('ch-modal-head-ic');
+  if (!el) return;
+  el.innerHTML = chEditorType === 'voice'
+    ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>'
+    : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;"><path d="M4 9h16M4 15h16M10 3L8 21M16 3l-2 18"/></svg>';
 }
 function renderChannelTypeUI() {
   const seg = $('ch-type-seg');
@@ -11782,17 +11870,22 @@ function openMyServerProfileEditor() {
       '<button data-tab="appearance">' + icon('palette', 'sm') + ' Appearance</button>' +
     '</div>' +
     '<div class="msp-pane active" id="msp-pane-profile">' +
-      '<div class="field"><label>Nickname (in this server)</label><input type="text" id="my-nick" maxlength="32" value="' + escapeAttr(me.nickname || '') + '" placeholder="' + escapeAttr(u.displayName || u.username || '') + '"></div>' +
-      '<div class="field"><label>About me (in this server)</label><textarea id="my-bio" maxlength="300" placeholder="Introduce yourself to this server’s members.">' + escapeHtml(me.bio || '') + '</textarea></div>' +
-      '<div class="field"><label>Global Bio</label><textarea id="my-gbio" maxlength="500" placeholder="This bio appears on your profile everywhere on hellobye.">' + escapeHtml(u.bio || '') + '</textarea></div>' +
-      '<div class="field-row">' +
-        '<div class="field"><label>Pronouns</label><input type="text" id="my-pronouns" maxlength="50" value="' + escapeAttr(u.pronouns || '') + '" placeholder="they/them"></div>' +
-        '<div class="field"><label>Location</label><input type="text" id="my-location" maxlength="60" value="' + escapeAttr(u.location || '') + '" placeholder="Earth"></div>' +
+      '<div class="msp-section"><div class="msp-section-title">' + icon('user', 'sm') + ' Server Identity</div><div class="msp-section-sub">How you appear to members of this server.</div>' +
+        '<div class="field"><label>Nickname (in this server)</label><input type="text" id="my-nick" maxlength="32" value="' + escapeAttr(me.nickname || '') + '" placeholder="' + escapeAttr(u.displayName || u.username || '') + '"></div>' +
+        '<div class="field"><label>About me (in this server)</label><textarea id="my-bio" maxlength="300" placeholder="Introduce yourself to this server’s members.">' + escapeHtml(me.bio || '') + '</textarea></div>' +
       '</div>' +
-      '<div class="field"><label>Website</label><input type="text" id="my-website" maxlength="120" value="' + escapeAttr(u.website || '') + '" placeholder="https://your-site.com"></div>' +
-      '<div class="field"><label>Status Message</label><input type="text" id="my-statusmsg" maxlength="25" value="' + escapeAttr(u.statusMessage || '') + '" placeholder="Set a short status — e.g. Building something new"></div>' +
+      '<div class="msp-section"><div class="msp-section-title">' + icon('chat', 'sm') + ' Global Profile</div><div class="msp-section-sub">Shown everywhere on hellobye, across every server.</div>' +
+        '<div class="field"><label>Global Bio</label><textarea id="my-gbio" maxlength="500" placeholder="This bio appears on your profile everywhere on hellobye.">' + escapeHtml(u.bio || '') + '</textarea></div>' +
+        '<div class="field-row">' +
+          '<div class="field"><label>Pronouns</label><input type="text" id="my-pronouns" maxlength="50" value="' + escapeAttr(u.pronouns || '') + '" placeholder="they/them"></div>' +
+          '<div class="field"><label>Location</label><input type="text" id="my-location" maxlength="60" value="' + escapeAttr(u.location || '') + '" placeholder="Earth"></div>' +
+        '</div>' +
+        '<div class="field"><label>Website</label><input type="text" id="my-website" maxlength="120" value="' + escapeAttr(u.website || '') + '" placeholder="https://your-site.com"></div>' +
+        '<div class="field"><label>Status Message</label><input type="text" id="my-statusmsg" maxlength="25" value="' + escapeAttr(u.statusMessage || '') + '" placeholder="Set a short status — e.g. Building something new"></div>' +
+      '</div>' +
     '</div>' +
     '<div class="msp-pane" id="msp-pane-appearance">' +
+      '<div class="msp-section"><div class="msp-section-title">' + icon('palette', 'sm') + ' Appearance</div><div class="msp-section-sub">Personalise how your profile panel looks to others.</div>' +
       '<div class="field"><label>Panel Theme Color</label><div class="hint" style="margin-bottom:10px;">This tints your profile panel for everyone who views it.</div>' +
       '<div class="color-swatches" id="msp-colors">' + panelColors.map(c => '<div class="color-swatch' + (c.toLowerCase() === curColor.toLowerCase() ? ' selected' : '') + '" data-color="' + c + '" style="background:' + c + ';"></div>').join('') + '</div>' +
       '<div style="display:flex;align-items:center;gap:10px;margin-top:12px;">' +
@@ -11803,6 +11896,7 @@ function openMyServerProfileEditor() {
       '<div class="field"><label>Avatar &amp; Banner Scale</label><div class="hint" style="margin-bottom:10px;">Adjust how large your avatar and banner appear on your server profile.</div>' +
         '<div class="scale-row"><label>' + icon('user', 'sm') + ' Avatar</label><input type="range" id="my-avatar-scale" min="100" max="220" step="5" value="' + (me.avatarScale || 100) + '"><span class="psr-val" id="my-avatar-scale-val">' + (me.avatarScale || 100) + '%</span></div>' +
         '<div class="scale-row"><label>' + icon('image', 'sm') + ' Banner</label><input type="range" id="my-banner-scale" min="100" max="220" step="5" value="' + (me.bannerScale || 100) + '"><span class="psr-val" id="my-banner-scale-val">' + (me.bannerScale || 100) + '%</span></div>' +
+      '</div>' +
       '</div>' +
     '</div>';
   $('member-modal-footer').innerHTML = '<button class="btn btn-ghost" data-close="member-modal">Cancel</button><button class="btn btn-primary" id="my-profile-save">Save Settings</button>';
@@ -11895,12 +11989,26 @@ async function showInvitePreview(code) {
   try {
     const d = await api('/api/server-invite/' + encodeURIComponent(code));
     const inv = d.invite;
+    const accent = inv.accentColor || '#4a9eff';
+    const stats = [];
+    stats.push('<span class="invite-embed-stat"><span class="dot"></span>' + (inv.onlineCount || 0) + ' online</span>');
+    stats.push('<span class="invite-embed-stat">' + inv.memberCount + ' member' + (inv.memberCount === 1 ? '' : 's') + '</span>');
+    stats.push('<span class="invite-embed-stat">' + inv.channelCount + ' channel' + (inv.channelCount === 1 ? '' : 's') + '</span>');
+    if (inv.roleCount) stats.push('<span class="invite-embed-stat">' + inv.roleCount + ' role' + (inv.roleCount === 1 ? '' : 's') + '</span>');
+    stats.push('<span class="invite-embed-stat">' + (inv.expiresAt ? 'Expires ' + timeAgo(new Date(inv.expiresAt).toISOString()) : 'Never expires') + '</span>');
     $('invite-preview-body').innerHTML =
-      '<div style="text-align:center;"><div class="invite-embed-icon" style="width:72px;height:72px;margin:0 auto 12px;font-size:28px;">' + (inv.icon ? '<img src="' + escapeAttr(inv.icon) + '">' : escapeHtml(getInitials(inv.name))) + '</div>' +
-      '<div style="font-size:20px;font-weight:700;">' + escapeHtml(inv.name) + '</div>' +
-      '<div style="font-size:13px;color:var(--text-muted);margin-top:4px;">' + inv.memberCount + ' members · ' + inv.channelCount + ' channels</div>' +
-      (inv.bio ? '<div style="font-size:13px;color:var(--text-secondary);margin-top:10px;line-height:1.5;">' + escapeHtml(inv.bio) + '</div>' : '') +
-      '<div style="font-size:12px;color:var(--text-muted);margin-top:10px;">' + (inv.expiresAt ? 'Invite expires ' + timeAgo(new Date(inv.expiresAt).toISOString()) : 'Invite never expires') + '</div></div>';
+      '<div class="invite-embed" style="max-width:none;margin:0;">' +
+        '<div class="invite-embed-banner" style="' + (inv.banner ? 'background-image:url(' + escapeAttr(inv.banner) + ');' : 'background:linear-gradient(135deg,' + escapeAttr(accent) + '33,' + escapeAttr(accent) + '0d);') + '"></div>' +
+        '<div class="invite-embed-inner">' +
+          '<div class="invite-embed-top">' +
+            '<div class="invite-embed-icon">' + (inv.icon ? '<img src="' + escapeAttr(inv.icon) + '">' : escapeHtml(getInitials(inv.name))) + '</div>' +
+            '<div class="invite-embed-headtext"><div class="invite-embed-label">You\u2019ve been invited to join</div><div class="invite-embed-name">' + escapeHtml(inv.name) + '</div></div>' +
+          '</div>' +
+          (inv.bio ? '<div class="invite-embed-bio">' + escapeHtml(inv.bio) + '</div>' : '') +
+          '<div class="invite-embed-stats">' + stats.join('') + '</div>' +
+          (inv.ownerName ? '<div class="invite-embed-owner">Owned by <b>' + escapeHtml(inv.ownerName) + '</b></div>' : '') +
+        '</div>' +
+      '</div>';
     const already = servers.some(s => s.id === inv.serverId);
     // If the viewer is already a member, skip the preview entirely and jump
     // straight into the server \u2014 no "Open Server" button needed.

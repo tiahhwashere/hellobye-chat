@@ -1,31 +1,30 @@
-# Request BJ — free invite codes, Create Role UI, remove SVGs, revamp UIs, bigger role icons
+# Request BK — invite embed join button + details, Edit Channel revamp, scale UI, Preferences, voice test fix, My Server Profile save
 
-## 1. Free up custom invite codes when changed/removed
-- [x] Backend: prune expired invites so codes free up
-- [x] Backend: isInviteCodeTaken only counts live invites
-- [x] Backend: same-server re-claim refreshes instead of erroring
-- [x] node --check server.js
+## 1. Invite link embed: join button + extra server details (image, banner, etc.)
+- [x] Richer invite embed card (banner, icon, bio, counts, owner)
+- [x] Prominent Join button
+- [x] Update invite preview modal too
 
-## 2. Create Role UI — make role options visible & better
-- [x] Replace tabbed perm-shell with fully-visible grouped layout
-- [x] Verify inline JS (checkjs.py)
+## 2. Revamp Edit Channel UI
+- [x] Fix numbering + improve layout/styling
 
-## 3. Remove SVG icon from Leave Server + Delete webhook UIs
-- [x] Remove wh-del-mark from leave-server-modal
-- [x] Remove wh-del-mark from wh-delete-modal
-- [x] Remove associated CSS
+## 3. Adjust your icon UI: bigger preview, fix scaling, more tools
+- [x] Bigger preview image
+- [x] Fix scaling + add more scale tools
 
-## 4. Revamp Preferences, Channels, Invites, Server Overview UIs
-- [x] Revamp Preferences pane (pref-rows)
-- [x] Revamp Channels pane (grouped list)
-- [x] Revamp Invites pane (create card + list)
-- [x] Revamp Server Overview pane (hero)
+## 4. Custom link name placeholder bigger
+- [x] Increase placeholder font size
 
-## 5. Bigger role icons (Assign Roles, profile, chat, members list)
-- [x] Increase badge sizes in CSS
-- [x] Add badge image to Assign Roles rows
+## 5. Preferences UI: not smushed, readable, revamp
+- [x] Improve spacing/readability
 
-## 6. Verify + deploy
+## 6. Fix voice test sound not playing
+- [x] Fix voicePlayTestTone gain/volume
+
+## 7. My Server Profile: add save settings button
+- [x] Ensure prominent working Save Settings button
+
+## 8. Verify + deploy
 - [ ] node --check server.js
 - [ ] python3 checkjs.py servers.html
 - [ ] git commit + push
