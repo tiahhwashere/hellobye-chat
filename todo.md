@@ -1,20 +1,28 @@
-# Request AV — advanced voice UI + fix lag / voice delay / whole delay
+# Request AW — voice channels + better embeds + real-time voice sync
 
-## Diagnosis
-- [x] Socket starts on `['polling','websocket']` → every message waits for the HTTP long-poll upgrade (~1-2s). Should try websocket first.
-- [x] Voice start delay: `getUserMedia` is awaited on every tap (device init + permission). No pre-warm.
-- [x] Voice stop→preview delay: `recorder.start()` with NO timeslice → all data buffered until stop; `onstop` waits for the final blob.
-- [x] Voice send delay: upload round-trip blocks any feedback; nothing shown until the server echoes back.
-- [x] Render lag: `markContinuation` does `serverMessages.find()` (O(n)) per message → O(n²) on render; `scrollBottom()` writes scrollTop synchronously on every append (layout thrash).
-- [x] Audio in messages uses bare `<audio controls>` (no preload, no custom UI).
+## A. Voice message embed polish
+- [x] Better voice-wave layout in the recorder panel (smoother, more polished)
+- [x] Custom, better voice-message embed UI (in-chat player redesign)
+- [x] Fix lag/delay inside the voice-message embed (instant playback, no decode wait)
 
-## Tasks
-- [x] Advanced voice recorder panel: live waveform canvas, timer, pause/resume, discard, send, sending spinner
-- [x] Advanced in-chat voice player: custom play/pause, waveform seek, duration, speed toggle, download
-- [x] Fix socket transport (websocket-first) + server ping tuning
-- [x] Fix voice start latency (pre-warm mic on pointerdown)
-- [x] Fix voice stop latency (timeslice recording)
-- [x] Fix voice send latency (optimistic local echo)
-- [x] Fix render lag (O(1) message index, rAF batched scroll, fragment render)
-- [x] Verify syntax + local smoke test, no data loss
-- [x] Commit + push + verify Render deploy live
+## B. GIF / link embed UI
+- [x] Make GIF embed UI better + less cartoony
+- [x] Make link embed UI better + less cartoony
+
+## C. Voice channels (server)
+- [x] Server: support channel `type: 'voice'` (create/rename/delete/reorder)
+- [x] Edit Channel / Add Channel UI: add "Voice Channel" option
+- [x] Render voice channels in the sidebar with a speaker icon
+- [x] Clicking a voice channel joins a voice call (not text chat)
+
+## D. Voice call system
+- [x] Real-time voice call via WebRTC (mesh) + Socket.io signaling
+- [x] Mute / Unmute / Deafen controls + leave
+- [x] Voice call settings/options (input device, output volume, etc.)
+- [x] Show member profiles inside the voice channel (avatars in the call)
+- [x] Green speaking ring around avatar when a user talks (real-time VAD)
+- [x] Fix all voice chat / voice message lag — everything synced in real time
+
+## E. Verify + deploy
+- [ ] Syntax check + local smoke test, no data loss
+- [ ] Commit + push + verify Render deploy live

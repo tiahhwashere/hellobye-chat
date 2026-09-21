@@ -3413,7 +3413,8 @@ app.post('/api/servers/:id/channels', authMiddleware, (req, res) => {
   if ((s.channels || []).length >= 50) return res.status(400).json({ error: 'This server has reached the maximum of 50 channels' });
   const catId = (req.body || {}).categoryId;
   const validCat = catId && (s.categories || []).some(c => c.id === catId) ? catId : null;
-  const ch = { id: genId(), name, type: 'text', topic: String((req.body || {}).topic || '').slice(0, 200), createdAt: nowISO(),
+  const chType = (req.body || {}).type === 'voice' ? 'voice' : 'text';
+  const ch = { id: genId(), name, type: chType, topic: String((req.body || {}).topic || '').slice(0, 200), createdAt: nowISO(),
     private: false, allowedRoles: [], allowedMembers: [], chatDisabledFor: 'none', categoryId: validCat };
   s.channels.push(ch);
   if (!s.messages) s.messages = {};
@@ -3450,7 +3451,10 @@ app.post('/api/servers/:id/channels/:channelId', authMiddleware, (req, res) => {
   if (!serverHasPerm(s, req.user.username, 'manageChannels')) return res.status(403).json({ error: 'You do not have permission to manage channels' });
   const ch = (s.channels || []).find(c => c.id === req.params.channelId);
   if (!ch) return res.status(404).json({ error: 'Channel not found' });
-  const { name, topic, private: isPrivate, allowedRoles, allowedMembers, chatDisabledFor, categoryId } = req.body || {};
+  const { name, topic, private: isPrivate, allowedRoles, allowedMembers, chatDisabledFor, categoryId, type: chType } = req.body || {};
+  if (chType !== undefined) {
+    ch.type = chType === 'voice' ? 'voice' : 'text';
+  }
   if (categoryId !== undefined) {
     ch.categoryId = (categoryId && (s.categories || []).some(c => c.id === categoryId)) ? categoryId : null;
   }
@@ -5550,6 +5554,8 @@ function emitUsersList() {
 
 const connectedUsers = new Map(); // username -> Set(socketIds)
 const socketToUser = new Map(); // socketId -> username
+// Voice channel presence registry: roomKey -> Map(username -> { username, socketId, muted, deafened, speaking, joinedAt })
+const voiceRooms = new Map();
 const lastMessageTime = {}; // username -> timestamp (chatroom cooldown)
 const lastGroupTime = {}; // username:groupId -> timestamp (group chat cooldown, 0.3s)
 
@@ -6871,6 +6877,90 @@ io.on('connection', (socket) => {
     socket.broadcast.emit('user-typing', { username, typing: !!isTyping });
   });
 
+  // ============================================================
+  // ---- Voice channels: real-time WebRTC signaling ----
+  // A lightweight in-memory registry of who is currently in each voice
+  // channel. The server never touches audio \u2014 it only relays SDP/ICE
+  // signaling between peers (mesh) and broadcasts presence + speaking state
+  // so every client stays perfectly in sync in real time.
+  // ============================================================
+  function voiceRoomKey(serverId, channelId) { return 'voice:' + serverId + ':' + channelId; }
+  function voiceRoomPeers(serverId, channelId) {
+    const room = voiceRooms.get(voiceRoomKey(serverId, channelId));
+    if (!room) return [];
+    return Array.from(room.values()).map(p => ({ username: p.username, muted: !!p.muted, deafened: !!p.deafened, speaking: !!p.speaking, joinedAt: p.joinedAt }));
+  }
+  function voiceBroadcastPeers(serverId, channelId) {
+    const peers = voiceRoomPeers(serverId, channelId);
+    io.to(voiceRoomKey(serverId, channelId)).emit('voice-peers', { serverId, channelId, peers });
+  }
+  function voiceRemoveUser(serverId, channelId) {
+    const key = voiceRoomKey(serverId, channelId);
+    const room = voiceRooms.get(key);
+    if (!room) return;
+    if (room.has(username)) {
+      room.delete(username);
+      socket.leave(key);
+      io.to(key).emit('voice-peer-left', { serverId, channelId, username });
+      if (room.size === 0) voiceRooms.delete(key); else voiceBroadcastPeers(serverId, channelId);
+    }
+  }
+  socket.on('voice-join', ({ serverId, channelId }, ack) => {
+    try {
+      const s = findServer(serverId);
+      if (!s) { if (typeof ack === 'function') ack({ error: 'Server not found' }); return; }
+      const ch = (s.channels || []).find(c => c.id === channelId);
+      if (!ch) { if (typeof ack === 'function') ack({ error: 'Channel not found' }); return; }
+      if (ch.type !== 'voice') { if (typeof ack === 'function') ack({ error: 'Not a voice channel' }); return; }
+      if (!(s.members || []).includes(username)) { if (typeof ack === 'function') ack({ error: 'You are not a member of this server' }); return; }
+      const key = voiceRoomKey(serverId, channelId);
+      if (!voiceRooms.has(key)) voiceRooms.set(key, new Map());
+      const room = voiceRooms.get(key);
+      const existing = voiceRoomPeers(serverId, channelId).filter(p => p.username !== username);
+      room.set(username, { username, socketId: socket.id, muted: false, deafened: false, speaking: false, joinedAt: Date.now() });
+      socket.join(key);
+      // Tell the joiner who is already here, and tell everyone else about them.
+      if (typeof ack === 'function') ack({ success: true, peers: existing });
+      socket.to(key).emit('voice-peer-joined', { serverId, channelId, peer: { username, muted: false, deafened: false, speaking: false, joinedAt: Date.now() } });
+      voiceBroadcastPeers(serverId, channelId);
+    } catch (e) { if (typeof ack === 'function') ack({ error: 'Could not join voice channel' }); }
+  });
+  socket.on('voice-leave', ({ serverId, channelId }) => {
+    if (serverId && channelId) voiceRemoveUser(serverId, channelId);
+  });
+  // Relay an SDP offer/answer or ICE candidate to a specific peer.
+  socket.on('voice-signal', ({ serverId, channelId, to, data }) => {
+    if (!serverId || !channelId || !to || !data) return;
+    const room = voiceRooms.get(voiceRoomKey(serverId, channelId));
+    if (!room || !room.has(username)) return;
+    io.to('user:' + String(to).toLowerCase()).emit('voice-signal', { serverId, channelId, from: username, data });
+  });
+  // Broadcast mute / deafen / speaking state changes instantly.
+  socket.on('voice-state', ({ serverId, channelId, muted, deafened, speaking }) => {
+    if (!serverId || !channelId) return;
+    const room = voiceRooms.get(voiceRoomKey(serverId, channelId));
+    if (!room || !room.has(username)) return;
+    const p = room.get(username);
+    if (muted !== undefined) p.muted = !!muted;
+    if (deafened !== undefined) p.deafened = !!deafened;
+    if (speaking !== undefined) p.speaking = !!speaking;
+    io.to(voiceRoomKey(serverId, channelId)).emit('voice-peer-state', { serverId, channelId, username, muted: p.muted, deafened: p.deafened, speaking: p.speaking });
+  });
+  // Lightweight speaking-only ping (fired on VAD transitions, not every frame).
+  socket.on('voice-speaking', ({ serverId, channelId, speaking }) => {
+    if (!serverId || !channelId) return;
+    const room = voiceRooms.get(voiceRoomKey(serverId, channelId));
+    if (!room || !room.has(username)) return;
+    const p = room.get(username);
+    if (p.speaking === !!speaking) return;
+    p.speaking = !!speaking;
+    io.to(voiceRoomKey(serverId, channelId)).emit('voice-peer-state', { serverId, channelId, username, muted: p.muted, deafened: p.deafened, speaking: p.speaking });
+  });
+  // Query who is currently in a voice channel (used to render the sidebar).
+  socket.on('voice-peers-get', ({ serverId, channelId }, ack) => {
+    if (typeof ack === 'function') ack({ peers: voiceRoomPeers(serverId, channelId) });
+  });
+
   // ---- Activity ----
   // Updates lastSeen in memory immediately, then debounces the expensive
   // save+broadcast so it only fires at most once every few seconds — even if
@@ -6906,6 +6996,17 @@ io.on('connection', (socket) => {
       }
     }
     socketToUser.delete(socket.id);
+    // Remove this user from every voice channel they were in and notify peers.
+    for (const [key, room] of voiceRooms) {
+      if (room.has(username) && room.get(username).socketId === socket.id) {
+        const parts = key.split(':'); // voice:<serverId>:<channelId>
+        const serverId = parts[1], channelId = parts.slice(2).join(':');
+        room.delete(username);
+        io.to(key).emit('voice-peer-left', { serverId, channelId, username });
+        if (room.size === 0) voiceRooms.delete(key);
+        else io.to(key).emit('voice-peers', { serverId, channelId, peers: Array.from(room.values()).map(p => ({ username: p.username, muted: !!p.muted, deafened: !!p.deafened, speaking: !!p.speaking, joinedAt: p.joinedAt })) });
+      }
+    }
   });
 });
 
