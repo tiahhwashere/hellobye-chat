@@ -1,27 +1,26 @@
-# Request BE — mini player, screenshare picker, perf, desktop menu
+# Request BF — toasts, animations, share UI, cursor, pip, usernames
 
-## A. Floating mini player (PiP) for screenshare/camera
-- [x] Show floating video when stage hidden (other channel/server or hide call view)
-- [x] Draggable, expand/close, works for screenshare AND camera
+## A. Remove "Screen sharing stopped" toast fully
+- [x] Remove toast call in voiceStopScreenShare
 
-## B. Custom screenshare source picker UI
-- [x] In-app modal asking which POV (entire screen / window / tab) instead of native-only
-- [x] Pass displaySurface hint to getDisplayMedia
+## B. Remove "Camera turned off" toast fully
+- [x] Remove toast call in voiceStopCamera
 
-## C. Fix lag/delay
-- [x] Skip full grid rebuild when structure unchanged (signature check)
-- [x] Throttle local + remote VAD loops to ~25fps
+## C. Smooth animation for hide call view open/close
+- [x] Animate stage show/hide transition
 
-## D. Camera fully off when toggled off
-- [x] Stop all tracks + clear srcObject so device LED turns off
+## D. Revamp "Share your screen" UI (remove icons/SVG)
+- [x] Remove SVG icons from share picker options
 
-## E. Desktop app: custom menu bar UI
-- [ ] Replace native File/View/Edit/Help with custom in-app buttons + dropdowns
-- [ ] Remove "Toggle Developer Tools" + remove whole "Edit" menu
+## E. Show user's mouse while screensharing
+- [x] Ensure cursor is captured/shown (cursor: always)
 
-## F. Desktop app: rename title
-- [ ] "shhh - no one has to know" -> "Hellobye"
+## F. Camera mini player draggable
+- [x] Drag from anywhere on the pip (not just header)
 
-## G. Verify + deploy
+## G. Show own username in voice chat + keep others'
+- [x] Own tile shows username like everyone else
+
+## H. Verify + deploy
 - [ ] node --check + inline JS check
 - [ ] Commit + push + verify Render deploy live
