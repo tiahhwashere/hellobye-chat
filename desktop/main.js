@@ -43,8 +43,10 @@ function createWindow() {
     minWidth: 940,
     minHeight: 600,
     backgroundColor: '#1a1b1e',
-    title: 'HelloBye',
-    autoHideMenuBar: false,
+    title: 'Hellobye',
+    // No native menu bar: the app draws its own custom File/View/Help bar
+    // (injected by preload.js) so it matches the site's look and feel.
+    autoHideMenuBar: true,
     icon: iconPath(),
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
@@ -165,46 +167,33 @@ function startUpdatePolling() {
 }
 
 // ---- Menu ----
+// The native application menu is intentionally removed. The app renders its own
+// custom menu bar (File / View / Help) inside the page via preload.js, and the
+// renderer drives the actions below over IPC. There is deliberately NO "Edit"
+// menu and NO "Toggle Developer Tools" entry.
 function buildMenu() {
-  const template = [
-    {
-      label: 'File',
-      submenu: [
-        { label: 'Reload', accelerator: 'CmdOrCtrl+R', click: () => mainWindow && mainWindow.webContents.reload() },
-        { label: 'Check for updates', click: () => checkForUpdate() },
-        { type: 'separator' },
-        { role: 'quit' },
-      ],
-    },
-    {
-      label: 'Edit',
-      submenu: [
-        { role: 'undo' }, { role: 'redo' }, { type: 'separator' },
-        { role: 'cut' }, { role: 'copy' }, { role: 'paste' }, { role: 'selectAll' },
-      ],
-    },
-    {
-      label: 'View',
-      submenu: [
-        { role: 'resetZoom' }, { role: 'zoomIn' }, { role: 'zoomOut' },
-        { type: 'separator' },
-        { role: 'togglefullscreen' },
-        { label: 'Toggle Developer Tools', accelerator: 'CmdOrCtrl+Shift+I', click: () => mainWindow && mainWindow.webContents.toggleDevTools() },
-      ],
-    },
-    {
-      label: 'Help',
-      submenu: [
-        { label: 'HelloBye website', click: () => shell.openExternal('https://hellobye-chat.onrender.com/') },
-        { label: 'About HelloBye', click: () => dialog.showMessageBox(mainWindow || undefined, {
-            type: 'info', title: 'About HelloBye',
-            message: 'HelloBye Desktop ' + app.getVersion(),
-            detail: 'A native desktop app for HelloBye Chat.\n\nIt automatically checks for website updates and applies them softly — no reinstall required.',
-          }) },
-      ],
-    },
-  ];
-  Menu.setApplicationMenu(Menu.buildFromTemplate(template));
+  Menu.setApplicationMenu(null);
+}
+
+// Actions invoked by the custom in-app menu bar.
+function menuAction(action) {
+  if (!mainWindow || mainWindow.isDestroyed()) return;
+  switch (action) {
+    case 'reload': mainWindow.webContents.reload(); break;
+    case 'check-updates': checkForUpdate(); break;
+    case 'quit': app.quit(); break;
+    case 'zoom-reset': mainWindow.webContents.setZoomLevel(0); break;
+    case 'zoom-in': mainWindow.webContents.setZoomLevel(mainWindow.webContents.getZoomLevel() + 0.5); break;
+    case 'zoom-out': mainWindow.webContents.setZoomLevel(mainWindow.webContents.getZoomLevel() - 0.5); break;
+    case 'fullscreen': mainWindow.setFullScreen(!mainWindow.isFullScreen()); break;
+    case 'website': shell.openExternal('https://hellobye-chat.onrender.com/'); break;
+    case 'about': dialog.showMessageBox(mainWindow, {
+        type: 'info', title: 'About Hellobye',
+        message: 'Hellobye Desktop ' + app.getVersion(),
+        detail: 'A native desktop app for Hellobye Chat.\n\nIt automatically checks for website updates and applies them softly \u2014 no reinstall required.',
+      }); break;
+    default: break;
+  }
 }
 
 // ---- IPC from renderer ----
@@ -212,6 +201,7 @@ ipcMain.handle('app-version', () => app.getVersion());
 ipcMain.on('apply-update', () => applyUpdate());
 ipcMain.on('dismiss-update', () => { updatePending = false; });
 ipcMain.handle('check-update-now', async () => { await checkForUpdate(); return true; });
+ipcMain.on('menu-action', (e, action) => menuAction(action));
 
 // ---- Lifecycle ----
 const gotLock = app.requestSingleInstanceLock();

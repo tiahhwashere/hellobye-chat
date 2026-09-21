@@ -896,6 +896,40 @@ input, textarea { font-family: inherit; }
 .vs-lightbox-close { position: absolute; top: 18px; right: 22px; width: 42px; height: 42px; border-radius: 11px; display: inline-flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.18); transition: var(--transition); }
 .vs-lightbox-close:hover { background: var(--danger); border-color: var(--danger); }
 .vs-lightbox-close svg { width: 20px; height: 20px; }
+/* Floating mini player (PiP): keeps the screenshare/camera visible while you
+   browse other channels/servers or hide the call view. */
+.vs-pip { position: fixed; right: 20px; bottom: 20px; z-index: 5800; width: 300px; border-radius: 14px; overflow: hidden; background: #000; border: 1px solid var(--border-light); box-shadow: 0 22px 60px rgba(0,0,0,0.6); display: none; flex-direction: column; }
+.vs-pip.show { display: flex; animation: vsPipIn 0.2s ease; }
+@keyframes vsPipIn { from { opacity: 0; transform: translateY(14px) scale(0.97); } to { opacity: 1; transform: none; } }
+.vs-pip.dragging { transition: none; }
+.vs-pip-head { display: flex; align-items: center; gap: 8px; padding: 7px 9px; background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(0,0,0,0.2)); cursor: grab; user-select: none; }
+.vs-pip-head:active { cursor: grabbing; }
+.vs-pip-title { flex: 1; min-width: 0; display: inline-flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.vs-pip-title svg { width: 14px; height: 14px; flex-shrink: 0; }
+.vs-pip-btn { width: 26px; height: 26px; border-radius: 7px; display: inline-flex; align-items: center; justify-content: center; color: #d7d9df; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); flex-shrink: 0; transition: var(--transition); }
+.vs-pip-btn:hover { background: rgba(255,255,255,0.18); color: #fff; }
+.vs-pip-btn svg { width: 14px; height: 14px; }
+.vs-pip-video-wrap { position: relative; background: #000; aspect-ratio: 16 / 9; }
+.vs-pip video { width: 100%; height: 100%; object-fit: contain; background: #000; display: block; }
+.vs-pip.screen video { object-fit: contain; }
+.vs-pip.camera video { object-fit: cover; }
+.vs-pip-empty { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: var(--text-muted); font-size: 12px; }
+/* In-app screen-share source picker (replaces relying on the OS prompt alone). */
+.vs-share-overlay { position: fixed; inset: 0; z-index: 6100; display: none; align-items: center; justify-content: center; padding: 20px; background: rgba(0,0,0,0.62); backdrop-filter: blur(5px); }
+.vs-share-overlay.show { display: flex; animation: vsLbIn 0.16s ease; }
+.vs-share-card { width: 100%; max-width: 460px; background: linear-gradient(180deg, var(--bg-dark), var(--bg-darker)); border: 1px solid var(--border-light); border-radius: 18px; padding: 24px 22px 20px; box-shadow: 0 26px 70px rgba(0,0,0,0.6); animation: micPermPop 0.22s cubic-bezier(0.2,0.9,0.3,1.2); }
+.vs-share-title { font-size: 18px; font-weight: 800; color: var(--text-primary); margin-bottom: 4px; }
+.vs-share-desc { font-size: 13px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 18px; }
+.vs-share-opts { display: flex; flex-direction: column; gap: 10px; }
+.vs-share-opt { display: flex; align-items: center; gap: 14px; padding: 14px 15px; border-radius: 13px; background: var(--bg-darkest); border: 1px solid var(--border); text-align: left; transition: var(--transition); }
+.vs-share-opt:hover { border-color: var(--accent); background: var(--bg-light); transform: translateY(-1px); }
+.vs-share-opt-ic { width: 42px; height: 42px; border-radius: 11px; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; background: rgba(var(--accent-rgb),0.14); color: var(--accent); }
+.vs-share-opt-ic svg { width: 21px; height: 21px; }
+.vs-share-opt-body { min-width: 0; }
+.vs-share-opt-name { font-size: 14px; font-weight: 700; color: var(--text-primary); }
+.vs-share-opt-sub { font-size: 12px; color: var(--text-muted); margin-top: 1px; }
+.vs-share-cancel { width: 100%; margin-top: 14px; padding: 11px 18px; border-radius: 12px; background: transparent; border: 1px solid var(--border); color: var(--text-secondary); font-size: 13.5px; font-weight: 600; transition: var(--transition); }
+.vs-share-cancel:hover { border-color: var(--border-light); color: var(--text-primary); }
 /* Screen-share / camera control buttons */
 .vs-ctl.vs-ctl-on { background: rgba(var(--accent-rgb),0.16); border-color: rgba(var(--accent-rgb),0.5); color: var(--accent); }
 .vs-ctl.vs-ctl-on:hover { background: rgba(var(--accent-rgb),0.24); }
@@ -2736,6 +2770,44 @@ input, textarea { font-family: inherit; }
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           </button>
           <video id="vs-lightbox-video" autoplay playsinline></video>
+        </div>
+        <!-- Floating mini player: keeps screenshare/camera visible off-stage -->
+        <div class="vs-pip" id="vs-pip">
+          <div class="vs-pip-head" id="vs-pip-head">
+            <span class="vs-pip-title" id="vs-pip-title"></span>
+            <button class="vs-pip-btn" id="vs-pip-expand" title="Back to call view" aria-label="Back to call view">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+            </button>
+            <button class="vs-pip-btn" id="vs-pip-close" title="Hide mini player" aria-label="Hide mini player">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>
+          <div class="vs-pip-video-wrap">
+            <video id="vs-pip-video" autoplay playsinline muted></video>
+            <div class="vs-pip-empty" id="vs-pip-empty" style="display:none;">No video</div>
+          </div>
+        </div>
+        <!-- In-app screen-share source picker -->
+        <div class="vs-share-overlay" id="vs-share-overlay">
+          <div class="vs-share-card">
+            <div class="vs-share-title">Share your screen</div>
+            <div class="vs-share-desc">Choose what you want everyone in the call to see.</div>
+            <div class="vs-share-opts">
+              <button class="vs-share-opt" data-surface="monitor">
+                <span class="vs-share-opt-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></span>
+                <span class="vs-share-opt-body"><span class="vs-share-opt-name">Entire screen</span><span class="vs-share-opt-sub">Share everything on one of your displays</span></span>
+              </button>
+              <button class="vs-share-opt" data-surface="window">
+                <span class="vs-share-opt-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/></svg></span>
+                <span class="vs-share-opt-body"><span class="vs-share-opt-name">A window</span><span class="vs-share-opt-sub">Share a single application window</span></span>
+              </button>
+              <button class="vs-share-opt" data-surface="browser">
+                <span class="vs-share-opt-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></span>
+                <span class="vs-share-opt-body"><span class="vs-share-opt-name">A browser tab</span><span class="vs-share-opt-sub">Share a single tab (with its audio)</span></span>
+              </button>
+            </div>
+            <button class="vs-share-cancel" id="vs-share-cancel">Cancel</button>
+          </div>
         </div>
         <div class="server-input-area" id="server-input-area">
           <div class="srv-reply-preview" id="srv-reply-preview" style="display:none;">
@@ -4694,9 +4766,10 @@ function connectSocket() {
     if (!rec.screenSharing && !rec.cameraOn && rec.remoteVideoStream) {
       rec.remoteVideoStream = null;
       voiceRenderStage();
+      voiceUpdatePip();
       return;
     }
-    if (rec.screenSharing || rec.cameraOn) { voiceRenderStage(); return; }
+    if (rec.screenSharing || rec.cameraOn) { voiceRenderStage(); voiceUpdatePip(); return; }
     voiceUpdateTile(data.username);
   });
   socket.on('voice-signal', (data) => {
@@ -7144,6 +7217,8 @@ const voiceCall = {
   screenSharing: false,
   cameraStream: null,        // active camera stream (if any)
   cameraOn: false,
+  pipDismissed: false,       // user hid the floating mini player
+  stageSig: '',              // structural signature of the rendered grid (perf)
 };
 // ---- Voice & Video settings persistence ----
 // The settings used to live only in the in-memory voiceCall object, so every
@@ -7489,6 +7564,7 @@ function voiceShowStage(show) {
     voiceUpdateSub();
   }
   voiceUpdateMiniBar();
+  voiceUpdatePip();
 }
 function voiceUpdateSub() {
   const sub = $('vs-sub');
@@ -7569,6 +7645,7 @@ function voiceCreatePeer(username, initiator) {
       if (ev.track && ev.track.kind === 'video') {
         p.remoteVideoStream = stream;
         voiceRenderStage();
+        voiceUpdatePip();
         return;
       }
       audioEl.srcObject = stream;
@@ -7653,35 +7730,56 @@ function voiceRenegotiateAll() {
   });
 }
 // ---- Screen share (high framerate, 100+ FPS capable) ----
-async function voiceToggleScreenShare() {
+// The button opens an in-app picker so the user chooses the POV (entire screen,
+// a window, or a browser tab) before the OS prompt appears.
+function voiceToggleScreenShare() {
   if (!voiceCall.active) return;
   if (voiceCall.screenSharing) { voiceStopScreenShare(); return; }
   if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
     toast('Screen sharing is not supported in this browser.', 'error'); return;
   }
+  const ov = $('vs-share-overlay');
+  if (ov) { ov.classList.add('show'); return; }
+  voiceStartScreenShare(''); // fallback: no picker available
+}
+function voiceCloseSharePicker() {
+  const ov = $('vs-share-overlay');
+  if (ov) ov.classList.remove('show');
+}
+async function voiceStartScreenShare(surface) {
+  voiceCloseSharePicker();
+  if (!voiceCall.active || voiceCall.screenSharing) return;
+  // Build constraints. displaySurface is a hint the browser may honour; the
+  // user can still change the source in the native prompt.
+  const video = { frameRate: { ideal: 120, max: 144 }, cursor: 'always' };
+  if (surface) video.displaySurface = surface;
   let stream;
   try {
-    stream = await navigator.mediaDevices.getDisplayMedia({
-      video: { frameRate: { ideal: 120, max: 144 }, cursor: 'always' },
-      audio: false,
-    });
+    stream = await navigator.mediaDevices.getDisplayMedia({ video, audio: true });
   } catch (e) {
-    if (e && e.name !== 'NotAllowedError') toast('Could not start screen share.', 'error');
-    return;
+    // Retry without audio (some sources reject audio capture).
+    try { stream = await navigator.mediaDevices.getDisplayMedia({ video, audio: false }); }
+    catch (e2) {
+      if (e2 && e2.name !== 'NotAllowedError') toast('Could not start screen share.', 'error');
+      return;
+    }
   }
   voiceCall.screenStream = stream;
   voiceCall.screenSharing = true;
   const track = stream.getVideoTracks()[0];
   if (track) track.onended = () => voiceStopScreenShare();
-  // Push the new video track to every peer, then renegotiate.
+  // Push the new video (and any tab audio) to every peer, then renegotiate.
   voiceCall.peers.forEach((p) => {
     if (p.self || !p.pc) return;
-    try { if (track && !p.pc.getSenders().some(s => s.track === track)) p.pc.addTrack(track, stream); } catch (e) {}
+    try {
+      stream.getTracks().forEach(t => { if (!p.pc.getSenders().some(s => s.track === t)) p.pc.addTrack(t, stream); });
+    } catch (e) {}
   });
   voiceRenegotiateAll();
   socket.emit('voice-state', { serverId: voiceCall.serverId, channelId: voiceCall.channelId, screenSharing: true });
   voiceUpdateControls();
   voiceRenderStage();
+  voiceUpdatePip();
   toast('Screen sharing started', 'success');
 }
 function voiceStopScreenShare(silent) {
@@ -7690,18 +7788,19 @@ function voiceStopScreenShare(silent) {
   voiceCall.screenStream = null;
   voiceCall.screenSharing = false;
   if (stream) {
-    const track = stream.getVideoTracks()[0];
-    if (track) track.onended = null;
-    try { stream.getTracks().forEach(t => t.stop()); } catch (e) {}
+    const tracks = stream.getTracks();
+    tracks.forEach(t => { t.onended = null; });
+    try { tracks.forEach(t => t.stop()); } catch (e) {}
     voiceCall.peers.forEach((p) => {
       if (p.self || !p.pc) return;
-      try { p.pc.getSenders().forEach((s) => { if (s.track === track) { try { p.pc.removeTrack(s); } catch (e) {} } }); } catch (e) {}
+      try { p.pc.getSenders().forEach((s) => { if (tracks.includes(s.track)) { try { p.pc.removeTrack(s); } catch (e) {} } }); } catch (e) {}
     });
     voiceRenegotiateAll();
   }
   if (voiceCall.active) socket.emit('voice-state', { serverId: voiceCall.serverId, channelId: voiceCall.channelId, screenSharing: false });
   voiceUpdateControls();
   voiceRenderStage();
+  voiceUpdatePip();
   if (!silent) toast('Screen sharing stopped');
 }
 // ---- Camera ----
@@ -7733,6 +7832,7 @@ async function voiceToggleCamera() {
   socket.emit('voice-state', { serverId: voiceCall.serverId, channelId: voiceCall.channelId, cameraOn: true });
   voiceUpdateControls();
   voiceRenderStage();
+  voiceUpdatePip();
 }
 function voiceStopCamera(silent) {
   if (!voiceCall.cameraOn && !voiceCall.cameraStream) return;
@@ -7740,18 +7840,22 @@ function voiceStopCamera(silent) {
   voiceCall.cameraStream = null;
   voiceCall.cameraOn = false;
   if (stream) {
-    const track = stream.getVideoTracks()[0];
-    if (track) track.onended = null;
-    try { stream.getTracks().forEach(t => t.stop()); } catch (e) {}
+    const tracks = stream.getTracks();
+    tracks.forEach(t => { t.onended = null; });
+    // Fully stop every track so the OS releases the device (camera LED off).
+    try { tracks.forEach(t => t.stop()); } catch (e) {}
     voiceCall.peers.forEach((p) => {
       if (p.self || !p.pc) return;
-      try { p.pc.getSenders().forEach((s) => { if (s.track === track) { try { p.pc.removeTrack(s); } catch (e) {} } }); } catch (e) {}
+      try { p.pc.getSenders().forEach((s) => { if (tracks.includes(s.track)) { try { p.pc.removeTrack(s); } catch (e) {} } }); } catch (e) {}
     });
     voiceRenegotiateAll();
   }
+  // Clear any lingering references so the device is truly released.
+  try { const v = $('vs-pip-video'); if (v && v.srcObject && v.srcObject.getVideoTracks && !voiceCall.screenSharing) v.srcObject = null; } catch (e) {}
   if (voiceCall.active) socket.emit('voice-state', { serverId: voiceCall.serverId, channelId: voiceCall.channelId, cameraOn: false });
   voiceUpdateControls();
   voiceRenderStage();
+  voiceUpdatePip();
   if (!silent) toast('Camera turned off');
 }
 async function voiceHandleSignal(from, data) {
@@ -7846,8 +7950,28 @@ function voicePaintGifStatic(canvas) {
 function voiceRenderStage() {
   const grid = $('vs-grid');
   if (!grid) return;
-  if (!voiceCall.active) { grid.innerHTML = ''; return; }
+  if (!voiceCall.active) { grid.innerHTML = ''; voiceCall.stageSig = ''; return; }
   const order = Array.from(voiceCall.peers.values()).sort((a, b) => (a.self ? -1 : b.self ? 1 : 0));
+  // Perf: only rebuild the grid markup when the *structure* changes (who is in
+  // the call, whether each tile has video, and whether it is a screen share).
+  // Mute/deafen/speaking changes are applied in place via voiceUpdateTile(),
+  // so we avoid tearing down <video> elements (and re-negotiating) on every
+  // tiny state change. This removes the stutter/lag during busy calls.
+  const sig = order.map(p => {
+    const sharing = p.self ? !!voiceCall.screenSharing : !!p.screenSharing;
+    const camOn = p.self ? !!voiceCall.cameraOn : !!p.cameraOn;
+    const hasVideo = !!p.remoteVideoStream || sharing || camOn;
+    return p.username + ':' + (hasVideo ? (sharing ? 's' : 'c') : 'a');
+  }).join('|');
+  if (sig === voiceCall.stageSig && grid.childElementCount) {
+    // Structure unchanged: just refresh the cheap state bits + video streams.
+    order.forEach(p => voiceUpdateTile(p.username));
+    voiceSyncStageStreams(order);
+    voiceUpdateSub();
+    voiceUpdateMiniBar();
+    return;
+  }
+  voiceCall.stageSig = sig;
   grid.innerHTML = order.map(p => {
     const member = (activeServer && activeServer.members || []).find(x => x.username === p.username) || {};
     const av = voiceAvatarHtml(member, p.username);
@@ -7880,16 +8004,7 @@ function voiceRenderStage() {
     '</div>';
   }).join('');
   // Attach live video streams to the freshly-rendered <video> elements.
-  order.forEach(p => {
-    const sharing = p.self ? !!voiceCall.screenSharing : !!p.screenSharing;
-    const camOn = p.self ? !!voiceCall.cameraOn : !!p.cameraOn;
-    if (!p.remoteVideoStream && !sharing && !camOn) return;
-    const tile = grid.querySelector('.vs-tile[data-voice-user="' + (window.CSS && CSS.escape ? CSS.escape(p.username) : p.username) + '"]');
-    const vid = tile && tile.querySelector('video.vs-video');
-    if (!vid) return;
-    const stream = p.self ? (voiceCall.screenStream || voiceCall.cameraStream) : p.remoteVideoStream;
-    if (stream && vid.srcObject !== stream) { try { vid.srcObject = stream; vid.play().catch(() => {}); } catch (e) {} }
-  });
+  voiceSyncStageStreams(order);
   // Click a video tile (or its expand button) to zoom it to fullscreen.
   grid.querySelectorAll('.vs-tile.has-video').forEach(tile => {
     const open = (e) => { e.stopPropagation(); voiceOpenLightbox(tile.dataset.voiceUser); };
@@ -7901,6 +8016,23 @@ function voiceRenderStage() {
   grid.querySelectorAll('canvas.vs-avatar-gif-static').forEach(voicePaintGifStatic);
   voiceUpdateSub();
   voiceUpdateMiniBar();
+}
+// Attach (or refresh) the live <video> srcObject for every tile that has video.
+// Kept separate so a state-only re-render can re-sync streams without rebuilding
+// the whole grid markup.
+function voiceSyncStageStreams(order) {
+  const grid = $('vs-grid');
+  if (!grid) return;
+  order.forEach(p => {
+    const sharing = p.self ? !!voiceCall.screenSharing : !!p.screenSharing;
+    const camOn = p.self ? !!voiceCall.cameraOn : !!p.cameraOn;
+    if (!p.remoteVideoStream && !sharing && !camOn) return;
+    const tile = grid.querySelector('.vs-tile[data-voice-user="' + (window.CSS && CSS.escape ? CSS.escape(p.username) : p.username) + '"]');
+    const vid = tile && tile.querySelector('video.vs-video');
+    if (!vid) return;
+    const stream = p.self ? (voiceCall.screenStream || voiceCall.cameraStream) : p.remoteVideoStream;
+    if (stream && vid.srcObject !== stream) { try { vid.srcObject = stream; vid.play().catch(() => {}); } catch (e) {} }
+  });
 }
 // ---- Fullscreen video lightbox ----
 function voiceOpenLightbox(username) {
@@ -7928,6 +8060,76 @@ function voiceCloseLightbox() {
   const lb = $('vs-lightbox'), vid = $('vs-lightbox-video');
   if (lb) lb.classList.remove('show');
   if (vid) { try { vid.pause(); vid.srcObject = null; } catch (e) {} }
+}
+// ---- Floating mini player (PiP) ----
+// Picks the best stream to show in the mini player: prefer a remote screen
+// share, then a remote camera, then our own screen share, then our own camera.
+function voicePipSource() {
+  let best = null;
+  voiceCall.peers.forEach((p) => {
+    if (p.self) return;
+    if (p.screenSharing && p.remoteVideoStream) { if (!best || best.kind !== 'screen') best = { stream: p.remoteVideoStream, name: p.username, kind: 'screen' }; }
+    else if (p.cameraOn && p.remoteVideoStream && !best) best = { stream: p.remoteVideoStream, name: p.username, kind: 'camera' };
+  });
+  if (!best && voiceCall.screenSharing && voiceCall.screenStream) best = { stream: voiceCall.screenStream, name: currentUser.username, kind: 'screen', self: true };
+  if (!best && voiceCall.cameraOn && voiceCall.cameraStream) best = { stream: voiceCall.cameraStream, name: currentUser.username, kind: 'camera', self: true };
+  return best;
+}
+// Should the mini player be visible? Only when the full stage is hidden (user
+// switched channel/server or clicked "hide call view") AND there is video.
+function voiceUpdatePip() {
+  const pip = $('vs-pip');
+  if (!pip) return;
+  const stageVisible = voiceCall.active && !voiceCall.minimized && (!voiceCall.serverId || voiceCall.serverId === activeServerId);
+  const src = voicePipSource();
+  const show = voiceCall.active && !stageVisible && !!src && !voiceCall.pipDismissed;
+  pip.classList.toggle('show', !!show);
+  if (!show) { const v = $('vs-pip-video'); if (v) { try { v.srcObject = null; } catch (e) {} } return; }
+  pip.classList.toggle('screen', src.kind === 'screen');
+  pip.classList.toggle('camera', src.kind === 'camera');
+  const member = (activeServer && activeServer.members || []).find(x => x.username === src.name) || {};
+  const name = member.nickname || member.displayName || src.name;
+  const title = $('vs-pip-title');
+  if (title) {
+    const ic = src.kind === 'screen'
+      ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>'
+      : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>';
+    title.innerHTML = ic + escapeHtml(name) + (src.kind === 'screen' ? ' \u00b7 Screen' : '');
+  }
+  const v = $('vs-pip-video');
+  if (v && v.srcObject !== src.stream) { try { v.srcObject = src.stream; v.muted = true; v.play().catch(() => {}); } catch (e) {} }
+}
+function voicePipDismiss() {
+  voiceCall.pipDismissed = true;
+  const pip = $('vs-pip'); if (pip) pip.classList.remove('show');
+  const v = $('vs-pip-video'); if (v) { try { v.srcObject = null; } catch (e) {} }
+}
+// Drag the mini player around the screen.
+function voicePipInitDrag() {
+  const pip = $('vs-pip'), head = $('vs-pip-head');
+  if (!pip || !head) return;
+  let sx = 0, sy = 0, ox = 0, oy = 0, dragging = false;
+  head.addEventListener('pointerdown', (e) => {
+    if (e.target.closest('.vs-pip-btn')) return;
+    dragging = true; pip.classList.add('dragging');
+    const r = pip.getBoundingClientRect();
+    sx = e.clientX; sy = e.clientY; ox = r.left; oy = r.top;
+    // Switch from right/bottom anchoring to left/top for free movement.
+    pip.style.left = r.left + 'px'; pip.style.top = r.top + 'px';
+    pip.style.right = 'auto'; pip.style.bottom = 'auto';
+    try { head.setPointerCapture(e.pointerId); } catch (err) {}
+  });
+  head.addEventListener('pointermove', (e) => {
+    if (!dragging) return;
+    const w = pip.offsetWidth, h = pip.offsetHeight;
+    let nx = ox + (e.clientX - sx), ny = oy + (e.clientY - sy);
+    nx = Math.max(6, Math.min(window.innerWidth - w - 6, nx));
+    ny = Math.max(6, Math.min(window.innerHeight - h - 6, ny));
+    pip.style.left = nx + 'px'; pip.style.top = ny + 'px';
+  });
+  const end = (e) => { if (!dragging) return; dragging = false; pip.classList.remove('dragging'); try { head.releasePointerCapture(e.pointerId); } catch (err) {} };
+  head.addEventListener('pointerup', end);
+  head.addEventListener('pointercancel', end);
 }
 function voiceUpdateTile(username) {
   const p = voiceCall.peers.get(username);
@@ -8253,8 +8455,13 @@ function voiceStartVAD() {
     src.connect(an);
     voiceCall.analyser = an;
     const buf = new Uint8Array(an.fftSize);
-    const loop = () => {
+    let lastRun = 0;
+    const loop = (ts) => {
       if (!voiceCall.active || !voiceCall.analyser) return;
+      // Perf: analyse at ~25fps instead of every animation frame. VAD only
+      // needs to catch speech transitions, so this is plenty and saves CPU.
+      if (ts && ts - lastRun < 40) { voiceCall.vadRaf = requestAnimationFrame(loop); return; }
+      lastRun = ts || performance.now();
       voiceCall.analyser.getByteTimeDomainData(buf);
       let sum = 0;
       for (let i = 0; i < buf.length; i++) { const v = (buf[i] - 128) / 128; sum += v * v; }
@@ -8303,8 +8510,12 @@ function voiceAttachRemoteAnalyser(p) {
 }
 function voiceStartRemoteVAD() {
   if (voiceCall.remoteVadRaf) return;
-  const loop = () => {
+  let lastRun = 0;
+  const loop = (ts) => {
     if (!voiceCall.active) { voiceCall.remoteVadRaf = 0; return; }
+    // Perf: throttle to ~25fps; the 220ms hold below already smooths the ring.
+    if (ts && ts - lastRun < 40) { voiceCall.remoteVadRaf = requestAnimationFrame(loop); return; }
+    lastRun = ts || performance.now();
     const now = performance.now();
     voiceCall.peers.forEach((p) => {
       if (p.self || !p.remoteAnalyser) return;
@@ -8523,7 +8734,17 @@ if ($('vs-screenshare')) $('vs-screenshare').addEventListener('click', () => voi
 // Fullscreen video lightbox.
 if ($('vs-lightbox-close')) $('vs-lightbox-close').addEventListener('click', voiceCloseLightbox);
 if ($('vs-lightbox')) $('vs-lightbox').addEventListener('click', (e) => { if (e.target === $('vs-lightbox')) voiceCloseLightbox(); });
-document.addEventListener('keydown', (e) => { if (e.key === 'Escape') voiceCloseLightbox(); });
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { voiceCloseLightbox(); voiceCloseSharePicker(); } });
+// Floating mini player (PiP).
+if ($('vs-pip-expand')) $('vs-pip-expand').addEventListener('click', () => { voiceCall.pipDismissed = false; voiceReturnToCall(); });
+if ($('vs-pip-close')) $('vs-pip-close').addEventListener('click', voicePipDismiss);
+voicePipInitDrag();
+// In-app screen-share source picker.
+if ($('vs-share-cancel')) $('vs-share-cancel').addEventListener('click', voiceCloseSharePicker);
+if ($('vs-share-overlay')) $('vs-share-overlay').addEventListener('click', (e) => { if (e.target === $('vs-share-overlay')) voiceCloseSharePicker(); });
+document.querySelectorAll('.vs-share-opt').forEach(btn => {
+  btn.addEventListener('click', () => voiceStartScreenShare(btn.dataset.surface || ''));
+});
 // Mini voice bar controls.
 if ($('mini-voice')) $('mini-voice').addEventListener('click', (e) => { if (e.target.closest('.mv-btn')) return; voiceReturnToCall(); });
 if ($('mv-mute')) $('mv-mute').addEventListener('click', (e) => { e.stopPropagation(); voiceSetMuted(!voiceCall.muted); });

@@ -10,6 +10,7 @@ contextBridge.exposeInMainWorld('hellobyeDesktop', {
   checkForUpdate: () => ipcRenderer.invoke('check-update-now'),
   applyUpdate: () => ipcRenderer.send('apply-update'),
   dismissUpdate: () => ipcRenderer.send('dismiss-update'),
+  menuAction: (action) => ipcRenderer.send('menu-action', action),
   onSoftUpdate: (cb) => {
     if (typeof cb !== 'function') return;
     ipcRenderer.on('soft-update-available', () => cb());
@@ -115,3 +116,151 @@ ipcRenderer.on('soft-update-available', () => {
   if (document.body) showBanner();
   else window.addEventListener('DOMContentLoaded', showBanner, { once: true });
 });
+
+// ============================================================
+// Custom in-app menu bar (File / View / Help)
+// ------------------------------------------------------------
+// The native Electron menu is disabled (see main.js). Instead we draw our own
+// menu bar that matches the site's dark UI, with custom dropdowns. There is
+// intentionally NO "Edit" menu and NO "Toggle Developer Tools" entry.
+// ============================================================
+function injectMenuStyles() {
+  if (document.getElementById('hb-desktop-menu-style')) return;
+  const style = document.createElement('style');
+  style.id = 'hb-desktop-menu-style';
+  style.textContent = `
+    #hb-menubar {
+      position: fixed; top: 0; left: 0; right: 0; height: 34px; z-index: 2147483000;
+      display: flex; align-items: center; gap: 2px; padding: 0 8px;
+      background: #16171a; border-bottom: 1px solid rgba(255,255,255,0.07);
+      color: #d7d9e0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      font-size: 13px; user-select: none; -webkit-app-region: drag;
+    }
+    #hb-menubar .hb-mb-brand {
+      display: flex; align-items: center; gap: 7px; font-weight: 700; letter-spacing: .2px;
+      color: #fff; padding: 0 10px 0 4px; margin-right: 4px;
+    }
+    #hb-menubar .hb-mb-brand .hb-mb-dot {
+      width: 16px; height: 16px; border-radius: 5px;
+      background: linear-gradient(135deg, #5865f2, #8b93ff);
+      box-shadow: 0 0 10px rgba(88,101,242,.5);
+    }
+    #hb-menubar .hb-mb-item {
+      -webkit-app-region: no-drag;
+      position: relative; padding: 5px 11px; border-radius: 7px; cursor: pointer;
+      color: #c7c9d1; transition: background .12s ease, color .12s ease;
+    }
+    #hb-menubar .hb-mb-item:hover, #hb-menubar .hb-mb-item.open { background: rgba(255,255,255,0.09); color: #fff; }
+    #hb-menubar .hb-mb-spacer { flex: 1 1 auto; }
+    #hb-menubar .hb-mb-ver { -webkit-app-region: no-drag; color: #6d7078; font-size: 11.5px; padding-right: 6px; }
+    .hb-mb-drop {
+      position: fixed; z-index: 2147483001; min-width: 210px; padding: 6px;
+      background: #1e1f23; border: 1px solid rgba(255,255,255,0.10); border-radius: 11px;
+      box-shadow: 0 16px 44px rgba(0,0,0,0.55); color: #e6e7ec;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; font-size: 13px;
+      opacity: 0; transform: translateY(-6px); transition: opacity .12s ease, transform .12s ease;
+      pointer-events: none;
+    }
+    .hb-mb-drop.show { opacity: 1; transform: translateY(0); pointer-events: auto; }
+    .hb-mb-drop .hb-mb-row {
+      display: flex; align-items: center; justify-content: space-between; gap: 18px;
+      padding: 8px 11px; border-radius: 8px; cursor: pointer; color: #d7d9e0;
+    }
+    .hb-mb-drop .hb-mb-row:hover { background: #5865f2; color: #fff; }
+    .hb-mb-drop .hb-mb-row .hb-mb-acc { color: #8a8d96; font-size: 11.5px; }
+    .hb-mb-drop .hb-mb-row:hover .hb-mb-acc { color: rgba(255,255,255,0.8); }
+    .hb-mb-drop .hb-mb-sep { height: 1px; margin: 5px 8px; background: rgba(255,255,255,0.08); }
+    body.hb-has-menubar #servers-app { height: calc(100vh - 34px) !important; margin-top: 34px; }
+    body.hb-has-menubar #chat-app { height: calc(100vh - 34px) !important; margin-top: 34px; }
+    @supports (height: 100dvh) {
+      body.hb-has-menubar #servers-app { height: calc(100dvh - 34px) !important; }
+      body.hb-has-menubar #chat-app { height: calc(100dvh - 34px) !important; }
+    }
+  `;
+  (document.head || document.documentElement).appendChild(style);
+}
+
+let openDrop = null;
+function closeDrop() {
+  if (openDrop) { openDrop.classList.remove('show'); openDrop = null; }
+  document.querySelectorAll('#hb-menubar .hb-mb-item.open').forEach(el => el.classList.remove('open'));
+}
+
+function buildMenuBar() {
+  if (document.getElementById('hb-menubar')) return;
+  injectMenuStyles();
+
+  const menus = {
+    File: [
+      { label: 'Reload', acc: 'Ctrl+R', action: 'reload' },
+      { label: 'Check for updates', action: 'check-updates' },
+      { sep: true },
+      { label: 'Quit Hellobye', acc: 'Alt+F4', action: 'quit' },
+    ],
+    View: [
+      { label: 'Reset zoom', acc: 'Ctrl+0', action: 'zoom-reset' },
+      { label: 'Zoom in', acc: 'Ctrl++', action: 'zoom-in' },
+      { label: 'Zoom out', acc: 'Ctrl+-', action: 'zoom-out' },
+      { sep: true },
+      { label: 'Toggle full screen', acc: 'F11', action: 'fullscreen' },
+    ],
+    Help: [
+      { label: 'Hellobye website', action: 'website' },
+      { label: 'About Hellobye', action: 'about' },
+    ],
+  };
+
+  const bar = document.createElement('div');
+  bar.id = 'hb-menubar';
+  bar.innerHTML = '<div class="hb-mb-brand"><span class="hb-mb-dot"></span>Hellobye</div>';
+  Object.keys(menus).forEach((name) => {
+    const item = document.createElement('div');
+    item.className = 'hb-mb-item';
+    item.textContent = name;
+    item.dataset.menu = name;
+    bar.appendChild(item);
+  });
+  const spacer = document.createElement('div'); spacer.className = 'hb-mb-spacer'; bar.appendChild(spacer);
+  const ver = document.createElement('div'); ver.className = 'hb-mb-ver'; ver.id = 'hb-mb-ver'; bar.appendChild(ver);
+  document.body.appendChild(bar);
+  document.body.classList.add('hb-has-menubar');
+
+  // Fill in the app version asynchronously.
+  try {
+    ipcRenderer.invoke('app-version').then((v) => { if (v) ver.textContent = 'v' + v; }).catch(() => {});
+  } catch (e) {}
+
+  bar.querySelectorAll('.hb-mb-item').forEach((item) => {
+    item.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const name = item.dataset.menu;
+      const wasOpen = item.classList.contains('open');
+      closeDrop();
+      if (wasOpen) return;
+      item.classList.add('open');
+      const drop = document.createElement('div');
+      drop.className = 'hb-mb-drop';
+      (menus[name] || []).forEach((row) => {
+        if (row.sep) { const s = document.createElement('div'); s.className = 'hb-mb-sep'; drop.appendChild(s); return; }
+        const r = document.createElement('div');
+        r.className = 'hb-mb-row';
+        r.innerHTML = '<span>' + row.label + '</span>' + (row.acc ? '<span class="hb-mb-acc">' + row.acc + '</span>' : '');
+        r.addEventListener('click', (ev) => { ev.stopPropagation(); closeDrop(); ipcRenderer.send('menu-action', row.action); });
+        drop.appendChild(r);
+      });
+      document.body.appendChild(drop);
+      const rect = item.getBoundingClientRect();
+      drop.style.left = Math.round(rect.left) + 'px';
+      drop.style.top = Math.round(rect.bottom + 4) + 'px';
+      requestAnimationFrame(() => drop.classList.add('show'));
+      openDrop = drop;
+    });
+  });
+
+  document.addEventListener('click', closeDrop);
+  window.addEventListener('blur', closeDrop);
+  window.addEventListener('resize', closeDrop);
+}
+
+if (document.body) buildMenuBar();
+else window.addEventListener('DOMContentLoaded', buildMenuBar, { once: true });
