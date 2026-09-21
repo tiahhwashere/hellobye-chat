@@ -5622,7 +5622,7 @@ body.no-anim .friend-item { animation: none !important; }
 .toast-container {
   position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
   z-index: 10500; display: flex; flex-direction: column-reverse; gap: 8px; align-items: center;
-  width: min(440px, 92vw); pointer-events: none;
+  width: min(560px, 94vw); pointer-events: none;
 }
 .toast {
   pointer-events: auto;
@@ -7265,7 +7265,7 @@ body.no-anim .friend-item { animation: none !important; }
   }
   /* Toast: slightly larger text + safer bottom offset on mobile so it never
      overlaps the chat input bar, and ensure it never exceeds viewport width. */
-  .toast-container { width: min(440px, calc(100vw - 24px)); }
+  .toast-container { width: min(560px, calc(100vw - 24px)); }
   .toast { font-size: 13px; padding: 12px 14px; word-break: break-word; }
   /* Modals: never exceed the viewport and always scroll internally on mobile
      so the close button + action buttons stay reachable above the keyboard. */

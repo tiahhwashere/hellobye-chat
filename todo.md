@@ -1,16 +1,14 @@
-# Request AK — Drag channels into categories, profile banner line, wider Add Channel, scale UX, remove settings SVG
+# Request AL — Rename category UI, wider toasts, remove Open Server dropdown, category right-click menu
 
 ## Tasks
-- [x] servers.html: allow dragging channels INTO categories (drop on category head/body + top-level label)
-- [x] servers.html: add `moveChannelToCategory()` + drop-target CSS
-- [x] index.html: fix the little line under the profile-view banner
-- [x] servers.html: make the Add Channel modal wider (left-to-right)
-- [x] servers.html: scale modal — banner upload shows ONLY banner scale; icon upload shows ONLY icon scale
-- [x] servers.html: better scale system (finer step, number input, more presets)
-- [x] servers.html: remove the SVG icon in the Server Settings header
+- [x] servers.html: add a proper Rename Category modal UI (replace `prompt()`)
+- [x] servers.html: make toast UIs wider left-to-right
+- [x] index.html: make toast UIs wider left-to-right
+- [x] servers.html: remove "Open server" option from rail dropdown; clicking someone else's server auto-opens it
+- [x] servers.html: add right-click context menu on categories (Edit Category / Delete Category)
 - [x] Verify inline script syntax (node --check) on both files
 - [x] Local smoke test (HTTP 200)
 - [x] Verify data/db.json preserved
-- [x] Commit + push to master
-- [x] Verify Render deploy live + markers
-- [x] Update todo.md and commit
+- [ ] Commit + push to master
+- [ ] Verify Render deploy live + markers
+- [ ] Update todo.md and commit

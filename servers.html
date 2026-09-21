@@ -928,7 +928,7 @@ input, textarea { font-family: inherit; }
   border: 1px solid rgba(255,255,255,0.08); border-radius: 14px;
   padding: 14px 16px 15px 18px; font-size: 13.5px;
   box-shadow: 0 16px 44px rgba(0,0,0,0.55), 0 2px 8px rgba(0,0,0,0.35);
-  animation: toastIn 0.34s cubic-bezier(0.16,1,0.3,1); max-width: min(430px, 92vw);
+  animation: toastIn 0.34s cubic-bezier(0.16,1,0.3,1); max-width: min(560px, 94vw); min-width: min(360px, 92vw);
   pointer-events: auto; overflow: hidden;
 }
 .toast::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--accent); }
@@ -1181,7 +1181,7 @@ input, textarea { font-family: inherit; }
   .msp-hero-name { padding: 52px 18px 16px; }
   .msp-pane .field-row { grid-template-columns: 1fr; gap: 0; }
   #toast-container { top: 12px; width: calc(100vw - 20px); }
-  .toast { max-width: 100%; }
+  .toast { max-width: 100%; min-width: 0; }
   .scale-row { flex-wrap: wrap; }
   .scale-row input[type=range] { min-width: 100%; order: 3; }
   .profile-banner { height: 120px; }
@@ -2428,6 +2428,27 @@ input, textarea { font-family: inherit; }
   </div>
 </div>
 
+<!-- Rename / create category -->
+<div class="modal-overlay" id="category-modal">
+  <div class="modal" style="max-width:440px;">
+    <div class="modal-header">
+      <div class="modal-title" id="category-modal-title">Rename Category</div>
+      <button class="modal-close" data-close="category-modal">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label>Category name</label>
+        <input type="text" id="category-name-input" placeholder="e.g. General, Projects, Voice" maxlength="40" autocomplete="off">
+      </div>
+      <div class="hint" style="font-size:12px;color:var(--text-muted);margin-top:2px;">Channels can be dragged into this category to group them together.</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" data-close="category-modal">Cancel</button>
+      <button class="btn btn-primary" id="category-save-btn">Save</button>
+    </div>
+  </div>
+</div>
+
 <!-- Edit message dialog -->
 <div class="modal-overlay" id="edit-msg-modal">
   <div class="modal msg-action-modal">
@@ -3323,14 +3344,11 @@ function renderRail() {
       (s.icon ? '<img src="' + escapeAttr(s.icon) + '" alt="">' : escapeHtml(getInitials(s.name)));
     btn.addEventListener('click', (e) => {
       if (btn._suppressClick) { btn._suppressClick = false; return; }
-      if (s.isOwner) { openServer(s.id); return; }
-      // Non-owners get a small action menu (open / copy ID / leave).
-      showRailMenu(btn, s);
+      // Clicking any server (owned or joined) opens it directly — no dropdown.
+      openServer(s.id);
     });
-    // Right-click on the server profile picture (non-owners) opens the same
-    // dropdown: open / copy server ID / leave server.
+    // Right-click still opens the small action menu (move / copy ID / leave).
     btn.addEventListener('contextmenu', (e) => {
-      if (s.isOwner) return;
       e.preventDefault();
       showRailMenu(btn, s);
     });
@@ -3413,7 +3431,6 @@ function showRailMenu(anchor, s) {
   menu.innerHTML =
     '<div class="rm-head">' + escapeHtml(s.name) + '</div>' +
     '<div class="rm-id">ID: ' + escapeHtml(s.serverId || '—') + '</div>' +
-    '<button data-act="open"><svg class="ui-ic sm" viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg> Open server</button>' +
     '<button data-act="up"><svg class="ui-ic sm" viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg> Move up</button>' +
     '<button data-act="down"><svg class="ui-ic sm" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg> Move down</button>' +
     '<button data-act="copy"><svg class="ui-ic sm" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy server ID</button>' +
@@ -3422,7 +3439,6 @@ function showRailMenu(anchor, s) {
   const r = anchor.getBoundingClientRect();
   menu.style.left = (r.right + 10) + 'px';
   menu.style.top = Math.min(r.top, window.innerHeight - menu.offsetHeight - 12) + 'px';
-  menu.querySelector('[data-act="open"]').addEventListener('click', () => { closeRailMenu(); openServer(s.id); });
   menu.querySelector('[data-act="up"]').addEventListener('click', () => { closeRailMenu(); moveServerBy(s.id, -1); });
   menu.querySelector('[data-act="down"]').addEventListener('click', () => { closeRailMenu(); moveServerBy(s.id, 1); });
   menu.querySelector('[data-act="copy"]').addEventListener('click', () => { copyText(s.serverId || ''); toast('Server ID copied!', 'success'); closeRailMenu(); });
@@ -3724,6 +3740,11 @@ function renderChannels() {
       head.querySelector('.cc-add').addEventListener('click', (e) => { e.stopPropagation(); openChannelEditor(null, cat.id); });
       head.querySelector('.cc-edit').addEventListener('click', (e) => { e.stopPropagation(); renameCategory(cat); });
       head.querySelector('.cc-del').addEventListener('click', (e) => { e.stopPropagation(); deleteCategory(cat); });
+      // Right-click anywhere on the category opens its context menu.
+      catWrap.addEventListener('contextmenu', (e) => {
+        e.preventDefault(); e.stopPropagation();
+        openCategoryContextMenu(cat, e.clientX, e.clientY);
+      });
       // Allow dropping a channel anywhere on the category (head or body) to move it in.
       attachCategoryDropTarget(catWrap, cat.id);
     }
@@ -3736,16 +3757,47 @@ function renderChannels() {
   if (addBtn) addBtn.addEventListener('click', () => openChannelEditor(null));
 }
 // Rename a category (owner / manageChannels).
+// Rename a category (owner / manageChannels) — uses a proper modal UI.
 async function renameCategory(cat) {
-  const name = prompt('Rename category', cat.name);
+  const name = await promptCategoryName({ title: 'Rename Category', value: cat.name, okText: 'Save' });
   if (name === null) return;
   const trimmed = name.trim();
   if (!trimmed) { toast('Category name required', 'error'); return; }
+  if (trimmed === cat.name) return;
   try {
     const d = await api('/api/servers/' + activeServerId + '/categories/' + cat.id, { method: 'POST', body: { name: trimmed } });
     activeServer = d.server; renderChannels(); renderSettingsChannels(); toast('Category renamed', 'success');
   } catch(e) { toast(e.message, 'error'); }
 }
+// Open the category name modal and resolve with the entered value (or null if cancelled).
+function promptCategoryName(opts) {
+  opts = opts || {};
+  $('category-modal-title').textContent = opts.title || 'Category';
+  const inp = $('category-name-input');
+  inp.value = opts.value || '';
+  const save = $('category-save-btn');
+  save.textContent = opts.okText || 'Save';
+  openModal('category-modal');
+  setTimeout(() => { try { inp.focus(); inp.select(); } catch(e) {} }, 50);
+  return new Promise(resolve => {
+    categoryModalResolve = resolve;
+  });
+}
+let categoryModalResolve = null;
+function finishCategoryModal(val) {
+  closeModal('category-modal');
+  if (categoryModalResolve) { categoryModalResolve(val); categoryModalResolve = null; }
+}
+$('category-save-btn').addEventListener('click', () => {
+  const v = $('category-name-input').value;
+  if (!v.trim()) { toast('Category name required', 'error'); return; }
+  finishCategoryModal(v);
+});
+$('category-name-input').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') { e.preventDefault(); $('category-save-btn').click(); }
+  else if (e.key === 'Escape') { e.preventDefault(); finishCategoryModal(null); }
+});
+document.querySelectorAll('#category-modal [data-close]').forEach(b => b.addEventListener('click', () => finishCategoryModal(null)));
 // Delete a category (channels inside move back to the top level).
 async function deleteCategory(cat) {
   const ok = await askConfirm({ title: 'Delete category?', text: 'Channels inside <b>' + escapeHtml(cat.name) + '</b> will move back to the top level. This cannot be undone.', okText: 'Delete', danger: true });
@@ -3900,6 +3952,38 @@ function openChannelContextMenu(c, x, y) {
   setTimeout(() => document.addEventListener('contextmenu', closeChannelContextMenu, { once: true }), 0);
 }
 function closeChannelContextMenu() { const m = $('channel-ctx-menu'); if (m) m.remove(); }
+// Right-click context menu for a category (owners / managers only).
+function openCategoryContextMenu(cat, x, y) {
+  closeCategoryContextMenu();
+  const menu = document.createElement('div');
+  menu.className = 'ctx-menu';
+  menu.id = 'category-ctx-menu';
+  menu.innerHTML =
+    '<div class="cm-head">' + icon('folder', 'sm') + escapeHtml(cat.name) + '</div>' +
+    '<button data-act="add">' + icon('plus', 'sm') + 'Add Channel Here</button>' +
+    '<button data-act="edit">' + icon('edit', 'sm') + 'Edit Category</button>' +
+    '<div class="cm-sep"></div>' +
+    '<button data-act="delete" class="danger">' + icon('trash', 'sm') + 'Delete Category</button>';
+  document.body.appendChild(menu);
+  const mw = menu.offsetWidth, mh = menu.offsetHeight;
+  let left = x, top = y;
+  if (left + mw > window.innerWidth - 8) left = window.innerWidth - mw - 8;
+  if (top + mh > window.innerHeight - 8) top = window.innerHeight - mh - 8;
+  if (left < 8) left = 8;
+  if (top < 8) top = 8;
+  menu.style.left = left + 'px';
+  menu.style.top = top + 'px';
+  menu.querySelectorAll('[data-act]').forEach(b => b.addEventListener('click', () => {
+    const act = b.dataset.act;
+    closeCategoryContextMenu();
+    if (act === 'add') openChannelEditor(null, cat.id);
+    else if (act === 'edit') renameCategory(cat);
+    else if (act === 'delete') deleteCategory(cat);
+  }));
+  setTimeout(() => document.addEventListener('click', closeCategoryContextMenu, { once: true }), 0);
+  setTimeout(() => document.addEventListener('contextmenu', closeCategoryContextMenu, { once: true }), 0);
+}
+function closeCategoryContextMenu() { const m = $('category-ctx-menu'); if (m) m.remove(); }
 // Rich confirmation UI for deleting a channel (replaces the native confirm()).
 function confirmDeleteChannel(c) {
   askConfirm({
