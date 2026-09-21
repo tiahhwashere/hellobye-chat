@@ -1646,9 +1646,25 @@ input, textarea { font-family: inherit; }
 .member-profile-extra .mp-extra-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); font-weight: 800; }
 .member-profile-extra .mp-extra-value { font-size: 13.5px; color: var(--text-primary); font-weight: 600; }
 .member-profile-bio { font-size: 13.5px; color: var(--text-secondary); line-height: 1.65; margin-bottom: 14px; }
-.member-profile-roles { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
-.member-profile-role { font-size: 13px; padding: 5px 13px; border-radius: 11px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; }
-.member-profile-role-badge { width: 20px; height: 20px; object-fit: contain; flex-shrink: 0; }
+/* Private profile panel: advanced, text-only (no icons/SVG) */
+.mp-private { margin-bottom: 16px; border: 1px solid var(--border-light); border-radius: 14px; overflow: hidden; background: linear-gradient(160deg, var(--bg-medium), var(--bg-dark)); }
+.mp-private-head { padding: 16px 18px 14px; border-bottom: 1px solid var(--border); }
+.mp-private-eyebrow { font-size: 10.5px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px; }
+.mp-private-title { font-size: 15px; font-weight: 800; color: var(--text-primary); letter-spacing: -0.01em; }
+.mp-private-desc { font-size: 12.5px; color: var(--text-secondary); line-height: 1.6; margin-top: 6px; }
+.mp-private-rows { padding: 6px 18px 16px; }
+.mp-private-row { display: flex; align-items: center; gap: 14px; padding: 11px 0; border-bottom: 1px solid var(--border); }
+.mp-private-row:last-child { border-bottom: none; }
+.mp-private-row-label { width: 96px; flex-shrink: 0; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-muted); }
+.mp-private-redact { flex: 1; height: 10px; border-radius: 6px; background: linear-gradient(90deg, var(--bg-lighter) 0%, var(--bg-light) 40%, var(--bg-lighter) 80%); background-size: 200% 100%; animation: mpRedact 2.4s ease-in-out infinite; }
+.mp-private-redact.w-70 { max-width: 70%; }
+.mp-private-redact.w-50 { max-width: 50%; }
+.mp-private-redact.w-85 { max-width: 85%; }
+@keyframes mpRedact { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+.mp-private-foot { padding: 12px 18px; background: var(--bg-darkest); border-top: 1px solid var(--border); font-size: 11.5px; color: var(--text-muted); line-height: 1.5; }
+.member-profile-roles { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+.member-profile-role { font-size: 14px; padding: 7px 16px; border-radius: 12px; font-weight: 700; display: inline-flex; align-items: center; gap: 7px; }
+.member-profile-role-badge { width: 24px; height: 24px; object-fit: contain; flex-shrink: 0; }
 .member-profile-joined { font-size: 12px; color: var(--text-muted); }
 
 /* ============================================================
@@ -2041,6 +2057,9 @@ input, textarea { font-family: inherit; }
 .accent-custom-chip { width: 22px; height: 22px; border-radius: 6px; border: 2px solid var(--border-light); background: #5865f2; flex-shrink: 0; }
 .accent-custom-row input[type="color"] { width: 40px; height: 34px; padding: 0; border: 1px solid var(--border-light); border-radius: 8px; background: var(--bg-darkest); cursor: pointer; }
 .accent-hex { margin-left: auto; font-family: 'gg sans Mono', ui-monospace, monospace; font-size: 12px; font-weight: 700; color: var(--text-muted); letter-spacing: 0.5px; }
+.accent-hex-input { margin-left: auto; width: 96px; padding: 8px 10px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12.5px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; color: var(--text-primary); background: var(--bg-darkest); border: 1px solid var(--border-light); border-radius: 8px; text-align: center; transition: border-color var(--transition), box-shadow var(--transition); }
+.accent-hex-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(var(--accent-rgb),0.18); }
+.accent-hex-input.invalid { border-color: var(--danger); box-shadow: 0 0 0 3px rgba(216,58,58,0.18); }
 
 /* ---- Create a Server: richer setup ---- */
 .create-hero { display: flex; align-items: center; gap: 14px; padding: 16px 18px; border-radius: 12px; background: linear-gradient(135deg, rgba(var(--accent-rgb),0.14), rgba(var(--accent-rgb),0.04)); border: 1px solid rgba(var(--accent-rgb),0.22); margin-bottom: 18px; }
@@ -2145,6 +2164,34 @@ input, textarea { font-family: inherit; }
 .confirm-icon { width: 56px; height: 56px; border-radius: 50%; background: rgba(var(--accent-rgb),0.15); display: flex; align-items: center; justify-content: center; font-size: 26px; margin: 0 auto 14px; animation: popIn 0.2s ease-out; }
 @keyframes popIn { from { transform: scale(0.92); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 .confirm-text { text-align: center; font-size: 14px; color: var(--text-secondary); line-height: 1.6; }
+
+/* ---- Delete webhook confirmation (custom UI) ---- */
+.modal.wh-del-modal { max-width: 440px; padding: 0; overflow: hidden; }
+.wh-del-head { display: flex; align-items: center; gap: 14px; padding: 22px 24px 18px; border-bottom: 1px solid var(--border); background: var(--bg-darker); }
+.wh-del-mark { width: 46px; height: 46px; border-radius: 12px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: rgba(216,58,58,0.12); border: 1px solid rgba(216,58,58,0.35); }
+.wh-del-ex { position: relative; width: 18px; height: 18px; }
+.wh-del-ex::before, .wh-del-ex::after { content: ''; position: absolute; left: 50%; top: 50%; width: 18px; height: 2px; border-radius: 2px; background: #e05252; }
+.wh-del-ex::before { transform: translate(-50%,-50%) rotate(45deg); }
+.wh-del-ex::after { transform: translate(-50%,-50%) rotate(-45deg); }
+.wh-del-head-text { min-width: 0; }
+.wh-del-title { font-size: 16px; font-weight: 800; color: var(--text-primary); }
+.wh-del-sub { font-size: 12px; color: var(--text-muted); margin-top: 3px; }
+.wh-del-body { padding: 18px 24px; }
+.wh-del-target { display: flex; align-items: center; gap: 12px; padding: 12px; border: 1px solid var(--border); border-radius: 12px; background: var(--bg-darkest); }
+.wh-del-target-av { width: 42px; height: 42px; border-radius: 11px; flex-shrink: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; background: linear-gradient(140deg, var(--accent), var(--accent-dim, var(--accent))); color: #fff; font-weight: 700; font-size: 16px; }
+.wh-del-target-av img { width: 100%; height: 100%; object-fit: cover; }
+.wh-del-target-info { min-width: 0; flex: 1; }
+.wh-del-target-name { font-size: 14px; font-weight: 700; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wh-del-target-url { font-size: 11.5px; color: var(--text-muted); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 3px; }
+.wh-del-warn { margin-top: 16px; padding: 14px 16px; border-radius: 12px; background: rgba(216,58,58,0.06); border: 1px solid rgba(216,58,58,0.22); }
+.wh-del-warn-title { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; color: #e05252; margin-bottom: 8px; }
+.wh-del-warn-list { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; }
+.wh-del-warn-list li { font-size: 12.5px; color: var(--text-secondary); line-height: 1.5; }
+.wh-del-footer { padding: 16px 24px 20px; border-top: 1px solid var(--border); background: var(--bg-darker); }
+.leave-mark { background: rgba(216,58,58,0.12); border-color: rgba(216,58,58,0.35); }
+.leave-arrow { position: relative; width: 20px; height: 16px; }
+.leave-arrow::before { content: ''; position: absolute; left: 0; top: 50%; width: 13px; height: 2px; border-radius: 2px; background: #e05252; transform: translateY(-50%); }
+.leave-arrow::after { content: ''; position: absolute; left: 11px; top: 50%; width: 8px; height: 8px; border-top: 2px solid #e05252; border-right: 2px solid #e05252; transform: translateY(-50%) rotate(45deg); border-radius: 1px; }
 
 /* ---- Extra polish (professional, no cartoony bounce) ---- */
 .channel-item { animation: chIn 0.18s ease-out; }
@@ -2418,6 +2465,60 @@ input, textarea { font-family: inherit; }
 .settings-danger .btn-danger { background: #c02e2e; color: #fff; border: 1px solid transparent; border-radius: 8px; padding: 9px 15px; font-size: 12.5px; font-weight: 600; }
 .settings-danger .btn-danger:hover { background: #d63a3a; }
 
+/* ---- Audit log ---- */
+.audit-toolbar { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
+.audit-filters { display: flex; gap: 6px; flex-wrap: wrap; flex: 1; }
+.audit-filter { padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; color: var(--text-secondary); background: var(--bg-darkest); border: 1px solid var(--border); transition: all var(--transition); }
+.audit-filter:hover { color: var(--text-primary); border-color: var(--border-light); }
+.audit-filter.active { background: rgba(var(--accent-rgb),0.14); color: var(--accent-light); border-color: rgba(var(--accent-rgb),0.4); }
+.audit-refresh { padding: 7px 14px; font-size: 12.5px; }
+.audit-list { display: flex; flex-direction: column; gap: 8px; }
+.audit-empty { font-size: 13px; color: var(--text-muted); padding: 24px 4px; text-align: center; }
+.audit-entry { display: flex; align-items: flex-start; gap: 12px; padding: 12px 14px; border: 1px solid var(--border); border-radius: 11px; background: var(--bg-darkest); }
+.audit-entry-ic { width: 34px; height: 34px; border-radius: 9px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; letter-spacing: 0.02em; text-transform: uppercase; }
+.audit-entry-body { flex: 1; min-width: 0; }
+.audit-entry-top { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.audit-entry-actor { font-size: 13px; font-weight: 700; color: var(--text-primary); }
+.audit-entry-type { font-size: 10.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; padding: 2px 7px; border-radius: 6px; }
+.audit-entry-time { font-size: 11px; color: var(--text-muted); margin-left: auto; white-space: nowrap; }
+.audit-entry-detail { font-size: 12.5px; color: var(--text-secondary); line-height: 1.5; margin-top: 4px; word-break: break-word; }
+.audit-entry-meta { font-size: 11px; color: var(--text-muted); margin-top: 3px; }
+.audit-t-message .audit-entry-ic { background: rgba(var(--accent-rgb),0.14); color: var(--accent-light); }
+.audit-t-message .audit-entry-type { background: rgba(var(--accent-rgb),0.14); color: var(--accent-light); }
+.audit-t-media .audit-entry-ic { background: rgba(139,92,246,0.16); color: #b79bff; }
+.audit-t-media .audit-entry-type { background: rgba(139,92,246,0.16); color: #b79bff; }
+.audit-t-member_kick .audit-entry-ic, .audit-t-member_ban .audit-entry-ic { background: rgba(216,58,58,0.14); color: #ff9a9a; }
+.audit-t-member_kick .audit-entry-type, .audit-t-member_ban .audit-entry-type { background: rgba(216,58,58,0.14); color: #ff9a9a; }
+.audit-t-member_join .audit-entry-ic, .audit-t-member_leave .audit-entry-ic { background: rgba(59,165,93,0.14); color: #7fd39a; }
+.audit-t-member_join .audit-entry-type, .audit-t-member_leave .audit-entry-type { background: rgba(59,165,93,0.14); color: #7fd39a; }
+.audit-t-channel_create .audit-entry-ic, .audit-t-channel_delete .audit-entry-ic, .audit-t-role_create .audit-entry-ic, .audit-t-role_delete .audit-entry-ic { background: rgba(212,160,23,0.14); color: #e6c15a; }
+.audit-t-channel_create .audit-entry-type, .audit-t-channel_delete .audit-entry-type, .audit-t-role_create .audit-entry-type, .audit-t-role_delete .audit-entry-type { background: rgba(212,160,23,0.14); color: #e6c15a; }
+.audit-t-join_request .audit-entry-ic, .audit-t-join_request_accept .audit-entry-ic, .audit-t-join_request_decline .audit-entry-ic { background: rgba(74,158,255,0.14); color: var(--accent-light); }
+.audit-t-join_request .audit-entry-type, .audit-t-join_request_accept .audit-entry-type, .audit-t-join_request_decline .audit-entry-type { background: rgba(74,158,255,0.14); color: var(--accent-light); }
+
+/* ---- Private server + join requests ---- */
+.jr-list { display: flex; flex-direction: column; gap: 8px; }
+.jr-empty { font-size: 12.5px; color: var(--text-muted); padding: 12px 2px; }
+.jr-item { display: flex; align-items: center; gap: 12px; padding: 11px 13px; border: 1px solid var(--border); border-radius: 11px; background: var(--bg-darkest); }
+.jr-av { width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; background: var(--accent); color: #fff; font-weight: 700; font-size: 15px; }
+.jr-av img { width: 100%; height: 100%; object-fit: cover; }
+.jr-body { flex: 1; min-width: 0; }
+.jr-name { font-size: 13.5px; font-weight: 700; color: var(--text-primary); }
+.jr-sub { font-size: 11.5px; color: var(--text-muted); margin-top: 2px; }
+.jr-actions { display: flex; gap: 7px; flex-shrink: 0; }
+.jr-actions button { padding: 7px 13px; border-radius: 8px; font-size: 12px; font-weight: 700; }
+.jr-accept { background: var(--success); color: #fff; }
+.jr-accept:hover { background: #45b96a; }
+.jr-decline { background: var(--bg-medium); color: var(--text-secondary); border: 1px solid var(--border); }
+.jr-decline:hover { color: #ff9a9a; border-color: rgba(216,58,58,0.4); }
+.ban-list { display: flex; flex-direction: column; gap: 8px; }
+.ban-item { display: flex; align-items: center; gap: 12px; padding: 10px 13px; border: 1px solid var(--border); border-radius: 11px; background: var(--bg-darkest); }
+.ban-body { flex: 1; min-width: 0; }
+.ban-name { font-size: 13px; font-weight: 700; color: var(--text-primary); }
+.ban-sub { font-size: 11.5px; color: var(--text-muted); margin-top: 2px; }
+.ban-unban { padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 700; background: var(--bg-medium); color: var(--text-secondary); border: 1px solid var(--border); }
+.ban-unban:hover { color: var(--text-primary); border-color: var(--border-light); }
+
 /* Scale dialog: presets + nudge controls */
 .scale-modal { max-width: 480px; }
 .scale-presets { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; }
@@ -2451,6 +2552,32 @@ input, textarea { font-family: inherit; }
 .perm-toggle input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .perm-toggle.perm-danger { color: #ff9a9a; }
 .perm-toggle.perm-danger input:checked { background: #e35d5d; border-color: #e35d5d; }
+
+/* ---- Role editor: professional permissions panel ---- */
+.perm-shell { border: 1px solid var(--border); border-radius: 12px; overflow: hidden; background: var(--bg-darkest); }
+.perm-tabs { display: flex; gap: 2px; padding: 6px; background: var(--bg-darker); border-bottom: 1px solid var(--border); }
+.perm-tab { flex: 1; padding: 9px 8px; border-radius: 8px; font-size: 12px; font-weight: 700; color: var(--text-secondary); transition: background var(--transition), color var(--transition); white-space: nowrap; }
+.perm-tab:hover { color: var(--text-primary); background: var(--bg-medium); }
+.perm-tab.active { background: var(--bg-light); color: var(--text-primary); }
+.perm-panes { padding: 6px; }
+.perm-pane { display: none; }
+.perm-pane.active { display: block; animation: viewIn 0.18s ease; }
+.perm-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 11px 12px; border-radius: 9px; cursor: pointer; transition: background var(--transition); }
+.perm-row:hover { background: var(--bg-medium); }
+.perm-row + .perm-row { border-top: 1px solid var(--border); }
+.perm-row-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.perm-row-name { font-size: 13px; font-weight: 700; color: var(--text-primary); }
+.perm-row-desc { font-size: 11.5px; color: var(--text-muted); line-height: 1.45; }
+.perm-row.perm-danger .perm-row-name { color: #ff9a9a; }
+.perm-switch { position: relative; flex-shrink: 0; width: 40px; height: 23px; }
+.perm-switch input { position: absolute; opacity: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; z-index: 2; }
+.perm-switch-track { position: absolute; inset: 0; border-radius: 23px; background: var(--bg-lighter); border: 1px solid var(--border-light); transition: background var(--transition), border-color var(--transition); }
+.perm-switch-track::before { content: ''; position: absolute; width: 17px; height: 17px; left: 2px; top: 2px; border-radius: 50%; background: #fff; transition: transform var(--transition); }
+.perm-switch input:checked + .perm-switch-track { background: var(--accent); border-color: var(--accent); }
+.perm-switch input:checked + .perm-switch-track::before { transform: translateX(17px); }
+.perm-switch input:focus-visible + .perm-switch-track { outline: 2px solid var(--accent); outline-offset: 2px; }
+.perm-row.perm-danger .perm-switch input:checked + .perm-switch-track { background: #e35d5d; border-color: #e35d5d; }
+@media (max-width: 720px) { .perm-tabs { flex-wrap: wrap; } .perm-tab { flex: 1 1 45%; } }
 .perm-toggle.perm-danger input:hover { border-color: #e35d5d; }
 
 /* Assign roles UI */
@@ -3085,6 +3212,10 @@ input, textarea { font-family: inherit; }
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
           <span>Invites</span>
         </button>
+        <button class="settings-nav-item" data-tab="audit" id="settings-nav-audit" style="display:none;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg>
+          <span>Audit Log</span>
+        </button>
         <button class="settings-nav-item danger" data-tab="danger">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
           <span>Danger Zone</span>
@@ -3165,7 +3296,7 @@ input, textarea { font-family: inherit; }
                         <span>Custom</span>
                       </label>
                       <input type="color" id="set-accent-custom" value="#5865f2" title="Pick a custom accent color">
-                      <span class="accent-hex" id="set-accent-hex">#5865F2</span>
+                      <input type="text" id="set-accent-hex-input" class="accent-hex-input" value="#5865F2" maxlength="7" spellcheck="false" autocomplete="off" aria-label="Hex color value">
                     </div>
                   </div>
                 </div>
@@ -3269,7 +3400,23 @@ input, textarea { font-family: inherit; }
                   <label class="switch"><input type="checkbox" id="set-discoverable"><span class="slider"></span></label>
                 </div>
               </div>
+              <div class="settings-card">
+                <div class="switch-row">
+                  <div><div class="sr-label"><svg class="ui-ic" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> Private server</div><div class="sr-sub">New members must request to join. The owner and admins approve or decline each request.</div></div>
+                  <label class="switch"><input type="checkbox" id="set-private"><span class="slider"></span></label>
+                </div>
+              </div>
             </div>
+          </div>
+          <div class="settings-section-head" style="margin-top:22px;"><svg class="ui-ic" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg> Join Requests</div>
+          <div class="settings-card">
+            <div class="sc-desc" style="margin-bottom:12px;">People who asked to join this private server. Accept to add them, or decline to dismiss the request.</div>
+            <div id="join-requests-list" class="jr-list"><div class="jr-empty">No pending requests.</div></div>
+          </div>
+          <div class="settings-section-head" style="margin-top:22px;"><svg class="ui-ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><line x1="5.6" y1="5.6" x2="18.4" y2="18.4"/></svg> Banned Members</div>
+          <div class="settings-card">
+            <div class="sc-desc" style="margin-bottom:12px;">Members who are banned from this server. Unban to let them rejoin with an invite.</div>
+            <div id="banned-members-list" class="ban-list"><div class="jr-empty">No banned members.</div></div>
           </div>
         </section>
 
@@ -3323,6 +3470,28 @@ input, textarea { font-family: inherit; }
           </div>
           <div class="settings-section-head" style="margin-top:22px;"><svg class="ui-ic" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg> Active Invites</div>
           <div id="active-invites"></div>
+        </section>
+
+        <!-- ===== Audit Log ===== -->
+        <section class="settings-pane" data-pane="audit">
+          <div class="settings-pane-head">
+            <div class="sph-title">Audit Log</div>
+            <div class="sph-sub">A record of moderation and server activity. Visible to the owner and members with the View audit log permission.</div>
+          </div>
+          <div class="audit-toolbar">
+            <div class="audit-filters" id="audit-filters">
+              <button class="audit-filter active" data-type="all">All</button>
+              <button class="audit-filter" data-type="message">Messages</button>
+              <button class="audit-filter" data-type="media">Media</button>
+              <button class="audit-filter" data-type="member_kick">Kicks</button>
+              <button class="audit-filter" data-type="member_ban">Bans</button>
+              <button class="audit-filter" data-type="member_join">Joins</button>
+              <button class="audit-filter" data-type="channel_create">Channels</button>
+              <button class="audit-filter" data-type="role_create">Roles</button>
+            </div>
+            <button class="btn btn-ghost audit-refresh" id="audit-refresh">Refresh</button>
+          </div>
+          <div id="audit-log-list" class="audit-list"><div class="audit-empty">Loading audit log\u2026</div></div>
         </section>
 
         <!-- ===== Danger Zone ===== -->
@@ -3619,35 +3788,47 @@ input, textarea { font-family: inherit; }
         </div>
       </div>
       <div class="field"><label>Permissions</label>
-        <div class="perm-grid" id="perm-grid">
-          <div class="perm-group-label">General Server</div>
-          <label class="perm-toggle perm-danger"><input type="checkbox" id="perm-administrator"> Administrator</label>
-          <label class="perm-toggle"><input type="checkbox" id="perm-manageServer"> Manage server</label>
-          <label class="perm-toggle"><input type="checkbox" id="perm-viewAuditLog"> View audit log</label>
-          <label class="perm-toggle"><input type="checkbox" id="perm-manageNicknames"> Manage nicknames</label>
-          <label class="perm-toggle"><input type="checkbox" id="perm-manageWebhooks"> Manage webhooks</label>
-          <div class="perm-group-label">Membership</div>
-          <label class="perm-toggle"><input type="checkbox" id="perm-invite" checked> Create invites</label>
-          <label class="perm-toggle"><input type="checkbox" id="perm-manageInvites"> Manage invites</label>
-          <label class="perm-toggle perm-danger"><input type="checkbox" id="perm-kick"> Kick members</label>
-          <label class="perm-toggle perm-danger"><input type="checkbox" id="perm-ban"> Ban members</label>
-          <label class="perm-toggle"><input type="checkbox" id="perm-muteMembers"> Mute members</label>
-          <label class="perm-toggle"><input type="checkbox" id="perm-deafenMembers"> Deafen members</label>
-          <label class="perm-toggle"><input type="checkbox" id="perm-moveMembers"> Move members</label>
-          <div class="perm-group-label">Channels &amp; Roles</div>
-          <label class="perm-toggle"><input type="checkbox" id="perm-manageChannels"> Manage channels</label>
-          <label class="perm-toggle"><input type="checkbox" id="perm-manageRoles"> Manage roles</label>
-          <label class="perm-toggle"><input type="checkbox" id="perm-createThreads"> Create threads</label>
-          <label class="perm-toggle"><input type="checkbox" id="perm-prioritySpeaker"> Priority speaker</label>
-          <div class="perm-group-label">Text &amp; Messaging</div>
-          <label class="perm-toggle"><input type="checkbox" id="perm-sendMessages" checked> Send messages</label>
-          <label class="perm-toggle"><input type="checkbox" id="perm-manageMessages"> Manage messages</label>
-          <label class="perm-toggle"><input type="checkbox" id="perm-attachFiles" checked> Attach files</label>
-          <label class="perm-toggle"><input type="checkbox" id="perm-embedLinks" checked> Embed links</label>
-          <label class="perm-toggle"><input type="checkbox" id="perm-addReactions" checked> Add reactions</label>
-          <label class="perm-toggle"><input type="checkbox" id="perm-externalEmojis" checked> Use external emojis</label>
-          <label class="perm-toggle"><input type="checkbox" id="perm-readHistory" checked> Read message history</label>
-          <label class="perm-toggle"><input type="checkbox" id="perm-mentionEveryone"> Mention @everyone</label>
+        <div class="perm-shell">
+          <div class="perm-tabs" id="perm-tabs">
+            <button type="button" class="perm-tab active" data-group="general">General Server</button>
+            <button type="button" class="perm-tab" data-group="membership">Membership</button>
+            <button type="button" class="perm-tab" data-group="channels">Channels &amp; Roles</button>
+            <button type="button" class="perm-tab" data-group="text">Text &amp; Messaging</button>
+          </div>
+          <div class="perm-panes" id="perm-panes">
+            <div class="perm-pane active" data-group="general">
+              <label class="perm-row perm-danger"><span class="perm-row-text"><span class="perm-row-name">Administrator</span><span class="perm-row-desc">Full access. Grants every permission and bypasses all channel restrictions.</span></span><span class="perm-switch"><input type="checkbox" id="perm-administrator"><span class="perm-switch-track"></span></span></label>
+              <label class="perm-row"><span class="perm-row-text"><span class="perm-row-name">Manage server</span><span class="perm-row-desc">Change the server name, icon, banner and other core settings.</span></span><span class="perm-switch"><input type="checkbox" id="perm-manageServer"><span class="perm-switch-track"></span></span></label>
+              <label class="perm-row"><span class="perm-row-text"><span class="perm-row-name">View audit log</span><span class="perm-row-desc">See a record of moderation and server changes in the audit log.</span></span><span class="perm-switch"><input type="checkbox" id="perm-viewAuditLog"><span class="perm-switch-track"></span></span></label>
+              <label class="perm-row"><span class="perm-row-text"><span class="perm-row-name">Manage nicknames</span><span class="perm-row-desc">Change the nicknames of other members.</span></span><span class="perm-switch"><input type="checkbox" id="perm-manageNicknames"><span class="perm-switch-track"></span></span></label>
+              <label class="perm-row"><span class="perm-row-text"><span class="perm-row-name">Manage webhooks</span><span class="perm-row-desc">Create, edit and delete webhooks for channels.</span></span><span class="perm-switch"><input type="checkbox" id="perm-manageWebhooks"><span class="perm-switch-track"></span></span></label>
+            </div>
+            <div class="perm-pane" data-group="membership">
+              <label class="perm-row"><span class="perm-row-text"><span class="perm-row-name">Create invites</span><span class="perm-row-desc">Create invite links that others can use to join the server.</span></span><span class="perm-switch"><input type="checkbox" id="perm-invite" checked><span class="perm-switch-track"></span></span></label>
+              <label class="perm-row"><span class="perm-row-text"><span class="perm-row-name">Manage invites</span><span class="perm-row-desc">View and revoke invite links created by other members.</span></span><span class="perm-switch"><input type="checkbox" id="perm-manageInvites"><span class="perm-switch-track"></span></span></label>
+              <label class="perm-row perm-danger"><span class="perm-row-text"><span class="perm-row-name">Kick members</span><span class="perm-row-desc">Remove members from the server. They can rejoin with a new invite.</span></span><span class="perm-switch"><input type="checkbox" id="perm-kick"><span class="perm-switch-track"></span></span></label>
+              <label class="perm-row perm-danger"><span class="perm-row-text"><span class="perm-row-name">Ban members</span><span class="perm-row-desc">Permanently remove members and block them from rejoining.</span></span><span class="perm-switch"><input type="checkbox" id="perm-ban"><span class="perm-switch-track"></span></span></label>
+              <label class="perm-row"><span class="perm-row-text"><span class="perm-row-name">Mute members</span><span class="perm-row-desc">Mute members in voice channels.</span></span><span class="perm-switch"><input type="checkbox" id="perm-muteMembers"><span class="perm-switch-track"></span></span></label>
+              <label class="perm-row"><span class="perm-row-text"><span class="perm-row-name">Deafen members</span><span class="perm-row-desc">Deafen members in voice channels.</span></span><span class="perm-switch"><input type="checkbox" id="perm-deafenMembers"><span class="perm-switch-track"></span></span></label>
+              <label class="perm-row"><span class="perm-row-text"><span class="perm-row-name">Move members</span><span class="perm-row-desc">Move members between voice channels.</span></span><span class="perm-switch"><input type="checkbox" id="perm-moveMembers"><span class="perm-switch-track"></span></span></label>
+            </div>
+            <div class="perm-pane" data-group="channels">
+              <label class="perm-row"><span class="perm-row-text"><span class="perm-row-name">Manage channels</span><span class="perm-row-desc">Create, edit, reorder and delete channels.</span></span><span class="perm-switch"><input type="checkbox" id="perm-manageChannels"><span class="perm-switch-track"></span></span></label>
+              <label class="perm-row"><span class="perm-row-text"><span class="perm-row-name">Manage roles</span><span class="perm-row-desc">Create, edit and delete roles below this role's position.</span></span><span class="perm-switch"><input type="checkbox" id="perm-manageRoles"><span class="perm-switch-track"></span></span></label>
+              <label class="perm-row"><span class="perm-row-text"><span class="perm-row-name">Create threads</span><span class="perm-row-desc">Start threads and thread-style conversations.</span></span><span class="perm-switch"><input type="checkbox" id="perm-createThreads"><span class="perm-switch-track"></span></span></label>
+              <label class="perm-row"><span class="perm-row-text"><span class="perm-row-name">Priority speaker</span><span class="perm-row-desc">Lower the volume of others while this member speaks.</span></span><span class="perm-switch"><input type="checkbox" id="perm-prioritySpeaker"><span class="perm-switch-track"></span></span></label>
+            </div>
+            <div class="perm-pane" data-group="text">
+              <label class="perm-row"><span class="perm-row-text"><span class="perm-row-name">Send messages</span><span class="perm-row-desc">Send messages in text channels.</span></span><span class="perm-switch"><input type="checkbox" id="perm-sendMessages" checked><span class="perm-switch-track"></span></span></label>
+              <label class="perm-row"><span class="perm-row-text"><span class="perm-row-name">Manage messages</span><span class="perm-row-desc">Delete and pin messages from other members.</span></span><span class="perm-switch"><input type="checkbox" id="perm-manageMessages"><span class="perm-switch-track"></span></span></label>
+              <label class="perm-row"><span class="perm-row-text"><span class="perm-row-name">Attach files</span><span class="perm-row-desc">Upload files, images and other media.</span></span><span class="perm-switch"><input type="checkbox" id="perm-attachFiles" checked><span class="perm-switch-track"></span></span></label>
+              <label class="perm-row"><span class="perm-row-text"><span class="perm-row-name">Embed links</span><span class="perm-row-desc">Post links that expand into rich previews.</span></span><span class="perm-switch"><input type="checkbox" id="perm-embedLinks" checked><span class="perm-switch-track"></span></span></label>
+              <label class="perm-row"><span class="perm-row-text"><span class="perm-row-name">Add reactions</span><span class="perm-row-desc">Add emoji reactions to messages.</span></span><span class="perm-switch"><input type="checkbox" id="perm-addReactions" checked><span class="perm-switch-track"></span></span></label>
+              <label class="perm-row"><span class="perm-row-text"><span class="perm-row-name">Use external emojis</span><span class="perm-row-desc">Use emojis from other servers.</span></span><span class="perm-switch"><input type="checkbox" id="perm-externalEmojis" checked><span class="perm-switch-track"></span></span></label>
+              <label class="perm-row"><span class="perm-row-text"><span class="perm-row-name">Read message history</span><span class="perm-row-desc">Read messages sent before this member joined.</span></span><span class="perm-switch"><input type="checkbox" id="perm-readHistory" checked><span class="perm-switch-track"></span></span></label>
+              <label class="perm-row"><span class="perm-row-text"><span class="perm-row-name">Mention @everyone</span><span class="perm-row-desc">Use @everyone and @here to notify the whole server.</span></span><span class="perm-switch"><input type="checkbox" id="perm-mentionEveryone"><span class="perm-switch-track"></span></span></label>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -3686,6 +3867,40 @@ input, textarea { font-family: inherit; }
     <div class="modal-footer" style="justify-content:center;">
       <button class="btn btn-ghost" id="confirm-cancel">Cancel</button>
       <button class="btn btn-primary" id="confirm-ok">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<!-- Delete webhook confirmation (custom UI) -->
+<div class="modal-overlay" id="wh-delete-modal">
+  <div class="modal wh-del-modal">
+    <div class="wh-del-head">
+      <div class="wh-del-mark" aria-hidden="true"><span class="wh-del-ex"></span></div>
+      <div class="wh-del-head-text">
+        <div class="wh-del-title">Delete webhook</div>
+        <div class="wh-del-sub">This action is permanent and cannot be undone.</div>
+      </div>
+    </div>
+    <div class="modal-body wh-del-body">
+      <div class="wh-del-target">
+        <div class="wh-del-target-av" id="wh-del-av"></div>
+        <div class="wh-del-target-info">
+          <div class="wh-del-target-name" id="wh-del-name"></div>
+          <div class="wh-del-target-url" id="wh-del-url"></div>
+        </div>
+      </div>
+      <div class="wh-del-warn">
+        <div class="wh-del-warn-title">What happens next</div>
+        <ul class="wh-del-warn-list">
+          <li>The webhook endpoint stops working immediately.</li>
+          <li>Any service posting through this URL will receive errors.</li>
+          <li>This cannot be reversed — you would need to create a new webhook.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="modal-footer wh-del-footer">
+      <button class="btn btn-ghost" id="wh-del-cancel">Keep webhook</button>
+      <button class="btn btn-danger" id="wh-del-confirm">Delete webhook</button>
     </div>
   </div>
 </div>
@@ -3827,6 +4042,40 @@ input, textarea { font-family: inherit; }
     <div class="modal-footer">
       <button class="btn btn-ghost" data-close="del-role-modal">Cancel</button>
       <button class="btn btn-primary" id="del-role-confirm" style="background:#e35d5d;">Delete Role</button>
+    </div>
+  </div>
+</div>
+
+<!-- Leave server confirmation (custom UI) -->
+<div class="modal-overlay" id="leave-server-modal">
+  <div class="modal wh-del-modal leave-modal">
+    <div class="wh-del-head">
+      <div class="wh-del-mark leave-mark" aria-hidden="true"><span class="leave-arrow"></span></div>
+      <div class="wh-del-head-text">
+        <div class="wh-del-title">Leave server</div>
+        <div class="wh-del-sub">You are about to leave this server.</div>
+      </div>
+    </div>
+    <div class="modal-body wh-del-body">
+      <div class="wh-del-target">
+        <div class="wh-del-target-av" id="leave-av"></div>
+        <div class="wh-del-target-info">
+          <div class="wh-del-target-name" id="leave-name"></div>
+          <div class="wh-del-target-url" id="leave-meta"></div>
+        </div>
+      </div>
+      <div class="wh-del-warn">
+        <div class="wh-del-warn-title">Before you go</div>
+        <ul class="wh-del-warn-list">
+          <li>You will lose access to every channel and message in this server.</li>
+          <li>You will need a new invite link to rejoin.</li>
+          <li>Your messages and uploads stay in the server.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="modal-footer wh-del-footer">
+      <button class="btn btn-ghost" id="leave-cancel">Stay in server</button>
+      <button class="btn btn-danger" id="leave-confirm">Leave server</button>
     </div>
   </div>
 </div>
@@ -4727,6 +4976,18 @@ function connectSocket() {
     servers = servers.filter(s => s.id !== data.id);
     if (activeServerId === data.id) { activeServerId = null; activeServer = null; showEmpty(); }
     renderRail();
+  });
+  // Private-server join request outcomes: the requester is notified live.
+  socket.on('server-join-accepted', (data) => {
+    if (!data || !data.server) return;
+    const idx = servers.findIndex(s => s.id === data.server.id);
+    if (idx >= 0) servers[idx] = data.server; else servers.push(data.server);
+    renderRail();
+    toast('Your request to join ' + (data.server.name || 'the server') + ' was accepted', 'success');
+  });
+  socket.on('server-join-declined', (data) => {
+    if (!data) return;
+    toast('Your request to join ' + (data.serverName || 'the server') + ' was declined', 'error');
   });
   // Live presence: when any user changes status (online/idle/dnd/offline),
   // reflect it in the members list on the left side of the active server.
@@ -6352,7 +6613,7 @@ function renderVoicePlayer(f, url, rawUrl, name, dlName) {
       '<div class="vp-progress"></div>' +
       '<div class="vp-cursor"></div>' +
       '<div class="vp-meta">' +
-        '<span class="vp-tag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>Voice message</span>' +
+        '<span class="vp-tag">Voice message</span>' +
         '<span class="vp-sep">\u00b7</span>' +
         '<span class="vp-elapsed">0:00</span>' +
         '<span class="vp-sep">/</span>' +
@@ -6379,7 +6640,12 @@ function renderFile(f) {
   const dlName = escapeAttr(name);
   const dlBtn = '<a class="mfc-dl" href="' + url + '" download="' + dlName + '" target="_blank" rel="noopener" title="Download ' + escapeAttr(name) + '">' +
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Download</a>';
-  const bar = '<div class="mfc-bar"><span class="mfc-ic">' + icon(isImage ? 'image' : isVideo ? 'video' : isAudio ? 'music' : 'paperclip', 'sm') + '</span>' +
+  // Media embeds (image / video / audio / gif) show no leading icon/SVG \u2014 just
+  // the filename, metadata and the download button. Non-media files keep the
+  // file-type icon so they stay easy to scan.
+  const isMedia = isImage || isVideo || isAudio;
+  const icSpan = isMedia ? '' : '<span class="mfc-ic">' + icon('paperclip', 'sm') + '</span>';
+  const bar = '<div class="mfc-bar">' + icSpan +
     '<div class="mfc-meta"><div class="mfc-name">' + escapeHtml(name) + '</div>' + (sub ? '<div class="mfc-sub">' + escapeHtml(sub) + '</div>' : '') + '</div>' + dlBtn + '</div>';
   let preview = '';
   if (isGif) {
@@ -6434,7 +6700,7 @@ function linkify(html) {
     // card directly beneath it (instead of replacing the URL entirely).
     const code = inviteCodeFromUrl(clean);
     if (code) {
-      return '<a class="invite-link-text" href="' + escapeAttr(clean) + '" target="_blank" rel="noopener noreferrer">' + escapeHtml(clean) + '</a>' +
+      return '<a class="invite-link-text" data-invite-link="' + escapeAttr(code) + '" href="' + escapeAttr(clean) + '" target="_blank" rel="noopener noreferrer">' + escapeHtml(clean) + '</a>' +
         '<span class="invite-embed-slot" data-invite="' + escapeAttr(code) + '"></span>' + trail;
     }
     // A direct .gif link auto-embeds as the animated GIF itself (no raw URL
@@ -6469,6 +6735,15 @@ function hydrateInviteEmbeds(container) {
       if (!inv) {
         const d = await api('/api/server-invite/' + encodeURIComponent(code));
         inv = d.invite; _inviteEmbedCache[code] = inv;
+      }
+      // Custom (vanity) invite links display as a short "./code" path instead of
+      // the long servers.html?invite= URL. Only custom links are shortened.
+      if (inv.custom) {
+        const link = container.querySelector('.invite-link-text[data-invite-link="' + code + '"]');
+        if (link) {
+          link.textContent = './' + code;
+          link.setAttribute('href', '/' + code);
+        }
       }
       const already = servers.some(s => s.id === inv.serverId);
       const expires = inv.expiresAt ? 'Expires ' + timeAgo(new Date(inv.expiresAt).toISOString()) : 'Never expires';
@@ -9690,6 +9965,7 @@ $('join-confirm').addEventListener('click', async () => {
   try {
     const d = await api('/api/servers/join', { method: 'POST', body: { code } });
     closeModal('join-modal');
+    if (d && d.pending) { toast('Request sent \u2014 an admin will review your request to join ' + (d.serverName || 'the server'), 'success'); $('join-confirm').disabled = false; return; }
     if (!servers.some(s => s.id === d.server.id)) servers.push(d.server);
     renderRail();
     toast('Joined ' + d.server.name + '!', 'success');
@@ -9773,10 +10049,12 @@ function syncAccentCustom() {
   const inp = $('set-accent-custom');
   const chip = $('set-accent-custom-chip');
   const hex = $('set-accent-hex');
+  const hexInp = $('set-accent-hex-input');
   const c = /^#[0-9a-fA-F]{6}$/.test(setAccentColor) ? setAccentColor : '#5865f2';
   if (inp) inp.value = c;
   if (chip) chip.style.background = c;
   if (hex) hex.textContent = c.toUpperCase();
+  if (hexInp && document.activeElement !== hexInp) { hexInp.value = c.toUpperCase(); hexInp.classList.remove('invalid'); }
 }
 // Live preview of the chosen accent color + effect inside Server Settings.
 function updateAppearancePreview() {
@@ -9855,12 +10133,14 @@ function switchSettingsTab(tab) {
       channels: 'Organise your text channels and categories',
       roles: 'Create roles, set permissions and upload badges',
       invites: 'Create and manage invite links',
+      audit: 'A complete record of server activity',
       danger: 'Irreversible actions \u2014 please be careful',
     };
     sub.textContent = labels[tab] || 'Manage your server';
   }
   const body2 = $('settings-modal').querySelector('.settings-body');
   if (body2) body2.scrollTop = 0;
+  if (tab === 'audit') renderAuditLog();
 }
 function openSettings() {
   if (!activeServer) return;
@@ -9910,6 +10190,8 @@ function openSettings() {
   renderSettingsChannels();
   renderSettingsRoles();
   renderActiveInvites();
+  renderJoinRequests();
+  renderBannedMembers();
   renderSettingsDanger();
   $('invite-result').innerHTML = '';
   if ($('custom-invite-input')) { $('custom-invite-input').value = ''; $('custom-invite-status').textContent = ''; $('custom-invite-status').className = 'ci-status'; }
@@ -9926,7 +10208,7 @@ function applySettingsPermissions(canEdit, canManageChannels, canManageRoles, ca
   if (!body) return;
   // Server-level fields (name, bio, system channel, notifications, verification,
   // slowmode, welcome, discoverable, appearance, scale) require manageServer.
-  const serverFieldIds = ['set-name','set-bio','set-system-channel','set-verification','set-slowmode','set-welcome','set-discoverable','set-icon-scale','set-banner-scale','set-scale-reset','set-appearance-reset','set-chatbg-scale','set-chatbg-opacity','set-chatbg-upload','set-chatbg-remove'];
+  const serverFieldIds = ['set-name','set-bio','set-system-channel','set-verification','set-slowmode','set-welcome','set-discoverable','set-private','set-icon-scale','set-banner-scale','set-scale-reset','set-appearance-reset','set-chatbg-scale','set-chatbg-opacity','set-chatbg-upload','set-chatbg-remove'];
   serverFieldIds.forEach(id => { const el = $(id); if (el) el.disabled = !canEdit; });
   const notifSeg = $('set-notif-seg');
   if (notifSeg) notifSeg.querySelectorAll('button').forEach(b => { b.disabled = !canEdit; b.style.pointerEvents = canEdit ? '' : 'none'; b.style.opacity = canEdit ? '' : '0.5'; });
@@ -10033,13 +10315,35 @@ function renderSettingsDanger() {
       '<div class="dz-head"><svg class="ui-ic" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg> Leave Server</div>' +
       '<div class="dz-row"><div class="dz-info"><div class="dz-title">Leave this server</div><div class="dz-sub">You will need a new invite to rejoin.</div></div>' +
       '<button class="btn btn-danger" id="leave-server-btn">Leave Server</button></div></div>';
-    $('leave-server-btn').addEventListener('click', async () => {
-      if (!confirm('Leave "' + activeServer.name + '"?')) return;
-      try { await api('/api/servers/' + activeServerId + '/leave', { method: 'POST' }); closeModal('settings-modal'); toast('Left server', 'success'); }
-      catch(e) { toast(e.message, 'error'); }
-    });
+    $('leave-server-btn').addEventListener('click', () => openLeaveServerModal());
   }
 }
+// ---- Leave server: dedicated confirmation UI ----
+let leaveServerResolve = null;
+function openLeaveServerModal() {
+  if (!activeServer) return;
+  const av = $('leave-av');
+  if (activeServer.icon) av.innerHTML = '<img src="' + escapeAttr(activeServer.icon) + '" alt="">';
+  else av.textContent = getInitials(activeServer.name);
+  $('leave-name').textContent = activeServer.name;
+  $('leave-meta').textContent = (activeServer.memberCount || 0) + ' member' + (activeServer.memberCount === 1 ? '' : 's') + (activeServer.serverId ? ' \u00b7 ' + activeServer.serverId : '');
+  openModal('leave-server-modal');
+  return new Promise(resolve => { leaveServerResolve = resolve; });
+}
+function finishLeaveServer(val) {
+  closeModal('leave-server-modal');
+  if (leaveServerResolve) { leaveServerResolve(val); leaveServerResolve = null; }
+}
+$('leave-cancel').addEventListener('click', () => finishLeaveServer(false));
+$('leave-confirm').addEventListener('click', async () => {
+  $('leave-confirm').disabled = true;
+  try {
+    await api('/api/servers/' + activeServerId + '/leave', { method: 'POST' });
+    finishLeaveServer(true);
+    closeModal('settings-modal');
+    toast('Left server', 'success');
+  } catch(e) { toast(e.message, 'error'); $('leave-confirm').disabled = false; }
+});
 // ---- Delete server: dedicated confirmation UI ----
 function openDeleteServerModal() {
   if (!activeServer || !activeServer.isOwner) return;
@@ -10270,7 +10574,7 @@ $('settings-save').addEventListener('click', async () => {
   } catch(e) { toast(e.message, 'error'); }
 });
 // Track unsaved changes across every Server Settings control.
-['set-name','set-bio','set-system-channel','set-verification','set-slowmode','set-welcome','set-discoverable','set-icon-scale','set-banner-scale'].forEach(id => {
+['set-name','set-bio','set-system-channel','set-verification','set-slowmode','set-welcome','set-discoverable','set-private','set-icon-scale','set-banner-scale'].forEach(id => {
   const el = $(id); if (!el) return;
   el.addEventListener('input', markSettingsDirty);
   el.addEventListener('change', markSettingsDirty);
@@ -10286,6 +10590,27 @@ $('set-accent-custom').addEventListener('input', () => {
   markSettingsDirty();
 });
 $('set-appearance-reset').addEventListener('click', markSettingsDirty);
+// Typeable hex field: accept #RRGGBB (with or without the leading #).
+if ($('set-accent-hex-input')) {
+  const hexInp = $('set-accent-hex-input');
+  const applyHex = () => {
+    let v = hexInp.value.trim();
+    if (v && v[0] !== '#') v = '#' + v;
+    if (/^#[0-9a-fA-F]{6}$/.test(v)) {
+      setAccentColor = v.toLowerCase();
+      hexInp.classList.remove('invalid');
+      $('set-accent-swatches').querySelectorAll('.server-accent-swatch').forEach(x => x.classList.remove('selected'));
+      syncAccentCustom();
+      updateAppearancePreview();
+      markSettingsDirty();
+    } else {
+      hexInp.classList.add('invalid');
+    }
+  };
+  hexInp.addEventListener('input', () => { if (/^#?[0-9a-fA-F]{6}$/.test(hexInp.value.trim())) applyHex(); else hexInp.classList.toggle('invalid', hexInp.value.trim().length >= 6); });
+  hexInp.addEventListener('change', applyHex);
+  hexInp.addEventListener('blur', () => { if (hexInp.classList.contains('invalid')) syncAccentCustom(); });
+}
 $('settings-unsaved-save').addEventListener('click', () => $('settings-save').click());
 $('set-icon').addEventListener('click', () => $('set-icon-input').click());
 $('set-copy-id').addEventListener('click', () => { if (activeServer && activeServer.serverId) { copyText(activeServer.serverId); toast('Server ID copied!', 'success'); } });
@@ -10457,6 +10782,26 @@ let chWebhookAvatar = null;
 function webhookUrl(wh) {
   return location.origin + '/api/webhooks/' + wh.id + '/' + wh.token;
 }
+// Custom confirmation UI for deleting a webhook (replaces the native confirm()).
+let whDeleteResolve = null;
+function askDeleteWebhook(wh) {
+  const av = $('wh-del-av');
+  const initials = escapeHtml((wh.name || 'W').slice(0, 1).toUpperCase());
+  av.innerHTML = wh.avatar ? '<img src="' + escapeAttr(wh.avatar) + '">' : initials;
+  $('wh-del-name').textContent = wh.name || 'Webhook';
+  $('wh-del-url').textContent = webhookUrl(wh);
+  openModal('wh-delete-modal');
+  setTimeout(() => { try { $('wh-del-confirm').focus(); } catch (e) {} }, 30);
+  return new Promise(resolve => { whDeleteResolve = resolve; });
+}
+$('wh-del-cancel').addEventListener('click', () => { closeModal('wh-delete-modal'); if (whDeleteResolve) { whDeleteResolve(false); whDeleteResolve = null; } });
+$('wh-del-confirm').addEventListener('click', () => { closeModal('wh-delete-modal'); if (whDeleteResolve) { whDeleteResolve(true); whDeleteResolve = null; } });
+document.addEventListener('keydown', (e) => {
+  const m = $('wh-delete-modal');
+  if (!m || !m.classList.contains('show')) return;
+  if (e.key === 'Enter') { e.preventDefault(); $('wh-del-confirm').click(); }
+  else if (e.key === 'Escape') { e.preventDefault(); $('wh-del-cancel').click(); }
+});
 function renderChannelWebhooks() {
   const block = $('ch-webhook-block');
   if (!block) return;
@@ -10494,7 +10839,8 @@ function renderChannelWebhooks() {
         });
         const delBtn = item.querySelector('.wh-del');
         if (delBtn) delBtn.addEventListener('click', async () => {
-          if (!confirm('Delete webhook "' + wh.name + '"? This cannot be undone.')) return;
+          const ok = await askDeleteWebhook(wh);
+          if (!ok) return;
           try {
             await api('/api/servers/' + activeServerId + '/webhooks/' + id, { method: 'DELETE' });
             toast('Webhook deleted', 'success');
@@ -10584,6 +10930,17 @@ function openRoleEditor(role) {
   openModal('role-modal');
 }
 $('add-role-btn').addEventListener('click', () => openRoleEditor(null));
+// Permission group tabs (General Server / Membership / Channels & Roles / Text).
+(function wirePermTabs() {
+  const tabs = $('perm-tabs');
+  const panes = $('perm-panes');
+  if (!tabs || !panes) return;
+  tabs.querySelectorAll('.perm-tab').forEach(tab => tab.addEventListener('click', () => {
+    const g = tab.dataset.group;
+    tabs.querySelectorAll('.perm-tab').forEach(t => t.classList.toggle('active', t === tab));
+    panes.querySelectorAll('.perm-pane').forEach(p => p.classList.toggle('active', p.dataset.group === g));
+  }));
+})();
 $('role-save').addEventListener('click', async () => {
   const name = $('role-name').value.trim();
   if (!name) { toast('Role name required', 'error'); return; }
@@ -10662,9 +11019,12 @@ $('gen-invite-btn').addEventListener('click', async () => {
     if (custom) body.code = custom;
     const d = await api('/api/servers/' + activeServerId + '/invites', { method: 'POST', body });
     const full = window.location.origin + d.url;
-    $('invite-result').innerHTML = '<div class="invite-link-box"><input type="text" readonly value="' + escapeAttr(full) + '" id="invite-link-input"><button class="btn btn-primary" id="copy-invite" style="padding:8px 14px;font-size:13px;">Copy</button></div>' +
+    const isCustom = !!(d.invite && d.invite.custom);
+    const display = isCustom ? './' + d.invite.code : full;
+    $('invite-result').innerHTML = '<div class="invite-link-box"><input type="text" readonly value="' + escapeAttr(display) + '" id="invite-link-input"><button class="btn btn-primary" id="copy-invite" style="padding:8px 14px;font-size:13px;">Copy</button></div>' +
       '<div class="hint" style="font-size:11px;color:var(--text-muted);margin-top:6px;">' + (selectedInviteMins ? 'Expires in ' + fmtMins(selectedInviteMins) : 'Never expires') + (d.invite && d.invite.custom ? ' · custom link' : '') + '</div>';
-    $('copy-invite').addEventListener('click', () => { copyText(full); toast('Invite link copied!', 'success'); });
+    const copyValue = isCustom ? (window.location.origin + '/' + d.invite.code) : full;
+    $('copy-invite').addEventListener('click', () => { copyText(copyValue); toast('Invite link copied!', 'success'); });
     $('custom-invite-input').value = '';
     $('custom-invite-status').textContent = '';
     $('custom-invite-status').className = 'ci-status';
@@ -10703,9 +11063,137 @@ async function renderActiveInvites() {
       '<div class="list-row" style="padding:8px 10px;"><div class="lr-main"><div class="lr-title" style="font-size:12px;font-family:monospace;">/' + escapeHtml(i.code) + '</div><div class="lr-sub">' + (i.expiresAt ? 'expires ' + timeAgo(new Date(i.expiresAt).toISOString()) : 'never expires') + ' · ' + (i.uses||0) + ' uses</div></div>' +
       '<div class="lr-actions"><button data-copy="' + escapeAttr(i.code) + '" title="Copy">' + icon('copy','sm') + '</button>' + (canManageInvites ? '<button data-revoke="' + escapeAttr(i.code) + '" title="Revoke">' + icon('trash','sm') + '</button>' : '') + '</div></div>'
     ).join('');
-    $('active-invites').querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click', () => { copyText(window.location.origin + '/servers.html?invite=' + b.dataset.copy); toast('Copied!', 'success'); }));
+    $('active-invites').querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click', () => {
+      const inv = list.find(x => x.code === b.dataset.copy);
+      const url = (inv && inv.custom) ? (window.location.origin + '/' + b.dataset.copy) : (window.location.origin + '/servers.html?invite=' + b.dataset.copy);
+      copyText(url); toast('Copied!', 'success');
+    }));
     $('active-invites').querySelectorAll('[data-revoke]').forEach(b => b.addEventListener('click', async () => { try { await api('/api/servers/' + activeServerId + '/invites/' + b.dataset.revoke, { method: 'DELETE' }); renderActiveInvites(); toast('Invite revoked', 'success'); } catch(e) { toast(e.message, 'error'); } }));
   } catch(e) {}
+}
+/* ============================================================
+   Audit log (owner / viewAuditLog only)
+   ============================================================ */
+let auditFilterType = 'all';
+const AUDIT_TYPE_META = {
+  message: { label: 'Message', short: 'MSG' },
+  media: { label: 'Media', short: 'MED' },
+  member_kick: { label: 'Kick', short: 'KICK' },
+  member_ban: { label: 'Ban', short: 'BAN' },
+  member_unban: { label: 'Unban', short: 'UNBAN' },
+  member_join: { label: 'Join', short: 'JOIN' },
+  member_leave: { label: 'Leave', short: 'LEAVE' },
+  channel_create: { label: 'Channel', short: 'CH' },
+  channel_delete: { label: 'Channel', short: 'CH' },
+  role_create: { label: 'Role', short: 'ROLE' },
+  role_delete: { label: 'Role', short: 'ROLE' },
+  server_privacy: { label: 'Privacy', short: 'PRIV' },
+  join_request: { label: 'Request', short: 'REQ' },
+  join_request_accept: { label: 'Accepted', short: 'REQ' },
+  join_request_decline: { label: 'Declined', short: 'REQ' },
+};
+function auditTypeMeta(t) { return AUDIT_TYPE_META[t] || { label: 'Event', short: 'EVT' }; }
+async function renderAuditLog() {
+  const box = $('audit-log-list');
+  if (!box) return;
+  if (!(activeServer.isOwner || hasPerm('viewAuditLog'))) { box.innerHTML = '<div class="audit-empty">You do not have permission to view the audit log.</div>'; return; }
+  box.innerHTML = '<div class="audit-empty">Loading\u2026</div>';
+  try {
+    const d = await api('/api/servers/' + activeServerId + '/audit-log');
+    let entries = d.entries || [];
+    if (auditFilterType !== 'all') entries = entries.filter(e => e.type === auditFilterType);
+    if (!entries.length) { box.innerHTML = '<div class="audit-empty">No activity recorded yet.</div>'; return; }
+    box.innerHTML = entries.map(e => {
+      const meta = auditTypeMeta(e.type);
+      const who = e.actorName || e.actor || 'System';
+      let detail = e.detail || '';
+      if (!detail) {
+        if (e.type === 'member_kick') detail = 'Kicked ' + (e.targetName || e.target || 'a member') + ' from the server.';
+        else if (e.type === 'member_ban') detail = 'Banned ' + (e.targetName || e.target || 'a member') + ' from the server.';
+        else if (e.type === 'member_unban') detail = 'Unbanned ' + (e.targetName || e.target || 'a member') + '.';
+        else if (e.type === 'member_join') detail = 'Joined the server.';
+        else if (e.type === 'member_leave') detail = 'Left the server.';
+        else if (e.type === 'channel_create') detail = 'Created channel #' + (e.channelName || '');
+        else if (e.type === 'channel_delete') detail = 'Deleted channel #' + (e.channelName || '');
+        else if (e.type === 'role_create') detail = 'Created role ' + (e.targetName || '');
+        else if (e.type === 'role_delete') detail = 'Deleted role ' + (e.targetName || '');
+        else detail = meta.label + ' event.';
+      }
+      const metaBits = [];
+      if (e.channelName) metaBits.push('#' + e.channelName);
+      if (e.targetName && e.targetName !== who) metaBits.push('target: ' + e.targetName);
+      return '<div class="audit-entry audit-t-' + escapeAttr(e.type) + '">' +
+        '<div class="audit-entry-ic">' + escapeHtml(meta.short) + '</div>' +
+        '<div class="audit-entry-body">' +
+          '<div class="audit-entry-top"><span class="audit-entry-actor">' + escapeHtml(who) + '</span>' +
+          '<span class="audit-entry-type">' + escapeHtml(meta.label) + '</span>' +
+          '<span class="audit-entry-time">' + (e.timestamp ? timeAgo(e.timestamp) : '') + '</span></div>' +
+          '<div class="audit-entry-detail">' + escapeHtml(detail) + '</div>' +
+          (metaBits.length ? '<div class="audit-entry-meta">' + escapeHtml(metaBits.join(' \u00b7 ')) + '</div>' : '') +
+        '</div></div>';
+    }).join('');
+  } catch(e) { box.innerHTML = '<div class="audit-empty">' + escapeHtml(e.message || 'Could not load the audit log.') + '</div>'; }
+}
+if ($('audit-filters')) {
+  $('audit-filters').querySelectorAll('.audit-filter').forEach(b => b.addEventListener('click', () => {
+    $('audit-filters').querySelectorAll('.audit-filter').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    auditFilterType = b.dataset.type || 'all';
+    renderAuditLog();
+  }));
+}
+if ($('audit-refresh')) $('audit-refresh').addEventListener('click', renderAuditLog);
+
+/* ============================================================
+   Join requests + banned members (private servers)
+   ============================================================ */
+async function renderJoinRequests() {
+  const box = $('join-requests-list');
+  if (!box) return;
+  if (!(activeServer.isOwner || hasPerm('manageServer') || hasPerm('kickMembers') || hasPerm('banMembers'))) { box.innerHTML = '<div class="jr-empty">You do not have permission to manage join requests.</div>'; return; }
+  box.innerHTML = '<div class="jr-empty">Loading\u2026</div>';
+  try {
+    const d = await api('/api/servers/' + activeServerId + '/join-requests');
+    const list = d.requests || [];
+    if (!list.length) { box.innerHTML = '<div class="jr-empty">No pending requests.</div>'; return; }
+    box.innerHTML = list.map(r => {
+      const av = r.avatar ? '<img src="' + escapeAttr(r.avatar) + '" alt="">' : escapeHtml(getInitials(r.username));
+      return '<div class="jr-item">' +
+        '<div class="jr-av">' + av + '</div>' +
+        '<div class="jr-body"><div class="jr-name">' + escapeHtml(r.username) + '</div>' +
+        '<div class="jr-sub">Requested ' + ((r.at || r.requestedAt) ? timeAgo(r.at || r.requestedAt) : 'recently') + '</div></div>' +
+        '<div class="jr-actions"><button class="jr-accept" data-accept="' + escapeAttr(r.username) + '">Accept</button>' +
+        '<button class="jr-decline" data-decline="' + escapeAttr(r.username) + '">Decline</button></div></div>';
+    }).join('');
+    box.querySelectorAll('[data-accept]').forEach(b => b.addEventListener('click', async () => {
+      b.disabled = true;
+      try { await api('/api/servers/' + activeServerId + '/join-requests/' + encodeURIComponent(b.dataset.accept) + '/accept', { method: 'POST' }); toast('Request accepted', 'success'); renderJoinRequests(); }
+      catch(e) { toast(e.message, 'error'); b.disabled = false; }
+    }));
+    box.querySelectorAll('[data-decline]').forEach(b => b.addEventListener('click', async () => {
+      b.disabled = true;
+      try { await api('/api/servers/' + activeServerId + '/join-requests/' + encodeURIComponent(b.dataset.decline) + '/decline', { method: 'POST' }); toast('Request declined', 'success'); renderJoinRequests(); }
+      catch(e) { toast(e.message, 'error'); b.disabled = false; }
+    }));
+  } catch(e) { box.innerHTML = '<div class="jr-empty">' + escapeHtml(e.message || 'Could not load requests.') + '</div>'; }
+}
+async function renderBannedMembers() {
+  const box = $('banned-members-list');
+  if (!box) return;
+  if (!(activeServer.isOwner || hasPerm('ban') || hasPerm('manageServer'))) { box.innerHTML = '<div class="jr-empty">You do not have permission to view bans.</div>'; return; }
+  const bans = activeServer.bans || [];
+  if (!bans.length) { box.innerHTML = '<div class="jr-empty">No banned members.</div>'; return; }
+  box.innerHTML = bans.map(b => {
+    const name = b.username || b;
+    return '<div class="ban-item"><div class="ban-body"><div class="ban-name">' + escapeHtml(name) + '</div>' +
+      '<div class="ban-sub">' + (b.bannedAt ? 'Banned ' + timeAgo(b.bannedAt) : 'Banned') + (b.reason ? ' \u00b7 ' + escapeHtml(b.reason) : '') + '</div></div>' +
+      '<button class="ban-unban" data-unban="' + escapeAttr(name) + '">Unban</button></div>';
+  }).join('');
+  box.querySelectorAll('[data-unban]').forEach(b => b.addEventListener('click', async () => {
+    b.disabled = true;
+    try { await api('/api/servers/' + activeServerId + '/members/' + encodeURIComponent(b.dataset.unban) + '/unban', { method: 'POST' }); toast('Member unbanned', 'success'); renderBannedMembers(); }
+    catch(e) { toast(e.message, 'error'); b.disabled = false; }
+  }));
 }
 $('sch-invite-btn').addEventListener('click', () => { openSettings(); setTimeout(() => { const el = $('gen-invite-btn'); if (el) el.scrollIntoView({ behavior:'smooth', block:'center' }); }, 200); });
 
@@ -10938,7 +11426,20 @@ function renderMemberProfileBody(m, roles, isMe, data) {
   // Bio (server bio takes precedence, else the main profile bio)
   const bio = m.bio || (data && !isHidden ? u.bio : '');
   if (isHidden) {
-    html += '<div class="member-profile-bio">This profile is private and its details are not available to view.</div>';
+    html += '<div class="mp-private">' +
+      '<div class="mp-private-head">' +
+        '<div class="mp-private-eyebrow">Restricted</div>' +
+        '<div class="mp-private-title">This profile is private</div>' +
+        '<div class="mp-private-desc">' + escapeHtml(m.displayName || m.username || 'This member') + ' has chosen to keep their profile details hidden from other members.</div>' +
+      '</div>' +
+      '<div class="mp-private-rows">' +
+        '<div class="mp-private-row"><div class="mp-private-row-label">Bio</div><div class="mp-private-redact w-85"></div></div>' +
+        '<div class="mp-private-row"><div class="mp-private-row-label">Location</div><div class="mp-private-redact w-50"></div></div>' +
+        '<div class="mp-private-row"><div class="mp-private-row-label">Website</div><div class="mp-private-redact w-70"></div></div>' +
+        '<div class="mp-private-row"><div class="mp-private-row-label">Joined</div><div class="mp-private-redact w-50"></div></div>' +
+      '</div>' +
+      '<div class="mp-private-foot">Profile details are only visible to the member themselves. You can still message them in shared channels.</div>' +
+    '</div>';
   } else if (bio) {
     html += '<div class="member-profile-bio">' + escapeHtml(bio) + '</div>';
   }
@@ -11320,7 +11821,11 @@ async function showInvitePreview(code) {
     $('invite-preview-footer').querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', () => closeModal('invite-preview-modal')));
     const accBtn = $('inv-accept');
     if (accBtn) accBtn.addEventListener('click', async () => {
-      try { const r = await api('/api/servers/join', { method: 'POST', body: { code } }); if (!servers.some(s=>s.id===r.server.id)) servers.push(r.server); renderRail(); closeModal('invite-preview-modal'); toast('Joined ' + r.server.name + '!', 'success'); openServer(r.server.id); }
+      try {
+        const r = await api('/api/servers/join', { method: 'POST', body: { code } });
+        if (r && r.pending) { closeModal('invite-preview-modal'); toast('Request sent \u2014 an admin will review your request to join ' + (r.serverName || 'the server'), 'success'); return; }
+        if (!servers.some(s=>s.id===r.server.id)) servers.push(r.server); renderRail(); closeModal('invite-preview-modal'); toast('Joined ' + r.server.name + '!', 'success'); openServer(r.server.id);
+      }
       catch(e) { toast(e.message, 'error'); }
     });
     openModal('invite-preview-modal');

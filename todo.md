@@ -1,34 +1,42 @@
-# Request BH — channel persistence, voice layout, webhooks, banner, embeds, invites
+# Request BI — webhook delete UI, short invite links, embed icons, role UI, audit logs, private server, profile roles, private profile UI, leave server UI
 
-## A. Persist active channel across refresh / tab-out / tab-in
-- [x] Find channel selection + persistence logic
-- [x] Save active channel (server+channel) and restore on load/visibilitychange
-- [x] Do not fall back to first/top channel
+## 1. Custom "Delete webhook" confirmation UI (replace browser confirm)
+- [x] Build custom confirm modal
+- [x] Wire into webhook delete
 
-## B. Voice chat layout — cleaner, non-cartoony, no lag/delay
-- [x] Review current voice stage markup/CSS
-- [x] Redesign tiles/controls (professional, flat, no cartoonish styling)
-- [x] Remove lag/delay sources (bundlePolicy max-bundle, no pulse anims)
+## 2. Short invite links display (./code) when custom link used
+- [x] Detect custom short links vs long servers.html?invite=
+- [x] Render as ./code
 
-## C. Edit Channel — add webhook system with details
-- [x] Find Edit Channel modal
-- [x] Add webhook UI (create/list/copy/delete + details)
-- [x] Backend endpoints for webhooks
-- [x] Render webhook messages with their own identity
+## 3. Remove icon/SVG on video/audio/gif/image embeds
+- [x] Remove mfc-ic icon from media download bar
 
-## D. Server banner image a bit longer (taller)
-- [x] Find banner CSS
-- [x] Increase height slightly (176px -> 196px, live + preview)
+## 4. "Create Role" UI — General Server options well made, no emojis/cartoony
+- [x] Review role editor General tab
+- [x] Redesign options
 
-## E. Remove GIF/voice/image/video embed outline; send as own message; keep download button
-- [x] Find embed rendering + outline CSS
-- [x] Remove outline, render as standalone message, keep download
+## 5. Server Settings — Audit Logs (owner/admins only)
+- [x] Backend audit log storage + endpoints
+- [x] Frontend audit log UI
+- [x] Log messages/media/kick/ban
 
-## F. Invite link paste → show /invite link then server under message
-- [x] Find invite link rendering
-- [x] Show invite link + server card beneath
+## 6. Better Accent color / custom UI (no emojis/cartoony)
+- [x] Review accent color UI
+- [x] Improve
 
-## G. Verify + deploy
-- [x] node --check server.js + inline JS check
-- [ ] Commit + push
-- [ ] Trigger Render deploy + verify live
+## 7. Server Settings — private server + request-to-join (accept/decline)
+- [x] Backend private flag + join requests
+- [x] Frontend request management UI
+
+## 8. Profile roles bigger
+- [x] Increase role chip size
+
+## 9. Main chat "This Profile is Private" UI — better/advanced, no icons/SVG
+- [x] Redesign private profile UI
+
+## 10. "Leave Server" UI
+- [x] Build leave server UI
+
+## 11. Verify + deploy
+- [ ] Syntax checks
+- [ ] Commit + push + Render deploy + verify

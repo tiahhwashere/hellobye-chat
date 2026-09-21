@@ -3036,7 +3036,14 @@ function publicServer(s, viewerUsername) {
       })),
     isMember,
     isOwner,
+    isPrivate: !!s.isPrivate,
+    joinRequestCount: (s.joinRequests || []).length,
   };
+  // Owner / managers get the moderation lists (bans + pending join requests).
+  if (isOwner || serverHasPerm(s, viewer, 'ban') || serverHasPerm(s, viewer, 'kick') || serverHasPerm(s, viewer, 'manageServer')) {
+    base.bans = (s.bans || []).map(b => ({ username: b.username, reason: b.reason || null, by: b.by || null, at: b.at || null }));
+    base.joinRequests = (s.joinRequests || []).map(r => ({ username: r.username, at: r.at || null, note: r.note || null }));
+  }
   if (isMember) {
     base.pins = (s.pins && typeof s.pins === 'object') ? s.pins : {};
     base.members = (s.members || []).map(un => {
@@ -3085,6 +3092,7 @@ function publicInvitePreview(server, invite) {
     owner: server.owner,
     ownerName: (ownerUser && ownerUser.displayName) ? ownerUser.displayName : server.owner,
     code: invite ? invite.code : null,
+    custom: invite ? !!invite.custom : false,
     expiresAt: invite ? (invite.expiresAt || 0) : 0,
   };
 }
@@ -3116,6 +3124,44 @@ function emitServerUpdate(server) {
   for (const m of (server.members || [])) {
     io.to('user:' + m).emit('server-updated', { server: publicServer(server, m) });
   }
+}
+// ---- Audit log ----
+// Every server keeps a rolling audit log of moderation and management events
+// (messages, media, kicks, bans, channel/role changes, etc.). Only the owner
+// and members holding the viewAuditLog permission may read it. Entries are
+// capped so the log can never grow without bound.
+const AUDIT_LOG_MAX = 500;
+function logAudit(server, entry) {
+  if (!server || !entry) return;
+  if (!Array.isArray(server.auditLog)) server.auditLog = [];
+  const actor = String(entry.actor || '').toLowerCase();
+  const actorUser = db.users[actor];
+  const rec = {
+    id: genId(),
+    type: String(entry.type || 'other').slice(0, 40),
+    actor,
+    actorName: (actorUser && actorUser.displayName) ? actorUser.displayName : (entry.actorName || actor),
+    target: entry.target ? String(entry.target).toLowerCase() : null,
+    targetName: entry.targetName || null,
+    channelId: entry.channelId || null,
+    channelName: entry.channelName || null,
+    detail: entry.detail ? String(entry.detail).slice(0, 300) : null,
+    timestamp: nowISO(),
+  };
+  server.auditLog.unshift(rec);
+  if (server.auditLog.length > AUDIT_LOG_MAX) server.auditLog.length = AUDIT_LOG_MAX;
+}
+// Can `username` read the audit log? Owner or anyone with viewAuditLog.
+function canViewAuditLog(server, username) {
+  if (!server) return false;
+  if (server.owner === String(username || '').toLowerCase()) return true;
+  return serverHasPerm(server, username, 'viewAuditLog');
+}
+// Is `username` banned from `server`? Returns the ban record or null.
+function serverBanOf(server, username) {
+  if (!server || !Array.isArray(server.bans)) return null;
+  const un = String(username || '').toLowerCase();
+  return server.bans.find(b => b.username === un) || null;
 }
 
 // ---- Create a server ----
@@ -3254,7 +3300,7 @@ app.post('/api/servers/:id/settings', authMiddleware, (req, res) => {
   const s = findServer(req.params.id);
   if (!s) return res.status(404).json({ error: 'Server not found' });
   if (!serverHasPerm(s, req.user.username, 'manageServer')) return res.status(403).json({ error: 'You do not have permission to manage this server' });
-  const { name, bio, systemChannelId, defaultNotifications, verificationLevel, welcomeMessage, discoverable, slowmodeSeconds, accentColor, effect, iconScale, bannerScale, chatBackground, chatBackgroundScale, chatBackgroundOpacity } = req.body || {};
+  const { name, bio, systemChannelId, defaultNotifications, verificationLevel, welcomeMessage, discoverable, slowmodeSeconds, accentColor, effect, iconScale, bannerScale, chatBackground, chatBackgroundScale, chatBackgroundOpacity, isPrivate } = req.body || {};
   if (name !== undefined) {
     const n = String(name).trim().slice(0, 40);
     if (!n) return res.status(400).json({ error: 'Server name is required' });
@@ -3275,6 +3321,15 @@ app.post('/api/servers/:id/settings', authMiddleware, (req, res) => {
   }
   if (welcomeMessage !== undefined) s.welcomeMessage = String(welcomeMessage).slice(0, 300);
   if (discoverable !== undefined) s.discoverable = !!discoverable;
+  if (isPrivate !== undefined) {
+    const wasPrivate = !!s.isPrivate;
+    s.isPrivate = !!isPrivate;
+    // A private server is never discoverable in the public directory.
+    if (s.isPrivate) s.discoverable = false;
+    if (wasPrivate !== s.isPrivate) {
+      logAudit(s, { type: 'server_privacy', actor: req.user.username, detail: s.isPrivate ? 'Server set to private (join requests required)' : 'Server set to public' });
+    }
+  }
   if (slowmodeSeconds !== undefined) {
     const v = Number(slowmodeSeconds);
     s.slowmodeSeconds = [0, 5, 10, 30, 60, 120, 300, 600, 900, 1800, 3600, 21600].includes(v) ? v : 0;
@@ -3426,6 +3481,7 @@ app.post('/api/servers/:id/channels', authMiddleware, (req, res) => {
   s.channels.push(ch);
   if (!s.messages) s.messages = {};
   s.messages[ch.id] = [];
+  logAudit(s, { type: 'channel_create', actor: req.user.username, channelId: ch.id, channelName: ch.name, detail: 'Created ' + chType + ' channel #' + ch.name });
   s.updatedAt = nowISO();
   saveDB();
   emitServerUpdate(s);
@@ -3501,6 +3557,7 @@ app.delete('/api/servers/:id/channels/:channelId', authMiddleware, (req, res) =>
   if (!ch) return res.status(404).json({ error: 'Channel not found' });
   s.channels = s.channels.filter(c => c.id !== ch.id);
   if (s.messages) delete s.messages[ch.id];
+  logAudit(s, { type: 'channel_delete', actor: req.user.username, channelId: ch.id, channelName: ch.name, detail: 'Deleted channel #' + ch.name });
   s.updatedAt = nowISO();
   saveDB();
   emitServerUpdate(s);
@@ -3575,6 +3632,7 @@ app.post('/api/servers/:id/roles', authMiddleware, (req, res) => {
     permissions: normalizePermissions(permissions, { invite: true, sendMessages: true, attachFiles: true, embedLinks: true, addReactions: true, externalEmojis: true, readHistory: true, createThreads: true }),
   };
   s.roles.push(role);
+  logAudit(s, { type: 'role_create', actor: req.user.username, detail: 'Created role "' + rn + '"' });
   s.updatedAt = nowISO();
   saveDB();
   emitServerUpdate(s);
@@ -3645,6 +3703,7 @@ app.delete('/api/servers/:id/roles/:roleId', authMiddleware, (req, res) => {
     const p = s.memberProfiles[un];
     if (Array.isArray(p.roleIds)) p.roleIds = p.roleIds.filter(id => id !== role.id);
   }
+  logAudit(s, { type: 'role_delete', actor: req.user.username, detail: 'Deleted role "' + role.name + '"' });
   s.updatedAt = nowISO();
   saveDB();
   emitServerUpdate(s);
@@ -3702,11 +3761,65 @@ app.post('/api/servers/:id/members/:username/kick', authMiddleware, (req, res) =
   if (!(s.members || []).includes(target)) return res.status(400).json({ error: 'That user is not a member of this server' });
   s.members = s.members.filter(m => m !== target);
   if (s.memberProfiles) delete s.memberProfiles[target];
+  logAudit(s, { type: 'member_kick', actor: req.user.username, target, targetName: (db.users[target] && db.users[target].displayName) || target, detail: 'Kicked from the server' });
   s.updatedAt = nowISO();
   saveDB();
   io.to('user:' + target).emit('server-removed', { id: s.id });
   emitServerUpdate(s);
   res.json({ success: true, server: publicServer(s, req.user.username) });
+});
+
+// ---- Members: ban / unban ----
+app.post('/api/servers/:id/members/:username/ban', authMiddleware, (req, res) => {
+  const s = findServer(req.params.id);
+  if (!s) return res.status(404).json({ error: 'Server not found' });
+  if (!serverHasPerm(s, req.user.username, 'ban')) return res.status(403).json({ error: 'You do not have permission to ban members' });
+  const target = String(req.params.username || '').toLowerCase();
+  if (target === s.owner) return res.status(400).json({ error: 'You cannot ban the server owner' });
+  if (!db.users[target]) return res.status(400).json({ error: 'That user does not exist' });
+  const reason = String((req.body || {}).reason || '').trim().slice(0, 200) || null;
+  if (!Array.isArray(s.bans)) s.bans = [];
+  if (!s.bans.some(b => b.username === target)) {
+    s.bans.push({ username: target, reason, by: req.user.username, at: nowISO() });
+  }
+  // Remove them from the server if they are currently a member.
+  const wasMember = (s.members || []).includes(target);
+  s.members = (s.members || []).filter(m => m !== target);
+  if (s.memberProfiles) delete s.memberProfiles[target];
+  // Drop any pending join request from this user.
+  s.joinRequests = (s.joinRequests || []).filter(r => r.username !== target);
+  logAudit(s, { type: 'member_ban', actor: req.user.username, target, targetName: (db.users[target] && db.users[target].displayName) || target, detail: reason ? ('Banned: ' + reason) : 'Banned from the server' });
+  s.updatedAt = nowISO();
+  saveDB();
+  io.to('user:' + target).emit('server-removed', { id: s.id });
+  emitServerUpdate(s);
+  res.json({ success: true, server: publicServer(s, req.user.username) });
+});
+app.post('/api/servers/:id/members/:username/unban', authMiddleware, (req, res) => {
+  const s = findServer(req.params.id);
+  if (!s) return res.status(404).json({ error: 'Server not found' });
+  if (!serverHasPerm(s, req.user.username, 'ban')) return res.status(403).json({ error: 'You do not have permission to manage bans' });
+  const target = String(req.params.username || '').toLowerCase();
+  const before = (s.bans || []).length;
+  s.bans = (s.bans || []).filter(b => b.username !== target);
+  if (s.bans.length !== before) {
+    logAudit(s, { type: 'member_unban', actor: req.user.username, target, targetName: (db.users[target] && db.users[target].displayName) || target, detail: 'Ban lifted' });
+  }
+  s.updatedAt = nowISO();
+  saveDB();
+  emitServerUpdate(s);
+  res.json({ success: true, server: publicServer(s, req.user.username) });
+});
+
+// ---- Audit log: read (owner / viewAuditLog only) ----
+app.get('/api/servers/:id/audit-log', authMiddleware, (req, res) => {
+  const s = findServer(req.params.id);
+  if (!s) return res.status(404).json({ error: 'Server not found' });
+  if (!canViewAuditLog(s, req.user.username)) return res.status(403).json({ error: 'You do not have permission to view the audit log' });
+  const type = String(req.query.type || '').trim();
+  let entries = Array.isArray(s.auditLog) ? s.auditLog.slice() : [];
+  if (type && type !== 'all') entries = entries.filter(e => e.type === type);
+  res.json({ entries: entries.slice(0, 300) });
 });
 
 // ---- Members: update own server profile (nickname, avatar, banner, bio) ----
@@ -3752,6 +3865,7 @@ app.post('/api/servers/:id/leave', authMiddleware, (req, res) => {
   if (s.owner === me) return res.status(400).json({ error: 'As the owner you must transfer ownership or delete the server instead of leaving' });
   s.members = s.members.filter(m => m !== me);
   if (s.memberProfiles) delete s.memberProfiles[me];
+  logAudit(s, { type: 'member_leave', actor: me, target: me, targetName: (db.users[me] && db.users[me].displayName) || me, detail: 'Left the server' });
   s.updatedAt = nowISO();
   saveDB();
   io.to('user:' + me).emit('server-removed', { id: s.id });
@@ -3940,10 +4054,24 @@ app.post('/api/servers/join', authMiddleware, (req, res) => {
   const s = found.server;
   const me = req.user.username;
   if ((s.members || []).includes(me)) return res.json({ success: true, alreadyMember: true, server: publicServer(s, me) });
+  if (serverBanOf(s, me)) return res.status(403).json({ error: 'You are banned from this server' });
   if ((s.members || []).length >= 500) return res.status(400).json({ error: 'This server is full (max 500 members)' });
+  // Private servers require an approved join request instead of joining directly.
+  if (s.isPrivate) {
+    if (!Array.isArray(s.joinRequests)) s.joinRequests = [];
+    if (!s.joinRequests.some(r => r.username === me)) {
+      s.joinRequests.push({ username: me, at: nowISO(), note: null });
+      logAudit(s, { type: 'join_request', actor: me, target: me, targetName: (db.users[me] && db.users[me].displayName) || me, detail: 'Requested to join' });
+      s.updatedAt = nowISO();
+      saveDB();
+      emitServerUpdate(s);
+    }
+    return res.json({ success: true, pending: true, serverName: s.name });
+  }
   s.members.push(me);
   ensureServerMemberProfile(s, me);
   found.invite.uses = (found.invite.uses || 0) + 1;
+  logAudit(s, { type: 'member_join', actor: me, target: me, targetName: (db.users[me] && db.users[me].displayName) || me, detail: 'Joined via invite' });
   s.updatedAt = nowISO();
   saveDB();
   emitServerUpdate(s);
@@ -3956,13 +4084,68 @@ app.post('/api/servers/:id/join', authMiddleware, (req, res) => {
   if (!s) return res.status(404).json({ error: 'Server not found' });
   const me = req.user.username;
   if ((s.members || []).includes(me)) return res.json({ success: true, alreadyMember: true, server: publicServer(s, me) });
+  if (serverBanOf(s, me)) return res.status(403).json({ error: 'You are banned from this server' });
+  if (s.isPrivate) return res.status(403).json({ error: 'This server is private \u2014 you need an invite or an approved join request' });
   if ((s.members || []).length >= 500) return res.status(400).json({ error: 'This server is full (max 500 members)' });
   s.members.push(me);
   ensureServerMemberProfile(s, me);
+  logAudit(s, { type: 'member_join', actor: me, target: me, targetName: (db.users[me] && db.users[me].displayName) || me, detail: 'Joined the server' });
   s.updatedAt = nowISO();
   saveDB();
   emitServerUpdate(s);
   res.json({ success: true, server: publicServer(s, me) });
+});
+
+// ---- Join requests (private servers): list / accept / decline ----
+app.get('/api/servers/:id/join-requests', authMiddleware, (req, res) => {
+  const s = findServer(req.params.id);
+  if (!s) return res.status(404).json({ error: 'Server not found' });
+  if (!(s.owner === req.user.username || serverHasPerm(s, req.user.username, 'manageServer') || serverHasPerm(s, req.user.username, 'kick'))) {
+    return res.status(403).json({ error: 'You do not have permission to manage join requests' });
+  }
+  const requests = (s.joinRequests || []).map(r => {
+    const u = db.users[r.username];
+    return { username: r.username, displayName: (u && u.displayName) || r.username, avatar: (u && u.avatar) || null, at: r.at || null, note: r.note || null };
+  });
+  res.json({ requests });
+});
+app.post('/api/servers/:id/join-requests/:username/accept', authMiddleware, (req, res) => {
+  const s = findServer(req.params.id);
+  if (!s) return res.status(404).json({ error: 'Server not found' });
+  if (!(s.owner === req.user.username || serverHasPerm(s, req.user.username, 'manageServer') || serverHasPerm(s, req.user.username, 'kick'))) {
+    return res.status(403).json({ error: 'You do not have permission to manage join requests' });
+  }
+  const target = String(req.params.username || '').toLowerCase();
+  const req0 = (s.joinRequests || []).find(r => r.username === target);
+  if (!req0) return res.status(404).json({ error: 'No pending request from that user' });
+  s.joinRequests = (s.joinRequests || []).filter(r => r.username !== target);
+  if (!(s.members || []).includes(target) && !serverBanOf(s, target)) {
+    if ((s.members || []).length >= 500) return res.status(400).json({ error: 'This server is full (max 500 members)' });
+    s.members.push(target);
+    ensureServerMemberProfile(s, target);
+  }
+  logAudit(s, { type: 'join_request_accept', actor: req.user.username, target, targetName: (db.users[target] && db.users[target].displayName) || target, detail: 'Accepted join request' });
+  s.updatedAt = nowISO();
+  saveDB();
+  io.to('user:' + target).emit('server-join-accepted', { serverId: s.id, server: publicServer(s, target) });
+  emitServerUpdate(s);
+  res.json({ success: true, server: publicServer(s, req.user.username) });
+});
+app.post('/api/servers/:id/join-requests/:username/decline', authMiddleware, (req, res) => {
+  const s = findServer(req.params.id);
+  if (!s) return res.status(404).json({ error: 'Server not found' });
+  if (!(s.owner === req.user.username || serverHasPerm(s, req.user.username, 'manageServer') || serverHasPerm(s, req.user.username, 'kick'))) {
+    return res.status(403).json({ error: 'You do not have permission to manage join requests' });
+  }
+  const target = String(req.params.username || '').toLowerCase();
+  const had = (s.joinRequests || []).some(r => r.username === target);
+  s.joinRequests = (s.joinRequests || []).filter(r => r.username !== target);
+  if (had) logAudit(s, { type: 'join_request_decline', actor: req.user.username, target, targetName: (db.users[target] && db.users[target].displayName) || target, detail: 'Declined join request' });
+  s.updatedAt = nowISO();
+  saveDB();
+  io.to('user:' + target).emit('server-join-declined', { serverId: s.id, serverName: s.name });
+  emitServerUpdate(s);
+  res.json({ success: true, server: publicServer(s, req.user.username) });
 });
 
 // Create a group chat. The creator becomes the owner and is automatically a member.
@@ -6557,6 +6740,15 @@ io.on('connection', (socket) => {
       const msg = msgs[0];
       msgs.forEach(m => s.messages[channelId].push(m));
       if (s.messages[channelId].length > 2000) s.messages[channelId] = s.messages[channelId].slice(-2000);
+      // Audit log: record the message and, when media is attached, a separate
+      // media entry so the log distinguishes text from uploads.
+      if (hasText) {
+        logAudit(s, { type: 'message', actor: username, channelId, channelName: ch.name, detail: storedText.slice(0, 200) });
+      }
+      if (hasFiles) {
+        const mediaNames = (cleanFiles || []).map(f => f.name).filter(Boolean).join(', ') || (file && file.name) || 'attachment';
+        logAudit(s, { type: 'media', actor: username, channelId, channelName: ch.name, detail: 'Uploaded ' + mediaNames });
+      }
       saveDB();
       const emitToMembers = (m) => { for (const mem of (s.members || [])) io.to('user:' + mem).emit('server-message', { serverId: s.id, channelId, message: m }); };
       msgs.forEach(emitToMembers);
