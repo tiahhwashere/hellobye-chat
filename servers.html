@@ -1451,8 +1451,6 @@ input, textarea { font-family: inherit; }
 @keyframes updateIn { from { opacity: 0; transform: translate(-50%, 18px); } to { opacity: 1; transform: translate(-50%, 0); } }
 .update-popup.fade-out { animation: updateOut 0.25s ease forwards; }
 @keyframes updateOut { to { opacity: 0; transform: translate(-50%, 14px); } }
-.update-popup-icon { flex-shrink: 0; width: 40px; height: 40px; border-radius: 11px; display: flex; align-items: center; justify-content: center; background: rgba(74,158,255,0.14); color: var(--accent); }
-.update-popup-icon svg { width: 20px; height: 20px; }
 .update-popup-body { flex: 1; min-width: 0; }
 .update-popup-title { font-size: 13.5px; font-weight: 700; letter-spacing: 0.01em; margin-bottom: 2px; }
 .update-popup-text { font-size: 12.5px; color: var(--text-secondary); line-height: 1.42; }
@@ -4915,11 +4913,6 @@ function showUpdatePopup() {
   const el = document.createElement('div');
   el.className = 'update-popup';
   el.innerHTML =
-    '<span class="update-popup-icon">' +
-      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
-        '<path d="M21 12a9 9 0 1 1-3-6.7"/><polyline points="21 3 21 9 15 9"/>' +
-      '</svg>' +
-    '</span>' +
     '<div class="update-popup-body">' +
       '<div class="update-popup-title">A new update is available</div>' +
       '<div class="update-popup-text">HelloBye will refresh automatically in <b id="update-countdown">' + UPDATE_COUNTDOWN_SECONDS + '</b>s to apply the latest changes.</div>' +
@@ -10482,9 +10475,12 @@ function applySettingsPermissions(canEdit, canManageChannels, canManageRoles, ca
   if (saveBtn) saveBtn.style.display = canEdit ? '' : 'none';
   const unsaved = $('settings-unsaved');
   if (unsaved && !canEdit) unsaved.style.display = 'none';
-  // Read-only notice.
+  // Read-only notice. Only shown to members who have NO role/rank at all.
+  // Anyone who is the owner, an admin, or holds any assigned role is treated as
+  // staff and does not see the "view-only access" message.
   let notice = $('settings-readonly-notice');
-  if (!canEdit) {
+  const hasAnyRank = memberHasAnyRank();
+  if (!canEdit && !hasAnyRank) {
     if (!notice) {
       notice = document.createElement('div');
       notice.id = 'settings-readonly-notice';
@@ -10495,6 +10491,16 @@ function applySettingsPermissions(canEdit, canManageChannels, canManageRoles, ca
   } else if (notice) {
     notice.remove();
   }
+}
+// True when the current user is the owner, an administrator, or holds at least
+// one assigned role/rank on the active server.
+function memberHasAnyRank() {
+  if (!activeServer) return false;
+  if (activeServer.isOwner) return true;
+  const me = (activeServer.members || []).find(m => m.username === currentUser.username);
+  if (!me) return false;
+  if ((me.roleIds || []).length > 0) return true;
+  return hasPerm('administrator');
 }
 function renderSettingsChannels() {
   const wrap = $('settings-channels');
