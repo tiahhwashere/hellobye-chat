@@ -5690,7 +5690,10 @@ function decodeEntities(s) {
 function computeBuildId() {
   try {
     const h = crypto.createHash('sha1');
-    for (const f of ['index.html', 'server.js']) {
+    // Include every served frontend file so a change to ANY of them (including
+    // the main servers.html app) bumps the build id and triggers the soft
+    // update popup for connected clients.
+    for (const f of ['index.html', 'servers.html', 'server.js']) {
       try { h.update(fs.readFileSync(path.join(__dirname, f))); } catch (e) {}
     }
     return h.digest('hex').slice(0, 12);
