@@ -376,13 +376,9 @@ input, textarea { font-family: inherit; }
 
 .msg-group { display: flex; gap: 12px; padding: 3px 8px; border-radius: var(--radius-sm); position: relative; animation: msgIn 0.16s ease-out; }
 @keyframes msgIn { from { opacity: 0; } to { opacity: 1; } }
-/* No background panel is painted behind messages. Hover feedback is a thin
-   accent bar on the leading edge only, so the message content always sits
-   directly on the chat surface. */
-.msg-group::before { content: ''; position: absolute; left: 0; top: 3px; bottom: 3px; width: 2px; border-radius: 2px; background: transparent; transition: background 0.15s ease; }
-.msg-group:hover::before { background: rgba(var(--accent-rgb), 0.6); }
+/* No background panel or hover accent bar is painted behind messages, so the
+   message content always sits directly on the chat surface. */
 .msg-group.own { flex-direction: row-reverse; }
-.msg-group.own::before { left: auto; right: 0; }
 /* Consecutive messages from the same author stack tightly: the avatar and the
    author header are hidden and the row pulls up, so a run of messages reads as
    one clean block instead of repeating the name/avatar every line. */
