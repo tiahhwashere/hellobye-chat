@@ -3901,11 +3901,10 @@ app.post('/api/servers/:id/profile', authMiddleware, avatarUpload.single('image'
       if (field === 'banner') {
         prof.banner = fileUrl;
       } else {
+        // Server-scoped avatar ONLY. This must never touch the account-wide
+        // avatar (the bottom-left self picture / main chat), so the "My Server
+        // Profile" editor stays strictly SERVERS ONLY.
         prof.avatar = fileUrl;
-        // Keep the account-wide (bottom-left) profile picture in lock-step with
-        // the server profile picture: changing it here also changes it there.
-        req.user.avatar = fileUrl;
-        try { broadcastProfile(me); } catch (e) {}
       }
       backupUploadFile(req.file.filename);
     } catch (e) { console.error('server profile upload error', e); }
@@ -3913,7 +3912,7 @@ app.post('/api/servers/:id/profile', authMiddleware, avatarUpload.single('image'
   s.updatedAt = nowISO();
   saveDB();
   emitServerUpdate(s);
-  res.json({ success: true, server: publicServer(s, me), avatar: req.user.avatar || null });
+  res.json({ success: true, server: publicServer(s, me) });
 });
 
 // ---- Leave a server ----
@@ -7306,6 +7305,23 @@ io.on('connection', (socket) => {
       io.to('user:' + m).emit('voice-occupancy', { serverId, channelId, count });
     }
   }
+  // Broadcast the FULL voice presence map (which members are sitting in which
+  // voice channel) to every member of the server. This powers the "In voice"
+  // badges in the member list and member profiles. It is only ever sent to
+  // members of THIS server, so presence never leaks across unrelated servers.
+  function voiceBroadcastPresence(serverId) {
+    const s = findServer(serverId);
+    if (!s) return;
+    const channels = {};
+    for (const ch of (s.channels || [])) {
+      if (ch.type !== 'voice') continue;
+      const peers = voiceRoomPeers(serverId, ch.id);
+      if (peers.length) channels[ch.id] = peers.map(p => p.username);
+    }
+    for (const m of (s.members || [])) {
+      io.to('user:' + m).emit('voice-presence', { serverId, channels });
+    }
+  }
   function voiceRemoveUser(serverId, channelId) {
     const key = voiceRoomKey(serverId, channelId);
     const room = voiceRooms.get(key);
@@ -7319,6 +7335,7 @@ io.on('connection', (socket) => {
       // Always refresh the authoritative count for everyone in the server so
       // the badge drops to 0 (and disappears) when the room empties.
       voiceBroadcastOccupancy(serverId, channelId);
+      voiceBroadcastPresence(serverId);
     }
   }
   socket.on('voice-join', ({ serverId, channelId }, ack) => {
@@ -7348,6 +7365,7 @@ io.on('connection', (socket) => {
       socket.to(key).emit('voice-peer-joined', { serverId, channelId, peer: { username, muted: false, deafened: false, speaking: false, joinedAt: Date.now() } });
       voiceBroadcastPeers(serverId, channelId);
       voiceBroadcastOccupancy(serverId, channelId);
+      voiceBroadcastPresence(serverId);
     } catch (e) { if (typeof ack === 'function') ack({ error: 'Could not join voice channel' }); }
   });
   socket.on('voice-leave', ({ serverId, channelId }) => {
@@ -7413,6 +7431,7 @@ io.on('connection', (socket) => {
             socket.join(key);
             voiceBroadcastPeers(serverId, channelId);
             voiceBroadcastOccupancy(serverId, channelId);
+            voiceBroadcastPresence(serverId);
           }
         } else {
           if (typeof ack === 'function') ack({ error: 'You are not in this voice channel' });
@@ -7530,6 +7549,7 @@ io.on('connection', (socket) => {
         // Refresh the authoritative occupancy for the whole server so the
         // sidebar badge clears for everyone when the room empties.
         voiceBroadcastOccupancy(serverId, channelId);
+        voiceBroadcastPresence(serverId);
       }
     }
   });

@@ -387,7 +387,7 @@ input, textarea { font-family: inherit; }
   border: 2.5px solid var(--bg-darker); background: var(--offline); box-shadow: 0 0 0 1px rgba(0,0,0,0.35);
   background-size: contain; background-repeat: no-repeat; background-position: center;
 }
-.server-user-footer .sf-status.online { background-image: url('online.png'); background-color: transparent; border-radius: 5px; }
+.server-user-footer .sf-status.online { background-image: url('online.png'); background-color: transparent; }
 .server-user-footer .sf-status.idle { background-image: url('idle.png'); background-color: transparent; }
 .server-user-footer .sf-status.dnd { background-image: url('dnd.png'); background-color: transparent; }
 .server-user-footer .sf-status.streaming { background-image: url('streaming.png'); background-color: transparent; }
@@ -1164,8 +1164,8 @@ input, textarea { font-family: inherit; }
 .member-item:hover { background: var(--bg-medium); }
 .member-item .mi-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; overflow: hidden; position: relative; flex-shrink: 0; }
 .member-item .mi-avatar img { width: 100%; height: 100%; object-fit: cover; }
-.member-item .mi-status { position: absolute; bottom: -1px; right: -1px; width: 14px; height: 14px; border-radius: 50%; border: 2.5px solid var(--bg-dark); box-shadow: 0 0 0 1px rgba(0,0,0,0.35); background-size: contain; background-repeat: no-repeat; background-position: center; }
-.member-item .mi-status.online { background-image: url('online.png'); border-radius: 5px; }
+.member-item .mi-status { position: absolute; bottom: -2px; right: -2px; width: 16px; height: 16px; box-sizing: border-box; border-radius: 50%; border: 2.5px solid var(--bg-dark); box-shadow: 0 0 0 1px rgba(0,0,0,0.35); background-size: 100% 100%; background-repeat: no-repeat; background-position: center; }
+.member-item .mi-status.online { background-image: url('online.png'); }
 .member-item .mi-status.idle { background-image: url('idle.png'); }
 .member-item .mi-status.dnd { background-image: url('dnd.png'); }
 .member-item .mi-status.streaming { background-image: url('streaming.png'); }
@@ -1176,6 +1176,15 @@ input, textarea { font-family: inherit; }
 .member-item .mi-role { font-size: 10px; padding: 1px 6px; border-radius: 6px; font-weight: 700; display: inline-flex; align-items: center; gap: 3px; }
 .member-item .mi-role-img { width: 16px; height: 16px; object-fit: contain; flex-shrink: 0; }
 .member-item.offline { opacity: 0.5; }
+/* "In voice" indicator in the member list */
+.member-item .mi-voice { display: inline-flex; align-items: center; gap: 4px; margin-top: 2px; font-size: 11px; font-weight: 600; color: #3ba55d; max-width: 100%; }
+.member-item .mi-voice .ui-ic { width: 12px; height: 12px; flex-shrink: 0; }
+.member-item .mi-voice-txt { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.member-item.in-voice .mi-avatar { box-shadow: 0 0 0 2px rgba(59,165,93,0.55); }
+/* "In voice" line in the member profile modal */
+.member-profile-voice { display: inline-flex; align-items: center; gap: 7px; margin-top: 8px; padding: 6px 12px; border-radius: 100px; font-size: 12.5px; font-weight: 600; color: #3ba55d; background: rgba(59,165,93,0.12); border: 1px solid rgba(59,165,93,0.32); }
+.member-profile-voice .ui-ic { width: 14px; height: 14px; flex-shrink: 0; }
+.member-profile-voice b { color: #4fd07a; font-weight: 700; }
 
 /* ---------- Message threads ---------- */
 .thread-panel { width: 0; flex-shrink: 0; background: var(--bg-dark); border-left: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden; transition: width 0.28s cubic-bezier(0.4,0,0.2,1), border-color 0.28s ease; }
@@ -1566,34 +1575,47 @@ input, textarea { font-family: inherit; }
 .smr-file-names { font-size: 12.5px; color: var(--text-secondary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes popIn { from { opacity: 0; transform: translateY(-8px) scale(0.98); } to { opacity: 1; transform: none; } }
+/* Toast — premium, non-cartoony notification card.
+   Glass surface + coloured accent edge + soft corner glow, a refined icon
+   badge, title + message, and a thin progress bar. Matches the main chat. */
 .toast {
-  position: relative; display: flex; align-items: flex-start; gap: 12px;
-  background: linear-gradient(180deg, #23262d, #1b1e24);
-  border: 1px solid rgba(255,255,255,0.08); border-radius: 14px;
-  padding: 14px 16px 15px 18px; font-size: 13.5px;
-  box-shadow: 0 16px 44px rgba(0,0,0,0.55), 0 2px 8px rgba(0,0,0,0.35);
-  animation: toastIn 0.34s cubic-bezier(0.16,1,0.3,1); max-width: min(560px, 94vw); min-width: min(360px, 92vw);
-  pointer-events: auto; overflow: hidden;
+  position: relative; overflow: hidden;
+  display: flex; align-items: flex-start; gap: 12px;
+  background: linear-gradient(180deg, rgba(33, 35, 41, 0.97), rgba(22, 23, 28, 0.97));
+  backdrop-filter: blur(18px) saturate(150%); -webkit-backdrop-filter: blur(18px) saturate(150%);
+  border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 14px;
+  padding: 14px 15px 15px 15px; font-size: 13px;
+  box-shadow: 0 18px 46px rgba(0, 0, 0, 0.55), 0 4px 14px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  animation: toastIn 0.34s cubic-bezier(0.16, 1, 0.3, 1);
+  max-width: min(440px, 94vw); min-width: min(340px, 92vw);
+  pointer-events: auto;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }
-.toast::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--accent); }
+.toast:hover { transform: translateY(-2px); border-color: rgba(255, 255, 255, 0.13); }
+.toast::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--toast-accent, var(--accent)); }
+.toast::after { content: ''; position: absolute; top: -70%; left: -25%; width: 75%; height: 180%; background: radial-gradient(circle, var(--toast-accent, var(--accent)) 0%, transparent 70%); opacity: 0.13; pointer-events: none; }
 .toast.toast-out { animation: toastOut 0.26s ease forwards; }
 @keyframes toastOut { to { opacity: 0; transform: translateY(-10px) scale(0.97); } }
-.toast .toast-content { flex: 1; min-width: 0; padding-top: 1px; }
-.toast .toast-title { font-weight: 700; font-size: 13.5px; letter-spacing: 0.1px; margin-bottom: 2px; color: var(--text-primary); }
+.toast .toast-icon { position: relative; z-index: 1; flex-shrink: 0; width: 32px; height: 32px; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: var(--toast-accent, var(--accent)); background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.09); }
+.toast .toast-icon svg { width: 17px; height: 17px; stroke-width: 2.3; }
+.toast .toast-content { position: relative; z-index: 1; flex: 1; min-width: 0; padding-top: 1px; }
+.toast .toast-title { font-weight: 700; font-size: 13px; letter-spacing: 0.1px; margin-bottom: 2px; color: var(--text-primary); }
 .toast .toast-msg { color: var(--text-secondary); line-height: 1.5; word-break: break-word; font-size: 13px; }
-.toast .toast-close { flex-shrink: 0; color: var(--text-muted); padding: 3px; border-radius: 7px; line-height: 0; transition: background var(--transition), color var(--transition); }
-.toast .toast-close:hover { color: var(--text-primary); background: rgba(255,255,255,0.08); }
+.toast .toast-close { position: relative; z-index: 1; flex-shrink: 0; color: var(--text-muted); padding: 4px; border-radius: 8px; line-height: 0; transition: background var(--transition), color var(--transition); background: none; border: none; cursor: pointer; }
+.toast .toast-close:hover { color: var(--text-primary); background: rgba(255, 255, 255, 0.08); }
 .toast .toast-close svg { width: 14px; height: 14px; }
-.toast .toast-bar { position: absolute; left: 0; bottom: 0; height: 2px; width: 100%; background: var(--accent); transform-origin: left; animation: toastBar linear forwards; opacity: 0.85; }
+.toast .toast-bar { position: absolute; left: 0; bottom: 0; height: 2px; width: 100%; background: var(--toast-accent, var(--accent)); transform-origin: left; animation: toastBar linear forwards; opacity: 0.9; }
 @keyframes toastBar { from { transform: scaleX(1); } to { transform: scaleX(0); } }
-.toast.success::before { background: #3ba55d; }
-.toast.success .toast-bar { background: #3ba55d; }
-.toast.error::before { background: #e35d5d; }
-.toast.error .toast-bar { background: #e35d5d; }
-.toast.info::before { background: #4a9eff; }
-.toast.info .toast-bar { background: #4a9eff; }
-.toast.warn::before { background: #f0a92e; }
-.toast.warn .toast-bar { background: #f0a92e; }
+.toast.success { --toast-accent: #3ba55d; }
+.toast.error { --toast-accent: #e35d5d; }
+.toast.info { --toast-accent: #4a9eff; }
+.toast.warn { --toast-accent: #f0a92e; }
+.toast.success .toast-icon { color: #3ba55d; background: rgba(59, 165, 93, 0.15); border-color: rgba(59, 165, 93, 0.3); }
+.toast.error .toast-icon { color: #e35d5d; background: rgba(227, 93, 93, 0.15); border-color: rgba(227, 93, 93, 0.3); }
+.toast.info .toast-icon { color: #4a9eff; background: rgba(74, 158, 255, 0.15); border-color: rgba(74, 158, 255, 0.3); }
+.toast.warn .toast-icon { color: #f0a92e; background: rgba(240, 169, 46, 0.15); border-color: rgba(240, 169, 46, 0.3); }
+.toast.mention-toast .toast-icon { color: #e0c060; background: rgba(224, 192, 96, 0.15); border-color: rgba(224, 192, 96, 0.3); }
+.toast.reply-toast .toast-icon { color: #7ee0b0; background: rgba(126, 224, 176, 0.15); border-color: rgba(126, 224, 176, 0.3); }
 @keyframes toastIn { from { opacity: 0; transform: translateY(-14px) scale(0.96); } to { opacity: 1; transform: translateY(0) scale(1); } }
 
 /* Status-change notice — replaces the old generic toast for status updates.
@@ -1616,7 +1638,7 @@ input, textarea { font-family: inherit; }
 .status-notice.show { opacity: 1; transform: translateY(0) scale(1); }
 .status-notice.hide { opacity: 0; transform: translateY(6px) scale(0.98); }
 .status-notice .sn-dot { width: 15px; height: 15px; border-radius: 50%; flex-shrink: 0; background-size: contain; background-repeat: no-repeat; background-position: center; }
-.status-notice .sn-dot.online { background-image: url('online.png'); border-radius: 5px; }
+.status-notice .sn-dot.online { background-image: url('online.png'); }
 .status-notice .sn-dot.idle { background-image: url('idle.png'); }
 .status-notice .sn-dot.dnd { background-image: url('dnd.png'); }
 .status-notice .sn-dot.offline { background-image: url('offline.png'); }
@@ -1628,7 +1650,7 @@ input, textarea { font-family: inherit; }
 
 /* Member profile modal */
 /* ---------- Member profile (matches the main chat's profile view) ---------- */
-.member-profile-modal { max-width: 900px; padding: 0; overflow: hidden; text-align: left; position: relative; }
+.member-profile-modal { max-width: 900px; padding: 0; overflow-y: auto; overflow-x: hidden; text-align: left; position: relative; }
 /* My Server Profile editor: wider so the save button and options aren't smushed. */
 .member-profile-modal.msp-editor-mode { max-width: 1080px; width: 96vw; }
 .member-profile-modal.msp-editor-mode .modal-body { padding: 28px 40px; }
@@ -1711,7 +1733,7 @@ input, textarea { font-family: inherit; }
 }
 .modal-close-corner:hover { background: rgba(0,0,0,0.6); }
 .status-dot { width: 14px; height: 14px; border-radius: 50%; background: var(--offline); display: inline-block; flex-shrink: 0; background-size: contain; background-repeat: no-repeat; background-position: center; }
-.status-dot.online { background-image: url('online.png'); background-color: transparent; border-radius: 4px; }
+.status-dot.online { background-image: url('online.png'); background-color: transparent; }
 .status-dot.idle { background-image: url('idle.png'); background-color: transparent; }
 .status-dot.dnd { background-image: url('dnd.png'); background-color: transparent; }
 .status-dot.streaming { background-image: url('streaming.png'); background-color: transparent; }
@@ -2348,6 +2370,16 @@ input, textarea { font-family: inherit; }
 .msp-section-title { display: flex; align-items: center; gap: 8px; font-size: 14.5px; font-weight: 750; color: var(--text-primary); }
 .msp-section-title .ui-ic { color: var(--accent-light); width: 16px; height: 16px; }
 .msp-section-sub { font-size: 12.5px; color: var(--text-muted); margin: 4px 0 18px; line-height: 1.5; }
+/* "Servers Only" banner at the top of the My Server Profile editor */
+.msp-serversonly {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 18px;
+  padding: 11px 15px; border-radius: 12px; font-size: 12.5px; line-height: 1.45;
+  color: var(--text-secondary);
+  background: color-mix(in srgb, var(--accent) 9%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 26%, transparent);
+}
+.msp-serversonly .ui-ic { color: var(--accent-light); flex-shrink: 0; }
+.msp-serversonly b { color: var(--text-primary); font-weight: 700; }
 .msp-section .field:last-child { margin-bottom: 0; }
 /* Sticky save bar so the Save Settings button is always reachable */
 .member-profile-modal.msp-editor-mode .modal-footer { position: sticky; bottom: 0; background: var(--bg-darker); border-top: 1px solid var(--border); padding: 16px 40px; margin-top: 4px; }
@@ -2948,7 +2980,7 @@ input, textarea { font-family: inherit; }
 .status-menu button:hover { background: var(--bg-medium); color: var(--text-primary); }
 .status-menu button.selected { background: rgba(var(--accent-rgb), 0.14); color: var(--text-primary); }
 .status-menu .sm-dot { width: 18px; height: 18px; border-radius: 50%; flex-shrink: 0; background-size: contain; background-repeat: no-repeat; background-position: center; }
-.status-menu .sm-dot.online { background-image: url('online.png'); border-radius: 6px; }
+.status-menu .sm-dot.online { background-image: url('online.png'); }
 .status-menu .sm-dot.idle { background-image: url('idle.png'); }
 .status-menu .sm-dot.dnd { background-image: url('dnd.png'); }
 .status-menu .sm-dot.streaming { background-image: url('streaming.png'); }
@@ -4636,9 +4668,17 @@ function toast(msg, type) {
   const el = document.createElement('div');
   el.className = 'toast ' + (type || 'info');
   const titles = { success: 'Success', error: 'Something went wrong', warn: 'Heads up', info: 'Notice' };
+  // Refined inline SVG icon set \u2014 matches the site's icon language.
+  const icons = {
+    success: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>',
+    error: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>',
+    warn: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
+    info: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>',
+  };
   const t = type || 'info';
   const dur = t === 'error' ? 5200 : 3600;
   el.innerHTML =
+    '<span class="toast-icon">' + (icons[t] || icons.info) + '</span>' +
     '<div class="toast-content"><div class="toast-title">' + (titles[t] || 'Notice') + '</div><div class="toast-msg">' + escapeHtml(msg) + '</div></div>' +
     '<button class="toast-close" aria-label="Dismiss">' + icon('x', 'sm') + '</button>' +
     '<span class="toast-bar" style="animation-duration:' + dur + 'ms;"></span>';
@@ -4697,11 +4737,13 @@ function showPingToast(data) {
   const isMention = data.type === 'mention';
   const tag = isMention ? ('@' + escapeHtml(currentUser.username)) : (data.type === 'here' ? '@here' : '@everyone');
   const accent = '#e0c060';
+  el.style.setProperty('--toast-accent', accent);
   el.innerHTML =
+    '<span class="toast-icon">' + icon('at', 'sm') + '</span>' +
     '<div class="toast-content"><div class="toast-title" style="color:' + accent + ';">' + who + ' ' + (isMention ? 'mentioned you' : 'pinged <b>' + tag + '</b>') + '</div>' +
     '<div class="toast-msg">in #' + where + (data.text ? ' \u2014 ' + escapeHtml(data.text) : '') + '</div></div>' +
     '<button class="toast-close" aria-label="Dismiss">' + icon('x', 'sm') + '</button>' +
-    '<span class="toast-bar" style="background:' + accent + ';animation-duration:6500ms;"></span>';
+    '<span class="toast-bar" style="animation-duration:6500ms;"></span>';
   const dismiss = () => { el.classList.add('toast-out'); setTimeout(() => el.remove(), 280); };
   el.querySelector('.toast-close').addEventListener('click', (e) => { e.stopPropagation(); dismiss(); });
   el.addEventListener('click', () => {
@@ -4718,11 +4760,13 @@ function showReplyToast(data) {
   el.className = 'toast reply-toast';
   const who = escapeHtml(data.displayName || data.from);
   const where = escapeHtml(data.channelName || 'a channel');
+  el.style.setProperty('--toast-accent', '#7ee0b0');
   el.innerHTML =
+    '<span class="toast-icon">' + icon('reply', 'sm') + '</span>' +
     '<div class="toast-content"><div class="toast-title" style="color:#7ee0b0;">' + who + ' replied to you</div>' +
     '<div class="toast-msg">in #' + where + (data.text ? ' \u2014 ' + escapeHtml(data.text) : '') + '</div></div>' +
     '<button class="toast-close" aria-label="Dismiss">' + icon('x', 'sm') + '</button>' +
-    '<span class="toast-bar" style="background:#7ee0b0;animation-duration:6500ms;"></span>';
+    '<span class="toast-bar" style="animation-duration:6500ms;"></span>';
   const dismiss = () => { el.classList.add('toast-out'); setTimeout(() => el.remove(), 280); };
   el.querySelector('.toast-close').addEventListener('click', (e) => { e.stopPropagation(); dismiss(); });
   el.addEventListener('click', () => {
@@ -5284,6 +5328,17 @@ function connectSocket() {
     if (!data || !data.channelId) return;
     voiceOccupancyMap[data.channelId] = Math.max(0, Number(data.count) || 0);
     if (activeServerId === data.serverId) renderChannels();
+  });
+  // Full voice presence map for a server: which members are in which voice
+  // channel. Drives the "In voice" badges in the member list + member profiles.
+  socket.on('voice-presence', (data) => {
+    if (!data || !data.serverId) return;
+    voicePresenceMap[data.serverId] = data.channels || {};
+    if (activeServerId === data.serverId) {
+      renderMembers();
+      // If a member profile is open, refresh it so the "In voice" line updates live.
+      if (viewingMember) { try { openMemberProfile(viewingMember); } catch (e) {} }
+    }
   });
   // Voice channel text chat message (relayed to everyone in the voice room).
   socket.on('voice-chat-message', (msg) => {
@@ -6234,10 +6289,17 @@ function memberRowHtml(m) {
   const av = m.avatar ? '<img src="' + escapeAttr(m.avatar) + '">' : getInitials(m.nickname || m.displayName || m.username);
   const statusCls = ['online','idle','dnd','streaming','offline'].includes(m.status) ? m.status : 'offline';
   const roleChips = roles.slice(0, 3).map(r => '<span class="role-chip-wrap"><span class="mi-role" style="background:' + escapeAttr(r.color) + '22;color:' + escapeAttr(r.color) + ';">' + escapeHtml(r.name) + '</span>' + (r.badge ? '<img class="mi-role-img" src="' + escapeAttr(r.badge) + '" alt="">' : '') + '</span>').join('');
-  return '<div class="member-item' + (m.status === 'offline' ? ' offline' : '') + '" data-member="' + escapeAttr(m.username) + '">' +
+  // "In voice" indicator — only shown when this member shares the active server
+  // and is currently sitting in one of its voice channels.
+  const vch = voiceChannelOfUser(m.username);
+  const voiceLine = vch
+    ? '<div class="mi-voice" title="In voice \u2014 ' + escapeAttr(vch.name) + '">' + icon('video', 'sm') + '<span class="mi-voice-txt">In voice \u2014 ' + escapeHtml(vch.name) + '</span></div>'
+    : '';
+  return '<div class="member-item' + (m.status === 'offline' ? ' offline' : '') + (vch ? ' in-voice' : '') + '" data-member="' + escapeAttr(m.username) + '">' +
     '<div class="mi-avatar">' + av + '<span class="mi-status ' + statusCls + '"></span></div>' +
     '<div class="mi-info"><div class="mi-name" style="color:' + nameColor + ';">' + escapeHtml(m.nickname || m.displayName || m.username) + '</div>' +
-    (roleChips ? '<div class="mi-roles">' + roleChips + '</div>' : '') + '</div></div>';
+    (roleChips ? '<div class="mi-roles">' + roleChips + '</div>' : '') +
+    voiceLine + '</div></div>';
 }
 
 /* ============================================================
@@ -8069,6 +8131,26 @@ voiceLoadPrefs();
 // channelId -> live occupancy count (drives the sidebar badge).
 const voiceOccupancyMap = {};
 function voiceOccupancy(channelId) { return voiceOccupancyMap[channelId] || 0; }
+// serverId -> { channelId: [usernames] } — who is sitting in which voice
+// channel. Only ever populated for servers the user is a member of, so voice
+// presence never leaks across unrelated servers.
+const voicePresenceMap = {};
+// Return the voice channel (within the active server) that a user is currently
+// in, or null. Powers the "In voice" badges in the member list + profiles.
+function voiceChannelOfUser(username) {
+  if (!username) return null;
+  const map = voicePresenceMap[activeServerId];
+  if (!map) return null;
+  const un = String(username).toLowerCase();
+  for (const chId in map) {
+    const list = map[chId] || [];
+    if (list.some(u => String(u).toLowerCase() === un)) {
+      const ch = (activeServer && (activeServer.channels || []).find(c => c.id === chId)) || null;
+      return ch || { id: chId, name: 'Voice' };
+    }
+  }
+  return null;
+}
 // Ask the server for the current occupancy of every voice channel in the
 // active server, so badges are accurate on load and stale counts are cleared.
 function voiceRefreshOccupancy() {
@@ -8077,9 +8159,13 @@ function voiceRefreshOccupancy() {
   chans.forEach(c => {
     try {
       socket.emit('voice-peers-get', { serverId: activeServerId, channelId: c.id }, (resp) => {
-        const count = (resp && resp.peers) ? resp.peers.length : 0;
-        voiceOccupancyMap[c.id] = count;
-        if (activeServerId === activeServer.id) renderChannels();
+        const peers = (resp && resp.peers) ? resp.peers : [];
+        voiceOccupancyMap[c.id] = peers.length;
+        // Track presence so the member list + profiles can show "In voice".
+        if (!voicePresenceMap[activeServerId]) voicePresenceMap[activeServerId] = {};
+        if (peers.length) voicePresenceMap[activeServerId][c.id] = peers.map(p => p.username);
+        else delete voicePresenceMap[activeServerId][c.id];
+        if (activeServerId === activeServer.id) { renderChannels(); renderMembers(); }
       });
     } catch (e) {}
   });
@@ -11953,6 +12039,13 @@ function renderMemberProfileBody(m, roles, isMe, data) {
     }
   }
 
+  // Voice presence — tell viewers which voice channel this member is sitting in
+  // (only ever shown for members of the same server).
+  const vch = voiceChannelOfUser(m.username);
+  if (vch) {
+    html += '<div class="member-profile-voice">' + icon('video', 'sm') + '<span>In voice \u2014 <b>' + escapeHtml(vch.name) + '</b></span></div>';
+  }
+
   // Server roles markup (rendered beside "Member Since").
   const rolesChips = roles.map(r =>
       '<span class="role-chip-wrap"><span class="member-profile-role" style="background:' + escapeAttr(r.color) + '22;color:' + escapeAttr(r.color) + ';">' +
@@ -12221,14 +12314,17 @@ function openMyServerProfileEditor() {
   const me = (activeServer.members || []).find(x => x.username === currentUser.username) || {};
   const u = currentUser || {};
   const displayName = me.nickname || u.displayName || u.username;
+  // Server-scoped avatar/banner only. We fall back to the account avatar purely
+  // as a *preview* of what members currently see — saving never writes it back
+  // to the account-wide profile.
   const avatar = me.avatar || u.avatar || null;
   const banner = me.banner || u.banner || null;
-  const panelColors = ['#4a9eff','#7c5cf0','#f0629f','#2fa457','#f0a92e','#e35d5d','#00c2b2','#ff7a45','#9b6bff','#3ba55d','#d4a017','#5865f2'];
   const curColor = u.panelColor || '#4a9eff';
   const heroTint = hexToRgba(curColor, 0.16);
   const heroEdge = hexToRgba(curColor, 0.6);
   $('member-modal-title').textContent = 'My Server Profile';
   $('member-modal-body').innerHTML =
+    '<div class="msp-serversonly">' + icon('shield', 'sm') + '<span><b>Servers Only</b> \u2014 these changes apply to <b>' + escapeHtml(activeServer.name || 'this server') + '</b> and never to your main chat profile.</span></div>' +
     '<div class="msp-hero">' +
       '<div class="msp-hero-banner" id="msp-banner" style="' + (banner ? 'background-image:url(' + escapeAttr(banner) + ');' : '') + '"><div class="edit-overlay">Change Banner</div></div>' +
       '<div class="msp-hero-avatar" id="msp-avatar">' + (avatar ? '<img src="' + escapeAttr(avatar) + '">' : escapeHtml(getInitials(displayName))) + '<div class="edit-overlay">' + icon('camera', 'lg') + '</div></div>' +
@@ -12241,7 +12337,7 @@ function openMyServerProfileEditor() {
       '<button data-tab="appearance">' + icon('palette', 'sm') + ' Appearance</button>' +
     '</div>' +
     '<div class="msp-pane active" id="msp-pane-profile">' +
-      '<div class="msp-section"><div class="msp-section-title">' + icon('user', 'sm') + ' Server Identity</div><div class="msp-section-sub">How you appear to members of this server. These details are unique to this server.</div>' +
+      '<div class="msp-section"><div class="msp-section-title">' + icon('user', 'sm') + ' Server Identity</div><div class="msp-section-sub">How you appear to members of this server. These details are unique to this server and never change your main chat profile.</div>' +
         '<div class="msp-identity-media">' +
           '<div class="msp-id-avatar" id="msp-id-avatar">' + (avatar ? '<img src="' + escapeAttr(avatar) + '">' : escapeHtml(getInitials(displayName))) + '</div>' +
           '<div class="msp-id-media-info">' +
@@ -12254,27 +12350,11 @@ function openMyServerProfileEditor() {
           '</div>' +
         '</div>' +
         '<div class="field"><label>Nickname (in this server)</label><input type="text" id="my-nick" maxlength="32" value="' + escapeAttr(me.nickname || '') + '" placeholder="' + escapeAttr(u.displayName || u.username || '') + '"></div>' +
-        '<div class="field"><label>About me (in this server)</label><textarea id="my-bio" maxlength="300" placeholder="Introduce yourself to this server’s members.">' + escapeHtml(me.bio || '') + '</textarea></div>' +
-      '</div>' +
-      '<div class="msp-section"><div class="msp-section-title">' + icon('chat', 'sm') + ' Global Profile</div><div class="msp-section-sub">Shown everywhere on hellobye, across every server.</div>' +
-        '<div class="field"><label>Global Bio</label><textarea id="my-gbio" maxlength="500" placeholder="This bio appears on your profile everywhere on hellobye.">' + escapeHtml(u.bio || '') + '</textarea></div>' +
-        '<div class="field-row">' +
-          '<div class="field"><label>Pronouns</label><input type="text" id="my-pronouns" maxlength="50" value="' + escapeAttr(u.pronouns || '') + '" placeholder="they/them"></div>' +
-          '<div class="field"><label>Location</label><input type="text" id="my-location" maxlength="60" value="' + escapeAttr(u.location || '') + '" placeholder="Earth"></div>' +
-        '</div>' +
-        '<div class="field"><label>Website</label><input type="text" id="my-website" maxlength="120" value="' + escapeAttr(u.website || '') + '" placeholder="https://your-site.com"></div>' +
-        '<div class="field"><label>Status Message</label><input type="text" id="my-statusmsg" maxlength="25" value="' + escapeAttr(u.statusMessage || '') + '" placeholder="Set a short status — e.g. Building something new"></div>' +
+        '<div class="field"><label>About me (in this server)</label><textarea id="my-bio" maxlength="300" placeholder="Introduce yourself to this server\u2019s members.">' + escapeHtml(me.bio || '') + '</textarea></div>' +
       '</div>' +
     '</div>' +
     '<div class="msp-pane" id="msp-pane-appearance">' +
-      '<div class="msp-section"><div class="msp-section-title">' + icon('palette', 'sm') + ' Appearance</div><div class="msp-section-sub">Personalise how your profile panel looks to others.</div>' +
-      '<div class="field"><label>Panel Theme Color</label><div class="hint" style="margin-bottom:10px;">This tints your profile panel for everyone who views it.</div>' +
-      '<div class="color-swatches" id="msp-colors">' + panelColors.map(c => '<div class="color-swatch' + (c.toLowerCase() === curColor.toLowerCase() ? ' selected' : '') + '" data-color="' + c + '" style="background:' + c + ';"></div>').join('') + '</div>' +
-      '<div style="display:flex;align-items:center;gap:10px;margin-top:12px;">' +
-        '<input type="color" id="my-panelcolor" value="' + escapeAttr(curColor) + '" style="width:44px;height:38px;background:var(--bg-darkest);border:1px solid var(--border-light);border-radius:8px;cursor:pointer;">' +
-        '<span style="font-size:12px;color:var(--text-muted);">Custom color</span>' +
-        '<button class="btn btn-ghost" id="my-panelcolor-clear" style="margin-left:auto;padding:6px 12px;font-size:12px;">Clear</button>' +
-      '</div></div>' +
+      '<div class="msp-section"><div class="msp-section-title">' + icon('palette', 'sm') + ' Appearance</div><div class="msp-section-sub">Fine-tune how your avatar and banner appear on this server\u2019s profile. These settings are saved to this server only.</div>' +
       '<div class="field"><label>Avatar &amp; Banner Scale</label><div class="hint" style="margin-bottom:10px;">Fine-tune how large your avatar and banner appear on your server profile. Drag a slider, type an exact value, or pick a preset.</div>' +
         '<div class="msp-scale-preview">' +
           '<div class="msp-sp-banner" id="msp-sp-banner" style="' + (banner ? '' : 'background:linear-gradient(135deg,#6366f1,#4f46e5);') + '">' + (banner ? '<div class="msp-sp-banner-img" id="msp-sp-banner-img" style="background-image:url(' + escapeAttr(banner) + ')"></div>' : '') + '</div>' +
@@ -12327,29 +12407,6 @@ function openMyServerProfileEditor() {
     if (pv) { pv.style.background = ''; pv.innerHTML = '<div class="msp-sp-banner-img" id="msp-sp-banner-img" style="background-image:url(' + url + ')"></div>'; }
     if (typeof mspApplyScale === 'function') mspApplyScale();
   });
-  // Color swatches
-  function applyHeroTint(color) {
-    const hn = $('msp-hero-name');
-    if (!hn) return;
-    hn.style.background = hexToRgba(color, 0.16);
-    hn.style.borderLeft = '3px solid ' + hexToRgba(color, 0.6);
-  }
-  $('msp-colors').querySelectorAll('.color-swatch').forEach(sw => sw.addEventListener('click', () => {
-    $('msp-colors').querySelectorAll('.color-swatch').forEach(x => x.classList.remove('selected'));
-    sw.classList.add('selected');
-    $('my-panelcolor').value = sw.dataset.color;
-    applyHeroTint(sw.dataset.color);
-  }));
-  $('my-panelcolor').addEventListener('input', () => {
-    $('msp-colors').querySelectorAll('.color-swatch').forEach(x => x.classList.remove('selected'));
-    applyHeroTint($('my-panelcolor').value);
-  });
-  $('my-panelcolor-clear').addEventListener('click', () => {
-    $('msp-colors').querySelectorAll('.color-swatch').forEach(x => x.classList.remove('selected'));
-    $('my-panelcolor').value = '#4a9eff';
-    $('my-panelcolor').dataset.cleared = '1';
-    applyHeroTint('#4a9eff');
-  });
   // Avatar / banner scale sliders + live preview + presets
   function mspApplyScale() {
     const av = Number($('my-avatar-scale').value) || 100;
@@ -12385,35 +12442,21 @@ function openMyServerProfileEditor() {
   mspApplyScale();
 
   $('my-profile-save').addEventListener('click', async () => {
-    const btn = $('my-profile-save'); btn.disabled = true; btn.textContent = 'Saving…';
+    const btn = $('my-profile-save'); btn.disabled = true; btn.textContent = 'Saving\u2026';
     try {
-      // Server-specific profile (nickname, bio, avatar, banner, scales)
+      // Server-specific profile ONLY (nickname, bio, avatar, banner, scales).
+      // Nothing here touches the account-wide / main-chat profile.
       await api('/api/servers/' + activeServerId + '/profile', { method: 'POST', body: { nickname: $('my-nick').value.trim(), bio: $('my-bio').value.trim(), avatarScale: Number($('my-avatar-scale').value) || 100, bannerScale: Number($('my-banner-scale').value) || 100 } });
       const av = $('my-avatar').files[0];
       if (av) {
         const fd = new FormData(); fd.append('image', av); fd.append('field', 'avatar');
-        const r = await api('/api/servers/' + activeServerId + '/profile', { method: 'POST', body: fd });
-        // Mirror the new server profile picture onto the account-wide avatar so
-        // the bottom-left (self footer) picture updates too.
-        if (r && r.avatar) currentUser.avatar = r.avatar;
+        await api('/api/servers/' + activeServerId + '/profile', { method: 'POST', body: fd });
       }
       const bn = $('my-banner').files[0];
       if (bn) { const fd = new FormData(); fd.append('image', bn); fd.append('field', 'banner'); await api('/api/servers/' + activeServerId + '/profile', { method: 'POST', body: fd }); }
-      // Global profile (bio, pronouns, location, website, status message, panel color)
-      const pcEl = $('my-panelcolor');
-      const panelColor = pcEl.dataset.cleared === '1' ? null : pcEl.value;
-      const prof = await api('/api/profile', { method: 'POST', body: {
-        bio: $('my-gbio').value.trim(),
-        pronouns: $('my-pronouns').value.trim(),
-        location: $('my-location').value.trim(),
-        website: $('my-website').value.trim(),
-        statusMessage: $('my-statusmsg').value.trim(),
-        panelColor,
-      } });
-      if (prof && prof.user) currentUser = prof.user;
       await loadServer(activeServerId, true);
       renderSelfFooter();
-      closeModal('member-modal'); toast('Profile updated', 'success');
+      closeModal('member-modal'); toast('Server profile updated', 'success');
     } catch(e) { toast(e.message, 'error'); btn.disabled = false; btn.textContent = 'Save Settings'; }
   });
   openModal('member-modal');

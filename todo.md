@@ -1,37 +1,45 @@
-# Request BL — Preferences readability, channel mentions, @here/@everyone red, wider settings, profile banner, unread dots, private profile cleanup, mobile, self-profile, invite embed details
+# Request BM — Invite embeds, server-only profile, Server Identity UI, VC presence, status dots, toast revamp
 
-## 1. Preferences tab: fix smushed/unreadable General, Access, Verification, Private, Slowmode, Notifications & Welcome, Welcome message
-- [x] Improve layout/readability
+## 1. Invite / custom invite link embeds (public chat, groupchats, DMs)
+- [x] Show `./code` short link for custom invites in the embed
+- [x] Show server icon, banner, member count, ONLINE count, channels, bio, owner
+- [x] Detect custom short codes (4-40 chars) in `extractServerInviteCode`
+- [x] Verify embed renders in public chat (verified: `./ninja` chip + counts + owner)
 
-## 2. Channel mentions (#chat) in chat + click to jump to channel
-- [x] Detect #channel in messages, render as clickable, redirect on click
+## 2. My Server Profile = SERVERS ONLY (must not affect main chat)
+- [x] Add clear "Servers Only" labelling
+- [x] Stop mirroring server avatar onto the account-wide avatar
+- [x] Stop writing global profile fields from this editor
+- [x] Keep server-specific nickname/bio/avatar/banner/scales working
+- [x] Verified: banner shows "Servers Only — these changes apply to Test Server and never to your main chat profile."
 
-## 3. @here / @everyone for owner/admins: glowing yellow -> red notification
-- [x] Change highlight color for owner/admin
+## 3. Server Identity UI — fix bio + fields not showing (size/clipping)
+- [x] Make the My Server Profile modal body scroll so nothing is clipped
+- [x] Verify Server Identity media block + bio + all fields visible
+- [x] Verified: modal scrollHeight 1098 > clientHeight 729, overflow-y auto; bio + nickname visible
 
-## 4. Server Settings wider (left-to-right)
-- [x] Increase modal width
+## 4. Voice-chat presence in member list + profile
+- [x] Server: broadcast which users are in which voice channel to all server members
+- [x] Client: track voice presence map
+- [x] Member list: show "In voice" indicator + channel name
+- [x] Member profile: show "In voice — #channel" detail
+- [x] Only show for users sharing the same server
+- [x] Verified: member row + profile both show "In voice — Voice"
 
-## 5. Main chat profile preview: banner connects left/right/up (full-bleed)
-- [x] Fix banner sizing in preview
+## 5. Fix member-list status circle proportions (online/idle/dnd/offline)
+- [x] Regenerate status icons as clean, consistent, professional circles
+- [x] Fix sizing/position in the member list
+- [x] Verified: clean green dot at correct proportion
 
-## 6. Unread channel white dot beside channel name, clears on visit
-- [x] Add unread indicator + clear logic
+## 6. Revamp ALL toast UIs (non-cartoony, unique, aligned with site)
+- [x] Redesign toast CSS in index.html
+- [x] Redesign toast CSS in servers.html
+- [x] Update toast JS markup to match
+- [x] Verify visually (both index.html + servers.html)
 
-## 7. "This profile is private" UI: remove Location and Website
-- [x] Remove those fields
-
-## 8. Mobile client size adjusting support
-- [x] Responsive fixes
-
-## 9. Bottom-left profile click opens own profile
-- [x] Wire self profile open
-
-## 10. Invite link embed: ensure server icon/banner/bio/member count/join button show for custom + copy-paste links
-- [x] Verify/fix embed for all link formats
-
-## 11. Verify + deploy
+## 7. Verify + deploy
 - [x] node --check server.js
-- [x] python3 checkjs.py servers.html
-- [x] git commit + push
-- [x] Render deploy + verify live
+- [x] JS syntax check servers.html + index.html
+- [x] Visual verification of all changes
+- [ ] git commit + push
+- [ ] Render deploy + verify live

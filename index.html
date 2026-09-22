@@ -877,7 +877,7 @@ body.loading-session #chat-app.active::after { content: none; }
   border: none;
   background-size: contain; background-repeat: no-repeat; background-position: center;
 }
-.status-dot.online { background-image: url('online.png'); border-radius: 4px; }
+.status-dot.online { background-image: url('online.png'); }
 .status-dot.idle { background-image: url('idle.png'); }
 .status-dot.dnd { background-image: url('dnd.png'); }
 .status-dot.offline { background-image: url('offline.png'); }
@@ -1881,6 +1881,17 @@ body.no-anim .friend-item { animation: none !important; }
   margin-top: 6px; font-size: 12.5px; color: var(--text-muted); line-height: 1.4;
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
 }
+.srv-embed-stat { display: inline-flex; align-items: center; gap: 5px; }
+.srv-embed-shortlink {
+  display: inline-flex; align-items: center; gap: 5px; margin-top: 7px;
+  font-size: 12px; font-weight: 600; font-family: var(--font-mono, ui-monospace, monospace);
+  color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 26%, transparent);
+  padding: 3px 9px; border-radius: 7px; letter-spacing: 0.2px;
+}
+.srv-embed-shortlink-icon { font-size: 11px; opacity: 0.85; }
+.srv-embed-owner { margin-top: 6px; font-size: 12px; color: var(--text-muted); }
+.srv-embed-owner b { color: var(--text-secondary); font-weight: 600; }
 .srv-embed-join {
   flex-shrink: 0; padding: 9px 18px; border-radius: 9px;
   background: var(--accent); color: #fff; font-size: 13.5px; font-weight: 600;
@@ -4096,7 +4107,7 @@ body.no-anim .friend-item { animation: none !important; }
 }
 .status-option.active .status-option-label { color: var(--text-primary); font-weight: 600; }
 .status-option-dot { width: 16px; height: 16px; border-radius: 50%; flex-shrink: 0; background-size: contain; background-repeat: no-repeat; background-position: center; }
-.status-option-dot.online { background-image: url('online.png'); border-radius: 4px; }
+.status-option-dot.online { background-image: url('online.png'); }
 .status-option-dot.idle { background-image: url('idle.png'); }
 .status-option-dot.dnd { background-image: url('dnd.png'); }
 .status-option-dot.offline { background-image: url('offline.png'); }
@@ -5639,62 +5650,65 @@ body.no-anim .friend-item { animation: none !important; }
 /* ============================================
    TOASTS
    ============================================ */
+/* ============================================
+   TOASTS — premium, non-cartoony notification cards
+   Glass surface + coloured accent edge + soft corner glow,
+   a refined icon badge, title + message, and a thin progress bar.
+   ============================================ */
 .toast-container {
   position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
-  z-index: 10500; display: flex; flex-direction: column-reverse; gap: 8px; align-items: center;
-  width: min(560px, 94vw); pointer-events: none;
+  z-index: 10500; display: flex; flex-direction: column-reverse; gap: 10px; align-items: center;
+  width: min(440px, 94vw); pointer-events: none;
 }
 .toast {
   pointer-events: auto;
-  padding: 13px 16px 13px 15px;
-  background: rgba(20, 20, 24, 0.92);
-  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 10px; color: var(--text-primary); font-size: 13px; font-weight: 500; letter-spacing: 0.01em;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 2px 8px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.04);
-  animation: toastIn 0.28s cubic-bezier(0.16, 1, 0.3, 1);
-  display: flex; align-items: center; gap: 11px; width: 100%; box-sizing: border-box;
-  position: relative; overflow: hidden; cursor: pointer;
+  position: relative; overflow: hidden;
+  display: flex; align-items: flex-start; gap: 12px;
+  width: 100%; box-sizing: border-box;
+  padding: 14px 15px 15px 15px;
+  background: linear-gradient(180deg, rgba(33, 35, 41, 0.97), rgba(22, 23, 28, 0.97));
+  backdrop-filter: blur(18px) saturate(150%); -webkit-backdrop-filter: blur(18px) saturate(150%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  color: var(--text-primary); font-size: 13px; font-weight: 500; letter-spacing: 0.01em;
+  box-shadow: 0 18px 46px rgba(0, 0, 0, 0.55), 0 4px 14px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  animation: toastIn 0.34s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
   transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }
 .toast:hover {
-  transform: translateY(-1px);
-  border-color: rgba(255, 255, 255, 0.1);
-  box-shadow: 0 10px 36px rgba(0, 0, 0, 0.55), 0 3px 10px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.13);
+  box-shadow: 0 22px 52px rgba(0, 0, 0, 0.6), 0 5px 16px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.07);
 }
-.toast-icon { flex-shrink: 0; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; border-radius: 6px; }
-.toast-icon svg { width: 13px; height: 13px; stroke-width: 2.4; }
-.toast-msg { flex: 1; min-width: 0; line-height: 1.42; }
-.toast-close { flex-shrink: 0; opacity: 0.35; font-size: 15px; line-height: 1; padding: 3px 5px; border-radius: 5px; transition: opacity 0.15s, background 0.15s; background: none; border: none; color: var(--text-muted); cursor: pointer; }
-.toast-close:hover { opacity: 0.8; background: rgba(255, 255, 255, 0.05); }
-.toast-progress {
-  position: absolute; bottom: 0; left: 0; height: 2px; border-radius: 0;
-  animation: toastProgress 4s linear forwards;
+/* Coloured accent edge + soft corner glow give each toast a distinctive edge. */
+.toast::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--toast-accent, var(--accent)); }
+.toast::after { content: ''; position: absolute; top: -70%; left: -25%; width: 75%; height: 180%; background: radial-gradient(circle, var(--toast-accent, var(--accent)) 0%, transparent 70%); opacity: 0.13; pointer-events: none; }
+.toast-icon {
+  position: relative; z-index: 1; flex-shrink: 0; width: 32px; height: 32px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--toast-accent, var(--accent));
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.09);
 }
-/* Success/confirm toasts: no icon (green checkmark removed), accent bar only */
-.toast.success { border-left: 3px solid var(--success); }
-.toast.success .toast-progress { background: var(--success); opacity: 0.45; }
-.toast.error { border-left: 3px solid var(--danger); }
-.toast.error .toast-icon { color: var(--danger); background: rgba(216,58,58,0.1); }
-.toast.error .toast-progress { background: var(--danger); opacity: 0.45; }
-.toast.info { border-left: 3px solid var(--accent); }
-.toast.info .toast-icon { color: var(--accent); background: rgba(var(--accent-rgb), 0.1); }
-.toast.info .toast-progress { background: var(--accent); opacity: 0.45; }
-.toast.warning { border-left: 3px solid #d4a017; }
-.toast.warning .toast-icon { color: #d4a017; background: rgba(212,160,23,0.1); }
-.toast.warning .toast-progress { background: #d4a017; opacity: 0.45; }
-/* Premium confirmation toast — used for profile picture / banner updates.
-   A more refined, professional confirmation card (not cartoony): subtle
-   gradient accent bar, larger refined icon badge, slightly wider. */
-.toast.confirm {
-  border: 1px solid rgba(59,165,93,0.15); border-left: 3px solid var(--success);
-  background: rgba(20, 20, 24, 0.92);
-  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-  border-radius: 10px; padding: 13px 16px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.5), 0 2px 8px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.04);
-}
-.toast.confirm .toast-msg { font-weight: 600; font-size: 13px; }
-.toast.confirm .toast-progress { background: var(--success); opacity: 0.4; height: 2px; }
+.toast-icon svg { width: 17px; height: 17px; stroke-width: 2.3; }
+.toast-content { position: relative; z-index: 1; flex: 1; min-width: 0; padding-top: 1px; }
+.toast-title { font-weight: 700; font-size: 13px; letter-spacing: 0.1px; margin-bottom: 2px; color: var(--text-primary); }
+.toast-msg { color: var(--text-secondary); line-height: 1.5; font-size: 13px; word-break: break-word; }
+.toast-close { position: relative; z-index: 1; flex-shrink: 0; opacity: 0.5; font-size: 15px; line-height: 1; padding: 4px 6px; border-radius: 8px; transition: opacity 0.15s, background 0.15s; background: none; border: none; color: var(--text-muted); cursor: pointer; }
+.toast-close:hover { opacity: 1; background: rgba(255, 255, 255, 0.08); }
+.toast-progress { position: absolute; left: 0; bottom: 0; height: 2px; width: 100%; background: var(--toast-accent, var(--accent)); opacity: 0.9; animation: toastProgress 4s linear forwards; }
+/* Per-type accent colours */
+.toast.success { --toast-accent: #3ba55d; }
+.toast.confirm { --toast-accent: #3ba55d; }
+.toast.error { --toast-accent: #e35d5d; }
+.toast.info { --toast-accent: var(--accent); }
+.toast.warning { --toast-accent: #f0a92e; }
+.toast.success .toast-icon { color: #3ba55d; background: rgba(59, 165, 93, 0.15); border-color: rgba(59, 165, 93, 0.3); }
+.toast.confirm .toast-icon { color: #3ba55d; background: rgba(59, 165, 93, 0.15); border-color: rgba(59, 165, 93, 0.3); }
+.toast.error .toast-icon { color: #e35d5d; background: rgba(227, 93, 93, 0.15); border-color: rgba(227, 93, 93, 0.3); }
+.toast.info .toast-icon { color: var(--accent); background: rgba(var(--accent-rgb), 0.15); border-color: rgba(var(--accent-rgb), 0.3); }
+.toast.warning .toast-icon { color: #f0a92e; background: rgba(240, 169, 46, 0.15); border-color: rgba(240, 169, 46, 0.3); }
 .toast.fade-out { animation: toastOut 0.25s ease forwards; }
 /* Status-change notice — replaces the old generic toast for status updates.
    A compact, professional pill that slides in near the status control with a
@@ -5716,7 +5730,7 @@ body.no-anim .friend-item { animation: none !important; }
 .status-notice.show { opacity: 1; transform: translateY(0) scale(1); }
 .status-notice.hide { opacity: 0; transform: translateY(6px) scale(0.98); }
 .status-notice .sn-dot { width: 15px; height: 15px; border-radius: 50%; flex-shrink: 0; background-size: contain; background-repeat: no-repeat; background-position: center; }
-.status-notice .sn-dot.online { background-image: url('online.png'); border-radius: 5px; }
+.status-notice .sn-dot.online { background-image: url('online.png'); }
 .status-notice .sn-dot.idle { background-image: url('idle.png'); }
 .status-notice .sn-dot.dnd { background-image: url('dnd.png'); }
 .status-notice .sn-dot.offline { background-image: url('offline.png'); }
@@ -6367,7 +6381,7 @@ body.no-anim .friend-item { animation: none !important; }
   border: none;
   background-size: contain; background-repeat: no-repeat; background-position: center;
 }
-.mini-profile-avatar-wrap .status-dot.online { background-image: url('online.png'); border-radius: 4px; }
+.mini-profile-avatar-wrap .status-dot.online { background-image: url('online.png'); }
 .mini-profile-avatar-wrap .status-dot.idle { background-image: url('idle.png'); }
 .mini-profile-avatar-wrap .status-dot.dnd { background-image: url('dnd.png'); }
 .mini-profile-avatar-wrap .status-dot.offline { background-image: url('offline.png'); }
@@ -10203,21 +10217,22 @@ function toast(msg, type = '', opts = {}) {
   // colored accent bar). Used for the "Password is required." validation
   // toast so it shows as a clean text message without the error icon.
   const skipIcon = !!(opts && opts.noIcon);
-  // All SVG icons have been removed from toast notifications per request.
-  // Toasts now show as clean text messages with the colored accent bar only.
+  // Refined inline SVG icon set \u2014 matches the site's icon language (thin,
+  // rounded strokes) so toasts feel native rather than cartoony.
   const icons = {
-    success: '',
-    confirm: '',
-    error: '',
-    info: '',
-    warning: '',
-    '': '',
+    success: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>',
+    confirm: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>',
+    error: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>',
+    info: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>',
+    warning: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
+    '': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>',
   };
+  const titles = { success: 'Success', confirm: 'Done', error: 'Something went wrong', info: 'Notice', warning: 'Heads up', '': 'Notice' };
   const iconHtml = skipIcon ? '' : (icons[type] || icons['']);
   el.innerHTML =
     (iconHtml ? '<span class="toast-icon">' + iconHtml + '</span>' : '') +
-    '<span class="toast-msg">' + escapeHtml(String(msg)) + '</span>' +
-    '<span class="toast-close">&times;</span>' +
+    '<div class="toast-content"><div class="toast-title">' + (titles[type] || 'Notice') + '</div><div class="toast-msg">' + escapeHtml(String(msg)) + '</div></div>' +
+    '<button class="toast-close" aria-label="Dismiss">&times;</button>' +
     '<span class="toast-progress"></span>';
   // Prevent notification overlap/stacking: cap visible toasts at 4.
   const existingToasts = container.querySelectorAll('.toast:not(.fade-out), .in-app-notif:not(.fade-out)');
@@ -10891,10 +10906,16 @@ function extractServerInviteCode(url) {
   try {
     const u = new URL(url, window.location.origin);
     const q = u.searchParams.get('invite');
-    if (q && /^[a-z0-9]{6,40}$/i.test(q)) return q.toLowerCase();
+    if (q && /^[a-z0-9]{4,40}$/i.test(q)) return q.toLowerCase();
     if (/\/servers\.html$/i.test(u.pathname)) return null;
-    const m = u.pathname.match(/^\/([a-z0-9]{20})\/?$/i);
-    if (m) return m[1].toLowerCase();
+    // Short form: /CODE. Random invites are 20 chars; custom (vanity) invites
+    // are 4-10 chars, so accept the full 4-40 range and filter out the handful
+    // of real app routes that would otherwise look like a code.
+    const m = u.pathname.match(/^\/([a-z0-9]{4,40})\/?$/i);
+    if (m) {
+      const code = m[1].toLowerCase();
+      if (!/^(servers|index|api|assets|static|favicon|login|signup|app|home|chat|dm|dms|friends|settings|profile|admin|embed|health|robots|sitemap)$/.test(code)) return code;
+    }
   } catch (e) {}
   return null;
 }
@@ -10920,6 +10941,12 @@ function fetchServerInviteEmbed(code, embedEl) {
 function renderServerInviteEmbed(inv, el) {
   if (!inv) { el.innerHTML = '<div class="link-embed-fallback">Server invite unavailable</div>'; return; }
   const joinUrl = '/servers.html?invite=' + encodeURIComponent(inv.code || '');
+  // Custom (vanity) invites display as a short "./code" path; default invites
+  // keep the canonical servers.html?invite= link. The whole card links to the
+  // short path when available so the visible link matches where it goes.
+  const isCustom = !!(inv.custom && inv.code);
+  const shortLink = isCustom ? './' + inv.code : '';
+  const linkHref = isCustom ? ('/' + inv.code) : joinUrl;
   const icon = inv.icon
     ? '<img class="srv-embed-icon" src="' + escapeAttr(inv.icon) + '" alt="" onerror="this.style.display=\'none\'">'
     : '<div class="srv-embed-icon srv-embed-icon-fallback">' + escapeHtml((inv.name || 'S').trim().charAt(0).toUpperCase()) + '</div>';
@@ -10927,21 +10954,28 @@ function renderServerInviteEmbed(inv, el) {
     ? '<div class="srv-embed-banner" style="background-image:url(\'' + escapeAttr(inv.banner) + '\')"></div>'
     : '';
   const members = (inv.memberCount || 0);
+  const online = (inv.onlineCount || 0);
   const channels = (inv.channelCount || 0);
+  const stats =
+    '<span class="srv-embed-stat"><span class="srv-embed-dot"></span>' + online + ' online</span>' +
+    '<span class="srv-embed-sep">\u00b7</span>' +
+    '<span class="srv-embed-stat">' + members + ' member' + (members === 1 ? '' : 's') + '</span>' +
+    (channels ? '<span class="srv-embed-sep">\u00b7</span><span class="srv-embed-stat">' + channels + ' channel' + (channels === 1 ? '' : 's') + '</span>' : '');
+  const ownerRow = inv.ownerName
+    ? '<div class="srv-embed-owner">Owned by <b>' + escapeHtml(inv.ownerName) + '</b></div>'
+    : '';
   el.innerHTML =
-    '<a href="' + escapeAttr(joinUrl) + '" class="link-embed-card srv-embed-card">' +
+    '<a href="' + escapeAttr(linkHref) + '" class="link-embed-card srv-embed-card">' +
       banner +
       '<div class="srv-embed-body">' +
         icon +
         '<div class="srv-embed-info">' +
           '<div class="srv-embed-label">You\'re invited to a server</div>' +
           '<div class="srv-embed-name">' + escapeHtml(inv.name || 'Server') + '</div>' +
-          '<div class="srv-embed-meta">' +
-            '<span class="srv-embed-dot"></span>' +
-            '<span>' + members + ' member' + (members === 1 ? '' : 's') + '</span>' +
-            (channels ? '<span class="srv-embed-sep">·</span><span>' + channels + ' channel' + (channels === 1 ? '' : 's') + '</span>' : '') +
-          '</div>' +
+          '<div class="srv-embed-meta">' + stats + '</div>' +
           (inv.bio ? '<div class="srv-embed-bio">' + escapeHtml(String(inv.bio).slice(0, 140)) + '</div>' : '') +
+          (shortLink ? '<div class="srv-embed-shortlink"><span class="srv-embed-shortlink-icon">\u2197</span>' + escapeHtml(shortLink) + '</div>' : '') +
+          ownerRow +
         '</div>' +
         '<div class="srv-embed-join">Join</div>' +
       '</div>' +
