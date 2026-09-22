@@ -11,5 +11,5 @@
 - [x] Verify in browser
 
 ## 3. Deploy
-- [ ] Commit + push to master
-- [ ] Verify Render deploy live
+- [x] Commit + push to master (a84f680)
+- [x] Verify Render deploy live (dep-dapehg3ncjis73d5j6tg = live)
