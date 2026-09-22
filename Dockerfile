@@ -21,6 +21,7 @@ RUN npm install --production && npm cache clean --force
 # Copy application files
 COPY index.html servers.html server.js enhance.js ./
 COPY fonts ./fonts
+COPY decorations ./decorations
 
 # Create directories for data and uploads
 RUN mkdir -p data uploads

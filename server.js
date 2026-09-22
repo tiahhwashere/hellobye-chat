@@ -1157,6 +1157,7 @@ function publicUser(u, viewerUsername) {
       displayName: DISABLED_DISPLAY_NAME,
       avatar: DEFAULT_AVATAR_URL,
       banner: null,
+      avatarDecoration: null,
       bio: '',
       status: 'offline',
       pronouns: '',
@@ -1189,6 +1190,9 @@ function publicUser(u, viewerUsername) {
     displayName: u.displayName || u.username,
     avatar: u.avatar || null,
     banner: u.banner || null,
+    // Avatar decoration cosmetic (e.g. 'cat-ears'); null when none. Shown to
+    // every viewer so the decoration appears on the profile picture everywhere.
+    avatarDecoration: u.avatarDecoration || null,
     bio: u.bio || '',
     status: u.status || 'online',
     pronouns: u.pronouns || '',
@@ -1445,6 +1449,15 @@ app.use('/uploads', async (req, res, next) => {
   }
 });
 
+// ---------- Avatar decoration assets ----------
+// Decoration artwork ships with the app code (NOT the uploads disk), so it is
+// always available on every deploy regardless of the persistent-disk state.
+const DECORATION_DIR = path.join(__dirname, 'decorations');
+app.use('/decorations', express.static(DECORATION_DIR, {
+  maxAge: '7d',
+  setHeaders: (res) => { res.setHeader('Cache-Control', 'public, max-age=604800'); },
+}));
+
 // ---------- Multer for uploads ----------
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, UPLOAD_DIR),
@@ -1529,6 +1542,9 @@ app.post('/api/register', async (req, res) => {
     displayName: (displayName || un).trim(),
     avatar: null,
     banner: null,
+    // Avatar decoration (e.g. 'cat-ears'). Exclusive cosmetic; only the owner
+    // (@lore) may set one. null = no decoration.
+    avatarDecoration: null,
     bio: '',
     pronouns: '',
     status: 'online',
@@ -2049,6 +2065,33 @@ app.post('/api/profile/revert-image', authMiddleware, (req, res) => {
   broadcastProfile(req.user.username);
   emitUsersList();
   res.json({ success: true, avatar: req.user.avatar, banner: req.user.banner });
+});
+
+// ---------- Avatar decorations (exclusive cosmetics) ----------
+// A decoration is an overlay worn on the profile picture (e.g. cat ears).
+// Decorations are EXCLUSIVE: only the user @lore may wear one. The restriction
+// is enforced HERE on the server so it can never be bypassed from the client.
+const AVATAR_DECORATIONS = ['cat-ears'];
+app.post('/api/profile/decoration', authMiddleware, (req, res) => {
+  const u = req.user;
+  // Strict @lore-only gate (case-insensitive, trimmed).
+  const isLore = String(u.username || '').toLowerCase().trim() === 'lore';
+  if (!isLore) {
+    return res.status(403).json({ error: 'Avatar decorations are exclusive to @lore.' });
+  }
+  const raw = (req.body || {}).decoration;
+  let val = null;
+  if (raw !== null && raw !== undefined && raw !== '') {
+    val = String(raw);
+    if (!AVATAR_DECORATIONS.includes(val)) {
+      return res.status(400).json({ error: 'Unknown decoration.' });
+    }
+  }
+  u.avatarDecoration = val;
+  saveDB();
+  broadcastProfile(u.username);
+  emitUsersList();
+  res.json({ success: true, avatarDecoration: u.avatarDecoration });
 });
 
 // ---------- File Upload ----------
@@ -5793,6 +5836,7 @@ function broadcastProfile(username) {
       status: 'offline',
       avatar: DEFAULT_AVATAR_URL,
       banner: null,
+      avatarDecoration: null,
       bio: '',
       displayName: DISABLED_DISPLAY_NAME,
       hideLastSeen: true,
@@ -5816,6 +5860,7 @@ function broadcastProfile(username) {
     status: u.status || 'online',
     avatar: u.avatar,
     banner: u.banner,
+    avatarDecoration: u.avatarDecoration || null,
     bio: u.bio,
     displayName: u.displayName,
     hideLastSeen: !!u.hideLastSeen,

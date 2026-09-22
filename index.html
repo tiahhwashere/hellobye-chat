@@ -7412,6 +7412,92 @@ body.no-anim .friend-item { animation: none !important; }
 .message-group.own .message-bubble-wrap { align-items: flex-end; }
 .message-group.own .message-text { text-align: right; }
 
+/* ===================== Avatar Decorations ===================== */
+/* A decoration is an overlay worn on top of a user's profile picture (e.g.
+   cat ears). Avatar containers normally clip their contents (overflow:hidden
+   + border-radius:50%) so the picture reads as a clean circle. A decorated
+   avatar switches to overflow:visible and the inner picture gets its own
+   circular clip, which lets the decoration extend beyond the circle while the
+   picture itself stays perfectly round. Only @lore's avatars ever receive the
+   .avatar-decorated class (enforced server-side). */
+.avatar-decorated { position: relative; overflow: visible !important; }
+.avatar-decorated > img:not(.avatar-decoration) { border-radius: 50%; }
+.avatar-decorated > .avatar-decoration {
+  position: absolute;
+  left: 50%;
+  top: -52%;
+  width: 122%;
+  height: 122%;
+  transform: translateX(-50%);
+  object-fit: contain;
+  pointer-events: none;
+  z-index: 6;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* Decoration picker (Background & Theme tab) */
+.avatar-deco-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
+  gap: 12px;
+  margin-top: 4px;
+}
+.avatar-deco-tile {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 10px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-dark);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: var(--transition);
+  text-align: center;
+}
+.avatar-deco-tile:hover { border-color: var(--accent); background: var(--bg-medium); }
+.avatar-deco-tile.active { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; }
+.avatar-deco-tile.locked { cursor: not-allowed; opacity: 0.6; }
+.avatar-deco-tile.locked:hover { border-color: var(--border); background: var(--bg-dark); }
+.avatar-deco-preview {
+  width: 62px; height: 62px; border-radius: 50%;
+  background: var(--bg-lighter);
+  position: relative; overflow: visible;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px; font-weight: 700; color: var(--text-secondary);
+}
+.avatar-deco-preview img.pic { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+.avatar-deco-preview img.avatar-decoration {
+  position: absolute; left: 50%; top: -52%; width: 122%; height: 122%;
+  transform: translateX(-50%); object-fit: contain; pointer-events: none; z-index: 6;
+  filter: drop-shadow(0 2px 3px rgba(0,0,0,0.5));
+}
+.avatar-deco-name { font-size: 12px; font-weight: 600; color: var(--text-primary); }
+.avatar-deco-badge {
+  position: absolute; top: 8px; right: 8px;
+  width: 18px; height: 18px; border-radius: 50%;
+  background: var(--accent); color: #fff;
+  display: none; align-items: center; justify-content: center;
+}
+.avatar-deco-badge svg { width: 11px; height: 11px; }
+.avatar-deco-tile.active .avatar-deco-badge { display: flex; }
+.avatar-deco-lock { position: absolute; top: 8px; right: 8px; color: var(--text-muted); }
+.avatar-deco-lock svg { width: 14px; height: 14px; }
+.avatar-deco-locked-note {
+  display: flex; align-items: center; gap: 9px;
+  margin-top: 14px; padding: 11px 13px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-dark);
+  border: 1px dashed var(--border-light);
+  color: var(--text-muted); font-size: 12px; line-height: 1.5;
+}
+.avatar-deco-locked-note svg { width: 15px; height: 15px; flex-shrink: 0; }
+.avatar-deco-locked-note b { color: var(--accent); }
+.avatar-deco-status { font-size: 11px; color: var(--text-muted); margin-top: 10px; min-height: 14px; }
+
 </style>
   <link rel="icon" type="image/jpeg" href="/uploads/favicon.jpg">
   <link rel="apple-touch-icon" href="/uploads/favicon.jpg">
@@ -8786,6 +8872,19 @@ body.no-anim .friend-item { animation: none !important; }
               <div class="custom-bg-label">Quick Colors</div>
               <div class="accent-preset-row" id="accent-presets"></div>
             </div>
+          </div>
+
+          <div class="theme-card" id="avatar-decoration-card">
+            <div class="theme-card-head">
+              <div class="theme-card-title">Avatar Decoration</div>
+            </div>
+            <p class="theme-card-hint">Wear a decoration on your profile picture. Decorations are exclusive cosmetics and are shown to everyone who sees your avatar.</p>
+            <div class="avatar-deco-grid" id="avatar-deco-grid"></div>
+            <div class="avatar-deco-locked-note" id="avatar-deco-locked-note" style="display:none;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              <span>Avatar decorations are exclusive to <b>@lore</b>. You can preview them here, but only @lore can wear one.</span>
+            </div>
+            <div class="avatar-deco-status" id="avatar-deco-status"></div>
           </div>
         </section>
 
@@ -12372,6 +12471,7 @@ function refreshLiveData() {
       ]);
       if (usersRes && Array.isArray(usersRes.users)) {
         users = usersRes.users;
+        syncAvatarDecorations(users);
         // Keep our own currentUser object in sync with the server copy.
         const me = users.find(x => x.username === currentUser.username);
         if (me) currentUser = { ...currentUser, ...me };
@@ -12380,6 +12480,7 @@ function refreshLiveData() {
         if (typeof renderDMList === 'function') renderDMList();
         if (typeof renderMessagesList === 'function') renderMessagesList();
         updateSidebarSelf();
+        scheduleDecorateAll();
       }
       if (msgRes && Array.isArray(msgRes.messages)) {
         messages = msgRes.messages;
@@ -12439,6 +12540,8 @@ async function initChat(existingMeData) {
   currentStatus = currentUser.status || 'online';
   // Reveal the owner-only "Streaming" status option for @lore (and only @lore).
   applyOwnerStreamingVisibility();
+  // Seed the avatar-decoration map with our own decoration.
+  syncAvatarDecorations([currentUser]);
   if (meData.sessionId) {
     sessionSocketId = meData.sessionId;
     localStorage.setItem('hellobye_sid', meData.sessionId);
@@ -12453,6 +12556,8 @@ async function initChat(existingMeData) {
   ]);
   messages = msgRes.messages || [];
   users = usersRes.users || [];
+  // Seed the avatar-decoration map from the full user list.
+  syncAvatarDecorations(users);
   friends = frRes.friends || [];
   friendRequests = { sent: frRes.sent || [], received: frRes.received || [] };
   blockedUsers = blkRes.blocked || [];
@@ -12497,6 +12602,12 @@ async function initChat(existingMeData) {
   updateSettingsPanel();
   updateSidebarSelf();
   updateBlockedBadge();
+
+  // Avatar decorations: start watching for re-rendered avatars and paint the
+  // initial set (e.g. @lore's cat ears) across the whole UI.
+  initAvatarDecorationObserver();
+  renderAvatarDecorationPicker();
+  decorateAllAvatars();
 
   connectSocket();
   loadDMConversations();
@@ -12893,7 +13004,7 @@ function connectSocket() {
   socket.on('message-reaction', (data) => {
     applyRemoteReaction(messages, data, 'chat');
   });
-  socket.on('users-list', (list) => { users = list; renderUserListDebounced(); });
+  socket.on('users-list', (list) => { users = list; syncAvatarDecorations(list); scheduleDecorateAll(); renderUserListDebounced(); });
   // Welcome title changed by admin — update the chat header in real-time
   socket.on('welcome-title-changed', (data) => {
     if (data && data.title) {
@@ -12931,6 +13042,7 @@ function connectSocket() {
       if (data.lastSeen !== undefined) u.lastSeen = data.lastSeen;
       if (data.hideProfile !== undefined) u.hideProfile = data.hideProfile;
       if (data.profileBadge !== undefined) u.profileBadge = data.profileBadge;
+      if (data.avatarDecoration !== undefined) { u.avatarDecoration = data.avatarDecoration; setAvatarDecoration(u.username, data.avatarDecoration); }
       // Preload new avatar/banner so they render instantly when the UI updates
       if (data.avatar) preloadImage(data.avatar);
       if (data.banner) preloadImage(data.banner);
@@ -12954,6 +13066,7 @@ function connectSocket() {
       if (data.lastSeen !== undefined) merge.lastSeen = data.lastSeen;
       if (data.hideProfile !== undefined) merge.hideProfile = data.hideProfile;
       if (data.profileBadge !== undefined) merge.profileBadge = data.profileBadge;
+      if (data.avatarDecoration !== undefined) merge.avatarDecoration = data.avatarDecoration;
       currentUser = { ...currentUser, ...merge };
       updateProfilePanel();
       updateSettingsPanel();
@@ -12961,6 +13074,7 @@ function connectSocket() {
     }
     renderUserListDebounced();
     updateMessageAvatars(data.username, data.avatar);
+    scheduleDecorateAll();
     // Live-update the DM/group conversation list so a changed picture shows
     // instantly there too (not just the user list).
     if (typeof renderDMList === 'function') renderDMList();
@@ -21901,6 +22015,7 @@ function openProfilePanel() {
 function openSettingsPanel() {
   $('profile-panel').classList.remove('show');
   updateSettingsPanel();
+  renderAvatarDecorationPicker();
   $('settings-panel').classList.add('show');
 }
 
@@ -25930,6 +26045,146 @@ if ($('accent-revert-btn')) {
   });
 }
 
+// ---------- Avatar Decorations (exclusive cosmetics) ----------
+// A decoration is an overlay worn on the profile picture (e.g. cat ears).
+// Decorations are EXCLUSIVE: only @lore may wear one. The server enforces the
+// restriction; this UI mirrors it (everyone else sees the picker locked). The
+// chosen decoration is stored server-side so it shows to every viewer.
+const AVATAR_DECORATIONS = {
+  'cat-ears': { name: 'Cat Ears', src: '/decorations/cat-ears.png' },
+};
+// username (lowercase) -> decoration id
+let avatarDecorationMap = {};
+
+function isLoreUser(username) {
+  return String(username || '').toLowerCase().trim() === 'lore';
+}
+function getAvatarDecoration(username) {
+  if (!username) return null;
+  return avatarDecorationMap[String(username).toLowerCase()] || null;
+}
+function setAvatarDecoration(username, deco) {
+  if (!username) return;
+  const key = String(username).toLowerCase();
+  if (deco) avatarDecorationMap[key] = deco; else delete avatarDecorationMap[key];
+}
+// Sync the decoration map from a list of user objects (from /api/users etc.).
+function syncAvatarDecorations(list) {
+  if (!Array.isArray(list)) return;
+  list.forEach(u => { if (u && u.username) setAvatarDecoration(u.username, u.avatarDecoration || null); });
+}
+// Apply (or remove) the decoration overlay on a single avatar container.
+function applyAvatarDecoration(el, username) {
+  if (!el) return;
+  const deco = getAvatarDecoration(username);
+  const def = deco ? AVATAR_DECORATIONS[deco] : null;
+  const existing = el.querySelector(':scope > .avatar-decoration');
+  if (!def) {
+    if (existing) existing.remove();
+    el.classList.remove('avatar-decorated');
+    return;
+  }
+  el.classList.add('avatar-decorated');
+  if (existing && existing.dataset.deco === deco) return; // already correct
+  if (existing) existing.remove();
+  const img = document.createElement('img');
+  img.className = 'avatar-decoration';
+  img.dataset.deco = deco;
+  img.src = def.src;
+  img.alt = '';
+  img.setAttribute('aria-hidden', 'true');
+  img.draggable = false;
+  el.appendChild(img);
+}
+// Decorate every avatar in the document (or a subtree) that has data-avatar-user.
+function decorateAllAvatars(root) {
+  const scope = root || document;
+  const nodes = scope.querySelectorAll('[data-avatar-user]');
+  nodes.forEach(el => applyAvatarDecoration(el, el.getAttribute('data-avatar-user')));
+}
+// Re-render the decoration picker in the Background & Theme tab.
+function renderAvatarDecorationPicker() {
+  const grid = $('avatar-deco-grid');
+  if (!grid) return;
+  const canWear = !!(currentUser && isLoreUser(currentUser.username));
+  const mine = currentUser ? getAvatarDecoration(currentUser.username) : null;
+  grid.innerHTML = '';
+  Object.keys(AVATAR_DECORATIONS).forEach(id => {
+    const def = AVATAR_DECORATIONS[id];
+    const tile = document.createElement('div');
+    tile.className = 'avatar-deco-tile' + (mine === id ? ' active' : '') + (canWear ? '' : ' locked');
+    tile.dataset.deco = id;
+    const preview = document.createElement('div');
+    preview.className = 'avatar-deco-preview';
+    const av = currentUser && currentUser.avatar;
+    if (av) { const p = document.createElement('img'); p.className = 'pic'; p.src = av; preview.appendChild(p); }
+    else { preview.textContent = getInitials(currentUser ? currentUser.username : 'U'); }
+    const decoImg = document.createElement('img');
+    decoImg.className = 'avatar-decoration';
+    decoImg.src = def.src; decoImg.alt = '';
+    preview.appendChild(decoImg);
+    tile.appendChild(preview);
+    const name = document.createElement('div');
+    name.className = 'avatar-deco-name';
+    name.textContent = def.name;
+    tile.appendChild(name);
+    const badge = document.createElement('div');
+    badge.className = 'avatar-deco-badge';
+    badge.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+    tile.appendChild(badge);
+    if (!canWear) {
+      const lock = document.createElement('div');
+      lock.className = 'avatar-deco-lock';
+      lock.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>';
+      tile.appendChild(lock);
+    }
+    tile.addEventListener('click', () => onAvatarDecorationClick(id, canWear));
+    grid.appendChild(tile);
+  });
+  const note = $('avatar-deco-locked-note');
+  if (note) note.style.display = canWear ? 'none' : 'flex';
+}
+async function onAvatarDecorationClick(id, canWear) {
+  if (!canWear) {
+    toast('Avatar decorations are exclusive to @lore.', 'error');
+    return;
+  }
+  const mine = currentUser ? getAvatarDecoration(currentUser.username) : null;
+  const next = (mine === id) ? null : id; // toggle on/off
+  const status = $('avatar-deco-status');
+  if (status) status.textContent = 'Saving\u2026';
+  try {
+    const res = await fetch(API_BASE + '/api/profile/decoration', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ decoration: next }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || 'Could not update decoration');
+    setAvatarDecoration(currentUser.username, data.avatarDecoration || null);
+    if (currentUser) currentUser.avatarDecoration = data.avatarDecoration || null;
+    renderAvatarDecorationPicker();
+    decorateAllAvatars();
+    if (status) status.textContent = data.avatarDecoration ? 'Decoration equipped.' : 'Decoration removed.';
+    toast(data.avatarDecoration ? 'Cat ears equipped!' : 'Avatar decoration removed.', 'success');
+  } catch (e) {
+    if (status) status.textContent = '';
+    toast(e.message || 'Could not update decoration', 'error');
+  }
+}
+// Keep avatars decorated as the UI re-renders (messages, lists, profile, etc.).
+let _decoRaf = null;
+function scheduleDecorateAll() {
+  if (!Object.keys(avatarDecorationMap).length) return; // nobody wears a decoration
+  if (_decoRaf) return;
+  _decoRaf = requestAnimationFrame(() => { _decoRaf = null; decorateAllAvatars(); });
+}
+function initAvatarDecorationObserver() {
+  if (typeof MutationObserver === 'undefined' || !document.body) return;
+  const obs = new MutationObserver(() => scheduleDecorateAll());
+  obs.observe(document.body, { childList: true, subtree: true });
+}
+
 // ---------- Profile Settings UI Color Changer ----------
 function applyProfileColor() {
   const color = getProfileColor();
@@ -26878,6 +27133,8 @@ function switchSettingsTab(tab) {
   // Reset scroll position of the content area when switching tabs.
   const content = document.getElementById('settings-v2-content');
   if (content) content.scrollTop = 0;
+  // Refresh the avatar-decoration picker when its tab becomes visible.
+  if (tab === 'theme' && typeof renderAvatarDecorationPicker === 'function') renderAvatarDecorationPicker();
 }
 document.querySelectorAll('#settings-v2-nav .settings-v2-nav-btn').forEach(btn => {
   btn.addEventListener('click', () => {
