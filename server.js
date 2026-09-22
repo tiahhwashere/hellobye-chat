@@ -3393,7 +3393,7 @@ app.post('/api/servers/:id/settings', authMiddleware, (req, res) => {
   }
   if (effect !== undefined) {
     const e = String(effect || 'none');
-    s.effect = ['none', 'glow', 'gradient', 'aurora', 'neon', 'pulse', 'grid', 'spotlight', 'scanlines', 'halo', 'waves'].includes(e) ? e : 'none';
+    s.effect = ['none', 'glow', 'gradient', 'aurora', 'neon', 'pulse', 'grid', 'spotlight', 'scanlines', 'halo', 'waves', 'beam', 'ripple', 'frost', 'ember'].includes(e) ? e : 'none';
   }
   if (iconScale !== undefined) {
     const v = Number(iconScale);

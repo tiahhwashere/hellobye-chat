@@ -23,3 +23,6 @@ download/
 gmail-oauth-setup.js
 refresh_token.txt
 oauth-exchange.js
+
+# Local dev helper scripts (not part of the app)
+_*.py

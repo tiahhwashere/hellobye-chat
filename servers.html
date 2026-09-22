@@ -571,9 +571,9 @@ input, textarea { font-family: inherit; }
   padding: 1px 7px; font-size: 12px; display: flex; align-items: center; gap: 4px; cursor: pointer;
 }
 .reaction-chip.mine { border-color: var(--accent); background: rgba(var(--accent-rgb),0.15); }
-.msg-actions { position: absolute; top: -14px; right: 8px; display: none; gap: 3px; background: var(--bg-light); border: 1px solid var(--border-light); border-radius: 9px; padding: 3px; box-shadow: 0 6px 18px rgba(0,0,0,0.35); }
-.msg-group:hover .msg-actions { display: flex; }
-.msg-group.own .msg-actions { right: auto; left: 8px; }
+.msg-actions { display: none; gap: 3px; margin-top: 6px; width: fit-content; background: var(--bg-light); border: 1px solid var(--border-light); border-radius: 9px; padding: 3px; box-shadow: 0 6px 18px rgba(0,0,0,0.35); }
+.msg-group:hover .msg-actions { display: inline-flex; }
+.msg-group.own .msg-actions { margin-left: auto; }
 .msg-actions button { padding: 6px 8px; border-radius: 7px; font-size: 15px; color: var(--text-secondary); display: flex; align-items: center; justify-content: center; }
 .msg-actions button .ui-ic { width: 18px; height: 18px; }
 .msg-actions button:hover { background: var(--bg-hover); color: var(--text-primary); }
@@ -884,6 +884,7 @@ input, textarea { font-family: inherit; }
 .srv-mention-av img { width: 100%; height: 100%; object-fit: cover; }
 .srv-mention-name { font-weight: 600; }
 .srv-mention-handle { color: var(--text-muted); font-size: 12px; }
+.srv-mention-av.srv-mention-ch { border-radius: 8px; background: var(--bg-light); color: var(--accent-light); font-size: 15px; font-weight: 800; border: 1px solid var(--border-light); }
 .server-input-area { position: relative; }
 
 /* ---------- Voice call stage (enhanced) ---------- */
@@ -1596,8 +1597,6 @@ input, textarea { font-family: inherit; }
 .toast::after { content: ''; position: absolute; top: -70%; left: -25%; width: 75%; height: 180%; background: radial-gradient(circle, var(--toast-accent, var(--accent)) 0%, transparent 70%); opacity: 0.13; pointer-events: none; }
 .toast.toast-out { animation: toastOut 0.26s ease forwards; }
 @keyframes toastOut { to { opacity: 0; transform: translateY(-10px) scale(0.97); } }
-.toast .toast-icon { position: relative; z-index: 1; flex-shrink: 0; width: 32px; height: 32px; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: var(--toast-accent, var(--accent)); background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.09); }
-.toast .toast-icon svg { width: 17px; height: 17px; stroke-width: 2.3; }
 .toast .toast-content { position: relative; z-index: 1; flex: 1; min-width: 0; padding-top: 1px; }
 .toast .toast-title { font-weight: 700; font-size: 13px; letter-spacing: 0.1px; margin-bottom: 2px; color: var(--text-primary); }
 .toast .toast-msg { color: var(--text-secondary); line-height: 1.5; word-break: break-word; font-size: 13px; }
@@ -1610,12 +1609,6 @@ input, textarea { font-family: inherit; }
 .toast.error { --toast-accent: #e35d5d; }
 .toast.info { --toast-accent: #4a9eff; }
 .toast.warn { --toast-accent: #f0a92e; }
-.toast.success .toast-icon { color: #3ba55d; background: rgba(59, 165, 93, 0.15); border-color: rgba(59, 165, 93, 0.3); }
-.toast.error .toast-icon { color: #e35d5d; background: rgba(227, 93, 93, 0.15); border-color: rgba(227, 93, 93, 0.3); }
-.toast.info .toast-icon { color: #4a9eff; background: rgba(74, 158, 255, 0.15); border-color: rgba(74, 158, 255, 0.3); }
-.toast.warn .toast-icon { color: #f0a92e; background: rgba(240, 169, 46, 0.15); border-color: rgba(240, 169, 46, 0.3); }
-.toast.mention-toast .toast-icon { color: #e0c060; background: rgba(224, 192, 96, 0.15); border-color: rgba(224, 192, 96, 0.3); }
-.toast.reply-toast .toast-icon { color: #7ee0b0; background: rgba(126, 224, 176, 0.15); border-color: rgba(126, 224, 176, 0.3); }
 @keyframes toastIn { from { opacity: 0; transform: translateY(-14px) scale(0.96); } to { opacity: 1; transform: translateY(0) scale(1); } }
 
 /* Status-change notice — replaces the old generic toast for status updates.
@@ -1918,7 +1911,7 @@ input, textarea { font-family: inherit; }
 
 /* Touch devices: reveal message actions without hover and enlarge targets. */
 @media (hover: none) and (pointer: coarse) {
-  .msg-actions { opacity: 1 !important; }
+  .msg-actions { display: inline-flex !important; }
   .msg-action-btn { padding: 7px 12px; }
   .sch-actions button { padding: 9px; }
   .server-input-wrap button { padding: 9px; }
@@ -4634,7 +4627,9 @@ const ICONS = {
   download: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>',
   hash: '<line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/>',
   folder: '<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
-  pin: '<line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14l-1.5-4.5V6a1 1 0 0 0-1-1H7.5a1 1 0 0 0-1 1v6.5z"/>'
+  pin: '<line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14l-1.5-4.5V6a1 1 0 0 0-1-1H7.5a1 1 0 0 0-1 1v6.5z"/>',
+  mic: '<rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10v1a7 7 0 0 0 14 0v-1"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/>',
+  headphones: '<path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/>'
 };
 function icon(name, cls) {
   const p = ICONS[name] || '';
@@ -4668,19 +4663,11 @@ function toast(msg, type) {
   const el = document.createElement('div');
   el.className = 'toast ' + (type || 'info');
   const titles = { success: 'Success', error: 'Something went wrong', warn: 'Heads up', info: 'Notice' };
-  // Refined inline SVG icon set \u2014 matches the site's icon language.
-  const icons = {
-    success: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>',
-    error: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>',
-    warn: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
-    info: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>',
-  };
   const t = type || 'info';
   const dur = t === 'error' ? 5200 : 3600;
   el.innerHTML =
-    '<span class="toast-icon">' + (icons[t] || icons.info) + '</span>' +
     '<div class="toast-content"><div class="toast-title">' + (titles[t] || 'Notice') + '</div><div class="toast-msg">' + escapeHtml(msg) + '</div></div>' +
-    '<button class="toast-close" aria-label="Dismiss">' + icon('x', 'sm') + '</button>' +
+    '<button class="toast-close" aria-label="Dismiss">&times;</button>' +
     '<span class="toast-bar" style="animation-duration:' + dur + 'ms;"></span>';
   const dismiss = () => { el.classList.add('toast-out'); setTimeout(() => el.remove(), 280); };
   el.querySelector('.toast-close').addEventListener('click', dismiss);
@@ -4739,10 +4726,9 @@ function showPingToast(data) {
   const accent = '#e0c060';
   el.style.setProperty('--toast-accent', accent);
   el.innerHTML =
-    '<span class="toast-icon">' + icon('at', 'sm') + '</span>' +
     '<div class="toast-content"><div class="toast-title" style="color:' + accent + ';">' + who + ' ' + (isMention ? 'mentioned you' : 'pinged <b>' + tag + '</b>') + '</div>' +
     '<div class="toast-msg">in #' + where + (data.text ? ' \u2014 ' + escapeHtml(data.text) : '') + '</div></div>' +
-    '<button class="toast-close" aria-label="Dismiss">' + icon('x', 'sm') + '</button>' +
+    '<button class="toast-close" aria-label="Dismiss">&times;</button>' +
     '<span class="toast-bar" style="animation-duration:6500ms;"></span>';
   const dismiss = () => { el.classList.add('toast-out'); setTimeout(() => el.remove(), 280); };
   el.querySelector('.toast-close').addEventListener('click', (e) => { e.stopPropagation(); dismiss(); });
@@ -4762,10 +4748,9 @@ function showReplyToast(data) {
   const where = escapeHtml(data.channelName || 'a channel');
   el.style.setProperty('--toast-accent', '#7ee0b0');
   el.innerHTML =
-    '<span class="toast-icon">' + icon('reply', 'sm') + '</span>' +
     '<div class="toast-content"><div class="toast-title" style="color:#7ee0b0;">' + who + ' replied to you</div>' +
     '<div class="toast-msg">in #' + where + (data.text ? ' \u2014 ' + escapeHtml(data.text) : '') + '</div></div>' +
-    '<button class="toast-close" aria-label="Dismiss">' + icon('x', 'sm') + '</button>' +
+    '<button class="toast-close" aria-label="Dismiss">&times;</button>' +
     '<span class="toast-bar" style="animation-duration:6500ms;"></span>';
   const dismiss = () => { el.classList.add('toast-out'); setTimeout(() => el.remove(), 280); };
   el.querySelector('.toast-close').addEventListener('click', (e) => { e.stopPropagation(); dismiss(); });
@@ -4811,8 +4796,33 @@ function getRelativeLastSeen(ts) {
   const years = Math.floor(days / 365);
   return years + 'y ago';
 }
+// Parse a timestamp into a Date. The server stores UTC ISO strings, but older
+// records (or third-party payloads) may omit the timezone designator — those
+// are treated as UTC so the rendered time always matches the viewer's local
+// timezone instead of being shifted by their UTC offset.
+function parseTs(ts) {
+  if (ts == null) return new Date(NaN);
+  if (typeof ts === 'number') return new Date(ts);
+  const s = String(ts).trim();
+  if (/^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}/.test(s) && !/(Z|[+-]\d{2}:?\d{2})$/.test(s)) {
+    return new Date(s.replace(' ', 'T') + 'Z');
+  }
+  return new Date(s);
+}
 function fmtTime(iso) {
-  try { return new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); } catch(e) { return ''; }
+  try {
+    const d = parseTs(iso);
+    if (isNaN(d.getTime())) return '';
+    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  } catch(e) { return ''; }
+}
+// Full, unambiguous local date + time for the hover tooltip on a message time.
+function fmtFullTime(iso) {
+  try {
+    const d = parseTs(iso);
+    if (isNaN(d.getTime())) return '';
+    return d.toLocaleString([], { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  } catch(e) { return ''; }
 }
 function getAuthHeaders() {
   const sid = localStorage.getItem('hellobye_sid');
@@ -5749,6 +5759,19 @@ async function loadServer(id, silent) {
         resetChatPane('<div class="server-empty-chat"><h3>No channels yet</h3><div>This server has no channels.</div></div>');
         renderChannels();
       }
+    } else {
+      // The active channel is still valid - this happens when loadServer is
+      // re-run for the SAME server (socket reconnect, profile refresh, returning
+      // to a voice call). resetChatPane() above already cleared the pane to a
+      // spinner, so we must re-open the channel here or the spinner would spin
+      // forever (the "loop loading" bug).
+      const curCh = (activeServer.channels || []).find(c => c.id === activeChannelId);
+      if (curCh && curCh.type === 'voice') {
+        showVoiceChannelPane(curCh);
+        renderChannels();
+      } else {
+        openChannel(activeChannelId);
+      }
     }
   } catch(e) { if (!silent) toast(e.message, 'error'); }
 }
@@ -6293,7 +6316,7 @@ function memberRowHtml(m) {
   // and is currently sitting in one of its voice channels.
   const vch = voiceChannelOfUser(m.username);
   const voiceLine = vch
-    ? '<div class="mi-voice" title="In voice \u2014 ' + escapeAttr(vch.name) + '">' + icon('video', 'sm') + '<span class="mi-voice-txt">In voice \u2014 ' + escapeHtml(vch.name) + '</span></div>'
+    ? '<div class="mi-voice" title="In voice \u2014 ' + escapeAttr(vch.name) + '">' + icon('mic', 'sm') + '<span class="mi-voice-txt">In voice \u2014 ' + escapeHtml(vch.name) + '</span></div>'
     : '';
   return '<div class="member-item' + (m.status === 'offline' ? ' offline' : '') + (vch ? ' in-voice' : '') + '" data-member="' + escapeAttr(m.username) + '">' +
     '<div class="mi-avatar">' + av + '<span class="mi-status ' + statusCls + '"></span></div>' +
@@ -6378,7 +6401,16 @@ async function openChannel(channelId) {
     renderMessages();
     scrollBottom();
     applyChannelChatState(ch, d.channel);
-  } catch(e) { if (reqServerId === activeServerId && channelId === activeChannelId) toast(e.message, 'error'); }
+  } catch(e) {
+    if (reqServerId === activeServerId && channelId === activeChannelId) {
+      toast(e.message, 'error');
+      // Never leave the pane stuck on the loading spinner if the fetch failed.
+      const c = $('server-messages');
+      if (c && !c.querySelector('.msg-group')) {
+        c.innerHTML = '<div class="server-empty-chat"><h3>Could not load messages</h3><div>' + escapeHtml(e.message || 'Please try again.') + '</div></div>';
+      }
+    }
+  }
 }
 function applyChannelChatState(ch, chData) {
   const canChat = chData ? chData.canChat !== false : (ch ? ch.canChat !== false : true);
@@ -6510,7 +6542,7 @@ function buildMessageGroup(m, inThread) {
     }
   }
   // timestamp sits directly under the message text
-  textHtml += '<div class="msg-time">' + fmtTime(m.timestamp) + (m.edited ? ' (edited)' : '') + '</div>';
+  textHtml += '<div class="msg-time" title="' + escapeAttr(fmtFullTime(m.timestamp)) + '">' + fmtTime(m.timestamp) + (m.edited ? ' (edited)' : '') + '</div>';
   // reactions
   let reactHtml = '';
   if (m.reactions && Object.keys(m.reactions).length) {
@@ -6577,7 +6609,7 @@ function buildMessageGroup(m, inThread) {
   }));
   body.querySelectorAll('[data-react]').forEach(chip => chip.addEventListener('click', () => react(m, chip.dataset.react)));
 
-  g.appendChild(av); g.appendChild(body); g.appendChild(actions);
+  g.appendChild(av); g.appendChild(body); body.appendChild(actions);
   return g;
 }
 function appendMessage(m, silent) {
@@ -7443,6 +7475,29 @@ function updateMentionPop() {
   const val = el.value;
   const caret = el.selectionStart;
   const before = val.slice(0, caret);
+  // Channel mention (#) — offer the server's channels. Takes priority when the
+  // trigger character is '#'.
+  const chM = before.match(/(^|\s)#([a-zA-Z0-9_\-]*)$/);
+  if (chM) {
+    const query = chM[2].toLowerCase();
+    const start = caret - query.length - 1;
+    const channels = ((activeServer && activeServer.channels) || []).filter(c => {
+      const nm = (c.name || '').toLowerCase();
+      return nm.includes(query);
+    }).slice(0, 8);
+    if (!channels.length) { closeMentionPop(); return; }
+    mentionState = { start, query, idx: 0, kind: 'channel' };
+    const pop = $('srv-mention-pop');
+    pop.innerHTML = channels.map((c, i) =>
+      '<div class="srv-mention-item' + (i === 0 ? ' active' : '') + '" data-channel-name="' + escapeAttr(c.name) + '">' +
+        '<span class="srv-mention-av srv-mention-ch">#</span>' +
+        '<span class="srv-mention-name">' + escapeHtml(c.name) + '</span>' +
+        '<span class="srv-mention-handle">Channel</span></div>'
+    ).join('');
+    pop.querySelectorAll('.srv-mention-item').forEach(it => it.addEventListener('click', () => insertChannelMention(it.dataset.channelName)));
+    pop.style.display = 'block';
+    return;
+  }
   const m = before.match(/(^|\s)@([a-zA-Z0-9_.\-]*)$/);
   if (!m) { closeMentionPop(); return; }
   const query = m[2].toLowerCase();
@@ -7452,7 +7507,7 @@ function updateMentionPop() {
     return dn.includes(query) || (mm.username || '').toLowerCase().includes(query);
   }).slice(0, 8);
   if (!members.length) { closeMentionPop(); return; }
-  mentionState = { start, query, idx: 0 };
+  mentionState = { start, query, idx: 0, kind: 'user' };
   const pop = $('srv-mention-pop');
   pop.innerHTML = members.map((mm, i) => {
     const dn = mm.nickname || mm.displayName || mm.username;
@@ -7472,6 +7527,19 @@ function insertMention(username) {
   const before = val.slice(0, mentionState.start);
   const after = val.slice(caret);
   const ins = '@' + username + ' ';
+  el.value = before + ins + after;
+  const pos = (before + ins).length;
+  el.setSelectionRange(pos, pos);
+  closeMentionPop();
+  updateSendBtn(); autoGrow(el); el.focus();
+}
+function insertChannelMention(name) {
+  const el = $('srv-input');
+  const val = el.value;
+  const caret = el.selectionStart;
+  const before = val.slice(0, mentionState.start);
+  const after = val.slice(caret);
+  const ins = '#' + name + ' ';
   el.value = before + ins + after;
   const pos = (before + ins).length;
   el.setSelectionRange(pos, pos);
@@ -12043,7 +12111,7 @@ function renderMemberProfileBody(m, roles, isMe, data) {
   // (only ever shown for members of the same server).
   const vch = voiceChannelOfUser(m.username);
   if (vch) {
-    html += '<div class="member-profile-voice">' + icon('video', 'sm') + '<span>In voice \u2014 <b>' + escapeHtml(vch.name) + '</b></span></div>';
+    html += '<div class="member-profile-voice">' + icon('mic', 'sm') + '<span>In voice \u2014 <b>' + escapeHtml(vch.name) + '</b></span></div>';
   }
 
   // Server roles markup (rendered beside "Member Since").

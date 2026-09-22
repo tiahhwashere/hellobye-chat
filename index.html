@@ -1848,10 +1848,10 @@ body.no-anim .friend-item { animation: none !important; }
 /* Server invite embed — Discord-style invite card with icon + member count */
 .srv-embed-card { flex-direction: column; }
 .srv-embed-banner {
-  width: 100%; height: 84px; background-size: cover; background-position: center;
+  width: 100%; height: 116px; background-size: cover; background-position: center;
   background-color: var(--bg-dark); border-bottom: 1px solid var(--border);
 }
-.srv-embed-body { display: flex; align-items: center; gap: 14px; padding: 16px 18px; }
+.srv-embed-body { display: flex; align-items: center; gap: 14px; padding: 18px 20px; }
 .srv-embed-icon {
   width: 52px; height: 52px; border-radius: 14px; flex-shrink: 0; object-fit: cover;
   background: var(--bg-dark); border: 1px solid var(--border);
@@ -1903,7 +1903,7 @@ body.no-anim .friend-item { animation: none !important; }
   .srv-embed-body { padding: 13px 14px; gap: 11px; }
   .srv-embed-icon { width: 44px; height: 44px; border-radius: 12px; }
   .srv-embed-join { padding: 8px 13px; font-size: 12.5px; }
-  .srv-embed-banner { height: 64px; }
+  .srv-embed-banner { height: 88px; }
 }
 
 /* ────────────────────────────────────────────────────────────
@@ -5684,14 +5684,6 @@ body.no-anim .friend-item { animation: none !important; }
 /* Coloured accent edge + soft corner glow give each toast a distinctive edge. */
 .toast::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--toast-accent, var(--accent)); }
 .toast::after { content: ''; position: absolute; top: -70%; left: -25%; width: 75%; height: 180%; background: radial-gradient(circle, var(--toast-accent, var(--accent)) 0%, transparent 70%); opacity: 0.13; pointer-events: none; }
-.toast-icon {
-  position: relative; z-index: 1; flex-shrink: 0; width: 32px; height: 32px; border-radius: 10px;
-  display: flex; align-items: center; justify-content: center;
-  color: var(--toast-accent, var(--accent));
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.09);
-}
-.toast-icon svg { width: 17px; height: 17px; stroke-width: 2.3; }
 .toast-content { position: relative; z-index: 1; flex: 1; min-width: 0; padding-top: 1px; }
 .toast-title { font-weight: 700; font-size: 13px; letter-spacing: 0.1px; margin-bottom: 2px; color: var(--text-primary); }
 .toast-msg { color: var(--text-secondary); line-height: 1.5; font-size: 13px; word-break: break-word; }
@@ -5704,11 +5696,6 @@ body.no-anim .friend-item { animation: none !important; }
 .toast.error { --toast-accent: #e35d5d; }
 .toast.info { --toast-accent: var(--accent); }
 .toast.warning { --toast-accent: #f0a92e; }
-.toast.success .toast-icon { color: #3ba55d; background: rgba(59, 165, 93, 0.15); border-color: rgba(59, 165, 93, 0.3); }
-.toast.confirm .toast-icon { color: #3ba55d; background: rgba(59, 165, 93, 0.15); border-color: rgba(59, 165, 93, 0.3); }
-.toast.error .toast-icon { color: #e35d5d; background: rgba(227, 93, 93, 0.15); border-color: rgba(227, 93, 93, 0.3); }
-.toast.info .toast-icon { color: var(--accent); background: rgba(var(--accent-rgb), 0.15); border-color: rgba(var(--accent-rgb), 0.3); }
-.toast.warning .toast-icon { color: #f0a92e; background: rgba(240, 169, 46, 0.15); border-color: rgba(240, 169, 46, 0.3); }
 .toast.fade-out { animation: toastOut 0.25s ease forwards; }
 /* Status-change notice — replaces the old generic toast for status updates.
    A compact, professional pill that slides in near the status control with a
@@ -10213,24 +10200,9 @@ function toast(msg, type = '', opts = {}) {
   const el = document.createElement('div');
   el.className = 'toast ' + type;
   el.setAttribute('data-toast-fp', fp);
-  // opts.noIcon suppresses the leading SVG icon for this toast (keeps the
-  // colored accent bar). Used for the "Password is required." validation
-  // toast so it shows as a clean text message without the error icon.
-  const skipIcon = !!(opts && opts.noIcon);
-  // Refined inline SVG icon set \u2014 matches the site's icon language (thin,
-  // rounded strokes) so toasts feel native rather than cartoony.
-  const icons = {
-    success: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>',
-    confirm: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>',
-    error: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>',
-    info: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>',
-    warning: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
-    '': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>',
-  };
+  // Toasts are intentionally icon-free: a clean accent bar + title + message.
   const titles = { success: 'Success', confirm: 'Done', error: 'Something went wrong', info: 'Notice', warning: 'Heads up', '': 'Notice' };
-  const iconHtml = skipIcon ? '' : (icons[type] || icons['']);
   el.innerHTML =
-    (iconHtml ? '<span class="toast-icon">' + iconHtml + '</span>' : '') +
     '<div class="toast-content"><div class="toast-title">' + (titles[type] || 'Notice') + '</div><div class="toast-msg">' + escapeHtml(String(msg)) + '</div></div>' +
     '<button class="toast-close" aria-label="Dismiss">&times;</button>' +
     '<span class="toast-progress"></span>';
@@ -10731,8 +10703,21 @@ function linkifyBio(text) {
     return '<a href="' + href + '" target="_blank" rel="noopener noreferrer" style="color:#6fb5ff;text-decoration:underline;word-break:break-all;">' + m + '</a>';
   });
 }
+// Parse a timestamp into a Date. The server stores UTC ISO strings, but older
+// records may omit the timezone designator — those are treated as UTC so the
+// rendered time always matches the viewer's local timezone.
+function parseTs(ts) {
+  if (ts == null) return new Date(NaN);
+  if (typeof ts === 'number') return new Date(ts);
+  const s = String(ts).trim();
+  if (/^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}/.test(s) && !/(Z|[+-]\d{2}:?\d{2})$/.test(s)) {
+    return new Date(s.replace(' ', 'T') + 'Z');
+  }
+  return new Date(s);
+}
 function formatTime(ts) {
-  const d = new Date(ts);
+  const d = parseTs(ts);
+  if (isNaN(d.getTime())) return '';
   return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
 // Time + date for a message, e.g. "14:32 · Jun 5". The year is only shown
@@ -10740,7 +10725,7 @@ function formatTime(ts) {
 // stay compact while older ones remain unambiguous.
 function formatMessageDateTime(ts) {
   if (!ts) return '';
-  const d = new Date(ts);
+  const d = parseTs(ts);
   if (isNaN(d.getTime())) return '';
   const time = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   const sameYear = d.getFullYear() === new Date().getFullYear();

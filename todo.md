@@ -1,45 +1,30 @@
-# Request BM — Invite embeds, server-only profile, Server Identity UI, VC presence, status dots, toast revamp
+# Request BN — loop loading, voice icon, toast icons, invite banner, # channels, message actions, timezone, effects
 
-## 1. Invite / custom invite link embeds (public chat, groupchats, DMs)
-- [x] Show `./code` short link for custom invites in the embed
-- [x] Show server icon, banner, member count, ONLINE count, channels, bio, owner
-- [x] Detect custom short codes (4-40 chars) in `extractServerInviteCode`
-- [x] Verify embed renders in public chat (verified: `./ninja` chip + counts + owner)
+## 1. Fix loop loading on channel switch / refresh
+- [x] Reproduce the infinite loading loop
+- [x] Fix root cause (loadServer left a stuck spinner when the active channel was still valid; now re-opens it. openChannel also shows an error state instead of spinning forever on a failed fetch)
 
-## 2. My Server Profile = SERVERS ONLY (must not affect main chat)
-- [x] Add clear "Servers Only" labelling
-- [x] Stop mirroring server avatar onto the account-wide avatar
-- [x] Stop writing global profile fields from this editor
-- [x] Keep server-specific nickname/bio/avatar/banner/scales working
-- [x] Verified: banner shows "Servers Only — these changes apply to Test Server and never to your main chat profile."
+## 2. Better "In voice" icon (replace camera svg)
+- [x] Swap to a proper voice/mic icon
 
-## 3. Server Identity UI — fix bio + fields not showing (size/clipping)
-- [x] Make the My Server Profile modal body scroll so nothing is clipped
-- [x] Verify Server Identity media block + bio + all fields visible
-- [x] Verified: modal scrollHeight 1098 > clientHeight 729, overflow-y auto; bio + nickname visible
+## 3. Remove ALL svg/icons from every toast UI
+- [x] index.html toasts
+- [x] servers.html toasts (incl. ping/reply toasts)
 
-## 4. Voice-chat presence in member list + profile
-- [x] Server: broadcast which users are in which voice channel to all server members
-- [x] Client: track voice presence map
-- [x] Member list: show "In voice" indicator + channel name
-- [x] Member profile: show "In voice — #channel" detail
-- [x] Only show for users sharing the same server
-- [x] Verified: member row + profile both show "In voice — Voice"
+## 4. Invite/custom link banner taller
+- [x] Increase embed height (116px desktop / 88px mobile)
 
-## 5. Fix member-list status circle proportions (online/idle/dnd/offline)
-- [x] Regenerate status icons as clean, consistent, professional circles
-- [x] Fix sizing/position in the member list
-- [x] Verified: clean green dot at correct proportion
+## 5. Fix # channel mentions
+- [x] Ensure channel autocomplete + rendering works (added # autocomplete popover + insertChannelMention; highlighting/click already worked)
 
-## 6. Revamp ALL toast UIs (non-cartoony, unique, aligned with site)
-- [x] Redesign toast CSS in index.html
-- [x] Redesign toast CSS in servers.html
-- [x] Update toast JS markup to match
-- [x] Verify visually (both index.html + servers.html)
+## 6. Message actions under the message (not far away)
+- [x] delete, edit, pin, react, create thread, reply (moved into .msg-body, in-flow under the message)
 
-## 7. Verify + deploy
-- [x] node --check server.js
-- [x] JS syntax check servers.html + index.html
-- [x] Visual verification of all changes
-- [ ] git commit + push
-- [ ] Render deploy + verify live
+## 7. Message time synced to user timezone
+- [x] Fix timestamp rendering (robust parseTs treats timezone-less strings as UTC; full local-time hover tooltip)
+
+## 8. Fix Effects not working/showing
+- [x] Diagnose + fix (server.js effect allowlist was missing beam/ripple/frost/ember)
+
+## 9. Verify + deploy
+- [x] syntax checks, visual verify, commit, push, verify live
