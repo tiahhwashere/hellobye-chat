@@ -468,9 +468,18 @@ input, textarea { font-family: inherit; }
 .msg-media.msg-gif { max-width: 420px; }
 /* ---- Sent-file card: preview + name/size/type + download ---- */
 .msg-file-card { margin-top: 6px; max-width: 420px; border: 1px solid var(--border-light); border-radius: 12px; overflow: hidden; background: var(--bg-light); }
-.msg-file-card .mfc-preview { display: block; max-width: 100%; }
+.msg-file-card .mfc-preview { display: block; max-width: 100%; position: relative; }
 .msg-file-card .mfc-preview img, .msg-file-card .mfc-preview video { display: block; width: 100%; max-height: 360px; object-fit: contain; background: var(--bg-darkest); }
 .msg-file-card .mfc-preview audio { display: block; width: 100%; padding: 10px; }
+/* Fullscreen expand button overlaid on video previews (opens the media lightbox). */
+.msg-file-card .mfc-expand {
+  position: absolute; top: 8px; right: 8px; width: 32px; height: 32px; border-radius: 9px;
+  display: inline-flex; align-items: center; justify-content: center; color: #fff; cursor: pointer;
+  background: rgba(0,0,0,0.5); backdrop-filter: blur(6px); border: 1px solid rgba(255,255,255,0.14);
+  opacity: 0.9; transition: opacity 0.15s ease, background 0.15s ease;
+}
+.msg-file-card .mfc-expand:hover { background: rgba(0,0,0,0.72); opacity: 1; }
+.msg-file-card .mfc-expand svg { width: 16px; height: 16px; }
 /* Media attachments (image / video / voice) render as their own clean message:
    no card outline or background \u2014 just the media with a subtle download bar. */
 .msg-file-card.msg-file-card-media { border: none; background: transparent; border-radius: 0; overflow: visible; }
@@ -822,14 +831,7 @@ input, textarea { font-family: inherit; }
 }
 .image-lightbox-stage img.zoomed { cursor: zoom-out; transform: scale(2.2); transition: transform 0.18s ease; }
 .image-lightbox-stage img.panning { transition: none !important; }
-.image-lightbox-close {
-  position: absolute; top: 18px; right: 22px; z-index: 2;
-  width: 42px; height: 42px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.12);
-  background: rgba(20,22,24,0.7); color: #fff; font-size: 24px; line-height: 1;
-  cursor: pointer; display: flex; align-items: center; justify-content: center;
-  transition: var(--transition);
-}
-.image-lightbox-close:hover { background: var(--danger); border-color: var(--danger); }
+.image-lightbox-stage video { width: 100%; height: 100%; object-fit: contain; background: #000; border-radius: 8px; }
 .image-lightbox-nav {
   position: absolute; top: 50%; transform: translateY(-50%); z-index: 2;
   width: 44px; height: 44px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.12);
@@ -943,9 +945,7 @@ input, textarea { font-family: inherit; }
 .vs-lightbox video { max-width: 96vw; max-height: 92vh; width: auto; height: auto; background: #000; border-radius: 12px; box-shadow: 0 30px 90px rgba(0,0,0,0.7); }
 .vs-lightbox-label { position: absolute; top: 20px; left: 24px; display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 10px; background: rgba(0,0,0,0.6); color: #fff; font-size: 14px; font-weight: 700; }
 .vs-lightbox-label svg { width: 16px; height: 16px; }
-.vs-lightbox-close { position: absolute; top: 18px; right: 22px; width: 42px; height: 42px; border-radius: 11px; display: inline-flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.18); transition: var(--transition); }
-.vs-lightbox-close:hover { background: var(--danger); border-color: var(--danger); }
-.vs-lightbox-close svg { width: 20px; height: 20px; }
+
 /* Floating mini player (PiP): keeps the screenshare/camera visible while you
    browse other channels/servers or hide the call view. */
 .vs-pip { position: fixed; right: 20px; bottom: 20px; z-index: 5800; width: 300px; border-radius: 14px; overflow: hidden; background: #000; border: 1px solid var(--border-light); box-shadow: 0 22px 60px rgba(0,0,0,0.6); display: none; flex-direction: column; }
@@ -3191,9 +3191,6 @@ input, textarea { font-family: inherit; }
         <!-- Fullscreen video lightbox (click a camera/screen tile to zoom in) -->
         <div class="vs-lightbox" id="vs-lightbox">
           <div class="vs-lightbox-label" id="vs-lightbox-label"></div>
-          <button class="vs-lightbox-close" id="vs-lightbox-close" title="Close" aria-label="Close">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-          </button>
           <video id="vs-lightbox-video" autoplay playsinline></video>
         </div>
         <!-- Floating mini player: keeps screenshare/camera visible off-stage -->
@@ -4466,14 +4463,14 @@ input, textarea { font-family: inherit; }
 
 <!-- Media lightbox (click-to-zoom for images & GIFs) -->
 <div class="image-lightbox" id="image-lightbox" aria-hidden="true">
-  <button class="image-lightbox-close" id="image-lightbox-close" aria-label="Close">&times;</button>
   <button class="image-lightbox-nav image-lightbox-prev" id="image-lightbox-prev" aria-label="Previous">&#8249;</button>
   <div class="image-lightbox-stage" id="image-lightbox-stage">
     <img id="image-lightbox-img" alt="" />
+    <video id="image-lightbox-video" controls playsinline style="display:none;"></video>
   </div>
   <button class="image-lightbox-nav image-lightbox-next" id="image-lightbox-next" aria-label="Next">&#8250;</button>
   <a class="image-lightbox-open-external" id="image-lightbox-open-external" target="_blank" rel="noopener">Open in new tab</a>
-  <div class="image-lightbox-hint">Click to zoom &middot; scroll to pan &middot; Esc to close</div>
+  <div class="image-lightbox-hint">Click outside to close &middot; Esc to close</div>
 </div>
 
 <!-- Search messages panel -->
@@ -6315,10 +6312,13 @@ function memberRowHtml(m) {
   // "In voice" indicator — only shown when this member shares the active server
   // and is currently sitting in one of its voice channels.
   const vch = voiceChannelOfUser(m.username);
-  const voiceLine = vch
+  // Only show the "In voice" badge when the member is actually present
+  // (online / idle / do not disturb). Offline members never show it.
+  const voiceVisible = !!vch && ['online', 'idle', 'dnd'].includes(m.status);
+  const voiceLine = voiceVisible
     ? '<div class="mi-voice" title="In voice \u2014 ' + escapeAttr(vch.name) + '">' + icon('mic', 'sm') + '<span class="mi-voice-txt">In voice \u2014 ' + escapeHtml(vch.name) + '</span></div>'
     : '';
-  return '<div class="member-item' + (m.status === 'offline' ? ' offline' : '') + (vch ? ' in-voice' : '') + '" data-member="' + escapeAttr(m.username) + '">' +
+  return '<div class="member-item' + (m.status === 'offline' ? ' offline' : '') + (voiceVisible ? ' in-voice' : '') + '" data-member="' + escapeAttr(m.username) + '">' +
     '<div class="mi-avatar">' + av + '<span class="mi-status ' + statusCls + '"></span></div>' +
     '<div class="mi-info"><div class="mi-name" style="color:' + nameColor + ';">' + escapeHtml(m.nickname || m.displayName || m.username) + '</div>' +
     (roleChips ? '<div class="mi-roles">' + roleChips + '</div>' : '') +
@@ -6902,19 +6902,41 @@ function openImageLightbox(src) {
   box.setAttribute('aria-hidden', 'false');
   document.body.style.overflow = 'hidden';
 }
+function isVideoSrc(src) {
+  return /\.(mp4|webm|ogv|ogg|mov|m4v|mkv)(\?|#|$)/i.test(src || '');
+}
 function renderLightbox() {
-  const img = $('image-lightbox-img'); if (!img) return;
-  img.classList.remove('zoomed');
-  img.style.transformOrigin = '';
-  img.src = lightboxImages[lightboxIndex] || '';
+  const img = $('image-lightbox-img');
+  const vid = $('image-lightbox-video');
+  const src = lightboxImages[lightboxIndex] || '';
+  const isVid = isVideoSrc(src);
+  if (img) {
+    img.classList.remove('zoomed');
+    img.style.transformOrigin = '';
+    if (isVid) { img.style.display = 'none'; img.removeAttribute('src'); }
+    else { img.style.display = ''; img.src = src; }
+  }
+  if (vid) {
+    if (isVid) {
+      vid.style.display = '';
+      if (vid.getAttribute('src') !== src) vid.src = src;
+      vid.play().catch(() => {});
+    } else {
+      try { vid.pause(); } catch (e) {}
+      vid.style.display = 'none';
+      vid.removeAttribute('src');
+    }
+  }
   const prev = $('image-lightbox-prev'), next = $('image-lightbox-next');
   if (prev) prev.disabled = lightboxImages.length <= 1;
   if (next) next.disabled = lightboxImages.length <= 1;
   const ext = $('image-lightbox-open-external');
-  if (ext) ext.href = lightboxImages[lightboxIndex] || '#';
+  if (ext) ext.href = src || '#';
 }
 function closeImageLightbox() {
   const box = $('image-lightbox'); if (!box) return;
+  const vid = $('image-lightbox-video');
+  if (vid) { try { vid.pause(); } catch (e) {} }
   box.classList.remove('show');
   box.setAttribute('aria-hidden', 'true');
   document.body.style.overflow = '';
@@ -6929,8 +6951,6 @@ function lightboxStep(delta) {
   ready(() => {
     const box = $('image-lightbox'); if (!box) return;
     const img = $('image-lightbox-img');
-    const close = $('image-lightbox-close');
-    if (close) close.addEventListener('click', closeImageLightbox);
     const prevBtn = $('image-lightbox-prev'), nextBtn = $('image-lightbox-next');
     if (prevBtn) prevBtn.addEventListener('click', (e) => { e.stopPropagation(); lightboxStep(-1); });
     if (nextBtn) nextBtn.addEventListener('click', (e) => { e.stopPropagation(); lightboxStep(1); });
@@ -7107,7 +7127,8 @@ function renderFile(f) {
   } else if (isImage) {
     preview = '<span class="mfc-preview"><img data-zoom data-zoom-src="' + url + '" src="' + url + '" alt="" loading="lazy"></span>';
   } else if (isVideo) {
-    preview = '<span class="mfc-preview"><video src="' + url + '" controls preload="metadata"></video></span>';
+    preview = '<span class="mfc-preview"><video src="' + url + '" controls preload="metadata"></video>' +
+      '<button type="button" class="mfc-expand" data-zoom data-zoom-src="' + url + '" title="View fullscreen" aria-label="View fullscreen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg></button></span>';
   } else if (isAudio) {
     preview = '<span class="mfc-preview">' + renderVoicePlayer(f, url, rawUrl, name, dlName) + '</span>';
   }
@@ -8762,11 +8783,82 @@ function voiceCloseSharePicker() {
   const ov = $('vs-share-overlay');
   if (ov) ov.classList.remove('show');
 }
+// Chrome only reliably captures the OS pointer for the "entire screen"
+// surface. For window/tab shares we composite a cursor onto the outgoing
+// video ourselves so viewers can still see where the presenter is pointing.
+// Returns the original stream untouched when the browser already captured the
+// cursor (or when compositing isn't supported), so this is always safe.
+function voiceAttachCursorOverlay(stream) {
+  try {
+    if (!stream || !stream.getVideoTracks || !stream.getVideoTracks().length) return stream;
+    const vtrack = stream.getVideoTracks()[0];
+    const settings = (vtrack.getSettings && vtrack.getSettings()) || {};
+    // If the browser already captured the cursor, don't double it up.
+    if (settings.cursor === 'always') return stream;
+    // Entire-screen captures already include the pointer.
+    if (settings.displaySurface === 'monitor') return stream;
+    const canvas = document.createElement('canvas');
+    if (typeof canvas.captureStream !== 'function') return stream;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return stream;
+    const src = document.createElement('video');
+    src.muted = true; src.playsInline = true; src.autoplay = true;
+    src.srcObject = new MediaStream([vtrack]);
+    let mx = -100, my = -100, visible = false, raf = 0;
+    const onMove = (e) => { mx = e.clientX; my = e.clientY; visible = true; };
+    const onLeave = () => { visible = false; };
+    document.addEventListener('mousemove', onMove, true);
+    document.addEventListener('mouseleave', onLeave, true);
+    const cleanup = () => {
+      if (raf) cancelAnimationFrame(raf);
+      document.removeEventListener('mousemove', onMove, true);
+      document.removeEventListener('mouseleave', onLeave, true);
+    };
+    const draw = () => {
+      raf = requestAnimationFrame(draw);
+      const vw = src.videoWidth, vh = src.videoHeight;
+      if (!vw || !vh) return;
+      if (canvas.width !== vw || canvas.height !== vh) { canvas.width = vw; canvas.height = vh; }
+      ctx.drawImage(src, 0, 0, vw, vh);
+      if (visible) {
+        // Map the pointer from CSS pixels to the captured video resolution.
+        const sx = vw / Math.max(1, window.innerWidth);
+        const sy = vh / Math.max(1, window.innerHeight);
+        const cx = mx * sx, cy = my * sy;
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.lineTo(cx, cy + 18);
+        ctx.lineTo(cx + 5, cy + 13);
+        ctx.lineTo(cx + 9, cy + 21);
+        ctx.lineTo(cx + 12, cy + 19);
+        ctx.lineTo(cx + 8, cy + 11);
+        ctx.lineTo(cx + 14, cy + 11);
+        ctx.closePath();
+        ctx.fillStyle = '#ffffff';
+        ctx.strokeStyle = 'rgba(0,0,0,0.85)';
+        ctx.lineWidth = 1.5;
+        ctx.fill();
+        ctx.stroke();
+        ctx.restore();
+      }
+    };
+    src.addEventListener('loadedmetadata', () => { src.play().catch(() => {}); draw(); });
+    vtrack.addEventListener('ended', cleanup);
+    const out = canvas.captureStream(60);
+    stream.getAudioTracks().forEach(t => out.addTrack(t));
+    return out;
+  } catch (e) {
+    return stream;
+  }
+}
 async function voiceStartScreenShare(surface) {
   voiceCloseSharePicker();
   if (!voiceCall.active || voiceCall.screenSharing) return;
-  // Build constraints. displaySurface is a hint the browser may honour; the
-  // user can still change the source in the native prompt.
+  // Build constraints. We always request the cursor so viewers can see where
+  // the presenter is pointing — for the entire screen, a window AND a tab.
+  // displaySurface is a hint the browser may honour; the user can still change
+  // the source in the native prompt.
   const video = { frameRate: { ideal: 120, max: 144 }, cursor: 'always' };
   if (surface) video.displaySurface = surface;
   let stream;
@@ -8780,6 +8872,10 @@ async function voiceStartScreenShare(surface) {
       return;
     }
   }
+  // Chrome only reliably captures the OS pointer for the "entire screen"
+  // surface. For window/tab shares we composite a cursor onto the outgoing
+  // video ourselves so viewers can still see where the presenter is pointing.
+  stream = voiceAttachCursorOverlay(stream);
   voiceCall.screenStream = stream;
   voiceCall.screenSharing = true;
   const track = stream.getVideoTracks()[0];
@@ -9769,9 +9865,8 @@ if ($('vs-minimize-btn')) $('vs-minimize-btn').addEventListener('click', () => {
 if ($('vs-settings-btn')) $('vs-settings-btn').addEventListener('click', () => voiceOpenSettings());
 if ($('vs-camera')) $('vs-camera').addEventListener('click', () => voiceToggleCamera());
 if ($('vs-screenshare')) $('vs-screenshare').addEventListener('click', () => voiceToggleScreenShare());
-// Fullscreen video lightbox.
-if ($('vs-lightbox-close')) $('vs-lightbox-close').addEventListener('click', voiceCloseLightbox);
-if ($('vs-lightbox')) $('vs-lightbox').addEventListener('click', (e) => { if (e.target === $('vs-lightbox')) voiceCloseLightbox(); });
+// Fullscreen video lightbox. Click anywhere off the video (backdrop) to close.
+if ($('vs-lightbox')) $('vs-lightbox').addEventListener('click', (e) => { if (e.target === $('vs-lightbox') || e.target === $('vs-lightbox-label')) voiceCloseLightbox(); });
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { voiceCloseLightbox(); voiceCloseSharePicker(); } });
 // Floating mini player (PiP).
 if ($('vs-pip-expand')) $('vs-pip-expand').addEventListener('click', () => { voiceCall.pipDismissed = false; voiceReturnToCall(); });
@@ -12110,7 +12205,9 @@ function renderMemberProfileBody(m, roles, isMe, data) {
   // Voice presence — tell viewers which voice channel this member is sitting in
   // (only ever shown for members of the same server).
   const vch = voiceChannelOfUser(m.username);
-  if (vch) {
+  // Only show voice presence for members who are actually present
+  // (online / idle / do not disturb) - never for offline members.
+  if (vch && ['online', 'idle', 'dnd'].includes(u.status || m.status)) {
     html += '<div class="member-profile-voice">' + icon('mic', 'sm') + '<span>In voice \u2014 <b>' + escapeHtml(vch.name) + '</b></span></div>';
   }
 

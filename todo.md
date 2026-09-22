@@ -1,30 +1,23 @@
-# Request BN — loop loading, voice icon, toast icons, invite banner, # channels, message actions, timezone, effects
+# Request BO — todo
 
-## 1. Fix loop loading on channel switch / refresh
-- [x] Reproduce the infinite loading loop
-- [x] Fix root cause (loadServer left a stuck spinner when the active channel was still valid; now re-opens it. openChannel also shows an error state instead of spinning forever on a failed fetch)
+## 1. "In voice" indicator gated on status
+- [x] Member list: only show "In voice — <channel>" when status is online/idle/dnd (hide for offline)
+- [x] Member profile: same gating
+- [x] Verify in browser
 
-## 2. Better "In voice" icon (replace camera svg)
-- [x] Swap to a proper voice/mic icon
+## 2. Media lightbox: click-off to close + remove X button
+- [x] servers.html image lightbox: remove X close button (HTML + CSS)
+- [x] servers.html video lightbox: remove X close button (HTML + CSS)
+- [x] index.html image lightbox: remove X close button (HTML + CSS)
+- [x] Ensure click-off (backdrop/stage) closes both lightboxes
+- [x] Make message videos open in the lightbox (image/gif/video) with click-off + no X
+- [x] Verify in browser
 
-## 3. Remove ALL svg/icons from every toast UI
-- [x] index.html toasts
-- [x] servers.html toasts (incl. ping/reply toasts)
+## 3. Screen share: show mouse cursor for all surfaces
+- [x] Ensure cursor:'always' is applied for entire screen, window AND tab
+- [x] Add synthetic cursor overlay fallback for window/tab shares
+- [x] Verify code
 
-## 4. Invite/custom link banner taller
-- [x] Increase embed height (116px desktop / 88px mobile)
-
-## 5. Fix # channel mentions
-- [x] Ensure channel autocomplete + rendering works (added # autocomplete popover + insertChannelMention; highlighting/click already worked)
-
-## 6. Message actions under the message (not far away)
-- [x] delete, edit, pin, react, create thread, reply (moved into .msg-body, in-flow under the message)
-
-## 7. Message time synced to user timezone
-- [x] Fix timestamp rendering (robust parseTs treats timezone-less strings as UTC; full local-time hover tooltip)
-
-## 8. Fix Effects not working/showing
-- [x] Diagnose + fix (server.js effect allowlist was missing beam/ripple/frost/ember)
-
-## 9. Verify + deploy
-- [x] syntax checks, visual verify, commit, push, verify live
+## 4. Deploy
+- [ ] Commit + push to master
+- [ ] Verify Render deploy live
