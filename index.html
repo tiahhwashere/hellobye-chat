@@ -1979,6 +1979,62 @@ body.no-anim .friend-item { animation: none !important; }
    we apply a light sharpen/contrast/saturate pass at display time). */
 .message-file video.hd-enhanced { filter: contrast(1.05) saturate(1.08) brightness(1.02); }
 
+/* ---- Advanced in-chat voice / audio player (matches the servers page) ---- */
+.voice-player {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 14px 12px 12px; min-width: 300px; max-width: 460px;
+  background: linear-gradient(180deg, var(--bg-light), var(--bg-medium));
+  border: 1px solid var(--border-light); border-radius: 16px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.18);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.voice-player:hover { border-color: rgba(var(--accent-rgb),0.45); box-shadow: 0 5px 18px rgba(0,0,0,0.28); }
+.voice-player .vp-play {
+  flex: 0 0 auto; width: 46px; height: 46px; border-radius: 50%; position: relative;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: linear-gradient(180deg, var(--accent-light), var(--accent)); color: #fff; border: none;
+  box-shadow: 0 4px 14px rgba(var(--accent-rgb),0.4); transition: transform 0.15s ease, filter 0.15s ease;
+}
+.voice-player .vp-play:hover { filter: brightness(1.08); transform: scale(1.05); }
+.voice-player .vp-play:active { transform: scale(0.96); }
+.voice-player .vp-play svg { width: 18px; height: 18px; }
+.voice-player .vp-play .vp-ic-play { margin-left: 2px; }
+.voice-player .vp-play .vp-spin {
+  position: absolute; inset: 0; margin: auto; width: 18px; height: 18px; border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.35); border-top-color: #fff; animation: vpSpin 0.7s linear infinite;
+}
+@keyframes vpSpin { to { transform: rotate(360deg); } }
+.voice-player .vp-body { position: relative; flex: 1; min-width: 120px; height: 46px; cursor: pointer; border-radius: 10px; display: flex; flex-direction: column; justify-content: center; gap: 3px; }
+.voice-player .vp-wave { display: block; width: 100%; height: 30px; }
+.voice-player .vp-progress {
+  position: absolute; left: 0; top: 0; bottom: 0; width: 0%;
+  background: linear-gradient(90deg, rgba(var(--accent-rgb),0.22), rgba(var(--accent-rgb),0.05));
+  pointer-events: none; border-radius: 10px;
+}
+.voice-player .vp-cursor {
+  position: absolute; top: 5px; bottom: 5px; width: 2px; left: 0%;
+  background: var(--accent); border-radius: 2px; pointer-events: none; opacity: 0; transition: opacity 0.15s;
+  box-shadow: 0 0 8px rgba(var(--accent-rgb),0.85);
+}
+.voice-player.playing .vp-cursor { opacity: 1; }
+.voice-player .vp-meta { display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.voice-player .vp-meta .vp-tag { display: inline-flex; align-items: center; gap: 4px; font-weight: 700; letter-spacing: 0.02em; text-transform: uppercase; color: var(--accent); }
+.voice-player .vp-meta .vp-sep { opacity: 0.5; }
+.voice-player .vp-speed {
+  flex: 0 0 auto; padding: 4px 8px; border-radius: 8px; font-size: 11px; font-weight: 700;
+  background: var(--bg-darkest); border: 1px solid var(--border); color: var(--text-secondary);
+  transition: var(--transition);
+}
+.voice-player .vp-speed:hover { color: var(--accent); border-color: var(--accent); }
+.voice-player .vp-dl {
+  flex: 0 0 auto; width: 32px; height: 32px; border-radius: 9px;
+  display: inline-flex; align-items: center; justify-content: center;
+  color: var(--text-muted); transition: var(--transition);
+}
+.voice-player .vp-dl:hover { color: var(--accent); background: var(--bg-darkest); }
+.voice-player .vp-dl svg { width: 16px; height: 16px; }
+.message-bubble.own .voice-player { margin-left: auto; }
+
 /* Rich media player wrapper — frames videos & animated GIFs with metadata */
 .media-player-wrap {
   position: relative; display: inline-block; max-width: 440px;
@@ -15820,6 +15876,239 @@ function appendMessageFiles(parent, msg) {
     parent.appendChild(createFileElement(msg.file));
   }
 }
+/* ============================================================
+   Advanced in-chat voice / audio player
+   ------------------------------------------------------------
+   Audio attachments (voice messages, music, any audio file) render
+   with the same custom player used on the servers page: a waveform
+   you can scrub, play/pause, playback-speed toggle and download.
+   ============================================================ */
+function vpFmt(ms) {
+  const s = Math.max(0, Math.floor(ms / 1000));
+  return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+}
+const _vpWaveCache = new Map();   // src -> peaks array
+const _vpDecoding = new Map();    // src -> Promise
+function vpDrawWave(canvas, peaks, progress) {
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const w = canvas.clientWidth || 320, h = canvas.clientHeight || 30;
+  if (canvas.width !== Math.round(w * dpr) || canvas.height !== Math.round(h * dpr)) {
+    canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr);
+  }
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, w, h);
+  const n = 48, gap = 2;
+  const bw = Math.max(2, (w - gap * (n - 1)) / n);
+  const mid = h / 2;
+  const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#5865f2';
+  const played = Math.round((progress || 0) * n);
+  ctx.globalAlpha = 0.16;
+  ctx.fillStyle = accent;
+  ctx.fillRect(0, mid - 0.5, w, 1);
+  for (let i = 0; i < n; i++) {
+    const p = peaks && peaks.length ? peaks[Math.floor(i / n * peaks.length)] : 0.25;
+    const amp = Math.max(0.08, Math.min(1, p));
+    const bh = Math.max(3, amp * (h - 8));
+    const x = i * (bw + gap);
+    ctx.fillStyle = accent;
+    ctx.globalAlpha = i < played ? 1 : 0.38;
+    const r = Math.min(bw / 2, 2.5);
+    const y = mid - bh / 2;
+    ctx.beginPath();
+    if (ctx.roundRect) ctx.roundRect(x, y, bw, bh, r); else ctx.rect(x, y, bw, bh);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+}
+function vpDecodeWave(src) {
+  if (_vpWaveCache.has(src)) return Promise.resolve(_vpWaveCache.get(src));
+  if (_vpDecoding.has(src)) return _vpDecoding.get(src);
+  const p = fetch(src).then(r => r.arrayBuffer()).then(buf => {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) throw new Error('no audioctx');
+    const ac = new AC();
+    return ac.decodeAudioData(buf).then(audioBuf => {
+      const data = audioBuf.getChannelData(0);
+      const bars = 40, block = Math.floor(data.length / bars) || 1;
+      const peaks = [];
+      for (let i = 0; i < bars; i++) {
+        let sum = 0;
+        for (let j = 0; j < block; j++) { const v = data[i * block + j] || 0; sum += v * v; }
+        peaks.push(Math.min(1, Math.sqrt(sum / block) * 3.2));
+      }
+      try { ac.close(); } catch(e) {}
+      _vpWaveCache.set(src, peaks);
+      return peaks;
+    });
+  }).catch(() => {
+    const fallback = Array.from({ length: 40 }, (_, i) => 0.2 + 0.5 * Math.abs(Math.sin(i * 0.7)));
+    _vpWaveCache.set(src, fallback);
+    return fallback;
+  });
+  _vpDecoding.set(src, p);
+  return p;
+}
+function vpInit(el) {
+  if (!el || el._vpInit) return;
+  el._vpInit = true;
+  const src = el.getAttribute('data-src');
+  const canvas = el.querySelector('.vp-wave');
+  const dur = Number(el.getAttribute('data-dur')) || 0;
+  vpDrawWave(canvas, null, 0);
+  vpDecodeWave(src).then(peaks => { el._vpPeaks = peaks; vpDrawWave(canvas, peaks, 0); });
+  const audio = new Audio();
+  audio.preload = 'auto';
+  audio.src = src;
+  el._vpAudio = audio;
+  const timeEl = el.querySelector('.vp-time');
+  const elapsedEl = el.querySelector('.vp-elapsed');
+  const totalEl = el.querySelector('.vp-total');
+  const prog = el.querySelector('.vp-progress');
+  const cursor = el.querySelector('.vp-cursor');
+  const icPlay = el.querySelector('.vp-ic-play');
+  const icPause = el.querySelector('.vp-ic-pause');
+  const spin = el.querySelector('.vp-spin');
+  const setPlaying = (on) => {
+    el.classList.toggle('playing', on);
+    if (icPlay) icPlay.style.display = on ? 'none' : '';
+    if (icPause) icPause.style.display = on ? '' : 'none';
+  };
+  const setBuffering = (on) => {
+    if (!spin) return;
+    spin.style.display = on ? '' : 'none';
+    if (icPlay) icPlay.style.display = (on || !audio.paused) ? 'none' : '';
+    if (icPause) icPause.style.display = (!on && !audio.paused) ? '' : 'none';
+  };
+  audio.addEventListener('loadedmetadata', () => {
+    if (timeEl && isFinite(audio.duration)) timeEl.textContent = vpFmt(audio.duration * 1000);
+    if (totalEl && isFinite(audio.duration)) totalEl.textContent = vpFmt(audio.duration * 1000);
+  });
+  audio.addEventListener('timeupdate', () => {
+    const d = audio.duration || 0;
+    const pct = d ? (audio.currentTime / d) : 0;
+    if (prog) prog.style.width = (pct * 100) + '%';
+    if (cursor) cursor.style.left = (pct * 100) + '%';
+    if (timeEl) timeEl.textContent = vpFmt(audio.currentTime * 1000);
+    if (elapsedEl) elapsedEl.textContent = vpFmt(audio.currentTime * 1000);
+    vpDrawWave(canvas, el._vpPeaks, pct);
+  });
+  audio.addEventListener('ended', () => {
+    setPlaying(false);
+    if (prog) prog.style.width = '0%';
+    if (cursor) cursor.style.left = '0%';
+    if (timeEl) timeEl.textContent = vpFmt((audio.duration || dur / 1000) * 1000);
+    if (elapsedEl) elapsedEl.textContent = '0:00';
+    vpDrawWave(canvas, el._vpPeaks, 0);
+  });
+  audio.addEventListener('play', () => setPlaying(true));
+  audio.addEventListener('pause', () => setPlaying(false));
+  audio.addEventListener('waiting', () => setBuffering(true));
+  audio.addEventListener('playing', () => setBuffering(false));
+  audio.addEventListener('canplay', () => setBuffering(false));
+  el._vpSetPlaying = setPlaying;
+}
+// Pause every other voice player when one starts (only one plays at a time).
+function vpPauseOthers(except) {
+  document.querySelectorAll('.voice-player').forEach(el => {
+    if (el === except) return;
+    if (el._vpAudio && !el._vpAudio.paused) { try { el._vpAudio.pause(); } catch(e) {} }
+  });
+}
+document.addEventListener('click', (e) => {
+  const playBtn = e.target.closest && e.target.closest('.voice-player .vp-play');
+  if (playBtn) {
+    const el = playBtn.closest('.voice-player');
+    vpInit(el);
+    const a = el._vpAudio;
+    if (a.paused) {
+      vpPauseOthers(el);
+      const spin = el.querySelector('.vp-spin');
+      const icPlay = el.querySelector('.vp-ic-play');
+      if (spin && a.readyState < 3) { spin.style.display = ''; if (icPlay) icPlay.style.display = 'none'; }
+      a.play().catch(() => { if (spin) spin.style.display = 'none'; if (icPlay) icPlay.style.display = ''; });
+    } else a.pause();
+    return;
+  }
+  const speedBtn = e.target.closest && e.target.closest('.voice-player .vp-speed');
+  if (speedBtn) {
+    const el = speedBtn.closest('.voice-player');
+    vpInit(el);
+    const speeds = [1, 1.25, 1.5, 2];
+    const cur = Number(el.getAttribute('data-speed') || 1);
+    const next = speeds[(speeds.indexOf(cur) + 1) % speeds.length];
+    el.setAttribute('data-speed', next);
+    el._vpAudio.playbackRate = next;
+    speedBtn.textContent = next + 'x';
+    return;
+  }
+  const body = e.target.closest && e.target.closest('.voice-player .vp-body');
+  if (body) {
+    const el = body.closest('.voice-player');
+    vpInit(el);
+    const a = el._vpAudio;
+    const rect = body.getBoundingClientRect();
+    const pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+    if (isFinite(a.duration) && a.duration) {
+      a.currentTime = pct * a.duration;
+      const prog = el.querySelector('.vp-progress'); if (prog) prog.style.width = (pct * 100) + '%';
+      const cursor = el.querySelector('.vp-cursor'); if (cursor) cursor.style.left = (pct * 100) + '%';
+      vpDrawWave(el.querySelector('.vp-wave'), el._vpPeaks, pct);
+    }
+    return;
+  }
+});
+// Lazily initialise players as they scroll into view.
+if ('IntersectionObserver' in window) {
+  const vpIO = new IntersectionObserver((entries) => {
+    entries.forEach(en => { if (en.isIntersecting) { vpInit(en.target); vpIO.unobserve(en.target); } });
+  }, { rootMargin: '600px' });
+  window._vpObserve = (el) => vpIO.observe(el);
+} else {
+  window._vpObserve = (el) => vpInit(el);
+}
+// Build the custom player element for an audio attachment.
+function createVoicePlayerEl(file) {
+  const url = file.url;
+  const name = file.name || 'Audio';
+  const dur = Number(file.duration) || 0;
+  const durLabel = dur ? vpFmt(dur) : '0:00';
+  const el = document.createElement('div');
+  el.className = 'voice-player';
+  el.setAttribute('data-src', url);
+  el.setAttribute('data-dur', String(dur));
+  el.innerHTML =
+    '<button class="vp-play" type="button" title="Play">' +
+      '<svg class="vp-ic-play" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20"/></svg>' +
+      '<svg class="vp-ic-pause" viewBox="0 0 24 24" fill="currentColor" style="display:none;"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>' +
+      '<span class="vp-spin" style="display:none;"></span>' +
+    '</button>' +
+    '<div class="vp-body">' +
+      '<canvas class="vp-wave" width="320" height="30"></canvas>' +
+      '<div class="vp-progress"></div>' +
+      '<div class="vp-cursor"></div>' +
+      '<div class="vp-meta">' +
+        '<span class="vp-tag">Voice message</span>' +
+        '<span class="vp-sep">\u00b7</span>' +
+        '<span class="vp-elapsed">0:00</span>' +
+        '<span class="vp-sep">/</span>' +
+        '<span class="vp-total">' + durLabel + '</span>' +
+      '</div>' +
+    '</div>' +
+    '<button class="vp-speed" type="button" title="Playback speed">1x</button>' +
+    '<a class="vp-dl" href="' + escapeAttr(url) + '" download="' + escapeAttr(name) + '" target="_blank" rel="noopener" title="Download ' + escapeAttr(name) + '">' +
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>' +
+    '</a>';
+  el.addEventListener('contextmenu', (e) => {
+    e.preventDefault(); e.stopPropagation();
+    showContextMenu(e.clientX, e.clientY, [
+      { label: 'Download audio', icon: 'download', action: () => downloadFile(file) }
+    ]);
+  });
+  if (window._vpObserve) window._vpObserve(el); else vpInit(el);
+  return el;
+}
 function createFileElement(file) {
   const wrapper = document.createElement('div');
   wrapper.className = 'message-file';
@@ -15938,15 +16227,10 @@ function createFileElement(file) {
     player.appendChild(expandBtn);
     wrapper.appendChild(player);
   } else if (mt.startsWith('audio/')) {
-    const audio = document.createElement('audio');
-    audio.src = file.url; audio.controls = true;
-    audio.addEventListener('contextmenu', (e) => {
-      e.preventDefault(); e.stopPropagation();
-      showContextMenu(e.clientX, e.clientY, [
-        { label: 'Download audio', icon: 'download', action: () => downloadFile(file) }
-      ]);
-    });
-    wrapper.appendChild(audio);
+    // Voice messages / music / any audio render with the custom player embed
+    // (waveform, play/pause, speed, download) — the same one used on the
+    // servers page — instead of the plain native <audio> element.
+    wrapper.appendChild(createVoicePlayerEl(file));
   } else if ((/\.txt$/i).test(file.name || '') || mt === 'text/plain' || mt === 'text/markdown') {
     // ── .txt inline preview ──
     // Instead of a generic download card, show the text content inline with

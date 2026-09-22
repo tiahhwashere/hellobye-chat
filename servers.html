@@ -5600,7 +5600,14 @@ function showEmpty() {
 }
 function renderSelfFooter() {
   const av = $('sf-avatar');
-  if (currentUser.avatar) av.innerHTML = '<img src="' + escapeAttr(currentUser.avatar) + '"><span class="sf-status" id="sf-status-dot"></span>';
+  // Prefer the SERVER-scoped avatar (set in "My Server Profile") so the
+  // bottom-left footer reflects the picture the user chose for THIS server.
+  // Falls back to the account-wide avatar when no server avatar is set.
+  const me = (activeServer && Array.isArray(activeServer.members))
+    ? (activeServer.members.find(x => x.username === currentUser.username) || {})
+    : {};
+  const avatar = me.avatar || currentUser.avatar;
+  if (avatar) av.innerHTML = '<img src="' + escapeAttr(avatar) + '"><span class="sf-status" id="sf-status-dot"></span>';
   else av.innerHTML = escapeHtml(getInitials(currentUser.displayName || currentUser.username)) + '<span class="sf-status" id="sf-status-dot"></span>';
   $('sf-name').textContent = currentUser.displayName || ('@' + currentUser.username);
   // Show the user's ACTUAL presence (online / idle / dnd / offline / streaming),
@@ -5870,6 +5877,9 @@ function renderServerView() {
   renderChannels();
   // Members
   renderMembers();
+  // Bottom-left self footer: keep the avatar in sync with the server-scoped
+  // profile picture (set in "My Server Profile") whenever the server renders.
+  renderSelfFooter();
   // Chat header
   const ch = (activeServer.channels || []).find(c => c.id === activeChannelId);
   if (ch) { $('sch-name').textContent = ch.name; $('sch-topic').textContent = ch.topic || ''; $('srv-input').placeholder = 'Message #' + ch.name + ' — type a message, or press / for commands'; applyChannelChatState(ch, null); }
