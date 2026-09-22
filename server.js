@@ -491,6 +491,9 @@ function hashEncKey(key) {
       // Ensure every adopted server has a stable 10-digit numeric id (older
       // servers created before this feature may be missing one).
       ensureServerNumericIds();
+      // Make sure built-in Admin roles can manage the server (older seeds had
+      // manageServer disabled, which locked admins out of server settings).
+      ensureAdminManageServer();
       // Trigger an immediate backup so the sha is current.
       scheduleRemoteBackup();
     } else {
@@ -1059,6 +1062,33 @@ function ensureServerNumericIds() {
 }
 // Assign ids for the local seed immediately (covers the fresh-install case).
 ensureServerNumericIds();
+
+// Ensure the built-in Admin role can actually manage the server. Older servers
+// were seeded with an Admin role that had manageServer disabled, which meant
+// admins could not open or change server settings. Grant it additively so any
+// member holding the Admin role (or the administrator permission) can manage
+// the server. This never removes or downgrades any existing permission.
+function ensureAdminManageServer() {
+  let changed = false;
+  for (const s of Object.values(db.servers || {})) {
+    if (!s || !Array.isArray(s.roles)) continue;
+    for (const r of s.roles) {
+      if (!r || !r.permissions) continue;
+      const isAdminRole = r.id === 'admin' || (r.system && String(r.name || '').toLowerCase() === 'admin');
+      if (isAdminRole && r.permissions.manageServer !== true) {
+        r.permissions.manageServer = true;
+        changed = true;
+      }
+    }
+  }
+  if (changed) {
+    try { fs.writeFileSync(DB_FILE, JSON.stringify(db)); } catch (e) {}
+    scheduleRemoteBackup();
+    console.log('[startup] Granted manageServer to built-in Admin roles.');
+  }
+  return changed;
+}
+ensureAdminManageServer();
 
 // ---------- Periodic check: auto-lift expired temporary bans ----------
 // Runs every 60 seconds. If a user has a temporary ban (bannedUntil > 0) that
@@ -2870,8 +2900,9 @@ function genInviteCode() {
   for (let i = 0; i < 20; i++) out += alphabet[bytes[i] % alphabet.length];
   return out;
 }
-// Custom invite codes must be 4-10 chars, lowercase letters/numbers/-/_ only.
-const INVITE_CODE_RE = /^[a-z0-9_-]{4,10}$/;
+// Custom invite codes must be 4-10 chars, lowercase letters and numbers ONLY
+// (no symbols, hyphens, underscores or emojis).
+const INVITE_CODE_RE = /^[a-z0-9]{4,10}$/;
 // Words that would collide with real routes/assets and must never be used.
 const RESERVED_INVITE_CODES = new Set([
   'api', 'uploads', 'upload', 'socket', 'socket.io', 'servers', 'server',
@@ -2888,7 +2919,7 @@ function validateCustomInviteCode(raw) {
   if (!code) return { ok: false, error: 'Enter a custom link' };
   if (code.length < 4) return { ok: false, error: 'Custom links must be at least 4 characters' };
   if (code.length > 10) return { ok: false, error: 'Custom links must be at most 10 characters' };
-  if (!INVITE_CODE_RE.test(code)) return { ok: false, error: 'Use only letters, numbers, hyphens and underscores' };
+  if (!INVITE_CODE_RE.test(code)) return { ok: false, error: 'Use only lowercase letters and numbers (no symbols or emojis)' };
   if (RESERVED_INVITE_CODES.has(code)) return { ok: false, error: 'That link is reserved — try another' };
   return { ok: true, code };
 }
@@ -2898,7 +2929,11 @@ function defaultServerRoles(owner) {
     { id: 'owner', name: 'Owner', color: '#f59e0b', badge: '', order: 0, system: true,
       permissions: allPermissions() },
     { id: 'admin', name: 'Admin', color: '#ef4444', badge: '', order: 1, system: true,
-      permissions: Object.assign(allPermissions(), { administrator: false, manageServer: false }) },
+      // Admins are trusted staff: they get every permission (including
+      // manageServer so they can open and change server settings). Only the
+      // super-user "administrator" flag is left off so the Owner role stays
+      // distinct.
+      permissions: Object.assign(allPermissions(), { administrator: false, manageServer: true }) },
     { id: 'mod', name: 'Moderator', color: '#3b82f6', badge: '', order: 2, system: true,
       permissions: { manageChannels: false, manageRoles: false, manageServer: false, kick: true, ban: true, invite: true,
         manageMessages: true, manageNicknames: true, mentionEveryone: true, muteMembers: true, deafenMembers: true,
@@ -3852,26 +3887,33 @@ app.post('/api/servers/:id/profile', authMiddleware, avatarUpload.single('image'
   if (bio !== undefined) prof.bio = String(bio).slice(0, 300);
   if (avatarScale !== undefined) {
     const v = Number(avatarScale);
-    prof.avatarScale = (Number.isFinite(v) && v >= 100 && v <= 220) ? Math.round(v) : 100;
+    prof.avatarScale = (Number.isFinite(v) && v >= 50 && v <= 300) ? Math.round(v) : 100;
   }
   if (bannerScale !== undefined) {
     const v = Number(bannerScale);
-    prof.bannerScale = (Number.isFinite(v) && v >= 100 && v <= 220) ? Math.round(v) : 100;
+    prof.bannerScale = (Number.isFinite(v) && v >= 50 && v <= 300) ? Math.round(v) : 100;
   }
   if (req.file) {
     try {
       try { await enhanceWithTimeout(path.join(UPLOAD_DIR, req.file.filename), { maxStatic: 512, maxAnimated: 480, skipAnimated: true }, 8000); }
       catch (e) { console.error('[server-profile] enhance error:', e.message); }
       const fileUrl = '/uploads/' + req.file.filename + '?t=' + Date.now();
-      if (field === 'banner') prof.banner = fileUrl;
-      else prof.avatar = fileUrl;
+      if (field === 'banner') {
+        prof.banner = fileUrl;
+      } else {
+        prof.avatar = fileUrl;
+        // Keep the account-wide (bottom-left) profile picture in lock-step with
+        // the server profile picture: changing it here also changes it there.
+        req.user.avatar = fileUrl;
+        try { broadcastProfile(me); } catch (e) {}
+      }
       backupUploadFile(req.file.filename);
     } catch (e) { console.error('server profile upload error', e); }
   }
   s.updatedAt = nowISO();
   saveDB();
   emitServerUpdate(s);
-  res.json({ success: true, server: publicServer(s, me) });
+  res.json({ success: true, server: publicServer(s, me), avatar: req.user.avatar || null });
 });
 
 // ---- Leave a server ----

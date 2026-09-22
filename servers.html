@@ -216,6 +216,44 @@ input, textarea { font-family: inherit; }
   animation: fxWaves 22s linear infinite;
 }
 @keyframes fxWaves { from { transform: translate3d(0,0,0); } to { transform: translate3d(-52px,26px,0); } }
+/* Beam: a slow diagonal light shaft sweeping across the server */
+.server-view.fx-beam::before {
+  content: ''; position: absolute; inset: -40%; pointer-events: none; z-index: 3; opacity: 0.30;
+  background: linear-gradient(105deg, transparent 42%, rgba(var(--accent-rgb),0.55) 50%, transparent 58%);
+  animation: fxBeam 9s ease-in-out infinite;
+}
+@keyframes fxBeam {
+  0% { transform: translate3d(-38%, 0, 0); }
+  100% { transform: translate3d(38%, 0, 0); }
+}
+/* Ripple: soft concentric accent rings pulsing from the centre */
+.server-view.fx-ripple::before {
+  content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 3; opacity: 0.5;
+  background:
+    radial-gradient(circle at 50% 42%, transparent 0 18%, rgba(var(--accent-rgb),0.16) 18% 19%, transparent 19% 30%, rgba(var(--accent-rgb),0.12) 30% 31%, transparent 31% 44%, rgba(var(--accent-rgb),0.09) 44% 45%, transparent 45%);
+  animation: fxRipple 6s ease-in-out infinite;
+}
+@keyframes fxRipple {
+  0%, 100% { transform: scale(1); opacity: 0.34; }
+  50% { transform: scale(1.08); opacity: 0.6; }
+}
+/* Frost: frosted-glass accent wash over the panels */
+.server-view.fx-frost .channel-sidebar,
+.server-view.fx-frost .server-header { backdrop-filter: blur(6px) saturate(1.2); }
+.server-view.fx-frost::before {
+  content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 3;
+  background: linear-gradient(160deg, rgba(var(--accent-rgb),0.10), rgba(255,255,255,0.02) 40%, rgba(var(--accent-rgb),0.08));
+}
+/* Ember: warm flickering accent glow rising from the bottom */
+.server-view.fx-ember::before {
+  content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 3; opacity: 0.5;
+  background: radial-gradient(80% 60% at 50% 118%, rgba(var(--accent-rgb),0.5), transparent 70%);
+  animation: fxEmber 4.5s ease-in-out infinite;
+}
+@keyframes fxEmber {
+  0%, 100% { opacity: 0.34; transform: translateY(0); }
+  50% { opacity: 0.62; transform: translateY(-6px); }
+}
 @keyframes viewIn {
   from { opacity: 0; transform: translateX(8px); }
   to { opacity: 1; transform: translateX(0); }
@@ -251,6 +289,10 @@ input, textarea { font-family: inherit; }
 .server-appearance-preview.fx-glow { box-shadow: 0 0 0 1px rgba(var(--accent-rgb),0.5), 0 0 22px rgba(var(--accent-rgb),0.35); }
 .server-appearance-preview.fx-neon { box-shadow: 0 0 0 2px var(--accent), 0 0 20px rgba(var(--accent-rgb),0.55); }
 .server-appearance-preview.fx-pulse { animation: fxPulse 2.6s ease-in-out infinite; }
+.server-appearance-preview.fx-beam::before { opacity: 0.5; background: linear-gradient(105deg, transparent 40%, rgba(var(--accent-rgb),0.6) 50%, transparent 60%); animation: fxBeam 6s ease-in-out infinite; }
+.server-appearance-preview.fx-ripple::before { opacity: 0.7; background: radial-gradient(circle at 50% 45%, transparent 0 16%, rgba(var(--accent-rgb),0.22) 16% 18%, transparent 18% 30%, rgba(var(--accent-rgb),0.16) 30% 32%, transparent 32%); animation: fxRipple 5s ease-in-out infinite; }
+.server-appearance-preview.fx-frost::before { background: linear-gradient(160deg, rgba(var(--accent-rgb),0.16), rgba(255,255,255,0.04) 40%, rgba(var(--accent-rgb),0.12)); }
+.server-appearance-preview.fx-ember::before { opacity: 0.7; background: radial-gradient(80% 60% at 50% 118%, rgba(var(--accent-rgb),0.6), transparent 70%); animation: fxEmber 4s ease-in-out infinite; }
 
 /* Channel sidebar */
 .channel-sidebar {
@@ -1276,6 +1318,29 @@ input, textarea { font-family: inherit; }
 .scale-row label { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: var(--text-secondary); white-space: nowrap; min-width: 62px; }
 .scale-row label .ui-ic { color: var(--accent-light); }
 .scale-row input[type=range] { flex: 1; min-width: 80px; accent-color: var(--accent); cursor: pointer; }
+/* My Server Profile: Server Identity media block */
+.msp-identity-media { display: flex; align-items: center; gap: 16px; background: var(--bg-dark); border: 1px solid var(--border); border-radius: 12px; padding: 14px; margin-bottom: 16px; }
+.msp-id-avatar { width: 72px; height: 72px; border-radius: 50%; overflow: hidden; flex-shrink: 0; background: var(--accent); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 26px; color: #fff; border: 2px solid var(--border-light); }
+.msp-id-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.msp-id-media-info { min-width: 0; flex: 1; }
+.msp-id-media-name { font-size: 15px; font-weight: 700; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.msp-id-media-handle { font-size: 12px; color: var(--text-muted); margin-bottom: 8px; }
+.msp-id-media-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.msp-id-media-actions .btn { padding: 6px 12px; font-size: 12px; }
+/* My Server Profile: personal avatar/banner scale tools */
+.msp-scale-num { width: 58px; flex-shrink: 0; background: var(--bg-darkest); border: 1px solid var(--border-light); border-radius: 8px; color: var(--text-primary); font-size: 12px; font-weight: 700; padding: 6px 8px; text-align: center; font-variant-numeric: tabular-nums; }
+.msp-scale-num:focus { outline: none; border-color: var(--accent); }
+.msp-scale-preview { position: relative; margin: 4px 0 14px; border: 1px solid var(--border-light); border-radius: 12px; overflow: hidden; background: var(--bg-darkest); }
+.msp-scale-preview .msp-sp-banner { height: 118px; background-size: cover; background-position: center center; background-repeat: no-repeat; position: relative; overflow: hidden; }
+.msp-scale-preview .msp-sp-banner-img { position: absolute; inset: 0; background-size: cover; background-position: center center; background-repeat: no-repeat; transform-origin: center center; }
+.msp-scale-preview .msp-sp-avatar { width: 66px; height: 66px; border-radius: 50%; border: 4px solid var(--bg-darkest); background: var(--accent); position: absolute; left: 16px; top: 85px; overflow: hidden; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 22px; z-index: 2; }
+.msp-scale-preview .msp-sp-avatar img { width: 100%; height: 100%; object-fit: cover; transform-origin: center center; }
+.msp-scale-preview .msp-sp-avatar .msp-sp-initials { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; transform-origin: center center; }
+.msp-scale-preview .msp-sp-body { height: 62px; }
+.msp-scale-presets { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.msp-scale-presets button { padding: 6px 12px; font-size: 12px; font-weight: 600; border-radius: 8px; border: 1px solid var(--border-light); background: var(--bg-dark); color: var(--text-secondary); cursor: pointer; transition: all .15s; }
+.msp-scale-presets button:hover { border-color: var(--accent); color: var(--text-primary); }
+.msp-scale-presets button.active { background: var(--accent); border-color: var(--accent); color: #fff; }
 /* Scale dialog preview */
 .scale-preview { margin-top: 14px; border: 1px solid var(--border-light); border-radius: 10px; overflow: hidden; background: var(--bg-darkest); }
 .scale-preview .sp-banner { height: 250px; background-size: cover; background-position: center center; background-repeat: no-repeat; position: relative; overflow: hidden; }
@@ -1958,9 +2023,23 @@ input, textarea { font-family: inherit; }
 .seg-control button.selected { background: linear-gradient(180deg, var(--accent), var(--accent-dim)); color: #fff; box-shadow: 0 2px 8px rgba(var(--accent-rgb),0.4); }
 .seg-control button.selected.warn { background: linear-gradient(180deg, #f0a92e, #d4881a); color: #33230a; }
 .seg-control button.selected.danger { background: linear-gradient(180deg, #e35d5d, #c02e2e); color: #fff; }
-/* Effect picker wraps into a tidy grid (9 options) */
-#set-effect-seg { flex-wrap: wrap; }
-#set-effect-seg button { flex: 1 1 calc(33.333% - 6px); min-width: 84px; }
+/* Effect picker: a visual grid of live swatches (each card previews its effect) */
+#set-effect-seg { display: grid; grid-template-columns: repeat(auto-fill, minmax(74px, 1fr)); gap: 8px; }
+.fx-card {
+  display: flex; flex-direction: column; gap: 6px; padding: 7px; min-width: 0;
+  border-radius: 11px; background: var(--bg-darkest); border: 1px solid var(--border);
+  cursor: pointer; transition: background var(--transition), border-color var(--transition), box-shadow var(--transition);
+}
+.fx-card:hover { border-color: var(--accent); background: var(--bg-medium); }
+.fx-card.selected { border-color: var(--accent); background: var(--bg-medium); box-shadow: 0 0 0 1px var(--accent), 0 4px 14px rgba(var(--accent-rgb),0.3); }
+.fx-card:disabled { cursor: not-allowed; }
+.fx-card-preview {
+  position: relative; height: 46px; margin: 0; border-radius: 8px; overflow: hidden;
+  background: linear-gradient(135deg, var(--bg-medium), var(--bg-dark));
+  border: 1px solid var(--border-light);
+}
+.fx-card-label { font-size: 11px; font-weight: 700; color: var(--text-secondary); text-align: center; letter-spacing: 0.2px; }
+.fx-card.selected .fx-card-label { color: var(--text-primary); }
 .allow-grid { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
 .allow-chip {
   display: inline-flex; align-items: center; gap: 6px; padding: 6px 11px; border-radius: 20px;
@@ -2130,6 +2209,9 @@ input, textarea { font-family: inherit; }
 .server-appearance-preview .sap-line { height: 8px; border-radius: 4px; background: var(--bg-light); display: block; }
 .server-appearance-preview .sap-line.short { width: 60%; }
 .server-appearance-preview .sap-pill { height: 12px; width: 46%; border-radius: 6px; background: var(--accent); display: block; box-shadow: 0 0 12px rgba(var(--accent-rgb),0.5); }
+/* Effect swatch cards reuse the .server-appearance-preview effect styles but
+   need their own compact frame (no outer margin, tighter radius). */
+.fx-card-preview.server-appearance-preview { margin: 0; border-radius: 8px; border: 1px solid var(--border-light); background: linear-gradient(135deg, var(--bg-medium), var(--bg-dark)); }
 /* Chat background image preview (Server Settings) */
 .chat-bg-preview { position: relative; height: 120px; border: 1px solid var(--border-light); border-radius: 10px; overflow: hidden; margin: 4px 0 12px; background: var(--bg-darkest); display: flex; align-items: center; justify-content: center; }
 .chat-bg-preview .cbp-img { position: absolute; inset: 0; background-size: cover; background-position: center; background-repeat: no-repeat; }
@@ -2713,6 +2795,23 @@ input, textarea { font-family: inherit; }
 .perm-switch input:checked + .perm-switch-track::before { transform: translateX(17px); }
 .perm-switch input:focus-visible + .perm-switch-track { outline: 2px solid var(--accent); outline-offset: 2px; }
 .perm-row.perm-danger .perm-switch input:checked + .perm-switch-track { background: #e35d5d; border-color: #e35d5d; }
+/* ---- Role editor: permissions toolbar + readability ---- */
+.perm-toolbar { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: var(--bg-darker); border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+.perm-search { position: relative; flex: 1; min-width: 170px; display: flex; align-items: center; }
+.perm-search .ui-ic { position: absolute; left: 10px; width: 15px; height: 15px; color: var(--text-muted); pointer-events: none; }
+.perm-search input { width: 100%; padding: 8px 10px 8px 32px; font-size: 12.5px; color: var(--text-primary); background: var(--bg-darkest); border: 1px solid var(--border-light); border-radius: 8px; }
+.perm-search input:focus { outline: none; border-color: var(--accent); }
+.perm-toolbar-actions { display: flex; align-items: center; gap: 8px; }
+.perm-count { font-size: 11.5px; font-weight: 700; color: var(--text-muted); white-space: nowrap; }
+.perm-tool-btn { font-size: 11.5px; font-weight: 700; color: var(--text-secondary); background: var(--bg-darkest); border: 1px solid var(--border-light); border-radius: 8px; padding: 7px 11px; cursor: pointer; transition: background var(--transition), color var(--transition), border-color var(--transition); }
+.perm-tool-btn:hover { color: var(--text-primary); border-color: var(--accent); background: var(--bg-medium); }
+.perm-row.on { background: rgba(var(--accent-rgb), 0.07); }
+.perm-row.on .perm-row-name { color: var(--accent-light); }
+.perm-row.perm-danger.on { background: rgba(227, 93, 93, 0.09); }
+.perm-row.perm-danger.on .perm-row-name { color: #ff9a9a; }
+.perm-group.perm-filtered-out { display: none; }
+.perm-row.perm-filtered-out { display: none; }
+.perm-empty { padding: 26px 16px; text-align: center; color: var(--text-muted); font-size: 12.5px; }
 @media (max-width: 720px) { .perm-tabs { flex-wrap: wrap; } .perm-tab { flex: 1 1 45%; } }
 .perm-toggle.perm-danger input:hover { border-color: #e35d5d; }
 
@@ -3439,18 +3538,22 @@ input, textarea { font-family: inherit; }
                   </div>
                 </div>
                 <div class="field" style="margin-bottom:12px;"><label style="text-transform:none;font-size:12px;color:var(--text-secondary);">Effect</label>
-                  <div class="seg-control" id="set-effect-seg">
-                    <button data-effect="none" class="selected">None</button>
-                    <button data-effect="glow">Glow</button>
-                    <button data-effect="gradient">Gradient</button>
-                    <button data-effect="aurora">Aurora</button>
-                    <button data-effect="neon">Neon</button>
-                    <button data-effect="pulse">Pulse</button>
-                    <button data-effect="grid">Grid</button>
-                    <button data-effect="spotlight">Spotlight</button>
-                    <button data-effect="scanlines">Scanlines</button>
-                    <button data-effect="halo">Halo</button>
-                    <button data-effect="waves">Waves</button>
+                  <div class="fx-grid" id="set-effect-seg">
+                    <button type="button" data-effect="none" class="fx-card selected"><span class="fx-card-preview server-appearance-preview"></span><span class="fx-card-label">None</span></button>
+                    <button type="button" data-effect="glow" class="fx-card"><span class="fx-card-preview server-appearance-preview fx-glow"></span><span class="fx-card-label">Glow</span></button>
+                    <button type="button" data-effect="gradient" class="fx-card"><span class="fx-card-preview server-appearance-preview fx-gradient"></span><span class="fx-card-label">Gradient</span></button>
+                    <button type="button" data-effect="aurora" class="fx-card"><span class="fx-card-preview server-appearance-preview fx-aurora"></span><span class="fx-card-label">Aurora</span></button>
+                    <button type="button" data-effect="neon" class="fx-card"><span class="fx-card-preview server-appearance-preview fx-neon"></span><span class="fx-card-label">Neon</span></button>
+                    <button type="button" data-effect="pulse" class="fx-card"><span class="fx-card-preview server-appearance-preview fx-pulse"></span><span class="fx-card-label">Pulse</span></button>
+                    <button type="button" data-effect="grid" class="fx-card"><span class="fx-card-preview server-appearance-preview fx-grid"></span><span class="fx-card-label">Grid</span></button>
+                    <button type="button" data-effect="spotlight" class="fx-card"><span class="fx-card-preview server-appearance-preview fx-spotlight"></span><span class="fx-card-label">Spotlight</span></button>
+                    <button type="button" data-effect="scanlines" class="fx-card"><span class="fx-card-preview server-appearance-preview fx-scanlines"></span><span class="fx-card-label">Scanlines</span></button>
+                    <button type="button" data-effect="halo" class="fx-card"><span class="fx-card-preview server-appearance-preview fx-halo"></span><span class="fx-card-label">Halo</span></button>
+                    <button type="button" data-effect="waves" class="fx-card"><span class="fx-card-preview server-appearance-preview fx-waves"></span><span class="fx-card-label">Waves</span></button>
+                    <button type="button" data-effect="beam" class="fx-card"><span class="fx-card-preview server-appearance-preview fx-beam"></span><span class="fx-card-label">Beam</span></button>
+                    <button type="button" data-effect="ripple" class="fx-card"><span class="fx-card-preview server-appearance-preview fx-ripple"></span><span class="fx-card-label">Ripple</span></button>
+                    <button type="button" data-effect="frost" class="fx-card"><span class="fx-card-preview server-appearance-preview fx-frost"></span><span class="fx-card-label">Frost</span></button>
+                    <button type="button" data-effect="ember" class="fx-card"><span class="fx-card-preview server-appearance-preview fx-ember"></span><span class="fx-card-label">Ember</span></button>
                   </div>
                 </div>
                 <button class="btn btn-ghost" id="set-appearance-reset" style="width:100%;font-size:12.5px;">Reset to default</button>
@@ -3590,10 +3693,10 @@ input, textarea { font-family: inherit; }
             <label class="inv-field-label">Custom link name (optional)</label>
             <div class="join-input-wrap">
               <span class="join-input-prefix">/</span>
-              <input type="text" id="custom-invite-input" placeholder="test, hello, my-server" maxlength="10" autocomplete="off" spellcheck="false">
+              <input type="text" id="custom-invite-input" placeholder="test, hello, myserver" maxlength="10" autocomplete="off" spellcheck="false" inputmode="latin" pattern="[a-z0-9]{4,10}">
               <span class="ci-status" id="custom-invite-status"></span>
             </div>
-            <div class="hint">4&ndash;10 characters. Letters, numbers, hyphens and underscores. Leave blank for a random link.</div>
+            <div class="hint">4&ndash;10 characters. Lowercase letters and numbers only &mdash; no symbols or emojis. Leave blank for a random link.</div>
             <label class="inv-expiry-label">Expires after</label>
             <div class="invite-expiry-grid" id="invite-expiry-grid">
               <button data-mins="30">30 minutes</button>
@@ -3913,7 +4016,7 @@ input, textarea { font-family: inherit; }
     <div class="modal-header"><div class="modal-title" id="role-modal-title">Create Role</div><button class="modal-close" data-close="role-modal">&times;</button></div>
     <div class="modal-body">
       <div class="field-row">
-        <div class="field"><label>Role name</label><input type="text" id="role-name" placeholder="VIP" maxlength="24"></div>
+        <div class="field"><label>Role name</label><input type="text" id="role-name" placeholder="administrator" maxlength="24"></div>
         <div class="field" style="max-width:110px;"><label>Color</label><input type="color" id="role-color" value="#9ca3af" style="width:100%;height:42px;background:var(--bg-darkest);border:1px solid var(--border-light);border-radius:var(--radius-sm);cursor:pointer;"></div>
       </div>
       <div class="field"><label>Badge (optional)</label>
@@ -3929,6 +4032,14 @@ input, textarea { font-family: inherit; }
       </div>
       <div class="field"><label>Permissions</label>
         <div class="perm-shell">
+          <div class="perm-toolbar">
+            <div class="perm-search"><span class="ui-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span><input type="text" id="perm-search" placeholder="Filter permissions&#8230;" autocomplete="off"></div>
+            <div class="perm-toolbar-actions">
+              <span class="perm-count" id="perm-count">0 enabled</span>
+              <button type="button" class="perm-tool-btn" id="perm-enable-all">Enable all</button>
+              <button type="button" class="perm-tool-btn" id="perm-clear-all">Clear all</button>
+            </div>
+          </div>
           <div class="perm-panes" id="perm-panes">
             <div class="perm-group">
               <div class="perm-group-head"><span class="perm-group-title">General Server</span><span class="perm-group-sub">Core access and server-wide controls</span></div>
@@ -4397,7 +4508,7 @@ let chEditorType = 'text';
 const SERVER_ACCENTS = ['#5865f2','#4a9eff','#7c5cf0','#f0629f','#2fa457','#f0a92e','#e35d5d','#00c2b2','#ff7a45','#9b6bff','#3ba55d','#d4a017'];
 let setAccentColor = '#5865f2';
 let setEffect = 'none';
-const FX_CLASSES = ['fx-glow','fx-gradient','fx-aurora','fx-neon','fx-pulse','fx-grid','fx-spotlight','fx-scanlines','fx-halo','fx-waves'];
+const FX_CLASSES = ['fx-glow','fx-gradient','fx-aurora','fx-neon','fx-pulse','fx-grid','fx-spotlight','fx-scanlines','fx-halo','fx-waves','fx-beam','fx-ripple','fx-frost','fx-ember'];
 // Unsaved-changes tracking for Server Settings.
 let settingsDirty = false;
 let settingsBaseline = null;
@@ -5143,6 +5254,10 @@ function connectSocket() {
     if (!data || !data.username) return;
     if (data.username === (currentUser && currentUser.username)) {
       currentUser.status = data.status || currentUser.status;
+      // Keep the bottom-left (self footer) avatar/banner in lock-step with the
+      // account-wide profile picture, so changing it anywhere updates it here.
+      if (data.avatar !== undefined) currentUser.avatar = data.avatar;
+      if (data.banner !== undefined) currentUser.banner = data.banner;
       renderSelfFooter();
     }
     if (!activeServer) return;
@@ -5517,6 +5632,12 @@ async function loadServer(id, silent) {
     // A voice call keeps running when you switch servers — the stage simply
     // hides and the persistent mini voice bar appears so you can jump back.
     activeServer = d.server;
+    // Clear the chat pane immediately so the previous server's messages can
+    // never linger on the newly-opened server. This is the root cause of the
+    // "messages appear on the wrong server" bug when switching servers while in
+    // a voice call: the voice stage hides and reveals the chat body before the
+    // new channel's messages have loaded.
+    resetChatPane();
     try { voiceShowStage(voiceCall.active && !voiceCall.minimized); } catch (e) {}
     const idx = servers.findIndex(s => s.id === id);
     if (idx >= 0) servers[idx] = d.server;
@@ -5550,13 +5671,21 @@ async function loadServer(id, silent) {
         const pick = target || chans[0].id;
         const pickCh = chans.find(c => c.id === pick);
         if (pickCh && pickCh.type === 'voice') {
-          // Voice channels have no text history \u2014 just highlight the row so
-          // the user lands back on it without auto-joining the call.
+          // Voice channels have no text history \u2014 highlight the row and show a
+          // clear placeholder in the chat pane (never the previous server's
+          // messages) so the user lands back on it without auto-joining the call.
           activeChannelId = pick;
+          showVoiceChannelPane(pickCh);
           renderChannels();
         } else {
           openChannel(pick);
         }
+      } else {
+        // No channels at all \u2014 make sure the pane is empty rather than showing
+        // whatever the previous server had open.
+        activeChannelId = null;
+        resetChatPane('<div class="server-empty-chat"><h3>No channels yet</h3><div>This server has no channels.</div></div>');
+        renderChannels();
       }
     }
   } catch(e) { if (!silent) toast(e.message, 'error'); }
@@ -6107,6 +6236,39 @@ function memberRowHtml(m) {
 /* ============================================================
    Channels + messages
    ============================================================ */
+// Clear the chat pane (messages + header) so a previous server's content can
+// never linger on the newly-opened server. Called when switching servers and
+// whenever we land on a channel that has no text history.
+function resetChatPane(html) {
+  serverMessages = [];
+  try { serverMsgIndex.clear(); } catch (e) {}
+  const c = $('server-messages');
+  if (c) c.innerHTML = html || '<div class="server-empty-chat"><div class="spinner" style="margin:0 auto 12px;"></div></div>';
+  const nm = $('sch-name'); if (nm) nm.textContent = '';
+  const tp = $('sch-topic'); if (tp) tp.textContent = '';
+}
+// Show a friendly placeholder for a voice channel in the main chat pane. Voice
+// channels keep their text chat inside the call stage, so the main pane just
+// explains what the channel is (and never shows another server's messages).
+function showVoiceChannelPane(ch) {
+  serverMessages = [];
+  try { serverMsgIndex.clear(); } catch (e) {}
+  const c = $('server-messages');
+  if (c) {
+    c.innerHTML = '<div class="server-empty-chat">' +
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="width:44px;height:44px;margin:0 auto 12px;opacity:.7;"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>' +
+      '<h3>' + escapeHtml(ch.name) + '</h3>' +
+      '<div>This is a voice channel. Join the call to talk with everyone here.</div>' +
+    '</div>';
+  }
+  const nm = $('sch-name'); if (nm) nm.textContent = ch.name;
+  const tp = $('sch-topic'); if (tp) tp.textContent = ch.topic || '';
+  // Voice channels have no main text composer \u2014 disable it so a message can
+  // never be sent into the wrong channel.
+  const input = $('srv-input'); if (input) { input.disabled = true; input.value = ''; input.placeholder = 'Voice channel'; }
+  const sendBtn = $('srv-send-btn'); if (sendBtn) sendBtn.disabled = true;
+  const attach = $('srv-attach-btn'); if (attach) attach.style.display = 'none';
+}
 async function openChannel(channelId) {
   // Guard against a stale channel id (e.g. a channel from the previous server
   // that no longer exists here). Without this, switching servers while in a
@@ -10290,12 +10452,20 @@ function syncAccentCustom() {
 // Live preview of the chosen accent color + effect inside Server Settings.
 function updateAppearancePreview() {
   const pv = $('set-appearance-preview');
-  if (!pv) return;
   const accent = /^#[0-9a-fA-F]{6}$/.test(setAccentColor) ? setAccentColor : '#5865f2';
-  pv.style.setProperty('--accent', accent);
-  pv.style.setProperty('--accent-rgb', hexToRgbStr(accent));
-  pv.classList.remove(...FX_CLASSES);
-  if (setEffect && setEffect !== 'none') pv.classList.add('fx-' + setEffect);
+  const rgb = hexToRgbStr(accent);
+  if (pv) {
+    pv.style.setProperty('--accent', accent);
+    pv.style.setProperty('--accent-rgb', rgb);
+    pv.classList.remove(...FX_CLASSES);
+    if (setEffect && setEffect !== 'none') pv.classList.add('fx-' + setEffect);
+  }
+  // Keep the effect swatch cards in sync with the chosen accent color.
+  const grid = $('set-effect-seg');
+  if (grid) {
+    grid.style.setProperty('--accent', accent);
+    grid.style.setProperty('--accent-rgb', rgb);
+  }
 }
 // Live preview of the icon + banner scale inside Server Settings.
 // Two accurate, self-contained frames: the banner strip (server header) and the
@@ -10465,7 +10635,7 @@ function applySettingsPermissions(canEdit, canManageChannels, canManageRoles, ca
     customInv.style.pointerEvents = activeServer.isOwner ? '' : 'none';
     const ciHint = customInv.closest('.field') ? customInv.closest('.field').querySelector('.hint') : null;
     if (ciHint) ciHint.textContent = activeServer.isOwner
-      ? '4\u201310 characters. Letters, numbers, hyphens and underscores. Leave blank for a random link.'
+      ? '4\u201310 characters. Lowercase letters and numbers only \u2014 no symbols or emojis. Leave blank for a random link.'
       : 'Only the server owner can create a custom invite link.';
   }
   const expiryGrid = $('invite-expiry-grid');
@@ -11202,6 +11372,57 @@ function renderRoleBadgePreview() {
     if (clearBtn) clearBtn.style.display = 'none';
   }
 }
+// Refresh the permissions toolbar: live enabled count, per-row highlight, and
+// the search filter. Keeps the Create/Edit Role panel readable at a glance.
+function updatePermToolbar() {
+  const panes = $('perm-panes');
+  if (!panes) return;
+  const rows = Array.from(panes.querySelectorAll('.perm-row'));
+  let enabled = 0;
+  rows.forEach(row => {
+    const cb = row.querySelector('input[type="checkbox"]');
+    const on = !!(cb && cb.checked);
+    row.classList.toggle('on', on);
+    if (on) enabled++;
+  });
+  const count = $('perm-count');
+  if (count) count.textContent = enabled + ' of ' + rows.length + ' enabled';
+  const q = (($('perm-search') && $('perm-search').value) || '').trim().toLowerCase();
+  let visible = 0;
+  panes.querySelectorAll('.perm-group').forEach(group => {
+    let groupVisible = 0;
+    group.querySelectorAll('.perm-row').forEach(row => {
+      const name = (row.querySelector('.perm-row-name') || {}).textContent || '';
+      const desc = (row.querySelector('.perm-row-desc') || {}).textContent || '';
+      const match = !q || (name + ' ' + desc).toLowerCase().includes(q);
+      row.classList.toggle('perm-filtered-out', !match);
+      if (match) groupVisible++;
+    });
+    group.classList.toggle('perm-filtered-out', groupVisible === 0);
+    visible += groupVisible;
+  });
+  let empty = panes.querySelector('.perm-empty');
+  if (q && visible === 0) {
+    if (!empty) { empty = document.createElement('div'); empty.className = 'perm-empty'; panes.appendChild(empty); }
+    empty.textContent = 'No permissions match \u201c' + q + '\u201d.';
+  } else if (empty) { empty.remove(); }
+}
+let _permToolbarWired = false;
+function wirePermToolbar() {
+  const panes = $('perm-panes');
+  if (!panes) return;
+  if (!_permToolbarWired) {
+    _permToolbarWired = true;
+    panes.addEventListener('change', (e) => { if (e.target && e.target.matches('input[type="checkbox"]')) updatePermToolbar(); });
+    const search = $('perm-search');
+    if (search) search.addEventListener('input', updatePermToolbar);
+    const enableAll = $('perm-enable-all');
+    if (enableAll) enableAll.addEventListener('click', () => { panes.querySelectorAll('.perm-row:not(.perm-filtered-out) input[type="checkbox"]').forEach(cb => { cb.checked = true; }); updatePermToolbar(); });
+    const clearAll = $('perm-clear-all');
+    if (clearAll) clearAll.addEventListener('click', () => { panes.querySelectorAll('.perm-row:not(.perm-filtered-out) input[type="checkbox"]').forEach(cb => { cb.checked = false; }); updatePermToolbar(); });
+  }
+  updatePermToolbar();
+}
 function openRoleEditor(role) {
   editingRoleId = role ? role.id : null;
   $('role-modal-title').textContent = role ? 'Edit Role' : 'Create Role';
@@ -11217,6 +11438,9 @@ function openRoleEditor(role) {
     if (p[k] !== undefined) el.checked = !!p[k];
     else el.checked = ['invite','sendMessages','attachFiles','embedLinks','addReactions','externalEmojis','readHistory'].includes(k);
   });
+  // Reset the filter and refresh the toolbar (count + row highlights).
+  const search = $('perm-search'); if (search) search.value = '';
+  wirePermToolbar();
   openModal('role-modal');
 }
 $('add-role-btn').addEventListener('click', () => openRoleEditor(null));
@@ -11299,10 +11523,10 @@ $('invite-expiry-grid').querySelectorAll('button').forEach(b => b.addEventListen
 $('gen-invite-btn').addEventListener('click', async () => {
   if (!(activeServer.isOwner || hasPerm('invite'))) { toast('You do not have permission to create invites', 'error'); return; }
   // Custom (vanity) links are owner-only; non-owners always get a random code.
-  const custom = activeServer.isOwner ? ($('custom-invite-input').value || '').trim().replace(/^\/+/, '') : '';
+  const custom = activeServer.isOwner ? ($('custom-invite-input').value || '').trim().replace(/^\/+/, '').toLowerCase() : '';
   if (custom) {
     if (custom.length < 4 || custom.length > 10) { toast('Custom links must be 4–10 characters', 'error'); return; }
-    if (!/^[a-z0-9_-]+$/i.test(custom)) { toast('Use only letters, numbers, hyphens and underscores', 'error'); return; }
+    if (!/^[a-z0-9]+$/.test(custom)) { toast('Use only lowercase letters and numbers (no symbols or emojis)', 'error'); return; }
   }
   try {
     const body = { expiresIn: selectedInviteMins };
@@ -11325,11 +11549,16 @@ $('gen-invite-btn').addEventListener('click', async () => {
 let ciTimer = null;
 $('custom-invite-input').addEventListener('input', () => {
   const el = $('custom-invite-status');
-  const raw = ($('custom-invite-input').value || '').trim().replace(/^\/+/, '');
+  const input = $('custom-invite-input');
+  // Custom links are lowercase letters + numbers only — strip anything else
+  // (uppercase, symbols, spaces, emojis) as the user types.
+  const cleaned = (input.value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+  if (cleaned !== input.value) input.value = cleaned;
+  const raw = cleaned.replace(/^\/+/, '');
   clearTimeout(ciTimer);
   if (!raw) { el.textContent = ''; el.className = 'ci-status'; return; }
   if (raw.length < 4 || raw.length > 10) { el.textContent = '4–10 chars'; el.className = 'ci-status bad'; return; }
-  if (!/^[a-z0-9_-]+$/i.test(raw)) { el.textContent = 'invalid'; el.className = 'ci-status bad'; return; }
+  if (!/^[a-z0-9]+$/.test(raw)) { el.textContent = 'invalid'; el.className = 'ci-status bad'; return; }
   el.textContent = '…'; el.className = 'ci-status checking';
   ciTimer = setTimeout(async () => {
     try {
@@ -11985,7 +12214,18 @@ function openMyServerProfileEditor() {
       '<button data-tab="appearance">' + icon('palette', 'sm') + ' Appearance</button>' +
     '</div>' +
     '<div class="msp-pane active" id="msp-pane-profile">' +
-      '<div class="msp-section"><div class="msp-section-title">' + icon('user', 'sm') + ' Server Identity</div><div class="msp-section-sub">How you appear to members of this server.</div>' +
+      '<div class="msp-section"><div class="msp-section-title">' + icon('user', 'sm') + ' Server Identity</div><div class="msp-section-sub">How you appear to members of this server. These details are unique to this server.</div>' +
+        '<div class="msp-identity-media">' +
+          '<div class="msp-id-avatar" id="msp-id-avatar">' + (avatar ? '<img src="' + escapeAttr(avatar) + '">' : escapeHtml(getInitials(displayName))) + '</div>' +
+          '<div class="msp-id-media-info">' +
+            '<div class="msp-id-media-name">' + escapeHtml(displayName) + '</div>' +
+            '<div class="msp-id-media-handle">@' + escapeHtml(u.username || '') + '</div>' +
+            '<div class="msp-id-media-actions">' +
+              '<button type="button" class="btn btn-ghost" id="msp-id-avatar-btn">' + icon('camera', 'sm') + ' Server Avatar</button>' +
+              '<button type="button" class="btn btn-ghost" id="msp-id-banner-btn">' + icon('image', 'sm') + ' Server Banner</button>' +
+            '</div>' +
+          '</div>' +
+        '</div>' +
         '<div class="field"><label>Nickname (in this server)</label><input type="text" id="my-nick" maxlength="32" value="' + escapeAttr(me.nickname || '') + '" placeholder="' + escapeAttr(u.displayName || u.username || '') + '"></div>' +
         '<div class="field"><label>About me (in this server)</label><textarea id="my-bio" maxlength="300" placeholder="Introduce yourself to this server’s members.">' + escapeHtml(me.bio || '') + '</textarea></div>' +
       '</div>' +
@@ -12008,9 +12248,21 @@ function openMyServerProfileEditor() {
         '<span style="font-size:12px;color:var(--text-muted);">Custom color</span>' +
         '<button class="btn btn-ghost" id="my-panelcolor-clear" style="margin-left:auto;padding:6px 12px;font-size:12px;">Clear</button>' +
       '</div></div>' +
-      '<div class="field"><label>Avatar &amp; Banner Scale</label><div class="hint" style="margin-bottom:10px;">Adjust how large your avatar and banner appear on your server profile.</div>' +
-        '<div class="scale-row"><label>' + icon('user', 'sm') + ' Avatar</label><input type="range" id="my-avatar-scale" min="100" max="220" step="5" value="' + (me.avatarScale || 100) + '"><span class="psr-val" id="my-avatar-scale-val">' + (me.avatarScale || 100) + '%</span></div>' +
-        '<div class="scale-row"><label>' + icon('image', 'sm') + ' Banner</label><input type="range" id="my-banner-scale" min="100" max="220" step="5" value="' + (me.bannerScale || 100) + '"><span class="psr-val" id="my-banner-scale-val">' + (me.bannerScale || 100) + '%</span></div>' +
+      '<div class="field"><label>Avatar &amp; Banner Scale</label><div class="hint" style="margin-bottom:10px;">Fine-tune how large your avatar and banner appear on your server profile. Drag a slider, type an exact value, or pick a preset.</div>' +
+        '<div class="msp-scale-preview">' +
+          '<div class="msp-sp-banner" id="msp-sp-banner" style="' + (banner ? '' : 'background:linear-gradient(135deg,#6366f1,#4f46e5);') + '">' + (banner ? '<div class="msp-sp-banner-img" id="msp-sp-banner-img" style="background-image:url(' + escapeAttr(banner) + ')"></div>' : '') + '</div>' +
+          '<div class="msp-sp-avatar" id="msp-sp-avatar">' + (avatar ? '<img src="' + escapeAttr(avatar) + '">' : '<span class="msp-sp-initials">' + escapeHtml(getInitials(displayName)) + '</span>') + '</div>' +
+          '<div class="msp-sp-body"></div>' +
+        '</div>' +
+        '<div class="scale-row"><label>' + icon('user', 'sm') + ' Avatar</label><input type="range" id="my-avatar-scale" min="50" max="300" step="5" value="' + (me.avatarScale || 100) + '"><input type="number" class="msp-scale-num" id="my-avatar-scale-num" min="50" max="300" value="' + (me.avatarScale || 100) + '"><span class="psr-val" id="my-avatar-scale-val">' + (me.avatarScale || 100) + '%</span></div>' +
+        '<div class="scale-row"><label>' + icon('image', 'sm') + ' Banner</label><input type="range" id="my-banner-scale" min="50" max="300" step="5" value="' + (me.bannerScale || 100) + '"><input type="number" class="msp-scale-num" id="my-banner-scale-num" min="50" max="300" value="' + (me.bannerScale || 100) + '"><span class="psr-val" id="my-banner-scale-val">' + (me.bannerScale || 100) + '%</span></div>' +
+        '<div class="msp-scale-presets" id="msp-scale-presets">' +
+          '<button type="button" data-scale="75">Small</button>' +
+          '<button type="button" data-scale="100">Default</button>' +
+          '<button type="button" data-scale="150">Large</button>' +
+          '<button type="button" data-scale="200">Extra large</button>' +
+          '<button type="button" data-scale="100" id="msp-scale-reset">Reset</button>' +
+        '</div>' +
       '</div>' +
       '</div>' +
     '</div>';
@@ -12027,17 +12279,26 @@ function openMyServerProfileEditor() {
   // Avatar / banner pickers
   $('msp-avatar').addEventListener('click', () => $('my-avatar').click());
   $('msp-banner').addEventListener('click', () => $('my-banner').click());
+  // Server Identity section: dedicated avatar/banner buttons.
+  if ($('msp-id-avatar-btn')) $('msp-id-avatar-btn').addEventListener('click', () => $('my-avatar').click());
+  if ($('msp-id-banner-btn')) $('msp-id-banner-btn').addEventListener('click', () => $('my-banner').click());
   $('my-avatar').addEventListener('change', (e) => {
     const f = e.target.files[0]; if (!f) return;
     if (!validateImageFile(f)) { e.target.value = ''; return; }
     const url = URL.createObjectURL(f);
     $('msp-avatar').innerHTML = '<img src="' + url + '"><div class="edit-overlay">' + icon('camera', 'lg') + '</div>';
+    const pv = $('msp-sp-avatar'); if (pv) pv.innerHTML = '<img src="' + url + '">';
+    const idv = $('msp-id-avatar'); if (idv) idv.innerHTML = '<img src="' + url + '">';
+    if (typeof mspApplyScale === 'function') mspApplyScale();
   });
   $('my-banner').addEventListener('change', (e) => {
     const f = e.target.files[0]; if (!f) return;
     if (!validateImageFile(f)) { e.target.value = ''; return; }
     const url = URL.createObjectURL(f);
     $('msp-banner').style.backgroundImage = 'url(' + url + ')';
+    const pv = $('msp-sp-banner');
+    if (pv) { pv.style.background = ''; pv.innerHTML = '<div class="msp-sp-banner-img" id="msp-sp-banner-img" style="background-image:url(' + url + ')"></div>'; }
+    if (typeof mspApplyScale === 'function') mspApplyScale();
   });
   // Color swatches
   function applyHeroTint(color) {
@@ -12062,9 +12323,39 @@ function openMyServerProfileEditor() {
     $('my-panelcolor').dataset.cleared = '1';
     applyHeroTint('#4a9eff');
   });
-  // Avatar / banner scale sliders
-  $('my-avatar-scale').addEventListener('input', () => { $('my-avatar-scale-val').textContent = $('my-avatar-scale').value + '%'; });
-  $('my-banner-scale').addEventListener('input', () => { $('my-banner-scale-val').textContent = $('my-banner-scale').value + '%'; });
+  // Avatar / banner scale sliders + live preview + presets
+  function mspApplyScale() {
+    const av = Number($('my-avatar-scale').value) || 100;
+    const bn = Number($('my-banner-scale').value) || 100;
+    $('my-avatar-scale-val').textContent = av + '%';
+    $('my-banner-scale-val').textContent = bn + '%';
+    const avNum = $('my-avatar-scale-num'); if (avNum && document.activeElement !== avNum) avNum.value = String(av);
+    const bnNum = $('my-banner-scale-num'); if (bnNum && document.activeElement !== bnNum) bnNum.value = String(bn);
+    const avEl = $('msp-sp-avatar');
+    const avTarget = avEl ? (avEl.querySelector('img') || avEl.querySelector('.msp-sp-initials')) : null;
+    if (avTarget) avTarget.style.transform = av !== 100 ? 'scale(' + (av / 100) + ')' : '';
+    const bnImg = $('msp-sp-banner-img');
+    if (bnImg) bnImg.style.transform = bn !== 100 ? 'scale(' + (bn / 100) + ')' : '';
+    const presets = $('msp-scale-presets');
+    if (presets) presets.querySelectorAll('button[data-scale]').forEach(b => b.classList.toggle('active', Number(b.dataset.scale) === av && av === bn));
+  }
+  $('my-avatar-scale').addEventListener('input', mspApplyScale);
+  $('my-banner-scale').addEventListener('input', mspApplyScale);
+  $('my-avatar-scale-num').addEventListener('input', () => {
+    const v = Number($('my-avatar-scale-num').value);
+    if (!isNaN(v)) { $('my-avatar-scale').value = String(Math.max(50, Math.min(300, v))); mspApplyScale(); }
+  });
+  $('my-banner-scale-num').addEventListener('input', () => {
+    const v = Number($('my-banner-scale-num').value);
+    if (!isNaN(v)) { $('my-banner-scale').value = String(Math.max(50, Math.min(300, v))); mspApplyScale(); }
+  });
+  $('msp-scale-presets').querySelectorAll('button[data-scale]').forEach(b => b.addEventListener('click', () => {
+    const v = Number(b.dataset.scale);
+    $('my-avatar-scale').value = String(v);
+    $('my-banner-scale').value = String(v);
+    mspApplyScale();
+  }));
+  mspApplyScale();
 
   $('my-profile-save').addEventListener('click', async () => {
     const btn = $('my-profile-save'); btn.disabled = true; btn.textContent = 'Saving…';
@@ -12072,7 +12363,13 @@ function openMyServerProfileEditor() {
       // Server-specific profile (nickname, bio, avatar, banner, scales)
       await api('/api/servers/' + activeServerId + '/profile', { method: 'POST', body: { nickname: $('my-nick').value.trim(), bio: $('my-bio').value.trim(), avatarScale: Number($('my-avatar-scale').value) || 100, bannerScale: Number($('my-banner-scale').value) || 100 } });
       const av = $('my-avatar').files[0];
-      if (av) { const fd = new FormData(); fd.append('image', av); fd.append('field', 'avatar'); await api('/api/servers/' + activeServerId + '/profile', { method: 'POST', body: fd }); }
+      if (av) {
+        const fd = new FormData(); fd.append('image', av); fd.append('field', 'avatar');
+        const r = await api('/api/servers/' + activeServerId + '/profile', { method: 'POST', body: fd });
+        // Mirror the new server profile picture onto the account-wide avatar so
+        // the bottom-left (self footer) picture updates too.
+        if (r && r.avatar) currentUser.avatar = r.avatar;
+      }
       const bn = $('my-banner').files[0];
       if (bn) { const fd = new FormData(); fd.append('image', bn); fd.append('field', 'banner'); await api('/api/servers/' + activeServerId + '/profile', { method: 'POST', body: fd }); }
       // Global profile (bio, pronouns, location, website, status message, panel color)
