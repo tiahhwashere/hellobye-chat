@@ -33,5 +33,5 @@
 ## 11. Verify + deploy
 - [x] node --check server.js
 - [x] python3 checkjs.py servers.html
-- [ ] git commit + push
-- [ ] Render deploy + verify live
+- [x] git commit + push
+- [x] Render deploy + verify live
