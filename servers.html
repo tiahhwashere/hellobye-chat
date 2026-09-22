@@ -1354,7 +1354,7 @@ input, textarea { font-family: inherit; }
   box-shadow: 0 1px 2px rgba(0,0,0,0.16);
 }
 .invite-embed:hover { border-color: rgba(var(--accent-rgb),0.5); box-shadow: 0 8px 26px rgba(0,0,0,0.34); }
-.invite-embed-banner { height: 88px; background: linear-gradient(135deg, var(--bg-light), var(--bg-darkest)); background-size: cover; background-position: center; position: relative; }
+.invite-embed-banner { height: 124px; background: linear-gradient(135deg, var(--bg-light), var(--bg-darkest)); background-size: cover; background-position: center; position: relative; }
 .invite-embed-banner::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0.04), rgba(0,0,0,0.42)); }
 .invite-embed-inner { padding: 0 16px 16px; }
 .invite-embed-top { display: flex; align-items: flex-end; gap: 12px; margin-top: -32px; position: relative; }
@@ -1367,8 +1367,10 @@ input, textarea { font-family: inherit; }
 .invite-embed-stats { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
 .invite-embed-stat { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 600; color: var(--text-secondary); background: var(--bg-darkest); border: 1px solid var(--border); border-radius: 20px; padding: 4px 10px; }
 .invite-embed-stat .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--online); box-shadow: 0 0 0 2px rgba(59,165,93,0.2); }
-.invite-embed-owner { font-size: 11.5px; color: var(--text-muted); margin-top: 11px; }
-.invite-embed-owner b { color: var(--text-secondary); font-weight: 700; }
+.invite-embed-meta { display: flex; flex-wrap: wrap; gap: 9px 20px; margin-top: 13px; padding-top: 13px; border-top: 1px solid var(--border); }
+.invite-embed-meta-row { display: inline-flex; align-items: center; gap: 7px; font-size: 12px; color: var(--text-muted); }
+.invite-embed-meta-row .ui-ic { width: 14px; height: 14px; flex-shrink: 0; color: var(--text-muted); }
+.invite-embed-meta-row b { color: var(--text-secondary); font-weight: 700; }
 .invite-embed-slot { display: block; }
 /* The raw /invite link shown above the server card. */
 .invite-link-text { color: var(--accent-light); text-decoration: none; word-break: break-all; }
@@ -6960,9 +6962,11 @@ function hydrateInviteEmbeds(container) {
       const stats = [];
       stats.push('<span class="invite-embed-stat"><span class="dot"></span>' + (inv.onlineCount || 0) + ' online</span>');
       stats.push('<span class="invite-embed-stat">' + inv.memberCount + ' member' + (inv.memberCount === 1 ? '' : 's') + '</span>');
-      stats.push('<span class="invite-embed-stat">' + inv.channelCount + ' channel' + (inv.channelCount === 1 ? '' : 's') + '</span>');
-      if (inv.roleCount) stats.push('<span class="invite-embed-stat">' + inv.roleCount + ' role' + (inv.roleCount === 1 ? '' : 's') + '</span>');
       stats.push('<span class="invite-embed-stat">' + escapeHtml(expires) + '</span>');
+      const created = inv.createdAt ? new Date(inv.createdAt).toLocaleDateString(undefined, { month: 'short', year: 'numeric' }) : '';
+      const meta = [];
+      if (inv.ownerName) meta.push('<span class="invite-embed-meta-row">' + icon('crown', 'sm') + 'Owned by <b>' + escapeHtml(inv.ownerName) + '</b></span>');
+      if (created) meta.push('<span class="invite-embed-meta-row">' + icon('clock', 'sm') + 'Created <b>' + escapeHtml(created) + '</b></span>');
       const card = document.createElement('div');
       card.className = 'invite-embed';
       card.innerHTML =
@@ -6977,7 +6981,7 @@ function hydrateInviteEmbeds(container) {
           '</div>' +
           (inv.bio ? '<div class="invite-embed-bio">' + escapeHtml(inv.bio) + '</div>' : '') +
           '<div class="invite-embed-stats">' + stats.join('') + '</div>' +
-          (inv.ownerName ? '<div class="invite-embed-owner">Owned by <b>' + escapeHtml(inv.ownerName) + '</b></div>' : '') +
+          (meta.length ? '<div class="invite-embed-meta">' + meta.join('') + '</div>' : '') +
           (already
             ? '<div class="invite-embed-join"><span class="invite-embed-open-hint">' + icon('check', 'sm') + ' You\u2019re a member \u2014 click to open</span></div>'
             : '<div class="invite-embed-join"><button class="btn btn-primary">Join Server</button></div>') +
@@ -12108,9 +12112,11 @@ async function showInvitePreview(code) {
     const stats = [];
     stats.push('<span class="invite-embed-stat"><span class="dot"></span>' + (inv.onlineCount || 0) + ' online</span>');
     stats.push('<span class="invite-embed-stat">' + inv.memberCount + ' member' + (inv.memberCount === 1 ? '' : 's') + '</span>');
-    stats.push('<span class="invite-embed-stat">' + inv.channelCount + ' channel' + (inv.channelCount === 1 ? '' : 's') + '</span>');
-    if (inv.roleCount) stats.push('<span class="invite-embed-stat">' + inv.roleCount + ' role' + (inv.roleCount === 1 ? '' : 's') + '</span>');
     stats.push('<span class="invite-embed-stat">' + (inv.expiresAt ? 'Expires ' + timeAgo(new Date(inv.expiresAt).toISOString()) : 'Never expires') + '</span>');
+    const created = inv.createdAt ? new Date(inv.createdAt).toLocaleDateString(undefined, { month: 'short', year: 'numeric' }) : '';
+    const meta = [];
+    if (inv.ownerName) meta.push('<span class="invite-embed-meta-row">' + icon('crown', 'sm') + 'Owned by <b>' + escapeHtml(inv.ownerName) + '</b></span>');
+    if (created) meta.push('<span class="invite-embed-meta-row">' + icon('clock', 'sm') + 'Created <b>' + escapeHtml(created) + '</b></span>');
     $('invite-preview-body').innerHTML =
       '<div class="invite-embed" style="max-width:none;margin:0;">' +
         '<div class="invite-embed-banner" style="' + (inv.banner ? 'background-image:url(' + escapeAttr(inv.banner) + ');' : 'background:linear-gradient(135deg,' + escapeAttr(accent) + '33,' + escapeAttr(accent) + '0d);') + '"></div>' +
@@ -12121,7 +12127,7 @@ async function showInvitePreview(code) {
           '</div>' +
           (inv.bio ? '<div class="invite-embed-bio">' + escapeHtml(inv.bio) + '</div>' : '') +
           '<div class="invite-embed-stats">' + stats.join('') + '</div>' +
-          (inv.ownerName ? '<div class="invite-embed-owner">Owned by <b>' + escapeHtml(inv.ownerName) + '</b></div>' : '') +
+          (meta.length ? '<div class="invite-embed-meta">' + meta.join('') + '</div>' : '') +
         '</div>' +
       '</div>';
     const already = servers.some(s => s.id === inv.serverId);
