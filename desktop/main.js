@@ -2,8 +2,10 @@
 //
 // Design goals (this build):
 //  - Feel like a real PC application, not a website embedded in a window.
-//    The window is frameless with a custom native title bar (drag region +
-//    minimise / maximise / close controls) drawn by preload.js.
+//    The window is frameless. There is NO full-width title bar: preload.js
+//    pins a small minimise / maximise / close cluster to the top-right (aligned
+//    with the website's own header row) and makes the app's top header row
+//    draggable, so the whole window moves when you drag the top of the app.
 //  - Open at 60% of the screen by default, and render the app content zoomed
 //    out to ~60% so the original layout doesn't look smushed in a small window.
 //  - No File / View / Edit / Help menu bar at all.
@@ -23,7 +25,6 @@ const fs = require('fs');
 const APP_URL = process.env.HELLOBYE_URL || 'https://hellobye-chat.onrender.com/';
 const VERSION_URL = new URL('/api/version', APP_URL).toString();
 const POLL_INTERVAL_MS = 30 * 1000; // check for updates every 30s
-const TITLEBAR_HEIGHT = 36;         // must match the CSS in preload.js
 
 // Render the app content zoomed out so the original (100%) layout, which is
 // designed for a full browser window, doesn't look cramped in the smaller
@@ -61,7 +62,7 @@ function writeState(patch) {
 // ---- Launch splash (custom CSS-only loading animation) ----
 function createSplash() {
   splashWindow = new BrowserWindow({
-    width: 380,
+    width: 480,
     height: 440,
     frame: false,
     resizable: false,

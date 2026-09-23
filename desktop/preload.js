@@ -1,8 +1,9 @@
 // Preload — runs inside the loaded HelloBye page.
 //
 // It exposes a tiny, safe bridge to the renderer AND injects the native-app
-// chrome: a custom title bar (the window is frameless) and the "soft update"
-// toast. There is deliberately NO File / View / Edit / Help menu bar.
+// chrome: the window controls (minimise / maximise / close) and the "soft
+// update" toast. There is deliberately NO File / View / Edit / Help menu bar
+// and NO full-width title bar.
 const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('hellobyeDesktop', {
@@ -12,7 +13,7 @@ contextBridge.exposeInMainWorld('hellobyeDesktop', {
   checkForUpdate: () => ipcRenderer.invoke('check-update-now'),
   applyUpdate: () => ipcRenderer.send('apply-update'),
   dismissUpdate: () => ipcRenderer.send('dismiss-update'),
-  // Native window controls (driven by the custom title bar).
+  // Native window controls (driven by the custom window-control cluster).
   minimize: () => ipcRenderer.send('window-minimize'),
   maximizeToggle: () => ipcRenderer.send('window-maximize-toggle'),
   close: () => ipcRenderer.send('window-close'),
@@ -26,13 +27,19 @@ contextBridge.exposeInMainWorld('hellobyeDesktop', {
 try { document.documentElement.classList.add('hb-desktop'); } catch (e) {}
 
 // ============================================================
-// Native title bar (the window is frameless)
+// Native window chrome (the window is frameless)
 // ============================================================
-// The app content is rendered zoomed out (see main.js). The title bar is part
-// of the same document, so it would shrink with the zoom too. To keep the
-// native window chrome at its true pixel size we counter-scale every title-bar
-// dimension by 1/zoom using the --hb-z CSS variable.
-const TITLEBAR_HEIGHT = 36; // visual (device) pixels
+// There is NO full-width title bar. Instead:
+//   * a small cluster of window controls (minimise / maximise / close) is
+//     pinned to the top-right, vertically aligned with the website's own
+//     header row, and
+//   * the app's top header row is made draggable, so the whole window can be
+//     moved by dragging the top of the app.
+// The app content is rendered zoomed out (see main.js), so every native-chrome
+// dimension is counter-scaled by 1/zoom (the --hb-z variable) to keep it at its
+// true pixel size.
+const WC_BTN_W = 46; // window-control button width, in device px
+const WC_H = 40;     // window-control cluster height, in device px
 
 // Read the zoom factor that main.js passed via additionalArguments.
 const ZOOM = (function () {
@@ -47,71 +54,52 @@ function setZoomVar(z) {
   try { document.documentElement.style.setProperty('--hb-z', String(z)); } catch (e) {}
 }
 
-function injectTitlebarStyles() {
-  if (document.getElementById('hb-titlebar-style')) return;
+function injectChromeStyles() {
+  if (document.getElementById('hb-chrome-style')) return;
   setZoomVar(ZOOM);
   const style = document.createElement('style');
-  style.id = 'hb-titlebar-style';
+  style.id = 'hb-chrome-style';
   style.textContent = `
     :root { --hb-z: ${ZOOM}; }
-    #hb-titlebar {
-      position: fixed; top: 0; left: 0; right: 0; height: calc(${TITLEBAR_HEIGHT}px / var(--hb-z));
-      z-index: 2147483600; display: flex; align-items: center; justify-content: space-between;
-      background: #16171a; border-bottom: 1px solid rgba(255,255,255,0.06);
-      color: #d7d9e0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-      font-size: calc(12.5px / var(--hb-z)); user-select: none; -webkit-user-select: none;
-      -webkit-app-region: drag;
-    }
-    #hb-titlebar .hb-tb-left { display: flex; align-items: center; gap: calc(8px / var(--hb-z)); padding-left: calc(12px / var(--hb-z)); min-width: 0; }
-    #hb-titlebar .hb-tb-logo {
-      width: calc(18px / var(--hb-z)); height: calc(18px / var(--hb-z)); border-radius: calc(5px / var(--hb-z)); flex: 0 0 auto;
-      object-fit: cover; display: block;
-      border: 1px solid rgba(255,255,255,0.12);
-      box-shadow: 0 0 8px rgba(0,0,0,.45);
-    }
-    #hb-titlebar .hb-tb-title { font-weight: 700; letter-spacing: .2px; color: #fff; white-space: nowrap; }
-    #hb-titlebar .hb-tb-controls { display: flex; align-items: stretch; height: 100%; -webkit-app-region: no-drag; }
-    #hb-titlebar .hb-tb-btn {
-      width: calc(46px / var(--hb-z)); display: flex; align-items: center; justify-content: center;
-      cursor: pointer; color: #c7c9d1; transition: background .12s ease, color .12s ease;
-    }
-    #hb-titlebar .hb-tb-btn:hover { background: rgba(255,255,255,0.09); color: #fff; }
-    #hb-titlebar .hb-tb-btn.hb-close:hover { background: #e81123; color: #fff; }
-    #hb-titlebar .hb-tb-btn svg { width: calc(11px / var(--hb-z)); height: calc(11px / var(--hb-z)); display: block; }
 
-    /* The title bar is a floating overlay: it sits ON TOP of the app content
-       (overlap) instead of pushing the content down and shrinking it. The app
-       keeps its full height, so nothing at the bottom (e.g. the "Leave Server"
-       tab in Server Settings) gets cut off. We only add a little top padding to
-       the app's own scroll areas so their first row clears the bar. */
-    html.hb-desktop #chat-app,
-    html.hb-desktop #servers-app {
-      height: 100dvh !important;
-      margin-top: 0 !important;
-      padding-top: calc(${TITLEBAR_HEIGHT}px / var(--hb-z));
-      box-sizing: border-box;
+    /* ---- Window controls: pinned to the top-right, vertically aligned with
+       the website's own header row. There is NO full-width bar. ---- */
+    #hb-wincontrols {
+      position: fixed; top: 0; right: 0; z-index: 2147483600;
+      display: flex; align-items: stretch;
+      height: calc(${WC_H}px / var(--hb-z));
+      -webkit-app-region: no-drag;
     }
-    @supports not (height: 100dvh) {
-      html.hb-desktop #chat-app,
-      html.hb-desktop #servers-app { height: 100vh !important; }
+    #hb-wincontrols .hb-wc-btn {
+      width: calc(${WC_BTN_W}px / var(--hb-z));
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; color: #c7c9d1;
+      transition: background .12s ease, color .12s ease;
     }
+    #hb-wincontrols .hb-wc-btn:hover { background: rgba(255,255,255,0.10); color: #fff; }
+    #hb-wincontrols .hb-wc-btn.hb-close:hover { background: #e81123; color: #fff; }
+    #hb-wincontrols .hb-wc-btn svg { width: calc(11px / var(--hb-z)); height: calc(11px / var(--hb-z)); display: block; }
 
-    /* Fixed overlays (modals, auth screen, slide panels) are positioned against
-       the viewport, so they would otherwise slide up behind the title bar. Keep
-       them fully inside the visible area below the bar. */
-    html.hb-desktop #auth-screen,
-    html.hb-desktop .modal-overlay,
-    html.hb-desktop .settings-modal-overlay {
-      top: calc(${TITLEBAR_HEIGHT}px / var(--hb-z)) !important;
-      height: calc(100dvh - ${TITLEBAR_HEIGHT}px / var(--hb-z)) !important;
-      box-sizing: border-box;
+    /* ---- Make the whole app draggable from its top header row ---- */
+    html.hb-desktop .sidebar-header,
+    html.hb-desktop .chat-header,
+    html.hb-desktop .server-header { -webkit-app-region: drag; }
+    html.hb-desktop .sidebar-header button,
+    html.hb-desktop .sidebar-header a,
+    html.hb-desktop .sidebar-header input,
+    html.hb-desktop .chat-header button,
+    html.hb-desktop .chat-header a,
+    html.hb-desktop .chat-header input,
+    html.hb-desktop .server-header button,
+    html.hb-desktop .server-header a,
+    html.hb-desktop .server-header input { -webkit-app-region: no-drag; }
+
+    /* ---- Keep the website's own header buttons clear of the window controls ---- */
+    html.hb-desktop .chat-header {
+      padding-right: calc(${WC_BTN_W * 3}px / var(--hb-z) + 10px) !important;
     }
-    @supports not (height: 100dvh) {
-      html.hb-desktop #auth-screen,
-      html.hb-desktop .modal-overlay,
-      html.hb-desktop .settings-modal-overlay {
-        height: calc(100vh - ${TITLEBAR_HEIGHT}px / var(--hb-z)) !important;
-      }
+    html.hb-desktop .server-header-top {
+      padding-right: calc(${WC_BTN_W * 3}px / var(--hb-z) + 10px);
     }
 
     /* Hide website-only chrome inside the native app. */
@@ -125,33 +113,24 @@ const ICON_MAX = '<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" str
 const ICON_RESTORE = '<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.1"><rect x="1.4" y="3.4" width="7.2" height="7.2" rx="1"/><path d="M3.6 3.4V2.4a1 1 0 0 1 1-1h5a1 1 0 0 1 1 1v5a1 1 0 0 1-1 1h-1"/></svg>';
 const ICON_CLOSE = '<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.1"><line x1="1.8" y1="1.8" x2="10.2" y2="10.2"/><line x1="10.2" y1="1.8" x2="1.8" y2="10.2"/></svg>';
 
-let titlebarEl = null;
 let maxBtnEl = null;
 
-function buildTitlebar() {
-  if (document.getElementById('hb-titlebar')) return;
-  injectTitlebarStyles();
+function buildWindowControls() {
+  if (document.getElementById('hb-wincontrols')) return;
+  injectChromeStyles();
 
   const bar = document.createElement('div');
-  bar.id = 'hb-titlebar';
+  bar.id = 'hb-wincontrols';
   bar.innerHTML =
-    '<div class="hb-tb-left">' +
-      '<img class="hb-tb-logo" src="/uploads/favicon.jpg" alt="" ' +
-        'onerror="this.onerror=null;this.style.background=\'linear-gradient(135deg,#5865f2,#8b93ff)\';this.removeAttribute(\'src\');">' +
-      '<span class="hb-tb-title">Hellobye</span>' +
-    '</div>' +
-    '<div class="hb-tb-controls">' +
-      '<div class="hb-tb-btn" id="hb-tb-min" title="Minimize">' + ICON_MIN + '</div>' +
-      '<div class="hb-tb-btn" id="hb-tb-max" title="Maximize">' + ICON_MAX + '</div>' +
-      '<div class="hb-tb-btn hb-close" id="hb-tb-close" title="Close">' + ICON_CLOSE + '</div>' +
-    '</div>';
+    '<div class="hb-wc-btn" id="hb-wc-min" title="Minimize">' + ICON_MIN + '</div>' +
+    '<div class="hb-wc-btn" id="hb-wc-max" title="Maximize">' + ICON_MAX + '</div>' +
+    '<div class="hb-wc-btn hb-close" id="hb-wc-close" title="Close">' + ICON_CLOSE + '</div>';
   document.body.appendChild(bar);
-  titlebarEl = bar;
-  maxBtnEl = bar.querySelector('#hb-tb-max');
+  maxBtnEl = bar.querySelector('#hb-wc-max');
 
-  bar.querySelector('#hb-tb-min').addEventListener('click', () => ipcRenderer.send('window-minimize'));
-  bar.querySelector('#hb-tb-max').addEventListener('click', () => ipcRenderer.send('window-maximize-toggle'));
-  bar.querySelector('#hb-tb-close').addEventListener('click', () => ipcRenderer.send('window-close'));
+  bar.querySelector('#hb-wc-min').addEventListener('click', () => ipcRenderer.send('window-minimize'));
+  bar.querySelector('#hb-wc-max').addEventListener('click', () => ipcRenderer.send('window-maximize-toggle'));
+  bar.querySelector('#hb-wc-close').addEventListener('click', () => ipcRenderer.send('window-close'));
 
   // Keep the maximise/restore icon in sync with the real window state.
   const setMaxIcon = (isMax) => {
@@ -318,13 +297,17 @@ document.addEventListener('dragstart', (e) => {
 
 // Boot the chrome.
 function boot() {
-  buildTitlebar();
+  // Re-assert the desktop marker here: the very first attempt (above) can run
+  // before the <html> element exists, so make sure it is set once the DOM is
+  // ready. All of the desktop-only CSS is scoped to html.hb-desktop.
+  try { document.documentElement.classList.add('hb-desktop'); } catch (e) {}
+  buildWindowControls();
 }
 if (document.body) boot();
 else window.addEventListener('DOMContentLoaded', boot, { once: true });
 
-// Keep the title bar at its true pixel size when the user changes the zoom
-// (Ctrl +/- / Ctrl 0). main.js tells us the new factor.
+// Keep the window controls at their true pixel size when the user changes the
+// zoom (Ctrl +/- / Ctrl 0). main.js tells us the new factor.
 ipcRenderer.on('zoom-changed', (e, z) => {
   const v = parseFloat(z);
   if (isFinite(v) && v > 0.1 && v <= 2) setZoomVar(v);

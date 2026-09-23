@@ -5801,12 +5801,12 @@ app.get('/api/version', (req, res) => {
 // the download page) picks it up with no code change required.
 const DESKTOP_REPO = process.env.HELLOBYE_REPO || 'tiahhwashere/hellobye-chat';
 const DESKTOP_FALLBACK = {
-  version: '1.4.0',
+  version: '1.5.0',
   name: 'HelloBye-Setup.exe',
-  url: 'https://github.com/tiahhwashere/hellobye-chat/releases/download/desktop-v1.4.0/HelloBye-Setup.exe',
-  size: 78223813,
+  url: 'https://github.com/tiahhwashere/hellobye-chat/releases/download/desktop-v1.5.0/HelloBye-Setup.exe',
+  size: 78223804,
   publishedAt: null,
-  releaseUrl: 'https://github.com/tiahhwashere/hellobye-chat/releases/tag/desktop-v1.4.0',
+  releaseUrl: 'https://github.com/tiahhwashere/hellobye-chat/releases/tag/desktop-v1.5.0',
 };
 let desktopReleaseCache = { at: 0, data: null };
 const DESKTOP_CACHE_MS = 10 * 60 * 1000; // refresh at most every 10 minutes
