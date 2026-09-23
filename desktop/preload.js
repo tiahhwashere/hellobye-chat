@@ -67,7 +67,9 @@ function injectChromeStyles() {
     #hb-wincontrols {
       position: fixed; top: 0; right: 0; z-index: 2147483600;
       display: flex; align-items: stretch;
-      height: calc(${WC_H}px / var(--hb-z));
+      /* Height is synced to the website's own header row (see syncControlHeight)
+         so the controls line up exactly with it on every page. */
+      height: var(--hb-wc-h, calc(${WC_H}px / var(--hb-z)));
       -webkit-app-region: no-drag;
     }
     #hb-wincontrols .hb-wc-btn {
@@ -83,7 +85,11 @@ function injectChromeStyles() {
     /* ---- Make the whole app draggable from its top header row ---- */
     html.hb-desktop .sidebar-header,
     html.hb-desktop .chat-header,
-    html.hb-desktop .server-header { -webkit-app-region: drag; }
+    html.hb-desktop .server-header,
+    html.hb-desktop .server-chat-header { -webkit-app-region: drag; }
+    /* The server banner is clickable (opens Server Settings), so keep its top
+       strip interactive while the rest of the banner stays draggable. */
+    html.hb-desktop .server-header-top { -webkit-app-region: no-drag; }
     html.hb-desktop .sidebar-header button,
     html.hb-desktop .sidebar-header a,
     html.hb-desktop .sidebar-header input,
@@ -92,14 +98,18 @@ function injectChromeStyles() {
     html.hb-desktop .chat-header input,
     html.hb-desktop .server-header button,
     html.hb-desktop .server-header a,
-    html.hb-desktop .server-header input { -webkit-app-region: no-drag; }
+    html.hb-desktop .server-header input,
+    html.hb-desktop .server-chat-header button,
+    html.hb-desktop .server-chat-header a,
+    html.hb-desktop .server-chat-header input { -webkit-app-region: no-drag; }
 
-    /* ---- Keep the website's own header buttons clear of the window controls ---- */
-    html.hb-desktop .chat-header {
+    /* ---- Keep the website's own header buttons clear of the window controls ----
+       On the servers page the action buttons (members toggle, search, pins,
+       invite, settings) live in .server-chat-header, so that row needs the same
+       right padding as the main chat header. */
+    html.hb-desktop .chat-header,
+    html.hb-desktop .server-chat-header {
       padding-right: calc(${WC_BTN_W * 3}px / var(--hb-z) + 10px) !important;
-    }
-    html.hb-desktop .server-header-top {
-      padding-right: calc(${WC_BTN_W * 3}px / var(--hb-z) + 10px);
     }
 
     /* Hide website-only chrome inside the native app. */
@@ -140,6 +150,49 @@ function buildWindowControls() {
   };
   ipcRenderer.on('window-maximized', (e, v) => setMaxIcon(!!v));
   try { ipcRenderer.invoke('window-is-maximized').then(setMaxIcon).catch(() => {}); } catch (e) {}
+
+  syncControlHeight();
+  window.addEventListener('resize', syncControlHeight);
+}
+
+// Match the window-control cluster height to the website's own header row so
+// the controls sit perfectly in line with it (the main chat header and the
+// servers chat header are different heights).
+function activeHeader() {
+  return document.querySelector('.server-chat-header') ||
+         document.querySelector('.chat-header') ||
+         document.querySelector('.sidebar-header');
+}
+function syncControlHeight() {
+  try {
+    const hdr = activeHeader();
+    if (!hdr) return;
+    const h = hdr.getBoundingClientRect().height; // already in post-zoom CSS px
+    if (h > 0) document.documentElement.style.setProperty('--hb-wc-h', h + 'px');
+  } catch (e) {}
+}
+
+// Keep the control height in sync as the header appears / changes size (e.g.
+// after login, or when switching between the chat and servers views).
+function watchHeader() {
+  let observed = null;
+  let ro = null;
+  const attach = () => {
+    const hdr = activeHeader();
+    if (!hdr || hdr === observed) return;
+    observed = hdr;
+    try {
+      if (ro) ro.disconnect();
+      ro = new ResizeObserver(() => syncControlHeight());
+      ro.observe(hdr);
+    } catch (e) {}
+    syncControlHeight();
+  };
+  attach();
+  try {
+    const mo = new MutationObserver(() => attach());
+    mo.observe(document.documentElement, { childList: true, subtree: true });
+  } catch (e) {}
 }
 
 // ============================================================
@@ -302,6 +355,7 @@ function boot() {
   // ready. All of the desktop-only CSS is scoped to html.hb-desktop.
   try { document.documentElement.classList.add('hb-desktop'); } catch (e) {}
   buildWindowControls();
+  watchHeader();
 }
 if (document.body) boot();
 else window.addEventListener('DOMContentLoaded', boot, { once: true });
@@ -310,5 +364,5 @@ else window.addEventListener('DOMContentLoaded', boot, { once: true });
 // zoom (Ctrl +/- / Ctrl 0). main.js tells us the new factor.
 ipcRenderer.on('zoom-changed', (e, z) => {
   const v = parseFloat(z);
-  if (isFinite(v) && v > 0.1 && v <= 2) setZoomVar(v);
+  if (isFinite(v) && v > 0.1 && v <= 2) { setZoomVar(v); syncControlHeight(); }
 });
