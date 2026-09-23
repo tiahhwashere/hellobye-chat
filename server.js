@@ -3440,7 +3440,7 @@ app.post('/api/servers/:id/settings', authMiddleware, (req, res) => {
   }
   if (iconScale !== undefined) {
     const v = Number(iconScale);
-    s.iconScale = (Number.isFinite(v) && v >= 50 && v <= 300) ? Math.round(v) : 100;
+    s.iconScale = (Number.isFinite(v) && v >= 50 && v <= 150) ? Math.round(v) : 100;
   }
   if (bannerScale !== undefined) {
     const v = Number(bannerScale);
@@ -3930,11 +3930,11 @@ app.post('/api/servers/:id/profile', authMiddleware, avatarUpload.single('image'
   if (bio !== undefined) prof.bio = String(bio).slice(0, 300);
   if (avatarScale !== undefined) {
     const v = Number(avatarScale);
-    prof.avatarScale = (Number.isFinite(v) && v >= 50 && v <= 300) ? Math.round(v) : 100;
+    prof.avatarScale = (Number.isFinite(v) && v >= 50 && v <= 150) ? Math.round(v) : 100;
   }
   if (bannerScale !== undefined) {
     const v = Number(bannerScale);
-    prof.bannerScale = (Number.isFinite(v) && v >= 50 && v <= 300) ? Math.round(v) : 100;
+    prof.bannerScale = (Number.isFinite(v) && v >= 50 && v <= 150) ? Math.round(v) : 100;
   }
   if (req.file) {
     try {

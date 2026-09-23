@@ -25,24 +25,23 @@ function injectStyles() {
   style.textContent = `
     #hb-desktop-update {
       position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%) translateY(140%);
-      z-index: 2147483647; display: flex; align-items: center; gap: 14px;
-      padding: 14px 16px; border-radius: 14px; max-width: min(560px, 92vw);
-      background: linear-gradient(180deg, #232428, #1b1c1f);
-      border: 1px solid rgba(255,255,255,0.10);
+      z-index: 2147483647; display: flex; align-items: stretch; overflow: hidden;
+      padding: 0; border-radius: 14px; max-width: min(560px, 92vw);
+      background: linear-gradient(180deg, rgba(34,36,43,0.98), rgba(19,20,25,0.98));
+      border: 1px solid rgba(255,255,255,0.08);
       box-shadow: 0 18px 50px rgba(0,0,0,0.55), 0 0 0 1px rgba(0,0,0,0.4);
       color: #e9eaee; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
       opacity: 0; transition: transform .35s cubic-bezier(.2,.9,.3,1.2), opacity .35s ease;
       pointer-events: none;
     }
     #hb-desktop-update.show { transform: translateX(-50%) translateY(0); opacity: 1; pointer-events: auto; }
-    #hb-desktop-update .hb-ic {
-      flex: 0 0 auto; width: 40px; height: 40px; border-radius: 11px; display: grid; place-items: center;
-      background: rgba(88,101,242,0.16); color: #8b93ff;
+    #hb-desktop-update .hb-accent {
+      flex: 0 0 auto; width: 4px; background: linear-gradient(180deg, #8b93ff, #5865f2);
     }
-    #hb-desktop-update .hb-ic svg { width: 22px; height: 22px; }
-    #hb-desktop-update .hb-body { min-width: 0; flex: 1 1 auto; }
-    #hb-desktop-update .hb-title { font-weight: 700; font-size: 14px; margin-bottom: 2px; }
-    #hb-desktop-update .hb-text { font-size: 12.5px; color: #a9abb3; line-height: 1.35; }
+    #hb-desktop-update .hb-body { min-width: 0; flex: 1 1 auto; padding: 15px 18px 17px; display: flex; flex-direction: column; gap: 7px; }
+    #hb-desktop-update .hb-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    #hb-desktop-update .hb-title { font-weight: 800; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: #8b93ff; }
+    #hb-desktop-update .hb-text { font-size: 13.5px; color: #a9abb3; line-height: 1.55; }
     #hb-desktop-update .hb-actions { display: flex; gap: 8px; flex: 0 0 auto; }
     #hb-desktop-update button {
       font: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer;
@@ -70,17 +69,16 @@ function showBanner() {
   bannerEl = document.createElement('div');
   bannerEl.id = 'hb-desktop-update';
   bannerEl.innerHTML =
-    '<span class="hb-ic">' +
-      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
-        '<path d="M21 12a9 9 0 1 1-3-6.7"/><polyline points="21 3 21 9 15 9"/></svg>' +
-    '</span>' +
+    '<span class="hb-accent"></span>' +
     '<div class="hb-body">' +
-      '<div class="hb-title">A new update is available</div>' +
-      '<div class="hb-text">HelloBye will update automatically in <b id="hb-count">' + COUNTDOWN + '</b>s. Your login and data are kept.</div>' +
-    '</div>' +
-    '<div class="hb-actions">' +
-      '<button class="hb-later" id="hb-later" type="button">Later</button>' +
-      '<button class="hb-update" id="hb-update" type="button">Update now</button>' +
+      '<div class="hb-head">' +
+        '<div class="hb-title">Update available</div>' +
+      '</div>' +
+      '<div class="hb-text">A new version of HelloBye is ready. It will update automatically in <b id="hb-count">' + COUNTDOWN + '</b>s. Your login and data are kept.</div>' +
+      '<div class="hb-actions">' +
+        '<button class="hb-later" id="hb-later" type="button">Later</button>' +
+        '<button class="hb-update" id="hb-update" type="button">Update now</button>' +
+      '</div>' +
     '</div>' +
     '<span class="hb-progress" id="hb-progress"></span>';
   document.body.appendChild(bannerEl);

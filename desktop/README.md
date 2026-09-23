@@ -9,10 +9,9 @@ A native desktop app for **HelloBye Chat** (https://hellobye-chat.onrender.com/)
 - **Microphone works out of the box** — permissions are granted automatically so
   voice chat and voice messages work immediately.
 - **Soft updates**: the app checks the website's build id every 30 seconds.
-  When the website is updated, a soft banner appears ("A new update is
-  available") with a 20-second countdown and an **Update now** button. The app
-  reloads to apply the update — no reinstall needed, and your login/data are
-  kept.
+  When the website is updated, a soft banner appears ("Update available") with a
+  20-second countdown and an **Update now** button. The app reloads to apply the
+  update — no reinstall needed, and your login/data are kept.
 
 ## Run from source
 

@@ -503,22 +503,25 @@ input, textarea { font-family: inherit; }
   text-transform: uppercase; color: #fff; background: rgba(0,0,0,0.55); backdrop-filter: blur(6px);
   border: 1px solid rgba(255,255,255,0.14); border-radius: 6px; padding: 2px 7px; pointer-events: none;
 }
-/* ---- Advanced in-chat voice player (redesigned: stacked card) ---- */
+/* ---- Advanced in-chat voice player (redesigned: pink/magenta voice card) ---- */
 .voice-player {
-  display: flex; flex-direction: column; gap: 10px;
-  padding: 14px 16px; width: 100%; min-width: 300px; max-width: 460px;
-  background: linear-gradient(180deg, var(--bg-light), var(--bg-medium));
-  border: 1px solid var(--border-light); border-radius: 16px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.18);
+  --vp-accent: #ff4d9d;
+  --vp-accent-2: #ff77b8;
+  --vp-accent-rgb: 255,77,157;
+  display: flex; flex-direction: column; gap: 12px;
+  padding: 16px 18px; width: 100%; min-width: 320px; max-width: 480px;
+  background: linear-gradient(180deg, #1b1c22, #141519);
+  border: 1px solid rgba(var(--vp-accent-rgb),0.28); border-radius: 16px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.03);
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
-.voice-player:hover { border-color: rgba(var(--accent-rgb),0.45); box-shadow: 0 5px 18px rgba(0,0,0,0.28); }
+.voice-player:hover { border-color: rgba(var(--vp-accent-rgb),0.55); box-shadow: 0 6px 22px rgba(0,0,0,0.34), 0 0 0 1px rgba(var(--vp-accent-rgb),0.12); }
 .voice-player .vp-top { display: flex; align-items: center; gap: 12px; }
 .voice-player .vp-play {
-  flex: 0 0 auto; width: 44px; height: 44px; border-radius: 50%; position: relative;
+  flex: 0 0 auto; width: 46px; height: 46px; border-radius: 50%; position: relative;
   display: inline-flex; align-items: center; justify-content: center;
-  background: linear-gradient(180deg, var(--accent-light), var(--accent)); color: #fff; border: none;
-  box-shadow: 0 4px 14px rgba(var(--accent-rgb),0.4); transition: transform 0.15s ease, filter 0.15s ease;
+  background: linear-gradient(180deg, var(--vp-accent-2), var(--vp-accent)); color: #fff; border: none;
+  box-shadow: 0 4px 16px rgba(var(--vp-accent-rgb),0.5); transition: transform 0.15s ease, filter 0.15s ease;
 }
 .voice-player .vp-play:hover { filter: brightness(1.08); transform: scale(1.05); }
 .voice-player .vp-play:active { transform: scale(0.96); }
@@ -529,42 +532,43 @@ input, textarea { font-family: inherit; }
   border: 2px solid rgba(255,255,255,0.35); border-top-color: #fff; animation: vpSpin 0.7s linear infinite;
 }
 @keyframes vpSpin { to { transform: rotate(360deg); } }
-.voice-player .vp-tag { font-size: 12px; font-weight: 800; letter-spacing: 0.09em; text-transform: uppercase; color: var(--accent); }
-.voice-player .vp-body { position: relative; width: 100%; height: 42px; cursor: pointer; border-radius: 10px; display: flex; flex-direction: column; justify-content: center; }
-.voice-player .vp-wave { display: block; width: 100%; height: 38px; }
+.voice-player .vp-tag { font-size: 12px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--vp-accent-2); }
+.voice-player .vp-body { position: relative; width: 100%; height: 44px; cursor: pointer; border-radius: 10px; display: flex; flex-direction: column; justify-content: center; }
+.voice-player .vp-wave { display: block; width: 100%; height: 40px; }
 .voice-player .vp-progress {
   position: absolute; left: 0; top: 0; bottom: 0; width: 0%;
-  background: linear-gradient(90deg, rgba(var(--accent-rgb),0.22), rgba(var(--accent-rgb),0.05));
+  background: linear-gradient(90deg, rgba(var(--vp-accent-rgb),0.20), rgba(var(--vp-accent-rgb),0.04));
   pointer-events: none; border-radius: 10px;
 }
 .voice-player .vp-cursor {
   position: absolute; top: 4px; bottom: 4px; width: 2px; left: 0%;
-  background: var(--accent); border-radius: 2px; pointer-events: none; opacity: 0; transition: opacity 0.15s;
-  box-shadow: 0 0 8px rgba(var(--accent-rgb),0.85);
+  background: var(--vp-accent); border-radius: 2px; pointer-events: none; opacity: 0; transition: opacity 0.15s;
+  box-shadow: 0 0 8px rgba(var(--vp-accent-rgb),0.9);
 }
 .voice-player.playing .vp-cursor { opacity: 1; }
 .voice-player .vp-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .voice-player .vp-time { font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--text-secondary); letter-spacing: 0.2px; }
+.voice-player .vp-time .vp-elapsed { color: var(--vp-accent-2); }
 .voice-player .vp-actions { display: flex; align-items: center; gap: 8px; }
 .voice-player .vp-speed {
-  flex: 0 0 auto; padding: 4px 9px; border-radius: 8px; font-size: 11px; font-weight: 700;
-  background: var(--bg-darkest); border: 1px solid var(--border); color: var(--text-secondary);
+  flex: 0 0 auto; padding: 4px 10px; border-radius: 8px; font-size: 11px; font-weight: 800;
+  background: rgba(var(--vp-accent-rgb),0.12); border: 1px solid rgba(var(--vp-accent-rgb),0.35); color: var(--vp-accent-2);
   transition: var(--transition);
 }
-.voice-player .vp-speed:hover { color: var(--accent); border-color: var(--accent); }
+.voice-player .vp-speed:hover { color: #fff; background: rgba(var(--vp-accent-rgb),0.28); border-color: var(--vp-accent); }
 .voice-player .vp-dl {
   flex: 0 0 auto; width: 30px; height: 30px; border-radius: 8px;
   display: inline-flex; align-items: center; justify-content: center;
-  color: var(--text-muted); transition: var(--transition);
+  color: var(--vp-accent-2); transition: var(--transition);
 }
-.voice-player .vp-dl:hover { color: var(--accent); background: var(--bg-darkest); }
+.voice-player .vp-dl:hover { color: #fff; background: rgba(var(--vp-accent-rgb),0.22); }
 .voice-player .vp-dl svg { width: 16px; height: 16px; }
 .voice-player .vp-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .voice-player .vp-name { font-size: 12px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
 .voice-player .vp-download {
   flex-shrink: 0; padding: 8px 16px; border-radius: 10px; font-size: 12.5px; font-weight: 700; color: #fff;
-  background: linear-gradient(180deg, var(--accent-light), var(--accent));
-  box-shadow: 0 4px 14px rgba(var(--accent-rgb),0.35); transition: filter 0.15s ease;
+  background: linear-gradient(180deg, var(--vp-accent-2), var(--vp-accent));
+  box-shadow: 0 4px 14px rgba(var(--vp-accent-rgb),0.4); transition: filter 0.15s ease;
 }
 .voice-player .vp-download:hover { filter: brightness(1.08); }
 .msg-file-card .mfc-bar { display: flex; align-items: center; gap: 10px; padding: 10px 12px; }
@@ -1559,7 +1563,7 @@ input, textarea { font-family: inherit; }
 }
 
 /* Toast */
-#toast-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 2000; display: flex; flex-direction: column; gap: 10px; align-items: center; pointer-events: none; }
+#toast-container { position: fixed; top: 68px; right: 16px; z-index: 2000; display: flex; flex-direction: column; gap: 10px; align-items: flex-end; pointer-events: none; max-width: calc(100vw - 32px); }
 
 /* Soft update popup (bottom-center) with countdown + refresh button */
 .update-popup { position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%); z-index: 2100; display: flex; align-items: center; gap: 14px; width: min(560px, calc(100vw - 32px)); padding: 14px 16px; background: var(--bg-dark); border: 1px solid var(--border-light); border-radius: 14px; box-shadow: 0 20px 60px rgba(0,0,0,0.55); overflow: hidden; animation: updateIn 0.28s cubic-bezier(0.22,1,0.36,1); }
@@ -1615,34 +1619,35 @@ input, textarea { font-family: inherit; }
    label, the message, and a plain text Dismiss control. No icons/SVGs. */
 .toast {
   position: relative; overflow: hidden;
-  display: flex; flex-direction: column; gap: 7px;
+  display: flex; align-items: stretch;
   background: linear-gradient(180deg, rgba(34, 36, 43, 0.98), rgba(19, 20, 25, 0.98));
   backdrop-filter: blur(18px) saturate(150%); -webkit-backdrop-filter: blur(18px) saturate(150%);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-top: 3px solid var(--toast-accent, var(--accent));
-  border-radius: 12px;
-  padding: 13px 15px 15px; font-size: 13px;
+  border-radius: 14px;
+  font-size: 13px;
   box-shadow: 0 18px 46px rgba(0, 0, 0, 0.55), 0 4px 14px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.05);
   animation: toastIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  max-width: min(440px, 94vw); min-width: min(320px, 92vw);
+  width: min(460px, calc(100vw - 32px));
   pointer-events: auto;
   transition: transform 0.18s ease, box-shadow 0.18s ease;
 }
 .toast:hover { transform: translateY(-2px); }
 .toast.toast-out { animation: toastOut 0.22s ease forwards; }
-@keyframes toastOut { to { opacity: 0; transform: translateY(-10px) scale(0.97); } }
-.toast .toast-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-.toast .toast-label { font-size: 10.5px; font-weight: 800; letter-spacing: 0.09em; text-transform: uppercase; color: var(--toast-accent, var(--accent)); }
-.toast .toast-dismiss { flex-shrink: 0; font-size: 11px; font-weight: 700; letter-spacing: 0.03em; color: var(--text-muted); background: none; border: none; cursor: pointer; padding: 2px 6px; border-radius: 6px; transition: color 0.15s ease, background 0.15s ease; }
+@keyframes toastOut { to { opacity: 0; transform: translateX(18px) scale(0.98); } }
+.toast .toast-accent { width: 4px; flex-shrink: 0; background: var(--toast-accent, var(--accent)); }
+.toast .toast-body { flex: 1; min-width: 0; padding: 15px 18px 17px; display: flex; flex-direction: column; gap: 7px; }
+.toast .toast-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.toast .toast-label { font-size: 11px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--toast-accent, var(--accent)); }
+.toast .toast-dismiss { flex-shrink: 0; font-size: 11px; font-weight: 700; letter-spacing: 0.03em; color: var(--text-muted); background: none; border: none; cursor: pointer; padding: 3px 8px; border-radius: 7px; transition: color 0.15s ease, background 0.15s ease; }
 .toast .toast-dismiss:hover { color: var(--text-primary); background: rgba(255, 255, 255, 0.08); }
-.toast .toast-msg { color: var(--text-secondary); line-height: 1.5; word-break: break-word; font-size: 13px; }
+.toast .toast-msg { color: var(--text-secondary); line-height: 1.55; word-break: break-word; font-size: 13.5px; }
 .toast .toast-bar { position: absolute; left: 0; bottom: 0; height: 2px; width: 100%; background: var(--toast-accent, var(--accent)); transform-origin: left; animation: toastBar linear forwards; opacity: 0.85; }
 @keyframes toastBar { from { transform: scaleX(1); } to { transform: scaleX(0); } }
 .toast.success { --toast-accent: #3ba55d; }
 .toast.error { --toast-accent: #e35d5d; }
 .toast.info { --toast-accent: #4a9eff; }
 .toast.warn { --toast-accent: #f0a92e; }
-@keyframes toastIn { from { opacity: 0; transform: translateY(-14px) scale(0.96); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@keyframes toastIn { from { opacity: 0; transform: translateX(22px) scale(0.98); } to { opacity: 1; transform: translateX(0) scale(1); } }
 
 /* Status-change notice — replaces the old generic toast for status updates.
    Compact professional pill with a live status dot + label, anchored near the
@@ -1896,8 +1901,8 @@ input, textarea { font-family: inherit; }
   .msp-hero-avatar { width: 78px; height: 78px; left: 18px; top: 82px; font-size: 24px; }
   .msp-hero-name { padding: 52px 18px 16px; }
   .msp-pane .field-row { grid-template-columns: 1fr; gap: 0; }
-  #toast-container { top: 12px; width: calc(100vw - 20px); }
-  .toast { max-width: 100%; min-width: 0; }
+  #toast-container { top: 62px; right: 10px; left: 10px; align-items: stretch; max-width: none; }
+  .toast { width: 100%; }
   .scale-row { flex-wrap: wrap; }
   .scale-row input[type=range] { min-width: 100%; order: 3; }
   .profile-banner { height: 120px; }
@@ -2472,6 +2477,10 @@ input, textarea { font-family: inherit; }
 .msg-group.msg-flash { animation: msgFlash 1.2s ease; }
 @keyframes msgFlash { 0%,100% { background: transparent; } 30% { background: rgba(74,158,255,0.18); } }
 .channel-item .ch-ping-dot { width: 7px; height: 7px; border-radius: 50%; background: #c9a227; margin-left: auto; flex-shrink: 0; box-shadow: 0 0 0 2px rgba(201,162,39,0.28); animation: pingPulse 1.6s ease-in-out infinite; }
+/* @everyone / @here ping indicator \u2014 a red dot beside the channel name,
+   cleared as soon as the user opens that channel. Replaces the toast UI. */
+.channel-item .ch-red-ping-dot { width: 9px; height: 9px; border-radius: 50%; background: #e5484d; margin-left: auto; flex-shrink: 0; box-shadow: 0 0 0 2px rgba(229,72,77,0.30); animation: pingPulse 1.4s ease-in-out infinite; }
+.channel-item .ch-unread-dot + .ch-red-ping-dot, .channel-item .ch-ping-dot + .ch-red-ping-dot { margin-left: 6px; }
 /* Unread message indicator — a small white dot beside the channel name,
    cleared as soon as the user opens that channel. */
 .channel-item .ch-unread-dot { width: 8px; height: 8px; border-radius: 50%; background: #ffffff; margin-left: auto; flex-shrink: 0; box-shadow: 0 0 0 2px rgba(255,255,255,0.22); }
@@ -2481,8 +2490,8 @@ input, textarea { font-family: inherit; }
 .channel-item.voice-ch.active { background: rgba(var(--accent-rgb),0.14); }
 .channel-item .ch-voice-count { margin-left: auto; flex-shrink: 0; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; background: #e05252; color: #fff; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; box-shadow: 0 0 0 2px rgba(224,82,82,0.25); }
 @keyframes pingPulse { 0%,100% { opacity: 1; } 50% { opacity: 0.45; } }
-.mention-toast { cursor: pointer; max-width: 340px; }
-.reply-toast { cursor: pointer; max-width: 340px; }
+.mention-toast { cursor: pointer; }
+.reply-toast { cursor: pointer; }
 .mention-toast .mt-head { font-weight: 700; color: #e0c060; display: flex; align-items: center; gap: 6px; margin-bottom: 3px; }
 .mention-toast .mt-body { font-size: 12.5px; color: var(--text-secondary); line-height: 1.4; }
 
@@ -4056,14 +4065,14 @@ input, textarea { font-family: inherit; }
      "allow ... to use your microphone" dialog with a branded UI). -->
 <div class="mic-perm-overlay" id="mic-perm-overlay" role="dialog" aria-modal="true" aria-labelledby="mic-perm-title">
   <div class="mic-perm-card">
-    <div class="mic-perm-ic">
+    <div class="mic-perm-ic" id="mic-perm-ic">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
     </div>
     <div class="mic-perm-title" id="mic-perm-title">Enable your microphone</div>
     <div class="mic-perm-desc" id="mic-perm-desc">To join <b id="mic-perm-channel">voice</b> and talk with everyone, this site needs access to your microphone. Your audio is only shared with people in the same voice channel.</div>
     <div class="mic-perm-actions">
       <button class="mic-perm-allow" id="mic-perm-allow">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+        <span class="mic-perm-allow-ic" id="mic-perm-allow-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg></span>
         <span id="mic-perm-allow-label">Allow microphone &amp; join</span>
       </button>
       <button class="mic-perm-cancel" id="mic-perm-cancel">Not now</button>
@@ -4413,8 +4422,8 @@ input, textarea { font-family: inherit; }
       </div>
       <div class="psr-item" style="margin-top:12px;">
         <label id="scale-modal-label"><svg class="ui-ic sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg> Scale</label>
-        <input type="range" id="scale-modal-range" min="25" max="400" step="1" value="100">
-        <span class="scale-num-wrap"><input type="number" id="scale-modal-num" min="25" max="400" step="1" value="100"><span class="scale-num-pct">%</span></span>
+        <input type="range" id="scale-modal-range" min="50" max="150" step="1" value="100">
+        <span class="scale-num-wrap"><input type="number" id="scale-modal-num" min="50" max="150" step="1" value="100"><span class="scale-num-pct">%</span></span>
       </div>
       <div class="psr-item scale-fine" style="margin-top:8px;">
         <label><svg class="ui-ic sm" viewBox="0 0 24 24"><path d="M12 20V10M18 20V4M6 20v-4"/></svg> Fine tune</label>
@@ -4561,7 +4570,8 @@ let pendingRoleBadgeFile = null;
 let selectedInviteMins = 0;
 let viewingMember = null;
 let displayRolesSeparately = localStorage.getItem('hb_roles_separate') === '1';
-let channelPings = {};        // channelId -> true when an unread @everyone/@here ping exists
+let channelPings = {};        // channelId -> true when an unread @mention ping exists (golden dot)
+let channelRedPings = {};     // channelId -> true when an unread @everyone/@here ping exists (red dot)
 let channelUnread = {};       // channelId -> true when an unread message exists (white dot)
 let chEditorPrivacy = 'public';
 let chEditorChat = 'none';
@@ -4697,9 +4707,12 @@ function toast(msg, type) {
   const t = type || 'info';
   const dur = t === 'error' ? 5200 : 3600;
   el.innerHTML =
-    '<div class="toast-head"><span class="toast-label">' + (titles[t] || 'Notice') + '</span>' +
-    '<button class="toast-dismiss" aria-label="Dismiss">Dismiss</button></div>' +
-    '<div class="toast-msg">' + escapeHtml(msg) + '</div>' +
+    '<span class="toast-accent"></span>' +
+    '<div class="toast-body">' +
+      '<div class="toast-head"><span class="toast-label">' + (titles[t] || 'Notice') + '</span>' +
+      '<button class="toast-dismiss" aria-label="Dismiss">Dismiss</button></div>' +
+      '<div class="toast-msg">' + escapeHtml(msg) + '</div>' +
+    '</div>' +
     '<span class="toast-bar" style="animation-duration:' + dur + 'ms;"></span>';
   const dismiss = () => { el.classList.add('toast-out'); setTimeout(() => el.remove(), 240); };
   el.querySelector('.toast-dismiss').addEventListener('click', dismiss);
@@ -4757,9 +4770,12 @@ function showPingToast(data) {
   const accent = '#e0c060';
   el.style.setProperty('--toast-accent', accent);
   el.innerHTML =
-    '<div class="toast-head"><span class="toast-label" style="color:' + accent + ';">' + who + ' ' + (isMention ? 'mentioned you' : 'pinged <b>' + tag + '</b>') + '</span>' +
-    '<button class="toast-dismiss" aria-label="Dismiss">Dismiss</button></div>' +
-    '<div class="toast-msg">in #' + where + (data.text ? ' \u2014 ' + escapeHtml(data.text) : '') + '</div>' +
+    '<span class="toast-accent"></span>' +
+    '<div class="toast-body">' +
+      '<div class="toast-head"><span class="toast-label" style="color:' + accent + ';">' + who + ' ' + (isMention ? 'mentioned you' : 'pinged <b>' + tag + '</b>') + '</span>' +
+      '<button class="toast-dismiss" aria-label="Dismiss">Dismiss</button></div>' +
+      '<div class="toast-msg">in #' + where + (data.text ? ' \u2014 ' + escapeHtml(data.text) : '') + '</div>' +
+    '</div>' +
     '<span class="toast-bar" style="animation-duration:6500ms;"></span>';
   const dismiss = () => { el.classList.add('toast-out'); setTimeout(() => el.remove(), 240); };
   el.querySelector('.toast-dismiss').addEventListener('click', (e) => { e.stopPropagation(); dismiss(); });
@@ -4779,9 +4795,12 @@ function showReplyToast(data) {
   const where = escapeHtml(data.channelName || 'a channel');
   el.style.setProperty('--toast-accent', '#7ee0b0');
   el.innerHTML =
-    '<div class="toast-head"><span class="toast-label" style="color:#7ee0b0;">' + who + ' replied to you</span>' +
-    '<button class="toast-dismiss" aria-label="Dismiss">Dismiss</button></div>' +
-    '<div class="toast-msg">in #' + where + (data.text ? ' \u2014 ' + escapeHtml(data.text) : '') + '</div>' +
+    '<span class="toast-accent"></span>' +
+    '<div class="toast-body">' +
+      '<div class="toast-head"><span class="toast-label" style="color:#7ee0b0;">' + who + ' replied to you</span>' +
+      '<button class="toast-dismiss" aria-label="Dismiss">Dismiss</button></div>' +
+      '<div class="toast-msg">in #' + where + (data.text ? ' \u2014 ' + escapeHtml(data.text) : '') + '</div>' +
+    '</div>' +
     '<span class="toast-bar" style="animation-duration:6500ms;"></span>';
   const dismiss = () => { el.classList.add('toast-out'); setTimeout(() => el.remove(), 240); };
   el.querySelector('.toast-dismiss').addEventListener('click', (e) => { e.stopPropagation(); dismiss(); });
@@ -5247,12 +5266,22 @@ function connectSocket() {
   socket.on('server-ping', (data) => {
     if (!data) return;
     if (data.from === currentUser.username) return;
-    // Mark the channel with a red ping dot (cleared when the channel is opened).
+    const isEveryone = data.type === 'everyone' || data.type === 'here';
     if (data.serverId === activeServerId && data.channelId !== activeChannelId) {
-      channelPings[data.channelId] = true;
+      if (isEveryone) {
+        // @everyone / @here: no toast. Show a RED notification dot on the
+        // channel that was pinged, and drop the plain white unread dot.
+        channelRedPings[data.channelId] = true;
+        delete channelUnread[data.channelId];
+      } else {
+        // Direct @mention: keep the golden ping dot + toast.
+        channelPings[data.channelId] = true;
+      }
       renderChannels();
     }
-    showPingToast(data);
+    // @everyone / @here pings no longer raise a toast UI; the red channel
+    // notification above is the only indicator. Direct mentions still toast.
+    if (!isEveryone) showPingToast(data);
   });
   socket.on('server-replied-to', (data) => {
     if (!data) return;
@@ -5932,8 +5961,10 @@ function renderChannels() {
     el.className = 'channel-item' + (c.id === activeChannelId ? ' active' : '') + (c.private ? ' private-ch' : '') + (isVoice ? ' voice-ch' : '');
     const lock = c.private ? '<span class="ch-lock" title="Private channel">' + icon('lock', 'sm') + '</span>' : '';
     const muted = (!isVoice && c.chatDisabledFor && c.chatDisabledFor !== 'none') ? '<span class="ch-muted" title="Chat restricted">' + (c.chatDisabledFor === 'everyone' ? icon('ban', 'sm') : icon('star', 'sm')) + '</span>' : '';
-    const unreadDot = (!isVoice && channelUnread[c.id] && c.id !== activeChannelId) ? '<span class="ch-unread-dot" title="Unread messages"></span>' : '';
-    const pingDot = (!isVoice && channelPings[c.id]) ? '<span class="ch-ping-dot" title="You were pinged"></span>' : '';
+    const redPing = (!isVoice && channelRedPings[c.id] && c.id !== activeChannelId);
+    const unreadDot = (!isVoice && channelUnread[c.id] && !redPing && c.id !== activeChannelId) ? '<span class="ch-unread-dot" title="Unread messages"></span>' : '';
+    const pingDot = (!isVoice && channelPings[c.id]) ? '<span class="ch-ping-dot" title="You were mentioned"></span>' : '';
+    const redPingDot = redPing ? '<span class="ch-red-ping-dot" title="You were pinged"></span>' : '';
     const chIcon = isVoice
       ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>'
       : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9h16M4 15h16M10 3L8 21M16 3l-2 18"/></svg>';
@@ -5941,7 +5972,7 @@ function renderChannels() {
     const occ = isVoice ? voiceOccupancy(c.id) : 0;
     const occBadge = occ ? '<span class="ch-voice-count" title="' + occ + ' in call">' + occ + '</span>' : '';
     el.innerHTML = chIcon +
-      '<span class="ch-name">' + escapeHtml(c.name) + lock + muted + '</span>' + unreadDot + pingDot + occBadge +
+      '<span class="ch-name">' + escapeHtml(c.name) + lock + muted + '</span>' + unreadDot + pingDot + redPingDot + occBadge +
       (canManage ? '<span class="ch-edit" title="Edit">' + icon('edit', 'sm') + '</span>' : '');
     el.addEventListener('click', (e) => {
       if (e.target.closest('.ch-edit')) { e.stopPropagation(); openChannelEditor(c); return; }
@@ -6456,6 +6487,7 @@ async function openChannel(channelId) {
     if (activeServerId) localStorage.setItem('hb_last_channel_' + activeServerId, channelId);
   } catch (e) {}
   delete channelPings[channelId];
+  delete channelRedPings[channelId];
   delete channelUnread[channelId];
   closeThread();
   channelThreads = {};
@@ -7227,8 +7259,13 @@ function renderFile(f) {
   const type = (f.type || '').toLowerCase();
   const isGif = type === 'image/gif' || /\.gif$/i.test(rawUrl);
   const isImage = isGif || type.startsWith('image') || /\.(png|jpe?g|webp|avif|bmp|svg)$/i.test(rawUrl);
-  const isVideo = type.startsWith('video') || /\.(mp4|webm|mov|mkv|avi)$/i.test(rawUrl);
-  const isAudio = type.startsWith('audio') || /\.(mp3|wav|ogg|m4a|aac|flac)$/i.test(rawUrl);
+  // Voice messages are recorded as audio/webm (or audio/ogg, audio/mp4). The
+  // .webm extension is shared with video, so an explicit audio/* mimetype or a
+  // recorded duration must win over the extension-based video guess \u2014 otherwise
+  // voice notes render as a plain <video> card instead of the voice player.
+  const hasDuration = Number(f.duration) > 0;
+  const isAudio = type.startsWith('audio') || /\.(mp3|wav|ogg|oga|m4a|aac|flac|opus|weba)$/i.test(rawUrl) || (hasDuration && !isImage);
+  const isVideo = !isAudio && (type.startsWith('video') || /\.(mp4|webm|mov|mkv|avi)$/i.test(rawUrl));
   const name = f.name || (rawUrl.split('/').pop() || 'Attachment');
   const sizeStr = formatFileSize(f.size);
   const kind = fileKindLabel(type, rawUrl);
@@ -7272,8 +7309,11 @@ function renderFile(f) {
   }
   // Image / video / voice attachments render as their own clean message with no
   // card outline \u2014 just the media plus a subtle download bar underneath.
+  // Voice messages already carry their own filename + Download button inside the
+  // player, so the extra metadata bar is dropped to avoid a duplicate row.
   const mediaClass = (isImage || isVideo || isAudio) ? ' msg-file-card-media' : '';
-  return '<div class="msg-file-card' + mediaClass + '">' + preview + bar + '</div>';
+  const showBar = !isAudio;
+  return '<div class="msg-file-card' + mediaClass + '">' + preview + (showBar ? bar : '') + '</div>';
 }
 function linkify(html) {
   // Highlight @everyone / @here mentions (red / amber), then linkify URLs.
@@ -8406,31 +8446,57 @@ function voiceFmtCount(n) { return n + (n === 1 ? ' person' : ' people'); }
    localStorage) so future joins skip the prompt entirely and go
    straight into the call.
    ============================================================ */
-const MIC_PERM_KEY = 'hb_mic_never_ask';
-function micNeverAsk() { try { return localStorage.getItem(MIC_PERM_KEY) === '1'; } catch (e) { return false; } }
-function setMicNeverAsk(v) { try { if (v) localStorage.setItem(MIC_PERM_KEY, '1'); else localStorage.removeItem(MIC_PERM_KEY); } catch (e) {} }
+const PERM_KEYS = { mic: 'hb_mic_never_ask', camera: 'hb_cam_never_ask', screen: 'hb_screen_never_ask' };
+const PERM_ICONS = {
+  mic: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>',
+  camera: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>',
+  screen: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>'
+};
+const PERM_META = {
+  mic: { title: 'Enable your microphone', label: 'Allow microphone & join', hint: 'If your browser shows its own permission prompt, choose <b>Allow</b> so you can be heard.' },
+  camera: { title: 'Enable your camera', label: 'Allow camera', hint: 'If your browser shows its own permission prompt, choose <b>Allow</b> so your camera turns on.' },
+  screen: { title: 'Share your screen', label: 'Share screen', hint: 'Your browser will ask which screen, window or tab to share next.' }
+};
+function permNeverAsk(kind) { try { return localStorage.getItem(PERM_KEYS[kind] || PERM_KEYS.mic) === '1'; } catch (e) { return false; } }
+function setPermNeverAsk(kind, v) { try { const k = PERM_KEYS[kind] || PERM_KEYS.mic; if (v) localStorage.setItem(k, '1'); else localStorage.removeItem(k); } catch (e) {} }
+// Back-compat aliases (older call sites reference the mic-specific names).
+function micNeverAsk() { return permNeverAsk('mic'); }
+function setMicNeverAsk(v) { setPermNeverAsk('mic', v); }
 // Query the current permission state without triggering a prompt (where supported).
-async function micPermissionState() {
+async function permState(kind) {
   try {
     if (navigator.permissions && navigator.permissions.query) {
-      const st = await navigator.permissions.query({ name: 'microphone' });
+      const name = kind === 'camera' ? 'camera' : 'microphone';
+      const st = await navigator.permissions.query({ name });
       return st.state; // 'granted' | 'denied' | 'prompt'
     }
   } catch (e) {}
   return 'unknown';
 }
+async function micPermissionState() { return permState('mic'); }
+// Build the description line for a given permission kind.
+function permDesc(kind, channelName) {
+  const ch = channelName ? ('\u201c' + channelName + '\u201d') : 'this voice channel';
+  if (kind === 'camera') return 'To turn on your camera in <b>' + ch + '</b>, this site needs access to your camera. Your video is only shared with people in the same voice channel.';
+  if (kind === 'screen') return 'You\u2019re about to share your screen in <b>' + ch + '</b>. Everyone in the channel will see what you share until you stop.';
+  return 'To join <b>' + ch + '</b> and talk with everyone, this site needs access to your microphone. Your audio is only shared with people in the same voice channel.';
+}
 // Show the in-app prompt and resolve true (allowed) / false (cancelled).
-function showMicPermissionPrompt(channelName, allowLabelText) {
+function showPermissionPrompt(kind, channelName, allowLabelText) {
   return new Promise((resolve) => {
     const overlay = $('mic-perm-overlay');
     if (!overlay) { resolve(true); return; }
-    const chEl = $('mic-perm-channel');
-    if (chEl) chEl.textContent = channelName ? ('“' + channelName + '”') : 'this voice channel';
+    const meta = PERM_META[kind] || PERM_META.mic;
+    const icEl = $('mic-perm-ic'); if (icEl) icEl.innerHTML = PERM_ICONS[kind] || PERM_ICONS.mic;
+    const allowIcEl = $('mic-perm-allow-ic'); if (allowIcEl) allowIcEl.innerHTML = PERM_ICONS[kind] || PERM_ICONS.mic;
+    const titleEl = $('mic-perm-title'); if (titleEl) titleEl.textContent = meta.title;
+    const descEl = $('mic-perm-desc'); if (descEl) descEl.innerHTML = permDesc(kind, channelName);
+    const hintEl = $('mic-perm-hint'); if (hintEl) hintEl.innerHTML = meta.hint;
     const errEl = $('mic-perm-err'); if (errEl) { errEl.textContent = ''; errEl.classList.remove('show'); }
-    const neverEl = $('mic-perm-never'); if (neverEl) neverEl.checked = micNeverAsk();
+    const neverEl = $('mic-perm-never'); if (neverEl) neverEl.checked = permNeverAsk(kind);
     const allowBtn = $('mic-perm-allow');
     const allowLabel = $('mic-perm-allow-label');
-    if (allowLabel) allowLabel.textContent = allowLabelText || 'Allow microphone & join';
+    if (allowLabel) allowLabel.textContent = allowLabelText || meta.label;
     if (allowBtn) allowBtn.disabled = false;
     overlay.classList.add('show');
     let settled = false;
@@ -8443,11 +8509,12 @@ function showMicPermissionPrompt(channelName, allowLabelText) {
     };
     const finish = (val) => { if (settled) return; settled = true; cleanup(); resolve(val); };
     const onAllow = () => {
-      if (neverEl) setMicNeverAsk(neverEl.checked);
-      if (allowLabel) allowLabel.textContent = 'Requesting access…';
+      if (neverEl) setPermNeverAsk(kind, neverEl.checked);
+      if (allowLabel) allowLabel.textContent = 'Requesting access\u2026';
       if (allowBtn) allowBtn.disabled = true;
-      // Resolve true; the caller performs the actual getUserMedia() so the
-      // browser's own prompt (if any) appears right after this gesture.
+      // Resolve true; the caller performs the actual getUserMedia()/
+      // getDisplayMedia() so the browser's own prompt (if any) appears right
+      // after this gesture.
       finish(true);
     };
     const onCancel = () => finish(false);
@@ -8460,17 +8527,21 @@ function showMicPermissionPrompt(channelName, allowLabelText) {
     document.addEventListener('keydown', onKey);
   });
 }
+// Back-compat wrapper.
+function showMicPermissionPrompt(channelName, allowLabelText) { return showPermissionPrompt('mic', channelName, allowLabelText); }
 // Surface a friendly error inside the prompt (used when the browser denies).
-function micPromptError(msg) {
+function permPromptError(kind, msg) {
   const overlay = $('mic-perm-overlay');
   const errEl = $('mic-perm-err');
   const allowBtn = $('mic-perm-allow');
   const allowLabel = $('mic-perm-allow-label');
-  if (allowLabel) allowLabel.textContent = 'Allow microphone & join';
+  const meta = PERM_META[kind] || PERM_META.mic;
+  if (allowLabel) allowLabel.textContent = meta.label;
   if (allowBtn) allowBtn.disabled = false;
   if (errEl) { errEl.textContent = msg; errEl.classList.add('show'); }
   if (overlay) overlay.classList.add('show');
 }
+function micPromptError(msg) { permPromptError('mic', msg); }
 // Acquire the microphone, showing the in-app prompt first unless the user
 // chose "never ask again" or the permission is already granted.
 async function acquireMic(constraints, channelName, allowLabelText) {
@@ -8479,8 +8550,8 @@ async function acquireMic(constraints, channelName, allowLabelText) {
   // specific one (e.g. the mic test passes its own constraints).
   if (voiceCall.inputDevice && !opts.deviceId) opts.deviceId = { exact: voiceCall.inputDevice };
   // Fast path: already granted, or user opted out of the prompt.
-  const state = await micPermissionState();
-  if (state === 'granted' || micNeverAsk()) {
+  const state = await permState('mic');
+  if (state === 'granted' || permNeverAsk('mic')) {
     try { return await navigator.mediaDevices.getUserMedia({ audio: opts }); }
     catch (e) {
       // If we skipped the prompt but the browser still blocks us, fall back
@@ -8488,16 +8559,57 @@ async function acquireMic(constraints, channelName, allowLabelText) {
       if (state === 'granted') throw e;
     }
   }
-  const allowed = await showMicPermissionPrompt(channelName, allowLabelText);
+  const allowed = await showPermissionPrompt('mic', channelName, allowLabelText);
   if (!allowed) return null;
   try {
     return await navigator.mediaDevices.getUserMedia({ audio: opts });
   } catch (e) {
     const denied = e && (e.name === 'NotAllowedError' || e.name === 'SecurityError');
-    micPromptError(denied
-      ? 'Your browser blocked microphone access. Click the microphone/lock icon in the address bar, set it to “Allow”, then press the button above again.'
+    permPromptError('mic', denied
+      ? 'Your browser blocked microphone access. Click the microphone/lock icon in the address bar, set it to \u201cAllow\u201d, then press the button above again.'
       : 'We could not access a microphone. Make sure one is connected and not in use by another app, then try again.');
     return null;
+  }
+}
+// Acquire the camera, showing the in-app prompt first unless already granted
+// or the user chose "never ask again".
+const CAMERA_CONSTRAINTS = { width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 30, max: 60 } };
+async function acquireCamera(channelName) {
+  const state = await permState('camera');
+  if (state === 'granted' || permNeverAsk('camera')) {
+    try { return await navigator.mediaDevices.getUserMedia({ video: CAMERA_CONSTRAINTS, audio: false }); }
+    catch (e) { if (state === 'granted') throw e; }
+  }
+  const allowed = await showPermissionPrompt('camera', channelName, 'Allow camera');
+  if (!allowed) return null;
+  try {
+    return await navigator.mediaDevices.getUserMedia({ video: CAMERA_CONSTRAINTS, audio: false });
+  } catch (e) {
+    const denied = e && (e.name === 'NotAllowedError' || e.name === 'SecurityError');
+    permPromptError('camera', denied
+      ? 'Your browser blocked camera access. Click the camera/lock icon in the address bar, set it to \u201cAllow\u201d, then press the button above again.'
+      : 'We could not access a camera. Make sure one is connected and not in use by another app, then try again.');
+    return null;
+  }
+}
+// Acquire a screen-share stream. getDisplayMedia always shows the browser's
+// own source picker (screen/window/tab), so we surface our branded prompt
+// first and then hand off to the native picker for the source choice.
+async function acquireScreen(surface, channelName) {
+  if (!permNeverAsk('screen')) {
+    const allowed = await showPermissionPrompt('screen', channelName, 'Share screen');
+    if (!allowed) return null;
+  }
+  const video = { frameRate: { ideal: 120, max: 144 }, cursor: 'always' };
+  if (surface) video.displaySurface = surface;
+  try {
+    return await navigator.mediaDevices.getDisplayMedia({ video, audio: true });
+  } catch (e) {
+    try { return await navigator.mediaDevices.getDisplayMedia({ video, audio: false }); }
+    catch (e2) {
+      if (e2 && e2.name !== 'NotAllowedError') permPromptError('screen', 'Could not start screen share. Please try again.');
+      return null;
+    }
   }
 }
 
@@ -9024,19 +9136,10 @@ async function voiceStartScreenShare(surface) {
   // the presenter is pointing — for the entire screen, a window AND a tab.
   // displaySurface is a hint the browser may honour; the user can still change
   // the source in the native prompt.
-  const video = { frameRate: { ideal: 120, max: 144 }, cursor: 'always' };
-  if (surface) video.displaySurface = surface;
-  let stream;
-  try {
-    stream = await navigator.mediaDevices.getDisplayMedia({ video, audio: true });
-  } catch (e) {
-    // Retry without audio (some sources reject audio capture).
-    try { stream = await navigator.mediaDevices.getDisplayMedia({ video, audio: false }); }
-    catch (e2) {
-      if (e2 && e2.name !== 'NotAllowedError') toast('Could not start screen share.', 'error');
-      return;
-    }
-  }
+  // Show the branded in-app prompt first, then hand off to the browser's own
+  // source picker (screen/window/tab) via acquireScreen().
+  let stream = await acquireScreen(surface, voiceCall.channelName || 'this voice channel');
+  if (!stream) return;
   // Chrome only reliably captures the OS pointer for the "entire screen"
   // surface. For window/tab shares we composite a cursor onto the outgoing
   // video ourselves so viewers can still see where the presenter is pointing.
@@ -9088,14 +9191,12 @@ async function voiceToggleCamera() {
   }
   let stream;
   try {
-    stream = await navigator.mediaDevices.getUserMedia({
-      video: { width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 30, max: 60 } },
-      audio: false,
-    });
+    stream = await acquireCamera(voiceCall.channelName || 'this voice channel');
   } catch (e) {
     toast('Camera access was blocked. Allow it to turn on your camera.', 'error');
     return;
   }
+  if (!stream) return; // cancelled in the in-app prompt
   voiceCall.cameraStream = stream;
   voiceCall.cameraOn = true;
   const track = stream.getVideoTracks()[0];
@@ -10471,7 +10572,21 @@ function quickReact(m) {
   const emojis = ['👍','❤️','😂','🔥','🎉','😮'];
   const pop = document.createElement('div');
   pop.id = 'react-pop';
-  pop.style.cssText = 'position:fixed;z-index:2000;background:var(--bg-dark);border:1px solid var(--border-light);border-radius:12px;padding:6px;display:flex;gap:4px;box-shadow:0 12px 32px rgba(0,0,0,0.5);';
+  pop.style.cssText = 'position:fixed;z-index:2000;background:var(--bg-dark);border:1px solid var(--border-light);border-radius:12px;padding:6px;display:flex;gap:4px;align-items:center;box-shadow:0 12px 32px rgba(0,0,0,0.5);';
+  // "+" button on the LEFT side opens the full emoji picker.
+  const plus = document.createElement('button');
+  plus.id = 'react-pop-plus';
+  plus.title = 'More emojis';
+  plus.setAttribute('aria-label', 'More emojis');
+  plus.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>';
+  plus.style.cssText = 'width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;color:var(--text-secondary);background:var(--bg-light);border:1px solid var(--border-light);flex-shrink:0;transition:color 0.12s,border-color 0.12s;';
+  plus.addEventListener('mouseenter', () => { plus.style.color = 'var(--text-primary)'; plus.style.borderColor = 'var(--accent)'; });
+  plus.addEventListener('mouseleave', () => { plus.style.color = 'var(--text-secondary)'; plus.style.borderColor = 'var(--border-light)'; });
+  plus.addEventListener('click', (e) => { e.stopPropagation(); openEmojiPicker(m, pop); });
+  pop.appendChild(plus);
+  const sep = document.createElement('span');
+  sep.style.cssText = 'width:1px;height:24px;background:var(--border-light);margin:0 2px;flex-shrink:0;';
+  pop.appendChild(sep);
   emojis.forEach(e => {
     const b = document.createElement('button');
     b.textContent = e;
@@ -10483,10 +10598,97 @@ function quickReact(m) {
   });
   document.body.appendChild(pop);
   const r = (m._el || document.querySelector('[data-msg-id="' + m.id + '"]')).getBoundingClientRect();
-  pop.style.left = Math.min(r.left, window.innerWidth - 280) + 'px';
+  pop.style.left = Math.min(r.left, window.innerWidth - 340) + 'px';
   pop.style.top = Math.max(10, r.top - 48) + 'px';
   setTimeout(() => {
     const close = (ev) => { if (!pop.contains(ev.target)) { pop.remove(); document.removeEventListener('click', close); } };
+    document.addEventListener('click', close);
+  }, 0);
+}
+// Full emoji picker (opened from the "+" button in the reaction popover).
+const EMOJI_CATEGORIES = [
+  { name: 'Smileys', icon: '😀', emojis: ['😀','😃','😄','😁','😆','😅','🤣','😂','🙂','🙃','😉','😊','😇','🥰','😍','🤩','😘','😗','😚','😙','🥲','😋','😛','😜','🤪','😝','🤑','🤗','🤭','🤫','🤔','🤐','😐','😑','😶','😏','😒','🙄','😬','😌','😔','😪','🤤','😴','😷','🤒','🤕','🤢','🤮','🤧','🥵','🥶','🥴','😵','🤯','🤠','🥳','😎','🤓','🧐','😕','😟','🙁','😮','😯','😲','😳','🥺','😦','😧','😨','😰','😥','😢','😭','😱','😖','😣','😞','😓','😩','😫','🥱','😤','😡','😠','🤬','😈','👿','💀','💩','🤡','👹','👺','👻','👽','👾','🤖','😺','😸','😹','😻','😼','😽','🙀','😿','😾'] },
+  { name: 'People', icon: '👋', emojis: ['👋','🤚','🖐','✋','🖖','👌','🤌','🤏','✌️','🤞','🤟','🤘','🤙','👈','👉','👆','🖕','👇','☝️','👍','👎','✊','👊','🤛','🤜','👏','🙌','👐','🤲','🤝','🙏','✍️','💅','🤳','💪','🦾','🦿','🦵','🦶','👂','🦻','👃','🧠','🫀','🫁','🦷','🦴','👀','👁','👅','👄','💋','🫶'] },
+  { name: 'Nature', icon: '🐶', emojis: ['🐶','🐱','🐭','🐹','🐰','🦊','🐻','🐼','🐨','🐯','🦁','🐮','🐷','🐸','🐵','🙈','🙉','🙊','🐒','🐔','🐧','🐦','🐤','🐣','🐥','🦆','🦅','🦉','🦇','🐺','🐗','🐴','🦄','🐝','🐛','🦋','🐌','🐞','🐜','🪰','🪱','🦗','🕷','🕸','🦂','🐢','🐍','🦎','🦖','🦕','🐙','🦑','🦐','🦞','🦀','🐡','🐠','🐟','🐬','🐳','🐋','🦈','🐊','🐅','🐆','🦓','🦍','🦧','🐘','🦛','🦏','🐪','🐫','🦒','🦘','🐃','🐂','🐄','🐎','🐖','🐏','🐑','🦙','🐐','🦌','🐕','🐩','🦮','🐈','🐓','🦃','🦚','🦜','🦢','🦩','🕊','🐇','🦝','🦨','🦡','🦦','🦥','🐁','🐀','🐿','🦔','🌵','🎄','🌲','🌳','🌴','🌱','🌿','☘️','🍀','🎍','🎋','🍃','🍂','🍁','🍄','🐚','🌾','💐','🌷','🌹','🥀','🌺','🌸','🌼','🌻','🌞','🌝','🌛','🌜','🌚','🌕','🌖','🌗','🌘','🌑','🌒','🌓','🌔','🌙','🌎','🌍','🌏','🪐','💫','⭐','🌟','✨','⚡','☄️','💥','🔥','🌪','🌈','☀️','🌤','⛅','🌥','☁️','🌦','🌧','⛈','🌩','🌨','❄️','☃️','⛄','🌬','💨','💧','💦','☔','☂️','🌊','🌫'] },
+  { name: 'Food', icon: '🍔', emojis: ['🍏','🍎','🍐','🍊','🍋','🍌','🍉','🍇','🍓','🫐','🍈','🍒','🍑','🥭','🍍','🥥','🥝','🍅','🍆','🥑','🥦','🥬','🥒','🌶','🫑','🌽','🥕','🫒','🧄','🧅','🥔','🍠','🥐','🥯','🍞','🥖','🥨','🧀','🥚','🍳','🧈','🥞','🧇','🥓','🥩','🍗','🍖','🦴','🌭','🍔','🍟','🍕','🫓','🥪','🥙','🧆','🌮','🌯','🫔','🥗','🥘','🫕','🥫','🍝','🍜','🍲','🍛','🍣','🍱','🥟','🦪','🍤','🍙','🍚','🍘','🍥','🥠','🥮','🍢','🍡','🍧','🍨','🍦','🥧','🧁','🍰','🎂','🍮','🍭','🍬','🍫','🍿','🍩','🍪','🌰','🥜','🍯','🥛','🍼','🫖','☕','🍵','🧃','🥤','🧋','🍶','🍺','🍻','🥂','🍷','🥃','🍸','🍹','🧉','🍾','🧊'] },
+  { name: 'Activity', icon: '⚽', emojis: ['⚽','🏀','🏈','⚾','🥎','🎾','🏐','🏉','🥏','🎱','🪀','🏓','🏸','🏒','🏑','🥍','🏏','🪃','🥅','⛳','🪁','🏹','🎣','🤿','🥊','🥋','🎽','🛹','🛼','🛷','⛸','🥌','🎿','⛷','🏂','🪂','🏋️','🤼','🤸','⛹️','🤺','🤾','🏌️','🏇','🧘','🏄','🏊','🤽','🚣','🧗','🚵','🚴','🏆','🥇','🥈','🥉','🏅','🎖','🏵','🎗','🎫','🎟','🎪','🤹','🎭','🩰','🎨','🎬','🎤','🎧','🎼','🎹','🥁','🪘','🎷','🎺','🪗','🎸','🪕','🎻','🎲','♟','🎯','🎳','🎮','🎰','🧩'] },
+  { name: 'Travel', icon: '✈️', emojis: ['🚗','🚕','🚙','🚌','🚎','🏎','🚓','🚑','🚒','🚐','🛻','🚚','🚛','🚜','🦯','🦽','🦼','🛴','🚲','🛵','🏍','🛺','🚨','🚔','🚍','🚘','🚖','🚡','🚠','🚟','🚃','🚋','🚞','🚝','🚄','🚅','🚈','🚂','🚆','🚇','🚊','🚉','✈️','🛫','🛬','🛩','💺','🛰','🚀','🛸','🚁','🛶','⛵','🚤','🛥','🛳','⛴','🚢','⚓','🪝','⛽','🚧','🚦','🚥','🚏','🗺','🗿','🗽','🗼','🏰','🏯','🏟','🎡','🎢','🎠','⛲','⛱','🏖','🏝','🏜','🌋','⛰','🏔','🗻','🏕','⛺','🏠','🏡','🏘','🏚','🏗','🏭','🏢','🏬','🏣','🏤','🏥','🏦','🏨','🏪','🏫','🏩','💒','🏛','⛪','🕌','🕍','🛕','🕋','⛩','🛤','🛣','🗾','🎑','🏞','🌅','🌄','🌠','🎇','🎆','🌇','🌆','🏙','🌃','🌌','🌉','🌁'] },
+  { name: 'Objects', icon: '💡', emojis: ['⌚','📱','📲','💻','⌨️','🖥','🖨','🖱','🖲','🕹','🗜','💽','💾','💿','📀','📼','📷','📸','📹','🎥','📽','🎞','📞','☎️','📟','📠','📺','📻','🎙','🎚','🎛','🧭','⏱','⏲','⏰','🕰','⌛','⏳','📡','🔋','🔌','💡','🔦','🕯','🪔','🧯','🛢','💸','💵','💴','💶','💷','🪙','💰','💳','💎','⚖️','🪜','🧰','🪛','🔧','🔨','⚒','🛠','⛏','🪚','🔩','⚙️','🪤','🧱','⛓','🧲','🔫','💣','🧨','🪓','🔪','🗡','⚔️','🛡','🚬','⚰️','🪦','⚱️','🏺','🔮','📿','🧿','💈','⚗️','🔭','🔬','🕳','🩹','🩺','💊','💉','🩸','🧬','🦠','🧫','🧪','🌡','🧹','🪠','🧺','🧻','🚽','🚰','🚿','🛁','🛀','🧼','🪥','🪒','🧽','🪣','🧴','🛎','🔑','🗝','🚪','🪑','🛋','🛏','🛌','🧸','🪆','🖼','🪞','🪟','🛍','🛒','🎁','🎈','🎏','🎀','🪄','🪅','🎊','🎉','🎎','🏮','🎐','🧧','✉️','📩','📨','📧','💌','📥','📤','📦','🏷','🪧','📪','📫','📬','📭','📮','📯','📜','📃','📄','📑','🧾','📊','📈','📉','🗒','🗓','📆','📅','🗑','📇','🗃','🗳','🗄','📋','📁','📂','🗂','🗞','📰','📓','📔','📒','📕','📗','📘','📙','📚','📖','🔖','🧷','🔗','📎','🖇','📐','📏','🧮','📌','📍','✂️','🖊','🖋','✒️','🖌','🖍','📝','✏️','🔍','🔎','🔏','🔐','🔒','🔓'] },
+  { name: 'Symbols', icon: '❤️', emojis: ['❤️','🧡','💛','💚','💙','💜','🖤','🤍','🤎','💔','❣️','💕','💞','💓','💗','💖','💘','💝','💟','☮️','✝️','☪️','🕉','☸️','✡️','🔯','🕎','☯️','☦️','🛐','⛎','♈','♉','♊','♋','♌','♍','♎','♏','♐','♑','♒','♓','🆔','⚛️','🉑','☢️','☣️','📴','📳','🈶','🈚','🈸','🈺','🈷️','✴️','🆚','💮','🉐','㊙️','㊗️','🈴','🈵','🈹','🈲','🅰️','🅱️','🆎','🆑','🅾️','🆘','❌','⭕','🛑','⛔','📛','🚫','💯','💢','♨️','🚷','🚯','🚳','🚱','🔞','📵','🚭','❗','❕','❓','❔','‼️','⁉️','🔅','🔆','〽️','⚠️','🚸','🔱','⚜️','🔰','♻️','✅','🈯','💹','❇️','✳️','❎','🌐','💠','Ⓜ️','🌀','💤','🏧','🚾','♿','🅿️','🈳','🈂️','🛂','🛃','🛄','🛅','🚹','🚺','🚼','🚻','🚮','🎦','📶','🈁','🔣','ℹ️','🔤','🔡','🔠','🆖','🆗','🆙','🆒','🆕','🆓','0️⃣','1️⃣','2️⃣','3️⃣','4️⃣','5️⃣','6️⃣','7️⃣','8️⃣','9️⃣','🔟','🔢','#️⃣','*️⃣','⏏️','▶️','⏸','⏯','⏹','⏺','⏭','⏮','⏩','⏪','⏫','⏬','◀️','🔼','🔽','➡️','⬅️','⬆️','⬇️','↗️','↘️','↙️','↖️','↕️','↔️','↪️','↩️','⤴️','⤵️','🔀','🔁','🔂','🔄','🔃','🎵','🎶','➕','➖','➗','✖️','♾️','💲','💱','™️','©️','®️','〰️','➰','➿','🔚','🔙','🔛','🔝','🔜','✔️','☑️','🔘','🔴','🟠','🟡','🟢','🔵','🟣','⚫','⚪','🟤','🔺','🔻','🔸','🔹','🔶','🔷','🔳','🔲','▪️','▫️','◾','◽','◼️','◻️','🟥','🟧','🟨','🟩','🟦','🟪','⬛','⬜','🟫','🔈','🔇','🔉','🔊','🔔','🔕','📣','📢','👁️🗨️','💬','💭','🗯','♠️','♣️','♥️','♦️','🃏','🎴','🀄','🕐','🕑','🕒','🕓','🕔','🕕','🕖','🕗','🕘','🕙','🕚','🕛'] },
+  { name: 'Flags', icon: '🏳️', emojis: ['🏁','🚩','🎌','🏴','🏳️','🏳️‍🌈','🏳️‍⚧️','🏴‍☠️','🇺🇸','🇬🇧','🇨🇦','🇦🇺','🇩🇪','🇫🇷','🇪🇸','🇮🇹','🇯🇵','🇰🇷','🇨🇳','🇮🇳','🇧🇷','🇲🇽','🇳🇱','🇸🇪','🇳🇴','🇩🇰','🇫🇮','🇷🇺','🇵🇱','🇵🇹','🇬🇷','🇹🇷','🇮🇱','🇸🇦','🇦🇪','🇪🇬','🇿🇦','🇳🇬','🇰🇪','🇦🇷','🇨🇱','🇨🇴','🇵🇪','🇻🇳','🇹🇭','🇮🇩','🇵🇭','🇲🇾','🇸🇬','🇳🇿','🇮🇪','🇨🇭','🇦🇹','🇧🇪','🇨🇿','🇭🇺','🇷🇴','🇺🇦'] }
+];
+function openEmojiPicker(m, anchorPop) {
+  const existing = document.getElementById('emoji-picker');
+  if (existing) existing.remove();
+  const picker = document.createElement('div');
+  picker.id = 'emoji-picker';
+  picker.style.cssText = 'position:fixed;z-index:2100;width:min(360px,calc(100vw - 24px));max-height:min(420px,70vh);background:var(--bg-dark);border:1px solid var(--border-light);border-radius:14px;box-shadow:0 18px 48px rgba(0,0,0,0.6);display:flex;flex-direction:column;overflow:hidden;';
+  const head = document.createElement('div');
+  head.style.cssText = 'padding:10px 10px 8px;border-bottom:1px solid var(--border-light);flex-shrink:0;';
+  const search = document.createElement('input');
+  search.type = 'text';
+  search.placeholder = 'Search emojis\u2026';
+  search.style.cssText = 'width:100%;background:var(--bg-light);border:1px solid var(--border-light);border-radius:9px;padding:8px 11px;color:var(--text-primary);font-size:13px;outline:none;';
+  head.appendChild(search);
+  picker.appendChild(head);
+  const tabs = document.createElement('div');
+  tabs.style.cssText = 'display:flex;gap:2px;padding:6px 8px;border-bottom:1px solid var(--border-light);overflow-x:auto;flex-shrink:0;';
+  picker.appendChild(tabs);
+  const grid = document.createElement('div');
+  grid.style.cssText = 'flex:1;overflow-y:auto;padding:8px;display:grid;grid-template-columns:repeat(8,1fr);gap:2px;align-content:start;';
+  picker.appendChild(grid);
+  let activeCat = 0;
+  function makeEmojiBtn(e) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.textContent = e;
+    b.style.cssText = 'font-size:22px;line-height:1;width:100%;aspect-ratio:1;border-radius:8px;display:flex;align-items:center;justify-content:center;transition:background 0.1s;';
+    b.addEventListener('mouseenter', () => b.style.background = 'var(--bg-light)');
+    b.addEventListener('mouseleave', () => b.style.background = 'transparent');
+    b.addEventListener('click', (ev) => { ev.stopPropagation(); react(m, e); picker.remove(); if (anchorPop) anchorPop.remove(); });
+    return b;
+  }
+  function renderGrid() {
+    const q = search.value.trim().toLowerCase();
+    grid.innerHTML = '';
+    if (q) {
+      let any = false;
+      EMOJI_CATEGORIES.forEach(cat => {
+        cat.emojis.forEach(e => {
+          if (e.indexOf(q) !== -1 || cat.name.toLowerCase().indexOf(q) !== -1) { grid.appendChild(makeEmojiBtn(e)); any = true; }
+        });
+      });
+      if (!any) grid.innerHTML = '<div style="grid-column:1/-1;color:var(--text-muted);font-size:13px;padding:16px;text-align:center;">No emojis found</div>';
+      return;
+    }
+    EMOJI_CATEGORIES[activeCat].emojis.forEach(e => grid.appendChild(makeEmojiBtn(e)));
+  }
+  EMOJI_CATEGORIES.forEach((cat, i) => {
+    const t = document.createElement('button');
+    t.type = 'button';
+    t.textContent = cat.icon;
+    t.title = cat.name;
+    t.style.cssText = 'font-size:18px;width:34px;height:34px;border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:background 0.1s;';
+    t.addEventListener('mouseenter', () => t.style.background = 'var(--bg-light)');
+    t.addEventListener('mouseleave', () => { if (i !== activeCat) t.style.background = 'transparent'; });
+    t.addEventListener('click', (ev) => { ev.stopPropagation(); activeCat = i; search.value = ''; renderGrid(); tabs.querySelectorAll('button').forEach((x, xi) => x.style.background = xi === i ? 'var(--bg-light)' : 'transparent'); });
+    if (i === 0) t.style.background = 'var(--bg-light)';
+    tabs.appendChild(t);
+  });
+  search.addEventListener('input', renderGrid);
+  search.addEventListener('click', (ev) => ev.stopPropagation());
+  renderGrid();
+  document.body.appendChild(picker);
+  const ar = (anchorPop || document.querySelector('[data-msg-id="' + m.id + '"]')).getBoundingClientRect();
+  let left = Math.min(ar.left, window.innerWidth - 372);
+  if (left < 12) left = 12;
+  let top = ar.top - 8;
+  if (top + 420 > window.innerHeight) top = Math.max(12, window.innerHeight - 432);
+  picker.style.left = left + 'px';
+  picker.style.top = top + 'px';
+  setTimeout(() => search.focus(), 30);
+  setTimeout(() => {
+    const close = (ev) => { if (!picker.contains(ev.target)) { picker.remove(); document.removeEventListener('click', close); } };
     document.addEventListener('click', close);
   }, 0);
 }
@@ -11304,7 +11506,7 @@ function openScaleModal(kind) {
 }
 // Update the slider, value label, preset highlight and live preview together.
 function setScaleModalValue(val) {
-  val = Math.max(25, Math.min(400, Math.round(val)));
+  val = Math.max(50, Math.min(150, Math.round(val)));
   const range = $('scale-modal-range');
   if (range) range.value = String(val);
   const num = $('scale-modal-num');
@@ -12344,16 +12546,20 @@ function renderMemberProfileBody(m, roles, isMe, data) {
   const banner = m.banner || u.banner || null;
 
   // Banner (above the profile picture) — matches the main chat's profile view.
-  const bannerScale = m.bannerScale || 100;
-  const avatarScale = m.avatarScale || 100;
+  // The scale resizes the FRAME (not a zoom of the image) so the avatar/banner
+  // simply appear larger while still showing the whole picture — never a
+  // blown-out, cropped-in zoom.
+  const bannerScale = Math.max(50, Math.min(300, Number(m.bannerScale) || 100));
+  const avatarScale = Math.max(50, Math.min(300, Number(m.avatarScale) || 100));
+  const bS = bannerScale / 100, aS = avatarScale / 100;
   // Panel theme color tints the grey part of the profile (the info panel + bio).
   const panelColor = (u.panelColor || m.panelColor || '').trim();
-  let html = '<div class="member-profile-banner' + (banner ? ' mp-zoomable' : '') + '"' + (banner ? ' data-mp-zoom="' + escapeAttr(banner) + '"' : '') + '>' +
-    (banner ? '<div class="member-profile-banner-img" style="background-image:url(' + escapeAttr(banner) + ');' + (bannerScale !== 100 ? 'transform:scale(' + (bannerScale / 100) + ');' : '') + '"></div>' : '<div class="member-profile-banner-placeholder">No banner set</div>') + '</div>';
+  let html = '<div class="member-profile-banner' + (banner ? ' mp-zoomable' : '') + '"' + (banner ? ' data-mp-zoom="' + escapeAttr(banner) + '"' : '') + (banner && bannerScale !== 100 ? ' style="height:' + Math.round(300 * bS) + 'px;"' : '') + '>' +
+    (banner ? '<div class="member-profile-banner-img" style="background-image:url(' + escapeAttr(banner) + ');"></div>' : '<div class="member-profile-banner-placeholder">No banner set</div>') + '</div>';
 
   // Avatar + identity row (avatar on the LEFT, info on the right)
   html += '<div class="member-profile-main">' +
-    '<div class="member-profile-avatar' + (avatar ? ' mp-zoomable' : '') + '"' + (avatar ? ' data-mp-zoom="' + escapeAttr(avatar) + '"' : '') + '>' + (avatar ? '<img src="' + escapeAttr(avatar) + '"' + (avatarScale !== 100 ? ' style="transform:scale(' + (avatarScale / 100) + ');"' : '') + '>' : '<span class="mpa-initials"' + (avatarScale !== 100 ? ' style="transform:scale(' + (avatarScale / 100) + ');"' : '') + '>' + escapeHtml(getInitials(displayName)) + '</span>') + '</div>' +
+    '<div class="member-profile-avatar' + (avatar ? ' mp-zoomable' : '') + '"' + (avatar ? ' data-mp-zoom="' + escapeAttr(avatar) + '"' : '') + (avatarScale !== 100 ? ' style="width:' + Math.round(168 * aS) + 'px;height:' + Math.round(168 * aS) + 'px;margin-top:' + Math.round(-84 * aS) + 'px;"' : '') + '>' + (avatar ? '<img src="' + escapeAttr(avatar) + '">' : '<span class="mpa-initials">' + escapeHtml(getInitials(displayName)) + '</span>') + '</div>' +
     '<div class="member-profile-info">' +
     '<div class="member-profile-name">' + escapeHtml(displayName) + '</div>' +
     '<div class="member-profile-handle mp-copyable" data-copy="' + escapeAttr(m.username) + '" title="Click to copy username">@' + escapeHtml(m.username) + '<span class="mp-copy-hint">Copy</span></div>';
@@ -12698,13 +12904,13 @@ function openMyServerProfileEditor() {
           '<div class="msp-sp-avatar" id="msp-sp-avatar">' + (avatar ? '<img src="' + escapeAttr(avatar) + '">' : '<span class="msp-sp-initials">' + escapeHtml(getInitials(displayName)) + '</span>') + '</div>' +
           '<div class="msp-sp-body"></div>' +
         '</div>' +
-        '<div class="scale-row"><label>' + icon('user', 'sm') + ' Avatar</label><input type="range" id="my-avatar-scale" min="50" max="300" step="5" value="' + (me.avatarScale || 100) + '"><input type="number" class="msp-scale-num" id="my-avatar-scale-num" min="50" max="300" value="' + (me.avatarScale || 100) + '"><span class="psr-val" id="my-avatar-scale-val">' + (me.avatarScale || 100) + '%</span></div>' +
-        '<div class="scale-row"><label>' + icon('image', 'sm') + ' Banner</label><input type="range" id="my-banner-scale" min="50" max="300" step="5" value="' + (me.bannerScale || 100) + '"><input type="number" class="msp-scale-num" id="my-banner-scale-num" min="50" max="300" value="' + (me.bannerScale || 100) + '"><span class="psr-val" id="my-banner-scale-val">' + (me.bannerScale || 100) + '%</span></div>' +
+        '<div class="scale-row"><label>' + icon('user', 'sm') + ' Avatar</label><input type="range" id="my-avatar-scale" min="50" max="150" step="5" value="' + (me.avatarScale || 100) + '"><input type="number" class="msp-scale-num" id="my-avatar-scale-num" min="50" max="150" value="' + (me.avatarScale || 100) + '"><span class="psr-val" id="my-avatar-scale-val">' + (me.avatarScale || 100) + '%</span></div>' +
+        '<div class="scale-row"><label>' + icon('image', 'sm') + ' Banner</label><input type="range" id="my-banner-scale" min="50" max="150" step="5" value="' + (me.bannerScale || 100) + '"><input type="number" class="msp-scale-num" id="my-banner-scale-num" min="50" max="150" value="' + (me.bannerScale || 100) + '"><span class="psr-val" id="my-banner-scale-val">' + (me.bannerScale || 100) + '%</span></div>' +
         '<div class="msp-scale-presets" id="msp-scale-presets">' +
           '<button type="button" data-scale="75">Small</button>' +
           '<button type="button" data-scale="100">Default</button>' +
-          '<button type="button" data-scale="150">Large</button>' +
-          '<button type="button" data-scale="200">Extra large</button>' +
+          '<button type="button" data-scale="125">Large</button>' +
+          '<button type="button" data-scale="150">Extra large</button>' +
           '<button type="button" data-scale="100" id="msp-scale-reset">Reset</button>' +
         '</div>' +
       '</div>' +
@@ -12753,10 +12959,20 @@ function openMyServerProfileEditor() {
     const avNum = $('my-avatar-scale-num'); if (avNum && document.activeElement !== avNum) avNum.value = String(av);
     const bnNum = $('my-banner-scale-num'); if (bnNum && document.activeElement !== bnNum) bnNum.value = String(bn);
     const avEl = $('msp-sp-avatar');
-    const avTarget = avEl ? (avEl.querySelector('img') || avEl.querySelector('.msp-sp-initials')) : null;
-    if (avTarget) avTarget.style.transform = av !== 100 ? 'scale(' + (av / 100) + ')' : '';
-    const bnImg = $('msp-sp-banner-img');
-    if (bnImg) bnImg.style.transform = bn !== 100 ? 'scale(' + (bn / 100) + ')' : '';
+    const aS = av / 100, bS = bn / 100;
+    // Resize the preview FRAMES (not a zoom of the image) so the avatar and
+    // banner simply appear larger while still showing the whole picture.
+    const bnEl = $('msp-sp-banner');
+    if (bnEl) bnEl.style.height = Math.round(118 * bS) + 'px';
+    if (avEl) {
+      const size = Math.round(66 * aS);
+      avEl.style.width = size + 'px';
+      avEl.style.height = size + 'px';
+      avEl.style.left = Math.round(49 - 33 * aS) + 'px';
+      avEl.style.top = Math.round(118 * bS - 33 * aS) + 'px';
+    }
+    const pv = document.querySelector('.msp-scale-preview');
+    if (pv) pv.style.height = Math.round(118 * bS + Math.max(62, 33 * aS + 22)) + 'px';
     const presets = $('msp-scale-presets');
     if (presets) presets.querySelectorAll('button[data-scale]').forEach(b => b.classList.toggle('active', Number(b.dataset.scale) === av && av === bn));
   }
@@ -12764,11 +12980,11 @@ function openMyServerProfileEditor() {
   $('my-banner-scale').addEventListener('input', mspApplyScale);
   $('my-avatar-scale-num').addEventListener('input', () => {
     const v = Number($('my-avatar-scale-num').value);
-    if (!isNaN(v)) { $('my-avatar-scale').value = String(Math.max(50, Math.min(300, v))); mspApplyScale(); }
+    if (!isNaN(v)) { $('my-avatar-scale').value = String(Math.max(50, Math.min(150, v))); mspApplyScale(); }
   });
   $('my-banner-scale-num').addEventListener('input', () => {
     const v = Number($('my-banner-scale-num').value);
-    if (!isNaN(v)) { $('my-banner-scale').value = String(Math.max(50, Math.min(300, v))); mspApplyScale(); }
+    if (!isNaN(v)) { $('my-banner-scale').value = String(Math.max(50, Math.min(150, v))); mspApplyScale(); }
   });
   $('msp-scale-presets').querySelectorAll('button[data-scale]').forEach(b => b.addEventListener('click', () => {
     const v = Number(b.dataset.scale);
