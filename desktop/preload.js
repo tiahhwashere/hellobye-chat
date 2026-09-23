@@ -28,44 +28,63 @@ try { document.documentElement.classList.add('hb-desktop'); } catch (e) {}
 // ============================================================
 // Native title bar (the window is frameless)
 // ============================================================
-const TITLEBAR_HEIGHT = 36;
+// The app content is rendered zoomed out (see main.js). The title bar is part
+// of the same document, so it would shrink with the zoom too. To keep the
+// native window chrome at its true pixel size we counter-scale every title-bar
+// dimension by 1/zoom using the --hb-z CSS variable.
+const TITLEBAR_HEIGHT = 36; // visual (device) pixels
+
+// Read the zoom factor that main.js passed via additionalArguments.
+const ZOOM = (function () {
+  try {
+    const arg = (process.argv || []).find((a) => typeof a === 'string' && a.indexOf('--hb-zoom=') === 0);
+    const v = arg ? parseFloat(arg.slice('--hb-zoom='.length)) : 1;
+    return (isFinite(v) && v > 0.1 && v <= 2) ? v : 1;
+  } catch (e) { return 1; }
+})();
+
+function setZoomVar(z) {
+  try { document.documentElement.style.setProperty('--hb-z', String(z)); } catch (e) {}
+}
 
 function injectTitlebarStyles() {
   if (document.getElementById('hb-titlebar-style')) return;
+  setZoomVar(ZOOM);
   const style = document.createElement('style');
   style.id = 'hb-titlebar-style';
   style.textContent = `
+    :root { --hb-z: ${ZOOM}; }
     #hb-titlebar {
-      position: fixed; top: 0; left: 0; right: 0; height: ${TITLEBAR_HEIGHT}px;
+      position: fixed; top: 0; left: 0; right: 0; height: calc(${TITLEBAR_HEIGHT}px / var(--hb-z));
       z-index: 2147483600; display: flex; align-items: center; justify-content: space-between;
       background: #16171a; border-bottom: 1px solid rgba(255,255,255,0.06);
       color: #d7d9e0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-      font-size: 12.5px; user-select: none; -webkit-user-select: none;
+      font-size: calc(12.5px / var(--hb-z)); user-select: none; -webkit-user-select: none;
       -webkit-app-region: drag;
     }
-    #hb-titlebar .hb-tb-left { display: flex; align-items: center; gap: 8px; padding-left: 12px; min-width: 0; }
+    #hb-titlebar .hb-tb-left { display: flex; align-items: center; gap: calc(8px / var(--hb-z)); padding-left: calc(12px / var(--hb-z)); min-width: 0; }
     #hb-titlebar .hb-tb-logo {
-      width: 16px; height: 16px; border-radius: 5px; flex: 0 0 auto;
+      width: calc(16px / var(--hb-z)); height: calc(16px / var(--hb-z)); border-radius: calc(5px / var(--hb-z)); flex: 0 0 auto;
       background: linear-gradient(135deg, #5865f2, #8b93ff);
       box-shadow: 0 0 8px rgba(88,101,242,.5);
     }
     #hb-titlebar .hb-tb-title { font-weight: 700; letter-spacing: .2px; color: #fff; white-space: nowrap; }
     #hb-titlebar .hb-tb-controls { display: flex; align-items: stretch; height: 100%; -webkit-app-region: no-drag; }
     #hb-titlebar .hb-tb-btn {
-      width: 46px; display: flex; align-items: center; justify-content: center;
+      width: calc(46px / var(--hb-z)); display: flex; align-items: center; justify-content: center;
       cursor: pointer; color: #c7c9d1; transition: background .12s ease, color .12s ease;
     }
     #hb-titlebar .hb-tb-btn:hover { background: rgba(255,255,255,0.09); color: #fff; }
     #hb-titlebar .hb-tb-btn.hb-close:hover { background: #e81123; color: #fff; }
-    #hb-titlebar .hb-tb-btn svg { width: 11px; height: 11px; display: block; }
+    #hb-titlebar .hb-tb-btn svg { width: calc(11px / var(--hb-z)); height: calc(11px / var(--hb-z)); display: block; }
 
     /* Reserve space for the title bar so app content sits below it. */
-    html.hb-desktop #chat-app { height: calc(100dvh - ${TITLEBAR_HEIGHT}px) !important; margin-top: ${TITLEBAR_HEIGHT}px; }
-    html.hb-desktop #servers-app { height: calc(100dvh - ${TITLEBAR_HEIGHT}px) !important; margin-top: ${TITLEBAR_HEIGHT}px; }
-    html.hb-desktop #auth-screen { top: ${TITLEBAR_HEIGHT}px; }
+    html.hb-desktop #chat-app { height: calc(100dvh - ${TITLEBAR_HEIGHT}px / var(--hb-z)) !important; margin-top: calc(${TITLEBAR_HEIGHT}px / var(--hb-z)); }
+    html.hb-desktop #servers-app { height: calc(100dvh - ${TITLEBAR_HEIGHT}px / var(--hb-z)) !important; margin-top: calc(${TITLEBAR_HEIGHT}px / var(--hb-z)); }
+    html.hb-desktop #auth-screen { top: calc(${TITLEBAR_HEIGHT}px / var(--hb-z)); }
     @supports not (height: 100dvh) {
-      html.hb-desktop #chat-app { height: calc(100vh - ${TITLEBAR_HEIGHT}px) !important; }
-      html.hb-desktop #servers-app { height: calc(100vh - ${TITLEBAR_HEIGHT}px) !important; }
+      html.hb-desktop #chat-app { height: calc(100vh - ${TITLEBAR_HEIGHT}px / var(--hb-z)) !important; }
+      html.hb-desktop #servers-app { height: calc(100vh - ${TITLEBAR_HEIGHT}px / var(--hb-z)) !important; }
     }
 
     /* Hide website-only chrome inside the native app. */
@@ -275,3 +294,10 @@ function boot() {
 }
 if (document.body) boot();
 else window.addEventListener('DOMContentLoaded', boot, { once: true });
+
+// Keep the title bar at its true pixel size when the user changes the zoom
+// (Ctrl +/- / Ctrl 0). main.js tells us the new factor.
+ipcRenderer.on('zoom-changed', (e, z) => {
+  const v = parseFloat(z);
+  if (isFinite(v) && v > 0.1 && v <= 2) setZoomVar(v);
+});

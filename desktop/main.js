@@ -4,8 +4,11 @@
 //  - Feel like a real PC application, not a website embedded in a window.
 //    The window is frameless with a custom native title bar (drag region +
 //    minimise / maximise / close controls) drawn by preload.js.
-//  - Open at 60% of the screen by default.
+//  - Open at 60% of the screen by default, and render the app content zoomed
+//    out to ~60% so the original layout doesn't look smushed in a small window.
 //  - No File / View / Edit / Help menu bar at all.
+//  - Show a custom CSS-only launch splash (no emojis / no SVG icons) every
+//    time the app is opened, before the app content appears.
 //  - "Soft update": poll the site's /api/version endpoint. When the deployed
 //    build id changes, show a soft in-app toast. Applying the update RESTARTS
 //    the whole client (relaunch) so the new build is loaded cleanly — no page
@@ -22,7 +25,19 @@ const VERSION_URL = new URL('/api/version', APP_URL).toString();
 const POLL_INTERVAL_MS = 30 * 1000; // check for updates every 30s
 const TITLEBAR_HEIGHT = 36;         // must match the CSS in preload.js
 
+// Render the app content zoomed out so the original (100%) layout, which is
+// designed for a full browser window, doesn't look cramped in the smaller
+// desktop window. 0.6 == 60%.
+const DEFAULT_ZOOM = 0.6;
+const MIN_ZOOM = 0.4;
+const MAX_ZOOM = 1.5;
+const ZOOM_STEP = 0.1;
+
+// How long the launch splash stays up at minimum, so the animation is seen.
+const SPLASH_MIN_MS = 1700;
+
 let mainWindow = null;
+let splashWindow = null;
 let updateTimer = null;
 let knownBuildId = null;
 let updatePending = false;
@@ -43,6 +58,66 @@ function writeState(patch) {
   } catch (e) { /* non-fatal */ }
 }
 
+// ---- Launch splash (custom CSS-only loading animation) ----
+function createSplash() {
+  splashWindow = new BrowserWindow({
+    width: 380,
+    height: 440,
+    frame: false,
+    resizable: false,
+    movable: true,
+    show: false,
+    center: true,
+    skipTaskbar: true,
+    alwaysOnTop: true,
+    backgroundColor: '#101116',
+    title: 'Hellobye',
+    icon: iconPath(),
+    webPreferences: {
+      contextIsolation: true,
+      nodeIntegration: false,
+      spellcheck: false,
+    },
+  });
+  splashWindow.loadFile(path.join(__dirname, 'splash.html'));
+  splashWindow.once('ready-to-show', () => {
+    if (splashWindow && !splashWindow.isDestroyed()) splashWindow.show();
+  });
+  splashWindow.on('closed', () => { splashWindow = null; });
+}
+
+// Fade the splash out, then close it and reveal the main window.
+function revealApp() {
+  if (splashWindow && !splashWindow.isDestroyed()) {
+    splashWindow.webContents
+      .executeJavaScript("document.documentElement.classList.add('hb-splash-hide')")
+      .catch(() => {});
+    setTimeout(() => {
+      if (splashWindow && !splashWindow.isDestroyed()) splashWindow.close();
+      splashWindow = null;
+    }, 420);
+  }
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.show();
+    mainWindow.focus();
+  }
+}
+
+// Wait for both the minimum splash time AND the app page to finish loading,
+// then reveal the app.
+function revealWhenReady() {
+  const minSplash = new Promise((r) => setTimeout(r, SPLASH_MIN_MS));
+  const loaded = new Promise((resolve) => {
+    if (!mainWindow || mainWindow.isDestroyed()) return resolve();
+    const wc = mainWindow.webContents;
+    if (!wc.isLoading()) return resolve();
+    wc.once('did-finish-load', () => resolve());
+    // Safety net: never hang on the splash if the page is slow.
+    setTimeout(resolve, 12000);
+  });
+  Promise.all([minSplash, loaded]).then(revealApp);
+}
+
 // ---- Window ----
 function createWindow() {
   // Default size: 60% of the primary display's usable area.
@@ -61,6 +136,8 @@ function createWindow() {
     frame: false,
     // No native menu bar anywhere.
     autoHideMenuBar: true,
+    // Keep the window hidden until the splash finishes.
+    show: false,
     icon: iconPath(),
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
@@ -70,10 +147,19 @@ function createWindow() {
       partition: 'persist:hellobye',
       backgroundThrottling: false,
       spellcheck: false,
+      // Let the preload know the zoom factor so it can keep the native title
+      // bar at its true pixel size while the page content is zoomed out.
+      additionalArguments: ['--hb-zoom=' + DEFAULT_ZOOM],
     },
   });
 
+  // Zoom the app content out to ~60% so the original layout isn't smushed.
+  applyZoom(DEFAULT_ZOOM, false);
+
   mainWindow.loadURL(APP_URL);
+
+  // Re-assert the zoom once the page has loaded (zoom can reset on navigation).
+  mainWindow.webContents.on('did-finish-load', () => applyZoom(currentZoom, false));
 
   // Keep the renderer's maximise/restore icon in sync.
   mainWindow.on('maximize', () => sendToRenderer('window-maximized', true));
@@ -99,9 +185,9 @@ function createWindow() {
     if (input.type !== 'keyDown') return;
     const ctrl = input.control || input.meta;
     if (input.key === 'F11') { event.preventDefault(); toggleFullScreen(); return; }
-    if (ctrl && (input.key === '+' || input.key === '=')) { event.preventDefault(); zoomBy(0.5); return; }
-    if (ctrl && input.key === '-') { event.preventDefault(); zoomBy(-0.5); return; }
-    if (ctrl && input.key === '0') { event.preventDefault(); setZoom(0); return; }
+    if (ctrl && (input.key === '+' || input.key === '=')) { event.preventDefault(); zoomBy(ZOOM_STEP); return; }
+    if (ctrl && input.key === '-') { event.preventDefault(); zoomBy(-ZOOM_STEP); return; }
+    if (ctrl && input.key === '0') { event.preventDefault(); applyZoom(DEFAULT_ZOOM, true); return; }
     // DevTools only in development (never in a packaged build).
     if (ctrl && input.shift && (input.key === 'I' || input.key === 'i') && !app.isPackaged) {
       event.preventDefault();
@@ -129,13 +215,18 @@ function toggleFullScreen() {
   if (!mainWindow || mainWindow.isDestroyed()) return;
   mainWindow.setFullScreen(!mainWindow.isFullScreen());
 }
+
+let currentZoom = DEFAULT_ZOOM;
 function zoomBy(delta) {
-  if (!mainWindow || mainWindow.isDestroyed()) return;
-  setZoom(mainWindow.webContents.getZoomLevel() + delta);
+  applyZoom(currentZoom + delta, true);
 }
-function setZoom(level) {
-  if (!mainWindow || mainWindow.isDestroyed()) return;
-  mainWindow.webContents.setZoomLevel(level);
+function applyZoom(factor, notify) {
+  const clamped = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, Math.round(factor * 100) / 100));
+  currentZoom = clamped;
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.setZoomFactor(clamped);
+  }
+  if (notify) sendToRenderer('zoom-changed', clamped);
 }
 
 // ---- Permissions: auto-grant mic/camera so voice chat just works ----
@@ -252,8 +343,10 @@ if (!gotLock) {
   app.whenReady().then(() => {
     configurePermissions();
     buildMenu();
+    createSplash();
     createWindow();
     startUpdatePolling();
+    revealWhenReady();
 
     app.on('activate', () => { if (BrowserWindow.getAllWindows().length === 0) createWindow(); });
   });
