@@ -4,14 +4,18 @@ A native desktop app for **HelloBye Chat** (https://hellobye-chat.onrender.com/)
 
 ## What it does
 
-- Opens HelloBye in its own native window (no browser tabs).
+- **Feels like a real PC app** — a frameless window with its own native title bar
+  (drag region + minimise / maximise / close controls). There is **no**
+  File / View / Edit / Help menu bar anywhere.
+- **Opens at 60% of your screen** by default.
 - **Remembers your login** across restarts (persistent session).
 - **Microphone works out of the box** — permissions are granted automatically so
   voice chat and voice messages work immediately.
-- **Soft updates**: the app checks the website's build id every 30 seconds.
-  When the website is updated, a soft banner appears ("Update available") with a
-  20-second countdown and an **Update now** button. The app reloads to apply the
-  update — no reinstall needed, and your login/data are kept.
+- **Soft updates that restart the app**: the app checks the website's build id
+  every 30 seconds. When the website is updated, a soft toast appears
+  ("Update ready") with a 20-second countdown and a **Restart now** button.
+  Applying the update **closes and reopens the whole client** so the new build
+  is loaded cleanly — no page refresh, and your login/data are kept.
 
 ## Run from source
 
@@ -41,3 +45,9 @@ Set `HELLOBYE_URL` to point the app at a different deployment:
 ```bash
 HELLOBYE_URL=http://localhost:3000/ npm start
 ```
+
+## Download page
+
+The website's **Get HelloBye for PC** page (`/download`) resolves the newest
+desktop release automatically from the server's `/api/desktop-release` endpoint,
+so the download link always points at the latest build.

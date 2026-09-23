@@ -5794,6 +5794,65 @@ app.get('/api/version', (req, res) => {
   res.json({ buildId: BUILD_ID, startedAt: SERVER_STARTED_AT });
 });
 
+// ---------- Desktop (PC) app release info ----------
+// Resolves the newest HelloBye desktop release from GitHub so the
+// "Get HelloBye for PC" page always links to the latest build automatically.
+// Whenever a new desktop-v* release is published, this endpoint (and therefore
+// the download page) picks it up with no code change required.
+const DESKTOP_REPO = process.env.HELLOBYE_REPO || 'tiahhwashere/hellobye-chat';
+const DESKTOP_FALLBACK = {
+  version: '1.0.0',
+  name: 'HelloBye-Setup.exe',
+  url: 'https://github.com/tiahhwashere/hellobye-chat/releases/download/desktop-v1.0.0/HelloBye-Setup.exe',
+  size: 71607943,
+  publishedAt: null,
+  releaseUrl: 'https://github.com/tiahhwashere/hellobye-chat/releases/tag/desktop-v1.0.0',
+};
+let desktopReleaseCache = { at: 0, data: null };
+const DESKTOP_CACHE_MS = 10 * 60 * 1000; // refresh at most every 10 minutes
+async function fetchDesktopRelease() {
+  const now = Date.now();
+  if (desktopReleaseCache.data && (now - desktopReleaseCache.at) < DESKTOP_CACHE_MS) {
+    return desktopReleaseCache.data;
+  }
+  try {
+    const headers = { 'User-Agent': 'hellobye-server', 'Accept': 'application/vnd.github+json' };
+    if (process.env.GITHUB_TOKEN) headers['Authorization'] = 'Bearer ' + process.env.GITHUB_TOKEN;
+    const r = await fetch('https://api.github.com/repos/' + DESKTOP_REPO + '/releases?per_page=30', { headers });
+    if (r.ok) {
+      const releases = await r.json();
+      const rel = (Array.isArray(releases) ? releases : [])
+        .find((x) => x && !x.draft && /^desktop-v/i.test(x.tag_name || ''));
+      if (rel) {
+        const assets = Array.isArray(rel.assets) ? rel.assets : [];
+        const asset = assets.find((a) => /\.exe$/i.test(a.name || '')) || assets[0];
+        const data = {
+          version: String(rel.tag_name || '').replace(/^desktop-v/i, ''),
+          name: asset ? asset.name : 'HelloBye-Setup.exe',
+          url: asset ? asset.browser_download_url : rel.html_url,
+          size: asset ? asset.size : null,
+          publishedAt: rel.published_at || rel.created_at || null,
+          releaseUrl: rel.html_url,
+        };
+        desktopReleaseCache = { at: now, data };
+        return data;
+      }
+    }
+  } catch (e) { /* fall through to the cached/fallback value */ }
+  const data = desktopReleaseCache.data || DESKTOP_FALLBACK;
+  desktopReleaseCache = { at: now, data };
+  return data;
+}
+app.get('/api/desktop-release', async (req, res) => {
+  res.set('Cache-Control', 'no-store');
+  try {
+    const data = await fetchDesktopRelease();
+    res.json(Object.assign({}, data, { buildId: BUILD_ID }));
+  } catch (e) {
+    res.json(Object.assign({}, DESKTOP_FALLBACK, { buildId: BUILD_ID }));
+  }
+});
+
 // ---------- Serve Frontend (SPA) ----------
 // Serve the standalone servers page fresh (no-cache) so new deploys are picked
 // up immediately instead of being cached for a day by the static middleware.

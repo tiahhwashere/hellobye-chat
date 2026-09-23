@@ -10436,6 +10436,9 @@ let __knownBuildId = null;
 const UPDATE_COUNTDOWN_SECONDS = 20;
 
 function showUpdatePopup() {
+  // Inside the native PC app, updates are handled by the desktop client itself
+  // (it restarts the whole app). Skip the web refresh popup there.
+  if (window.hellobyeDesktop && window.hellobyeDesktop.isDesktop) return;
   if (__updatePopupShown) return;
   __updatePopupShown = true;
   const container = $('toast-container');

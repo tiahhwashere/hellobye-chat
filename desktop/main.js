@@ -1,15 +1,18 @@
-// HelloBye Desktop — Electron wrapper around the HelloBye web app.
+// HelloBye Desktop — a native Electron app for HelloBye Chat.
 //
-// Features:
-//  - Loads the live site in a native window (persistent login via a fixed
-//    userData partition so cookies/localStorage survive restarts).
-//  - Grants microphone access automatically so voice chat works out of the box.
-//  - "Soft update": polls the site's /api/version endpoint. When the deployed
-//    build id changes (a new deploy landed), it shows a soft in-app update
-//    banner and reloads the window to apply the update — no reinstall needed.
-//  - Native menu, external-link handling, and a single-instance lock.
+// Design goals (this build):
+//  - Feel like a real PC application, not a website embedded in a window.
+//    The window is frameless with a custom native title bar (drag region +
+//    minimise / maximise / close controls) drawn by preload.js.
+//  - Open at 60% of the screen by default.
+//  - No File / View / Edit / Help menu bar at all.
+//  - "Soft update": poll the site's /api/version endpoint. When the deployed
+//    build id changes, show a soft in-app toast. Applying the update RESTARTS
+//    the whole client (relaunch) so the new build is loaded cleanly — no page
+//    refresh, and the login/data are kept (persistent partition).
+//  - Microphone/camera permissions are granted automatically so voice works.
 
-const { app, BrowserWindow, shell, session, Menu, dialog, ipcMain, nativeImage } = require('electron');
+const { app, BrowserWindow, shell, session, Menu, dialog, ipcMain, screen } = require('electron');
 const path = require('path');
 const fs = require('fs');
 
@@ -17,11 +20,16 @@ const fs = require('fs');
 const APP_URL = process.env.HELLOBYE_URL || 'https://hellobye-chat.onrender.com/';
 const VERSION_URL = new URL('/api/version', APP_URL).toString();
 const POLL_INTERVAL_MS = 30 * 1000; // check for updates every 30s
+const TITLEBAR_HEIGHT = 36;         // must match the CSS in preload.js
 
 let mainWindow = null;
 let updateTimer = null;
 let knownBuildId = null;
 let updatePending = false;
+
+// Native app identity (Windows taskbar grouping / notifications).
+app.setName('Hellobye');
+if (process.platform === 'win32') app.setAppUserModelId('com.hellobye.chat');
 
 // ---- Persistent state (remembers the last build id we ran) ----
 function statePath() { return path.join(app.getPath('userData'), 'desktop-state.json'); }
@@ -37,15 +45,21 @@ function writeState(patch) {
 
 // ---- Window ----
 function createWindow() {
+  // Default size: 60% of the primary display's usable area.
+  const { width: screenW, height: screenH } = screen.getPrimaryDisplay().workAreaSize;
+  const width = Math.max(860, Math.round(screenW * 0.6));
+  const height = Math.max(540, Math.round(screenH * 0.6));
+
   mainWindow = new BrowserWindow({
-    width: 1280,
-    height: 820,
-    minWidth: 940,
-    minHeight: 600,
+    width,
+    height,
+    minWidth: 860,
+    minHeight: 540,
     backgroundColor: '#1a1b1e',
     title: 'Hellobye',
-    // No native menu bar: the app draws its own custom File/View/Help bar
-    // (injected by preload.js) so it matches the site's look and feel.
+    // Frameless: the app draws its own native title bar (see preload.js).
+    frame: false,
+    // No native menu bar anywhere.
     autoHideMenuBar: true,
     icon: iconPath(),
     webPreferences: {
@@ -55,10 +69,15 @@ function createWindow() {
       // A fixed partition keeps the login session across app restarts.
       partition: 'persist:hellobye',
       backgroundThrottling: false,
+      spellcheck: false,
     },
   });
 
   mainWindow.loadURL(APP_URL);
+
+  // Keep the renderer's maximise/restore icon in sync.
+  mainWindow.on('maximize', () => sendToRenderer('window-maximized', true));
+  mainWindow.on('unmaximize', () => sendToRenderer('window-maximized', false));
 
   // Open external links (http/https not on our origin) in the system browser.
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
@@ -75,7 +94,26 @@ function createWindow() {
     }
   });
 
+  // Native-app keyboard shortcuts (there is no menu to provide them).
+  mainWindow.webContents.on('before-input-event', (event, input) => {
+    if (input.type !== 'keyDown') return;
+    const ctrl = input.control || input.meta;
+    if (input.key === 'F11') { event.preventDefault(); toggleFullScreen(); return; }
+    if (ctrl && (input.key === '+' || input.key === '=')) { event.preventDefault(); zoomBy(0.5); return; }
+    if (ctrl && input.key === '-') { event.preventDefault(); zoomBy(-0.5); return; }
+    if (ctrl && input.key === '0') { event.preventDefault(); setZoom(0); return; }
+    // DevTools only in development (never in a packaged build).
+    if (ctrl && input.shift && (input.key === 'I' || input.key === 'i') && !app.isPackaged) {
+      event.preventDefault();
+      mainWindow.webContents.toggleDevTools();
+    }
+  });
+
   mainWindow.on('closed', () => { mainWindow = null; });
+}
+
+function sendToRenderer(channel, payload) {
+  if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send(channel, payload);
 }
 
 function iconPath() {
@@ -84,6 +122,20 @@ function iconPath() {
   if (process.platform === 'win32' && fs.existsSync(ico)) return ico;
   if (fs.existsSync(png)) return png;
   return undefined;
+}
+
+// ---- Window controls (driven by the custom title bar) ----
+function toggleFullScreen() {
+  if (!mainWindow || mainWindow.isDestroyed()) return;
+  mainWindow.setFullScreen(!mainWindow.isFullScreen());
+}
+function zoomBy(delta) {
+  if (!mainWindow || mainWindow.isDestroyed()) return;
+  setZoom(mainWindow.webContents.getZoomLevel() + delta);
+}
+function setZoom(level) {
+  if (!mainWindow || mainWindow.isDestroyed()) return;
+  mainWindow.webContents.setZoomLevel(level);
 }
 
 // ---- Permissions: auto-grant mic/camera so voice chat just works ----
@@ -114,7 +166,7 @@ async function checkForUpdate() {
   if (knownBuildId === null) {
     // First successful check: record the current build. If it differs from the
     // build we last ran, the site was updated while the app was closed — show
-    // the soft update banner right away.
+    // the soft update toast right away.
     knownBuildId = id;
     const prev = readState().lastBuildId;
     if (prev && prev !== id) showSoftUpdate();
@@ -128,36 +180,37 @@ async function checkForUpdate() {
   }
 }
 
-// Ask the renderer to show the soft-update banner. If the renderer isn't
-// ready (e.g. still loading), fall back to a native dialog.
+// Ask the renderer to show the soft-update toast. If the renderer isn't ready
+// (e.g. still loading), fall back to a native dialog.
 function showSoftUpdate() {
   if (updatePending) return;
   updatePending = true;
   if (mainWindow && !mainWindow.isDestroyed()) {
     mainWindow.webContents.send('soft-update-available');
   } else {
-    promptReload();
+    promptRestart();
   }
 }
 
-function promptReload() {
+function promptRestart() {
   const choice = dialog.showMessageBoxSync(mainWindow || undefined, {
     type: 'info',
-    buttons: ['Update now', 'Later'],
+    buttons: ['Restart now', 'Later'],
     defaultId: 0,
     cancelId: 1,
     title: 'Update available',
-    message: 'A new version of HelloBye is available.',
-    detail: 'The app will reload to apply the latest changes. Your login and data are kept.',
+    message: 'A new version of Hellobye is available.',
+    detail: 'The app will restart to apply the latest changes. Your login and data are kept.',
   });
   if (choice === 0) applyUpdate();
 }
 
+// Restart the whole client so the freshly deployed build is loaded cleanly.
 function applyUpdate() {
   updatePending = false;
-  if (mainWindow && !mainWindow.isDestroyed()) {
-    mainWindow.webContents.reloadIgnoringCache();
-  }
+  try { if (knownBuildId) writeState({ lastBuildId: knownBuildId }); } catch (e) {}
+  app.relaunch();
+  app.exit(0);
 }
 
 function startUpdatePolling() {
@@ -167,41 +220,25 @@ function startUpdatePolling() {
 }
 
 // ---- Menu ----
-// The native application menu is intentionally removed. The app renders its own
-// custom menu bar (File / View / Help) inside the page via preload.js, and the
-// renderer drives the actions below over IPC. There is deliberately NO "Edit"
-// menu and NO "Toggle Developer Tools" entry.
+// There is deliberately NO application menu and NO in-app File/View/Edit/Help
+// bar. The app is a native window with its own title bar only.
 function buildMenu() {
   Menu.setApplicationMenu(null);
 }
 
-// Actions invoked by the custom in-app menu bar.
-function menuAction(action) {
-  if (!mainWindow || mainWindow.isDestroyed()) return;
-  switch (action) {
-    case 'reload': mainWindow.webContents.reload(); break;
-    case 'check-updates': checkForUpdate(); break;
-    case 'quit': app.quit(); break;
-    case 'zoom-reset': mainWindow.webContents.setZoomLevel(0); break;
-    case 'zoom-in': mainWindow.webContents.setZoomLevel(mainWindow.webContents.getZoomLevel() + 0.5); break;
-    case 'zoom-out': mainWindow.webContents.setZoomLevel(mainWindow.webContents.getZoomLevel() - 0.5); break;
-    case 'fullscreen': mainWindow.setFullScreen(!mainWindow.isFullScreen()); break;
-    case 'website': shell.openExternal('https://hellobye-chat.onrender.com/'); break;
-    case 'about': dialog.showMessageBox(mainWindow, {
-        type: 'info', title: 'About Hellobye',
-        message: 'Hellobye Desktop ' + app.getVersion(),
-        detail: 'A native desktop app for Hellobye Chat.\n\nIt automatically checks for website updates and applies them softly \u2014 no reinstall required.',
-      }); break;
-    default: break;
-  }
-}
-
 // ---- IPC from renderer ----
 ipcMain.handle('app-version', () => app.getVersion());
+ipcMain.handle('check-update-now', async () => { await checkForUpdate(); return true; });
 ipcMain.on('apply-update', () => applyUpdate());
 ipcMain.on('dismiss-update', () => { updatePending = false; });
-ipcMain.handle('check-update-now', async () => { await checkForUpdate(); return true; });
-ipcMain.on('menu-action', (e, action) => menuAction(action));
+// Custom title-bar window controls.
+ipcMain.on('window-minimize', () => { if (mainWindow && !mainWindow.isDestroyed()) mainWindow.minimize(); });
+ipcMain.on('window-maximize-toggle', () => {
+  if (!mainWindow || mainWindow.isDestroyed()) return;
+  if (mainWindow.isMaximized()) mainWindow.unmaximize(); else mainWindow.maximize();
+});
+ipcMain.on('window-close', () => { if (mainWindow && !mainWindow.isDestroyed()) mainWindow.close(); });
+ipcMain.handle('window-is-maximized', () => !!(mainWindow && !mainWindow.isDestroyed() && mainWindow.isMaximized()));
 
 // ---- Lifecycle ----
 const gotLock = app.requestSingleInstanceLock();

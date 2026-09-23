@@ -44,6 +44,8 @@
   .dl:hover { background: var(--accent-2); }
   .dl svg { width: 19px; height: 19px; }
   .meta { text-align: center; color: var(--muted); font-size: 12.5px; margin-top: 14px; }
+  .verline { text-align: center; color: var(--muted); font-size: 12.5px; margin-top: 6px; }
+  .verline b { color: var(--text); font-weight: 600; }
   .note { margin-top: 24px; padding-top: 22px; border-top: 1px solid var(--border); color: var(--muted); font-size: 12.5px; line-height: 1.65; }
   .note b { color: var(--text); font-weight: 600; }
   .back { display: block; text-align: center; margin-top: 24px; color: var(--muted); text-decoration: none; font-size: 13px; }
@@ -80,19 +82,41 @@
         </div>
       </div>
 
-      <a class="dl" href="https://github.com/tiahhwashere/hellobye-chat/releases/download/desktop-v1.0.0/HelloBye-Setup.exe">
+      <a class="dl" id="dl-btn" href="https://github.com/tiahhwashere/hellobye-chat/releases/download/desktop-v1.0.0/HelloBye-Setup.exe">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         Download for Windows
       </a>
-      <div class="meta">HelloBye-Setup.exe &middot; ~69 MB &middot; Windows 10/11 (64-bit)</div>
+      <div class="meta" id="dl-meta">HelloBye-Setup.exe &middot; ~69 MB &middot; Windows 10/11 (64-bit)</div>
+      <div class="verline" id="dl-verline">Latest version <b id="dl-version">v1.0.0</b></div>
 
       <div class="note">
         <b>How to run:</b> Download the file and double-click it. It is a portable app, so no installation is needed. Windows may show a SmartScreen prompt the first time; click <b>More info</b> then <b>Run anyway</b>.
         <br><br>
-        <b>Updates:</b> The app checks the website every 30 seconds. When a new version is deployed, a soft update banner appears and the app refreshes itself. Your login and data are always kept.
+        <b>Updates:</b> The app checks the website every 30 seconds. When a new version is deployed, a soft update toast appears and the app <b>restarts itself</b> to apply the update. Your login and data are always kept.
       </div>
     </div>
     <a class="back" href="/">Back to HelloBye</a>
   </div>
+  <script>
+    // Resolve the newest desktop release from the server so this page always
+    // links to the latest build automatically (no manual link updates needed).
+    (async function () {
+      try {
+        var res = await fetch('/api/desktop-release', { cache: 'no-store' });
+        if (!res.ok) return;
+        var d = await res.json();
+        if (!d || !d.url) return;
+        var btn = document.getElementById('dl-btn');
+        if (btn) btn.setAttribute('href', d.url);
+        var meta = document.getElementById('dl-meta');
+        if (meta) {
+          var size = d.size ? ' &middot; ~' + Math.round(d.size / 1048576) + ' MB' : '';
+          meta.innerHTML = (d.name || 'HelloBye-Setup.exe') + size + ' &middot; Windows 10/11 (64-bit)';
+        }
+        var ver = document.getElementById('dl-version');
+        if (ver && d.version) ver.textContent = 'v' + d.version;
+      } catch (e) { /* keep the static fallback link */ }
+    })();
+  </script>
 </body>
 </html>
