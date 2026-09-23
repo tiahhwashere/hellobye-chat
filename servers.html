@@ -54,7 +54,7 @@
   --radius: 10px;
   --radius-sm: 6px;
   --radius-lg: 16px;
-  --transition: 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition: 0.12s cubic-bezier(0.4, 0, 0.2, 1);
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { height: 100%; }
@@ -132,7 +132,7 @@ input, textarea { font-family: inherit; }
   flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
   gap: 16px; text-align: center; padding: 40px;
 }
-.server-empty.view-in { animation: viewIn 0.26s cubic-bezier(0.16,1,0.3,1); }
+.server-empty.view-in { animation: viewIn 0.16s cubic-bezier(0.16,1,0.3,1); }
 .server-empty h2 { font-size: 26px; font-weight: 700; letter-spacing: -0.4px; }
 .server-empty p { color: var(--text-secondary); max-width: 460px; line-height: 1.65; }
 .server-empty .se-hero { width: 76px; height: 76px; border-radius: 22px; display: flex; align-items: center; justify-content: center; background: linear-gradient(180deg, rgba(var(--accent-rgb),0.18), rgba(var(--accent-rgb),0.05)); border: 1px solid rgba(var(--accent-rgb),0.30); color: var(--accent-light); box-shadow: 0 12px 34px rgba(0,0,0,0.35); }
@@ -147,7 +147,7 @@ input, textarea { font-family: inherit; }
 
 /* ---------- Server view ---------- */
 .server-view { flex: 1; display: flex; min-width: 0; position: relative; overflow: hidden; }
-.server-view.view-in { animation: viewIn 0.26s cubic-bezier(0.16,1,0.3,1); }
+.server-view.view-in { animation: viewIn 0.16s cubic-bezier(0.16,1,0.3,1); }
 /* Server-wide visual effects (chosen in Server Settings, seen by everyone).
    The overlay effects are painted ABOVE the opaque sidebar/chat panels
    (z-index:3, pointer-events:none) so the theme is actually visible instead
@@ -503,18 +503,19 @@ input, textarea { font-family: inherit; }
   text-transform: uppercase; color: #fff; background: rgba(0,0,0,0.55); backdrop-filter: blur(6px);
   border: 1px solid rgba(255,255,255,0.14); border-radius: 6px; padding: 2px 7px; pointer-events: none;
 }
-/* ---- Advanced in-chat voice player (redesigned) ---- */
+/* ---- Advanced in-chat voice player (redesigned: stacked card) ---- */
 .voice-player {
-  display: flex; align-items: center; gap: 12px;
-  padding: 12px 14px 12px 12px; min-width: 300px; max-width: 460px;
+  display: flex; flex-direction: column; gap: 10px;
+  padding: 14px 16px; width: 100%; min-width: 300px; max-width: 460px;
   background: linear-gradient(180deg, var(--bg-light), var(--bg-medium));
   border: 1px solid var(--border-light); border-radius: 16px;
   box-shadow: 0 2px 10px rgba(0,0,0,0.18);
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 .voice-player:hover { border-color: rgba(var(--accent-rgb),0.45); box-shadow: 0 5px 18px rgba(0,0,0,0.28); }
+.voice-player .vp-top { display: flex; align-items: center; gap: 12px; }
 .voice-player .vp-play {
-  flex: 0 0 auto; width: 46px; height: 46px; border-radius: 50%; position: relative;
+  flex: 0 0 auto; width: 44px; height: 44px; border-radius: 50%; position: relative;
   display: inline-flex; align-items: center; justify-content: center;
   background: linear-gradient(180deg, var(--accent-light), var(--accent)); color: #fff; border: none;
   box-shadow: 0 4px 14px rgba(var(--accent-rgb),0.4); transition: transform 0.15s ease, filter 0.15s ease;
@@ -528,41 +529,44 @@ input, textarea { font-family: inherit; }
   border: 2px solid rgba(255,255,255,0.35); border-top-color: #fff; animation: vpSpin 0.7s linear infinite;
 }
 @keyframes vpSpin { to { transform: rotate(360deg); } }
-.voice-player .vp-body { position: relative; flex: 1; min-width: 120px; height: 46px; cursor: pointer; border-radius: 10px; display: flex; flex-direction: column; justify-content: center; gap: 3px; }
-.voice-player .vp-wave { display: block; width: 100%; height: 30px; }
+.voice-player .vp-tag { font-size: 12px; font-weight: 800; letter-spacing: 0.09em; text-transform: uppercase; color: var(--accent); }
+.voice-player .vp-body { position: relative; width: 100%; height: 42px; cursor: pointer; border-radius: 10px; display: flex; flex-direction: column; justify-content: center; }
+.voice-player .vp-wave { display: block; width: 100%; height: 38px; }
 .voice-player .vp-progress {
   position: absolute; left: 0; top: 0; bottom: 0; width: 0%;
   background: linear-gradient(90deg, rgba(var(--accent-rgb),0.22), rgba(var(--accent-rgb),0.05));
   pointer-events: none; border-radius: 10px;
 }
 .voice-player .vp-cursor {
-  position: absolute; top: 5px; bottom: 5px; width: 2px; left: 0%;
+  position: absolute; top: 4px; bottom: 4px; width: 2px; left: 0%;
   background: var(--accent); border-radius: 2px; pointer-events: none; opacity: 0; transition: opacity 0.15s;
   box-shadow: 0 0 8px rgba(var(--accent-rgb),0.85);
 }
 .voice-player.playing .vp-cursor { opacity: 1; }
-/* Meta row under the waveform: elapsed / total + a small "voice message" tag */
-.voice-player .vp-meta { display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--text-muted); font-variant-numeric: tabular-nums; }
-.voice-player .vp-meta .vp-tag { display: inline-flex; align-items: center; gap: 4px; font-weight: 700; letter-spacing: 0.02em; text-transform: uppercase; color: var(--accent); }
-.voice-player .vp-meta .vp-tag svg { width: 12px; height: 12px; }
-.voice-player .vp-meta .vp-sep { opacity: 0.5; }
-.voice-player .vp-time {
-  flex: 0 0 auto; font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums;
-  color: var(--text-secondary); min-width: 40px; text-align: right; letter-spacing: 0.2px;
-}
+.voice-player .vp-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.voice-player .vp-time { font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--text-secondary); letter-spacing: 0.2px; }
+.voice-player .vp-actions { display: flex; align-items: center; gap: 8px; }
 .voice-player .vp-speed {
-  flex: 0 0 auto; padding: 4px 8px; border-radius: 8px; font-size: 11px; font-weight: 700;
+  flex: 0 0 auto; padding: 4px 9px; border-radius: 8px; font-size: 11px; font-weight: 700;
   background: var(--bg-darkest); border: 1px solid var(--border); color: var(--text-secondary);
   transition: var(--transition);
 }
 .voice-player .vp-speed:hover { color: var(--accent); border-color: var(--accent); }
 .voice-player .vp-dl {
-  flex: 0 0 auto; width: 32px; height: 32px; border-radius: 9px;
+  flex: 0 0 auto; width: 30px; height: 30px; border-radius: 8px;
   display: inline-flex; align-items: center; justify-content: center;
   color: var(--text-muted); transition: var(--transition);
 }
 .voice-player .vp-dl:hover { color: var(--accent); background: var(--bg-darkest); }
 .voice-player .vp-dl svg { width: 16px; height: 16px; }
+.voice-player .vp-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.voice-player .vp-name { font-size: 12px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.voice-player .vp-download {
+  flex-shrink: 0; padding: 8px 16px; border-radius: 10px; font-size: 12.5px; font-weight: 700; color: #fff;
+  background: linear-gradient(180deg, var(--accent-light), var(--accent));
+  box-shadow: 0 4px 14px rgba(var(--accent-rgb),0.35); transition: filter 0.15s ease;
+}
+.voice-player .vp-download:hover { filter: brightness(1.08); }
 .msg-file-card .mfc-bar { display: flex; align-items: center; gap: 10px; padding: 10px 12px; }
 .msg-file-card .mfc-ic { flex: 0 0 auto; width: 34px; height: 34px; border-radius: 9px; background: rgba(var(--accent-rgb),0.16); color: var(--accent-light); display: flex; align-items: center; justify-content: center; }
 .msg-file-card .mfc-ic svg { width: 18px; height: 18px; }
@@ -892,27 +896,40 @@ input, textarea { font-family: inherit; }
 /* ---------- Voice call stage (enhanced) ---------- */
 .voice-stage { flex: 1; display: flex; flex-direction: column; min-height: 0; position: relative; overflow: hidden;
   opacity: 1;
-  transition: opacity 0.18s ease;
-  background: var(--bg-medium); }
+  transition: opacity 0.12s ease;
+  background:
+    radial-gradient(1100px 560px at 12% -12%, rgba(var(--accent-rgb),0.16), transparent 62%),
+    radial-gradient(900px 520px at 104% 112%, rgba(var(--accent-rgb),0.10), transparent 60%),
+    var(--bg-medium); }
+/* Soft drifting aurora behind the tiles for a live "stage" feel. */
+.voice-stage::before { content: ''; position: absolute; inset: -25%; z-index: 0; pointer-events: none;
+  background:
+    radial-gradient(circle at 28% 32%, rgba(var(--accent-rgb),0.12), transparent 42%),
+    radial-gradient(circle at 74% 68%, rgba(var(--accent-rgb),0.09), transparent 44%);
+  animation: vsAurora 20s ease-in-out infinite alternate; }
+@keyframes vsAurora { from { transform: translate3d(-2%, -1%, 0) scale(1); } to { transform: translate3d(2%, 1.5%, 0) scale(1.07); } }
 /* Smooth enter/exit for the call view (hide call view / switch channel).
    Opacity-only so nothing forces a repaint of the chat underneath. On exit the
    stage is lifted out of the flex flow (see voiceShowStage) so the channel chat
    is never squished while the call view fades away. */
 .voice-stage.vs-stage-enter { opacity: 0; }
 .voice-stage.vs-stage-out { opacity: 0; pointer-events: none; }
-.vs-head { position: relative; z-index: 2; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 15px 22px; border-bottom: 1px solid var(--border); flex-shrink: 0; background: var(--bg-dark); }
+.vs-head { position: relative; z-index: 2; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 20px; border-bottom: 1px solid var(--border); flex-shrink: 0; background: linear-gradient(180deg, rgba(255,255,255,0.03), transparent), var(--bg-dark); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
 .vs-head-info { display: flex; align-items: center; gap: 12px; min-width: 0; }
-.vs-title { font-size: 15.5px; font-weight: 700; letter-spacing: -0.01em; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.vs-sub { font-size: 12px; color: var(--text-muted); white-space: nowrap; display: inline-flex; align-items: center; gap: 6px; }
-.vs-sub::before { content: ''; width: 4px; height: 4px; border-radius: 50%; background: var(--text-muted); opacity: 0.6; }
+.vs-title { font-size: 16px; font-weight: 800; letter-spacing: -0.01em; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.vs-sub { font-size: 12px; color: var(--text-muted); white-space: nowrap; display: inline-flex; align-items: center; gap: 7px; }
+.vs-sub::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: var(--online); box-shadow: 0 0 0 3px rgba(59,165,93,0.16); animation: vsLive 1.8s ease-out infinite; }
 .vs-head-actions { display: flex; gap: 8px; flex-shrink: 0; }
 .vs-icon-btn { width: 36px; height: 36px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; color: var(--text-muted); background: var(--bg-dark); border: 1px solid var(--border); transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease; }
 .vs-icon-btn:hover { color: var(--text-primary); border-color: var(--border-light); background: var(--bg-light); }
 .vs-icon-btn svg { width: 17px; height: 17px; }
-.vs-grid { position: relative; z-index: 2; flex: 1; min-height: 0; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 14px; align-content: start; padding: 22px; }
-.vs-tile { position: relative; display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 22px 16px 18px; border-radius: 14px; background: var(--bg-dark); border: 1px solid var(--border); transition: border-color 0.15s ease, background 0.15s ease; cursor: context-menu; overflow: hidden; }
-.vs-tile:hover { border-color: var(--border-light); background: var(--bg-medium); }
-.vs-tile.speaking { border-color: rgba(59,165,93,0.85); background: rgba(59,165,93,0.06); box-shadow: 0 0 0 1px rgba(59,165,93,0.35); }
+.vs-grid { position: relative; z-index: 2; flex: 1; min-height: 0; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 16px; align-content: start; padding: 22px; }
+.vs-tile { position: relative; display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 24px 16px 18px; border-radius: 18px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01)), var(--bg-dark);
+  border: 1px solid var(--border); transition: border-color 0.15s ease, background 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease; cursor: context-menu; overflow: hidden; }
+.vs-tile::after { content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; box-shadow: inset 0 1px 0 rgba(255,255,255,0.05); }
+.vs-tile:hover { border-color: var(--border-light); transform: translateY(-2px); box-shadow: 0 12px 28px rgba(0,0,0,0.32); }
+.vs-tile.speaking { border-color: rgba(59,165,93,0.85); background: linear-gradient(180deg, rgba(59,165,93,0.13), rgba(59,165,93,0.03)), var(--bg-dark); box-shadow: 0 0 0 1px rgba(59,165,93,0.35), 0 0 28px rgba(59,165,93,0.22); }
 .vs-avatar-wrap { position: relative; width: 84px; height: 84px; }
 .vs-avatar { width: 84px; height: 84px; border-radius: 50%; background: linear-gradient(140deg, var(--accent), var(--accent-dim, var(--accent))); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 30px; color: #fff; overflow: hidden; position: relative; z-index: 1; box-shadow: 0 6px 18px rgba(0,0,0,0.35); }
 .vs-avatar img { width: 100%; height: 100%; object-fit: cover; }
@@ -922,8 +939,9 @@ input, textarea { font-family: inherit; }
 .vs-avatar .vs-avatar-gif-static { display: block; }
 .vs-tile.speaking .vs-avatar .vs-avatar-gif-anim { display: block; }
 .vs-tile.speaking .vs-avatar .vs-avatar-gif-static { display: none; }
-.vs-ring { position: absolute; inset: -5px; border-radius: 50%; border: 2.5px solid var(--online); opacity: 0; transition: opacity 0.12s ease; pointer-events: none; }
-.vs-tile.speaking .vs-ring { opacity: 1; }
+.vs-ring { position: absolute; inset: -6px; border-radius: 50%; border: 2.5px solid var(--online); opacity: 0; transition: opacity 0.12s ease; pointer-events: none; box-shadow: 0 0 18px rgba(59,165,93,0.55); }
+.vs-tile.speaking .vs-ring { opacity: 1; animation: vsRingPulse 1.6s ease-in-out infinite; }
+@keyframes vsRingPulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.045); opacity: 0.72; } }
 .vs-name { font-size: 14px; font-weight: 600; color: var(--text-primary); max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .vs-badges { display: flex; gap: 6px; }
 .vs-badge { width: 24px; height: 24px; border-radius: 7px; display: inline-flex; align-items: center; justify-content: center; background: var(--bg-darkest); color: var(--text-muted); }
@@ -986,9 +1004,9 @@ input, textarea { font-family: inherit; }
 .vs-ctl.vs-ctl-on:hover { background: rgba(var(--accent-rgb),0.24); }
 .vs-empty { grid-column: 1 / -1; text-align: center; color: var(--text-muted); font-size: 14px; padding: 40px 0; }
 /* ---- Control bar: a single professional pill with grouped controls ---- */
-.vs-controls { position: relative; z-index: 2; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 14px 20px; border-top: 1px solid var(--border); flex-shrink: 0; background: var(--bg-dark); }
-.vs-ctl { display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 16px; border-radius: 10px; background: var(--bg-medium); border: 1px solid var(--border); color: var(--text-secondary); font-size: 13px; font-weight: 600; transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease; }
-.vs-ctl:hover { border-color: var(--border-light); color: var(--text-primary); background: var(--bg-light); }
+.vs-controls { position: relative; z-index: 2; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 14px 20px 18px; flex-shrink: 0; background: linear-gradient(180deg, transparent, rgba(0,0,0,0.28)); }
+.vs-ctl { display: inline-flex; align-items: center; gap: 8px; height: 46px; padding: 0 18px; border-radius: 14px; background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.01)), var(--bg-medium); border: 1px solid var(--border); color: var(--text-secondary); font-size: 13px; font-weight: 700; box-shadow: 0 6px 18px rgba(0,0,0,0.28); transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease, transform 0.15s ease; }
+.vs-ctl:hover { border-color: var(--border-light); color: var(--text-primary); background: var(--bg-light); transform: translateY(-1px); }
 .vs-ctl svg { width: 18px; height: 18px; flex-shrink: 0; }
 .vs-ctl-label { font-size: 13px; font-weight: 600; letter-spacing: 0.01em; }
 .vs-ctl.active { background: rgba(224,82,82,0.14); border-color: rgba(224,82,82,0.5); color: #e05252; }
@@ -1129,12 +1147,22 @@ input, textarea { font-family: inherit; }
 .mv-btn.leave:hover { background: #e05252; color: #fff; border-color: #e05252; }
 .mv-btn svg { width: 15px; height: 15px; }
 @media (max-width: 640px) {
-  .vs-grid { grid-template-columns: repeat(auto-fill, minmax(124px, 1fr)); gap: 12px; padding: 16px; }
-  .vs-avatar-wrap, .vs-avatar { width: 70px; height: 70px; }
-  .vs-avatar { font-size: 25px; }
-  .vs-ctl { min-width: 62px; padding: 9px 10px; }
+  .vs-head { padding: 12px 14px; }
+  .vs-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; padding: 14px; }
+  .vs-avatar-wrap, .vs-avatar { width: 64px; height: 64px; }
+  .vs-avatar { font-size: 23px; }
+  .vs-tile { padding: 18px 12px 14px; border-radius: 15px; gap: 9px; }
+  .vs-controls { gap: 6px; padding: 10px 12px 14px; }
+  .vs-ctl { height: 42px; padding: 0 13px; border-radius: 12px; }
   .vs-title { font-size: 14px; }
   .vs-tile.has-video { grid-column: 1 / -1; grid-row: auto; min-height: 200px; }
+}
+@media (max-width: 480px) {
+  .vs-grid { grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 8px; padding: 12px; }
+  .vs-avatar-wrap, .vs-avatar { width: 58px; height: 58px; }
+  .vs-avatar { font-size: 21px; }
+  .vs-ctl-label { display: none; }
+  .vs-ctl { padding: 0 13px; }
 }
 
 /* ---------- Microphone permission modal (in-app, replaces the browser prompt) ---------- */
@@ -1583,34 +1611,32 @@ input, textarea { font-family: inherit; }
 .smr-file-names { font-size: 12.5px; color: var(--text-secondary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes popIn { from { opacity: 0; transform: translateY(-8px) scale(0.98); } to { opacity: 1; transform: none; } }
-/* Toast — premium, non-cartoony notification card.
-   Glass surface + coloured accent edge + soft corner glow, a refined icon
-   badge, title + message, and a thin progress bar. Matches the main chat. */
+/* Toast — revamped layout: a top-accent "banner" card with a coloured type
+   label, the message, and a plain text Dismiss control. No icons/SVGs. */
 .toast {
   position: relative; overflow: hidden;
-  display: flex; align-items: flex-start; gap: 12px;
-  background: linear-gradient(180deg, rgba(33, 35, 41, 0.97), rgba(22, 23, 28, 0.97));
+  display: flex; flex-direction: column; gap: 7px;
+  background: linear-gradient(180deg, rgba(34, 36, 43, 0.98), rgba(19, 20, 25, 0.98));
   backdrop-filter: blur(18px) saturate(150%); -webkit-backdrop-filter: blur(18px) saturate(150%);
-  border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 14px;
-  padding: 14px 15px 15px 15px; font-size: 13px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 3px solid var(--toast-accent, var(--accent));
+  border-radius: 12px;
+  padding: 13px 15px 15px; font-size: 13px;
   box-shadow: 0 18px 46px rgba(0, 0, 0, 0.55), 0 4px 14px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.05);
-  animation: toastIn 0.34s cubic-bezier(0.16, 1, 0.3, 1);
-  max-width: min(440px, 94vw); min-width: min(340px, 92vw);
+  animation: toastIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  max-width: min(440px, 94vw); min-width: min(320px, 92vw);
   pointer-events: auto;
-  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
 }
-.toast:hover { transform: translateY(-2px); border-color: rgba(255, 255, 255, 0.13); }
-.toast::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--toast-accent, var(--accent)); }
-.toast::after { content: ''; position: absolute; top: -70%; left: -25%; width: 75%; height: 180%; background: radial-gradient(circle, var(--toast-accent, var(--accent)) 0%, transparent 70%); opacity: 0.13; pointer-events: none; }
-.toast.toast-out { animation: toastOut 0.26s ease forwards; }
+.toast:hover { transform: translateY(-2px); }
+.toast.toast-out { animation: toastOut 0.22s ease forwards; }
 @keyframes toastOut { to { opacity: 0; transform: translateY(-10px) scale(0.97); } }
-.toast .toast-content { position: relative; z-index: 1; flex: 1; min-width: 0; padding-top: 1px; }
-.toast .toast-title { font-weight: 700; font-size: 13px; letter-spacing: 0.1px; margin-bottom: 2px; color: var(--text-primary); }
+.toast .toast-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.toast .toast-label { font-size: 10.5px; font-weight: 800; letter-spacing: 0.09em; text-transform: uppercase; color: var(--toast-accent, var(--accent)); }
+.toast .toast-dismiss { flex-shrink: 0; font-size: 11px; font-weight: 700; letter-spacing: 0.03em; color: var(--text-muted); background: none; border: none; cursor: pointer; padding: 2px 6px; border-radius: 6px; transition: color 0.15s ease, background 0.15s ease; }
+.toast .toast-dismiss:hover { color: var(--text-primary); background: rgba(255, 255, 255, 0.08); }
 .toast .toast-msg { color: var(--text-secondary); line-height: 1.5; word-break: break-word; font-size: 13px; }
-.toast .toast-close { position: relative; z-index: 1; flex-shrink: 0; color: var(--text-muted); padding: 4px; border-radius: 8px; line-height: 0; transition: background var(--transition), color var(--transition); background: none; border: none; cursor: pointer; }
-.toast .toast-close:hover { color: var(--text-primary); background: rgba(255, 255, 255, 0.08); }
-.toast .toast-close svg { width: 14px; height: 14px; }
-.toast .toast-bar { position: absolute; left: 0; bottom: 0; height: 2px; width: 100%; background: var(--toast-accent, var(--accent)); transform-origin: left; animation: toastBar linear forwards; opacity: 0.9; }
+.toast .toast-bar { position: absolute; left: 0; bottom: 0; height: 2px; width: 100%; background: var(--toast-accent, var(--accent)); transform-origin: left; animation: toastBar linear forwards; opacity: 0.85; }
 @keyframes toastBar { from { transform: scaleX(1); } to { transform: scaleX(0); } }
 .toast.success { --toast-accent: #3ba55d; }
 .toast.error { --toast-accent: #e35d5d; }
@@ -1645,8 +1671,6 @@ input, textarea { font-family: inherit; }
 .status-notice .sn-dot.streaming { background-image: url('streaming.png'); }
 .status-notice .sn-text { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .status-notice .sn-text b { font-weight: 700; }
-.status-notice .sn-check { flex-shrink: 0; width: 15px; height: 15px; display: flex; align-items: center; justify-content: center; color: #3ba55d; }
-.status-notice .sn-check svg { width: 14px; height: 14px; stroke-width: 2.6; }
 
 /* Member profile modal */
 /* ---------- Member profile (matches the main chat's profile view) ---------- */
@@ -2283,7 +2307,7 @@ input, textarea { font-family: inherit; }
 .msp-tabs button:hover { color: var(--text-primary); }
 .msp-tabs button.active { background: var(--bg-light); color: var(--text-primary); box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
 .msp-pane { display: none; }
-.msp-pane.active { display: block; animation: viewIn 0.22s cubic-bezier(0.16,1,0.3,1); }
+.msp-pane.active { display: block; animation: viewIn 0.15s cubic-bezier(0.16,1,0.3,1); }
 .color-swatches { display: flex; flex-wrap: wrap; gap: 8px; }
 .color-swatch { width: 34px; height: 34px; border-radius: 10px; cursor: pointer; border: 2px solid transparent; transition: transform 0.12s cubic-bezier(0.34,1.56,0.64,1); position: relative; }
 .color-swatch:hover { transform: scale(1.12); }
@@ -2457,8 +2481,8 @@ input, textarea { font-family: inherit; }
 .channel-item.voice-ch.active { background: rgba(var(--accent-rgb),0.14); }
 .channel-item .ch-voice-count { margin-left: auto; flex-shrink: 0; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; background: #e05252; color: #fff; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; box-shadow: 0 0 0 2px rgba(224,82,82,0.25); }
 @keyframes pingPulse { 0%,100% { opacity: 1; } 50% { opacity: 0.45; } }
-.mention-toast { border-left: 3px solid #c9a227; cursor: pointer; max-width: 340px; }
-.reply-toast { border-left: 3px solid #7ee0b0; cursor: pointer; max-width: 340px; }
+.mention-toast { cursor: pointer; max-width: 340px; }
+.reply-toast { cursor: pointer; max-width: 340px; }
 .mention-toast .mt-head { font-weight: 700; color: #e0c060; display: flex; align-items: center; gap: 6px; margin-bottom: 3px; }
 .mention-toast .mt-body { font-size: 12.5px; color: var(--text-secondary); line-height: 1.4; }
 
@@ -2734,6 +2758,10 @@ input, textarea { font-family: inherit; }
 .inv-create-title { font-size: 14px; font-weight: 700; color: var(--text-primary); margin-bottom: 4px; }
 .inv-create-sub { font-size: 12px; color: var(--text-muted); margin-bottom: 16px; line-height: 1.5; }
 .inv-field-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text-muted); margin-bottom: 7px; display: block; }
+/* When the custom-link field is focused, collapse the two helper lines (the
+   label + the hint) so the input sits cleanly on its own. */
+.inv-create.inv-focus .inv-field-label,
+.inv-create.inv-focus .hint { display: none; }
 .inv-expiry-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text-muted); margin: 16px 0 8px; display: block; }
 .inv-list-head { display: flex; align-items: center; gap: 8px; font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-muted); margin-bottom: 10px; }
 .inv-list-head::after { content: ''; flex: 1; height: 1px; background: var(--border); }
@@ -4198,15 +4226,15 @@ input, textarea { font-family: inherit; }
     </div>
     <div class="modal-body">
       <div class="cat-modal-head">
-        <div class="cmh-ic"><svg class="ui-ic lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></div>
+        <div class="cmh-ic" id="category-modal-ic"><svg class="ui-ic lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></div>
         <div class="cmh-text"><div class="cmh-title" id="category-modal-heading">Rename this category</div><div class="cmh-sub" id="category-modal-sub">Give the category a clear name so members can find related channels quickly.</div></div>
       </div>
       <div class="field">
-        <label>Category name</label>
+        <label id="category-name-label">Category name</label>
         <input type="text" id="category-name-input" placeholder="e.g. General, Projects, Voice" maxlength="40" autocomplete="off">
         <div class="cat-char-count"><span id="category-char-count">0</span>/40</div>
       </div>
-      <div class="cat-detail-list">
+      <div class="cat-detail-list" id="category-detail-list">
         <div class="cat-detail"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/></svg><span>Channels can be dragged into this category to group them together.</span></div>
         <div class="cat-detail"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/></svg><span>Renaming only changes the label — channels and their messages stay exactly the same.</span></div>
         <div class="cat-detail"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg><span>Everyone in the server sees the new name immediately after saving.</span></div>
@@ -4282,7 +4310,6 @@ input, textarea { font-family: inherit; }
 <div class="modal-overlay" id="pins-modal">
   <div class="modal pins-modal">
     <div class="modal-header pins-header">
-      <div class="pins-head-ic"><svg class="ui-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14l-1.5-4.5V6a1 1 0 0 0-1-1H7.5a1 1 0 0 0-1 1v6.5z"/></svg></div>
       <div class="pins-head-meta">
         <div class="modal-title">Pinned messages</div>
         <div class="pins-sub" id="pins-sub">Loading\u2026</div>
@@ -4670,11 +4697,12 @@ function toast(msg, type) {
   const t = type || 'info';
   const dur = t === 'error' ? 5200 : 3600;
   el.innerHTML =
-    '<div class="toast-content"><div class="toast-title">' + (titles[t] || 'Notice') + '</div><div class="toast-msg">' + escapeHtml(msg) + '</div></div>' +
-    '<button class="toast-close" aria-label="Dismiss">&times;</button>' +
+    '<div class="toast-head"><span class="toast-label">' + (titles[t] || 'Notice') + '</span>' +
+    '<button class="toast-dismiss" aria-label="Dismiss">Dismiss</button></div>' +
+    '<div class="toast-msg">' + escapeHtml(msg) + '</div>' +
     '<span class="toast-bar" style="animation-duration:' + dur + 'ms;"></span>';
-  const dismiss = () => { el.classList.add('toast-out'); setTimeout(() => el.remove(), 280); };
-  el.querySelector('.toast-close').addEventListener('click', dismiss);
+  const dismiss = () => { el.classList.add('toast-out'); setTimeout(() => el.remove(), 240); };
+  el.querySelector('.toast-dismiss').addEventListener('click', dismiss);
   c.appendChild(el);
   setTimeout(dismiss, dur);
 }
@@ -4691,8 +4719,7 @@ function showStatusNotice(status, anchorEl) {
   el.className = 'status-notice';
   el.innerHTML =
     '<span class="sn-dot ' + status + '"></span>' +
-    '<span class="sn-text">Status set to <b>' + escapeHtml(label) + '</b></span>' +
-    '<span class="sn-check">' + icon('check', 'sm') + '</span>';
+    '<span class="sn-text">Status set to <b>' + escapeHtml(label) + '</b></span>';
   document.body.appendChild(el);
   __statusNoticeEl = el;
   const place = () => {
@@ -4730,12 +4757,12 @@ function showPingToast(data) {
   const accent = '#e0c060';
   el.style.setProperty('--toast-accent', accent);
   el.innerHTML =
-    '<div class="toast-content"><div class="toast-title" style="color:' + accent + ';">' + who + ' ' + (isMention ? 'mentioned you' : 'pinged <b>' + tag + '</b>') + '</div>' +
-    '<div class="toast-msg">in #' + where + (data.text ? ' \u2014 ' + escapeHtml(data.text) : '') + '</div></div>' +
-    '<button class="toast-close" aria-label="Dismiss">&times;</button>' +
+    '<div class="toast-head"><span class="toast-label" style="color:' + accent + ';">' + who + ' ' + (isMention ? 'mentioned you' : 'pinged <b>' + tag + '</b>') + '</span>' +
+    '<button class="toast-dismiss" aria-label="Dismiss">Dismiss</button></div>' +
+    '<div class="toast-msg">in #' + where + (data.text ? ' \u2014 ' + escapeHtml(data.text) : '') + '</div>' +
     '<span class="toast-bar" style="animation-duration:6500ms;"></span>';
-  const dismiss = () => { el.classList.add('toast-out'); setTimeout(() => el.remove(), 280); };
-  el.querySelector('.toast-close').addEventListener('click', (e) => { e.stopPropagation(); dismiss(); });
+  const dismiss = () => { el.classList.add('toast-out'); setTimeout(() => el.remove(), 240); };
+  el.querySelector('.toast-dismiss').addEventListener('click', (e) => { e.stopPropagation(); dismiss(); });
   el.addEventListener('click', () => {
     if (data.serverId === activeServerId) openChannel(data.channelId);
     dismiss();
@@ -4752,12 +4779,12 @@ function showReplyToast(data) {
   const where = escapeHtml(data.channelName || 'a channel');
   el.style.setProperty('--toast-accent', '#7ee0b0');
   el.innerHTML =
-    '<div class="toast-content"><div class="toast-title" style="color:#7ee0b0;">' + who + ' replied to you</div>' +
-    '<div class="toast-msg">in #' + where + (data.text ? ' \u2014 ' + escapeHtml(data.text) : '') + '</div></div>' +
-    '<button class="toast-close" aria-label="Dismiss">&times;</button>' +
+    '<div class="toast-head"><span class="toast-label" style="color:#7ee0b0;">' + who + ' replied to you</span>' +
+    '<button class="toast-dismiss" aria-label="Dismiss">Dismiss</button></div>' +
+    '<div class="toast-msg">in #' + where + (data.text ? ' \u2014 ' + escapeHtml(data.text) : '') + '</div>' +
     '<span class="toast-bar" style="animation-duration:6500ms;"></span>';
-  const dismiss = () => { el.classList.add('toast-out'); setTimeout(() => el.remove(), 280); };
-  el.querySelector('.toast-close').addEventListener('click', (e) => { e.stopPropagation(); dismiss(); });
+  const dismiss = () => { el.classList.add('toast-out'); setTimeout(() => el.remove(), 240); };
+  el.querySelector('.toast-dismiss').addEventListener('click', (e) => { e.stopPropagation(); dismiss(); });
   el.addEventListener('click', () => {
     if (data.serverId === activeServerId) {
       openChannel(data.channelId).then(() => {
@@ -6011,16 +6038,25 @@ function promptCategoryName(opts) {
   $('category-modal-title').textContent = opts.title || 'Category';
   const inp = $('category-name-input');
   inp.value = opts.value || '';
+  if (opts.placeholder) inp.placeholder = opts.placeholder;
+  const lbl = $('category-name-label');
+  if (lbl) lbl.textContent = opts.label || 'Category name';
   const save = $('category-save-btn');
   save.textContent = opts.okText || 'Save';
   // Contextual heading/sub + live character counter.
   const isRename = /rename/i.test(opts.title || '');
   const heading = $('category-modal-heading');
   const sub = $('category-modal-sub');
-  if (heading) heading.textContent = isRename ? 'Rename this category' : 'Create a new category';
-  if (sub) sub.textContent = isRename
+  if (heading) heading.textContent = opts.heading || (isRename ? 'Rename this category' : 'Create a new category');
+  if (sub) sub.textContent = opts.sub || (isRename
     ? 'Give the category a clear name so members can find related channels quickly.'
-    : 'Categories group related channels together in the sidebar. You can rename or delete it later.';
+    : 'Categories group related channels together in the sidebar. You can rename or delete it later.');
+  // Optional: swap the header icon and hide the category-specific detail list
+  // (used when this same modal is reused to rename a text channel).
+  const ic = $('category-modal-ic');
+  if (ic) ic.innerHTML = opts.icon || '<svg class="ui-ic lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>';
+  const dl = $('category-detail-list');
+  if (dl) dl.style.display = opts.hideDetails ? 'none' : '';
   const cc = $('category-char-count');
   if (cc) cc.textContent = String(inp.value.length);
   openModal('category-modal');
@@ -6028,6 +6064,29 @@ function promptCategoryName(opts) {
   return new Promise(resolve => {
     categoryModalResolve = resolve;
   });
+}
+// Rename a text channel directly from the sidebar right-click dropdown.
+async function renameChannel(c) {
+  if (!c) return;
+  const name = await promptCategoryName({
+    title: 'Rename Channel',
+    heading: 'Rename this channel',
+    sub: 'Give the channel a clear name. Messages, members and permissions stay exactly the same.',
+    label: 'Channel name',
+    placeholder: 'e.g. general, announcements',
+    value: c.name,
+    okText: 'Save',
+    hideDetails: true,
+    icon: '<svg class="ui-ic lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/></svg>',
+  });
+  if (name === null) return;
+  const trimmed = name.trim();
+  if (!trimmed) { toast('Channel name required', 'error'); return; }
+  if (trimmed === c.name) return;
+  try {
+    const d = await api('/api/servers/' + activeServerId + '/channels/' + c.id, { method: 'POST', body: { name: trimmed } });
+    activeServer = d.server; renderServerView(); renderSettingsChannels(); toast('Channel renamed', 'success');
+  } catch(e) { toast(e.message, 'error'); }
 }
 let categoryModalResolve = null;
 function finishCategoryModal(val) {
@@ -6174,6 +6233,7 @@ function openChannelContextMenu(c, x, y) {
   menu.id = 'channel-ctx-menu';
   menu.innerHTML =
     '<div class="cm-head">' + icon('tag', 'sm') + '#' + escapeHtml(c.name) + '</div>' +
+    '<button data-act="rename" class="cm-rename">Rename Channel</button>' +
     '<button data-act="edit" class="cm-edit">Edit Channel</button>' +
     '<button data-act="up">' + icon('chevron-up', 'sm') + 'Move Up</button>' +
     '<button data-act="down">' + icon('chevron-down', 'sm') + 'Move Down</button>' +
@@ -6192,7 +6252,8 @@ function openChannelContextMenu(c, x, y) {
   menu.querySelectorAll('[data-act]').forEach(b => b.addEventListener('click', () => {
     const act = b.dataset.act;
     closeChannelContextMenu();
-    if (act === 'edit') openChannelEditor(c);
+    if (act === 'rename') renameChannel(c);
+    else if (act === 'edit') openChannelEditor(c);
     else if (act === 'up') moveChannelBy(c.id, -1);
     else if (act === 'down') moveChannelBy(c.id, 1);
     else if (act === 'copy') { copyText(window.location.origin + '/servers.html?server=' + activeServerId + '&channel=' + c.id); toast('Channel link copied', 'success'); }
@@ -6963,6 +7024,43 @@ function lightboxStep(delta) {
   lightboxIndex = (lightboxIndex + delta + lightboxImages.length) % lightboxImages.length;
   renderLightbox();
 }
+// Compute the on-screen rectangle of the actual media content (accounting for
+// object-fit: contain and the current zoom), so we can tell whether a click
+// landed on the image itself or on the empty space around it.
+function lightboxContentRect() {
+  const img = $('image-lightbox-img');
+  const vid = $('image-lightbox-video');
+  const el = (vid && vid.style.display !== 'none') ? vid : img;
+  if (!el || el.style.display === 'none') return null;
+  const r = el.getBoundingClientRect();
+  const zoom = el.classList.contains('zoomed') ? 2.2 : 1;
+  let nw, nh;
+  if (el.tagName === 'IMG') { nw = el.naturalWidth || r.width; nh = el.naturalHeight || r.height; }
+  else { nw = el.videoWidth || r.width; nh = el.videoHeight || r.height; }
+  if (!nw || !nh) return { left: r.left, top: r.top, right: r.right, bottom: r.bottom };
+  const baseScale = Math.min(r.width / nw, r.height / nh);
+  const cw = nw * baseScale * zoom, ch = nh * baseScale * zoom;
+  const to = el.style.transformOrigin || '50% 50%';
+  const parts = to.split(/\s+/);
+  const ox = (parseFloat(parts[0]) || 50) / 100;
+  const oy = (parseFloat(parts[1]) || 50) / 100;
+  const originX = r.left + ox * r.width, originY = r.top + oy * r.height;
+  const centerX = r.left + r.width / 2, centerY = r.top + r.height / 2;
+  const cx = originX + (centerX - originX) * zoom;
+  const cy = originY + (centerY - originY) * zoom;
+  return { left: cx - cw / 2, top: cy - ch / 2, right: cx + cw / 2, bottom: cy + ch / 2 };
+}
+// True only when the click landed on the visible media content (clipped to the
+// stage). Clicking any empty space around the image therefore closes it.
+function lightboxClickOnMedia(e) {
+  const rect = lightboxContentRect();
+  const stage = $('image-lightbox-stage');
+  if (!rect || !stage) return false;
+  const sr = stage.getBoundingClientRect();
+  const left = Math.max(rect.left, sr.left), right = Math.min(rect.right, sr.right);
+  const top = Math.max(rect.top, sr.top), bottom = Math.min(rect.bottom, sr.bottom);
+  return e.clientX >= left && e.clientX <= right && e.clientY >= top && e.clientY <= bottom;
+}
 (function attachLightboxHandlers() {
   function ready(fn) { if (document.readyState !== 'loading') fn(); else document.addEventListener('DOMContentLoaded', fn); }
   ready(() => {
@@ -6971,19 +7069,32 @@ function lightboxStep(delta) {
     const prevBtn = $('image-lightbox-prev'), nextBtn = $('image-lightbox-next');
     if (prevBtn) prevBtn.addEventListener('click', (e) => { e.stopPropagation(); lightboxStep(-1); });
     if (nextBtn) nextBtn.addEventListener('click', (e) => { e.stopPropagation(); lightboxStep(1); });
-    // Click backdrop closes; click image toggles zoom (focused on the click point).
-    box.addEventListener('click', (e) => { if (e.target === box || e.target.classList.contains('image-lightbox-stage')) closeImageLightbox(); });
-    if (img) img.addEventListener('click', (e) => {
-      e.stopPropagation();
-      if (!img.classList.contains('zoomed')) {
-        const rect = img.getBoundingClientRect();
-        const ox = ((e.clientX - rect.left) / rect.width) * 100;
-        const oy = ((e.clientY - rect.top) / rect.height) * 100;
-        img.style.transformOrigin = ox + '% ' + oy + '%';
-        img.classList.add('zoomed');
+    // Clicking anywhere that is NOT the media itself closes the lightbox, so you
+    // can exit by clicking any empty space around the image (not just far left
+    // or right). Clicking the image toggles zoom, focused on the click point.
+    box.addEventListener('click', (e) => {
+      if (e.target.closest && e.target.closest('.image-lightbox-nav, .image-lightbox-open-external')) return;
+      const vid = $('image-lightbox-video');
+      if (vid && vid.style.display !== 'none') {
+        const vr = vid.getBoundingClientRect();
+        if (e.clientX >= vr.left && e.clientX <= vr.right && e.clientY >= vr.top && e.clientY <= vr.bottom) return;
+        closeImageLightbox();
+        return;
+      }
+      if (lightboxClickOnMedia(e)) {
+        if (!img) return;
+        if (!img.classList.contains('zoomed')) {
+          const rect = img.getBoundingClientRect();
+          const ox = ((e.clientX - rect.left) / rect.width) * 100;
+          const oy = ((e.clientY - rect.top) / rect.height) * 100;
+          img.style.transformOrigin = ox + '% ' + oy + '%';
+          img.classList.add('zoomed');
+        } else {
+          img.classList.remove('zoomed');
+          img.style.transformOrigin = '';
+        }
       } else {
-        img.classList.remove('zoomed');
-        img.style.transformOrigin = '';
+        closeImageLightbox();
       }
     });
     // Mouse wheel: when zoomed in, pan the image (Shift swaps to horizontal).
@@ -7081,28 +7192,32 @@ function renderVoicePlayer(f, url, rawUrl, name, dlName) {
   // decoded samples (cached per URL) so it works for any uploaded audio.
   const dur = Number(f.duration) || 0;
   const durLabel = dur ? srvVoiceFmt(dur) : '0:00';
-  const dl = '<a class="vp-dl" href="' + url + '" download="' + dlName + '" target="_blank" rel="noopener" title="Download ' + escapeAttr(name) + '">' +
-    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></a>';
+  const dlIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>';
   return '<div class="voice-player" data-src="' + url + '" data-dur="' + dur + '">' +
-    '<button class="vp-play" type="button" title="Play">' +
-      '<svg class="vp-ic-play" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20"/></svg>' +
-      '<svg class="vp-ic-pause" viewBox="0 0 24 24" fill="currentColor" style="display:none;"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>' +
-      '<span class="vp-spin" style="display:none;"></span>' +
-    '</button>' +
+    '<div class="vp-top">' +
+      '<button class="vp-play" type="button" title="Play">' +
+        '<svg class="vp-ic-play" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20"/></svg>' +
+        '<svg class="vp-ic-pause" viewBox="0 0 24 24" fill="currentColor" style="display:none;"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>' +
+        '<span class="vp-spin" style="display:none;"></span>' +
+      '</button>' +
+      '<span class="vp-tag">Voice message</span>' +
+    '</div>' +
     '<div class="vp-body">' +
-      '<canvas class="vp-wave" width="320" height="30"></canvas>' +
+      '<canvas class="vp-wave" width="320" height="38"></canvas>' +
       '<div class="vp-progress"></div>' +
       '<div class="vp-cursor"></div>' +
-      '<div class="vp-meta">' +
-        '<span class="vp-tag">Voice message</span>' +
-        '<span class="vp-sep">\u00b7</span>' +
-        '<span class="vp-elapsed">0:00</span>' +
-        '<span class="vp-sep">/</span>' +
-        '<span class="vp-total">' + durLabel + '</span>' +
-      '</div>' +
     '</div>' +
-    '<button class="vp-speed" type="button" title="Playback speed">1x</button>' +
-    dl +
+    '<div class="vp-row">' +
+      '<span class="vp-time"><span class="vp-elapsed">0:00</span> / <span class="vp-total">' + durLabel + '</span></span>' +
+      '<span class="vp-actions">' +
+        '<button class="vp-speed" type="button" title="Playback speed">1x</button>' +
+        '<a class="vp-dl" href="' + url + '" download="' + dlName + '" target="_blank" rel="noopener" title="Download ' + escapeAttr(name) + '">' + dlIcon + '</a>' +
+      '</span>' +
+    '</div>' +
+    '<div class="vp-foot">' +
+      '<span class="vp-name">' + escapeHtml(name) + '</span>' +
+      '<a class="vp-download" href="' + url + '" download="' + dlName + '" target="_blank" rel="noopener">Download</a>' +
+    '</div>' +
   '</div>';
 }
 function renderFile(f) {
@@ -10066,7 +10181,6 @@ function vpInit(el) {
   audio.preload = 'auto';
   audio.src = src;
   el._vpAudio = audio;
-  const timeEl = el.querySelector('.vp-time');
   const elapsedEl = el.querySelector('.vp-elapsed');
   const totalEl = el.querySelector('.vp-total');
   const prog = el.querySelector('.vp-progress');
@@ -10086,7 +10200,6 @@ function vpInit(el) {
     if (icPause) icPause.style.display = (!on && !audio.paused) ? '' : 'none';
   };
   audio.addEventListener('loadedmetadata', () => {
-    if (timeEl && isFinite(audio.duration)) timeEl.textContent = srvVoiceFmt(audio.duration * 1000);
     if (totalEl && isFinite(audio.duration)) totalEl.textContent = srvVoiceFmt(audio.duration * 1000);
   });
   audio.addEventListener('timeupdate', () => {
@@ -10094,7 +10207,6 @@ function vpInit(el) {
     const pct = d ? (audio.currentTime / d) : 0;
     if (prog) prog.style.width = (pct * 100) + '%';
     if (cursor) cursor.style.left = (pct * 100) + '%';
-    if (timeEl) timeEl.textContent = srvVoiceFmt(audio.currentTime * 1000);
     if (elapsedEl) elapsedEl.textContent = srvVoiceFmt(audio.currentTime * 1000);
     vpDrawWave(canvas, el._vpPeaks, pct);
   });
@@ -10102,7 +10214,6 @@ function vpInit(el) {
     setPlaying(false);
     if (prog) prog.style.width = '0%';
     if (cursor) cursor.style.left = '0%';
-    if (timeEl) timeEl.textContent = srvVoiceFmt((audio.duration || dur / 1000) * 1000);
     if (elapsedEl) elapsedEl.textContent = '0:00';
     vpDrawWave(canvas, el._vpPeaks, 0);
   });
@@ -11846,6 +11957,17 @@ $('invite-expiry-grid').querySelectorAll('button').forEach(b => b.addEventListen
   b.classList.add('selected');
   selectedInviteMins = Number(b.dataset.mins);
 }));
+// "Custom link name (optional)": focusing the field collapses the two helper
+// lines (label + hint) so the input sits cleanly on its own; they return on
+// blur when the field is still empty.
+(function initCustomInviteFocus() {
+  const inp = $('custom-invite-input');
+  if (!inp) return;
+  const box = inp.closest('.inv-create');
+  if (!box) return;
+  inp.addEventListener('focus', () => box.classList.add('inv-focus'));
+  inp.addEventListener('blur', () => { if (!inp.value.trim()) box.classList.remove('inv-focus'); });
+})();
 $('gen-invite-btn').addEventListener('click', async () => {
   if (!(activeServer.isOwner || hasPerm('invite'))) { toast('You do not have permission to create invites', 'error'); return; }
   // Custom (vanity) links are owner-only; non-owners always get a random code.
