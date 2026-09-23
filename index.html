@@ -3207,10 +3207,8 @@ body.no-anim .friend-item { animation: none !important; }
 #profile-view-modal.preview-mode { z-index: 400; }
 /* In preview mode, hide the X close button in the upper-right corner. */
 #profile-view-modal.preview-mode .modal-close-corner { display: none; }
-/* In preview mode the header card goes FULL-BLEED: the banner connects to the
-   left, right and top edges of the modal (no inset margins, no rounded top). */
-#profile-view-modal.preview-mode .profile-view-header-card { margin: 0; border: none; border-radius: 0; }
-#profile-view-modal.preview-mode .profile-view-banner { border-radius: 0; }
+/* In preview mode the header card is already full-bleed via the base rules
+   (margin:0, no border, no radius), so no extra overrides are needed here. */
 .modal-overlay.show { display: flex; animation: fadeIn 0.15s ease; }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 .modal {
@@ -4887,16 +4885,16 @@ body.no-anim .friend-item { animation: none !important; }
 }
 .profile-view-header-card {
   background: var(--bg-darker);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
+  border: none;
+  border-radius: 0;
   overflow: visible;
-  margin: 18px 26px 0;
+  margin: 0;
   flex: 0 0 auto;
 }
 .profile-view-banner {
-  height: 240px; background: var(--bg-medium);
+  height: 280px; background: var(--bg-medium);
   background-size: cover; background-position: center;
-  border-radius: var(--radius) var(--radius) 0 0;
+  border-radius: 0;
   border-bottom: none;
   overflow: hidden;
 }
@@ -4907,10 +4905,10 @@ body.no-anim .friend-item { animation: none !important; }
 }
 .profile-view-identity {
   display: flex; align-items: flex-start; gap: 16px;
-  padding: 0 20px 18px 0;
+  padding: 0 20px 18px 26px;
 }
 .profile-view-avatar-wrap {
-  flex: 0 0 auto; margin-top: -28px; width: 132px;
+  flex: 0 0 auto; margin-top: -50px; width: 132px;
   display: flex; flex-direction: column; align-items: flex-start;
   position: relative; z-index: 2;
 }
@@ -6899,12 +6897,12 @@ body.no-anim .friend-item { animation: none !important; }
   .link-embed-desc { font-size: 12px; -webkit-line-clamp: 3; }
   .link-embed-meta { font-size: 10.5px; gap: 8px; }
 
-  /* Profile view modal banner — scale down on mobile but keep taller ratio */
-  .profile-view-header-card { margin: 14px 16px 0; }
-  .profile-view-banner { height: 200px; }
-  .profile-view-avatar-wrap { width: 108px; margin-top: -24px; }
+  /* Profile view modal banner — full-bleed to the modal edges, taller, avatar kept in place */
+  .profile-view-header-card { margin: -22px -18px 0; }
+  .profile-view-banner { height: 260px; }
+  .profile-view-avatar-wrap { width: 108px; margin-top: -48px; }
   .profile-view-avatar { width: 108px; height: 108px; font-size: 38px; }
-  .profile-view-identity { padding: 0 16px 14px 0; gap: 14px; }
+  .profile-view-identity { padding: 0 34px 14px 34px; gap: 14px; }
   .profile-view-idblock { --pv-avatar-w: 108px; --pv-gap: 14px; }
   .profile-view-idblock h3 { font-size: 18px; }
   .profile-view-body { padding: 14px 16px 4px; }
@@ -6923,11 +6921,11 @@ body.no-anim .friend-item { animation: none !important; }
   .link-embed-image.large { min-height: 130px; max-height: 170px; }
   .link-embed-title { font-size: 12px; }
   .link-embed-desc { font-size: 10.5px; -webkit-line-clamp: 2; } /* compact on very small screens */
-  .profile-view-header-card { margin: 12px 12px 0; }
-  .profile-view-banner { height: 170px; }
-  .profile-view-avatar-wrap { width: 92px; margin-top: -22px; }
+  .profile-view-header-card { margin: -18px -14px 0; }
+  .profile-view-banner { height: 225px; }
+  .profile-view-avatar-wrap { width: 92px; margin-top: -47px; }
   .profile-view-avatar { width: 92px; height: 92px; font-size: 34px; border: none; }
-  .profile-view-identity { padding: 0 14px 12px 0; gap: 12px; }
+  .profile-view-identity { padding: 0 26px 12px 26px; gap: 12px; }
   .profile-view-idblock { padding-top: 10px; --pv-avatar-w: 92px; --pv-gap: 12px; }
   .profile-view-idblock h3 { font-size: 16px; }
   .profile-view-handle { font-size: 14px; }
@@ -7135,11 +7133,11 @@ body.no-anim .friend-item { animation: none !important; }
 /* Profile view modal — prevent smush on very small phones */
 @media (max-width: 360px) {
   .profile-view-modal { max-width: calc(100vw - 8px); max-height: 94vh; }
-  .profile-view-header-card { margin: 10px 10px 0; }
-  .profile-view-banner { height: 140px; }
-  .profile-view-avatar-wrap { width: 80px; margin-top: -20px; }
+  .profile-view-header-card { margin: -18px -14px 0; }
+  .profile-view-banner { height: 190px; }
+  .profile-view-avatar-wrap { width: 80px; margin-top: -42px; }
   .profile-view-avatar { width: 80px; height: 80px; font-size: 30px; }
-  .profile-view-identity { padding: 0 10px 10px 0; gap: 10px; }
+  .profile-view-identity { padding: 0 24px 10px 24px; gap: 10px; }
   .profile-view-idblock { padding-top: 8px; --pv-avatar-w: 80px; --pv-gap: 10px; }
   .profile-view-idblock h3 { font-size: 15px; }
   .profile-view-handle { font-size: 13px; }
