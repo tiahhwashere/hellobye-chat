@@ -891,13 +891,15 @@ input, textarea { font-family: inherit; }
 
 /* ---------- Voice call stage (enhanced) ---------- */
 .voice-stage { flex: 1; display: flex; flex-direction: column; min-height: 0; position: relative; overflow: hidden;
-  transition: opacity 0.22s ease, transform 0.26s cubic-bezier(0.22, 1, 0.36, 1);
-  transform-origin: 50% 44%;
-  will-change: opacity, transform;
+  opacity: 1;
+  transition: opacity 0.18s ease;
   background: var(--bg-medium); }
-/* Smooth enter/exit for the call view (hide call view / switch channel). */
-.voice-stage.vs-stage-enter { opacity: 0; transform: scale(0.965) translateY(12px); }
-.voice-stage.vs-stage-hide { opacity: 0; transform: scale(0.975) translateY(10px); pointer-events: none; }
+/* Smooth enter/exit for the call view (hide call view / switch channel).
+   Opacity-only so nothing forces a repaint of the chat underneath. On exit the
+   stage is lifted out of the flex flow (see voiceShowStage) so the channel chat
+   is never squished while the call view fades away. */
+.voice-stage.vs-stage-enter { opacity: 0; }
+.voice-stage.vs-stage-out { opacity: 0; pointer-events: none; }
 .vs-head { position: relative; z-index: 2; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 15px 22px; border-bottom: 1px solid var(--border); flex-shrink: 0; background: var(--bg-dark); }
 .vs-head-info { display: flex; align-items: center; gap: 12px; min-width: 0; }
 .vs-title { font-size: 15.5px; font-weight: 700; letter-spacing: -0.01em; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -1111,8 +1113,8 @@ input, textarea { font-family: inherit; }
 .vs-menu-vol input[type=range] { width: 100%; }
 /* Persistent mini voice bar (shown while navigating other channels/servers) */
 .mini-voice { display: none; align-items: center; gap: 10px; margin: 6px 8px 8px; padding: 10px 12px; border-radius: 12px; background: linear-gradient(180deg, rgba(var(--accent-rgb),0.16), rgba(var(--accent-rgb),0.06)); border: 1px solid rgba(var(--accent-rgb),0.35); cursor: pointer; transition: var(--transition); }
-.mini-voice.show { display: flex; animation: mvIn 0.3s cubic-bezier(0.22, 1, 0.36, 1); }
-.mini-voice.mv-hiding { animation: mvOut 0.22s ease forwards; }
+.mini-voice.show { display: flex; animation: mvIn 0.24s cubic-bezier(0.22, 1, 0.36, 1); }
+.mini-voice.mv-hiding { animation: mvOut 0.18s ease forwards; }
 @keyframes mvIn { from { opacity: 0; transform: translateY(10px) scale(0.97); } to { opacity: 1; transform: none; } }
 @keyframes mvOut { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateY(8px) scale(0.98); } }
 .mini-voice:hover { border-color: rgba(var(--accent-rgb),0.6); }
@@ -8564,12 +8566,20 @@ function voiceShowStage(show) {
   // The stage only belongs to the server the call lives in.
   const sameServer = !voiceCall.serverId || voiceCall.serverId === activeServerId;
   const visible = show && !voiceCall.minimized && sameServer;
-  const wasVisible = stage.style.display !== 'none' && !stage.classList.contains('vs-stage-hide');
+  const wasVisible = stage.style.display !== 'none' && !stage.classList.contains('vs-stage-out');
   // Smoothly animate the call view in/out instead of snapping.
   if (voiceCall.stageHideTimer) { clearTimeout(voiceCall.stageHideTimer); voiceCall.stageHideTimer = 0; }
   if (visible) {
+    // Restore the stage to its normal in-flow position and fade it in. The chat
+    // is hidden at the same time, so only one of the two is ever in the flex
+    // flow — no layout fight, no lag.
+    stage.classList.remove('vs-stage-out');
+    stage.style.position = '';
+    stage.style.top = '';
+    stage.style.left = '';
+    stage.style.right = '';
+    stage.style.bottom = '';
     stage.style.display = 'flex';
-    stage.classList.remove('vs-stage-hide');
     if (!wasVisible) {
       // Start from the "enter" state, then transition to the resting state.
       stage.classList.add('vs-stage-enter');
@@ -8578,13 +8588,26 @@ function voiceShowStage(show) {
     const t = $('vs-title'); if (t) t.textContent = voiceCall.channelName;
     voiceUpdateSub();
   } else if (wasVisible) {
-    // Animate out, then hide once the transition finishes.
-    stage.classList.add('vs-stage-hide');
+    // Lift the stage out of the flex flow (absolutely positioned over the exact
+    // same region) so the channel chat underneath is never squished while the
+    // call view fades away. Then hide it once the fade finishes.
+    const header = document.querySelector('.server-chat-header');
+    stage.style.position = 'absolute';
+    stage.style.left = '0';
+    stage.style.right = '0';
+    stage.style.bottom = '0';
+    stage.style.top = (header ? header.offsetHeight : 0) + 'px';
+    stage.classList.add('vs-stage-out');
     voiceCall.stageHideTimer = setTimeout(() => {
       stage.style.display = 'none';
-      stage.classList.remove('vs-stage-hide');
+      stage.classList.remove('vs-stage-out');
+      stage.style.position = '';
+      stage.style.top = '';
+      stage.style.left = '';
+      stage.style.right = '';
+      stage.style.bottom = '';
       voiceCall.stageHideTimer = 0;
-    }, 280);
+    }, 200);
   } else {
     stage.style.display = 'none';
   }
@@ -8634,7 +8657,7 @@ function voiceUpdateMiniBar() {
     bar._mvHideTimer = setTimeout(() => {
       bar.classList.remove('show', 'mv-hiding');
       bar._mvHideTimer = 0;
-    }, 220);
+    }, 180);
   }
   if (!show) return;
   const nm = $('mv-name'), sb = $('mv-sub');
