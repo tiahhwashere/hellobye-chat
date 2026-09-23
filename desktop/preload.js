@@ -64,9 +64,10 @@ function injectTitlebarStyles() {
     }
     #hb-titlebar .hb-tb-left { display: flex; align-items: center; gap: calc(8px / var(--hb-z)); padding-left: calc(12px / var(--hb-z)); min-width: 0; }
     #hb-titlebar .hb-tb-logo {
-      width: calc(16px / var(--hb-z)); height: calc(16px / var(--hb-z)); border-radius: calc(5px / var(--hb-z)); flex: 0 0 auto;
-      background: linear-gradient(135deg, #5865f2, #8b93ff);
-      box-shadow: 0 0 8px rgba(88,101,242,.5);
+      width: calc(18px / var(--hb-z)); height: calc(18px / var(--hb-z)); border-radius: calc(5px / var(--hb-z)); flex: 0 0 auto;
+      object-fit: cover; display: block;
+      border: 1px solid rgba(255,255,255,0.12);
+      box-shadow: 0 0 8px rgba(0,0,0,.45);
     }
     #hb-titlebar .hb-tb-title { font-weight: 700; letter-spacing: .2px; color: #fff; white-space: nowrap; }
     #hb-titlebar .hb-tb-controls { display: flex; align-items: stretch; height: 100%; -webkit-app-region: no-drag; }
@@ -78,13 +79,39 @@ function injectTitlebarStyles() {
     #hb-titlebar .hb-tb-btn.hb-close:hover { background: #e81123; color: #fff; }
     #hb-titlebar .hb-tb-btn svg { width: calc(11px / var(--hb-z)); height: calc(11px / var(--hb-z)); display: block; }
 
-    /* Reserve space for the title bar so app content sits below it. */
-    html.hb-desktop #chat-app { height: calc(100dvh - ${TITLEBAR_HEIGHT}px / var(--hb-z)) !important; margin-top: calc(${TITLEBAR_HEIGHT}px / var(--hb-z)); }
-    html.hb-desktop #servers-app { height: calc(100dvh - ${TITLEBAR_HEIGHT}px / var(--hb-z)) !important; margin-top: calc(${TITLEBAR_HEIGHT}px / var(--hb-z)); }
-    html.hb-desktop #auth-screen { top: calc(${TITLEBAR_HEIGHT}px / var(--hb-z)); }
+    /* The title bar is a floating overlay: it sits ON TOP of the app content
+       (overlap) instead of pushing the content down and shrinking it. The app
+       keeps its full height, so nothing at the bottom (e.g. the "Leave Server"
+       tab in Server Settings) gets cut off. We only add a little top padding to
+       the app's own scroll areas so their first row clears the bar. */
+    html.hb-desktop #chat-app,
+    html.hb-desktop #servers-app {
+      height: 100dvh !important;
+      margin-top: 0 !important;
+      padding-top: calc(${TITLEBAR_HEIGHT}px / var(--hb-z));
+      box-sizing: border-box;
+    }
     @supports not (height: 100dvh) {
-      html.hb-desktop #chat-app { height: calc(100vh - ${TITLEBAR_HEIGHT}px / var(--hb-z)) !important; }
-      html.hb-desktop #servers-app { height: calc(100vh - ${TITLEBAR_HEIGHT}px / var(--hb-z)) !important; }
+      html.hb-desktop #chat-app,
+      html.hb-desktop #servers-app { height: 100vh !important; }
+    }
+
+    /* Fixed overlays (modals, auth screen, slide panels) are positioned against
+       the viewport, so they would otherwise slide up behind the title bar. Keep
+       them fully inside the visible area below the bar. */
+    html.hb-desktop #auth-screen,
+    html.hb-desktop .modal-overlay,
+    html.hb-desktop .settings-modal-overlay {
+      top: calc(${TITLEBAR_HEIGHT}px / var(--hb-z)) !important;
+      height: calc(100dvh - ${TITLEBAR_HEIGHT}px / var(--hb-z)) !important;
+      box-sizing: border-box;
+    }
+    @supports not (height: 100dvh) {
+      html.hb-desktop #auth-screen,
+      html.hb-desktop .modal-overlay,
+      html.hb-desktop .settings-modal-overlay {
+        height: calc(100vh - ${TITLEBAR_HEIGHT}px / var(--hb-z)) !important;
+      }
     }
 
     /* Hide website-only chrome inside the native app. */
@@ -109,7 +136,8 @@ function buildTitlebar() {
   bar.id = 'hb-titlebar';
   bar.innerHTML =
     '<div class="hb-tb-left">' +
-      '<span class="hb-tb-logo"></span>' +
+      '<img class="hb-tb-logo" src="/uploads/favicon.jpg" alt="" ' +
+        'onerror="this.onerror=null;this.style.background=\'linear-gradient(135deg,#5865f2,#8b93ff)\';this.removeAttribute(\'src\');">' +
       '<span class="hb-tb-title">Hellobye</span>' +
     '</div>' +
     '<div class="hb-tb-controls">' +
