@@ -1,7 +1,7 @@
 {
   "name": "hellobye-desktop",
   "productName": "HelloBye",
-  "version": "1.5.7",
+  "version": "1.5.8",
   "description": "HelloBye Chat desktop app",
   "main": "main.js",
   "author": "HelloBye",
