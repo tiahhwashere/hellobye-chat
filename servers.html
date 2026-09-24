@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Servers — hellobye</title>
+<script>try{if(window.hellobyeDesktop&&window.hellobyeDesktop.isDesktop){document.documentElement.classList.add("desktop-app");}}catch(e){}</script>
 <link rel="icon" type="image/jpeg" href="/uploads/favicon.jpg">
 <link rel="apple-touch-icon" href="/uploads/favicon.jpg">
 <link rel="preload" as="image" href="/uploads/favicon.jpg">
@@ -1607,6 +1608,7 @@ input, textarea { font-family: inherit; }
 .status-notice .sn-text b { font-weight: 700; }
 
 .member-profile-modal { max-width: 900px; padding: 0; overflow-y: auto; overflow-x: hidden; text-align: left; position: relative; }
+html.desktop-app .member-profile-modal { max-width: 980px; max-height: 93vh; }
 .member-profile-modal.msp-editor-mode { max-width: 1080px; width: 96vw; }
 .member-profile-modal.msp-editor-mode .modal-body { padding: 28px 40px; }
 .member-profile-modal.msp-editor-mode .modal-footer { padding: 4px 40px 26px; gap: 14px; }
@@ -1631,9 +1633,10 @@ input, textarea { font-family: inherit; }
 }
 .member-profile-banner img { width: 100%; height: 100%; object-fit: cover; }
 .member-profile-banner-placeholder {
-  width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
-  color: var(--text-muted); font-size: 13px; border-bottom: 1px dashed var(--border-light);
+  width: 100%; height: 100%; display: block;
+  background: #ffffff; color: transparent; font-size: 0; border-bottom: none;
 }
+.default-avatar-img { width: 100%; height: 100%; object-fit: cover; display: block; border-radius: inherit; }
 .member-profile-main { display: flex; align-items: flex-start; gap: 20px; padding: 0 32px; flex-wrap: nowrap; }
 .member-profile-avatar {
   width: 168px; height: 168px; border-radius: 50%; background: var(--bg-lighter);
@@ -4450,6 +4453,9 @@ function validateImageFile(f) {
   return true;
 }
 function getInitials(name) {
+  return '<img class="default-avatar-img" src="/uploads/default-avatar.jpg" alt="">';
+}
+function getInitialsText(name) {
   const s = String(name || '?').trim();
   if (!s) return '?';
   const parts = s.split(/[\s_\-]+/).filter(Boolean);
@@ -5205,7 +5211,7 @@ function renderRail() {
     btn.dataset.serverId = s.id;
     btn.draggable = true;
     btn.innerHTML = '<span class="rail-pill"></span>' +
-      (s.icon ? '<img src="' + escapeAttr(s.icon) + '" alt="">' : escapeHtml(getInitials(s.name)));
+      (s.icon ? '<img src="' + escapeAttr(s.icon) + '" alt="">' : escapeHtml(getInitialsText(s.name)));
     btn.addEventListener('click', (e) => {
       if (btn._suppressClick) { btn._suppressClick = false; return; }
       openServer(s.id);
@@ -5333,7 +5339,7 @@ function renderSelfFooter() {
     : {};
   const avatar = me.avatar || currentUser.avatar;
   if (avatar) av.innerHTML = '<img src="' + escapeAttr(avatar) + '"><span class="sf-status" id="sf-status-dot"></span>';
-  else av.innerHTML = escapeHtml(getInitials(currentUser.displayName || currentUser.username)) + '<span class="sf-status" id="sf-status-dot"></span>';
+  else av.innerHTML = getInitials(currentUser.displayName || currentUser.username) + '<span class="sf-status" id="sf-status-dot"></span>';
   $('sf-name').textContent = currentUser.displayName || ('@' + currentUser.username);
   const st = currentUser.status || 'online';
   const dot = $('sf-status-dot');
@@ -5362,7 +5368,7 @@ function openStatusMenu() {
   const displayName = currentUser.displayName || ('@' + currentUser.username);
   const avatarHtml = currentUser.avatar
     ? '<img src="' + escapeAttr(currentUser.avatar) + '" alt="">'
-    : escapeHtml(getInitials(displayName));
+    : getInitials(displayName);
   const menu = document.createElement('div');
   menu.className = 'status-menu';
   menu.id = 'status-menu';
@@ -6135,9 +6141,9 @@ function buildMessageGroup(m, inThread) {
   av.dataset.member = m.from;
   if (isWebhook) {
     if (m.webhook.avatar) av.innerHTML = '<img src="' + escapeAttr(m.webhook.avatar) + '">';
-    else av.textContent = getInitials(displayName);
+    else av.innerHTML = getInitials(displayName);
   } else if (member.avatar) av.innerHTML = '<img src="' + escapeAttr(member.avatar) + '">';
-  else av.textContent = getInitials(displayName);
+  else av.innerHTML = getInitials(displayName);
   if (!isWebhook) av.addEventListener('click', () => openMemberProfile(m.from));
 
   const body = document.createElement('div');
@@ -6294,7 +6300,7 @@ function buildThreadBar(parentId) {
   const avs = (t.participants || []).slice(0, 4).map(un => {
     const mem = (activeServer.members || []).find(x => x.username === un) || {};
     const dn = mem.nickname || mem.displayName || un;
-    return '<span class="mtb-av">' + (mem.avatar ? '<img src="' + escapeAttr(mem.avatar) + '">' : escapeHtml(getInitials(dn))) + '</span>';
+    return '<span class="mtb-av">' + (mem.avatar ? '<img src="' + escapeAttr(mem.avatar) + '">' : getInitials(dn)) + '</span>';
   }).join('');
   const lastMem = (activeServer.members || []).find(x => x.username === t.lastReplyFrom) || {};
   const lastDn = lastMem.nickname || lastMem.displayName || t.lastReplyFrom || '';
@@ -6871,7 +6877,7 @@ function hydrateInviteEmbeds(container) {
         '<div class="invite-embed-banner" style="' + (inv.banner ? 'background-image:url(' + escapeAttr(inv.banner) + ');' : 'background:linear-gradient(135deg,' + escapeAttr(accent) + '33,' + escapeAttr(accent) + '0d);') + '"></div>' +
         '<div class="invite-embed-inner">' +
           '<div class="invite-embed-top">' +
-            '<div class="invite-embed-icon">' + (inv.icon ? '<img src="' + escapeAttr(inv.icon) + '">' : escapeHtml(getInitials(inv.name))) + '</div>' +
+            '<div class="invite-embed-icon">' + (inv.icon ? '<img src="' + escapeAttr(inv.icon) + '">' : escapeHtml(getInitialsText(inv.name))) + '</div>' +
             '<div class="invite-embed-headtext">' +
               '<div class="invite-embed-label">You\u2019ve been invited to join a server</div>' +
               '<div class="invite-embed-name">' + escapeHtml(inv.name) + '</div>' +
@@ -7120,7 +7126,7 @@ function updateMentionPop() {
   const pop = $('srv-mention-pop');
   pop.innerHTML = members.map((mm, i) => {
     const dn = mm.nickname || mm.displayName || mm.username;
-    const av = mm.avatar ? '<img src="' + escapeAttr(mm.avatar) + '">' : escapeHtml(getInitials(dn));
+    const av = mm.avatar ? '<img src="' + escapeAttr(mm.avatar) + '">' : getInitials(dn);
     return '<div class="srv-mention-item' + (i === 0 ? ' active' : '') + '" data-user="' + escapeAttr(mm.username) + '">' +
       '<span class="srv-mention-av">' + av + '</span>' +
       '<span class="srv-mention-name">' + escapeHtml(dn) + '</span>' +
@@ -8610,7 +8616,7 @@ function voiceStopHealthCheck() {
 
 function voiceAvatarHtml(member, username) {
   const src = member && member.avatar;
-  if (!src) return escapeHtml(getInitials((member && (member.nickname || member.displayName)) || username));
+  if (!src) return getInitials((member && (member.nickname || member.displayName)) || username);
   const isGif = /\.gif(\?|#|$)/i.test(src) || /^data:image\/gif/i.test(src);
   if (!isGif) return '<img src="' + escapeAttr(src) + '">';
   return '<canvas class="vs-avatar-gif-static" data-gif-src="' + escapeAttr(src) + '" width="88" height="88"></canvas>' +
@@ -8862,7 +8868,7 @@ function voiceChatRender() {
   }
   box.innerHTML = voiceChat.messages.map(m => {
     const member = (activeServer && activeServer.members || []).find(x => x.username === m.from) || {};
-    const av = member.avatar ? '<img src="' + escapeAttr(member.avatar) + '">' : escapeHtml(getInitials(member.nickname || member.displayName || m.from));
+    const av = member.avatar ? '<img src="' + escapeAttr(member.avatar) + '">' : getInitials(member.nickname || member.displayName || m.from);
     const name = member.nickname || member.displayName || m.from;
     const self = (m.from === currentUser.username);
     const roles = (member.roleIds || []).map(id => (activeServer && activeServer.roles || []).find(r => r.id === id)).filter(Boolean).sort((a, b) => (a.order || 0) - (b.order || 0));
@@ -9203,7 +9209,7 @@ function voiceOpenUserMenu(username, x, y) {
   if (!p) return;
   const member = (activeServer && activeServer.members || []).find(m => m.username === username) || {};
   const name = member.nickname || member.displayName || username;
-  const av = member.avatar ? '<img src="' + escapeAttr(member.avatar) + '">' : escapeHtml(getInitials(name));
+  const av = member.avatar ? '<img src="' + escapeAttr(member.avatar) + '">' : getInitials(name);
   const volPct = Math.round((voiceCall.userVol.get(username) === undefined ? 1 : voiceCall.userVol.get(username)) * 100);
   const isDeaf = voiceCall.userDeaf.has(username);
   const menu = document.createElement('div');
@@ -10028,7 +10034,7 @@ function renderPinnedItem(m) {
   const canUnpin = hasPerm('manageMessages');
   const av = member.avatar
     ? '<img src="' + escapeAttr(member.avatar) + '" alt="">'
-    : escapeHtml(getInitials(authorName));
+    : getInitials(authorName);
   return '<div class="pin-item" data-pin-jump="' + escapeAttr(m.id) + '">' +
     '<div class="pin-av">' + av + '</div>' +
     '<div class="pin-main">' +
@@ -10117,7 +10123,7 @@ function updateCreatePreview() {
       iconEl.textContent = '';
       iconEl.style.background = 'url(' + createIconData + ') center/cover no-repeat';
     } else {
-      iconEl.textContent = name ? getInitials(name) : 'S';
+      iconEl.textContent = name ? getInitialsText(name) : 'S';
       iconEl.style.background = 'linear-gradient(135deg,' + createAccent + ',' + shadeColor(createAccent, -18) + ')';
     }
   }
@@ -10213,7 +10219,7 @@ async function previewJoinCode(raw) {
     box.innerHTML =
       (inv.banner ? '<div class="jp-banner" style="background-image:url(' + escapeAttr(inv.banner) + ');"></div>' : '') +
       '<div class="jp-body">' +
-        '<div class="jp-icon" style="background:linear-gradient(135deg,' + accent + ',' + accent + 'cc);">' + (inv.icon ? '<img src="' + escapeAttr(inv.icon) + '">' : escapeHtml(getInitials(inv.name))) + '</div>' +
+        '<div class="jp-icon" style="background:linear-gradient(135deg,' + accent + ',' + accent + 'cc);">' + (inv.icon ? '<img src="' + escapeAttr(inv.icon) + '">' : escapeHtml(getInitialsText(inv.name))) + '</div>' +
         '<div class="jp-info"><div class="jp-name">' + escapeHtml(inv.name) + '</div>' +
         '<div class="jp-stats">' + icon('users', 'sm') + inv.memberCount + ' members \u00b7 ' + icon('tag', 'sm') + inv.channelCount + ' channels</div>' +
         (inv.bio ? '<div class="jp-bio">' + escapeHtml(inv.bio) + '</div>' : '') +
@@ -10259,7 +10265,7 @@ function runDiscover(q) {
       const verified = s.verificationLevel > 0 ? '<span class="di-verified" title="Verified server">' + icon('check', 'sm') + '</span>' : '';
       return '<div class="discover-item' + (s.banner ? ' has-banner' : '') + '">' + banner +
         '<div class="di-body">' +
-          '<div class="di-icon" style="background:linear-gradient(135deg,' + accent + ',' + accent + 'cc);">' + (s.icon ? '<img src="' + escapeAttr(s.icon) + '">' : escapeHtml(getInitials(s.name))) + '</div>' +
+          '<div class="di-icon" style="background:linear-gradient(135deg,' + accent + ',' + accent + 'cc);">' + (s.icon ? '<img src="' + escapeAttr(s.icon) + '">' : escapeHtml(getInitialsText(s.name))) + '</div>' +
           '<div class="di-info">' +
             '<div class="di-name">' + escapeHtml(s.name) + verified + '</div>' +
             (s.bio ? '<div class="di-bio">' + escapeHtml(s.bio) + '</div>' : '') +
@@ -10350,7 +10356,7 @@ function renderSettingsScalePreview() {
         '<div class="sp-frame-cap">Banner</div>' +
       '</div>' +
       '<div>' +
-        '<div class="sp-frame-icon" id="set-sp-icon">' + (iconUrl ? '<img src="' + escapeAttr(iconUrl) + '">' : '<span class="sp-icon-initials">' + escapeHtml(getInitials(activeServer.name)) + '</span>') + '</div>' +
+        '<div class="sp-frame-icon" id="set-sp-icon">' + (iconUrl ? '<img src="' + escapeAttr(iconUrl) + '">' : '<span class="sp-icon-initials">' + escapeHtml(getInitialsText(activeServer.name)) + '</span>') + '</div>' +
         '<div class="sp-frame-cap">Icon</div>' +
       '</div>' +
     '</div>';
@@ -10421,7 +10427,7 @@ function openSettings() {
   if ($('set-hero-meta')) $('set-hero-meta').textContent = activeServer.memberCount + ' member' + (activeServer.memberCount === 1 ? '' : 's') + (activeServer.serverId ? ' · ' + activeServer.serverId : '');
   const setIconEl = $('set-icon');
   if (activeServer.icon) setIconEl.innerHTML = '<img src="' + escapeAttr(activeServer.icon) + '"><div class="edit-overlay">' + icon('edit', 'sm') + '</div>';
-  else setIconEl.innerHTML = '<span id="set-icon-initial">' + escapeHtml(getInitials(activeServer.name)) + '</span><div class="edit-overlay">' + icon('edit', 'sm') + '</div>';
+  else setIconEl.innerHTML = '<span id="set-icon-initial">' + escapeHtml(getInitialsText(activeServer.name)) + '</span><div class="edit-overlay">' + icon('edit', 'sm') + '</div>';
   $('set-banner').style.backgroundImage = activeServer.banner ? 'url(' + activeServer.banner + ')' : '';
   const sysSel = $('set-system-channel');
   sysSel.innerHTML = '<option value="">None</option>' + (activeServer.channels || []).map(c => '<option value="' + escapeAttr(c.id) + '">#' + escapeHtml(c.name) + '</option>').join('');
@@ -10598,7 +10604,7 @@ function openLeaveServerModal() {
   if (!activeServer) return;
   const av = $('leave-av');
   if (activeServer.icon) av.innerHTML = '<img src="' + escapeAttr(activeServer.icon) + '" alt="">';
-  else av.textContent = getInitials(activeServer.name);
+  else av.textContent = getInitialsText(activeServer.name);
   $('leave-name').textContent = activeServer.name;
   $('leave-meta').textContent = (activeServer.memberCount || 0) + ' member' + (activeServer.memberCount === 1 ? '' : 's') + (activeServer.serverId ? ' \u00b7 ' + activeServer.serverId : '');
   openModal('leave-server-modal');
@@ -10681,7 +10687,7 @@ function openScaleModal(kind) {
   if (isIcon) {
     $('scale-preview').innerHTML =
       '<div class="sp-icon-only"><div class="sp-icon" id="sp-icon">' +
-        (iconUrl ? '<img src="' + escapeAttr(iconUrl) + '">' : '<span class="sp-icon-initials">' + escapeHtml(getInitials(activeServer.name)) + '</span>') +
+        (iconUrl ? '<img src="' + escapeAttr(iconUrl) + '">' : '<span class="sp-icon-initials">' + escapeHtml(getInitialsText(activeServer.name)) + '</span>') +
       '</div></div>';
   } else {
     $('scale-preview').innerHTML =
@@ -10982,7 +10988,7 @@ function renderChannelPrivacyUI() {
   const members = (activeServer.members || []).filter(m => !m.isOwner);
   memWrap.innerHTML = members.length ? members.map(m =>
     '<span class="allow-chip' + (chEditorAllowedMembers.includes(m.username) ? ' on' : '') + '" data-mem="' + escapeAttr(m.username) + '">' +
-    '<span class="ac-av">' + (m.avatar ? '<img src="' + escapeAttr(m.avatar) + '">' : escapeHtml(getInitials(m.nickname || m.displayName || m.username))) + '</span>' +
+    '<span class="ac-av">' + (m.avatar ? '<img src="' + escapeAttr(m.avatar) + '">' : getInitials(m.nickname || m.displayName || m.username)) + '</span>' +
     escapeHtml(m.nickname || m.displayName || m.username) + '</span>'
   ).join('') : '<span class="allow-empty">No other members yet.</span>';
   memWrap.querySelectorAll('[data-mem]').forEach(el => el.addEventListener('click', () => {
@@ -11476,7 +11482,7 @@ async function renderJoinRequests() {
     const list = d.requests || [];
     if (!list.length) { box.innerHTML = '<div class="jr-empty">No pending requests.</div>'; return; }
     box.innerHTML = list.map(r => {
-      const av = r.avatar ? '<img src="' + escapeAttr(r.avatar) + '" alt="">' : escapeHtml(getInitials(r.username));
+      const av = r.avatar ? '<img src="' + escapeAttr(r.avatar) + '" alt="">' : getInitials(r.username);
       return '<div class="jr-item">' +
         '<div class="jr-av">' + av + '</div>' +
         '<div class="jr-body"><div class="jr-name">' + escapeHtml(r.username) + '</div>' +
@@ -11670,10 +11676,10 @@ function renderMemberProfileBody(m, roles, isMe, data) {
   const bS = bannerScale / 100, aS = avatarScale / 100;
   const panelColor = (u.panelColor || m.panelColor || '').trim();
   let html = '<div class="member-profile-banner' + (banner ? ' mp-zoomable' : '') + '"' + (banner ? ' data-mp-zoom="' + escapeAttr(banner) + '"' : '') + (banner && bannerScale !== 100 ? ' style="height:' + Math.round(300 * bS) + 'px;"' : '') + '>' +
-    (banner ? '<div class="member-profile-banner-img" style="background-image:url(' + escapeAttr(banner) + ');"></div>' : '<div class="member-profile-banner-placeholder">No banner set</div>') + '</div>';
+    (banner ? '<div class="member-profile-banner-img" style="background-image:url(' + escapeAttr(banner) + ');"></div>' : '<div class="member-profile-banner-placeholder"></div>') + '</div>';
 
   html += '<div class="member-profile-main">' +
-    '<div class="member-profile-avatar' + (avatar ? ' mp-zoomable' : '') + '"' + (avatar ? ' data-mp-zoom="' + escapeAttr(avatar) + '"' : '') + (avatarScale !== 100 ? ' style="width:' + Math.round(168 * aS) + 'px;height:' + Math.round(168 * aS) + 'px;margin-top:' + Math.round(-84 * aS) + 'px;"' : '') + '>' + (avatar ? '<img src="' + escapeAttr(avatar) + '">' : '<span class="mpa-initials">' + escapeHtml(getInitials(displayName)) + '</span>') + '</div>' +
+    '<div class="member-profile-avatar' + (avatar ? ' mp-zoomable' : '') + '"' + (avatar ? ' data-mp-zoom="' + escapeAttr(avatar) + '"' : '') + (avatarScale !== 100 ? ' style="width:' + Math.round(168 * aS) + 'px;height:' + Math.round(168 * aS) + 'px;margin-top:' + Math.round(-84 * aS) + 'px;"' : '') + '>' + (avatar ? '<img src="' + escapeAttr(avatar) + '">' : getInitials(displayName)) + '</div>' +
     '<div class="member-profile-info">' +
     '<div class="member-profile-name">' + escapeHtml(displayName) + '</div>' +
     '<div class="member-profile-handle mp-copyable" data-copy="' + escapeAttr(m.username) + '" title="Click to copy username">@' + escapeHtml(m.username) + '<span class="mp-copy-hint">Copy</span></div>';
@@ -11828,7 +11834,7 @@ function openAssignRole(m) {
     .sort((a, b) => (a.order || 0) - (b.order || 0));
   const current = (m.roleIds || []).slice();
   const dn = m.nickname || m.displayName || m.username;
-  const av = m.avatar ? '<img src="' + escapeAttr(m.avatar) + '">' : escapeHtml(getInitials(dn));
+  const av = m.avatar ? '<img src="' + escapeAttr(m.avatar) + '">' : getInitials(dn);
   const PERM_LABELS = {
     administrator: 'Administrator', manageServer: 'Manage Server', manageChannels: 'Manage Channels',
     manageRoles: 'Manage Roles', manageMessages: 'Manage Messages', manageNicknames: 'Manage Nicknames',
@@ -11953,7 +11959,7 @@ function openMyServerProfileEditor() {
     '<div class="msp-serversonly">' + icon('shield', 'sm') + '<span><b>Servers Only</b> \u2014 these changes apply to <b>' + escapeHtml(activeServer.name || 'this server') + '</b> and never to your main chat profile.</span></div>' +
     '<div class="msp-hero">' +
       '<div class="msp-hero-banner" id="msp-banner" style="' + (banner ? 'background-image:url(' + escapeAttr(banner) + ');' : '') + '"><div class="edit-overlay">Change Banner</div></div>' +
-      '<div class="msp-hero-avatar" id="msp-avatar">' + (avatar ? '<img src="' + escapeAttr(avatar) + '">' : escapeHtml(getInitials(displayName))) + '<div class="edit-overlay">' + icon('camera', 'lg') + '</div></div>' +
+      '<div class="msp-hero-avatar" id="msp-avatar">' + (avatar ? '<img src="' + escapeAttr(avatar) + '">' : getInitials(displayName)) + '<div class="edit-overlay">' + icon('camera', 'lg') + '</div></div>' +
       '<div class="msp-hero-name" id="msp-hero-name" style="background:' + heroTint + ';border-left:3px solid ' + heroEdge + ';"><div class="mhn-name">' + escapeHtml(displayName) + '</div><div class="mhn-handle">@' + escapeHtml(u.username || '') + '</div></div>' +
       '<input type="file" id="my-avatar" accept="image/*,image/gif" hidden>' +
       '<input type="file" id="my-banner" accept="image/*,image/gif" hidden>' +
@@ -11965,7 +11971,7 @@ function openMyServerProfileEditor() {
     '<div class="msp-pane active" id="msp-pane-profile">' +
       '<div class="msp-section"><div class="msp-section-title">' + icon('user', 'sm') + ' Server Identity</div><div class="msp-section-sub">How you appear to members of this server. These details are unique to this server and never change your main chat profile.</div>' +
         '<div class="msp-identity-media">' +
-          '<div class="msp-id-avatar" id="msp-id-avatar">' + (avatar ? '<img src="' + escapeAttr(avatar) + '">' : escapeHtml(getInitials(displayName))) + '</div>' +
+          '<div class="msp-id-avatar" id="msp-id-avatar">' + (avatar ? '<img src="' + escapeAttr(avatar) + '">' : getInitials(displayName)) + '</div>' +
           '<div class="msp-id-media-info">' +
             '<div class="msp-id-media-name">' + escapeHtml(displayName) + '</div>' +
             '<div class="msp-id-media-handle">@' + escapeHtml(u.username || '') + '</div>' +
@@ -11984,7 +11990,7 @@ function openMyServerProfileEditor() {
       '<div class="field"><label>Avatar &amp; Banner Scale</label><div class="hint" style="margin-bottom:10px;">Fine-tune how large your avatar and banner appear on your server profile. Drag a slider, type an exact value, or pick a preset.</div>' +
         '<div class="msp-scale-preview">' +
           '<div class="msp-sp-banner" id="msp-sp-banner" style="' + (banner ? '' : 'background:linear-gradient(135deg,#6366f1,#4f46e5);') + '">' + (banner ? '<div class="msp-sp-banner-img" id="msp-sp-banner-img" style="background-image:url(' + escapeAttr(banner) + ')"></div>' : '') + '</div>' +
-          '<div class="msp-sp-avatar" id="msp-sp-avatar">' + (avatar ? '<img src="' + escapeAttr(avatar) + '">' : '<span class="msp-sp-initials">' + escapeHtml(getInitials(displayName)) + '</span>') + '</div>' +
+          '<div class="msp-sp-avatar" id="msp-sp-avatar">' + (avatar ? '<img src="' + escapeAttr(avatar) + '">' : '<span class="msp-sp-initials">' + getInitials(displayName) + '</span>') + '</div>' +
           '<div class="msp-sp-body"></div>' +
         '</div>' +
         '<div class="scale-row"><label>' + icon('user', 'sm') + ' Avatar</label><input type="range" id="my-avatar-scale" min="50" max="150" step="5" value="' + (me.avatarScale || 100) + '"><input type="number" class="msp-scale-num" id="my-avatar-scale-num" min="50" max="150" value="' + (me.avatarScale || 100) + '"><span class="psr-val" id="my-avatar-scale-val">' + (me.avatarScale || 100) + '%</span></div>' +
@@ -12115,7 +12121,7 @@ async function showInvitePreview(code) {
         '<div class="invite-embed-banner" style="' + (inv.banner ? 'background-image:url(' + escapeAttr(inv.banner) + ');' : 'background:linear-gradient(135deg,' + escapeAttr(accent) + '33,' + escapeAttr(accent) + '0d);') + '"></div>' +
         '<div class="invite-embed-inner">' +
           '<div class="invite-embed-top">' +
-            '<div class="invite-embed-icon">' + (inv.icon ? '<img src="' + escapeAttr(inv.icon) + '">' : escapeHtml(getInitials(inv.name))) + '</div>' +
+            '<div class="invite-embed-icon">' + (inv.icon ? '<img src="' + escapeAttr(inv.icon) + '">' : escapeHtml(getInitialsText(inv.name))) + '</div>' +
             '<div class="invite-embed-headtext"><div class="invite-embed-label">You\u2019ve been invited to join</div><div class="invite-embed-name">' + escapeHtml(inv.name) + '</div></div>' +
           '</div>' +
           (inv.bio ? '<div class="invite-embed-bio">' + escapeHtml(inv.bio) + '</div>' : '') +
