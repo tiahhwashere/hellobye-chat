@@ -11,15 +11,18 @@
 //  - No File / View / Edit / Help menu bar at all.
 //  - Show a custom CSS-only launch splash (no emojis / no SVG icons) every
 //    time the app is opened, before the app content appears.
-//  - "Soft update": poll the site's /api/version endpoint. When the deployed
-//    build id changes, show a soft in-app toast. Applying the update RESTARTS
-//    the whole client (relaunch) so the new build is loaded cleanly — no page
-//    refresh, and the login/data are kept (persistent partition).
+//  - "New build" prompt: poll the site's /api/version endpoint. When the
+//    deployed build id changes, show a centered in-app modal telling the user a
+//    new build is available. Clicking "Download" opens the download page in the
+//    system browser, removes the installed PC app, and closes Hellobye so the
+//    fresh build can be installed cleanly.
 //  - Microphone/camera permissions are granted automatically so voice works.
 
 const { app, BrowserWindow, shell, session, Menu, dialog, ipcMain, screen, desktopCapturer } = require('electron');
 const path = require('path');
 const fs = require('fs');
+const os = require('os');
+const { spawn } = require('child_process');
 
 // The live site. Override with HELLOBYE_URL for local testing.
 const APP_URL = process.env.HELLOBYE_URL || 'https://hellobye-chat.onrender.com/';
@@ -368,7 +371,7 @@ async function checkForUpdate() {
   }
 }
 
-// Ask the renderer to show the soft-update toast. If the renderer isn't ready
+// Ask the renderer to show the update modal. If the renderer isn't ready
 // (e.g. still loading), fall back to a native dialog.
 function showSoftUpdate() {
   if (updatePending) return;
@@ -376,29 +379,70 @@ function showSoftUpdate() {
   if (mainWindow && !mainWindow.isDestroyed()) {
     mainWindow.webContents.send('soft-update-available');
   } else {
-    promptRestart();
+    promptDownload();
   }
 }
 
-function promptRestart() {
+// Native-dialog fallback used only if the renderer isn't available to show the
+// in-app modal.
+function promptDownload() {
   const choice = dialog.showMessageBoxSync(mainWindow || undefined, {
     type: 'info',
-    buttons: ['Restart now', 'Later'],
+    buttons: ['Download new build', 'Later'],
     defaultId: 0,
     cancelId: 1,
-    title: 'Update available',
-    message: 'A new version of Hellobye is available.',
-    detail: 'The app will restart to apply the latest changes. Your login and data are kept.',
+    title: 'New build available',
+    message: 'A new build of Hellobye for PC is available.',
+    detail: 'Download the new build to get the latest fixes. Hellobye will close, the installed app will be removed, and the download page will open in your browser.',
   });
-  if (choice === 0) applyUpdate();
+  if (choice === 0) downloadNewBuild();
 }
 
-// Restart the whole client so the freshly deployed build is loaded cleanly.
-function applyUpdate() {
+// The download page that always serves the newest build.
+const DOWNLOAD_URL = 'https://hellobye-chat.onrender.com/download.html';
+
+// Open the download page, remove the installed PC app, then quit. Self-deletion
+// has to happen from a separate process because Windows will not let a running
+// executable delete itself.
+function downloadNewBuild() {
   updatePending = false;
   try { if (knownBuildId) writeState({ lastBuildId: knownBuildId }); } catch (e) {}
-  app.relaunch();
-  app.exit(0);
+  // 1) Redirect the user to the download page in their default browser.
+  try { shell.openExternal(DOWNLOAD_URL); } catch (e) {}
+  // 2) Schedule removal of the installed app (packaged Windows builds only).
+  try { scheduleSelfDelete(); } catch (e) {}
+  // 3) Close Hellobye so the files can be removed.
+  setTimeout(() => { try { app.exit(0); } catch (e) { app.quit(); } }, 500);
+}
+
+// Spawn a detached helper that waits for this process to exit, then deletes the
+// installed app. A portable build deletes just its .exe; an installed build
+// removes its whole install directory.
+function scheduleSelfDelete() {
+  if (process.platform !== 'win32' || !app.isPackaged) return; // dev/non-Windows: nothing to remove
+  const execPath = process.execPath;
+  const exeName = path.basename(execPath);
+  const installDir = path.dirname(execPath);
+  const isPortable = !!process.env.PORTABLE_EXECUTABLE_FILE;
+  const batPath = path.join(os.tmpdir(), 'hellobye-cleanup-' + Date.now() + '.bat');
+  const q = (s) => '"' + String(s).replace(/"/g, '') + '"';
+  const lines = [
+    '@echo off',
+    'setlocal',
+    // Wait until Hellobye has fully exited.
+    ':wait',
+    'tasklist /FI "IMAGENAME eq ' + exeName + '" 2>NUL | find /I "' + exeName + '" >NUL',
+    'if not errorlevel 1 (',
+    '  timeout /t 1 /nobreak >NUL',
+    '  goto wait',
+    ')',
+    'timeout /t 1 /nobreak >NUL',
+    isPortable ? ('del /f /q ' + q(execPath)) : ('rmdir /s /q ' + q(installDir)),
+    'del /f /q "%~f0"',
+  ];
+  fs.writeFileSync(batPath, lines.join('\r\n'), 'utf8');
+  const child = spawn('cmd.exe', ['/c', batPath], { detached: true, stdio: 'ignore', windowsHide: true });
+  child.unref();
 }
 
 function startUpdatePolling() {
@@ -417,7 +461,7 @@ function buildMenu() {
 // ---- IPC from renderer ----
 ipcMain.handle('app-version', () => app.getVersion());
 ipcMain.handle('check-update-now', async () => { await checkForUpdate(); return true; });
-ipcMain.on('apply-update', () => applyUpdate());
+ipcMain.on('download-new-build', () => downloadNewBuild());
 ipcMain.on('dismiss-update', () => { updatePending = false; });
 // Custom title-bar window controls.
 ipcMain.on('window-minimize', () => { if (mainWindow && !mainWindow.isDestroyed()) mainWindow.minimize(); });

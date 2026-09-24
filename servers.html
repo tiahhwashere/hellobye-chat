@@ -8655,7 +8655,16 @@ function voicePeerVolume(username) {
 // A shared WebAudio graph lets us amplify past 100% (the <audio>.volume cap).
 let _voiceGainCtx = null;
 function voiceGainCtx() {
-  if (!_voiceGainCtx) { try { _voiceGainCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { _voiceGainCtx = null; } }
+  if (!_voiceGainCtx) {
+    try {
+      // 'interactive' asks the browser for the smallest possible output buffer,
+      // which is what keeps voice playback snappy instead of laggy.
+      const AC = window.AudioContext || window.webkitAudioContext;
+      _voiceGainCtx = new AC({ latencyHint: 'interactive' });
+    } catch (e) {
+      try { _voiceGainCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e2) { _voiceGainCtx = null; }
+    }
+  }
   if (_voiceGainCtx && _voiceGainCtx.state === 'suspended') { try { _voiceGainCtx.resume(); } catch (e) {} }
   return _voiceGainCtx;
 }
@@ -8720,7 +8729,11 @@ async function joinVoiceChannel(channelId) {
   socket.emit('voice-join', { serverId: activeServerId, channelId }, (resp) => {
     if (resp && resp.error) { toast(resp.error, 'error'); leaveVoiceChannel(); return; }
     const peers = (resp && resp.peers) || [];
-    peers.forEach(p => voiceCreatePeer(p.username, true));
+    peers.forEach(p => voiceCreatePeer(p.username, true, p));
+    // Re-broadcast our own full state so every client (PC app and browser)
+    // agrees on our mute / deafen / screen-share / camera state the instant we
+    // join, instead of waiting for the next toggle.
+    voiceBroadcastState();
     // Restore the persisted voice-chat history for this room (kept alive while
     // anyone is in the call) and adopt the room's start time for the timer.
     if (resp && resp.startedAt) voiceCall.startedAt = resp.startedAt;
@@ -8755,7 +8768,9 @@ function voiceRejoinAfterReconnect() {
       return;
     }
     const peers = (resp && resp.peers) || [];
-    peers.forEach(p => { if (p.username !== currentUser.username) voiceCreatePeer(p.username, true); });
+    peers.forEach(p => { if (p.username !== currentUser.username) voiceCreatePeer(p.username, true, p); });
+    // Re-announce our full state after a reconnect so peers re-sync.
+    voiceBroadcastState();
     if (resp && resp.startedAt) voiceCall.startedAt = resp.startedAt;
     if (resp && Array.isArray(resp.chat)) { voiceChat.messages = resp.chat.slice(-VS_CHAT_MAX); voiceChatRender(); }
     voiceStartTimer();
@@ -8916,11 +8931,55 @@ async function voiceReturnToCall() {
 }
 
 // ---- Peer connections (mesh) ----
-function voiceCreatePeer(username, initiator) {
+// ---- Low-latency voice tuning ----
+// WebRTC keeps a jitter buffer to smooth out network jitter, but by default it
+// can grow past 200 ms, which is heard as lag/delay. We ask for the smallest
+// buffer so voice arrives as close to real-time as possible. Both properties
+// are best-effort and are silently ignored where unsupported (e.g. Firefox).
+function voiceTuneReceiver(receiver) {
+  if (!receiver) return;
+  try { if ('jitterBufferTarget' in receiver) receiver.jitterBufferTarget = 0; } catch (e) {}
+  try { if ('playoutDelayHint' in receiver) receiver.playoutDelayHint = 0; } catch (e) {}
+}
+// Apply low-latency settings to a whole peer connection: shrink every audio
+// receiver's buffer and request a high-priority, low-bitrate Opus stream so the
+// audio is transmitted with minimal delay.
+function voiceTuneLowLatency(pc) {
+  if (!pc) return;
+  try {
+    pc.getReceivers().forEach((r) => { if (r.track && r.track.kind === 'audio') voiceTuneReceiver(r); });
+  } catch (e) {}
+  try {
+    pc.getSenders().forEach((s) => {
+      if (!s.track || s.track.kind !== 'audio') return;
+      try {
+        const params = s.getParameters();
+        if (params.encodings && params.encodings.length) {
+          params.encodings.forEach((enc) => { try { enc.maxBitrate = 51000; } catch (e) {} });
+          try { if ('networkPriority' in params.encodings[0]) params.encodings[0].networkPriority = 'high'; } catch (e) {}
+        }
+        const pr = s.setParameters(params);
+        if (pr && pr.catch) pr.catch(() => {});
+      } catch (e) {}
+    });
+  } catch (e) {}
+}
+function voiceCreatePeer(username, initiator, state) {
   if (!username || username === currentUser.username) return null;
   let p = voiceCall.peers.get(username);
   if (p && p.pc) return p;
   if (!p) { p = { username, muted: false, deafened: false, speaking: false }; voiceCall.peers.set(username, p); }
+  // Adopt any state we already know about this peer (handed over in the
+  // voice-join ack). Without this, a joiner would render every existing peer as
+  // unmuted / not-sharing until that peer happened to toggle something \u2014 which
+  // is exactly what made the PC app and the browser look out of sync.
+  if (state && typeof state === 'object') {
+    if (state.muted !== undefined) p.muted = !!state.muted;
+    if (state.deafened !== undefined) p.deafened = !!state.deafened;
+    if (state.speaking !== undefined) p.speaking = !!state.speaking;
+    if (state.screenSharing !== undefined) p.screenSharing = !!state.screenSharing;
+    if (state.cameraOn !== undefined) p.cameraOn = !!state.cameraOn;
+  }
   const pc = new RTCPeerConnection({ iceServers: VOICE_ICE_SERVERS, iceCandidatePoolSize: 4, bundlePolicy: 'max-bundle', rtcpMuxPolicy: 'require' });
   p.pc = pc;
   p.pendingCandidates = [];
@@ -8932,6 +8991,9 @@ function voiceCreatePeer(username, initiator) {
   audioEl.autoplay = true;
   audioEl.setAttribute('playsinline', '');
   audioEl.volume = Math.min(1, voicePeerVolume(username));
+  // Low-latency playback: keep the playout buffer as small as possible so voice
+  // is heard with minimal delay (honoured by Chrome/Electron; harmless elsewhere).
+  try { audioEl.playoutDelayHint = 0; } catch (e) {}
   // Route to the user's saved output device, if the browser supports it.
   if (voiceCall.outputDevice && audioEl.setSinkId) { try { audioEl.setSinkId(voiceCall.outputDevice); } catch (e) {} }
   p.audioEl = audioEl;
@@ -8947,6 +9009,8 @@ function voiceCreatePeer(username, initiator) {
         return;
       }
       audioEl.srcObject = stream;
+      // Shrink this receiver's jitter buffer for low-latency voice.
+      voiceTuneReceiver(ev.receiver);
       // Route through a WebAudio gain node so we can amplify past 100%.
       try {
         const ctx = voiceGainCtx();
@@ -8974,6 +9038,7 @@ function voiceCreatePeer(username, initiator) {
     if (ev.candidate) socket.emit('voice-signal', { serverId: voiceCall.serverId, channelId: voiceCall.channelId, to: username, data: { candidate: ev.candidate } });
   };
   pc.onconnectionstatechange = () => {
+    if (pc.connectionState === 'connected') { voiceTuneLowLatency(pc); }
     if (pc.connectionState === 'failed') { try { pc.restartIce(); } catch (e) {} }
   };
   pc.oniceconnectionstatechange = () => {
@@ -9174,7 +9239,12 @@ async function voiceStartScreenShare(surface) {
   voiceUpdateControls();
   voiceRenderStage();
   voiceUpdatePip();
-  toast('Screen sharing started', 'success');
+  // On the PC/desktop app the screen-share picker already confirms the choice,
+  // so the "successfully shared screen" toast is redundant there. Only show it
+  // in the browser.
+  if (!(window.hellobyeDesktop && window.hellobyeDesktop.isDesktop)) {
+    toast('Screen sharing started', 'success');
+  }
 }
 function voiceStopScreenShare(silent) {
   if (!voiceCall.screenSharing && !voiceCall.screenStream) return;
@@ -9298,8 +9368,15 @@ function voiceStartHealthCheck() {
         voiceCreatePeer(u, true);
       } else if (st === 'disconnected') {
         try { p.pc.restartIce(); } catch (e) {}
+      } else if (st === 'connected') {
+        // Re-assert the low-latency audio settings in case a renegotiation
+        // (screen-share / camera toggle) reset the receiver's jitter buffer.
+        try { p.pc.getReceivers().forEach((r) => { if (r.track && r.track.kind === 'audio') voiceTuneReceiver(r); }); } catch (e) {}
       }
-      if (p.audioEl && p.audioEl.paused && p.audioEl.srcObject) { p.audioEl.play().catch(() => {}); }
+      if (p.audioEl) {
+        try { p.audioEl.playoutDelayHint = 0; } catch (e) {}
+        if (p.audioEl.paused && p.audioEl.srcObject) { p.audioEl.play().catch(() => {}); }
+      }
     });
   }, 4000);
 }
@@ -9830,6 +9907,23 @@ function voiceSetMuted(muted) {
   if (self) { self.muted = voiceCall.muted; voiceUpdateTile(currentUser.username); }
   voiceUpdateControls();
   socket.emit('voice-state', { serverId: voiceCall.serverId, channelId: voiceCall.channelId, muted: voiceCall.muted });
+}
+// Broadcast our COMPLETE voice state (mute / deafen / screen-share / camera) in
+// a single message. Called right after joining (and after a reconnect) so every
+// other participant — whether they are on the PC app or the browser — shows our
+// true state immediately, keeping all clients in sync.
+function voiceBroadcastState() {
+  if (!voiceCall.active || !voiceCall.serverId || !voiceCall.channelId) return;
+  try {
+    socket.emit('voice-state', {
+      serverId: voiceCall.serverId,
+      channelId: voiceCall.channelId,
+      muted: !!voiceCall.muted,
+      deafened: !!voiceCall.deafened,
+      screenSharing: !!voiceCall.screenSharing,
+      cameraOn: !!voiceCall.cameraOn,
+    });
+  } catch (e) {}
 }
 function voiceSetDeafened(deaf) {
   voiceCall.deafened = !!deaf;

@@ -11,7 +11,7 @@ contextBridge.exposeInMainWorld('hellobyeDesktop', {
   platform: process.platform,
   getVersion: () => ipcRenderer.invoke('app-version'),
   checkForUpdate: () => ipcRenderer.invoke('check-update-now'),
-  applyUpdate: () => ipcRenderer.send('apply-update'),
+  downloadNewBuild: () => ipcRenderer.send('download-new-build'),
   dismissUpdate: () => ipcRenderer.send('dismiss-update'),
   // Native window controls (driven by the custom window-control cluster).
   minimize: () => ipcRenderer.send('window-minimize'),
@@ -356,146 +356,131 @@ ipcRenderer.on('display-sources', (e, list) => {
 });
 
 // ============================================================
-// Soft-update toast — restarts the whole client to apply updates
+// Update prompt — a centered modal telling the user to download
+// the new build. There is NO soft restart any more: clicking
+// "Download" opens the download page in the system browser, closes
+// the app, and removes the installed PC app so the fresh build can
+// be installed cleanly.
 // ============================================================
-function injectToastStyles() {
+function injectUpdateStyles() {
   if (document.getElementById('hb-update-style')) return;
   const style = document.createElement('style');
   style.id = 'hb-update-style';
   style.textContent = `
-    #hb-update-toast {
-      position: fixed; right: 20px; bottom: 20px; z-index: 2147483647;
-      width: min(380px, calc(100vw - 40px)); overflow: hidden;
-      background: linear-gradient(180deg, #202127, #16171b);
-      border: 1px solid rgba(255,255,255,0.09); border-radius: 16px;
-      box-shadow: 0 24px 60px rgba(0,0,0,0.6), 0 0 0 1px rgba(0,0,0,0.35);
-      color: #e9eaee; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-      transform: translateY(24px) scale(0.98); opacity: 0; pointer-events: none;
-      transition: transform .34s cubic-bezier(.2,.9,.3,1.15), opacity .28s ease;
-    }
-    #hb-update-toast.show { transform: translateY(0) scale(1); opacity: 1; pointer-events: auto; }
-    #hb-update-toast .hb-ut-accent { height: 3px; width: 100%; background: linear-gradient(90deg, #5865f2, #8b93ff, #5865f2); }
-    #hb-update-toast .hb-ut-body { padding: 16px 18px 15px; }
-    #hb-update-toast .hb-ut-head { display: flex; align-items: center; gap: 12px; margin-bottom: 11px; }
-    #hb-update-toast .hb-ut-icon {
-      width: 38px; height: 38px; flex: 0 0 auto; border-radius: 11px;
+    #hb-update-overlay {
+      position: fixed; inset: 0; z-index: 2147483647;
       display: flex; align-items: center; justify-content: center;
-      background: linear-gradient(135deg, rgba(88,101,242,0.28), rgba(139,147,255,0.16));
-      border: 1px solid rgba(139,147,255,0.35); color: #aab1ff;
+      padding: 24px;
+      background: rgba(6,7,10,0.74);
+      -webkit-backdrop-filter: blur(7px); backdrop-filter: blur(7px);
+      opacity: 0; pointer-events: none; transition: opacity .22s ease;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
     }
-    #hb-update-toast .hb-ut-icon svg { width: 19px; height: 19px; }
-    #hb-update-toast .hb-ut-headtext { min-width: 0; }
-    #hb-update-toast .hb-ut-title { font-size: 14.5px; font-weight: 800; letter-spacing: .01em; color: #fff; }
-    #hb-update-toast .hb-ut-sub { font-size: 11.5px; color: #8a8d96; margin-top: 1px; }
-    #hb-update-toast .hb-ut-text { font-size: 12.8px; color: #a9abb3; line-height: 1.55; margin-bottom: 14px; }
-    #hb-update-toast .hb-ut-text b { color: #c9ccff; font-weight: 700; }
-    #hb-update-toast .hb-ut-actions { display: flex; gap: 9px; }
-    #hb-update-toast button {
-      font: inherit; font-size: 12.8px; font-weight: 700; cursor: pointer;
-      border-radius: 10px; padding: 10px 14px; border: 1px solid transparent;
+    #hb-update-overlay.show { opacity: 1; pointer-events: auto; }
+    #hb-update-card {
+      width: min(460px, calc(100vw - 48px));
+      background: linear-gradient(180deg, #202127, #16171b);
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: 18px; overflow: hidden;
+      box-shadow: 0 30px 80px rgba(0,0,0,0.65), 0 0 0 1px rgba(0,0,0,0.4);
+      color: #e9eaee;
+      transform: translateY(16px) scale(0.96);
+      transition: transform .3s cubic-bezier(.2,.9,.3,1.15);
+    }
+    #hb-update-overlay.show #hb-update-card { transform: translateY(0) scale(1); }
+    #hb-update-card .hb-up-accent { height: 3px; width: 100%; background: linear-gradient(90deg, #5865f2, #8b93ff, #5865f2); }
+    #hb-update-card .hb-up-body { padding: 26px 26px 22px; text-align: center; }
+    #hb-update-card .hb-up-icon {
+      width: 58px; height: 58px; margin: 0 auto 16px; border-radius: 16px;
+      display: flex; align-items: center; justify-content: center;
+      background: linear-gradient(135deg, rgba(88,101,242,0.30), rgba(139,147,255,0.16));
+      border: 1px solid rgba(139,147,255,0.38); color: #aab1ff;
+    }
+    #hb-update-card .hb-up-icon svg { width: 28px; height: 28px; }
+    #hb-update-card .hb-up-title { font-size: 19px; font-weight: 800; letter-spacing: .01em; color: #fff; margin-bottom: 8px; }
+    #hb-update-card .hb-up-text { font-size: 13.5px; color: #a9abb3; line-height: 1.6; margin-bottom: 8px; }
+    #hb-update-card .hb-up-text b { color: #c9ccff; font-weight: 700; }
+    #hb-update-card .hb-up-ver { font-size: 11.5px; color: #8a8d96; margin-bottom: 20px; }
+    #hb-update-card .hb-up-actions { display: flex; flex-direction: column; gap: 10px; }
+    #hb-update-card button {
+      font: inherit; font-size: 14px; font-weight: 700; cursor: pointer;
+      border-radius: 11px; padding: 13px 16px; border: 1px solid transparent;
       transition: filter .15s ease, background .15s ease, opacity .15s ease;
     }
-    #hb-update-toast .hb-ut-restart { flex: 1 1 auto; background: #5865f2; color: #fff; }
-    #hb-update-toast .hb-ut-restart:hover { filter: brightness(1.1); }
-    #hb-update-toast .hb-ut-later { flex: 0 0 auto; background: transparent; color: #c7c9d1; border-color: rgba(255,255,255,0.14); }
-    #hb-update-toast .hb-ut-later:hover { background: rgba(255,255,255,0.06); }
-    #hb-update-toast .hb-ut-count { margin-top: 11px; font-size: 11.5px; color: #8a8d96; text-align: center; }
-    #hb-update-toast .hb-ut-count b { color: #aab1ff; }
-    #hb-update-toast .hb-ut-progress { height: 3px; width: 100%; background: rgba(255,255,255,0.06); }
-    #hb-update-toast .hb-ut-progress span {
-      display: block; height: 100%; width: 100%; transform-origin: left;
-      background: linear-gradient(90deg, #5865f2, #8b93ff);
-    }
-    #hb-update-toast.restarting .hb-ut-actions { opacity: .5; pointer-events: none; }
-    #hb-update-toast.restarting .hb-ut-icon svg { animation: hb-ut-spin 1s linear infinite; }
-    @keyframes hb-ut-spin { to { transform: rotate(360deg); } }
+    #hb-update-card .hb-up-download { background: #5865f2; color: #fff; }
+    #hb-update-card .hb-up-download:hover { filter: brightness(1.1); }
+    #hb-update-card .hb-up-later { background: transparent; color: #c7c9d1; border-color: rgba(255,255,255,0.14); }
+    #hb-update-card .hb-up-later:hover { background: rgba(255,255,255,0.06); }
+    #hb-update-card .hb-up-note { margin-top: 14px; font-size: 11px; color: #7c7f88; line-height: 1.5; }
+    #hb-update-overlay.working .hb-up-actions { opacity: .55; pointer-events: none; }
+    #hb-update-overlay.working .hb-up-icon svg { animation: hb-up-spin 1s linear infinite; }
+    @keyframes hb-up-spin { to { transform: rotate(360deg); } }
   `;
   (document.head || document.documentElement).appendChild(style);
 }
 
-let toastEl = null;
-let countdownTimer = null;
-const COUNTDOWN = 20;
+let updateOverlayEl = null;
 
-function showToast() {
-  injectToastStyles();
-  if (toastEl) { toastEl.classList.add('show'); return; }
+function showUpdateModal() {
+  injectUpdateStyles();
+  if (updateOverlayEl) { updateOverlayEl.classList.add('show'); return; }
 
-  toastEl = document.createElement('div');
-  toastEl.id = 'hb-update-toast';
-  toastEl.innerHTML =
-    '<div class="hb-ut-accent"></div>' +
-    '<div class="hb-ut-body">' +
-      '<div class="hb-ut-head">' +
-        '<span class="hb-ut-icon">' +
+  updateOverlayEl = document.createElement('div');
+  updateOverlayEl.id = 'hb-update-overlay';
+  updateOverlayEl.innerHTML =
+    '<div id="hb-update-card" role="dialog" aria-modal="true" aria-labelledby="hb-up-title">' +
+      '<div class="hb-up-accent"></div>' +
+      '<div class="hb-up-body">' +
+        '<div class="hb-up-icon">' +
           '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
-            '<path d="M21 12a9 9 0 1 1-3-6.7"/><polyline points="21 3 21 9 15 9"/>' +
+            '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>' +
+            '<polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>' +
           '</svg>' +
-        '</span>' +
-        '<div class="hb-ut-headtext">' +
-          '<div class="hb-ut-title">Update ready</div>' +
-          '<div class="hb-ut-sub" id="hb-ut-sub">Hellobye for PC</div>' +
         '</div>' +
+        '<div class="hb-up-title" id="hb-up-title">A new build is available</div>' +
+        '<div class="hb-up-text">A newer version of <b>Hellobye for PC</b> is ready. Download the new build to get the latest fixes and features.</div>' +
+        '<div class="hb-up-ver" id="hb-up-ver">Hellobye for PC</div>' +
+        '<div class="hb-up-actions">' +
+          '<button class="hb-up-download" id="hb-up-download" type="button">Download new build</button>' +
+          '<button class="hb-up-later" id="hb-up-later" type="button">Later</button>' +
+        '</div>' +
+        '<div class="hb-up-note">Downloading closes Hellobye, removes the installed app, and opens the download page so you can install the fresh build.</div>' +
       '</div>' +
-      '<div class="hb-ut-text">A new version of Hellobye is available. Restart the app to apply it \u2014 your login and data are kept.</div>' +
-      '<div class="hb-ut-actions">' +
-        '<button class="hb-ut-later" id="hb-ut-later" type="button">Later</button>' +
-        '<button class="hb-ut-restart" id="hb-ut-restart" type="button">Restart now</button>' +
-      '</div>' +
-      '<div class="hb-ut-count">Restarting automatically in <b id="hb-ut-count">' + COUNTDOWN + '</b>s</div>' +
-    '</div>' +
-    '<div class="hb-ut-progress"><span id="hb-ut-progress"></span></div>';
-  document.body.appendChild(toastEl);
-  requestAnimationFrame(() => toastEl.classList.add('show'));
+    '</div>';
+  document.body.appendChild(updateOverlayEl);
+  requestAnimationFrame(() => updateOverlayEl.classList.add('show'));
 
-  // Fill in the app version.
+  // Fill in the current app version.
   try {
     ipcRenderer.invoke('app-version').then((v) => {
-      const sub = toastEl && toastEl.querySelector('#hb-ut-sub');
-      if (sub && v) sub.textContent = 'Hellobye for PC \u00b7 v' + v;
+      const el = updateOverlayEl && updateOverlayEl.querySelector('#hb-up-ver');
+      if (el && v) el.textContent = 'Currently installed: v' + v;
     }).catch(() => {});
   } catch (e) {}
 
-  const prog = toastEl.querySelector('#hb-ut-progress');
-  if (prog) {
-    prog.style.transition = 'transform ' + COUNTDOWN + 's linear';
-    requestAnimationFrame(() => { prog.style.transform = 'scaleX(0)'; });
-  }
-
-  toastEl.querySelector('#hb-ut-restart').addEventListener('click', doRestart);
-  toastEl.querySelector('#hb-ut-later').addEventListener('click', () => {
-    clearInterval(countdownTimer);
+  updateOverlayEl.querySelector('#hb-up-download').addEventListener('click', doDownload);
+  updateOverlayEl.querySelector('#hb-up-later').addEventListener('click', () => {
     ipcRenderer.send('dismiss-update');
-    if (toastEl) toastEl.classList.remove('show');
+    if (updateOverlayEl) updateOverlayEl.classList.remove('show');
   });
-
-  let remaining = COUNTDOWN;
-  const cd = toastEl.querySelector('#hb-ut-count');
-  countdownTimer = setInterval(() => {
-    remaining -= 1;
-    if (cd) cd.textContent = String(Math.max(0, remaining));
-    if (remaining <= 0) { clearInterval(countdownTimer); doRestart(); }
-  }, 1000);
 }
 
-function doRestart() {
-  clearInterval(countdownTimer);
-  if (toastEl) {
-    toastEl.classList.add('restarting');
-    const title = toastEl.querySelector('.hb-ut-title');
-    const text = toastEl.querySelector('.hb-ut-text');
-    const count = toastEl.querySelector('.hb-ut-count');
-    if (title) title.textContent = 'Restarting\u2026';
-    if (text) text.textContent = 'Closing and reopening Hellobye to apply the update.';
-    if (count) count.textContent = 'Please wait\u2026';
+function doDownload() {
+  if (updateOverlayEl) {
+    updateOverlayEl.classList.add('working');
+    const t = updateOverlayEl.querySelector('.hb-up-title');
+    const x = updateOverlayEl.querySelector('.hb-up-text');
+    if (t) t.textContent = 'Opening download page\u2026';
+    if (x) x.textContent = 'Closing Hellobye and opening the download page in your browser.';
   }
-  // Give the UI a beat to paint, then restart the whole client.
-  setTimeout(() => ipcRenderer.send('apply-update'), 350);
+  // Ask the main process to open the download page, remove the installed app,
+  // and quit. The main process handles the self-deletion safely.
+  setTimeout(() => ipcRenderer.send('download-new-build'), 250);
 }
 
 ipcRenderer.on('soft-update-available', () => {
-  if (document.body) showToast();
-  else window.addEventListener('DOMContentLoaded', showToast, { once: true });
+  if (document.body) showUpdateModal();
+  else window.addEventListener('DOMContentLoaded', showUpdateModal, { once: true });
 });
 
 // ============================================================
