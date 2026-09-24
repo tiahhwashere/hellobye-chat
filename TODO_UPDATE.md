@@ -19,8 +19,8 @@
 - [x] index.html renderEmbed: richer card (type badge, author, date, reading time, section, tags, domain)
 
 ## Ship
-- [ ] Bump desktop version (1.6.1 -> 1.6.2)
-- [ ] Build + publish desktop release
-- [ ] Update server.js fallback + download.html
-- [ ] Commit + push to GitHub
-- [ ] Trigger Render deploy + verify live
+- [x] Bump desktop version (1.6.1 -> 1.6.2)
+- [x] Build + publish desktop release (desktop-v1.6.2)
+- [x] Update server.js fallback + download.html
+- [x] Commit + push to GitHub
+- [x] Trigger Render deploy + verify live (dep-daqp9hnavr4c73bro7d0 live)
