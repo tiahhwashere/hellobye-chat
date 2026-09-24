@@ -17,7 +17,7 @@
 //    refresh, and the login/data are kept (persistent partition).
 //  - Microphone/camera permissions are granted automatically so voice works.
 
-const { app, BrowserWindow, shell, session, Menu, dialog, ipcMain, screen } = require('electron');
+const { app, BrowserWindow, shell, session, Menu, dialog, ipcMain, screen, desktopCapturer } = require('electron');
 const path = require('path');
 const fs = require('fs');
 
@@ -154,6 +154,16 @@ function createWindow() {
     },
   });
 
+  // Restore the window mode the user last closed the app in (full screen or
+  // restored/maximised). This is saved automatically on close and on every
+  // mode change, so it is always up to date.
+  const savedWin = readState().window || {};
+  if (savedWin.fullScreen) {
+    try { mainWindow.setFullScreen(true); } catch (e) {}
+  } else if (savedWin.maximized) {
+    try { mainWindow.maximize(); } catch (e) {}
+  }
+
   // Zoom the app content out to ~60% so the original layout isn't smushed.
   applyZoom(DEFAULT_ZOOM, false);
 
@@ -162,9 +172,14 @@ function createWindow() {
   // Re-assert the zoom once the page has loaded (zoom can reset on navigation).
   mainWindow.webContents.on('did-finish-load', () => applyZoom(currentZoom, false));
 
-  // Keep the renderer's maximise/restore icon in sync.
-  mainWindow.on('maximize', () => sendToRenderer('window-maximized', true));
-  mainWindow.on('unmaximize', () => sendToRenderer('window-maximized', false));
+  // Keep the renderer's maximise/restore icon in sync, and remember the window
+  // mode so it can be restored on the next launch.
+  mainWindow.on('maximize', () => { sendToRenderer('window-maximized', true); captureWindowState(); });
+  mainWindow.on('unmaximize', () => { sendToRenderer('window-maximized', false); captureWindowState(); });
+  mainWindow.on('enter-full-screen', () => { sendToRenderer('window-maximized', true); captureWindowState(); });
+  mainWindow.on('leave-full-screen', () => { sendToRenderer('window-maximized', false); captureWindowState(); });
+  // Persist the exact mode at the moment the user closes the app.
+  mainWindow.on('close', captureWindowState);
 
   // Open external links (http/https not on our origin) in the system browser.
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
@@ -203,6 +218,21 @@ function sendToRenderer(channel, payload) {
   if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send(channel, payload);
 }
 
+// Remember whether the window was in full screen or restored (maximised /
+// normal) so the exact same mode is restored on the next launch. Saved
+// automatically whenever the mode changes and when the user closes the app.
+function captureWindowState() {
+  if (!mainWindow || mainWindow.isDestroyed()) return;
+  try {
+    writeState({
+      window: {
+        fullScreen: mainWindow.isFullScreen(),
+        maximized: mainWindow.isMaximized(),
+      },
+    });
+  } catch (e) { /* non-fatal */ }
+}
+
 function iconPath() {
   const ico = path.join(__dirname, 'assets', 'icon.ico');
   const png = path.join(__dirname, 'assets', 'icon.png');
@@ -238,6 +268,72 @@ function configurePermissions() {
     callback(allowed.has(permission));
   });
   ses.setPermissionCheckHandler((wc, permission) => allowed.has(permission));
+}
+
+// ---- Screen sharing ----
+// Electron REQUIRES a display-media request handler. Without one,
+// navigator.mediaDevices.getDisplayMedia() rejects and the site shows
+// "Could not start screen share. Please try again." Here we gather the
+// available screens + windows and let the user pick one through an in-app
+// picker (rendered by preload.js). The chosen source is handed back to the
+// page, so the screen share starts and every other user in the call receives
+// the video track over the existing peer connections.
+let pendingDisplayPick = null;
+
+function listDisplaySources() {
+  return desktopCapturer.getSources({
+    types: ['screen', 'window'],
+    thumbnailSize: { width: 320, height: 200 },
+    fetchWindowIcons: true,
+  });
+}
+
+// Ask the renderer to show the source picker and resolve with the chosen id
+// (or null if the user cancels / the picker times out).
+function requestDisplaySourcePick(sources) {
+  return new Promise((resolve) => {
+    if (!mainWindow || mainWindow.isDestroyed()) { resolve(sources[0] ? sources[0].id : null); return; }
+    const list = sources.map((s) => {
+      let thumb = '';
+      try { thumb = (s.thumbnail && !s.thumbnail.isEmpty()) ? s.thumbnail.toDataURL() : ''; } catch (e) {}
+      let icon = '';
+      try { icon = (s.appIcon && !s.appIcon.isEmpty()) ? s.appIcon.toDataURL() : ''; } catch (e) {}
+      return { id: s.id, name: s.name, thumbnail: thumb, appIcon: icon, isScreen: /^screen:/.test(s.id) };
+    });
+    const finish = (id) => {
+      if (pendingDisplayPick) { clearTimeout(pendingDisplayPick.timer); pendingDisplayPick = null; }
+      resolve(id || null);
+    };
+    pendingDisplayPick = { finish, timer: setTimeout(() => finish(null), 60000) };
+    mainWindow.webContents.send('display-sources', list);
+  });
+}
+
+ipcMain.on('display-source-pick', (e, id) => { if (pendingDisplayPick) pendingDisplayPick.finish(id); });
+ipcMain.on('display-source-cancel', () => { if (pendingDisplayPick) pendingDisplayPick.finish(null); });
+
+function configureScreenShare() {
+  const ses = session.fromPartition('persist:hellobye');
+  ses.setDisplayMediaRequestHandler(async (request, callback) => {
+    try {
+      const sources = await listDisplaySources();
+      if (!sources || !sources.length) { callback({}); return; }
+      // Only one thing to share -> pick it automatically. Otherwise show the
+      // in-app picker so the user chooses a screen or window.
+      const chosenId = sources.length === 1
+        ? sources[0].id
+        : await requestDisplaySourcePick(sources);
+      if (!chosenId) { callback({}); return; } // cancelled -> getDisplayMedia rejects
+      const source = sources.find((s) => s.id === chosenId) || sources[0];
+      const streams = { video: source };
+      // System-audio loopback is only supported on Windows. On other platforms
+      // we hand back video only; the page retries video-only anyway.
+      if (request.audioRequested && process.platform === 'win32') streams.audio = 'loopback';
+      callback(streams);
+    } catch (e) {
+      try { callback({}); } catch (e2) {}
+    }
+  });
 }
 
 // ---- Soft update detection ----
@@ -330,7 +426,9 @@ ipcMain.on('window-maximize-toggle', () => {
   if (mainWindow.isMaximized()) mainWindow.unmaximize(); else mainWindow.maximize();
 });
 ipcMain.on('window-close', () => { if (mainWindow && !mainWindow.isDestroyed()) mainWindow.close(); });
+ipcMain.on('window-toggle-fullscreen', () => toggleFullScreen());
 ipcMain.handle('window-is-maximized', () => !!(mainWindow && !mainWindow.isDestroyed() && mainWindow.isMaximized()));
+ipcMain.handle('window-is-fullscreen', () => !!(mainWindow && !mainWindow.isDestroyed() && mainWindow.isFullScreen()));
 
 // ---- Lifecycle ----
 const gotLock = app.requestSingleInstanceLock();
@@ -343,6 +441,7 @@ if (!gotLock) {
 
   app.whenReady().then(() => {
     configurePermissions();
+    configureScreenShare();
     buildMenu();
     createSplash();
     createWindow();

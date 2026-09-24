@@ -8607,9 +8607,15 @@ async function acquireScreen(surface, channelName) {
   try {
     return await navigator.mediaDevices.getDisplayMedia({ video, audio: true });
   } catch (e) {
+    // If the user simply cancelled the picker, don't retry or show an error.
+    if (e && (e.name === 'NotAllowedError' || e.name === 'AbortError')) return null;
+    // The audio request may have failed (e.g. system audio unsupported) — retry
+    // video-only before giving up.
     try { return await navigator.mediaDevices.getDisplayMedia({ video, audio: false }); }
     catch (e2) {
-      if (e2 && e2.name !== 'NotAllowedError') permPromptError('screen', 'Could not start screen share. Please try again.');
+      if (!(e2 && (e2.name === 'NotAllowedError' || e2.name === 'AbortError'))) {
+        permPromptError('screen', 'Could not start screen share. Please try again.');
+      }
       return null;
     }
   }
@@ -9053,6 +9059,12 @@ function voiceToggleScreenShare() {
   if (voiceCall.screenSharing) { voiceStopScreenShare(); return; }
   if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
     toast('Screen sharing is not supported in this browser.', 'error'); return;
+  }
+  // In the desktop app, Electron provides its own screen/window picker, so skip
+  // the in-app surface chooser and go straight to capture.
+  if (window.hellobyeDesktop && window.hellobyeDesktop.pickDisplaySource) {
+    voiceStartScreenShare('');
+    return;
   }
   const ov = $('vs-share-overlay');
   if (ov) { ov.classList.add('show'); return; }

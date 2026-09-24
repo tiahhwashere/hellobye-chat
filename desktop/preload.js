@@ -17,9 +17,15 @@ contextBridge.exposeInMainWorld('hellobyeDesktop', {
   minimize: () => ipcRenderer.send('window-minimize'),
   maximizeToggle: () => ipcRenderer.send('window-maximize-toggle'),
   close: () => ipcRenderer.send('window-close'),
+  toggleFullscreen: () => ipcRenderer.send('window-toggle-fullscreen'),
   isMaximized: () => ipcRenderer.invoke('window-is-maximized'),
+  isFullscreen: () => ipcRenderer.invoke('window-is-fullscreen'),
   onMaximized: (cb) => { if (typeof cb === 'function') ipcRenderer.on('window-maximized', (e, v) => cb(!!v)); },
   onSoftUpdate: (cb) => { if (typeof cb === 'function') ipcRenderer.on('soft-update-available', () => cb()); },
+  // Screen-share source picker (Electron has no native picker; we render one).
+  onDisplaySources: (cb) => { if (typeof cb === 'function') ipcRenderer.on('display-sources', (e, list) => cb(list)); },
+  pickDisplaySource: (id) => ipcRenderer.send('display-source-pick', id),
+  cancelDisplaySource: () => ipcRenderer.send('display-source-cancel'),
 });
 
 // Mark the document as running inside the native app as early as possible so
@@ -202,6 +208,152 @@ function watchHeader() {
     mo.observe(document.documentElement, { childList: true, subtree: true });
   } catch (e) {}
 }
+
+// ============================================================
+// Screen-share source picker
+// ============================================================
+// Electron has no built-in getDisplayMedia picker, so the main process sends
+// us the list of screens/windows and we render a native-feeling chooser. The
+// chosen source id goes back to main, which hands it to getDisplayMedia.
+function injectShareStyles() {
+  if (document.getElementById('hb-share-style')) return;
+  const style = document.createElement('style');
+  style.id = 'hb-share-style';
+  style.textContent = `
+    #hb-share-overlay {
+      position: fixed; inset: 0; z-index: 2147483646;
+      display: none; align-items: center; justify-content: center;
+      background: rgba(6,7,10,0.72); backdrop-filter: blur(3px);
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      -webkit-app-region: no-drag;
+    }
+    #hb-share-overlay.show { display: flex; }
+    #hb-share-card {
+      width: min(880px, calc(100vw / var(--hb-z, 1) - 60px));
+      max-height: calc(100vh / var(--hb-z, 1) - 80px);
+      display: flex; flex-direction: column;
+      background: linear-gradient(180deg, #202127, #16171b);
+      border: 1px solid rgba(255,255,255,0.09); border-radius: 16px;
+      box-shadow: 0 30px 80px rgba(0,0,0,0.65), 0 0 0 1px rgba(0,0,0,0.4);
+      color: #e9eaee; overflow: hidden;
+    }
+    #hb-share-card .hb-sh-head { padding: 18px 20px 12px; }
+    #hb-share-card .hb-sh-title { font-size: 16px; font-weight: 800; color: #fff; }
+    #hb-share-card .hb-sh-sub { font-size: 12.5px; color: #8a8d96; margin-top: 3px; }
+    #hb-share-card .hb-sh-grid {
+      padding: 6px 20px 16px; overflow-y: auto;
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px;
+    }
+    #hb-share-card .hb-sh-item {
+      cursor: pointer; border-radius: 12px; overflow: hidden;
+      background: #23242a; border: 2px solid transparent;
+      transition: border-color .12s ease, transform .12s ease, background .12s ease;
+      display: flex; flex-direction: column;
+    }
+    #hb-share-card .hb-sh-item:hover { border-color: #5865f2; background: #2a2b33; transform: translateY(-1px); }
+    #hb-share-card .hb-sh-thumb {
+      width: 100%; aspect-ratio: 16 / 10; object-fit: cover; display: block;
+      background: #101116;
+    }
+    #hb-share-card .hb-sh-empty-thumb {
+      width: 100%; aspect-ratio: 16 / 10; display: flex; align-items: center; justify-content: center;
+      background: #101116; color: #4a4d57;
+    }
+    #hb-share-card .hb-sh-empty-thumb svg { width: 34px; height: 34px; }
+    #hb-share-card .hb-sh-meta { display: flex; align-items: center; gap: 8px; padding: 9px 11px; min-width: 0; }
+    #hb-share-card .hb-sh-icon { width: 18px; height: 18px; flex: 0 0 auto; border-radius: 4px; object-fit: contain; }
+    #hb-share-card .hb-sh-name {
+      font-size: 12.5px; font-weight: 600; color: #d6d8df; white-space: nowrap;
+      overflow: hidden; text-overflow: ellipsis;
+    }
+    #hb-share-card .hb-sh-tag {
+      flex: 0 0 auto; font-size: 10px; font-weight: 800; letter-spacing: .04em;
+      text-transform: uppercase; color: #aab1ff; background: rgba(88,101,242,0.16);
+      border: 1px solid rgba(139,147,255,0.3); border-radius: 6px; padding: 2px 6px;
+    }
+    #hb-share-card .hb-sh-foot {
+      display: flex; justify-content: flex-end; gap: 10px;
+      padding: 14px 20px; border-top: 1px solid rgba(255,255,255,0.07);
+    }
+    #hb-share-card .hb-sh-foot button {
+      font: inherit; font-size: 13px; font-weight: 700; cursor: pointer;
+      border-radius: 10px; padding: 10px 16px; border: 1px solid transparent;
+    }
+    #hb-share-card .hb-sh-cancel { background: transparent; color: #c7c9d1; border-color: rgba(255,255,255,0.14); }
+    #hb-share-card .hb-sh-cancel:hover { background: rgba(255,255,255,0.06); }
+  `;
+  (document.head || document.documentElement).appendChild(style);
+}
+
+let shareOverlay = null;
+
+function buildSharePicker() {
+  if (document.getElementById('hb-share-overlay')) return;
+  injectShareStyles();
+  shareOverlay = document.createElement('div');
+  shareOverlay.id = 'hb-share-overlay';
+  shareOverlay.innerHTML =
+    '<div id="hb-share-card">' +
+      '<div class="hb-sh-head">' +
+        '<div class="hb-sh-title">Share your screen</div>' +
+        '<div class="hb-sh-sub">Choose a screen or window to show everyone in the call.</div>' +
+      '</div>' +
+      '<div class="hb-sh-grid" id="hb-sh-grid"></div>' +
+      '<div class="hb-sh-foot">' +
+        '<button class="hb-sh-cancel" id="hb-sh-cancel" type="button">Cancel</button>' +
+      '</div>' +
+    '</div>';
+  document.body.appendChild(shareOverlay);
+  shareOverlay.querySelector('#hb-sh-cancel').addEventListener('click', () => {
+    hideSharePicker();
+    ipcRenderer.send('display-source-cancel');
+  });
+  shareOverlay.addEventListener('click', (e) => {
+    if (e.target === shareOverlay) { hideSharePicker(); ipcRenderer.send('display-source-cancel'); }
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && shareOverlay && shareOverlay.classList.contains('show')) {
+      hideSharePicker();
+      ipcRenderer.send('display-source-cancel');
+    }
+  });
+}
+
+function hideSharePicker() {
+  if (shareOverlay) shareOverlay.classList.remove('show');
+}
+
+const SHARE_MONITOR_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>';
+
+function showSharePicker(sources) {
+  buildSharePicker();
+  const grid = shareOverlay.querySelector('#hb-sh-grid');
+  grid.innerHTML = '';
+  sources.forEach((s) => {
+    const item = document.createElement('div');
+    item.className = 'hb-sh-item';
+    const thumb = s.thumbnail
+      ? '<img class="hb-sh-thumb" src="' + s.thumbnail + '" alt="">'
+      : '<div class="hb-sh-empty-thumb">' + SHARE_MONITOR_ICON + '</div>';
+    const icon = s.appIcon ? '<img class="hb-sh-icon" src="' + s.appIcon + '" alt="">' : '';
+    const tag = s.isScreen ? '<span class="hb-sh-tag">Screen</span>' : '<span class="hb-sh-tag">Window</span>';
+    item.innerHTML =
+      thumb +
+      '<div class="hb-sh-meta">' + icon +
+        '<span class="hb-sh-name">' + (s.name || 'Untitled') + '</span>' + tag +
+      '</div>';
+    item.addEventListener('click', () => {
+      hideSharePicker();
+      ipcRenderer.send('display-source-pick', s.id);
+    });
+    grid.appendChild(item);
+  });
+  shareOverlay.classList.add('show');
+}
+
+ipcRenderer.on('display-sources', (e, list) => {
+  if (Array.isArray(list) && list.length) showSharePicker(list);
+});
 
 // ============================================================
 // Soft-update toast — restarts the whole client to apply updates
