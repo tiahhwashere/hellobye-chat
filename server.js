@@ -4927,12 +4927,12 @@ app.get('/api/version', (req, res) => {
 
 const DESKTOP_REPO = process.env.HELLOBYE_REPO || 'tiahhwashere/hellobye-chat';
 const DESKTOP_FALLBACK = {
-  version: '1.6.3',
+  version: '1.6.4',
   name: 'HelloBye-Setup.exe',
-  url: 'https://github.com/tiahhwashere/hellobye-chat/releases/download/desktop-v1.6.3/HelloBye-Setup.exe',
-  size: 78226488,
+  url: 'https://github.com/tiahhwashere/hellobye-chat/releases/download/desktop-v1.6.4/HelloBye-Setup.exe',
+  size: 78226412,
   publishedAt: null,
-  releaseUrl: 'https://github.com/tiahhwashere/hellobye-chat/releases/tag/desktop-v1.6.3',
+  releaseUrl: 'https://github.com/tiahhwashere/hellobye-chat/releases/tag/desktop-v1.6.4',
 };
 let desktopReleaseCache = { at: 0, data: null };
 const DESKTOP_CACHE_MS = 10 * 60 * 1000;
