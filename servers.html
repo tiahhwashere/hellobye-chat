@@ -126,8 +126,6 @@ input, textarea { font-family: inherit; }
 .server-empty.view-in { animation: viewIn 0.16s cubic-bezier(0.16,1,0.3,1); }
 .server-empty h2 { font-size: 26px; font-weight: 700; letter-spacing: -0.4px; }
 .server-empty p { color: var(--text-secondary); max-width: 460px; line-height: 1.65; }
-.server-empty .se-hero { width: 76px; height: 76px; border-radius: 22px; display: flex; align-items: center; justify-content: center; background: linear-gradient(180deg, rgba(var(--accent-rgb),0.18), rgba(var(--accent-rgb),0.05)); border: 1px solid rgba(var(--accent-rgb),0.30); color: var(--accent-light); box-shadow: 0 12px 34px rgba(0,0,0,0.35); }
-.server-empty .se-hero svg { width: 36px; height: 36px; }
 .server-empty .se-features { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 4px; }
 .server-empty .se-feature { display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; color: var(--text-secondary); background: var(--bg-medium); border: 1px solid var(--border); border-radius: 999px; padding: 6px 13px; }
 .server-empty .se-feature svg { width: 14px; height: 14px; color: var(--accent-light); }
@@ -453,9 +451,9 @@ input, textarea { font-family: inherit; }
   border: 1px solid rgba(255,255,255,0.14); border-radius: 6px; padding: 2px 7px; pointer-events: none;
 }
 .voice-player {
-  --vp-accent: #ff4d9d;
-  --vp-accent-2: #ff77b8;
-  --vp-accent-rgb: 255,77,157;
+  --vp-accent: #565b63;
+  --vp-accent-2: #9aa0a8;
+  --vp-accent-rgb: 86,91,99;
   display: flex; flex-direction: column; gap: 12px;
   padding: 16px 18px; width: 100%; min-width: 320px; max-width: 480px;
   background: linear-gradient(180deg, #1b1c22, #141519);
@@ -2852,9 +2850,11 @@ input, textarea { font-family: inherit; }
     </button>
     <div class="rail-divider"></div>
     <div id="rail-servers" style="display:flex;flex-direction:column;gap:8px;align-items:center;"></div>
-    <button class="rail-btn rail-add" id="rail-add" title="Create a server">+</button>
+    <button class="rail-btn rail-add" id="rail-add" title="Create a server">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px;"><rect x="3.25" y="3.25" width="17.5" height="17.5" rx="5"/><path d="M12 8.25v7.5"/><path d="M8.25 12h7.5"/></svg>
+    </button>
     <button class="rail-btn rail-join" id="rail-join" title="Join a server">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:22px;height:22px;"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px;"><path d="M13 4h5a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-5"/><path d="M9.5 8.5 13 12l-3.5 3.5"/><path d="M13 12H3.5"/></svg>
     </button>
     <button class="rail-btn rail-discover" id="rail-discover" title="Discover servers">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:22px;height:22px;"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
@@ -2866,7 +2866,6 @@ input, textarea { font-family: inherit; }
 
   <div class="server-main">
     <div class="server-empty" id="server-empty" style="display:none;">
-      <div class="se-hero"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></div>
       <h2>Welcome to Servers</h2>
       <p>Pick up where you left off, or start something new. Create your own space, join with an invite link, or explore public communities &mdash; each server has channels, roles, badges, and a shared chatroom everyone can read.</p>
       <div class="se-features">
@@ -2875,8 +2874,8 @@ input, textarea { font-family: inherit; }
         <span class="se-feature"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v12H5.17L4 17.17z"/></svg> Shared chat</span>
       </div>
       <div class="server-empty-actions">
-        <button class="hero-create-btn" id="empty-create"><span class="hc-emoji"><svg class="ui-ic lg" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span> Create a Server</button>
-        <button class="hero-join-btn" id="empty-join"><span class="hc-emoji"><svg class="ui-ic lg" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></span> Join a Server</button>
+        <button class="hero-create-btn" id="empty-create"><span class="hc-emoji"><svg class="ui-ic lg" viewBox="0 0 24 24" stroke-width="1.7"><rect x="3.25" y="3.25" width="17.5" height="17.5" rx="5"/><path d="M12 8.25v7.5"/><path d="M8.25 12h7.5"/></svg></span> Create a Server</button>
+        <button class="hero-join-btn" id="empty-join"><span class="hc-emoji"><svg class="ui-ic lg" viewBox="0 0 24 24" stroke-width="1.7"><path d="M13 4h5a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-5"/><path d="M9.5 8.5 13 12l-3.5 3.5"/><path d="M13 12H3.5"/></svg></span> Join a Server</button>
         <button class="hero-discover-btn" id="empty-discover"><span class="hc-emoji"><svg class="ui-ic lg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg></span> Discovery</button>
       </div>
     </div>
@@ -6703,8 +6702,13 @@ function fileKindLabel(type, url) {
 function renderVoicePlayer(f, url, rawUrl, name, dlName) {
   const dur = Number(f.duration) || 0;
   const durLabel = dur ? srvVoiceFmt(dur) : '0:00';
+  let peaksAttr = '';
+  if (Array.isArray(f.peaks) && f.peaks.length) {
+    const norm = f.peaks.slice(0, 64).map(p => Math.round(Math.max(0, Math.min(1, Number(p) || 0)) * 1000) / 1000);
+    peaksAttr = ' data-peaks="' + escapeAttr(JSON.stringify(norm)) + '"';
+  }
   const dlIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>';
-  return '<div class="voice-player" data-src="' + url + '" data-dur="' + dur + '">' +
+  return '<div class="voice-player" data-src="' + url + '" data-dur="' + dur + '"' + peaksAttr + '>' +
     '<div class="vp-top">' +
       '<button class="vp-play" type="button" title="Play">' +
         '<svg class="vp-ic-play" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20"/></svg>' +
@@ -7605,6 +7609,35 @@ function srvVoiceSeek(e) {
   const dur = srvVoicePreviewAudio.duration || 0;
   if (dur) { srvVoicePreviewAudio.currentTime = pct * dur; srvVoicePreviewTick(); }
 }
+function srvVoiceComputePeaks(blob) {
+  return new Promise((resolve) => {
+    try {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC || !blob || !blob.size) return resolve(null);
+      const fr = new FileReader();
+      fr.onload = () => {
+        let ac;
+        try { ac = new AC(); } catch (e) { return resolve(null); }
+        const done = (val) => { try { ac.close(); } catch (e) {} resolve(val); };
+        ac.decodeAudioData(fr.result).then((audioBuf) => {
+          try {
+            const data = audioBuf.getChannelData(0);
+            const bars = 48, block = Math.floor(data.length / bars) || 1;
+            const peaks = [];
+            for (let i = 0; i < bars; i++) {
+              let sum = 0;
+              for (let j = 0; j < block; j++) { const v = data[i * block + j] || 0; sum += v * v; }
+              peaks.push(Math.min(1, Math.sqrt(sum / block) * 3.2));
+            }
+            done(peaks);
+          } catch (e) { done(null); }
+        }).catch(() => done(null));
+      };
+      fr.onerror = () => resolve(null);
+      fr.readAsArrayBuffer(blob);
+    } catch (e) { resolve(null); }
+  });
+}
 async function srvVoiceSend() {
   if (srvVoiceSending) return;
   if (!srvVoiceBlob) { toast('Nothing to send yet.', 'error'); return; }
@@ -7623,6 +7656,7 @@ async function srvVoiceSend() {
   const ext = /mp4/.test(srvVoiceBlob.type) ? 'm4a' : (/ogg/.test(srvVoiceBlob.type) ? 'ogg' : 'webm');
   const file = new File([srvVoiceBlob], 'voice-message-' + Date.now() + '.' + ext, { type: srvVoiceBlob.type || 'audio/webm' });
   const durMs = srvVoiceAccumMs + (srvVoicePaused ? 0 : (srvVoiceStartTs ? Date.now() - srvVoiceStartTs : 0));
+  const peaksPromise = srvVoiceComputePeaks(srvVoiceBlob);
   try {
     const fd = new FormData();
     fd.append('file', file);
@@ -7630,6 +7664,7 @@ async function srvVoiceSend() {
     const uploaded = d && d.file;
     if (!uploaded || !uploaded.url) throw new Error('Upload failed');
     uploaded.duration = Math.round(durMs);
+    try { const peaks = await peaksPromise; if (peaks && peaks.length) uploaded.peaks = peaks; } catch (e) {}
     const tempId = 'tmp-voice-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7);
     const payload = { serverId: activeServerId, channelId: activeChannelId, text: '', files: [uploaded], clientId: tempId };
     if (srvReplyTo) { payload.reply = { id: srvReplyTo.id, from: srvReplyTo.from, displayName: srvReplyTo.displayName, text: srvReplyTo.text }; }
@@ -9500,8 +9535,16 @@ function vpInit(el) {
   const src = el.getAttribute('data-src');
   const canvas = el.querySelector('.vp-wave');
   const dur = Number(el.getAttribute('data-dur')) || 0;
-  vpDrawWave(canvas, null, 0);
-  vpDecodeWave(src).then(peaks => { el._vpPeaks = peaks; vpDrawWave(canvas, peaks, 0); });
+  const peaksAttr = el.getAttribute('data-peaks');
+  let storedPeaks = null;
+  if (peaksAttr) { try { const arr = JSON.parse(peaksAttr); if (Array.isArray(arr) && arr.length) storedPeaks = arr; } catch (e) {} }
+  if (storedPeaks) {
+    el._vpPeaks = storedPeaks;
+    vpDrawWave(canvas, storedPeaks, 0);
+  } else {
+    vpDrawWave(canvas, null, 0);
+    vpDecodeWave(src).then(peaks => { el._vpPeaks = peaks; vpDrawWave(canvas, peaks, 0); });
+  }
   const audio = new Audio();
   audio.preload = 'auto';
   audio.src = src;

@@ -5721,6 +5721,7 @@ io.on('connection', (socket) => {
           type: f.type ? String(f.type).slice(0, 120) : null,
           size: Number(f.size) || 0,
           duration: Number(f.duration) || 0,
+          peaks: Array.isArray(f.peaks) ? f.peaks.slice(0, 64).map(x => Math.max(0, Math.min(1, Number(x) || 0))) : null,
           spoiler: !!f.spoiler,
           coverImage: f.coverImage ? String(f.coverImage).slice(0, 2000) : null,
         };
@@ -6029,6 +6030,7 @@ io.on('connection', (socket) => {
           type: f.type ? String(f.type).slice(0, 120) : null,
           size: Number(f.size) || 0,
           duration: Number(f.duration) || 0,
+          peaks: Array.isArray(f.peaks) ? f.peaks.slice(0, 64).map(x => Math.max(0, Math.min(1, Number(x) || 0))) : null,
           spoiler: !!f.spoiler,
           coverImage: f.coverImage ? String(f.coverImage).slice(0, 2000) : null,
         };
