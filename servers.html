@@ -1088,8 +1088,6 @@ input, textarea { font-family: inherit; }
 }
 /* Enhanced Voice Settings modal */
 .vs-modal-head { align-items: center; gap: 12px; }
-.vs-modal-ic { width: 40px; height: 40px; border-radius: 11px; display: inline-flex; align-items: center; justify-content: center; background: rgba(var(--accent-rgb),0.16); color: var(--accent); flex-shrink: 0; }
-.vs-modal-ic svg { width: 20px; height: 20px; }
 .vs-modal-sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
 /* Wider, two-column layout so nothing needs scrolling. */
 .modal.vs-modal-wide { max-width: 900px; }
@@ -1103,6 +1101,82 @@ input, textarea { font-family: inherit; }
 .vs-section { background: var(--bg-dark); border: 1px solid var(--border); border-radius: 14px; padding: 14px 16px; }
 .vs-section-title { font-size: 11px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 12px; }
 .vs-section .field { margin-bottom: 12px; }
+/* ---- Voice chat background effects ----
+   A dedicated overlay inside .voice-stage (z-index 1, under the tiles which
+   sit at z-index 2). Six unique, accent-aware animated backdrops that match the
+   website's fx-* look. The same vfx-* classes also paint the picker previews. */
+.voice-bg-fx { position: absolute; inset: 0; z-index: 1; pointer-events: none; overflow: hidden; opacity: 0; transition: opacity 0.45s ease; }
+.voice-bg-fx.vfx-on { opacity: 1; }
+.voice-bg-fx::before { content: ''; position: absolute; inset: 0; pointer-events: none; }
+.vs-bg-seg { grid-template-columns: repeat(auto-fill, minmax(86px, 1fr)); }
+/* Base ::before for the picker previews (mirrors the fx-* shared rule). */
+.server-appearance-preview.vfx-aurora::before,
+.server-appearance-preview.vfx-nebula::before,
+.server-appearance-preview.vfx-grid::before,
+.server-appearance-preview.vfx-waves::before,
+.server-appearance-preview.vfx-spotlight::before,
+.server-appearance-preview.vfx-particles::before { content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 2; }
+/* Aurora — soft drifting accent clouds */
+.voice-bg-fx.vfx-aurora::before, .server-appearance-preview.vfx-aurora::before {
+  background:
+    radial-gradient(38% 42% at 20% 24%, rgba(var(--accent-rgb),0.34), transparent 70%),
+    radial-gradient(34% 40% at 80% 30%, rgba(var(--accent-rgb),0.24), transparent 72%),
+    radial-gradient(44% 50% at 50% 92%, rgba(var(--accent-rgb),0.30), transparent 74%);
+  filter: blur(28px);
+  animation: vfxAurora 16s ease-in-out infinite alternate;
+}
+@keyframes vfxAurora { 0% { transform: translate3d(-4%,-3%,0) scale(1.05); } 100% { transform: translate3d(4%,3%,0) scale(1.13); } }
+/* Nebula — slow-rotating accent clouds with a soft white core */
+.voice-bg-fx.vfx-nebula::before, .server-appearance-preview.vfx-nebula::before {
+  background:
+    radial-gradient(circle at 30% 40%, rgba(var(--accent-rgb),0.34), transparent 55%),
+    radial-gradient(circle at 72% 62%, rgba(var(--accent-rgb),0.22), transparent 50%),
+    radial-gradient(circle at 50% 82%, rgba(255,255,255,0.06), transparent 60%);
+  filter: blur(16px) saturate(1.25);
+  animation: vfxNebula 26s linear infinite;
+}
+@keyframes vfxNebula { 0% { transform: rotate(0deg) scale(1.12); } 100% { transform: rotate(360deg) scale(1.12); } }
+/* Grid — accent grid scrolling slowly, faded toward the bottom */
+.voice-bg-fx.vfx-grid::before, .server-appearance-preview.vfx-grid::before {
+  background-image:
+    linear-gradient(rgba(var(--accent-rgb),0.16) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(var(--accent-rgb),0.16) 1px, transparent 1px);
+  background-size: 40px 40px;
+  -webkit-mask-image: radial-gradient(120% 100% at 50% 0%, #000 30%, transparent 100%);
+  mask-image: radial-gradient(120% 100% at 50% 0%, #000 30%, transparent 100%);
+  animation: vfxGrid 6s linear infinite;
+}
+@keyframes vfxGrid { from { background-position: 0 0, 0 0; } to { background-position: 0 40px, 40px 0; } }
+/* Waves — slow diagonal accent sheen drifting across */
+.voice-bg-fx.vfx-waves::before, .server-appearance-preview.vfx-waves::before {
+  background: repeating-linear-gradient(115deg, rgba(var(--accent-rgb),0.22) 0px, rgba(var(--accent-rgb),0.22) 3px, transparent 3px, transparent 26px);
+  animation: vfxWaves 12s linear infinite;
+}
+@keyframes vfxWaves { from { transform: translate3d(0,0,0); } to { transform: translate3d(-52px,26px,0); } }
+/* Spotlight — breathing light from the top */
+.voice-bg-fx.vfx-spotlight::before, .server-appearance-preview.vfx-spotlight::before {
+  background: radial-gradient(62% 58% at 50% -12%, rgba(var(--accent-rgb),0.42), transparent 72%);
+  animation: vfxSpot 5s ease-in-out infinite;
+}
+@keyframes vfxSpot { 0%, 100% { opacity: 0.65; } 50% { opacity: 1; } }
+/* Particles — accent specks drifting upward */
+.voice-bg-fx.vfx-particles::before, .server-appearance-preview.vfx-particles::before {
+  background-image:
+    radial-gradient(2px 2px at 18% 82%, rgba(var(--accent-rgb),0.75), transparent),
+    radial-gradient(2px 2px at 38% 62%, rgba(var(--accent-rgb),0.55), transparent),
+    radial-gradient(2px 2px at 62% 88%, rgba(var(--accent-rgb),0.65), transparent),
+    radial-gradient(2px 2px at 82% 44%, rgba(var(--accent-rgb),0.5), transparent),
+    radial-gradient(2px 2px at 52% 28%, rgba(var(--accent-rgb),0.55), transparent),
+    radial-gradient(2px 2px at 28% 40%, rgba(var(--accent-rgb),0.45), transparent);
+  background-size: 100% 100%;
+  animation: vfxParticles 15s linear infinite;
+}
+@keyframes vfxParticles { 0% { transform: translateY(18%); opacity: 0.35; } 50% { opacity: 0.95; } 100% { transform: translateY(-42%); opacity: 0.35; } }
+@media (prefers-reduced-motion: reduce) {
+  .voice-bg-fx::before, .server-appearance-preview.vfx-aurora::before, .server-appearance-preview.vfx-nebula::before,
+  .server-appearance-preview.vfx-grid::before, .server-appearance-preview.vfx-waves::before,
+  .server-appearance-preview.vfx-spotlight::before, .server-appearance-preview.vfx-particles::before { animation: none; }
+}
 .vs-toggle-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); }
 .vs-toggle-name { font-size: 13.5px; font-weight: 600; color: var(--text-primary); }
 .vs-toggle-desc { font-size: 11.5px; color: var(--text-muted); margin-top: 1px; }
@@ -3172,6 +3246,7 @@ input, textarea { font-family: inherit; }
         <div class="server-typing" id="server-typing"></div>
         <!-- Voice call stage (shown when a voice channel is active) -->
         <div class="voice-stage" id="voice-stage" style="display:none;">
+          <div class="voice-bg-fx" id="voice-bg-fx"></div>
           <div class="vs-head">
             <div class="vs-head-info">
               <span class="vs-title" id="vs-title">Voice</span>
@@ -3970,9 +4045,6 @@ input, textarea { font-family: inherit; }
 <div class="modal-overlay" id="voice-settings-modal">
   <div class="modal vs-modal vs-modal-wide">
     <div class="modal-header vs-modal-head">
-      <div class="vs-modal-ic">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
-      </div>
       <div>
         <div class="modal-title">Voice &amp; Video Settings</div>
         <div class="vs-modal-sub">Tune your mic, speakers and audio processing</div>
@@ -4052,6 +4124,19 @@ input, textarea { font-family: inherit; }
               <div class="vs-test-status">Plays a short chime through your selected output at the current volume.</div>
             </div>
           </div>
+        </div>
+      </div>
+      <div class="vs-section vs-bg-section">
+        <div class="vs-section-title">Voice chat background</div>
+        <div class="ch-hint" style="margin-bottom:12px;">A live animated backdrop behind the voice tiles. It follows your server accent colour and is saved for next time.</div>
+        <div class="fx-grid vs-bg-seg" id="vs-bg-seg">
+          <button type="button" data-vbg="none" class="fx-card selected"><span class="fx-card-preview server-appearance-preview"></span><span class="fx-card-label">None</span></button>
+          <button type="button" data-vbg="aurora" class="fx-card"><span class="fx-card-preview server-appearance-preview vfx-aurora"></span><span class="fx-card-label">Aurora</span></button>
+          <button type="button" data-vbg="nebula" class="fx-card"><span class="fx-card-preview server-appearance-preview vfx-nebula"></span><span class="fx-card-label">Nebula</span></button>
+          <button type="button" data-vbg="grid" class="fx-card"><span class="fx-card-preview server-appearance-preview vfx-grid"></span><span class="fx-card-label">Grid</span></button>
+          <button type="button" data-vbg="waves" class="fx-card"><span class="fx-card-preview server-appearance-preview vfx-waves"></span><span class="fx-card-label">Waves</span></button>
+          <button type="button" data-vbg="spotlight" class="fx-card"><span class="fx-card-preview server-appearance-preview vfx-spotlight"></span><span class="fx-card-label">Spotlight</span></button>
+          <button type="button" data-vbg="particles" class="fx-card"><span class="fx-card-preview server-appearance-preview vfx-particles"></span><span class="fx-card-label">Particles</span></button>
         </div>
       </div>
     </div>
@@ -8348,6 +8433,7 @@ const voiceCall = {
   remoteVadRaf: 0,
   minimized: false, healthTimer: 0,
   inputDevice: '', outputDevice: '',
+  bgEffect: 'none',          // voice chat background effect (vfx-*)
   startedAt: 0,              // epoch ms the voice room first became active
   timerInterval: 0,          // live "active for" timer handle
   screenStream: null,        // active screen-share stream (if any)
@@ -8376,6 +8462,7 @@ function voiceLoadPrefs() {
     }
     if (typeof p.inputDevice === 'string') voiceCall.inputDevice = p.inputDevice;
     if (typeof p.outputDevice === 'string') voiceCall.outputDevice = p.outputDevice;
+    if (typeof p.bgEffect === 'string') voiceCall.bgEffect = p.bgEffect;
   } catch (e) {}
 }
 function voiceSavePrefs() {
@@ -8387,6 +8474,7 @@ function voiceSavePrefs() {
       audioPrefs: voiceCall.audioPrefs,
       inputDevice: voiceCall.inputDevice || '',
       outputDevice: voiceCall.outputDevice || '',
+      bgEffect: voiceCall.bgEffect || 'none',
     }));
   } catch (e) {}
 }
@@ -8938,12 +9026,15 @@ async function voiceReturnToCall() {
 // are best-effort and are silently ignored where unsupported (e.g. Firefox).
 function voiceTuneReceiver(receiver) {
   if (!receiver) return;
-  try { if ('jitterBufferTarget' in receiver) receiver.jitterBufferTarget = 0; } catch (e) {}
-  try { if ('playoutDelayHint' in receiver) receiver.playoutDelayHint = 0; } catch (e) {}
+  // A tiny (~20ms) jitter buffer. Zero buffering forces late packets to be
+  // dropped, which is what made voice sound crackly/robotic and "unclear"
+  // under real network jitter. 20ms is imperceptible but smooths it out.
+  try { if ('jitterBufferTarget' in receiver) receiver.jitterBufferTarget = 0.02; } catch (e) {}
+  try { if ('playoutDelayHint' in receiver) receiver.playoutDelayHint = 0.02; } catch (e) {}
 }
-// Apply low-latency settings to a whole peer connection: shrink every audio
-// receiver's buffer and request a high-priority, low-bitrate Opus stream so the
-// audio is transmitted with minimal delay.
+// Apply low-latency, high-clarity settings to a whole peer connection: keep
+// every audio receiver's buffer small, and request a high-priority Opus stream
+// at 64 kbps (up from 51) so speech is crisp without adding meaningful delay.
 function voiceTuneLowLatency(pc) {
   if (!pc) return;
   try {
@@ -8955,8 +9046,9 @@ function voiceTuneLowLatency(pc) {
       try {
         const params = s.getParameters();
         if (params.encodings && params.encodings.length) {
-          params.encodings.forEach((enc) => { try { enc.maxBitrate = 51000; } catch (e) {} });
+          params.encodings.forEach((enc) => { try { enc.maxBitrate = 64000; } catch (e) {} });
           try { if ('networkPriority' in params.encodings[0]) params.encodings[0].networkPriority = 'high'; } catch (e) {}
+          try { if ('priority' in params.encodings[0]) params.encodings[0].priority = 'high'; } catch (e) {}
         }
         const pr = s.setParameters(params);
         if (pr && pr.catch) pr.catch(() => {});
@@ -8991,9 +9083,9 @@ function voiceCreatePeer(username, initiator, state) {
   audioEl.autoplay = true;
   audioEl.setAttribute('playsinline', '');
   audioEl.volume = Math.min(1, voicePeerVolume(username));
-  // Low-latency playback: keep the playout buffer as small as possible so voice
-  // is heard with minimal delay (honoured by Chrome/Electron; harmless elsewhere).
-  try { audioEl.playoutDelayHint = 0; } catch (e) {}
+  // Low-latency playback: a tiny playout buffer (~20ms) keeps voice immediate
+  // while smoothing network jitter so speech stays clean (Chrome/Electron).
+  try { audioEl.playoutDelayHint = 0.02; } catch (e) {}
   // Route to the user's saved output device, if the browser supports it.
   if (voiceCall.outputDevice && audioEl.setSinkId) { try { audioEl.setSinkId(voiceCall.outputDevice); } catch (e) {} }
   p.audioEl = audioEl;
@@ -9012,14 +9104,24 @@ function voiceCreatePeer(username, initiator, state) {
       // Shrink this receiver's jitter buffer for low-latency voice.
       voiceTuneReceiver(ev.receiver);
       // Route through a WebAudio gain node so we can amplify past 100%.
+      // A limiter (DynamicsCompressor) sits AFTER the gain so the default 150%
+      // boost can't clip — clipping was what made loud voices sound harsh and
+      // "unclear". The limiter keeps them loud but clean.
       try {
         const ctx = voiceGainCtx();
         if (ctx && !p.gainNode) {
           const src = ctx.createMediaStreamSource(stream);
           const g = ctx.createGain();
           g.gain.value = voicePeerVolume(username);
-          src.connect(g); g.connect(ctx.destination);
+          const lim = ctx.createDynamicsCompressor();
+          lim.threshold.value = -3;    // start limiting just below 0 dBFS
+          lim.knee.value = 6;          // gentle knee so it never sounds squashed
+          lim.ratio.value = 14;        // strong ratio = true limiter
+          lim.attack.value = 0.003;    // catch transients fast
+          lim.release.value = 0.18;    // smooth recovery
+          src.connect(g); g.connect(lim); lim.connect(ctx.destination);
           p.gainNode = g;
+          p.limiter = lim;
           audioEl.volume = 0;   // gain node is now the sole output path
         }
       } catch (e) { /* fall back to element volume */ }
@@ -9374,7 +9476,7 @@ function voiceStartHealthCheck() {
         try { p.pc.getReceivers().forEach((r) => { if (r.track && r.track.kind === 'audio') voiceTuneReceiver(r); }); } catch (e) {}
       }
       if (p.audioEl) {
-        try { p.audioEl.playoutDelayHint = 0; } catch (e) {}
+        try { p.audioEl.playoutDelayHint = 0.02; } catch (e) {}
         if (p.audioEl.paused && p.audioEl.srcObject) { p.audioEl.play().catch(() => {}); }
       }
     });
@@ -9944,16 +10046,16 @@ function voiceStartVAD() {
     voiceCall.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     const src = voiceCall.audioCtx.createMediaStreamSource(voiceCall.localStream);
     const an = voiceCall.audioCtx.createAnalyser();
-    an.fftSize = 1024;
+    an.fftSize = 512;
     src.connect(an);
     voiceCall.analyser = an;
     const buf = new Uint8Array(an.fftSize);
     let lastRun = 0;
     const loop = (ts) => {
       if (!voiceCall.active || !voiceCall.analyser) return;
-      // Perf: analyse at ~25fps instead of every animation frame. VAD only
-      // needs to catch speech transitions, so this is plenty and saves CPU.
-      if (ts && ts - lastRun < 40) { voiceCall.vadRaf = requestAnimationFrame(loop); return; }
+      // Run almost every frame (~60fps) so the green ring lights up the instant
+      // you start talking instead of lagging behind by a couple of frames.
+      if (ts && ts - lastRun < 16) { voiceCall.vadRaf = requestAnimationFrame(loop); return; }
       lastRun = ts || performance.now();
       voiceCall.analyser.getByteTimeDomainData(buf);
       let sum = 0;
@@ -9992,7 +10094,7 @@ function voiceAttachRemoteAnalyser(p) {
     const src = ctx.createMediaStreamSource(p.remoteStream);
     const an = ctx.createAnalyser();
     an.fftSize = 512;
-    an.smoothingTimeConstant = 0.6;
+    an.smoothingTimeConstant = 0.3;
     src.connect(an);
     p.remoteAnalyser = an;
     p.remoteBuf = new Uint8Array(an.fftSize);
@@ -10006,8 +10108,8 @@ function voiceStartRemoteVAD() {
   let lastRun = 0;
   const loop = (ts) => {
     if (!voiceCall.active) { voiceCall.remoteVadRaf = 0; return; }
-    // Perf: throttle to ~25fps; the 220ms hold below already smooths the ring.
-    if (ts && ts - lastRun < 40) { voiceCall.remoteVadRaf = requestAnimationFrame(loop); return; }
+    // Run ~60fps so the ring reacts the moment a peer starts/stops speaking.
+    if (ts && ts - lastRun < 16) { voiceCall.remoteVadRaf = requestAnimationFrame(loop); return; }
     lastRun = ts || performance.now();
     const now = performance.now();
     voiceCall.peers.forEach((p) => {
@@ -10017,11 +10119,12 @@ function voiceStartRemoteVAD() {
       const buf = p.remoteBuf;
       for (let i = 0; i < buf.length; i++) { const v = (buf[i] - 128) / 128; sum += v * v; }
       const rms = Math.sqrt(sum / buf.length);
-      // Hysteresis: a higher bar to start speaking, a lower bar to stop, so the
-      // ring doesn't flicker on background noise or between syllables.
-      const startTh = 0.035, stopTh = 0.018;
+      // Hysteresis: a slightly higher bar to start, a lower bar to stop, so the
+      // ring doesn't flicker — but the hold is short (110ms) so it turns OFF
+      // promptly when the person stops, instead of lingering.
+      const startTh = 0.028, stopTh = 0.02;
       if (rms > startTh) p.remoteLastLoud = now;
-      const loud = (now - p.remoteLastLoud) < 220;
+      const loud = (now - p.remoteLastLoud) < 110;
       const speaking = loud && !p.muted && !p.deafened;
       if (speaking !== p.remoteSpeaking) {
         p.remoteSpeaking = speaking;
@@ -10110,8 +10213,24 @@ document.addEventListener('contextmenu', (e) => {
 });
 
 // ---- Settings modal ----
+// ---- Voice chat background effect ----
+// Paints the chosen animated backdrop onto the overlay inside the voice stage
+// and keeps the picker cards in sync.
+function voiceApplyBgEffect(eff) {
+  if (eff !== undefined) voiceCall.bgEffect = eff || 'none';
+  const el = $('voice-bg-fx');
+  if (el) {
+    const e = voiceCall.bgEffect && voiceCall.bgEffect !== 'none' ? voiceCall.bgEffect : '';
+    el.className = 'voice-bg-fx' + (e ? ' vfx-on vfx-' + e : '');
+  }
+  const seg = $('vs-bg-seg');
+  if (seg) {
+    seg.querySelectorAll('.fx-card').forEach(c => c.classList.toggle('selected', (c.dataset.vbg || 'none') === (voiceCall.bgEffect || 'none')));
+  }
+}
 async function voiceOpenSettings() {
   openModal('voice-settings-modal');
+  voiceApplyBgEffect();   // sync the background picker with the saved choice
   try {
     const devs = await navigator.mediaDevices.enumerateDevices();
     const ins = devs.filter(d => d.kind === 'audioinput');
@@ -10264,6 +10383,14 @@ if ($('vs-out-vol')) $('vs-out-vol').addEventListener('input', (e) => {
   voiceSavePrefs();
 });
 if ($('vs-vad')) $('vs-vad').addEventListener('input', (e) => { voiceCall.vadThreshold = Number(e.target.value) / 1000; voiceUpdateSettingsLabels(); voiceSavePrefs(); });
+// Voice chat background effect picker.
+if ($('vs-bg-seg')) $('vs-bg-seg').addEventListener('click', (e) => {
+  const card = e.target.closest && e.target.closest('.fx-card');
+  if (!card) return;
+  voiceApplyBgEffect(card.dataset.vbg || 'none');
+  voiceSavePrefs();
+});
+voiceApplyBgEffect();   // apply the saved background on load
 // Audio-processing toggles.
 function _vsToggle(id, key) {
   const b = $(id); if (!b) return;
