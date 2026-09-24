@@ -1,26 +1,27 @@
-# HelloBye Update 2 — Todo
+# HelloBye Update 3 — Todo
 
-## 1. @everyone / @here ping: white -> darkish blue
-- [x] Recolor mention-everyone/here chips + mention-ping embed to dark blue (servers.html + index.html)
+## 1. Advanced "Welcome back" / "Log back in with last account" UI
+- [x] Redesign hbRenderWelcomeBack: eyebrow "Session detected", avatar initials, handle, verified/sign-in-required badge
+- [x] Session facts (account, last active relative+absolute, device, session key) + "Will be restored (N/4)" checklist
+- [x] Footer note + "Use a different account" / "Resume session" actions; no emojis, non-cartoonish
 
-## 2. Carry over Members List Background + Chat Background on welcome-back login
-- [x] Extend carryover (main.js/preload.js) to store user prefs (members bg, chat bg, accent, theme)
-- [x] index.html: save prefs into carryover + restore them on "Continue as @user"
-- [x] Hook hbPersistCarryover() into saveMembersBgState() + saveBgSettings()
+## 2. Fix Members List Background that reverted
+- [x] saveMembersBgState: quota retry + canvas re-encode fallback + hbPersistCarryover hook
 
-## 3. Revamp Members List Background UI
-- [x] Redesign members-bg modal (header, live mock preview, segmented source, tint presets, sliders, buttons)
+## 3. Fix Chat Background that reverted
+- [x] saveBgSettings: carryover hardening (dedupe + forced persistence on pagehide/beforeunload/visibilitychange/interval)
 
-## 4. Better Create/Join server icons (not cartoony, matches website)
-- [x] Redesign rail + hero SVGs in servers.html (server-rack+plus / enter-door)
+## 4. Fix Profile Panel colour (PC/desktop) that reverted
+- [x] saveProfileColor/saveColorSettings: hbPersistCarryover hook
+- [x] hbSeedPanelColorFromServer: server-side panelColor fallback on init
+- [x] Flush carryover before self-update (preload event + main.js executeJavaScript)
 
-## 5. Better link embeds with more details
-- [x] server.js /api/embed: richer metadata (type, published date, video, section, site, reading time, keywords, favicon, locale)
-- [x] index.html renderEmbed: richer card (type badge, author, date, reading time, section, tags, domain)
+## 5. Revamp "create a server" SVG icon
+- [x] Replace rail + hero create-server SVG with a server + add-badge glyph (matches site style)
 
 ## Ship
-- [x] Bump desktop version (1.6.1 -> 1.6.2)
-- [x] Build + publish desktop release (desktop-v1.6.2)
-- [x] Update server.js fallback + download.html
+- [x] Bump desktop version (1.6.2 -> 1.6.3)
+- [x] Build + publish desktop release (desktop-v1.6.3) with HelloBye-Setup.exe / HelloBye-Portable.exe
+- [x] Update server.js DESKTOP_FALLBACK + download.html to v1.6.3
 - [x] Commit + push to GitHub
-- [x] Trigger Render deploy + verify live (dep-daqp9hnavr4c73bro7d0 live)
+- [x] Verify Render deploy live (dep-daqpsgbbc2fs739l8uu0) + live endpoints 200
