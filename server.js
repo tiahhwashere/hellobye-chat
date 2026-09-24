@@ -1624,6 +1624,13 @@ app.post('/api/upload', authMiddleware, upload.single('file'), async (req, res) 
   let finalSize = req.file.size;
   try { finalSize = fs.statSync(absPath).size; } catch (e) {}
   const url = '/uploads/' + req.file.filename;
+  let peaks = null;
+  try {
+    if (req.body && req.body.peaks) {
+      const arr = JSON.parse(req.body.peaks);
+      if (Array.isArray(arr) && arr.length) peaks = arr.slice(0, 64).map(x => Math.max(0, Math.min(1, Number(x) || 0)));
+    }
+  } catch (e) {}
   backupUploadFile(req.file.filename);
   res.json({
     file: {
@@ -1633,6 +1640,7 @@ app.post('/api/upload', authMiddleware, upload.single('file'), async (req, res) 
       type: req.file.mimetype,
       mimetype: req.file.mimetype,
       enhanced: isImage,
+      peaks,
     },
   });
 });
@@ -4831,12 +4839,12 @@ app.get('/api/version', (req, res) => {
 
 const DESKTOP_REPO = process.env.HELLOBYE_REPO || 'tiahhwashere/hellobye-chat';
 const DESKTOP_FALLBACK = {
-  version: '1.5.9',
+  version: '1.6.0',
   name: 'HelloBye-Setup.exe',
-  url: 'https://github.com/tiahhwashere/hellobye-chat/releases/download/desktop-v1.5.9/HelloBye-Setup.exe',
-  size: 78224994,
+  url: 'https://github.com/tiahhwashere/hellobye-chat/releases/download/desktop-v1.6.0/HelloBye-Setup.exe',
+  size: 78225584,
   publishedAt: null,
-  releaseUrl: 'https://github.com/tiahhwashere/hellobye-chat/releases/tag/desktop-v1.5.9',
+  releaseUrl: 'https://github.com/tiahhwashere/hellobye-chat/releases/tag/desktop-v1.6.0',
 };
 let desktopReleaseCache = { at: 0, data: null };
 const DESKTOP_CACHE_MS = 10 * 60 * 1000;

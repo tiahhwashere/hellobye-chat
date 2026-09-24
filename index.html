@@ -14436,6 +14436,35 @@ function vpDrawWave(canvas, peaks, progress) {
   }
   ctx.globalAlpha = 1;
 }
+function vpComputePeaks(blob) {
+  return new Promise((resolve) => {
+    try {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC || !blob || !blob.size) return resolve(null);
+      const fr = new FileReader();
+      fr.onload = () => {
+        let ac;
+        try { ac = new AC(); } catch (e) { return resolve(null); }
+        const done = (val) => { try { ac.close(); } catch (e) {} resolve(val); };
+        ac.decodeAudioData(fr.result).then((audioBuf) => {
+          try {
+            const data = audioBuf.getChannelData(0);
+            const bars = 48, block = Math.floor(data.length / bars) || 1;
+            const peaks = [];
+            for (let i = 0; i < bars; i++) {
+              let sum = 0;
+              for (let j = 0; j < block; j++) { const v = data[i * block + j] || 0; sum += v * v; }
+              peaks.push(Math.min(1, Math.sqrt(sum / block) * 3.2));
+            }
+            done(peaks);
+          } catch (e) { done(null); }
+        }).catch(() => done(null));
+      };
+      fr.onerror = () => resolve(null);
+      fr.readAsArrayBuffer(blob);
+    } catch (e) { resolve(null); }
+  });
+}
 function vpDecodeWave(src, _attempt) {
   if (!src) return Promise.resolve(null);
   if (_vpWaveCache.has(src)) return Promise.resolve(_vpWaveCache.get(src));
@@ -14480,12 +14509,33 @@ function vpInit(el) {
   const src = el.getAttribute('data-src');
   const canvas = el.querySelector('.vp-wave');
   const dur = Number(el.getAttribute('data-dur')) || 0;
-  vpDrawWave(canvas, null, 0);
-  vpDecodeWave(src).then(peaks => { el._vpPeaks = peaks; vpDrawWave(canvas, peaks, 0); });
+  const peaksAttr = el.getAttribute('data-peaks');
+  let storedPeaks = null;
+  if (peaksAttr) { try { const arr = JSON.parse(peaksAttr); if (Array.isArray(arr) && arr.length) storedPeaks = arr; } catch (e) {} }
+  if (storedPeaks) {
+    el._vpPeaks = storedPeaks;
+    vpDrawWave(canvas, storedPeaks, 0);
+  } else {
+    vpDrawWave(canvas, null, 0);
+  }
   const audio = new Audio();
   audio.preload = 'auto';
   audio.src = src;
   el._vpAudio = audio;
+  if (!storedPeaks) {
+    let decoded = false;
+    const runDecode = () => {
+      if (decoded) return; decoded = true;
+      vpDecodeWave(src).then(peaks => {
+        el._vpPeaks = peaks;
+        const d = audio.duration || 0;
+        const pct = d ? (audio.currentTime / d) : 0;
+        vpDrawWave(canvas, peaks, pct);
+      });
+    };
+    audio.addEventListener('playing', runDecode, { once: true });
+    setTimeout(runDecode, 800);
+  }
   const timeEl = el.querySelector('.vp-time');
   const elapsedEl = el.querySelector('.vp-elapsed');
   const totalEl = el.querySelector('.vp-total');
@@ -14599,6 +14649,12 @@ function createVoicePlayerEl(file) {
   el.className = 'voice-player';
   el.setAttribute('data-src', url);
   el.setAttribute('data-dur', String(dur));
+  if (Array.isArray(file.peaks) && file.peaks.length) {
+    try {
+      const norm = file.peaks.slice(0, 64).map(p => Math.round(Math.max(0, Math.min(1, Number(p) || 0)) * 1000) / 1000);
+      el.setAttribute('data-peaks', JSON.stringify(norm));
+    } catch (e) {}
+  }
   el.innerHTML =
     '<button class="vp-play" type="button" title="Play">' +
       '<svg class="vp-ic-play" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20"/></svg>' +
@@ -15273,15 +15329,22 @@ function setSendButtonUploading(btn, on) {
   if (on) { el.classList.add('uploading'); el.disabled = true; }
   else { el.classList.remove('uploading'); }
 }
-function uploadFileWithProgress(file, bar, fileIndex, totalFiles) {
+async function uploadFileWithProgress(file, bar, fileIndex, totalFiles) {
   const fi = fileIndex || 0;
   const tot = Math.max(1, totalFiles || 1);
   const base = (fi / tot) * 100;
   const next = ((fi + 1) / tot) * 100;
+  const fd = new FormData();
+  fd.append('file', file);
+  try {
+    const mt = ((file && file.type) || '').toLowerCase();
+    if (mt.startsWith('audio/') && file.size && file.size < 16 * 1024 * 1024) {
+      const peaks = await vpComputePeaks(file);
+      if (peaks && peaks.length) fd.append('peaks', JSON.stringify(peaks));
+    }
+  } catch (e) {}
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
-    const fd = new FormData();
-    fd.append('file', file);
     xhr.open('POST', API_BASE + '/api/upload');
     const sid = localStorage.getItem('hellobye_sid');
     if (sid) xhr.setRequestHeader('X-Session-Id', sid);

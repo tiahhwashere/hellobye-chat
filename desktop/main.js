@@ -326,6 +326,7 @@ function scheduleSelfDelete() {
   const execPath = process.execPath;
   const exeName = path.basename(execPath);
   const installDir = path.dirname(execPath);
+  const installParent = path.dirname(installDir);
   const isPortable = !!process.env.PORTABLE_EXECUTABLE_FILE;
   const portableExe = process.env.PORTABLE_EXECUTABLE_FILE || execPath;
 
@@ -334,47 +335,110 @@ function scheduleSelfDelete() {
   const appDataRoaming = process.env.APPDATA || '';
   const appDataLocal = process.env.LOCALAPPDATA || '';
   const userProfile = process.env.USERPROFILE || '';
+  const publicDir = process.env.PUBLIC || 'C:\\Users\\Public';
+  const programData = process.env.ProgramData || process.env.PROGRAMDATA || 'C:\\ProgramData';
 
-  const vbsPath = path.join(os.tmpdir(), 'hellobye-cleanup-' + Date.now() + '.vbs');
   const s = (v) => '"' + String(v).replace(/"/g, '""') + '"';
-  const lines = [
-    'Option Explicit',
-    'On Error Resume Next',
-    'Dim sh, fso, wmi, procs, n',
-    'Set sh = CreateObject("WScript.Shell")',
-    'Set fso = CreateObject("Scripting.FileSystemObject")',
-    'Set wmi = GetObject("winmgmts:\\\\.\\root\\cimv2")',
-    'n = 0',
-    'Do While n < 240',
-    '  Set procs = wmi.ExecQuery("SELECT ProcessId FROM Win32_Process WHERE Name = \'' + exeName + '\'")',
-    '  If procs.Count = 0 Then Exit Do',
-    '  WScript.Sleep 500',
-    '  n = n + 1',
-    'Loop',
-    'WScript.Sleep 1000',
-  ];
-  if (isPortable) lines.push('fso.DeleteFile ' + s(portableExe) + ', True');
-  else lines.push('fso.DeleteFolder ' + s(installDir) + ', True');
-  if (userDataDir) lines.push('fso.DeleteFolder ' + s(userDataDir) + ', True');
-  if (appDataRoaming) lines.push('fso.DeleteFolder ' + s(path.join(appDataRoaming, 'HelloBye')) + ', True');
-  if (appDataLocal) lines.push('fso.DeleteFolder ' + s(path.join(appDataLocal, 'HelloBye')) + ', True');
-  if (appDataLocal) lines.push('fso.DeleteFolder ' + s(path.join(appDataLocal, 'Programs', 'HelloBye')) + ', True');
-  if (userProfile) {
-    lines.push('fso.DeleteFile ' + s(path.join(userProfile, 'Desktop', 'HelloBye.lnk')) + ', True');
-    lines.push('fso.DeleteFile ' + s(path.join(userProfile, 'Desktop', 'Hellobye.lnk')) + ', True');
-  }
-  if (appDataRoaming) {
-    lines.push('fso.DeleteFile ' + s(path.join(appDataRoaming, 'Microsoft', 'Windows', 'Start Menu', 'Programs', 'HelloBye.lnk')) + ', True');
+
+  const folderTargets = [];
+  const fileTargets = [];
+  const regTargets = [];
+
+  if (isPortable) {
+    fileTargets.push(portableExe);
+  } else {
+    const installRoot = path.parse(installDir).root;
+    if (installDir && installDir !== installRoot) folderTargets.push(installDir);
+    if (installParent && /hellobye/i.test(path.basename(installParent))) folderTargets.push(installParent);
   }
   if (appDataLocal) {
-    lines.push('fso.DeleteFile ' + s(path.join(appDataLocal, 'Microsoft', 'Windows', 'Start Menu', 'Programs', 'HelloBye.lnk')) + ', True');
+    folderTargets.push(path.join(appDataLocal, 'Programs', 'HelloBye'));
+    folderTargets.push(path.join(appDataLocal, 'HelloBye'));
+    folderTargets.push(path.join(appDataLocal, 'hellobye-desktop'));
   }
-  lines.push('sh.RegDelete "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\HelloBye\\"');
-  lines.push('sh.RegDelete "HKCU\\Software\\HelloBye\\"');
+  if (appDataRoaming) {
+    folderTargets.push(path.join(appDataRoaming, 'HelloBye'));
+    folderTargets.push(path.join(appDataRoaming, 'hellobye-desktop'));
+  }
+  if (userDataDir) folderTargets.push(userDataDir);
+
+  const lnkNames = ['HelloBye.lnk', 'Hellobye.lnk', 'HelloBye Chat.lnk', 'hellobye-desktop.lnk'];
+  if (userProfile) lnkNames.forEach(n => fileTargets.push(path.join(userProfile, 'Desktop', n)));
+  if (publicDir) lnkNames.forEach(n => fileTargets.push(path.join(publicDir, 'Desktop', n)));
+  if (appDataRoaming) lnkNames.forEach(n => fileTargets.push(path.join(appDataRoaming, 'Microsoft', 'Windows', 'Start Menu', 'Programs', n)));
+  if (programData) lnkNames.forEach(n => fileTargets.push(path.join(programData, 'Microsoft', 'Windows', 'Start Menu', 'Programs', n)));
+
+  regTargets.push('HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\HelloBye\\');
+  regTargets.push('HKCU\\Software\\HelloBye\\');
+  regTargets.push('HKCU\\Software\\com.hellobye.chat\\');
+  regTargets.push('HKCU\\Software\\hellobye-desktop\\');
+
+  const vbsPath = path.join(os.tmpdir(), 'hellobye-cleanup-' + Date.now() + '.vbs');
+
+  const lines = [];
+  lines.push('Option Explicit');
+  lines.push('On Error Resume Next');
+  lines.push('Dim sh, fso, wmi, reg, procs, n, p, folderList, fileList, regList');
+  lines.push('Set sh = CreateObject("WScript.Shell")');
+  lines.push('Set fso = CreateObject("Scripting.FileSystemObject")');
+  lines.push('Set wmi = GetObject("winmgmts:\\\\.\\root\\cimv2")');
+  lines.push('Set reg = GetObject("winmgmts:\\\\.\\root\\default:StdRegProv")');
+  lines.push('n = 0');
+  lines.push('Do While n < 120');
+  lines.push('  Set procs = wmi.ExecQuery("SELECT ProcessId FROM Win32_Process WHERE Name = \'' + exeName + '\'")');
+  lines.push('  If procs.Count = 0 Then Exit Do');
+  lines.push('  WScript.Sleep 500');
+  lines.push('  n = n + 1');
+  lines.push('Loop');
+  lines.push('WScript.Sleep 1500');
+  lines.push('folderList = Array(' + folderTargets.map(s).join(', ') + ')');
+  lines.push('fileList = Array(' + fileTargets.map(s).join(', ') + ')');
+  lines.push('regList = Array(' + regTargets.map(s).join(', ') + ')');
+  lines.push('For Each p In folderList');
+  lines.push('  If Len(p) > 0 Then DelFolder p');
+  lines.push('Next');
+  lines.push('For Each p In fileList');
+  lines.push('  If Len(p) > 0 Then DelFile p');
+  lines.push('Next');
+  lines.push('For Each p In regList');
+  lines.push('  If Len(p) > 0 Then sh.RegDelete p');
+  lines.push('Next');
+  lines.push('Dim base, subKeys, sk, kk, disp');
+  lines.push('base = "Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall"');
+  lines.push('For Each sk In Array(-2147483647, -2147483646)');
+  lines.push('  subKeys = Null');
+  lines.push('  reg.EnumKey sk, base, subKeys');
+  lines.push('  If IsArray(subKeys) Then');
+  lines.push('    For Each kk In subKeys');
+  lines.push('      disp = ""');
+  lines.push('      reg.GetStringValue sk, base & "\\" & kk, "DisplayName", disp');
+  lines.push('      If Not IsNull(disp) Then');
+  lines.push('        If InStr(LCase(disp), "hellobye") > 0 Then reg.DeleteKey sk, base & "\\" & kk');
+  lines.push('      End If');
+  lines.push('    Next');
+  lines.push('  End If');
+  lines.push('Next');
   lines.push('WScript.Sleep 400');
   lines.push('sh.Run ' + s(DOWNLOAD_URL) + ', 1, False');
-  lines.push('WScript.Sleep 600');
+  lines.push('WScript.Sleep 800');
   lines.push('fso.DeleteFile WScript.ScriptFullName, True');
+  lines.push('Sub DelFolder(fp)');
+  lines.push('  Dim t');
+  lines.push('  For t = 1 To 60');
+  lines.push('    If Not fso.FolderExists(fp) Then Exit Sub');
+  lines.push('    fso.DeleteFolder fp, True');
+  lines.push('    WScript.Sleep 500');
+  lines.push('  Next');
+  lines.push('End Sub');
+  lines.push('Sub DelFile(fp)');
+  lines.push('  Dim t');
+  lines.push('  For t = 1 To 40');
+  lines.push('    If Not fso.FileExists(fp) Then Exit Sub');
+  lines.push('    fso.DeleteFile fp, True');
+  lines.push('    WScript.Sleep 300');
+  lines.push('  Next');
+  lines.push('End Sub');
+
   fs.writeFileSync(vbsPath, lines.join('\r\n'), 'utf8');
   const child = spawn('wscript.exe', ['//B', vbsPath], { detached: true, stdio: 'ignore', windowsHide: true });
   child.unref();
