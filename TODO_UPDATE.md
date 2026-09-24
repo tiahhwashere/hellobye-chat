@@ -23,8 +23,8 @@
 - [x] Persist last login (main.js carryover + preload.js + index.html welcome-back card)
 
 ## Ship
-- [ ] Bump desktop version
-- [ ] Build/publish desktop release (or push source for next build)
-- [ ] Update server.js DESKTOP_FALLBACK + download.html
-- [ ] Commit + push to GitHub
-- [ ] Trigger Render deploy + verify live
+- [x] Bump desktop version (1.6.0 -> 1.6.1)
+- [x] Build NSIS + portable, publish GitHub release desktop-v1.6.1
+- [x] Update server.js DESKTOP_FALLBACK + download.html to v1.6.1
+- [x] Commit + push to GitHub master
+- [x] Render deploy live (dep-daqor2jbc2fs739jqe40) + verified live endpoints
