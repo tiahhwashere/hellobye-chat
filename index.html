@@ -11686,6 +11686,116 @@ window.addEventListener('hb-persist-carryover', function () { try { hbPersistCar
 document.addEventListener('visibilitychange', function () { if (document.hidden) { try { hbPersistCarryover(true); } catch (e) {} } });
 try { window.__hbPersistCarryover = hbPersistCarryover; } catch (e) {}
 
+/* ---- Deferred-update download shortcut (web-side) -----------------------
+   This lives in the web app on purpose: the PC client always loads this page
+   fresh from the server, so EVERY desktop build (including older ones that
+   shipped before this feature) gets it. When a newer PC build is available we
+   drop a small download icon just to the left of the "Search messages" button
+   in the chat header, and we also surface it the instant the update prompt's
+   "Later" button is pressed. Clicking it runs the exact same self-delete +
+   redirect flow as the normal "Install update" action. */
+(function hbUpdateShortcut() {
+  try { if (!window.hellobyeDesktop || !window.hellobyeDesktop.isDesktop) return; } catch (e) { return; }
+  var ICON_ID = 'hb-update-icon-btn';
+  var wanted = false;
+
+  function styles() {
+    if (document.getElementById('hb-up-icon-style')) return;
+    var st = document.createElement('style');
+    st.id = 'hb-up-icon-style';
+    st.textContent =
+      '#' + ICON_ID + '{position:relative;color:#8b93ff !important;}' +
+      '#' + ICON_ID + ':hover{color:#aab1ff !important;}' +
+      '#' + ICON_ID + '::after{content:"";position:absolute;top:4px;right:4px;width:7px;height:7px;border-radius:50%;' +
+      'background:#5865f2;box-shadow:0 0 0 2px rgba(0,0,0,0.35),0 0 8px rgba(88,101,242,0.95);animation:hbUpIconPulse 1.9s ease-in-out infinite;}' +
+      '@keyframes hbUpIconPulse{0%,100%{opacity:.5}50%{opacity:1}}';
+    (document.head || document.documentElement).appendChild(st);
+  }
+
+  function install() {
+    wanted = false;
+    try { localStorage.removeItem('hb_update_icon'); } catch (e) {}
+    var b = document.getElementById(ICON_ID);
+    if (b) b.remove();
+    try { window.dispatchEvent(new Event('hb-persist-carryover')); } catch (e) {}
+    try {
+      if (window.hellobyeDesktop.downloadNewBuild) window.hellobyeDesktop.downloadNewBuild();
+      else window.open('https://hellobye-chat.onrender.com/download', '_blank');
+    } catch (e) {
+      try { window.open('https://hellobye-chat.onrender.com/download', '_blank'); } catch (e2) {}
+    }
+  }
+
+  function inject() {
+    if (document.getElementById(ICON_ID)) return true;
+    var searchBtn = document.getElementById('search-msg-btn');
+    if (!searchBtn || !searchBtn.parentNode) return false;
+    styles();
+    var btn = document.createElement('button');
+    btn.id = ICON_ID;
+    btn.className = 'icon-btn';
+    btn.type = 'button';
+    btn.title = 'Update available \u2014 click to install the new build';
+    btn.setAttribute('aria-label', 'Install update');
+    btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+      '<path d="M12 3v10.5"/><polyline points="7.6 9.6 12 14 16.4 9.6"/><line x1="5" y1="19.5" x2="19" y2="19.5"/></svg>';
+    btn.addEventListener('click', install);
+    searchBtn.parentNode.insertBefore(btn, searchBtn);
+    return true;
+  }
+
+  function want() {
+    wanted = true;
+    try { localStorage.setItem('hb_update_icon', '1'); } catch (e) {}
+    inject();
+  }
+
+  // Restore a previously-deferred shortcut (survives relaunch).
+  try { if (localStorage.getItem('hb_update_icon') === '1') wanted = true; } catch (e) {}
+
+  // Hook the desktop update prompt's "Later" button (identical IDs on every build).
+  function hookOverlay() {
+    var overlay = document.getElementById('hb-update-overlay');
+    if (!overlay || overlay.__hbHooked) return;
+    overlay.__hbHooked = true;
+    var later = overlay.querySelector('#hb-up-later');
+    if (later) later.addEventListener('click', want);
+  }
+
+  // Keep the shortcut pinned next to "Search messages" as the header re-renders.
+  try {
+    var mo = new MutationObserver(function () {
+      hookOverlay();
+      if (wanted && !document.getElementById(ICON_ID)) inject();
+    });
+    mo.observe(document.documentElement, { childList: true, subtree: true });
+  } catch (e) {}
+  hookOverlay();
+  if (wanted) inject();
+
+  // If a newer build exists, surface the shortcut even without the prompt
+  // (e.g. the user already dismissed it in a previous session).
+  function vnum(v) {
+    var m = String(v || '').match(/(\d+)\.(\d+)\.(\d+)/);
+    return m ? (parseInt(m[1], 10) * 1000000 + parseInt(m[2], 10) * 1000 + parseInt(m[3], 10)) : 0;
+  }
+  function checkUpdate() {
+    try {
+      Promise.resolve(window.hellobyeDesktop.getVersion ? window.hellobyeDesktop.getVersion() : null)
+        .then(function (cur) {
+          return fetch(API_BASE + '/api/desktop-release', { cache: 'no-store' })
+            .then(function (r) { return r.ok ? r.json() : null; })
+            .then(function (d) {
+              if (!d || !d.version) return;
+              if (vnum(d.version) > vnum(cur)) want();
+            });
+        }).catch(function () {});
+    } catch (e) {}
+  }
+  checkUpdate();
+  setInterval(function () { if (!wanted) checkUpdate(); }, 60000);
+})();
+
 function hbWbIcon(name, size) {
   const s = size || 16;
   const P = {
