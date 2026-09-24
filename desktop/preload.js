@@ -112,6 +112,14 @@ function injectChromeStyles() {
       padding-right: calc(${WC_BTN_W * 3}px / var(--hb-z) + 10px) !important;
     }
 
+    /* On the servers page the member sidebar is the right-most column, so its
+       header (Members / Roles) would sit directly underneath the fixed window
+       controls. Reserve the control height at the top of the sidebar so the
+       Roles button clears the controls instead of overlapping them. */
+    html.hb-desktop .member-sidebar:not(.collapsed) {
+      padding-top: calc(var(--hb-wc-h, ${WC_H}px) + 12px) !important;
+    }
+
     /* Hide website-only chrome inside the native app. */
     html.hb-desktop #download-pc-btn { display: none !important; }
   `;

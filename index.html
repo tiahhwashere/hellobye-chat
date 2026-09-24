@@ -16030,16 +16030,21 @@ function vpDrawWave(canvas, peaks, progress) {
   }
   ctx.globalAlpha = 1;
 }
-function vpDecodeWave(src) {
+function vpDecodeWave(src, _attempt) {
+  if (!src) return Promise.resolve(null);
   if (_vpWaveCache.has(src)) return Promise.resolve(_vpWaveCache.get(src));
   if (_vpDecoding.has(src)) return _vpDecoding.get(src);
-  const p = fetch(src).then(r => r.arrayBuffer()).then(buf => {
+  const attempt = _attempt || 0;
+  const p = fetch(src).then(r => {
+    if (!r.ok) throw new Error('http ' + r.status);
+    return r.arrayBuffer();
+  }).then(buf => {
     const AC = window.AudioContext || window.webkitAudioContext;
     if (!AC) throw new Error('no audioctx');
     const ac = new AC();
     return ac.decodeAudioData(buf).then(audioBuf => {
       const data = audioBuf.getChannelData(0);
-      const bars = 40, block = Math.floor(data.length / bars) || 1;
+      const bars = 48, block = Math.floor(data.length / bars) || 1;
       const peaks = [];
       for (let i = 0; i < bars; i++) {
         let sum = 0;
@@ -16051,11 +16056,21 @@ function vpDecodeWave(src) {
       return peaks;
     });
   }).catch(() => {
-    const fallback = Array.from({ length: 40 }, (_, i) => 0.2 + 0.5 * Math.abs(Math.sin(i * 0.7)));
-    _vpWaveCache.set(src, fallback);
-    return fallback;
+    // Don't cache a failure: the file can be briefly unavailable right after
+    // upload, so retry a few times before ever falling back. This is what
+    // stops the waveform from "not loading" on a freshly-sent voice message.
+    _vpDecoding.delete(src);
+    if (attempt < 4) {
+      return new Promise(res => setTimeout(res, 300 * (attempt + 1)))
+        .then(() => vpDecodeWave(src, attempt + 1));
+    }
+    // Last resort: a plausible (uncached) placeholder so a transient failure
+    // never permanently sticks to the URL.
+    return Array.from({ length: 48 }, (_, i) => 0.18 + 0.5 * Math.abs(Math.sin(i * 0.55) * Math.cos(i * 0.21)));
   });
   _vpDecoding.set(src, p);
+  p.then(() => { if (_vpDecoding.get(src) === p) _vpDecoding.delete(src); },
+         () => { if (_vpDecoding.get(src) === p) _vpDecoding.delete(src); });
   return p;
 }
 function vpInit(el) {

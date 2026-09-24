@@ -5801,12 +5801,12 @@ app.get('/api/version', (req, res) => {
 // the download page) picks it up with no code change required.
 const DESKTOP_REPO = process.env.HELLOBYE_REPO || 'tiahhwashere/hellobye-chat';
 const DESKTOP_FALLBACK = {
-  version: '1.5.1',
+  version: '1.5.2',
   name: 'HelloBye-Setup.exe',
-  url: 'https://github.com/tiahhwashere/hellobye-chat/releases/download/desktop-v1.5.1/HelloBye-Setup.exe',
+  url: 'https://github.com/tiahhwashere/hellobye-chat/releases/download/desktop-v1.5.2/HelloBye-Setup.exe',
   size: 78223804,
   publishedAt: null,
-  releaseUrl: 'https://github.com/tiahhwashere/hellobye-chat/releases/tag/desktop-v1.5.1',
+  releaseUrl: 'https://github.com/tiahhwashere/hellobye-chat/releases/tag/desktop-v1.5.2',
 };
 let desktopReleaseCache = { at: 0, data: null };
 const DESKTOP_CACHE_MS = 10 * 60 * 1000; // refresh at most every 10 minutes
@@ -6900,6 +6900,7 @@ io.on('connection', (socket) => {
           name: f.name ? String(f.name).slice(0, 300) : null,
           type: f.type ? String(f.type).slice(0, 120) : null,
           size: Number(f.size) || 0,
+          duration: Number(f.duration) || 0,
           spoiler: !!f.spoiler,
           coverImage: f.coverImage ? String(f.coverImage).slice(0, 2000) : null,
         };
@@ -7236,6 +7237,7 @@ io.on('connection', (socket) => {
           name: f.name ? String(f.name).slice(0, 300) : null,
           type: f.type ? String(f.type).slice(0, 120) : null,
           size: Number(f.size) || 0,
+          duration: Number(f.duration) || 0,
           spoiler: !!f.spoiler,
           coverImage: f.coverImage ? String(f.coverImage).slice(0, 2000) : null,
         };

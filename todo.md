@@ -1,30 +1,24 @@
-# HelloBye PC v1.5.1 — Servers page window-control overlap fix
+# HelloBye PC — servers window-controls overlap, Effect smush, voice wave fixes
 
-## 1. Fix overlap on servers page (PC only)
-- [x] Add `.server-chat-header` to padding-right rule (clear sch-actions buttons)
-- [x] Add `.server-chat-header` to drag region + its buttons to no-drag
-- [x] Add `.server-header-top` no-drag (banner is clickable)
-- [x] Add syncControlHeight() + watchHeader() to match control height to header
-- [x] Verify horizontal gap (no overlap) via DOM measurement
-- [x] Verify vertical alignment (control height == header height)
-- [x] Check modals for top-right close-button conflicts (none — centered overlays, z-index 1000)
+## 1. Window controls overlap the Roles button (servers page, PC)
+- [x] Reproduce: desktop mode, open server, show members -> controls overlap Roles button (top-right)
+- [x] Add desktop CSS so member sidebar clears the fixed window controls (padding-top)
+- [x] Verify via DOM measurement (overlap=false) + screenshot
 
-## 2. Version bump to 1.5.1
-- [x] desktop/package.json -> 1.5.1
-- [x] server.js DESKTOP_FALLBACK -> 1.5.1
-- [x] download.html static link + version label -> 1.5.1
+## 2. Fix "Effect" being smushed (PC Server Settings appearance)
+- [x] Root cause: `.modal.wide` (900px) overrode `.settings-modal` (1480px); `.fx-card-preview` inherited min-height:118px
+- [x] Bump `.settings-modal` specificity + reset fx-card-preview min-height/height
+- [x] Verify via screenshot (6-col compact grid, modal 1480px)
 
-## 3. Cleanup temp files
-- [x] Delete test-servers2.js, test-chat.js, test-server.py
-- [x] Kill stub server on port 8791
+## 3. Voice message embed waveform (whole site / PC)
+- [x] Persist duration through server cleanFiles (server-send + server-thread-send)
+- [x] Make vpDecodeWave retry transient failures instead of caching a fake wave
+- [ ] Verify recording -> send -> wave renders promptly (reload + test)
 
-## 4. Build desktop v1.5.1
-- [x] Build Windows NSIS + portable with electron-builder (Setup 78,224,545 B; Portable 77,969,237 B)
+## 4. Remove download button in voice embed (keep beside playback speed)
+- [x] Remove .vp-download button in .vp-foot from renderVoicePlayer
+- [ ] Verify only .vp-dl (beside speed) remains
 
-## 5. Publish GitHub release desktop-v1.5.1
-- [x] Create release + upload Setup.exe + Portable.exe (release id 395150390)
-
-## 6. Deploy
+## 5. Deploy
 - [ ] Commit + push to master (Render auto-deploy)
-- [ ] Verify live /api/desktop-release + download page show v1.5.1
-- [ ] Send new download link
+- [ ] Verify live site
