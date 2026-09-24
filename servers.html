@@ -1108,7 +1108,7 @@ input, textarea { font-family: inherit; }
 .voice-bg-fx { position: absolute; inset: 0; z-index: 1; pointer-events: none; overflow: hidden; opacity: 0; transition: opacity 0.45s ease; }
 .voice-bg-fx.vfx-on { opacity: 1; }
 .voice-bg-fx::before { content: ''; position: absolute; inset: 0; pointer-events: none; }
-.vs-bg-seg { grid-template-columns: repeat(auto-fill, minmax(86px, 1fr)); }
+.vs-bg-seg { grid-template-columns: repeat(auto-fill, minmax(168px, 1fr)); }
 /* Base ::before for the picker previews (mirrors the fx-* shared rule). */
 .server-appearance-preview.vfx-aurora::before,
 .server-appearance-preview.vfx-nebula::before,
@@ -2153,22 +2153,25 @@ input, textarea { font-family: inherit; }
 .seg-control button.selected { background: linear-gradient(180deg, var(--accent), var(--accent-dim)); color: #fff; box-shadow: 0 2px 8px rgba(var(--accent-rgb),0.4); }
 .seg-control button.selected.warn { background: linear-gradient(180deg, #f0a92e, #d4881a); color: #33230a; }
 .seg-control button.selected.danger { background: linear-gradient(180deg, #e35d5d, #c02e2e); color: #fff; }
-/* Effect picker: a visual grid of live swatches (each card previews its effect) */
-#set-effect-seg { display: grid; grid-template-columns: repeat(auto-fill, minmax(74px, 1fr)); gap: 8px; }
+/* Effect picker: a visual grid of live swatches (each card previews its effect).
+   .fx-grid is the shared base so BOTH the Effect picker and the Voice chat
+   background picker lay out as real grids with roomy, un-cramped cards. */
+.fx-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(116px, 1fr)); gap: 12px; }
+#set-effect-seg { grid-template-columns: repeat(auto-fill, minmax(116px, 1fr)); }
 .fx-card {
-  display: flex; flex-direction: column; gap: 6px; padding: 7px; min-width: 0;
-  border-radius: 11px; background: var(--bg-darkest); border: 1px solid var(--border);
-  cursor: pointer; transition: background var(--transition), border-color var(--transition), box-shadow var(--transition);
+  display: flex; flex-direction: column; gap: 9px; padding: 11px; min-width: 0;
+  border-radius: 13px; background: var(--bg-darkest); border: 1px solid var(--border);
+  cursor: pointer; transition: background var(--transition), border-color var(--transition), box-shadow var(--transition), transform var(--transition);
 }
-.fx-card:hover { border-color: var(--accent); background: var(--bg-medium); }
-.fx-card.selected { border-color: var(--accent); background: var(--bg-medium); box-shadow: 0 0 0 1px var(--accent), 0 4px 14px rgba(var(--accent-rgb),0.3); }
+.fx-card:hover { border-color: var(--accent); background: var(--bg-medium); transform: translateY(-1px); }
+.fx-card.selected { border-color: var(--accent); background: var(--bg-medium); box-shadow: 0 0 0 1px var(--accent), 0 6px 18px rgba(var(--accent-rgb),0.3); }
 .fx-card:disabled { cursor: not-allowed; }
 .fx-card-preview {
-  position: relative; height: 46px; margin: 0; border-radius: 8px; overflow: hidden;
+  position: relative; height: 68px; margin: 0; border-radius: 10px; overflow: hidden;
   background: linear-gradient(135deg, var(--bg-medium), var(--bg-dark));
   border: 1px solid var(--border-light);
 }
-.fx-card-label { font-size: 11px; font-weight: 700; color: var(--text-secondary); text-align: center; letter-spacing: 0.2px; }
+.fx-card-label { font-size: 11.5px; font-weight: 700; color: var(--text-secondary); text-align: center; letter-spacing: 0.2px; line-height: 1.2; }
 .fx-card.selected .fx-card-label { color: var(--text-primary); }
 .allow-grid { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
 .allow-chip {
@@ -2341,7 +2344,7 @@ input, textarea { font-family: inherit; }
 .server-appearance-preview .sap-pill { height: 12px; width: 46%; border-radius: 6px; background: var(--accent); display: block; box-shadow: 0 0 12px rgba(var(--accent-rgb),0.5); }
 /* Effect swatch cards reuse the .server-appearance-preview effect styles but
    need their own compact frame (no outer margin, tighter radius). */
-.fx-card-preview.server-appearance-preview { margin: 0; border-radius: 8px; border: 1px solid var(--border-light); background: linear-gradient(135deg, var(--bg-medium), var(--bg-dark)); min-height: 0; height: 46px; }
+.fx-card-preview.server-appearance-preview { margin: 0; border-radius: 10px; border: 1px solid var(--border-light); background: linear-gradient(135deg, var(--bg-medium), var(--bg-dark)); min-height: 0; height: 68px; }
 /* Chat background image preview (Server Settings) */
 .chat-bg-preview { position: relative; height: 120px; border: 1px solid var(--border-light); border-radius: 10px; overflow: hidden; margin: 4px 0 12px; background: var(--bg-darkest); display: flex; align-items: center; justify-content: center; }
 .chat-bg-preview .cbp-img { position: absolute; inset: 0; background-size: cover; background-position: center; background-repeat: no-repeat; }

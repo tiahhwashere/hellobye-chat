@@ -388,18 +388,18 @@ function showSoftUpdate() {
 function promptDownload() {
   const choice = dialog.showMessageBoxSync(mainWindow || undefined, {
     type: 'info',
-    buttons: ['Download new build', 'Later'],
+    buttons: ['Install update', 'Later'],
     defaultId: 0,
     cancelId: 1,
     title: 'New build available',
     message: 'A new build of Hellobye for PC is available.',
-    detail: 'Download the new build to get the latest fixes. Hellobye will close, the installed app will be removed, and the download page will open in your browser.',
+    detail: 'Installing will close Hellobye, remove the installed app from this PC, and open the download page so you can install the latest build.',
   });
   if (choice === 0) downloadNewBuild();
 }
 
 // The download page that always serves the newest build.
-const DOWNLOAD_URL = 'https://hellobye-chat.onrender.com/download.html';
+const DOWNLOAD_URL = 'https://hellobye-chat.onrender.com/download';
 
 // Open the download page, remove the installed PC app, then quit. Self-deletion
 // has to happen from a separate process because Windows will not let a running
@@ -415,15 +415,25 @@ function downloadNewBuild() {
   setTimeout(() => { try { app.exit(0); } catch (e) { app.quit(); } }, 500);
 }
 
-// Spawn a detached helper that waits for this process to exit, then deletes the
-// installed app. A portable build deletes just its .exe; an installed build
-// removes its whole install directory.
+// Spawn a detached helper that waits for this process to exit, then removes the
+// FULL installed app: the install directory (or the portable .exe), the per-user
+// app data, and the desktop / Start-menu shortcuts. This guarantees a clean slate
+// before the user re-downloads the latest build from the download page.
 function scheduleSelfDelete() {
   if (process.platform !== 'win32' || !app.isPackaged) return; // dev/non-Windows: nothing to remove
   const execPath = process.execPath;
   const exeName = path.basename(execPath);
   const installDir = path.dirname(execPath);
   const isPortable = !!process.env.PORTABLE_EXECUTABLE_FILE;
+  const portableExe = process.env.PORTABLE_EXECUTABLE_FILE || execPath;
+
+  // Per-user locations that make up the "full" app footprint.
+  let userDataDir = '';
+  try { userDataDir = app.getPath('userData'); } catch (e) {}
+  const appDataRoaming = process.env.APPDATA || '';
+  const appDataLocal = process.env.LOCALAPPDATA || '';
+  const userProfile = process.env.USERPROFILE || '';
+
   const batPath = path.join(os.tmpdir(), 'hellobye-cleanup-' + Date.now() + '.bat');
   const q = (s) => '"' + String(s).replace(/"/g, '') + '"';
   const lines = [
@@ -437,9 +447,25 @@ function scheduleSelfDelete() {
     '  goto wait',
     ')',
     'timeout /t 1 /nobreak >NUL',
-    isPortable ? ('del /f /q ' + q(execPath)) : ('rmdir /s /q ' + q(installDir)),
-    'del /f /q "%~f0"',
   ];
+  // 1) Remove the program itself (portable exe, or the whole install folder).
+  lines.push(isPortable ? ('del /f /q ' + q(portableExe)) : ('rmdir /s /q ' + q(installDir)));
+  // 2) Remove per-user app data (config, cache, saved state).
+  if (userDataDir) lines.push('rmdir /s /q ' + q(userDataDir));
+  if (appDataRoaming) lines.push('rmdir /s /q ' + q(path.join(appDataRoaming, 'HelloBye')));
+  if (appDataLocal) lines.push('rmdir /s /q ' + q(path.join(appDataLocal, 'HelloBye')));
+  // 3) Remove desktop + Start-menu shortcuts.
+  if (userProfile) {
+    lines.push('del /f /q ' + q(path.join(userProfile, 'Desktop', 'HelloBye.lnk')));
+    lines.push('del /f /q ' + q(path.join(userProfile, 'Desktop', 'Hellobye.lnk')));
+  }
+  if (appDataRoaming) {
+    lines.push('del /f /q ' + q(path.join(appDataRoaming, 'Microsoft', 'Windows', 'Start Menu', 'Programs', 'HelloBye.lnk')));
+  }
+  // 4) Best-effort registry uninstall entry cleanup.
+  lines.push('reg delete "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\HelloBye" /f >NUL 2>&1');
+  lines.push('reg delete "HKCU\\Software\\HelloBye" /f >NUL 2>&1');
+  lines.push('del /f /q "%~f0"');
   fs.writeFileSync(batPath, lines.join('\r\n'), 'utf8');
   const child = spawn('cmd.exe', ['/c', batPath], { detached: true, stdio: 'ignore', windowsHide: true });
   child.unref();

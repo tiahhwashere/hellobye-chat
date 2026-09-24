@@ -371,50 +371,88 @@ function injectUpdateStyles() {
       position: fixed; inset: 0; z-index: 2147483647;
       display: flex; align-items: center; justify-content: center;
       padding: 24px;
-      background: rgba(6,7,10,0.74);
-      -webkit-backdrop-filter: blur(7px); backdrop-filter: blur(7px);
-      opacity: 0; pointer-events: none; transition: opacity .22s ease;
+      background:
+        radial-gradient(1200px 720px at 50% -12%, rgba(88,101,242,0.20), transparent 62%),
+        radial-gradient(900px 640px at 108% 116%, rgba(139,147,255,0.13), transparent 62%),
+        radial-gradient(760px 560px at -8% 108%, rgba(88,101,242,0.10), transparent 60%),
+        rgba(5,6,9,0.82);
+      -webkit-backdrop-filter: blur(12px) saturate(1.15); backdrop-filter: blur(12px) saturate(1.15);
+      opacity: 0; pointer-events: none; transition: opacity .24s ease;
       font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
     }
     #hb-update-overlay.show { opacity: 1; pointer-events: auto; }
     #hb-update-card {
-      width: min(460px, calc(100vw - 48px));
-      background: linear-gradient(180deg, #202127, #16171b);
+      position: relative; isolation: isolate; overflow: hidden;
+      width: min(540px, calc(100vw - 48px));
+      background: #0d0e12;
       border: 1px solid rgba(255,255,255,0.10);
-      border-radius: 18px; overflow: hidden;
-      box-shadow: 0 30px 80px rgba(0,0,0,0.65), 0 0 0 1px rgba(0,0,0,0.4);
+      border-radius: 22px;
+      box-shadow: 0 44px 130px rgba(0,0,0,0.72), 0 0 0 1px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.05);
       color: #e9eaee;
-      transform: translateY(16px) scale(0.96);
-      transition: transform .3s cubic-bezier(.2,.9,.3,1.15);
+      transform: translateY(20px) scale(0.95);
+      transition: transform .36s cubic-bezier(.2,.9,.3,1.15);
     }
     #hb-update-overlay.show #hb-update-card { transform: translateY(0) scale(1); }
-    #hb-update-card .hb-up-accent { height: 3px; width: 100%; background: linear-gradient(90deg, #5865f2, #8b93ff, #5865f2); }
-    #hb-update-card .hb-up-body { padding: 26px 26px 22px; text-align: center; }
-    #hb-update-card .hb-up-icon {
-      width: 58px; height: 58px; margin: 0 auto 16px; border-radius: 16px;
-      display: flex; align-items: center; justify-content: center;
-      background: linear-gradient(135deg, rgba(88,101,242,0.30), rgba(139,147,255,0.16));
-      border: 1px solid rgba(139,147,255,0.38); color: #aab1ff;
+    /* Layer 1 — slow-drifting accent aurora mesh */
+    #hb-update-card::before {
+      content: ''; position: absolute; inset: -45%; z-index: -2;
+      background:
+        radial-gradient(38% 38% at 24% 26%, rgba(88,101,242,0.58), transparent 70%),
+        radial-gradient(34% 34% at 80% 28%, rgba(139,147,255,0.42), transparent 72%),
+        radial-gradient(46% 46% at 56% 90%, rgba(88,101,242,0.44), transparent 74%);
+      filter: blur(46px) saturate(1.25);
+      animation: hb-up-drift 20s ease-in-out infinite alternate;
     }
-    #hb-update-card .hb-up-icon svg { width: 28px; height: 28px; }
-    #hb-update-card .hb-up-title { font-size: 19px; font-weight: 800; letter-spacing: .01em; color: #fff; margin-bottom: 8px; }
-    #hb-update-card .hb-up-text { font-size: 13.5px; color: #a9abb3; line-height: 1.6; margin-bottom: 8px; }
+    /* Layer 2 — fine engineering grid, faded toward the edges */
+    #hb-update-card::after {
+      content: ''; position: absolute; inset: 0; z-index: -1; opacity: .5;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px);
+      background-size: 34px 34px;
+      -webkit-mask-image: radial-gradient(125% 95% at 50% 0%, #000 18%, transparent 82%);
+      mask-image: radial-gradient(125% 95% at 50% 0%, #000 18%, transparent 82%);
+    }
+    @keyframes hb-up-drift { 0% { transform: translate3d(-4%,-3%,0) scale(1.06); } 100% { transform: translate3d(4%,3%,0) scale(1.16); } }
+    #hb-update-card .hb-up-accent { position: relative; z-index: 3; height: 3px; width: 100%; background: linear-gradient(90deg, #5865f2, #8b93ff, #5865f2); background-size: 200% 100%; animation: hb-up-sheen 6s linear infinite; }
+    @keyframes hb-up-sheen { to { background-position: 200% 0; } }
+    #hb-update-card .hb-up-body {
+      position: relative; z-index: 2; padding: 30px 30px 26px; text-align: center;
+      background: linear-gradient(180deg, rgba(12,13,17,0.30), rgba(11,12,15,0.80) 62%);
+    }
+    #hb-update-card .hb-up-pill {
+      display: inline-flex; align-items: center; gap: 8px; margin-bottom: 16px;
+      padding: 6px 14px; border-radius: 999px;
+      font-size: 10.5px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase;
+      color: #c7cbff; background: rgba(88,101,242,0.14);
+      border: 1px solid rgba(139,147,255,0.34);
+    }
+    #hb-update-card .hb-up-pill .hb-up-dot { width: 7px; height: 7px; border-radius: 50%; background: #8b93ff; box-shadow: 0 0 10px rgba(139,147,255,0.9); animation: hb-up-pulse 1.9s ease-in-out infinite; }
+    @keyframes hb-up-pulse { 0%, 100% { opacity: .45; } 50% { opacity: 1; } }
+    #hb-update-card .hb-up-title { font-size: 23px; font-weight: 800; letter-spacing: -.01em; color: #fff; margin-bottom: 10px; }
+    #hb-update-card .hb-up-text { font-size: 13.5px; color: #a9abb3; line-height: 1.65; margin-bottom: 10px; }
     #hb-update-card .hb-up-text b { color: #c9ccff; font-weight: 700; }
-    #hb-update-card .hb-up-ver { font-size: 11.5px; color: #8a8d96; margin-bottom: 20px; }
+    #hb-update-card .hb-up-ver { font-size: 11.5px; color: #8a8d96; margin-bottom: 22px; }
     #hb-update-card .hb-up-actions { display: flex; flex-direction: column; gap: 10px; }
     #hb-update-card button {
       font: inherit; font-size: 14px; font-weight: 700; cursor: pointer;
-      border-radius: 11px; padding: 13px 16px; border: 1px solid transparent;
-      transition: filter .15s ease, background .15s ease, opacity .15s ease;
+      border-radius: 12px; padding: 14px 16px; border: 1px solid transparent;
+      transition: filter .15s ease, background .15s ease, opacity .15s ease, transform .15s ease;
     }
-    #hb-update-card .hb-up-download { background: #5865f2; color: #fff; }
-    #hb-update-card .hb-up-download:hover { filter: brightness(1.1); }
-    #hb-update-card .hb-up-later { background: transparent; color: #c7c9d1; border-color: rgba(255,255,255,0.14); }
-    #hb-update-card .hb-up-later:hover { background: rgba(255,255,255,0.06); }
-    #hb-update-card .hb-up-note { margin-top: 14px; font-size: 11px; color: #7c7f88; line-height: 1.5; }
-    #hb-update-overlay.working .hb-up-actions { opacity: .55; pointer-events: none; }
-    #hb-update-overlay.working .hb-up-icon svg { animation: hb-up-spin 1s linear infinite; }
-    @keyframes hb-up-spin { to { transform: rotate(360deg); } }
+    #hb-update-card .hb-up-download { background: linear-gradient(180deg, #6b76f5, #5865f2); color: #fff; box-shadow: 0 10px 26px rgba(88,101,242,0.42); }
+    #hb-update-card .hb-up-download:hover { filter: brightness(1.08); transform: translateY(-1px); }
+    #hb-update-card .hb-up-later { background: rgba(255,255,255,0.04); color: #c7c9d1; border-color: rgba(255,255,255,0.14); }
+    #hb-update-card .hb-up-later:hover { background: rgba(255,255,255,0.08); }
+    #hb-update-card .hb-up-note { margin-top: 15px; font-size: 11px; color: #7c7f88; line-height: 1.55; }
+    #hb-update-card .hb-up-progress { position: absolute; left: 0; right: 0; bottom: 0; z-index: 3; height: 3px; background: rgba(255,255,255,0.06); opacity: 0; transition: opacity .2s ease; overflow: hidden; }
+    #hb-update-card .hb-up-progress::after { content: ''; position: absolute; top: 0; bottom: 0; width: 42%; background: linear-gradient(90deg, transparent, #8b93ff, transparent); animation: hb-up-slide 1.15s linear infinite; }
+    @keyframes hb-up-slide { from { transform: translateX(-130%); } to { transform: translateX(330%); } }
+    #hb-update-overlay.working .hb-up-actions { opacity: .5; pointer-events: none; }
+    #hb-update-overlay.working .hb-up-progress { opacity: 1; }
+    @media (prefers-reduced-motion: reduce) {
+      #hb-update-card::before, #hb-update-card .hb-up-accent,
+      #hb-update-card .hb-up-pill .hb-up-dot, #hb-update-card .hb-up-progress::after { animation: none; }
+    }
   `;
   (document.head || document.documentElement).appendChild(style);
 }
@@ -431,21 +469,17 @@ function showUpdateModal() {
     '<div id="hb-update-card" role="dialog" aria-modal="true" aria-labelledby="hb-up-title">' +
       '<div class="hb-up-accent"></div>' +
       '<div class="hb-up-body">' +
-        '<div class="hb-up-icon">' +
-          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
-            '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>' +
-            '<polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>' +
-          '</svg>' +
-        '</div>' +
-        '<div class="hb-up-title" id="hb-up-title">A new build is available</div>' +
-        '<div class="hb-up-text">A newer version of <b>Hellobye for PC</b> is ready. Download the new build to get the latest fixes and features.</div>' +
+        '<div class="hb-up-pill"><span class="hb-up-dot"></span>Update available</div>' +
+        '<div class="hb-up-title" id="hb-up-title">A new build is ready</div>' +
+        '<div class="hb-up-text">A newer version of <b>Hellobye for PC</b> is available. Download the latest build to pick up the newest fixes and features.</div>' +
         '<div class="hb-up-ver" id="hb-up-ver">Hellobye for PC</div>' +
         '<div class="hb-up-actions">' +
-          '<button class="hb-up-download" id="hb-up-download" type="button">Download new build</button>' +
+          '<button class="hb-up-download" id="hb-up-download" type="button">Install update</button>' +
           '<button class="hb-up-later" id="hb-up-later" type="button">Later</button>' +
         '</div>' +
-        '<div class="hb-up-note">Downloading closes Hellobye, removes the installed app, and opens the download page so you can install the fresh build.</div>' +
+        '<div class="hb-up-note">Installing closes Hellobye, removes the installed app from this PC, and opens the download page so you can install the fresh build.</div>' +
       '</div>' +
+      '<div class="hb-up-progress"></div>' +
     '</div>';
   document.body.appendChild(updateOverlayEl);
   requestAnimationFrame(() => updateOverlayEl.classList.add('show'));
@@ -470,12 +504,12 @@ function doDownload() {
     updateOverlayEl.classList.add('working');
     const t = updateOverlayEl.querySelector('.hb-up-title');
     const x = updateOverlayEl.querySelector('.hb-up-text');
-    if (t) t.textContent = 'Opening download page\u2026';
-    if (x) x.textContent = 'Closing Hellobye and opening the download page in your browser.';
+    if (t) t.textContent = 'Installing update\u2026';
+    if (x) x.textContent = 'Removing the installed Hellobye app and opening the download page in your browser.';
   }
   // Ask the main process to open the download page, remove the installed app,
   // and quit. The main process handles the self-deletion safely.
-  setTimeout(() => ipcRenderer.send('download-new-build'), 250);
+  setTimeout(() => ipcRenderer.send('download-new-build'), 300);
 }
 
 ipcRenderer.on('soft-update-available', () => {

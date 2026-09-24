@@ -1,24 +1,28 @@
-# HelloBye PC — servers window-controls overlap, Effect smush, voice wave fixes
+# Request D — Todo
 
-## 1. Window controls overlap the Roles button (servers page, PC)
-- [x] Reproduce: desktop mode, open server, show members -> controls overlap Roles button (top-right)
-- [x] Add desktop CSS so member sidebar clears the fixed window controls (padding-top)
-- [x] Verify via DOM measurement (overlap=false) + screenshot
+## Part 1: De-cramp "Voice chat background" + "Effect" pickers (servers.html)
+- [x] Widen `.fx-card` grid (both #set-effect-seg and #vs-bg-seg)
+- [x] Increase `.fx-card-preview` height + card padding/gap
+- [x] Ensure labels fit; verify visually
 
-## 2. Fix "Effect" being smushed (PC Server Settings appearance)
-- [x] Root cause: `.modal.wide` (900px) overrode `.settings-modal` (1480px); `.fx-card-preview` inherited min-height:118px
-- [x] Bump `.settings-modal` specificity + reset fx-card-preview min-height/height
-- [x] Verify via screenshot (6-col compact grid, modal 1480px)
+## Part 2: Revamp PC soft-update UI (desktop/preload.js) — centered, richer bg, NO emojis/SVG
+- [x] Remove `.hb-up-icon` download SVG entirely
+- [x] New centered card with richer animated background
+- [x] Verify visually via Electron screenshot
 
-## 3. Voice message embed waveform (whole site / PC)
-- [x] Persist duration through server cleanFiles (server-send + server-thread-send)
-- [x] Make vpDecodeWave retry transient failures instead of caching a fake wave
-- [ ] Verify recording -> send -> wave renders promptly (reload + test)
+## Part 3: PC update flow — delete FULL app + redirect to /download (desktop/main.js)
+- [x] Update DOWNLOAD_URL to https://hellobye-chat.onrender.com/download
+- [x] Ensure scheduleSelfDelete removes full app (install dir + userData + shortcuts)
+- [x] Verify logic
 
-## 4. Remove download button in voice embed (keep beside playback speed)
-- [x] Remove .vp-download button in .vp-foot from renderVoicePlayer
-- [ ] Verify only .vp-dl (beside speed) remains
+## Part 4: Revamp "Get HelloBye for PC" (download.html) — remove ALL emojis/SVG
+- [x] Remove 4 .feat SVGs + .dl button SVG
+- [x] Redesign layout without icons
+- [x] Verify visually
 
-## 5. Deploy
-- [ ] Commit + push to master (Render auto-deploy)
-- [ ] Verify live site
+## Ship
+- [ ] Bump desktop 1.5.5 -> 1.5.6
+- [ ] Build NSIS + portable
+- [ ] Publish GitHub release desktop-v1.5.6 + upload assets
+- [ ] Update server.js DESKTOP_FALLBACK + download.html to v1.5.6
+- [ ] Commit + push; verify Render deploy + live endpoints

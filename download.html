@@ -8,93 +8,134 @@
 <link rel="apple-touch-icon" href="/uploads/favicon.jpg">
 <style>
   :root {
-    --accent: #5865f2; --accent-2: #7c83f5;
-    --bg: #0e0f12; --card: #17181c; --card-2: #1d1e23;
+    --accent: #5865f2; --accent-2: #7c83f5; --accent-3: #8b93ff;
+    --bg: #0b0c0f; --card: #131418; --card-2: #191a1f;
     --text: #eceef1; --muted: #9a9ca4; --border: rgba(255,255,255,0.08);
+    --border-strong: rgba(255,255,255,0.14);
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
     font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    background: var(--bg);
-    color: var(--text); min-height: 100vh; display: flex; align-items: center; justify-content: center;
-    padding: 40px 18px;
+    color: var(--text); min-height: 100vh;
+    display: flex; align-items: center; justify-content: center;
+    padding: 48px 18px;
+    background:
+      radial-gradient(1100px 700px at 50% -16%, rgba(88,101,242,0.20), transparent 60%),
+      radial-gradient(900px 620px at 104% 112%, rgba(139,147,255,0.11), transparent 62%),
+      radial-gradient(760px 560px at -8% 108%, rgba(88,101,242,0.09), transparent 60%),
+      var(--bg);
     -webkit-font-smoothing: antialiased;
   }
-  .wrap { width: 100%; max-width: 680px; }
-  .brand { display: flex; align-items: center; gap: 12px; justify-content: center; margin-bottom: 28px; }
-  .brand img { width: 44px; height: 44px; border-radius: 10px; object-fit: cover; border: 1px solid var(--border); }
-  .brand h1 { font-size: 22px; font-weight: 600; letter-spacing: -0.01em; }
+  .wrap { width: 100%; max-width: 720px; }
+
+  /* Brand */
+  .brand { display: flex; align-items: center; gap: 13px; justify-content: center; margin-bottom: 30px; }
+  .brand img { width: 46px; height: 46px; border-radius: 12px; object-fit: cover; border: 1px solid var(--border-strong); box-shadow: 0 8px 24px rgba(0,0,0,0.45); }
+  .brand .wordmark { font-size: 23px; font-weight: 700; letter-spacing: -0.02em; }
+  .brand .wordmark span { color: var(--accent-3); }
+
+  /* Card */
   .card {
+    position: relative; overflow: hidden;
     background: var(--card);
-    border: 1px solid var(--border); border-radius: 16px; padding: 36px 32px;
+    border: 1px solid var(--border); border-radius: 20px;
+    padding: 40px 38px 34px;
+    box-shadow: 0 40px 120px rgba(0,0,0,0.55);
   }
-  .card h2 { font-size: 24px; font-weight: 600; letter-spacing: -0.01em; margin-bottom: 10px; }
-  .card p.lead { color: var(--muted); font-size: 14.5px; line-height: 1.6; margin-bottom: 26px; }
-  .features { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; margin-bottom: 28px; background: var(--border); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
-  .feat { display: flex; gap: 12px; align-items: flex-start; background: var(--card-2); padding: 16px 16px; }
-  .feat svg { width: 18px; height: 18px; flex: 0 0 auto; color: var(--muted); margin-top: 2px; }
-  .feat b { display: block; font-size: 13.5px; font-weight: 600; margin-bottom: 3px; }
-  .feat span { font-size: 12.5px; color: var(--muted); line-height: 1.45; }
+  .card::before { content: ''; position: absolute; inset: 0 0 auto 0; height: 3px; background: linear-gradient(90deg, var(--accent), var(--accent-3), var(--accent)); }
+  .eyebrow { display: inline-block; font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: var(--accent-3); margin-bottom: 14px; }
+  .card h2 { font-size: 30px; font-weight: 750; letter-spacing: -0.025em; margin-bottom: 12px; }
+  .card p.lead { color: var(--muted); font-size: 15px; line-height: 1.65; margin-bottom: 28px; max-width: 52ch; }
+
+  /* Feature list (icon-free) */
+  .features { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; margin-bottom: 30px; background: var(--border); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+  .feat { position: relative; background: var(--card-2); padding: 17px 18px 17px 22px; }
+  .feat::before { content: ''; position: absolute; left: 0; top: 16px; bottom: 16px; width: 3px; border-radius: 3px; background: linear-gradient(180deg, var(--accent), var(--accent-3)); }
+  .feat b { display: block; font-size: 13.5px; font-weight: 650; letter-spacing: -0.01em; margin-bottom: 4px; }
+  .feat span { font-size: 12.5px; color: var(--muted); line-height: 1.5; }
+
+  /* Download button (text only) */
   .dl {
-    display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%;
-    background: var(--accent); color: #fff; text-decoration: none;
-    font-weight: 600; font-size: 15px; padding: 15px 22px; border-radius: 10px;
-    transition: background .15s ease;
+    display: flex; align-items: center; justify-content: center; width: 100%;
+    background: linear-gradient(180deg, var(--accent-2), var(--accent)); color: #fff; text-decoration: none;
+    font-weight: 700; font-size: 15.5px; letter-spacing: -0.01em; padding: 16px 22px; border-radius: 12px;
+    box-shadow: 0 12px 30px rgba(88,101,242,0.38);
+    transition: filter .15s ease, transform .15s ease;
   }
-  .dl:hover { background: var(--accent-2); }
-  .dl svg { width: 19px; height: 19px; }
-  .meta { text-align: center; color: var(--muted); font-size: 12.5px; margin-top: 14px; }
+  .dl:hover { filter: brightness(1.08); transform: translateY(-1px); }
+  .dl:active { transform: translateY(0); }
+
+  .meta { text-align: center; color: var(--muted); font-size: 12.5px; margin-top: 15px; }
   .verline { text-align: center; color: var(--muted); font-size: 12.5px; margin-top: 6px; }
   .verline b { color: var(--text); font-weight: 600; }
-  .note { margin-top: 24px; padding-top: 22px; border-top: 1px solid var(--border); color: var(--muted); font-size: 12.5px; line-height: 1.65; }
+
+  /* Spec strip */
+  .specs { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 22px; }
+  .spec { font-size: 11.5px; color: var(--muted); padding: 6px 12px; border-radius: 999px; border: 1px solid var(--border); background: rgba(255,255,255,0.02); }
+
+  .note { margin-top: 26px; padding-top: 22px; border-top: 1px solid var(--border); color: var(--muted); font-size: 12.5px; line-height: 1.7; }
   .note b { color: var(--text); font-weight: 600; }
-  .back { display: block; text-align: center; margin-top: 24px; color: var(--muted); text-decoration: none; font-size: 13px; }
+  .back { display: block; text-align: center; margin-top: 26px; color: var(--muted); text-decoration: none; font-size: 13px; transition: color .15s ease; }
   .back:hover { color: var(--text); }
-  @media (max-width: 560px) { .features { grid-template-columns: 1fr; } .card { padding: 26px 20px; } }
+
+  @media (max-width: 560px) {
+    .features { grid-template-columns: 1fr; }
+    .card { padding: 28px 22px; }
+    .card h2 { font-size: 25px; }
+  }
 </style>
+<script src="https://sites.super.myninja.ai/_assets/ninja-daytona-script.js"></script>
 </head>
 <body>
   <div class="wrap">
     <div class="brand">
       <img src="/uploads/favicon.jpg" alt="HelloBye">
-      <h1>HelloBye</h1>
+      <div class="wordmark">Hello<span>Bye</span></div>
     </div>
+
     <div class="card">
+      <div class="eyebrow">Desktop app</div>
       <h2>Get HelloBye for PC</h2>
-      <p class="lead">A native desktop app for HelloBye Chat. Download once and it keeps itself up to date automatically.</p>
+      <p class="lead">A native Windows app for HelloBye Chat. Download once and it keeps itself up to date automatically.</p>
 
       <div class="features">
         <div class="feat">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-          <div><b>Native window</b><span>Runs like a real app, no browser tabs.</span></div>
+          <b>Native window</b>
+          <span>Runs like a real app, no browser tabs.</span>
         </div>
         <div class="feat">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></svg>
-          <div><b>Voice ready</b><span>Mic works instantly for voice chat and messages.</span></div>
+          <b>Voice ready</b>
+          <span>Mic works instantly for voice chat and messages.</span>
         </div>
         <div class="feat">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7"/><polyline points="21 3 21 9 15 9"/></svg>
-          <div><b>Soft updates</b><span>Detects website updates and applies them automatically.</span></div>
+          <b>Soft updates</b>
+          <span>Detects website updates and applies them automatically.</span>
         </div>
         <div class="feat">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-          <div><b>Stays signed in</b><span>Your login is remembered across restarts.</span></div>
+          <b>Stays signed in</b>
+          <span>Your login is remembered across restarts.</span>
         </div>
       </div>
 
-      <a class="dl" id="dl-btn" href="https://github.com/tiahhwashere/hellobye-chat/releases/download/desktop-v1.5.5/HelloBye-Setup.exe">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      <a class="dl" id="dl-btn" href="https://github.com/tiahhwashere/hellobye-chat/releases/download/desktop-v1.5.6/HelloBye-Setup.exe">
         Download for Windows
       </a>
       <div class="meta" id="dl-meta">HelloBye-Setup.exe &middot; ~75 MB &middot; Windows 10/11 (64-bit)</div>
-      <div class="verline" id="dl-verline">Latest version <b id="dl-version">v1.5.5</b></div>
+      <div class="verline" id="dl-verline">Latest version <b id="dl-version">v1.5.6</b></div>
+
+      <div class="specs">
+        <span class="spec">Windows 10 / 11</span>
+        <span class="spec">64-bit</span>
+        <span class="spec">Free</span>
+      </div>
 
       <div class="note">
         <b>How to run:</b> Download the file and double-click it. It is a portable app, so no installation is needed. Windows may show a SmartScreen prompt the first time; click <b>More info</b> then <b>Run anyway</b>.
         <br><br>
-        <b>Updates:</b> The app checks the website every 30 seconds. When a new build is deployed, a prompt appears in the middle of the screen telling you to download the new build. Clicking <b>Download</b> closes the app, removes the old PC app, and opens this page so you can install the fresh build. Your login and data are always kept.
+        <b>Updates:</b> The app checks the website every 30 seconds. When a new build is deployed, a prompt appears in the middle of the screen. Clicking <b>Install update</b> closes the app, removes the old PC app, and opens this page so you can install the fresh build. Your login and data are always kept.
       </div>
     </div>
+
     <a class="back" href="/">Back to HelloBye</a>
   </div>
   <script>
