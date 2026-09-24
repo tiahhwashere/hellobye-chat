@@ -494,9 +494,21 @@ ipcMain.handle('app-version', () => app.getVersion());
 ipcMain.handle('get-last-login', () => readCarryover());
 ipcMain.on('save-last-login', (e, data) => {
   if (!data || !data.username) return;
+  let prefs = null;
+  try {
+    if (data.prefs && typeof data.prefs === 'object') {
+      prefs = {};
+      for (const k in data.prefs) {
+        if (Object.prototype.hasOwnProperty.call(data.prefs, k) && typeof data.prefs[k] === 'string') {
+          prefs[k] = data.prefs[k];
+        }
+      }
+    }
+  } catch (err) { prefs = null; }
   writeCarryover({
     username: String(data.username),
     sessionId: data.sessionId ? String(data.sessionId) : '',
+    prefs,
     at: Date.now(),
   });
 });

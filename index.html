@@ -1643,6 +1643,40 @@ body.no-anim .friend-item { animation: none !important; }
   font-weight: 500;
 }
 .link-embed-readtime::before { content: ''; width: 9px; height: 9px; border-radius: 50%; background: var(--text-muted); opacity: 0.5; flex-shrink: 0; }
+.link-embed-sitename { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.link-embed-site .link-embed-type-badge { margin-left: auto; }
+.link-embed-date, .link-embed-section {
+  font-size: 11px; color: var(--text-muted); display: inline-flex; align-items: center; gap: 4px; font-weight: 500;
+}
+.link-embed-date svg { width: 11px; height: 11px; opacity: 0.7; flex-shrink: 0; }
+.link-embed-author svg { width: 11px; height: 11px; opacity: 0.7; flex-shrink: 0; }
+.link-embed-author { display: inline-flex; align-items: center; gap: 4px; }
+.link-embed-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px; }
+.link-embed-tag {
+  font-size: 10.5px; font-weight: 600; color: var(--text-secondary);
+  background: rgba(255,255,255,0.05); border: 1px solid var(--border);
+  padding: 2px 8px; border-radius: 6px; letter-spacing: 0.1px;
+}
+.link-embed-urlrow {
+  margin-top: 9px; padding-top: 9px; border-top: 1px solid rgba(255,255,255,0.05);
+  display: flex; align-items: center; gap: 8px; min-width: 0;
+}
+.link-embed-domain {
+  font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
+  color: var(--text-muted); background: var(--bg-dark); border: 1px solid var(--border);
+  padding: 2px 7px; border-radius: 5px; flex-shrink: 0;
+}
+.link-embed-urlrow .link-embed-url { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.link-embed-play {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  width: 56px; height: 56px; border-radius: 50%;
+  background: rgba(0,0,0,0.55); border: 2px solid rgba(255,255,255,0.85);
+  display: flex; align-items: center; justify-content: center; color: #fff;
+  backdrop-filter: blur(3px); transition: transform 0.18s ease, background 0.18s ease;
+}
+.link-embed-play svg { width: 26px; height: 26px; margin-left: 3px; }
+.link-embed-card:hover .link-embed-play { transform: translate(-50%, -50%) scale(1.08); background: rgba(0,0,0,0.7); }
+.link-embed-image.large { position: relative; }
 
 .srv-embed-card { flex-direction: column; }
 .srv-embed-banner {
@@ -2475,133 +2509,170 @@ body.no-anim .friend-item { animation: none !important; }
 #members-bg-modal {
   position: fixed; inset: 0; z-index: 280; display: none;
   align-items: center; justify-content: center; padding: 20px;
-  background: rgba(0,0,0,0.62); backdrop-filter: blur(8px);
+  background: rgba(0,0,0,0.66); backdrop-filter: blur(10px) saturate(120%);
 }
 #members-bg-modal.open { display: flex; animation: fadeIn 0.18s ease; }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 .members-bg-card {
-  width: min(700px, 100%); max-height: 90vh; overflow-y: auto;
-  background: linear-gradient(180deg, var(--bg-dark) 0%, #141619 100%);
-  border: 1px solid var(--border-light); border-radius: 16px;
-  box-shadow: 0 24px 70px rgba(0,0,0,0.55), 0 1px 0 rgba(255,255,255,0.04) inset;
-  animation: cardIn 0.22s cubic-bezier(0.16,1,0.3,1);
+  width: min(760px, 100%); max-height: 92vh; overflow-y: auto;
+  background: linear-gradient(180deg, #17191d 0%, #101215 100%);
+  border: 1px solid var(--border-light); border-radius: 18px;
+  box-shadow: 0 30px 90px rgba(0,0,0,0.62), 0 1px 0 rgba(255,255,255,0.05) inset;
+  animation: cardIn 0.24s cubic-bezier(0.16,1,0.3,1);
 }
-@keyframes cardIn { from { opacity: 0; transform: scale(0.96) translateY(6px); } to { opacity: 1; transform: scale(1) translateY(0); } }
-.members-bg-card::-webkit-scrollbar { width: 8px; }
-.members-bg-card::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 8px; }
+@keyframes cardIn { from { opacity: 0; transform: scale(0.96) translateY(8px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+.members-bg-card::-webkit-scrollbar { width: 9px; }
+.members-bg-card::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 9px; }
+
 .members-bg-head {
-  position: relative; padding: 22px 24px 18px; border-bottom: 1px solid var(--border);
-  display: flex; align-items: center; gap: 10px;
-  background: linear-gradient(135deg, rgba(var(--accent-rgb), 0.08) 0%, rgba(99,102,241,0.05) 50%, transparent 100%);
+  position: sticky; top: 0; z-index: 5;
+  padding: 20px 24px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 14px;
+  background: linear-gradient(180deg, #1b1e23 0%, #16181c 100%);
+  border-radius: 18px 18px 0 0;
 }
 .members-bg-head::after {
-  content: ''; position: absolute; left: 24px; right: 24px; bottom: -1px; height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(var(--accent-rgb), 0.35), transparent);
+  content: ''; position: absolute; left: 0; right: 0; bottom: -1px; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(var(--accent-rgb), 0.4), transparent);
 }
-.members-bg-head h3 {
-  font-size: 16px; font-weight: 600; color: var(--text-primary); margin: 0; flex: 1;
-  display: flex; align-items: center; gap: 10px; letter-spacing: -0.1px;
+.members-bg-head-icon {
+  width: 42px; height: 42px; flex-shrink: 0; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(145deg, rgba(var(--accent-rgb),0.22), rgba(var(--accent-rgb),0.08));
+  border: 1px solid rgba(var(--accent-rgb),0.35);
+  box-shadow: 0 4px 14px rgba(var(--accent-rgb),0.22), 0 1px 0 rgba(255,255,255,0.06) inset;
 }
-.members-bg-head h3 svg {
-  width: 20px; height: 20px; color: var(--accent);
-  stroke-width: 1.8; filter: drop-shadow(0 2px 6px rgba(var(--accent-rgb), 0.35));
+.members-bg-head-icon svg { width: 21px; height: 21px; color: var(--accent); stroke-width: 1.9; }
+.members-bg-head-text { flex: 1; min-width: 0; }
+.members-bg-head-text h3 {
+  font-size: 16.5px; font-weight: 650; color: var(--text-primary); margin: 0 0 3px;
+  letter-spacing: -0.2px;
 }
+.members-bg-head-text p { margin: 0; font-size: 12px; color: var(--text-secondary); letter-spacing: 0.1px; }
 .members-bg-head .search-msg-close {
-  width: 30px; height: 30px; border-radius: 8px; display: inline-flex;
+  width: 32px; height: 32px; border-radius: 9px; display: inline-flex;
   align-items: center; justify-content: center; background: var(--bg-medium);
   border: 1px solid var(--border); color: var(--text-secondary);
-  cursor: pointer; transition: var(--transition);
+  cursor: pointer; transition: var(--transition); flex-shrink: 0;
 }
-.members-bg-head .search-msg-close:hover { color: var(--danger); background: rgba(216,58,58,0.12); border-color: rgba(216,58,58,0.3); }
-.members-bg-body { padding: 22px 24px 24px; }
-.members-bg-body .setting-hint {
-  font-size: 12.5px; color: var(--text-secondary); margin: 0 0 20px; line-height: 1.6;
-  padding: 11px 14px; background: var(--bg-darker); border: 1px solid var(--border);
-  border-radius: 11px; border-left: 3px solid var(--accent);
-}
-.members-bg-controls {
-  display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 18px;
-}
-.members-bg-controls .setting-save-btn {
-  justify-content: center; padding: 11px 10px;
-  font-size: 12.5px; font-weight: 600; border-radius: 10px;
-}
-.members-bg-controls .setting-save-btn svg { flex-shrink: 0; }
-.members-bg-controls .danger-btn { color: var(--danger); border-color: rgba(216,58,58,0.3); }
-.members-bg-controls .danger-btn:hover { background: rgba(216,58,58,0.12); border-color: var(--danger); }
+.members-bg-head .search-msg-close:hover { color: var(--danger); background: rgba(216,58,58,0.12); border-color: rgba(216,58,58,0.3); transform: rotate(90deg); }
+
+.members-bg-body { padding: 22px 24px 26px; }
+
+.members-bg-preview-wrap { position: relative; margin-bottom: 20px; }
 .members-bg-preview {
-  width: 100%; height: 190px; border-radius: 13px;
-  background:
-    linear-gradient(135deg, #0c0e11 25%, transparent 25%),
-    linear-gradient(225deg, #0c0e11 25%, transparent 25%),
-    linear-gradient(45deg, #0c0e11 25%, transparent 25%),
-    linear-gradient(315deg, #0c0e11 25%, #0a0b0d 25%);
-  background-position: 12px 0, 12px 0, 0 0, 0 0;
-  background-size: 24px 24px;
+  width: 100%; height: 236px; border-radius: 14px;
   background-color: #131519;
   border: 1px solid var(--border-light);
-  display: flex; align-items: center; justify-content: center;
-  overflow: hidden; position: relative; margin-bottom: 18px;
-  box-shadow: inset 0 1px 3px rgba(0,0,0,0.35), 0 2px 10px rgba(0,0,0,0.25);
+  overflow: hidden; position: relative;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.4), 0 6px 22px rgba(0,0,0,0.3);
 }
-.members-bg-preview::before {
-  content: 'PREVIEW'; position: absolute; top: 10px; left: 12px;
-  font-size: 9.5px; font-weight: 700; letter-spacing: 1px; color: var(--text-muted);
-  background: rgba(0,0,0,0.55); padding: 3px 8px; border-radius: 5px;
-  border: 1px solid var(--border); pointer-events: none; z-index: 2;
+.members-bg-preview .mbp-bg { position: absolute; inset: 0; background-size: cover; background-position: center; background-repeat: no-repeat; }
+.members-bg-preview .mbp-tint { position: absolute; inset: 0; pointer-events: none; }
+.members-bg-preview .mbp-mock {
+  position: absolute; inset: 0; display: flex; flex-direction: column;
+  padding: 14px 14px 12px; gap: 9px;
 }
-.members-bg-preview img { width: 100%; height: 100%; object-fit: contain; }
-.members-bg-preview .muted { color: var(--text-muted); font-size: 12px; display: flex; flex-direction: column; align-items: center; gap: 8px; }
-.members-bg-preview .muted::before {
-  content: ''; width: 34px; height: 34px; border-radius: 9px;
-  background: var(--bg-medium); border: 1px dashed var(--border-light);
+.members-bg-preview .mbp-mock-title {
+  font-size: 10.5px; font-weight: 700; letter-spacing: 0.9px; text-transform: uppercase;
+  color: rgba(255,255,255,0.82); text-shadow: 0 1px 3px rgba(0,0,0,0.7);
+  display: flex; align-items: center; gap: 6px;
 }
+.members-bg-preview .mbp-row {
+  display: flex; align-items: center; gap: 9px;
+  padding: 6px 8px; border-radius: 8px;
+  background: rgba(20,22,26,0.42); backdrop-filter: blur(2px);
+}
+.members-bg-preview .mbp-av {
+  width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0;
+  background: linear-gradient(135deg, var(--accent), #6366f1);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.5);
+}
+.members-bg-preview .mbp-name {
+  font-size: 11px; color: rgba(255,255,255,0.9); font-weight: 600;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.6);
+}
+.members-bg-preview .mbp-empty {
+  position: absolute; inset: 0; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 9px;
+  color: var(--text-muted); font-size: 12px;
+}
+.members-bg-preview .mbp-empty svg { width: 30px; height: 30px; opacity: 0.5; }
+.members-bg-preview-badge {
+  position: absolute; top: 11px; right: 12px; z-index: 3;
+  font-size: 9px; font-weight: 700; letter-spacing: 1px;
+  color: #d6e0f0; background: rgba(0,0,0,0.55);
+  padding: 3px 8px; border-radius: 5px; border: 1px solid rgba(255,255,255,0.12);
+  pointer-events: none;
+}
+
+.members-bg-sources {
+  display: flex; gap: 6px; padding: 5px; margin-bottom: 20px;
+  background: var(--bg-darker); border: 1px solid var(--border); border-radius: 12px;
+}
+.members-bg-sources .mbs-btn {
+  flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+  padding: 10px 8px; font-size: 12.5px; font-weight: 600; color: var(--text-secondary);
+  background: transparent; border: 1px solid transparent; border-radius: 9px;
+  cursor: pointer; transition: all 0.16s ease; font-family: inherit;
+}
+.members-bg-sources .mbs-btn svg { width: 15px; height: 15px; }
+.members-bg-sources .mbs-btn:hover { color: var(--text-primary); background: rgba(255,255,255,0.04); }
+.members-bg-sources .mbs-btn.danger:hover { color: #ff7a7a; background: rgba(216,58,58,0.1); }
+.members-bg-sources .mbs-btn.active {
+  color: var(--text-primary); background: linear-gradient(180deg, rgba(var(--accent-rgb),0.2), rgba(var(--accent-rgb),0.1));
+  border-color: rgba(var(--accent-rgb),0.4); box-shadow: 0 2px 10px rgba(var(--accent-rgb),0.18);
+}
+
 .members-bg-section-label {
   font-size: 10px; font-weight: 700; text-transform: uppercase;
-  letter-spacing: 0.8px; color: var(--text-secondary);
-  margin: 0 0 11px; display: flex; align-items: center; gap: 7px;
+  letter-spacing: 0.9px; color: var(--text-secondary);
+  margin: 0 0 12px; display: flex; align-items: center; gap: 7px;
 }
 .members-bg-section-label svg { width: 13px; height: 13px; color: var(--accent); stroke-width: 2; }
+
 .members-bg-slider-block {
   background: var(--bg-darker); border: 1px solid var(--border);
-  border-radius: 13px; padding: 16px 17px; margin-bottom: 12px;
+  border-radius: 14px; padding: 16px 18px; margin-bottom: 12px;
   transition: border-color 0.18s ease, box-shadow 0.18s ease;
 }
-.members-bg-slider-block:hover { border-color: var(--border-light); box-shadow: 0 2px 12px rgba(0,0,0,0.2); }
-.members-bg-scale-row {
-  display: flex; align-items: center; gap: 12px;
+.members-bg-slider-block:hover { border-color: var(--border-light); box-shadow: 0 3px 16px rgba(0,0,0,0.22); }
+.members-bg-scale-row, .members-bg-color-row { display: flex; align-items: center; gap: 12px; }
+.members-bg-scale-row label, .members-bg-color-row label {
+  font-size: 12.5px; color: var(--text-secondary); flex-shrink: 0; min-width: 46px; font-weight: 600;
 }
-.members-bg-scale-row label { font-size: 12.5px; color: var(--text-secondary); flex-shrink: 0; min-width: 46px; font-weight: 600; }
-.members-bg-scale-row input[type=range] { flex: 1; accent-color: var(--accent); height: 5px; cursor: pointer; }
-.members-bg-scale-row .scale-val {
+.members-bg-scale-row input[type=range], .members-bg-color-row input[type=range] {
+  flex: 1; accent-color: var(--accent); height: 5px; cursor: pointer;
+}
+.members-bg-scale-row .scale-val, .members-bg-color-row .scale-val {
   font-size: 11.5px; color: var(--text-primary); min-width: 50px; text-align: center;
   font-variant-numeric: tabular-nums; font-weight: 700;
-  background: var(--bg-medium); padding: 5px 9px; border-radius: 7px;
-  border: 1px solid var(--border);
+  background: var(--bg-medium); padding: 5px 9px; border-radius: 7px; border: 1px solid var(--border);
 }
-.members-bg-color-row {
-  display: flex; align-items: center; gap: 12px;
-}
-.members-bg-color-row label { font-size: 12.5px; color: var(--text-secondary); flex-shrink: 0; min-width: 46px; font-weight: 600; }
 .members-bg-color-row input[type=color] {
   width: 38px; height: 38px; border: 1px solid var(--border); border-radius: 10px;
   background: transparent; cursor: pointer; padding: 3px; flex-shrink: 0;
   transition: border-color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
 }
 .members-bg-color-row input[type=color]:hover { border-color: var(--accent); transform: scale(1.05); box-shadow: 0 0 0 3px var(--accent-glow); }
-.members-bg-color-row input[type=range] { flex: 1; accent-color: var(--accent); height: 5px; cursor: pointer; }
-.members-bg-color-row .scale-val {
-  font-size: 11.5px; color: var(--text-primary); min-width: 50px; text-align: center;
-  font-variant-numeric: tabular-nums; font-weight: 700;
-  background: var(--bg-medium); padding: 5px 9px; border-radius: 7px;
-  border: 1px solid var(--border);
+
+.members-bg-presets { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+.members-bg-preset {
+  width: 30px; height: 30px; border-radius: 9px; cursor: pointer;
+  border: 2px solid transparent; box-shadow: 0 0 0 1px var(--border);
+  transition: transform 0.15s ease, box-shadow 0.15s ease; padding: 0;
 }
+.members-bg-preset:hover { transform: translateY(-2px) scale(1.06); }
+.members-bg-preset.active { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-glow); }
+
 #members-bg-save {
-  margin-top: 6px; font-size: 13px; font-weight: 600;
-  background: linear-gradient(180deg, rgba(var(--accent-rgb), 0.16), rgba(var(--accent-rgb), 0.10)) !important;
-  border-color: rgba(var(--accent-rgb), 0.4) !important;
+  margin-top: 8px; width: 100%; justify-content: center;
+  font-size: 13.5px; font-weight: 650; padding: 13px; border-radius: 11px;
+  background: linear-gradient(180deg, rgba(var(--accent-rgb), 0.2), rgba(var(--accent-rgb), 0.12)) !important;
+  border-color: rgba(var(--accent-rgb), 0.45) !important;
+  letter-spacing: 0.2px;
 }
-#members-bg-save:hover { background: linear-gradient(180deg, rgba(var(--accent-rgb), 0.24), rgba(var(--accent-rgb), 0.16)) !important; border-color: var(--accent) !important; }
+#members-bg-save:hover { background: linear-gradient(180deg, rgba(var(--accent-rgb), 0.3), rgba(var(--accent-rgb), 0.18)) !important; border-color: var(--accent) !important; box-shadow: 0 6px 20px rgba(var(--accent-rgb),0.25); }
 
 .members-bg-unsaved {
   display: none; align-items: center; gap: 9px;
@@ -2622,7 +2693,7 @@ body.no-anim .friend-item { animation: none !important; }
   background: rgba(255,255,255,0.06); color: var(--text-secondary);
   border: 1px solid var(--border-light); border-radius: 8px;
   cursor: pointer; transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
-  letter-spacing: 0.2px;
+  letter-spacing: 0.2px; font-family: inherit;
 }
 .members-bg-discard-btn:hover {
   background: rgba(216,58,58,0.14); color: #ff7a7a; border-color: rgba(216,58,58,0.4);
@@ -7523,22 +7594,49 @@ html.desktop-app .profile-view-modal { max-width: 980px; max-height: 93vh; }
   <div id="members-bg-modal">
     <div class="members-bg-card">
       <div class="members-bg-head">
-        <h3>Members List Background</h3>
+        <div class="members-bg-head-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.6"/><path d="M21 15l-4.5-4.5L6 21"/></svg>
+        </div>
+        <div class="members-bg-head-text">
+          <h3>Members List Background</h3>
+          <p>Customize the panel behind your member list</p>
+        </div>
         <button class="search-msg-close" id="members-bg-close" title="Close">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
       </div>
       <div class="members-bg-body">
-        <p class="setting-hint">Upload an image or GIF, or paste a URL. Adjust the scale and add a color overlay with opacity to match your style.</p>
-        <div class="members-bg-controls">
-          <label class="setting-save-btn no-checkmark" for="members-bg-file" style="cursor:pointer;display:inline-flex;align-items:center;gap:6px;"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Upload</label>
+        <div class="members-bg-preview-wrap">
+          <div class="members-bg-preview" id="members-bg-preview">
+            <div class="mbp-bg"></div>
+            <div class="mbp-tint"></div>
+            <div class="mbp-mock">
+              <div class="mbp-mock-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                Members
+              </div>
+              <div class="mbp-row"><div class="mbp-av"></div><span class="mbp-name">Aria</span></div>
+              <div class="mbp-row"><div class="mbp-av"></div><span class="mbp-name">Kai</span></div>
+              <div class="mbp-row"><div class="mbp-av"></div><span class="mbp-name">Nova</span></div>
+              <div class="mbp-row"><div class="mbp-av"></div><span class="mbp-name">Rowan</span></div>
+            </div>
+          </div>
+          <span class="members-bg-preview-badge">LIVE PREVIEW</span>
+        </div>
+
+        <div class="members-bg-sources">
+          <label class="mbs-btn" for="members-bg-file">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Upload
+          </label>
           <input type="file" id="members-bg-file" accept="image/*,image/gif" hidden>
-          <button class="setting-save-btn no-checkmark" id="members-bg-url-btn"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>Use URL</button>
-          <button class="setting-save-btn no-checkmark danger-btn" id="members-bg-clear-btn"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>Clear</button>
+          <button class="mbs-btn" id="members-bg-url-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>Use URL
+          </button>
+          <button class="mbs-btn danger" id="members-bg-clear-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>Remove
+          </button>
         </div>
-        <div class="members-bg-preview" id="members-bg-preview">
-          <span class="muted" style="font-size:12px;">No background set</span>
-        </div>
+
         <div class="members-bg-slider-block">
           <div class="members-bg-section-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>Image Scale</div>
           <div class="members-bg-scale-row">
@@ -7547,16 +7645,28 @@ html.desktop-app .profile-view-modal { max-width: 980px; max-height: 93vh; }
             <span class="scale-val" id="members-bg-scale-val">100%</span>
           </div>
         </div>
+
         <div class="members-bg-slider-block">
-          <div class="members-bg-section-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="10.5" r="2.5"/><circle cx="8.5" cy="7.5" r="2.5"/><circle cx="6.5" cy="12.5" r="2.5"/><path d="M12 2a10 10 0 1 0 0 20 1.5 1.5 0 0 0 1.06-2.56 1.5 1.5 0 0 1 1.06-2.56h1.88a4 4 0 0 0 4-4A10 10 0 0 0 12 2z"/></svg>Color Overlay</div>
+          <div class="members-bg-section-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 1 0 0 20 1.5 1.5 0 0 0 1.06-2.56 1.5 1.5 0 0 1 1.06-2.56h1.88a4 4 0 0 0 4-4A10 10 0 0 0 12 2z"/><circle cx="13.5" cy="6.5" r="1.5"/><circle cx="17.5" cy="10.5" r="1.5"/><circle cx="8.5" cy="7.5" r="1.5"/><circle cx="6.5" cy="12.5" r="1.5"/></svg>Color Overlay</div>
           <div class="members-bg-color-row">
             <label>Tint</label>
             <input type="color" id="members-bg-color" value="#0a0b0d">
             <input type="range" id="members-bg-opacity" min="0" max="100" value="0" step="5">
             <span class="scale-val" id="members-bg-opacity-val">0%</span>
           </div>
+          <div class="members-bg-presets" id="members-bg-presets">
+            <button class="members-bg-preset" data-color="#0a0b0d" style="background:#0a0b0d" title="Charcoal"></button>
+            <button class="members-bg-preset" data-color="#000000" style="background:#000000" title="Black"></button>
+            <button class="members-bg-preset" data-color="#1e3a8a" style="background:#1e3a8a" title="Blue"></button>
+            <button class="members-bg-preset" data-color="#4c1d95" style="background:#4c1d95" title="Purple"></button>
+            <button class="members-bg-preset" data-color="#14532d" style="background:#14532d" title="Green"></button>
+            <button class="members-bg-preset" data-color="#7f1d1d" style="background:#7f1d1d" title="Red"></button>
+            <button class="members-bg-preset" data-color="#78350f" style="background:#78350f" title="Amber"></button>
+            <button class="members-bg-preset" data-color="#0f766e" style="background:#0f766e" title="Teal"></button>
+          </div>
         </div>
-        <button class="setting-save-btn no-checkmark" id="members-bg-save" style="width:100%;margin-top:6px;">Apply Background</button>
+
+        <button class="setting-save-btn no-checkmark" id="members-bg-save">Apply Background</button>
 
         <div class="members-bg-unsaved" id="members-bg-unsaved">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
@@ -10090,6 +10200,39 @@ function processEmbeds(container) {
   });
 }
 
+function hbEmbedDomain(url) {
+  try { return new URL(url).hostname.replace(/^www\./, ''); } catch (e) { return url; }
+}
+function hbEmbedFmtDate(s) {
+  if (!s) return null;
+  const d = new Date(s);
+  if (isNaN(d.getTime())) return null;
+  try {
+    const now = Date.now();
+    const diff = now - d.getTime();
+    if (diff >= 0 && diff < 6 * 3600 * 1000) {
+      const mins = Math.max(1, Math.round(diff / 60000));
+      if (mins < 60) return mins + 'm ago';
+      return Math.round(mins / 60) + 'h ago';
+    }
+    if (diff >= 0 && diff < 7 * 86400 * 1000) return Math.round(diff / 86400000) + 'd ago';
+    return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+  } catch (e) { return null; }
+}
+function hbEmbedTypeLabel(data) {
+  if (data.isImage) return 'Image';
+  if (data.isVideo) return 'Video';
+  if (data.isAudio) return 'Audio';
+  const t = data.type;
+  if (t === 'video') return 'Video';
+  if (t === 'article') return 'Article';
+  if (t === 'product') return 'Product';
+  if (t === 'music') return 'Music';
+  if (t === 'book') return 'Book';
+  if (t === 'profile') return 'Profile';
+  if (t === 'website') return 'Website';
+  return null;
+}
 function renderEmbed(data, el) {
   if (!data || (!data.title && !data.image && !data.description && !data.siteName)) {
     const fallbackUrl = (data && data.url) ? data.url : '';
@@ -10099,40 +10242,50 @@ function renderEmbed(data, el) {
   const url = data.url || '';
   const hasImg = !!data.image;
   const largeImg = hasImg && !data.isImage;
-  let html = '<a href="' + escapeHtml(url) + '" target="_blank" rel="noopener noreferrer" class="link-embed-card">';
-  if (hasImg && !largeImg) {
-    html += '<div class="link-embed-image" style="background-image:url(\'' + escapeAttr(data.image) + '\')"></div>';
-  }
-  html += '<div class="link-embed-content">';
-  if (data.siteName) {
-    const fav = data.favicon ? '<img src="' + escapeHtml(data.favicon) + '" alt="" onerror="this.style.display=\'none\'" />' : '';
-    html += '<div class="link-embed-site">' + fav + escapeHtml(data.siteName) + '</div>';
-  }
-  if (data.title) html += '<div class="link-embed-title">' + escapeHtml(data.title) + '</div>';
-  if (data.description) html += '<div class="link-embed-desc">' + escapeHtml(data.description.slice(0, 300)) + '</div>';
+  const siteFav = data.favicon ? '<img src="' + escapeHtml(data.favicon) + '" alt="" onerror="this.style.display=\'none\'" />' : '';
+  const typeLabel = hbEmbedTypeLabel(data);
+  const siteRow = (data.siteName || typeLabel) ? (
+    '<div class="link-embed-site">' + siteFav +
+    '<span class="link-embed-sitename">' + escapeHtml(data.siteName || '') + '</span>' +
+    (typeLabel ? '<span class="link-embed-type-badge">' + escapeHtml(typeLabel) + '</span>' : '') +
+    '</div>'
+  ) : '';
+
   let meta = '';
-  if (data.isImage) meta += '<span class="link-embed-type-badge">Image</span>';
-  else if (data.isVideo) meta += '<span class="link-embed-type-badge">Video</span>';
-  else if (data.isAudio) meta += '<span class="link-embed-type-badge">Audio</span>';
-  if (data.author) meta += '<span class="link-embed-author">by ' + escapeHtml(data.author) + '</span>';
-  if (data.contentType && !data.isImage && !data.isVideo && !data.isAudio) meta += '<span class="link-embed-author">' + escapeHtml(data.contentType) + '</span>';
-  if (data.description && !data.isImage && !data.isVideo && !data.isAudio) {
-    const wc = data.description.trim().split(/\s+/).length;
-    const mins = Math.max(1, Math.round(wc / 200));
-    meta += '<span class="link-embed-readtime">' + mins + ' min read</span>';
+  if (data.author) meta += '<span class="link-embed-author"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>' + escapeHtml(String(data.author).slice(0, 60)) + '</span>';
+  const pub = hbEmbedFmtDate(data.publishedTime);
+  if (pub) meta += '<span class="link-embed-date"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>' + escapeHtml(pub) + '</span>';
+  let rt = data.readingTime;
+  if (!rt && data.description && !data.isImage && !data.isVideo && !data.isAudio) {
+    rt = Math.max(1, Math.round(data.description.trim().split(/\s+/).length / 200));
   }
-  if (url) meta += '<span class="link-embed-url">' + escapeHtml(url.length > 60 ? url.slice(0, 57) + '…' : url) + '</span>';
-  if (meta) html += '<div class="link-embed-meta">' + meta + '</div>';
-  html += '</div></a>';
+  if (rt) meta += '<span class="link-embed-readtime">' + rt + ' min read</span>';
+  if (data.section) meta += '<span class="link-embed-section">' + escapeHtml(String(data.section).slice(0, 40)) + '</span>';
+  if (data.contentType && !data.isImage && !data.isVideo && !data.isAudio) meta += '<span class="link-embed-author">' + escapeHtml(data.contentType) + '</span>';
+  const metaRow = meta ? '<div class="link-embed-meta">' + meta + '</div>' : '';
+
+  let tagsRow = '';
+  if (Array.isArray(data.tags) && data.tags.length) {
+    tagsRow = '<div class="link-embed-tags">' + data.tags.slice(0, 4).map(function (t) { return '<span class="link-embed-tag">#' + escapeHtml(String(t).slice(0, 24)) + '</span>'; }).join('') + '</div>';
+  }
+
+  const urlRow = url ? '<div class="link-embed-urlrow"><span class="link-embed-domain">' + escapeHtml(hbEmbedDomain(url)) + '</span><span class="link-embed-url">' + escapeHtml(url.length > 64 ? url.slice(0, 61) + '\u2026' : url) + '</span></div>' : '';
+
+  const contentInner = siteRow +
+    (data.title ? '<div class="link-embed-title">' + escapeHtml(data.title) + '</div>' : '') +
+    (data.description ? '<div class="link-embed-desc">' + escapeHtml(data.description.slice(0, 300)) + '</div>' : '') +
+    metaRow + tagsRow + urlRow;
+
+  let html;
   if (largeImg) {
+    const playOverlay = data.videoUrl ? '<span class="link-embed-play"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span>' : '';
     html = '<a href="' + escapeHtml(url) + '" target="_blank" rel="noopener noreferrer" class="link-embed-card" style="flex-direction:column;">' +
-      '<div class="link-embed-image large" style="background-image:url(\'' + escapeAttr(data.image) + '\')"></div>' +
-      '<div class="link-embed-content">' +
-      (data.siteName ? '<div class="link-embed-site">' + (data.favicon ? '<img src="' + escapeHtml(data.favicon) + '" alt="" onerror="this.style.display=\'none\'" />' : '') + escapeHtml(data.siteName) + '</div>' : '') +
-      (data.title ? '<div class="link-embed-title">' + escapeHtml(data.title) + '</div>' : '') +
-      (data.description ? '<div class="link-embed-desc">' + escapeHtml(data.description.slice(0, 300)) + '</div>' : '') +
-      '<div class="link-embed-meta">' + (data.author ? '<span class="link-embed-author">by ' + escapeHtml(data.author) + '</span>' : '') + (data.description && !data.isImage && !data.isVideo && !data.isAudio ? (function(){ const wc2 = data.description.trim().split(/\s+/).length; const m2 = Math.max(1, Math.round(wc2/200)); return '<span class="link-embed-readtime">' + m2 + ' min read</span>'; })() : '') + '<span class="link-embed-url">' + escapeHtml(url.length > 60 ? url.slice(0, 57) + '…' : url) + '</span></div>' +
-      '</div></a>';
+      '<div class="link-embed-image large" style="background-image:url(\'' + escapeAttr(data.image) + '\')">' + playOverlay + '</div>' +
+      '<div class="link-embed-content">' + contentInner + '</div></a>';
+  } else {
+    html = '<a href="' + escapeHtml(url) + '" target="_blank" rel="noopener noreferrer" class="link-embed-card">';
+    if (hasImg) html += '<div class="link-embed-image" style="background-image:url(\'' + escapeAttr(data.image) + '\')"></div>';
+    html += '<div class="link-embed-content">' + contentInner + '</div></a>';
   }
   el.innerHTML = html;
 }
@@ -11343,7 +11496,11 @@ async function initChat(existingMeData) {
   }
   try {
     if (window.hellobyeDesktop && typeof window.hellobyeDesktop.saveLastLogin === 'function') {
-      window.hellobyeDesktop.saveLastLogin({ username: currentUser.username, sessionId: sessionSocketId || localStorage.getItem('hellobye_sid') || '' });
+      window.hellobyeDesktop.saveLastLogin({
+        username: currentUser.username,
+        sessionId: sessionSocketId || localStorage.getItem('hellobye_sid') || '',
+        prefs: (typeof hbCollectPrefs === 'function') ? hbCollectPrefs(currentUser.username) : null,
+      });
     }
   } catch (e) {}
 
@@ -11454,6 +11611,55 @@ let __hbLastLogin = null;
   } catch (e) {}
 })();
 
+// Collect the user's personalization settings (Members List Background, Chat
+// Background, accent colour, theme) so they survive a full client wipe and can
+// be restored when the user signs back in with their last account.
+const HB_PREF_KEYS = ['hellobye_members_bg', 'hellobye_theme', 'hellobye_sidebar_collapsed'];
+function hbPrefKeysFor(username) {
+  const u = username || (currentUser && currentUser.username) || '';
+  return HB_PREF_KEYS.concat([
+    'hellobye_bg_' + u,
+    'hellobye_color_' + u,
+    'hellobye_profile_color_' + u,
+    'hellobye_mini_bio_height_' + u,
+  ]);
+}
+function hbCollectPrefs(username) {
+  const out = {};
+  try {
+    for (const k of hbPrefKeysFor(username)) {
+      const v = localStorage.getItem(k);
+      if (v !== null) out[k] = v;
+    }
+  } catch (e) {}
+  return out;
+}
+function hbApplyPrefs(prefs) {
+  if (!prefs || typeof prefs !== 'object') return 0;
+  let n = 0;
+  try {
+    for (const k in prefs) {
+      if (!Object.prototype.hasOwnProperty.call(prefs, k)) continue;
+      if (typeof prefs[k] !== 'string') continue;
+      try { localStorage.setItem(k, prefs[k]); n++; } catch (e) {}
+    }
+  } catch (e) {}
+  return n;
+}
+// Re-write the carry-over file whenever the user changes a personalization
+// setting, so the newest backgrounds are always what gets restored on update.
+function hbPersistCarryover() {
+  try {
+    if (!window.hellobyeDesktop || typeof window.hellobyeDesktop.saveLastLogin !== 'function') return;
+    if (!currentUser || !currentUser.username) return;
+    window.hellobyeDesktop.saveLastLogin({
+      username: currentUser.username,
+      sessionId: sessionSocketId || localStorage.getItem('hellobye_sid') || '',
+      prefs: hbCollectPrefs(currentUser.username),
+    });
+  } catch (e) {}
+}
+
 function hbRenderWelcomeBack() {
   if (!__hbLastLogin || !__hbLastLogin.username) return;
   const authScreen = document.getElementById('auth-screen');
@@ -11466,13 +11672,14 @@ function hbRenderWelcomeBack() {
   card.id = 'hb-welcome-back';
   card.setAttribute('style', 'display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:0 0 16px;padding:12px 14px;border-radius:12px;background:linear-gradient(180deg,rgba(88,101,242,0.16),rgba(88,101,242,0.07));border:1px solid rgba(139,147,255,0.32);');
   const icon = '<span style="flex:0 0 auto;width:34px;height:34px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;background:rgba(88,101,242,0.22);color:#aab1ff;"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>';
-  const body = '<span style="flex:1 1 180px;min-width:0;"><span style="display:block;font-size:13.5px;font-weight:700;color:var(--text-primary);">Welcome back</span><span style="display:block;font-size:12px;color:var(--text-muted);margin-top:2px;">Continue with the account you used before the update, <b style="color:var(--accent-light);">@' + escapeHtml(uname) + '</b>.</span></span>';
+  const body = '<span style="flex:1 1 180px;min-width:0;"><span style="display:block;font-size:13.5px;font-weight:700;color:var(--text-primary);">Welcome back</span><span style="display:block;font-size:12px;color:var(--text-muted);margin-top:2px;">Sign back in as <b style="color:var(--accent-light);">@' + escapeHtml(uname) + '</b> and we\u2019ll restore your chat background, members list background and theme.</span></span>';
   const go = '<button type="button" class="hb-wb-go" style="flex:0 0 auto;font:inherit;font-size:12.5px;font-weight:700;cursor:pointer;border-radius:9px;padding:9px 14px;border:1px solid transparent;background:var(--accent);color:#fff;">' + (hasSid ? 'Continue as @' + escapeHtml(uname) : 'Sign in as @' + escapeHtml(uname)) + '</button>';
   const x = '<button type="button" class="hb-wb-x" aria-label="Dismiss" style="flex:0 0 auto;font:inherit;font-size:12.5px;font-weight:600;cursor:pointer;border-radius:9px;padding:9px 12px;border:1px solid var(--border);background:transparent;color:var(--text-muted);">Not now</button>';
   card.innerHTML = icon + body + go + x;
   const container = authScreen.querySelector('.auth-container') || authScreen;
   container.insertBefore(card, container.firstChild);
   card.querySelector('.hb-wb-go').addEventListener('click', () => {
+    try { if (typeof hbApplyPrefs === 'function') hbApplyPrefs(__hbLastLogin.prefs); } catch (e) {}
     if (hasSid) {
       try { localStorage.setItem('hellobye_sid', __hbLastLogin.sessionId); } catch (e) {}
       location.reload();
@@ -20986,6 +21193,7 @@ function saveMembersBgState() {
   applyMembersBg();
   appliedMembersBgState = cloneMembersBgState(membersBgState);
   checkMembersBgDirty();
+  try { if (typeof hbPersistCarryover === 'function') hbPersistCarryover(); } catch (e) {}
 }
 function revertMembersBg() {
   membersBgState = { url: null, scale: 100, color: '#0a0b0d', opacity: 0 };
@@ -21099,25 +21307,44 @@ $('members-bg-modal').addEventListener('click', (e) => { if (e.target === $('mem
 function updateMembersBgPreview() {
   const preview = $('members-bg-preview');
   const { url, scale, color, opacity } = membersBgState;
+  const bgEl = preview.querySelector('.mbp-bg');
+  const tintEl = preview.querySelector('.mbp-tint');
+  const mockEl = preview.querySelector('.mbp-mock');
+  const effScale = Math.max(100, scale);
   if (url) {
-    preview.innerHTML = '<img src="' + url + '" style="object-position:center;object-fit:cover;width:100%;height:100%;">';
-    let overlay = preview.querySelector('.members-bg-overlay');
-    if (!overlay) {
-      overlay = document.createElement('div');
-      overlay.className = 'members-bg-overlay';
-      overlay.style.cssText = 'position:absolute;inset:0;pointer-events:none;';
-      preview.appendChild(overlay);
-    }
-    overlay.style.background = color;
-    overlay.style.opacity = (opacity / 100);
+    bgEl.style.backgroundImage = 'url("' + url + '")';
+    bgEl.style.backgroundSize = 'auto ' + effScale + '%';
+    bgEl.style.backgroundPosition = 'center';
+    tintEl.style.background = color;
+    tintEl.style.opacity = (opacity / 100);
+    if (mockEl) mockEl.style.display = '';
   } else {
-    preview.innerHTML = '<span class="muted" style="font-size:12px;">No background set</span>';
+    bgEl.style.backgroundImage = '';
+    tintEl.style.background = '';
+    tintEl.style.opacity = '';
+    if (mockEl) mockEl.style.display = 'none';
+    let empty = preview.querySelector('.mbp-empty');
+    if (!empty) {
+      empty = document.createElement('div');
+      empty.className = 'mbp-empty';
+      empty.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.6"/><path d="M21 15l-4.5-4.5L6 21"/></svg><span>No background set</span>';
+      preview.appendChild(empty);
+    }
+  }
+  if (url) {
+    const empty = preview.querySelector('.mbp-empty');
+    if (empty) empty.remove();
   }
   $('members-bg-scale').value = scale;
   $('members-bg-scale-val').textContent = scale + '%';
   $('members-bg-color').value = color;
   $('members-bg-opacity').value = opacity;
   $('members-bg-opacity-val').textContent = opacity + '%';
+  try {
+    document.querySelectorAll('#members-bg-presets .members-bg-preset').forEach(b => {
+      b.classList.toggle('active', (b.getAttribute('data-color') || '').toLowerCase() === String(color).toLowerCase());
+    });
+  } catch (e) {}
 }
 $('members-bg-scale').addEventListener('input', (e) => {
   membersBgState.scale = parseInt(e.target.value);
@@ -21136,6 +21363,21 @@ $('members-bg-opacity').addEventListener('input', (e) => {
   updateMembersBgPreview();
   checkMembersBgDirty();
 });
+(function setupMembersBgPresets() {
+  const wrap = $('members-bg-presets');
+  if (!wrap) return;
+  wrap.addEventListener('click', (e) => {
+    const btn = e.target.closest('.members-bg-preset');
+    if (!btn) return;
+    const c = btn.getAttribute('data-color');
+    if (!c) return;
+    membersBgState.color = c;
+    $('members-bg-color').value = c;
+    if (membersBgState.opacity === 0) { membersBgState.opacity = 45; $('members-bg-opacity').value = 45; $('members-bg-opacity-val').textContent = '45%'; }
+    updateMembersBgPreview();
+    checkMembersBgDirty();
+  });
+})();
 $('members-bg-file').addEventListener('change', (e) => {
   const file = e.target.files[0];
   if (!file) return;
@@ -22089,6 +22331,7 @@ function saveBgSettings(s) {
   function trySave(current) {
     try {
       localStorage.setItem(bgKey(), JSON.stringify(current));
+      try { if (typeof hbPersistCarryover === 'function') hbPersistCarryover(); } catch (e2) {}
       return true;
     } catch (e) {
       attempts++;

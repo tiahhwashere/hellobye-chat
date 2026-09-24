@@ -4742,31 +4742,100 @@ app.get('/api/embed', authMiddleware, async (req, res) => {
     const reader = resp.body.getReader();
     let html = '';
     let total = 0;
-    while (total < 600000) {
+    while (total < 500000) {
       const { done, value } = await reader.read();
       if (done) break;
       html += Buffer.from(value).toString('utf8');
       total += value.length;
-      if (/<\/head>/i.test(html)) break;
+      if (/<\/body>/i.test(html)) break;
     }
     try { reader.cancel(); } catch (e) {}
 
     const meta = extractMeta(html);
-    const siteName = meta['og:site_name'] || meta['application_name'] || parsed.hostname;
-    let image = meta['og:image'] || meta['og:image:url'] || meta['twitter:image'] || meta['og:image:secure_url'] || null;
-    if (image && image.startsWith('/')) image = parsed.origin + image;
-    if (image && image.startsWith('//')) image = parsed.protocol + image;
+    const siteName = meta['og:site_name'] || meta['application_name'] || meta['twitter:site'] || parsed.hostname;
+
+    function abs(u) {
+      if (!u) return null;
+      u = String(u).trim();
+      if (!u) return null;
+      if (u.startsWith('//')) return parsed.protocol + u;
+      if (u.startsWith('/')) return parsed.origin + u;
+      if (!/^https?:/i.test(u)) return parsed.origin + '/' + u.replace(/^\.?\//, '');
+      return u;
+    }
+
+    let image = meta['og:image'] || meta['og:image:url'] || meta['og:image:secure_url'] || meta['twitter:image'] || meta['twitter:image:src'] || meta['image'] || null;
+    image = abs(image);
+
+    const videoUrl = abs(meta['og:video'] || meta['og:video:url'] || meta['og:video:secure_url'] || meta['twitter:player'] || null);
+    const videoType = meta['og:video:type'] || null;
+
     const gifUrl = /\.gif(\?|$)/i.test(parsed.pathname) ? url : null;
+
+    // Prefer the site's own declared favicon, fall back to the Google favicon service.
+    let favicon = null;
+    if (meta['_icons'] && meta['_icons'].length) favicon = abs(meta['_icons'][0]);
+    if (!favicon) favicon = 'https://www.google.com/s2/favicons?domain=' + encodeURIComponent(parsed.hostname) + '&sz=64';
+
+    // Estimate reading time from the visible body text we captured.
+    let readingTime = null;
+    try {
+      const bodyMatch = html.match(/<body[^>]*>([\s\S]*)<\/body>/i);
+      const bodyHtml = bodyMatch ? bodyMatch[1] : html;
+      const text = bodyHtml
+        .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+        .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+        .replace(/<noscript[\s\S]*?<\/noscript>/gi, ' ')
+        .replace(/<[^>]+>/g, ' ')
+        .replace(/&[a-z#0-9]+;/gi, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+      const words = text ? text.split(' ').length : 0;
+      if (words >= 80) readingTime = Math.max(1, Math.round(words / 200));
+    } catch (e) {}
+
+    // Twitter label/data pairs (e.g. "Reading time" -> "5 min read").
+    const label1 = (meta['twitter:label1'] || '').toLowerCase();
+    const data1 = meta['twitter:data1'] || null;
+    if (!readingTime && data1 && /read|min/.test(label1)) {
+      const mm = String(data1).match(/(\d+)/);
+      if (mm) readingTime = parseInt(mm[1], 10);
+    }
+
+    // Normalize a friendly content type for the badge.
+    const ogType = (meta['og:type'] || '').toLowerCase();
+    let type = null;
+    if (videoUrl || ogType.startsWith('video')) type = 'video';
+    else if (ogType.startsWith('article') || meta['article:published_time']) type = 'article';
+    else if (ogType.startsWith('product') || meta['product:price:amount']) type = 'product';
+    else if (ogType.startsWith('music') || ogType.startsWith('song')) type = 'music';
+    else if (ogType.startsWith('book')) type = 'book';
+    else if (ogType.startsWith('profile')) type = 'profile';
+    else if (ogType.startsWith('website')) type = 'website';
+
+    const publishedTime = meta['article:published_time'] || meta['og:updated_time'] || meta['article:modified_time'] || meta['datepublished'] || meta['date'] || meta['dc.date'] || null;
+
     res.json({
       url,
       title: meta['og:title'] || meta['twitter:title'] || meta['title'] || null,
       description: meta['og:description'] || meta['twitter:description'] || meta['description'] || null,
       image,
+      imageWidth: meta['og:image:width'] || null,
+      imageHeight: meta['og:image:height'] || null,
       gifUrl,
       siteName,
-      favicon: 'https://www.google.com/s2/favicons?domain=' + encodeURIComponent(parsed.hostname) + '&sz=64',
-      author: meta['article:author'] || meta['author'] || meta['og:article:author'] || null,
+      favicon,
+      author: meta['article:author'] || meta['author'] || meta['og:article:author'] || meta['twitter:creator'] || null,
       themeColor: meta['theme-color'] || null,
+      type,
+      section: meta['article:section'] || null,
+      tags: meta['_tags'] || null,
+      readingTime,
+      publishedTime,
+      locale: meta['og:locale'] || null,
+      videoUrl,
+      videoType,
+      provider: meta['twitter:site'] || meta['og:site_name'] || null,
     });
   } catch (e) {
     clearTimeout(timeout);
@@ -4797,6 +4866,8 @@ function giphyGifUrl(parsed) {
 
 function extractMeta(html) {
   const out = {};
+  const tags = [];
+  const icons = [];
   const metaRe = /<meta[^>]+>/gi;
   let m;
   while ((m = metaRe.exec(html)) !== null) {
@@ -4805,11 +4876,28 @@ function extractMeta(html) {
     const contentMatch = tag.match(/content\s*=\s*["']([^"']*)["']/i);
     if (propMatch && contentMatch) {
       const key = propMatch[1].toLowerCase();
-      if (!out[key]) out[key] = decodeEntities(contentMatch[1]);
+      const val = decodeEntities(contentMatch[1]);
+      if (key === 'article:tag' && val) { if (tags.indexOf(val) === -1) tags.push(val); }
+      if (!out[key]) out[key] = val;
+    }
+  }
+  const linkRe = /<link[^>]+>/gi;
+  while ((m = linkRe.exec(html)) !== null) {
+    const tag = m[0];
+    const relMatch = tag.match(/rel\s*=\s*["']([^"']+)["']/i);
+    const hrefMatch = tag.match(/href\s*=\s*["']([^"']+)["']/i);
+    if (relMatch && hrefMatch) {
+      const rel = relMatch[1].toLowerCase();
+      if (/(^|\s)(icon|apple-touch-icon|shortcut icon|mask-icon)(\s|$)/.test(rel)) {
+        const href = decodeEntities(hrefMatch[1]);
+        if (href && icons.indexOf(href) === -1) icons.push(href);
+      }
     }
   }
   const titleMatch = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
   if (titleMatch) out['title'] = decodeEntities(titleMatch[1].trim());
+  if (tags.length) out['_tags'] = tags;
+  if (icons.length) out['_icons'] = icons;
   return out;
 }
 function decodeEntities(s) {
@@ -4839,12 +4927,12 @@ app.get('/api/version', (req, res) => {
 
 const DESKTOP_REPO = process.env.HELLOBYE_REPO || 'tiahhwashere/hellobye-chat';
 const DESKTOP_FALLBACK = {
-  version: '1.6.1',
+  version: '1.6.2',
   name: 'HelloBye-Setup.exe',
-  url: 'https://github.com/tiahhwashere/hellobye-chat/releases/download/desktop-v1.6.1/HelloBye-Setup.exe',
-  size: 78226261,
+  url: 'https://github.com/tiahhwashere/hellobye-chat/releases/download/desktop-v1.6.2/HelloBye-Setup.exe',
+  size: 78226238,
   publishedAt: null,
-  releaseUrl: 'https://github.com/tiahhwashere/hellobye-chat/releases/tag/desktop-v1.6.1',
+  releaseUrl: 'https://github.com/tiahhwashere/hellobye-chat/releases/tag/desktop-v1.6.2',
 };
 let desktopReleaseCache = { at: 0, data: null };
 const DESKTOP_CACHE_MS = 10 * 60 * 1000;
