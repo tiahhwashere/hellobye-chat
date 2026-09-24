@@ -36,6 +36,28 @@ function writeState(patch) {
   } catch (e) {  }
 }
 
+/* Carryover login: the full-app cleanup wipes userData (which holds the
+   persistent session partition), so we stash the last signed-in account in a
+   folder the cleanup deliberately leaves alone. On the next launch the new
+   build can offer to sign the user back in with that account. */
+function carryoverDir() {
+  try { return path.join(app.getPath('appData'), 'HellobyeCarryover'); }
+  catch (e) { return path.join(os.tmpdir(), 'HellobyeCarryover'); }
+}
+function carryoverPath() { return path.join(carryoverDir(), 'last-login.json'); }
+function readCarryover() {
+  try { return JSON.parse(fs.readFileSync(carryoverPath(), 'utf8')); } catch (e) { return null; }
+}
+function writeCarryover(data) {
+  try {
+    fs.mkdirSync(carryoverDir(), { recursive: true });
+    fs.writeFileSync(carryoverPath(), JSON.stringify(data, null, 2));
+  } catch (e) {  }
+}
+function clearCarryover() {
+  try { fs.unlinkSync(carryoverPath()); } catch (e) {  }
+}
+
 function createSplash() {
   splashWindow = new BrowserWindow({
     width: 480,
@@ -337,6 +359,7 @@ function scheduleSelfDelete() {
   const userProfile = process.env.USERPROFILE || '';
   const publicDir = process.env.PUBLIC || 'C:\\Users\\Public';
   const programData = process.env.ProgramData || process.env.PROGRAMDATA || 'C:\\ProgramData';
+  const downloadsDir = userProfile ? path.join(userProfile, 'Downloads') : '';
 
   const s = (v) => '"' + String(v).replace(/"/g, '""') + '"';
 
@@ -394,6 +417,8 @@ function scheduleSelfDelete() {
   lines.push('folderList = Array(' + folderTargets.map(s).join(', ') + ')');
   lines.push('fileList = Array(' + fileTargets.map(s).join(', ') + ')');
   lines.push('regList = Array(' + regTargets.map(s).join(', ') + ')');
+  lines.push('Dim dlDir');
+  lines.push('dlDir = ' + s(downloadsDir));
   lines.push('For Each p In folderList');
   lines.push('  If Len(p) > 0 Then DelFolder p');
   lines.push('Next');
@@ -403,6 +428,7 @@ function scheduleSelfDelete() {
   lines.push('For Each p In regList');
   lines.push('  If Len(p) > 0 Then sh.RegDelete p');
   lines.push('Next');
+  lines.push('If Len(dlDir) > 0 Then CleanDownloads dlDir');
   lines.push('Dim base, subKeys, sk, kk, disp');
   lines.push('base = "Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall"');
   lines.push('For Each sk In Array(-2147483647, -2147483646)');
@@ -422,6 +448,16 @@ function scheduleSelfDelete() {
   lines.push('sh.Run ' + s(DOWNLOAD_URL) + ', 1, False');
   lines.push('WScript.Sleep 800');
   lines.push('fso.DeleteFile WScript.ScriptFullName, True');
+  lines.push('Sub CleanDownloads(dp)');
+  lines.push('  Dim f, nm');
+  lines.push('  If Not fso.FolderExists(dp) Then Exit Sub');
+  lines.push('  For Each f In fso.GetFolder(dp).Files');
+  lines.push('    nm = LCase(f.Name)');
+  lines.push('    If InStr(nm, "hellobye") > 0 And Right(nm, 4) = ".exe" Then');
+  lines.push('      fso.DeleteFile f.Path, True');
+  lines.push('    End If');
+  lines.push('  Next');
+  lines.push('End Sub');
   lines.push('Sub DelFolder(fp)');
   lines.push('  Dim t');
   lines.push('  For t = 1 To 60');
@@ -455,6 +491,16 @@ function buildMenu() {
 }
 
 ipcMain.handle('app-version', () => app.getVersion());
+ipcMain.handle('get-last-login', () => readCarryover());
+ipcMain.on('save-last-login', (e, data) => {
+  if (!data || !data.username) return;
+  writeCarryover({
+    username: String(data.username),
+    sessionId: data.sessionId ? String(data.sessionId) : '',
+    at: Date.now(),
+  });
+});
+ipcMain.on('clear-last-login', () => clearCarryover());
 ipcMain.handle('check-update-now', async () => { await checkForUpdate(); return true; });
 ipcMain.on('download-new-build', () => downloadNewBuild());
 ipcMain.on('dismiss-update', () => { updatePending = false; });

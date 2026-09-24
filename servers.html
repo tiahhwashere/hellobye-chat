@@ -2318,22 +2318,22 @@ html.desktop-app .member-profile-modal { max-width: 980px; max-height: 93vh; }
 .cat-detail { display: flex; gap: 9px; align-items: flex-start; font-size: 12px; line-height: 1.5; color: var(--text-secondary); background: var(--bg-darkest); border: 1px solid var(--border); border-radius: 9px; padding: 9px 11px; }
 .cat-detail svg { width: 15px; height: 15px; flex-shrink: 0; color: var(--accent-light); margin-top: 1px; }
 
-.mention-everyone { background: rgba(47,96,168,0.30); color: #9cc2ff; font-weight: 700; border-radius: 4px; padding: 0 4px; }
-.mention-here { background: rgba(96,165,250,0.20); color: #bcd8ff; font-weight: 700; border-radius: 4px; padding: 0 4px; }
+.mention-everyone { background: rgba(120,125,135,0.30); color: #d7d9df; font-weight: 700; border-radius: 4px; padding: 0 4px; }
+.mention-here { background: rgba(120,125,135,0.24); color: #d7d9df; font-weight: 700; border-radius: 4px; padding: 0 4px; }
 .mention-user { background: rgba(74,158,255,0.16); color: var(--accent-light); font-weight: 600; border-radius: 4px; padding: 0 4px; cursor: pointer; transition: background var(--transition), color var(--transition); }
 .mention-user:hover { background: rgba(74,158,255,0.30); color: #cfe6ff; }
 .mention-user.mention-me { background: rgba(74,158,255,0.32); color: #cfe6ff; }
 .mention-channel { background: rgba(74,158,255,0.14); color: var(--accent-light); font-weight: 600; border-radius: 4px; padding: 0 4px; cursor: pointer; transition: background var(--transition), color var(--transition); }
 .mention-channel:hover { background: rgba(74,158,255,0.30); color: #cfe6ff; }
 .mention-channel.mention-channel-missing { background: rgba(120,120,130,0.16); color: var(--text-muted); cursor: not-allowed; }
-.msg-group.mention-ping { background: rgba(201,162,39,0.10); border-left: 3px solid #c9a227; border-radius: 6px; }
-.msg-group.mention-ping.mention-admin { background: rgba(216,58,58,0.13); border-left: 3px solid #d83a3a; box-shadow: inset 0 0 22px rgba(216,58,58,0.10); }
-.msg-group.mention-ping.mention-admin .mention-everyone { background: rgba(216,58,58,0.30); color: #ffb3b3; }
-.msg-group.mention-ping.mention-admin .mention-here { background: rgba(216,58,58,0.24); color: #ffc2c2; }
+.msg-group.mention-ping { background: rgba(255,255,255,0.045); border-left: 3px solid #4b4f58; border-radius: 6px; }
+.msg-group.mention-ping.mention-admin { background: rgba(255,255,255,0.065); border-left: 3px solid #5b606b; box-shadow: inset 0 0 22px rgba(0,0,0,0.20); }
+.msg-group.mention-ping.mention-admin .mention-everyone { background: rgba(120,125,135,0.38); color: #e3e5ea; }
+.msg-group.mention-ping.mention-admin .mention-here { background: rgba(120,125,135,0.32); color: #e3e5ea; }
 .msg-group.msg-flash { animation: msgFlash 1.2s ease; }
 @keyframes msgFlash { 0%,100% { background: transparent; } 30% { background: rgba(74,158,255,0.18); } }
 .channel-item .ch-ping-dot { width: 7px; height: 7px; border-radius: 50%; background: #c9a227; margin-left: auto; flex-shrink: 0; box-shadow: 0 0 0 2px rgba(201,162,39,0.28); animation: pingPulse 1.6s ease-in-out infinite; }
-.channel-item .ch-red-ping-dot { width: 9px; height: 9px; border-radius: 50%; background: #e5484d; margin-left: auto; flex-shrink: 0; box-shadow: 0 0 0 2px rgba(229,72,77,0.30); animation: pingPulse 1.4s ease-in-out infinite; }
+.channel-item .ch-red-ping-dot { min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; background: #ff2f3a; margin-left: auto; flex-shrink: 0; color: #fff; font-size: 11px; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; box-shadow: 0 0 0 2px rgba(255,47,58,0.28); }
 .channel-item .ch-unread-dot + .ch-red-ping-dot, .channel-item .ch-ping-dot + .ch-red-ping-dot { margin-left: 6px; }
 .channel-item .ch-unread-dot { width: 8px; height: 8px; border-radius: 50%; background: #ffffff; margin-left: auto; flex-shrink: 0; box-shadow: 0 0 0 2px rgba(255,255,255,0.22); }
 .channel-item .ch-unread-dot + .ch-ping-dot { margin-left: 6px; }
@@ -2848,16 +2848,16 @@ html.desktop-app .member-profile-modal { max-width: 980px; max-height: 93vh; }
 
   <aside class="server-rail">
     <button class="rail-btn rail-home" id="rail-home" title="Back to main chat">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px;"><path d="M20 4H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3v4l4-4h9a1 1 0 0 0 1-1V5a1 1 0 0 0-1-1z"/></svg>
       <span class="rail-pill"></span>
     </button>
     <div class="rail-divider"></div>
     <div id="rail-servers" style="display:flex;flex-direction:column;gap:8px;align-items:center;"></div>
     <button class="rail-btn rail-add" id="rail-add" title="Create a server">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px;"><rect x="3.25" y="3.25" width="17.5" height="17.5" rx="5"/><path d="M12 8.25v7.5"/><path d="M8.25 12h7.5"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px;"><rect x="3" y="3" width="18" height="18" rx="2.5"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
     </button>
     <button class="rail-btn rail-join" id="rail-join" title="Join a server">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px;"><path d="M13 4h5a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-5"/><path d="M9.5 8.5 13 12l-3.5 3.5"/><path d="M13 12H3.5"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px;"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
     </button>
     <button class="rail-btn rail-discover" id="rail-discover" title="Discover servers">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:22px;height:22px;"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
@@ -2877,8 +2877,8 @@ html.desktop-app .member-profile-modal { max-width: 980px; max-height: 93vh; }
         <span class="se-feature"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v12H5.17L4 17.17z"/></svg> Shared chat</span>
       </div>
       <div class="server-empty-actions">
-        <button class="hero-create-btn" id="empty-create"><span class="hc-emoji"><svg class="ui-ic lg" viewBox="0 0 24 24" stroke-width="1.7"><rect x="3.25" y="3.25" width="17.5" height="17.5" rx="5"/><path d="M12 8.25v7.5"/><path d="M8.25 12h7.5"/></svg></span> Create a Server</button>
-        <button class="hero-join-btn" id="empty-join"><span class="hc-emoji"><svg class="ui-ic lg" viewBox="0 0 24 24" stroke-width="1.7"><path d="M13 4h5a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-5"/><path d="M9.5 8.5 13 12l-3.5 3.5"/><path d="M13 12H3.5"/></svg></span> Join a Server</button>
+        <button class="hero-create-btn" id="empty-create"><span class="hc-emoji"><svg class="ui-ic lg" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2.5"/><path d="M12 8v8"/><path d="M8 12h8"/></svg></span> Create a Server</button>
+        <button class="hero-join-btn" id="empty-join"><span class="hc-emoji"><svg class="ui-ic lg" viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg></span> Join a Server</button>
         <button class="hero-discover-btn" id="empty-discover"><span class="hc-emoji"><svg class="ui-ic lg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg></span> Discovery</button>
       </div>
     </div>
@@ -4985,7 +4985,7 @@ function connectSocket() {
     const isEveryone = data.type === 'everyone' || data.type === 'here';
     if (data.serverId === activeServerId && data.channelId !== activeChannelId) {
       if (isEveryone) {
-        channelRedPings[data.channelId] = true;
+        channelRedPings[data.channelId] = (Number(channelRedPings[data.channelId]) || 0) + 1;
         delete channelUnread[data.channelId];
       } else {
         channelPings[data.channelId] = true;
@@ -5572,9 +5572,10 @@ function renderChannels() {
     const lock = c.private ? '<span class="ch-lock" title="Private channel">' + icon('lock', 'sm') + '</span>' : '';
     const muted = (!isVoice && c.chatDisabledFor && c.chatDisabledFor !== 'none') ? '<span class="ch-muted" title="Chat restricted">' + (c.chatDisabledFor === 'everyone' ? icon('ban', 'sm') : icon('star', 'sm')) + '</span>' : '';
     const redPing = (!isVoice && channelRedPings[c.id] && c.id !== activeChannelId);
+    const redPingCount = redPing ? (Number(channelRedPings[c.id]) || 1) : 0;
     const unreadDot = (!isVoice && channelUnread[c.id] && !redPing && c.id !== activeChannelId) ? '<span class="ch-unread-dot" title="Unread messages"></span>' : '';
     const pingDot = (!isVoice && channelPings[c.id]) ? '<span class="ch-ping-dot" title="You were mentioned"></span>' : '';
-    const redPingDot = redPing ? '<span class="ch-red-ping-dot" title="You were pinged"></span>' : '';
+    const redPingDot = redPingCount ? '<span class="ch-red-ping-dot" title="You were pinged ' + redPingCount + ' time' + (redPingCount === 1 ? '' : 's') + '">' + (redPingCount > 99 ? '99+' : redPingCount) + '</span>' : '';
     const chIcon = isVoice
       ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>'
       : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9h16M4 15h16M10 3L8 21M16 3l-2 18"/></svg>';
@@ -9488,7 +9489,7 @@ function vpDrawWave(canvas, peaks, progress) {
     const bh = Math.max(3, amp * (h - 8));
     const x = i * (bw + gap);
     ctx.fillStyle = accent;
-    ctx.globalAlpha = i < played ? 1 : 0.38;
+    ctx.globalAlpha = i < played ? 1 : 0.52;
     const r = Math.min(bw / 2, 2.5);
     const y = mid - bh / 2;
     ctx.beginPath();
@@ -9544,13 +9545,27 @@ function vpInit(el) {
   const peaksAttr = el.getAttribute('data-peaks');
   let storedPeaks = null;
   if (peaksAttr) { try { const arr = JSON.parse(peaksAttr); if (Array.isArray(arr) && arr.length) storedPeaks = arr; } catch (e) {} }
+  const redraw = () => {
+    const a = el._vpAudio;
+    const pct = (a && isFinite(a.duration) && a.duration) ? (a.currentTime / a.duration) : (el._vpProgress || 0);
+    vpDrawWave(canvas, el._vpPeaks, pct);
+  };
+  el._vpRedraw = redraw;
   if (storedPeaks) {
     el._vpPeaks = storedPeaks;
     vpDrawWave(canvas, storedPeaks, 0);
   } else {
     vpDrawWave(canvas, null, 0);
-    vpDecodeWave(src).then(peaks => { el._vpPeaks = peaks; vpDrawWave(canvas, peaks, 0); });
+    vpDecodeWave(src).then(peaks => { el._vpPeaks = peaks; redraw(); });
   }
+  requestAnimationFrame(() => { redraw(); requestAnimationFrame(redraw); });
+  try {
+    if ('ResizeObserver' in window) {
+      el._vpRO = new ResizeObserver(() => redraw());
+      el._vpRO.observe(canvas);
+    }
+  } catch (e) {}
+  window.addEventListener('resize', redraw);
   const audio = new Audio();
   audio.preload = 'auto';
   audio.src = src;
@@ -9575,10 +9590,12 @@ function vpInit(el) {
   };
   audio.addEventListener('loadedmetadata', () => {
     if (totalEl && isFinite(audio.duration)) totalEl.textContent = srvVoiceFmt(audio.duration * 1000);
+    redraw();
   });
   audio.addEventListener('timeupdate', () => {
     const d = audio.duration || 0;
     const pct = d ? (audio.currentTime / d) : 0;
+    el._vpProgress = pct;
     if (prog) prog.style.width = (pct * 100) + '%';
     if (cursor) cursor.style.left = (pct * 100) + '%';
     if (elapsedEl) elapsedEl.textContent = srvVoiceFmt(audio.currentTime * 1000);
@@ -9586,16 +9603,17 @@ function vpInit(el) {
   });
   audio.addEventListener('ended', () => {
     setPlaying(false);
+    el._vpProgress = 0;
     if (prog) prog.style.width = '0%';
     if (cursor) cursor.style.left = '0%';
     if (elapsedEl) elapsedEl.textContent = '0:00';
     vpDrawWave(canvas, el._vpPeaks, 0);
   });
-  audio.addEventListener('play', () => setPlaying(true));
+  audio.addEventListener('play', () => { setPlaying(true); redraw(); });
   audio.addEventListener('pause', () => setPlaying(false));
   audio.addEventListener('waiting', () => setBuffering(true));
-  audio.addEventListener('playing', () => setBuffering(false));
-  audio.addEventListener('canplay', () => setBuffering(false));
+  audio.addEventListener('playing', () => { setBuffering(false); redraw(); });
+  audio.addEventListener('canplay', () => { setBuffering(false); redraw(); });
   el._vpSetPlaying = setPlaying;
 }
 function vpPauseOthers(except) {
@@ -9607,6 +9625,8 @@ function vpPauseOthers(except) {
 document.addEventListener('click', (e) => {
   const playBtn = e.target.closest && e.target.closest('.voice-player .vp-play');
   if (playBtn) {
+    e.preventDefault();
+    e.stopPropagation();
     const el = playBtn.closest('.voice-player');
     vpInit(el);
     const a = el._vpAudio;
@@ -9615,12 +9635,15 @@ document.addEventListener('click', (e) => {
       const spin = el.querySelector('.vp-spin');
       const icPlay = el.querySelector('.vp-ic-play');
       if (spin && a.readyState < 3) { spin.style.display = ''; if (icPlay) icPlay.style.display = 'none'; }
-      a.play().catch(() => { if (spin) spin.style.display = 'none'; if (icPlay) icPlay.style.display = ''; });
+      const p = a.play();
+      if (p && p.catch) p.catch(() => { if (spin) spin.style.display = 'none'; if (icPlay) icPlay.style.display = ''; });
     } else a.pause();
     return;
   }
   const speedBtn = e.target.closest && e.target.closest('.voice-player .vp-speed');
   if (speedBtn) {
+    e.preventDefault();
+    e.stopPropagation();
     const el = speedBtn.closest('.voice-player');
     vpInit(el);
     const speeds = [1, 1.25, 1.5, 2];
@@ -9633,6 +9656,7 @@ document.addEventListener('click', (e) => {
   }
   const body = e.target.closest && e.target.closest('.voice-player .vp-body');
   if (body) {
+    e.stopPropagation();
     const el = body.closest('.voice-player');
     vpInit(el);
     const a = el._vpAudio;
@@ -9640,6 +9664,7 @@ document.addEventListener('click', (e) => {
     const pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
     if (isFinite(a.duration) && a.duration) {
       a.currentTime = pct * a.duration;
+      el._vpProgress = pct;
       const prog = el.querySelector('.vp-progress'); if (prog) prog.style.width = (pct * 100) + '%';
       const cursor = el.querySelector('.vp-cursor'); if (cursor) cursor.style.left = (pct * 100) + '%';
       vpDrawWave(el.querySelector('.vp-wave'), el._vpPeaks, pct);

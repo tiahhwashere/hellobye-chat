@@ -11341,6 +11341,11 @@ async function initChat(existingMeData) {
     sessionSocketId = meData.sessionId;
     localStorage.setItem('hellobye_sid', meData.sessionId);
   }
+  try {
+    if (window.hellobyeDesktop && typeof window.hellobyeDesktop.saveLastLogin === 'function') {
+      window.hellobyeDesktop.saveLastLogin({ username: currentUser.username, sessionId: sessionSocketId || localStorage.getItem('hellobye_sid') || '' });
+    }
+  } catch (e) {}
 
   const [msgRes, usersRes, frRes, blkRes] = await Promise.all([
     fetch(API_BASE + '/api/messages').then(r => r.json()).catch(() => ({ messages: [] })),
@@ -11430,6 +11435,56 @@ function showAuth() {
   document.querySelectorAll('.modal-overlay.show').forEach(m => m.classList.remove('show'));
   if (typeof closeDMOverlay === 'function') { try { closeDMOverlay(); } catch (e) {} }
   if (typeof clearEncRoomSession === 'function') { try { clearEncRoomSession(); } catch (e) {} }
+  try { if (typeof hbRenderWelcomeBack === 'function') hbRenderWelcomeBack(); } catch (e) {}
+}
+
+// ---- Desktop: "Welcome back" re-login after a client update ----
+// When the PC app updates itself it removes the whole install (including the
+// stored session). The desktop shell stashes the last signed-in account in a
+// carry-over file; if we find one and there is no active session, offer to sign
+// the user straight back in with that account.
+let __hbLastLogin = null;
+(function hbLoadCarryover() {
+  try {
+    if (!window.hellobyeDesktop || typeof window.hellobyeDesktop.getLastLogin !== 'function') return;
+    window.hellobyeDesktop.getLastLogin().then((data) => {
+      if (data && data.username) __hbLastLogin = data;
+      try { if (typeof hbRenderWelcomeBack === 'function') hbRenderWelcomeBack(); } catch (e) {}
+    }).catch(() => {});
+  } catch (e) {}
+})();
+
+function hbRenderWelcomeBack() {
+  if (!__hbLastLogin || !__hbLastLogin.username) return;
+  const authScreen = document.getElementById('auth-screen');
+  if (!authScreen || authScreen.style.display === 'none') return;
+  if (localStorage.getItem('hellobye_sid')) return;
+  if (document.getElementById('hb-welcome-back')) return;
+  const uname = String(__hbLastLogin.username);
+  const hasSid = !!__hbLastLogin.sessionId;
+  const card = document.createElement('div');
+  card.id = 'hb-welcome-back';
+  card.setAttribute('style', 'display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:0 0 16px;padding:12px 14px;border-radius:12px;background:linear-gradient(180deg,rgba(88,101,242,0.16),rgba(88,101,242,0.07));border:1px solid rgba(139,147,255,0.32);');
+  const icon = '<span style="flex:0 0 auto;width:34px;height:34px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;background:rgba(88,101,242,0.22);color:#aab1ff;"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>';
+  const body = '<span style="flex:1 1 180px;min-width:0;"><span style="display:block;font-size:13.5px;font-weight:700;color:var(--text-primary);">Welcome back</span><span style="display:block;font-size:12px;color:var(--text-muted);margin-top:2px;">Continue with the account you used before the update, <b style="color:var(--accent-light);">@' + escapeHtml(uname) + '</b>.</span></span>';
+  const go = '<button type="button" class="hb-wb-go" style="flex:0 0 auto;font:inherit;font-size:12.5px;font-weight:700;cursor:pointer;border-radius:9px;padding:9px 14px;border:1px solid transparent;background:var(--accent);color:#fff;">' + (hasSid ? 'Continue as @' + escapeHtml(uname) : 'Sign in as @' + escapeHtml(uname)) + '</button>';
+  const x = '<button type="button" class="hb-wb-x" aria-label="Dismiss" style="flex:0 0 auto;font:inherit;font-size:12.5px;font-weight:600;cursor:pointer;border-radius:9px;padding:9px 12px;border:1px solid var(--border);background:transparent;color:var(--text-muted);">Not now</button>';
+  card.innerHTML = icon + body + go + x;
+  const container = authScreen.querySelector('.auth-container') || authScreen;
+  container.insertBefore(card, container.firstChild);
+  card.querySelector('.hb-wb-go').addEventListener('click', () => {
+    if (hasSid) {
+      try { localStorage.setItem('hellobye_sid', __hbLastLogin.sessionId); } catch (e) {}
+      location.reload();
+    } else {
+      const u = document.getElementById('signin-username');
+      if (u) { u.value = uname; }
+      const p = document.getElementById('signin-password');
+      if (p) p.focus();
+      card.remove();
+    }
+  });
+  card.querySelector('.hb-wb-x').addEventListener('click', () => card.remove());
 }
 
 function ensureLoadingOverlay() {
@@ -14423,7 +14478,7 @@ function vpDrawWave(canvas, peaks, progress) {
     const bh = Math.max(3, amp * (h - 8));
     const x = i * (bw + gap);
     ctx.fillStyle = accent;
-    ctx.globalAlpha = i < played ? 1 : 0.38;
+    ctx.globalAlpha = i < played ? 1 : 0.52;
     const r = Math.min(bw / 2, 2.5);
     const y = mid - bh / 2;
     ctx.beginPath();
@@ -14508,12 +14563,26 @@ function vpInit(el) {
   const peaksAttr = el.getAttribute('data-peaks');
   let storedPeaks = null;
   if (peaksAttr) { try { const arr = JSON.parse(peaksAttr); if (Array.isArray(arr) && arr.length) storedPeaks = arr; } catch (e) {} }
+  const redraw = () => {
+    const a = el._vpAudio;
+    const pct = (a && isFinite(a.duration) && a.duration) ? (a.currentTime / a.duration) : (el._vpProgress || 0);
+    vpDrawWave(canvas, el._vpPeaks, pct);
+  };
+  el._vpRedraw = redraw;
   if (storedPeaks) {
     el._vpPeaks = storedPeaks;
     vpDrawWave(canvas, storedPeaks, 0);
   } else {
     vpDrawWave(canvas, null, 0);
   }
+  requestAnimationFrame(() => { redraw(); requestAnimationFrame(redraw); });
+  try {
+    if ('ResizeObserver' in window) {
+      el._vpRO = new ResizeObserver(() => redraw());
+      el._vpRO.observe(canvas);
+    }
+  } catch (e) {}
+  window.addEventListener('resize', redraw);
   const audio = new Audio();
   audio.preload = 'auto';
   audio.src = src;
@@ -14524,9 +14593,7 @@ function vpInit(el) {
       if (decoded) return; decoded = true;
       vpDecodeWave(src).then(peaks => {
         el._vpPeaks = peaks;
-        const d = audio.duration || 0;
-        const pct = d ? (audio.currentTime / d) : 0;
-        vpDrawWave(canvas, peaks, pct);
+        redraw();
       });
     };
     audio.addEventListener('playing', runDecode, { once: true });
@@ -14554,10 +14621,12 @@ function vpInit(el) {
   audio.addEventListener('loadedmetadata', () => {
     if (timeEl && isFinite(audio.duration)) timeEl.textContent = vpFmt(audio.duration * 1000);
     if (totalEl && isFinite(audio.duration)) totalEl.textContent = vpFmt(audio.duration * 1000);
+    redraw();
   });
   audio.addEventListener('timeupdate', () => {
     const d = audio.duration || 0;
     const pct = d ? (audio.currentTime / d) : 0;
+    el._vpProgress = pct;
     if (prog) prog.style.width = (pct * 100) + '%';
     if (cursor) cursor.style.left = (pct * 100) + '%';
     if (timeEl) timeEl.textContent = vpFmt(audio.currentTime * 1000);
@@ -14566,17 +14635,18 @@ function vpInit(el) {
   });
   audio.addEventListener('ended', () => {
     setPlaying(false);
+    el._vpProgress = 0;
     if (prog) prog.style.width = '0%';
     if (cursor) cursor.style.left = '0%';
     if (timeEl) timeEl.textContent = vpFmt((audio.duration || dur / 1000) * 1000);
     if (elapsedEl) elapsedEl.textContent = '0:00';
     vpDrawWave(canvas, el._vpPeaks, 0);
   });
-  audio.addEventListener('play', () => setPlaying(true));
+  audio.addEventListener('play', () => { setPlaying(true); redraw(); });
   audio.addEventListener('pause', () => setPlaying(false));
   audio.addEventListener('waiting', () => setBuffering(true));
-  audio.addEventListener('playing', () => setBuffering(false));
-  audio.addEventListener('canplay', () => setBuffering(false));
+  audio.addEventListener('playing', () => { setBuffering(false); redraw(); });
+  audio.addEventListener('canplay', () => { setBuffering(false); redraw(); });
   el._vpSetPlaying = setPlaying;
 }
 function vpPauseOthers(except) {
@@ -14588,6 +14658,8 @@ function vpPauseOthers(except) {
 document.addEventListener('click', (e) => {
   const playBtn = e.target.closest && e.target.closest('.voice-player .vp-play');
   if (playBtn) {
+    e.preventDefault();
+    e.stopPropagation();
     const el = playBtn.closest('.voice-player');
     vpInit(el);
     const a = el._vpAudio;
@@ -14596,12 +14668,15 @@ document.addEventListener('click', (e) => {
       const spin = el.querySelector('.vp-spin');
       const icPlay = el.querySelector('.vp-ic-play');
       if (spin && a.readyState < 3) { spin.style.display = ''; if (icPlay) icPlay.style.display = 'none'; }
-      a.play().catch(() => { if (spin) spin.style.display = 'none'; if (icPlay) icPlay.style.display = ''; });
+      const p = a.play();
+      if (p && p.catch) p.catch(() => { if (spin) spin.style.display = 'none'; if (icPlay) icPlay.style.display = ''; });
     } else a.pause();
     return;
   }
   const speedBtn = e.target.closest && e.target.closest('.voice-player .vp-speed');
   if (speedBtn) {
+    e.preventDefault();
+    e.stopPropagation();
     const el = speedBtn.closest('.voice-player');
     vpInit(el);
     const speeds = [1, 1.25, 1.5, 2];
@@ -14614,6 +14689,7 @@ document.addEventListener('click', (e) => {
   }
   const body = e.target.closest && e.target.closest('.voice-player .vp-body');
   if (body) {
+    e.stopPropagation();
     const el = body.closest('.voice-player');
     vpInit(el);
     const a = el._vpAudio;
@@ -14621,6 +14697,7 @@ document.addEventListener('click', (e) => {
     const pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
     if (isFinite(a.duration) && a.duration) {
       a.currentTime = pct * a.duration;
+      el._vpProgress = pct;
       const prog = el.querySelector('.vp-progress'); if (prog) prog.style.width = (pct * 100) + '%';
       const cursor = el.querySelector('.vp-cursor'); if (cursor) cursor.style.left = (pct * 100) + '%';
       vpDrawWave(el.querySelector('.vp-wave'), el._vpPeaks, pct);
