@@ -11594,7 +11594,12 @@ function showAuth() {
   document.querySelectorAll('.modal-overlay.show').forEach(m => m.classList.remove('show'));
   if (typeof closeDMOverlay === 'function') { try { closeDMOverlay(); } catch (e) {} }
   if (typeof clearEncRoomSession === 'function') { try { clearEncRoomSession(); } catch (e) {} }
-  try { if (typeof hbRenderWelcomeBack === 'function') hbRenderWelcomeBack(); } catch (e) {}
+  try {
+    if (typeof hbRenderWelcomeBack === 'function') {
+      if (!__hbLastLogin && typeof hbLoadCarryover === 'function') hbLoadCarryover();
+      else hbRenderWelcomeBack();
+    }
+  } catch (e) {}
 }
 
 // ---- Desktop: "Welcome back" re-login after a client update ----
@@ -11603,15 +11608,18 @@ function showAuth() {
 // carry-over file; if we find one and there is no active session, offer to sign
 // the user straight back in with that account.
 let __hbLastLogin = null;
-(function hbLoadCarryover() {
+let __hbCarryoverLoaded = false;
+function hbLoadCarryover() {
   try {
-    if (!window.hellobyeDesktop || typeof window.hellobyeDesktop.getLastLogin !== 'function') return;
+    if (!window.hellobyeDesktop || typeof window.hellobyeDesktop.getLastLogin !== 'function') { __hbCarryoverLoaded = true; return; }
     window.hellobyeDesktop.getLastLogin().then((data) => {
       if (data && data.username) __hbLastLogin = data;
+      __hbCarryoverLoaded = true;
       try { if (typeof hbRenderWelcomeBack === 'function') hbRenderWelcomeBack(); } catch (e) {}
-    }).catch(() => {});
-  } catch (e) {}
-})();
+    }).catch(() => { __hbCarryoverLoaded = true; });
+  } catch (e) { __hbCarryoverLoaded = true; }
+}
+hbLoadCarryover();
 
 // Collect the user's personalization settings (Members List Background, Chat
 // Background, accent colour, theme) so they survive a full client wipe and can
