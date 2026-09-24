@@ -467,6 +467,7 @@ function doDownload() {
     if (t) t.textContent = 'Installing update\u2026';
     if (x) x.textContent = 'Removing the whole Hellobye app from this PC, then opening the download page in your browser.';
   }
+  try { window.dispatchEvent(new Event('hb-persist-carryover')); } catch (e) {}
   setTimeout(() => ipcRenderer.send('download-new-build'), 300);
 }
 

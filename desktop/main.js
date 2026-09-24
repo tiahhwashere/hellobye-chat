@@ -336,6 +336,13 @@ const DOWNLOAD_URL = 'https://hellobye-chat.onrender.com/download';
 
 function downloadNewBuild() {
   updatePending = false;
+  // Make sure the very latest personalization settings are written to the
+  // carry-over file before the app wipes its storage and self-deletes.
+  try {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.executeJavaScript('window.__hbPersistCarryover && window.__hbPersistCarryover(true)').catch(() => {});
+    }
+  } catch (e) {}
   try { if (knownBuildId) writeState({ lastBuildId: knownBuildId }); } catch (e) {}
   let scheduled = false;
   try { scheduled = scheduleSelfDelete(); } catch (e) {}
