@@ -1,9 +1,3 @@
-// Preload — runs inside the loaded HelloBye page.
-//
-// It exposes a tiny, safe bridge to the renderer AND injects the native-app
-// chrome: the window controls (minimise / maximise / close) and the "soft
-// update" toast. There is deliberately NO File / View / Edit / Help menu bar
-// and NO full-width title bar.
 const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('hellobyeDesktop', {
@@ -13,7 +7,6 @@ contextBridge.exposeInMainWorld('hellobyeDesktop', {
   checkForUpdate: () => ipcRenderer.invoke('check-update-now'),
   downloadNewBuild: () => ipcRenderer.send('download-new-build'),
   dismissUpdate: () => ipcRenderer.send('dismiss-update'),
-  // Native window controls (driven by the custom window-control cluster).
   minimize: () => ipcRenderer.send('window-minimize'),
   maximizeToggle: () => ipcRenderer.send('window-maximize-toggle'),
   close: () => ipcRenderer.send('window-close'),
@@ -22,32 +15,16 @@ contextBridge.exposeInMainWorld('hellobyeDesktop', {
   isFullscreen: () => ipcRenderer.invoke('window-is-fullscreen'),
   onMaximized: (cb) => { if (typeof cb === 'function') ipcRenderer.on('window-maximized', (e, v) => cb(!!v)); },
   onSoftUpdate: (cb) => { if (typeof cb === 'function') ipcRenderer.on('soft-update-available', () => cb()); },
-  // Screen-share source picker (Electron has no native picker; we render one).
   onDisplaySources: (cb) => { if (typeof cb === 'function') ipcRenderer.on('display-sources', (e, list) => cb(list)); },
   pickDisplaySource: (id) => ipcRenderer.send('display-source-pick', id),
   cancelDisplaySource: () => ipcRenderer.send('display-source-cancel'),
 });
 
-// Mark the document as running inside the native app as early as possible so
-// the page can hide website-only chrome and skip its own refresh popup.
 try { document.documentElement.classList.add('hb-desktop'); } catch (e) {}
 
-// ============================================================
-// Native window chrome (the window is frameless)
-// ============================================================
-// There is NO full-width title bar. Instead:
-//   * a small cluster of window controls (minimise / maximise / close) is
-//     pinned to the top-right, vertically aligned with the website's own
-//     header row, and
-//   * the app's top header row is made draggable, so the whole window can be
-//     moved by dragging the top of the app.
-// The app content is rendered zoomed out (see main.js), so every native-chrome
-// dimension is counter-scaled by 1/zoom (the --hb-z variable) to keep it at its
-// true pixel size.
-const WC_BTN_W = 46; // window-control button width, in device px
-const WC_H = 40;     // window-control cluster height, in device px
+const WC_BTN_W = 46;
+const WC_H = 40;
 
-// Read the zoom factor that main.js passed via additionalArguments.
 const ZOOM = (function () {
   try {
     const arg = (process.argv || []).find((a) => typeof a === 'string' && a.indexOf('--hb-zoom=') === 0);
@@ -156,7 +133,6 @@ function buildWindowControls() {
   bar.querySelector('#hb-wc-max').addEventListener('click', () => ipcRenderer.send('window-maximize-toggle'));
   bar.querySelector('#hb-wc-close').addEventListener('click', () => ipcRenderer.send('window-close'));
 
-  // Keep the maximise/restore icon in sync with the real window state.
   const setMaxIcon = (isMax) => {
     if (!maxBtnEl) return;
     maxBtnEl.innerHTML = isMax ? ICON_RESTORE : ICON_MAX;
@@ -169,9 +145,6 @@ function buildWindowControls() {
   window.addEventListener('resize', syncControlHeight);
 }
 
-// Match the window-control cluster height to the website's own header row so
-// the controls sit perfectly in line with it (the main chat header and the
-// servers chat header are different heights).
 function activeHeader() {
   return document.querySelector('.server-chat-header') ||
          document.querySelector('.chat-header') ||
@@ -181,13 +154,11 @@ function syncControlHeight() {
   try {
     const hdr = activeHeader();
     if (!hdr) return;
-    const h = hdr.getBoundingClientRect().height; // already in post-zoom CSS px
+    const h = hdr.getBoundingClientRect().height;
     if (h > 0) document.documentElement.style.setProperty('--hb-wc-h', h + 'px');
   } catch (e) {}
 }
 
-// Keep the control height in sync as the header appears / changes size (e.g.
-// after login, or when switching between the chat and servers views).
 function watchHeader() {
   let observed = null;
   let ro = null;
@@ -209,12 +180,6 @@ function watchHeader() {
   } catch (e) {}
 }
 
-// ============================================================
-// Screen-share source picker
-// ============================================================
-// Electron has no built-in getDisplayMedia picker, so the main process sends
-// us the list of screens/windows and we render a native-feeling chooser. The
-// chosen source id goes back to main, which hands it to getDisplayMedia.
 function injectShareStyles() {
   if (document.getElementById('hb-share-style')) return;
   const style = document.createElement('style');
@@ -355,13 +320,6 @@ ipcRenderer.on('display-sources', (e, list) => {
   if (Array.isArray(list) && list.length) showSharePicker(list);
 });
 
-// ============================================================
-// Update prompt — a centered modal telling the user to download
-// the new build. There is NO soft restart any more: clicking
-// "Download" opens the download page in the system browser, closes
-// the app, and removes the installed PC app so the fresh build can
-// be installed cleanly.
-// ============================================================
 function injectUpdateStyles() {
   if (document.getElementById('hb-update-style')) return;
   const style = document.createElement('style');
@@ -484,7 +442,6 @@ function showUpdateModal() {
   document.body.appendChild(updateOverlayEl);
   requestAnimationFrame(() => updateOverlayEl.classList.add('show'));
 
-  // Fill in the current app version.
   try {
     ipcRenderer.invoke('app-version').then((v) => {
       const el = updateOverlayEl && updateOverlayEl.querySelector('#hb-up-ver');
@@ -507,8 +464,6 @@ function doDownload() {
     if (t) t.textContent = 'Installing update\u2026';
     if (x) x.textContent = 'Removing the installed Hellobye app and opening the download page in your browser.';
   }
-  // Ask the main process to open the download page, remove the installed app,
-  // and quit. The main process handles the self-deletion safely.
   setTimeout(() => ipcRenderer.send('download-new-build'), 300);
 }
 
@@ -517,21 +472,12 @@ ipcRenderer.on('soft-update-available', () => {
   else window.addEventListener('DOMContentLoaded', showUpdateModal, { once: true });
 });
 
-// ============================================================
-// Native-app polish
-// ============================================================
-// Prevent dragging images out of the window (feels web-y). File drag & drop
-// for uploads is intentionally left untouched.
 document.addEventListener('dragstart', (e) => {
   const t = e.target;
   if (t && t.tagName === 'IMG') e.preventDefault();
 });
 
-// Boot the chrome.
 function boot() {
-  // Re-assert the desktop marker here: the very first attempt (above) can run
-  // before the <html> element exists, so make sure it is set once the DOM is
-  // ready. All of the desktop-only CSS is scoped to html.hb-desktop.
   try { document.documentElement.classList.add('hb-desktop'); } catch (e) {}
   buildWindowControls();
   watchHeader();
@@ -539,8 +485,6 @@ function boot() {
 if (document.body) boot();
 else window.addEventListener('DOMContentLoaded', boot, { once: true });
 
-// Keep the window controls at their true pixel size when the user changes the
-// zoom (Ctrl +/- / Ctrl 0). main.js tells us the new factor.
 ipcRenderer.on('zoom-changed', (e, z) => {
   const v = parseFloat(z);
   if (isFinite(v) && v > 0.1 && v <= 2) { setZoomVar(v); syncControlHeight(); }

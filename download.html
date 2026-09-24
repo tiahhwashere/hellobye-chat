@@ -28,13 +28,11 @@
   }
   .wrap { width: 100%; max-width: 720px; }
 
-  /* Brand */
   .brand { display: flex; align-items: center; gap: 13px; justify-content: center; margin-bottom: 30px; }
   .brand img { width: 46px; height: 46px; border-radius: 12px; object-fit: cover; border: 1px solid var(--border-strong); box-shadow: 0 8px 24px rgba(0,0,0,0.45); }
   .brand .wordmark { font-size: 23px; font-weight: 700; letter-spacing: -0.02em; }
   .brand .wordmark span { color: var(--accent-3); }
 
-  /* Card */
   .card {
     position: relative; overflow: hidden;
     background: var(--card);
@@ -47,14 +45,12 @@
   .card h2 { font-size: 30px; font-weight: 750; letter-spacing: -0.025em; margin-bottom: 12px; }
   .card p.lead { color: var(--muted); font-size: 15px; line-height: 1.65; margin-bottom: 28px; max-width: 52ch; }
 
-  /* Feature list (icon-free) */
   .features { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; margin-bottom: 30px; background: var(--border); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
   .feat { position: relative; background: var(--card-2); padding: 17px 18px 17px 22px; }
   .feat::before { content: ''; position: absolute; left: 0; top: 16px; bottom: 16px; width: 3px; border-radius: 3px; background: linear-gradient(180deg, var(--accent), var(--accent-3)); }
   .feat b { display: block; font-size: 13.5px; font-weight: 650; letter-spacing: -0.01em; margin-bottom: 4px; }
   .feat span { font-size: 12.5px; color: var(--muted); line-height: 1.5; }
 
-  /* Download button (text only) */
   .dl {
     display: flex; align-items: center; justify-content: center; width: 100%;
     background: linear-gradient(180deg, var(--accent-2), var(--accent)); color: #fff; text-decoration: none;
@@ -69,7 +65,6 @@
   .verline { text-align: center; color: var(--muted); font-size: 12.5px; margin-top: 6px; }
   .verline b { color: var(--text); font-weight: 600; }
 
-  /* Spec strip */
   .specs { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 22px; }
   .spec { font-size: 11.5px; color: var(--muted); padding: 6px 12px; border-radius: 999px; border: 1px solid var(--border); background: rgba(255,255,255,0.02); }
 
@@ -84,7 +79,6 @@
     .card h2 { font-size: 25px; }
   }
 </style>
-<script src="https://sites.super.myninja.ai/_assets/ninja-daytona-script.js"></script>
 </head>
 <body>
   <div class="wrap">
@@ -101,7 +95,7 @@
       <div class="features">
         <div class="feat">
           <b>Native window</b>
-          <span>Runs like a real app, no browser tabs.</span>
+          <span>A dedicated desktop client &mdash; no browser tabs required.</span>
         </div>
         <div class="feat">
           <b>Voice ready</b>
@@ -139,8 +133,6 @@
     <a class="back" href="/">Back to HelloBye</a>
   </div>
   <script>
-    // Resolve the newest desktop release from the server so this page always
-    // links to the latest build automatically (no manual link updates needed).
     (async function () {
       try {
         var res = await fetch('/api/desktop-release', { cache: 'no-store' });
@@ -156,8 +148,8 @@
         }
         var ver = document.getElementById('dl-version');
         if (ver && d.version) ver.textContent = 'v' + d.version;
-      } catch (e) { /* keep the static fallback link */ }
+      } catch (e) {  }
     })();
-  </script>
+</script>
 </body>
 </html>

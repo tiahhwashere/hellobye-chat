@@ -1,22 +1,3 @@
-// HelloBye Desktop — a native Electron app for HelloBye Chat.
-//
-// Design goals (this build):
-//  - Feel like a real PC application, not a website embedded in a window.
-//    The window is frameless. There is NO full-width title bar: preload.js
-//    pins a small minimise / maximise / close cluster to the top-right (aligned
-//    with the website's own header row) and makes the app's top header row
-//    draggable, so the whole window moves when you drag the top of the app.
-//  - Open at 60% of the screen by default, and render the app content zoomed
-//    out to ~60% so the original layout doesn't look smushed in a small window.
-//  - No File / View / Edit / Help menu bar at all.
-//  - Show a custom CSS-only launch splash (no emojis / no SVG icons) every
-//    time the app is opened, before the app content appears.
-//  - "New build" prompt: poll the site's /api/version endpoint. When the
-//    deployed build id changes, show a centered in-app modal telling the user a
-//    new build is available. Clicking "Download" opens the download page in the
-//    system browser, removes the installed PC app, and closes Hellobye so the
-//    fresh build can be installed cleanly.
-//  - Microphone/camera permissions are granted automatically so voice works.
 
 const { app, BrowserWindow, shell, session, Menu, dialog, ipcMain, screen, desktopCapturer } = require('electron');
 const path = require('path');
@@ -24,20 +5,15 @@ const fs = require('fs');
 const os = require('os');
 const { spawn } = require('child_process');
 
-// The live site. Override with HELLOBYE_URL for local testing.
 const APP_URL = process.env.HELLOBYE_URL || 'https://hellobye-chat.onrender.com/';
 const VERSION_URL = new URL('/api/version', APP_URL).toString();
-const POLL_INTERVAL_MS = 30 * 1000; // check for updates every 30s
+const POLL_INTERVAL_MS = 30 * 1000;
 
-// Render the app content zoomed out so the original (100%) layout, which is
-// designed for a full browser window, doesn't look cramped in the smaller
-// desktop window. 0.6 == 60%.
 const DEFAULT_ZOOM = 0.6;
 const MIN_ZOOM = 0.4;
 const MAX_ZOOM = 1.5;
 const ZOOM_STEP = 0.1;
 
-// How long the launch splash stays up at minimum, so the animation is seen.
 const SPLASH_MIN_MS = 1700;
 
 let mainWindow = null;
@@ -46,11 +22,9 @@ let updateTimer = null;
 let knownBuildId = null;
 let updatePending = false;
 
-// Native app identity (Windows taskbar grouping / notifications).
 app.setName('Hellobye');
 if (process.platform === 'win32') app.setAppUserModelId('com.hellobye.chat');
 
-// ---- Persistent state (remembers the last build id we ran) ----
 function statePath() { return path.join(app.getPath('userData'), 'desktop-state.json'); }
 function readState() {
   try { return JSON.parse(fs.readFileSync(statePath(), 'utf8')); } catch (e) { return {}; }
@@ -59,10 +33,9 @@ function writeState(patch) {
   try {
     const s = Object.assign(readState(), patch);
     fs.writeFileSync(statePath(), JSON.stringify(s, null, 2));
-  } catch (e) { /* non-fatal */ }
+  } catch (e) {  }
 }
 
-// ---- Launch splash (custom CSS-only loading animation) ----
 function createSplash() {
   splashWindow = new BrowserWindow({
     width: 480,
@@ -90,7 +63,6 @@ function createSplash() {
   splashWindow.on('closed', () => { splashWindow = null; });
 }
 
-// Fade the splash out, then close it and reveal the main window.
 function revealApp() {
   if (splashWindow && !splashWindow.isDestroyed()) {
     splashWindow.webContents
@@ -107,8 +79,6 @@ function revealApp() {
   }
 }
 
-// Wait for both the minimum splash time AND the app page to finish loading,
-// then reveal the app.
 function revealWhenReady() {
   const minSplash = new Promise((r) => setTimeout(r, SPLASH_MIN_MS));
   const loaded = new Promise((resolve) => {
@@ -116,15 +86,12 @@ function revealWhenReady() {
     const wc = mainWindow.webContents;
     if (!wc.isLoading()) return resolve();
     wc.once('did-finish-load', () => resolve());
-    // Safety net: never hang on the splash if the page is slow.
     setTimeout(resolve, 12000);
   });
   Promise.all([minSplash, loaded]).then(revealApp);
 }
 
-// ---- Window ----
 function createWindow() {
-  // Default size: 60% of the primary display's usable area.
   const { width: screenW, height: screenH } = screen.getPrimaryDisplay().workAreaSize;
   const width = Math.max(860, Math.round(screenW * 0.6));
   const height = Math.max(540, Math.round(screenH * 0.6));
@@ -136,30 +103,21 @@ function createWindow() {
     minHeight: 540,
     backgroundColor: '#1a1b1e',
     title: 'Hellobye',
-    // Frameless: the app draws its own native title bar (see preload.js).
     frame: false,
-    // No native menu bar anywhere.
     autoHideMenuBar: true,
-    // Keep the window hidden until the splash finishes.
     show: false,
     icon: iconPath(),
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
       nodeIntegration: false,
-      // A fixed partition keeps the login session across app restarts.
       partition: 'persist:hellobye',
       backgroundThrottling: false,
       spellcheck: false,
-      // Let the preload know the zoom factor so it can keep the native title
-      // bar at its true pixel size while the page content is zoomed out.
       additionalArguments: ['--hb-zoom=' + DEFAULT_ZOOM],
     },
   });
 
-  // Restore the window mode the user last closed the app in (full screen or
-  // restored/maximised). This is saved automatically on close and on every
-  // mode change, so it is always up to date.
   const savedWin = readState().window || {};
   if (savedWin.fullScreen) {
     try { mainWindow.setFullScreen(true); } catch (e) {}
@@ -167,24 +125,18 @@ function createWindow() {
     try { mainWindow.maximize(); } catch (e) {}
   }
 
-  // Zoom the app content out to ~60% so the original layout isn't smushed.
   applyZoom(DEFAULT_ZOOM, false);
 
   mainWindow.loadURL(APP_URL);
 
-  // Re-assert the zoom once the page has loaded (zoom can reset on navigation).
   mainWindow.webContents.on('did-finish-load', () => applyZoom(currentZoom, false));
 
-  // Keep the renderer's maximise/restore icon in sync, and remember the window
-  // mode so it can be restored on the next launch.
   mainWindow.on('maximize', () => { sendToRenderer('window-maximized', true); captureWindowState(); });
   mainWindow.on('unmaximize', () => { sendToRenderer('window-maximized', false); captureWindowState(); });
   mainWindow.on('enter-full-screen', () => { sendToRenderer('window-maximized', true); captureWindowState(); });
   mainWindow.on('leave-full-screen', () => { sendToRenderer('window-maximized', false); captureWindowState(); });
-  // Persist the exact mode at the moment the user closes the app.
   mainWindow.on('close', captureWindowState);
 
-  // Open external links (http/https not on our origin) in the system browser.
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
     if (url.startsWith(APP_URL) || url.startsWith('https://hellobye-chat.onrender.com')) {
       return { action: 'allow' };
@@ -199,7 +151,6 @@ function createWindow() {
     }
   });
 
-  // Native-app keyboard shortcuts (there is no menu to provide them).
   mainWindow.webContents.on('before-input-event', (event, input) => {
     if (input.type !== 'keyDown') return;
     const ctrl = input.control || input.meta;
@@ -207,7 +158,6 @@ function createWindow() {
     if (ctrl && (input.key === '+' || input.key === '=')) { event.preventDefault(); zoomBy(ZOOM_STEP); return; }
     if (ctrl && input.key === '-') { event.preventDefault(); zoomBy(-ZOOM_STEP); return; }
     if (ctrl && input.key === '0') { event.preventDefault(); applyZoom(DEFAULT_ZOOM, true); return; }
-    // DevTools only in development (never in a packaged build).
     if (ctrl && input.shift && (input.key === 'I' || input.key === 'i') && !app.isPackaged) {
       event.preventDefault();
       mainWindow.webContents.toggleDevTools();
@@ -221,9 +171,6 @@ function sendToRenderer(channel, payload) {
   if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send(channel, payload);
 }
 
-// Remember whether the window was in full screen or restored (maximised /
-// normal) so the exact same mode is restored on the next launch. Saved
-// automatically whenever the mode changes and when the user closes the app.
 function captureWindowState() {
   if (!mainWindow || mainWindow.isDestroyed()) return;
   try {
@@ -233,7 +180,7 @@ function captureWindowState() {
         maximized: mainWindow.isMaximized(),
       },
     });
-  } catch (e) { /* non-fatal */ }
+  } catch (e) {  }
 }
 
 function iconPath() {
@@ -244,7 +191,6 @@ function iconPath() {
   return undefined;
 }
 
-// ---- Window controls (driven by the custom title bar) ----
 function toggleFullScreen() {
   if (!mainWindow || mainWindow.isDestroyed()) return;
   mainWindow.setFullScreen(!mainWindow.isFullScreen());
@@ -263,7 +209,6 @@ function applyZoom(factor, notify) {
   if (notify) sendToRenderer('zoom-changed', clamped);
 }
 
-// ---- Permissions: auto-grant mic/camera so voice chat just works ----
 function configurePermissions() {
   const ses = session.fromPartition('persist:hellobye');
   const allowed = new Set(['media', 'audioCapture', 'videoCapture', 'notifications', 'clipboard-read', 'clipboard-sanitized-write', 'fullscreen']);
@@ -273,14 +218,6 @@ function configurePermissions() {
   ses.setPermissionCheckHandler((wc, permission) => allowed.has(permission));
 }
 
-// ---- Screen sharing ----
-// Electron REQUIRES a display-media request handler. Without one,
-// navigator.mediaDevices.getDisplayMedia() rejects and the site shows
-// "Could not start screen share. Please try again." Here we gather the
-// available screens + windows and let the user pick one through an in-app
-// picker (rendered by preload.js). The chosen source is handed back to the
-// page, so the screen share starts and every other user in the call receives
-// the video track over the existing peer connections.
 let pendingDisplayPick = null;
 
 function listDisplaySources() {
@@ -291,8 +228,6 @@ function listDisplaySources() {
   });
 }
 
-// Ask the renderer to show the source picker and resolve with the chosen id
-// (or null if the user cancels / the picker times out).
 function requestDisplaySourcePick(sources) {
   return new Promise((resolve) => {
     if (!mainWindow || mainWindow.isDestroyed()) { resolve(sources[0] ? sources[0].id : null); return; }
@@ -321,16 +256,12 @@ function configureScreenShare() {
     try {
       const sources = await listDisplaySources();
       if (!sources || !sources.length) { callback({}); return; }
-      // Only one thing to share -> pick it automatically. Otherwise show the
-      // in-app picker so the user chooses a screen or window.
       const chosenId = sources.length === 1
         ? sources[0].id
         : await requestDisplaySourcePick(sources);
-      if (!chosenId) { callback({}); return; } // cancelled -> getDisplayMedia rejects
+      if (!chosenId) { callback({}); return; }
       const source = sources.find((s) => s.id === chosenId) || sources[0];
       const streams = { video: source };
-      // System-audio loopback is only supported on Windows. On other platforms
-      // we hand back video only; the page retries video-only anyway.
       if (request.audioRequested && process.platform === 'win32') streams.audio = 'loopback';
       callback(streams);
     } catch (e) {
@@ -339,7 +270,6 @@ function configureScreenShare() {
   });
 }
 
-// ---- Soft update detection ----
 async function fetchBuildId() {
   try {
     const res = await fetch(VERSION_URL, { cache: 'no-store' });
@@ -355,9 +285,6 @@ async function checkForUpdate() {
   const id = await fetchBuildId();
   if (!id) return;
   if (knownBuildId === null) {
-    // First successful check: record the current build. If it differs from the
-    // build we last ran, the site was updated while the app was closed — show
-    // the soft update toast right away.
     knownBuildId = id;
     const prev = readState().lastBuildId;
     if (prev && prev !== id) showSoftUpdate();
@@ -371,8 +298,6 @@ async function checkForUpdate() {
   }
 }
 
-// Ask the renderer to show the update modal. If the renderer isn't ready
-// (e.g. still loading), fall back to a native dialog.
 function showSoftUpdate() {
   if (updatePending) return;
   updatePending = true;
@@ -383,8 +308,6 @@ function showSoftUpdate() {
   }
 }
 
-// Native-dialog fallback used only if the renderer isn't available to show the
-// in-app modal.
 function promptDownload() {
   const choice = dialog.showMessageBoxSync(mainWindow || undefined, {
     type: 'info',
@@ -398,36 +321,24 @@ function promptDownload() {
   if (choice === 0) downloadNewBuild();
 }
 
-// The download page that always serves the newest build.
 const DOWNLOAD_URL = 'https://hellobye-chat.onrender.com/download';
 
-// Open the download page, remove the installed PC app, then quit. Self-deletion
-// has to happen from a separate process because Windows will not let a running
-// executable delete itself.
 function downloadNewBuild() {
   updatePending = false;
   try { if (knownBuildId) writeState({ lastBuildId: knownBuildId }); } catch (e) {}
-  // 1) Redirect the user to the download page in their default browser.
   try { shell.openExternal(DOWNLOAD_URL); } catch (e) {}
-  // 2) Schedule removal of the installed app (packaged Windows builds only).
   try { scheduleSelfDelete(); } catch (e) {}
-  // 3) Close Hellobye so the files can be removed.
   setTimeout(() => { try { app.exit(0); } catch (e) { app.quit(); } }, 500);
 }
 
-// Spawn a detached helper that waits for this process to exit, then removes the
-// FULL installed app: the install directory (or the portable .exe), the per-user
-// app data, and the desktop / Start-menu shortcuts. This guarantees a clean slate
-// before the user re-downloads the latest build from the download page.
 function scheduleSelfDelete() {
-  if (process.platform !== 'win32' || !app.isPackaged) return; // dev/non-Windows: nothing to remove
+  if (process.platform !== 'win32' || !app.isPackaged) return;
   const execPath = process.execPath;
   const exeName = path.basename(execPath);
   const installDir = path.dirname(execPath);
   const isPortable = !!process.env.PORTABLE_EXECUTABLE_FILE;
   const portableExe = process.env.PORTABLE_EXECUTABLE_FILE || execPath;
 
-  // Per-user locations that make up the "full" app footprint.
   let userDataDir = '';
   try { userDataDir = app.getPath('userData'); } catch (e) {}
   const appDataRoaming = process.env.APPDATA || '';
@@ -439,7 +350,6 @@ function scheduleSelfDelete() {
   const lines = [
     '@echo off',
     'setlocal',
-    // Wait until Hellobye has fully exited.
     ':wait',
     'tasklist /FI "IMAGENAME eq ' + exeName + '" 2>NUL | find /I "' + exeName + '" >NUL',
     'if not errorlevel 1 (',
@@ -448,13 +358,10 @@ function scheduleSelfDelete() {
     ')',
     'timeout /t 1 /nobreak >NUL',
   ];
-  // 1) Remove the program itself (portable exe, or the whole install folder).
   lines.push(isPortable ? ('del /f /q ' + q(portableExe)) : ('rmdir /s /q ' + q(installDir)));
-  // 2) Remove per-user app data (config, cache, saved state).
   if (userDataDir) lines.push('rmdir /s /q ' + q(userDataDir));
   if (appDataRoaming) lines.push('rmdir /s /q ' + q(path.join(appDataRoaming, 'HelloBye')));
   if (appDataLocal) lines.push('rmdir /s /q ' + q(path.join(appDataLocal, 'HelloBye')));
-  // 3) Remove desktop + Start-menu shortcuts.
   if (userProfile) {
     lines.push('del /f /q ' + q(path.join(userProfile, 'Desktop', 'HelloBye.lnk')));
     lines.push('del /f /q ' + q(path.join(userProfile, 'Desktop', 'Hellobye.lnk')));
@@ -462,7 +369,6 @@ function scheduleSelfDelete() {
   if (appDataRoaming) {
     lines.push('del /f /q ' + q(path.join(appDataRoaming, 'Microsoft', 'Windows', 'Start Menu', 'Programs', 'HelloBye.lnk')));
   }
-  // 4) Best-effort registry uninstall entry cleanup.
   lines.push('reg delete "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\HelloBye" /f >NUL 2>&1');
   lines.push('reg delete "HKCU\\Software\\HelloBye" /f >NUL 2>&1');
   lines.push('del /f /q "%~f0"');
@@ -477,19 +383,14 @@ function startUpdatePolling() {
   updateTimer = setInterval(checkForUpdate, POLL_INTERVAL_MS);
 }
 
-// ---- Menu ----
-// There is deliberately NO application menu and NO in-app File/View/Edit/Help
-// bar. The app is a native window with its own title bar only.
 function buildMenu() {
   Menu.setApplicationMenu(null);
 }
 
-// ---- IPC from renderer ----
 ipcMain.handle('app-version', () => app.getVersion());
 ipcMain.handle('check-update-now', async () => { await checkForUpdate(); return true; });
 ipcMain.on('download-new-build', () => downloadNewBuild());
 ipcMain.on('dismiss-update', () => { updatePending = false; });
-// Custom title-bar window controls.
 ipcMain.on('window-minimize', () => { if (mainWindow && !mainWindow.isDestroyed()) mainWindow.minimize(); });
 ipcMain.on('window-maximize-toggle', () => {
   if (!mainWindow || mainWindow.isDestroyed()) return;
@@ -500,7 +401,6 @@ ipcMain.on('window-toggle-fullscreen', () => toggleFullScreen());
 ipcMain.handle('window-is-maximized', () => !!(mainWindow && !mainWindow.isDestroyed() && mainWindow.isMaximized()));
 ipcMain.handle('window-is-fullscreen', () => !!(mainWindow && !mainWindow.isDestroyed() && mainWindow.isFullScreen()));
 
-// ---- Lifecycle ----
 const gotLock = app.requestSingleInstanceLock();
 if (!gotLock) {
   app.quit();
