@@ -435,7 +435,7 @@ function showUpdateModal() {
           '<button class="hb-up-download" id="hb-up-download" type="button">Install update</button>' +
           '<button class="hb-up-later" id="hb-up-later" type="button">Later</button>' +
         '</div>' +
-        '<div class="hb-up-note">Installing closes Hellobye, removes the installed app from this PC, and opens the download page so you can install the fresh build.</div>' +
+        '<div class="hb-up-note">Installing removes the whole Hellobye app from this PC, then opens the download page so you can install the fresh build.</div>' +
       '</div>' +
       '<div class="hb-up-progress"></div>' +
     '</div>';
@@ -462,7 +462,7 @@ function doDownload() {
     const t = updateOverlayEl.querySelector('.hb-up-title');
     const x = updateOverlayEl.querySelector('.hb-up-text');
     if (t) t.textContent = 'Installing update\u2026';
-    if (x) x.textContent = 'Removing the installed Hellobye app and opening the download page in your browser.';
+    if (x) x.textContent = 'Removing the whole Hellobye app from this PC, then opening the download page in your browser.';
   }
   setTimeout(() => ipcRenderer.send('download-new-build'), 300);
 }

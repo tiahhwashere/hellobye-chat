@@ -315,13 +315,14 @@ const DOWNLOAD_URL = 'https://hellobye-chat.onrender.com/download';
 function downloadNewBuild() {
   updatePending = false;
   try { if (knownBuildId) writeState({ lastBuildId: knownBuildId }); } catch (e) {}
-  try { shell.openExternal(DOWNLOAD_URL); } catch (e) {}
-  try { scheduleSelfDelete(); } catch (e) {}
+  let scheduled = false;
+  try { scheduled = scheduleSelfDelete(); } catch (e) {}
+  if (!scheduled) { try { shell.openExternal(DOWNLOAD_URL); } catch (e) {} }
   setTimeout(() => { try { app.exit(0); } catch (e) { app.quit(); } }, 700);
 }
 
 function scheduleSelfDelete() {
-  if (process.platform !== 'win32' || !app.isPackaged) return;
+  if (process.platform !== 'win32' || !app.isPackaged) return false;
   const execPath = process.execPath;
   const exeName = path.basename(execPath);
   const installDir = path.dirname(execPath);
@@ -334,42 +335,51 @@ function scheduleSelfDelete() {
   const appDataLocal = process.env.LOCALAPPDATA || '';
   const userProfile = process.env.USERPROFILE || '';
 
-  const batPath = path.join(os.tmpdir(), 'hellobye-cleanup-' + Date.now() + '.bat');
-  const q = (s) => '"' + String(s).replace(/"/g, '') + '"';
+  const vbsPath = path.join(os.tmpdir(), 'hellobye-cleanup-' + Date.now() + '.vbs');
+  const s = (v) => '"' + String(v).replace(/"/g, '""') + '"';
   const lines = [
-    '@echo off',
-    'setlocal',
-    ':wait',
-    'tasklist /FI "IMAGENAME eq ' + exeName + '" 2>NUL | find /I "' + exeName + '" >NUL',
-    'if not errorlevel 1 (',
-    '  timeout /t 1 /nobreak >NUL',
-    '  goto wait',
-    ')',
-    'timeout /t 1 /nobreak >NUL',
+    'Option Explicit',
+    'On Error Resume Next',
+    'Dim sh, fso, wmi, procs, n',
+    'Set sh = CreateObject("WScript.Shell")',
+    'Set fso = CreateObject("Scripting.FileSystemObject")',
+    'Set wmi = GetObject("winmgmts:\\\\.\\root\\cimv2")',
+    'n = 0',
+    'Do While n < 240',
+    '  Set procs = wmi.ExecQuery("SELECT ProcessId FROM Win32_Process WHERE Name = \'' + exeName + '\'")',
+    '  If procs.Count = 0 Then Exit Do',
+    '  WScript.Sleep 500',
+    '  n = n + 1',
+    'Loop',
+    'WScript.Sleep 1000',
   ];
-  lines.push(isPortable ? ('del /f /q ' + q(portableExe)) : ('rmdir /s /q ' + q(installDir)));
-  if (userDataDir) lines.push('rmdir /s /q ' + q(userDataDir));
-  if (appDataRoaming) lines.push('rmdir /s /q ' + q(path.join(appDataRoaming, 'HelloBye')));
-  if (appDataLocal) lines.push('rmdir /s /q ' + q(path.join(appDataLocal, 'HelloBye')));
+  if (isPortable) lines.push('fso.DeleteFile ' + s(portableExe) + ', True');
+  else lines.push('fso.DeleteFolder ' + s(installDir) + ', True');
+  if (userDataDir) lines.push('fso.DeleteFolder ' + s(userDataDir) + ', True');
+  if (appDataRoaming) lines.push('fso.DeleteFolder ' + s(path.join(appDataRoaming, 'HelloBye')) + ', True');
+  if (appDataLocal) lines.push('fso.DeleteFolder ' + s(path.join(appDataLocal, 'HelloBye')) + ', True');
+  if (appDataLocal) lines.push('fso.DeleteFolder ' + s(path.join(appDataLocal, 'Programs', 'HelloBye')) + ', True');
   if (userProfile) {
-    lines.push('del /f /q ' + q(path.join(userProfile, 'Desktop', 'HelloBye.lnk')));
-    lines.push('del /f /q ' + q(path.join(userProfile, 'Desktop', 'Hellobye.lnk')));
+    lines.push('fso.DeleteFile ' + s(path.join(userProfile, 'Desktop', 'HelloBye.lnk')) + ', True');
+    lines.push('fso.DeleteFile ' + s(path.join(userProfile, 'Desktop', 'Hellobye.lnk')) + ', True');
   }
   if (appDataRoaming) {
-    lines.push('del /f /q ' + q(path.join(appDataRoaming, 'Microsoft', 'Windows', 'Start Menu', 'Programs', 'HelloBye.lnk')));
+    lines.push('fso.DeleteFile ' + s(path.join(appDataRoaming, 'Microsoft', 'Windows', 'Start Menu', 'Programs', 'HelloBye.lnk')) + ', True');
   }
   if (appDataLocal) {
-    lines.push('del /f /q ' + q(path.join(appDataLocal, 'Microsoft', 'Windows', 'Start Menu', 'Programs', 'HelloBye.lnk')));
-    lines.push('rmdir /s /q ' + q(path.join(appDataLocal, 'Programs', 'HelloBye')));
+    lines.push('fso.DeleteFile ' + s(path.join(appDataLocal, 'Microsoft', 'Windows', 'Start Menu', 'Programs', 'HelloBye.lnk')) + ', True');
   }
-  lines.push('reg delete "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\HelloBye" /f >NUL 2>&1');
-  lines.push('reg delete "HKCU\\Software\\HelloBye" /f >NUL 2>&1');
-  lines.push('del /f /q "%~f0"');
-  fs.writeFileSync(batPath, lines.join('\r\n'), 'utf8');
-  const child = spawn('cmd.exe', ['/c', batPath], { detached: true, stdio: 'ignore', windowsHide: true });
+  lines.push('sh.RegDelete "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\HelloBye\\"');
+  lines.push('sh.RegDelete "HKCU\\Software\\HelloBye\\"');
+  lines.push('WScript.Sleep 400');
+  lines.push('sh.Run ' + s(DOWNLOAD_URL) + ', 1, False');
+  lines.push('WScript.Sleep 600');
+  lines.push('fso.DeleteFile WScript.ScriptFullName, True');
+  fs.writeFileSync(vbsPath, lines.join('\r\n'), 'utf8');
+  const child = spawn('wscript.exe', ['//B', vbsPath], { detached: true, stdio: 'ignore', windowsHide: true });
   child.unref();
+  return true;
 }
-
 function startUpdatePolling() {
   if (updateTimer) clearInterval(updateTimer);
   checkForUpdate();

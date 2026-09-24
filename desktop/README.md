@@ -19,11 +19,12 @@ A native desktop app for **HelloBye Chat** (https://hellobye-chat.onrender.com/)
   voice chat and voice messages work immediately.
 - **Soft updates that hand off to the website**: the app checks the website's
   build id every 30 seconds. When the website is updated, a centered in-app
-  modal appears ("A new build is ready"). Clicking **Install update** opens
-  https://hellobye-chat.onrender.com/download in the browser, removes the
-  installed app from this PC (install folder, shortcuts, Start Menu entry,
-  registry keys and cached data) and then closes itself so you can install the
-  fresh build. Your login is kept in the website session.
+  modal appears ("A new build is ready"). Clicking **Install update** first
+  removes the whole Hellobye app from this PC (install folder, shortcuts, Start
+  Menu entry, registry keys and cached data) and then redirects the browser to
+  https://hellobye-chat.onrender.com/download so you can install the fresh build.
+  The cleanup runs silently in the background (no console window is shown) and
+  the app closes itself. Your login is kept in the website session.
 
 ## Run from source
 
