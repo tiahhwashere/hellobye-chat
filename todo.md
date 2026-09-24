@@ -21,8 +21,8 @@
 - [x] Verify visually
 
 ## Ship
-- [ ] Bump desktop 1.5.5 -> 1.5.6
-- [ ] Build NSIS + portable
-- [ ] Publish GitHub release desktop-v1.5.6 + upload assets
-- [ ] Update server.js DESKTOP_FALLBACK + download.html to v1.5.6
-- [ ] Commit + push; verify Render deploy + live endpoints
+- [x] Bump desktop 1.5.5 -> 1.5.6
+- [x] Build NSIS + portable
+- [x] Publish GitHub release desktop-v1.5.6 + upload assets
+- [x] Update server.js DESKTOP_FALLBACK + download.html to v1.5.6
+- [x] Commit + push; verify Render deploy + live endpoints
