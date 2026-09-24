@@ -516,6 +516,8 @@ ipcMain.on('save-last-login', (e, data) => {
     username: String(data.username),
     sessionId: data.sessionId ? String(data.sessionId) : '',
     prefs,
+    avatar: (typeof data.avatar === 'string') ? data.avatar : '',
+    displayName: (typeof data.displayName === 'string') ? data.displayName : '',
     at: Date.now(),
   });
 });

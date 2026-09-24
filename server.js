@@ -1517,6 +1517,21 @@ app.get('/api/check-username/:username', (req, res) => {
   return res.json({ available: true, reason: 'Username is available' });
 });
 
+// Public avatar lookup — used by the "Welcome back" re-login screen to show the
+// user's profile picture before they have an active session. Avatars are
+// already shown publicly in member lists, so this exposes no new information.
+app.get('/api/avatar/:username', (req, res) => {
+  res.set('Cache-Control', 'no-store');
+  const un = String(req.params.username || '').toLowerCase();
+  const u = db.users[un];
+  if (!u || isAccountDisabled(u)) return res.status(404).json({ error: 'User not found' });
+  res.json({
+    username: u.username,
+    displayName: u.displayName || u.username,
+    avatar: u.avatar || DEFAULT_AVATAR_URL,
+  });
+});
+
 app.post('/api/profile', authMiddleware, avatarUpload.single('image'), async (req, res) => {
   const u = req.user;
   if (req.file) {
@@ -4927,12 +4942,12 @@ app.get('/api/version', (req, res) => {
 
 const DESKTOP_REPO = process.env.HELLOBYE_REPO || 'tiahhwashere/hellobye-chat';
 const DESKTOP_FALLBACK = {
-  version: '1.6.4',
+  version: '1.6.5',
   name: 'HelloBye-Setup.exe',
-  url: 'https://github.com/tiahhwashere/hellobye-chat/releases/download/desktop-v1.6.4/HelloBye-Setup.exe',
-  size: 78226412,
+  url: 'https://github.com/tiahhwashere/hellobye-chat/releases/download/desktop-v1.6.5/HelloBye-Setup.exe',
+  size: 78227306,
   publishedAt: null,
-  releaseUrl: 'https://github.com/tiahhwashere/hellobye-chat/releases/tag/desktop-v1.6.4',
+  releaseUrl: 'https://github.com/tiahhwashere/hellobye-chat/releases/tag/desktop-v1.6.5',
 };
 let desktopReleaseCache = { at: 0, data: null };
 const DESKTOP_CACHE_MS = 10 * 60 * 1000;

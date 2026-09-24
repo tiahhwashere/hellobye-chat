@@ -456,7 +456,60 @@ function showUpdateModal() {
   updateOverlayEl.querySelector('#hb-up-later').addEventListener('click', () => {
     ipcRenderer.send('dismiss-update');
     if (updateOverlayEl) updateOverlayEl.classList.remove('show');
+    // The user deferred the update — drop a small download shortcut into the
+    // chat header so they can install later without waiting for another prompt.
+    wantUpdateIcon();
   });
+}
+
+/* ---- Deferred-update download shortcut ----------------------------------
+   When the user taps "Later" on the update prompt we place a small download
+   icon just to the left of the "Search messages" button in the chat header.
+   Clicking it runs the exact same self-delete + redirect flow as the normal
+   "Install update" action. */
+function updateIconStyles() {
+  if (document.getElementById('hb-up-icon-style')) return;
+  const st = document.createElement('style');
+  st.id = 'hb-up-icon-style';
+  st.textContent =
+    '#hb-update-icon-btn{position:relative;color:#8b93ff !important;}' +
+    '#hb-update-icon-btn:hover{color:#aab1ff !important;}' +
+    '#hb-update-icon-btn::after{content:"";position:absolute;top:4px;right:4px;width:7px;height:7px;border-radius:50%;' +
+    '  background:#5865f2;box-shadow:0 0 0 2px rgba(0,0,0,0.35),0 0 8px rgba(88,101,242,0.95);animation:hbUpIconPulse 1.9s ease-in-out infinite;}' +
+    '@keyframes hbUpIconPulse{0%,100%{opacity:.5}50%{opacity:1}}';
+  (document.head || document.documentElement).appendChild(st);
+}
+
+function injectUpdateIcon() {
+  try {
+    if (document.getElementById('hb-update-icon-btn')) return;
+    const searchBtn = document.getElementById('search-msg-btn');
+    if (!searchBtn || !searchBtn.parentNode) return;
+    updateIconStyles();
+    const btn = document.createElement('button');
+    btn.id = 'hb-update-icon-btn';
+    btn.className = 'icon-btn';
+    btn.type = 'button';
+    btn.title = 'Update available \u2014 click to install the new build';
+    btn.setAttribute('aria-label', 'Install update');
+    btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+      '<path d="M12 3v10.5"/><polyline points="7.6 9.6 12 14 16.4 9.6"/><line x1="5" y1="19.5" x2="19" y2="19.5"/></svg>';
+    btn.addEventListener('click', doDownload);
+    searchBtn.parentNode.insertBefore(btn, searchBtn);
+  } catch (e) {}
+}
+
+let updateIconWanted = false;
+function wantUpdateIcon() {
+  updateIconWanted = true;
+  try { localStorage.setItem('hb_update_icon', '1'); } catch (e) {}
+  injectUpdateIcon();
+}
+function clearUpdateIcon() {
+  updateIconWanted = false;
+  try { localStorage.removeItem('hb_update_icon'); } catch (e) {}
+  const b = document.getElementById('hb-update-icon-btn');
+  if (b) b.remove();
 }
 
 function doDownload() {
@@ -485,6 +538,12 @@ function boot() {
   try { document.documentElement.classList.add('hb-desktop'); } catch (e) {}
   buildWindowControls();
   watchHeader();
+  // If the user deferred an update earlier, keep the download shortcut visible.
+  try { if (localStorage.getItem('hb_update_icon') === '1') { updateIconWanted = true; injectUpdateIcon(); } } catch (e) {}
+  try {
+    const mo = new MutationObserver(() => { if (updateIconWanted) injectUpdateIcon(); });
+    mo.observe(document.documentElement, { childList: true, subtree: true });
+  } catch (e) {}
 }
 if (document.body) boot();
 else window.addEventListener('DOMContentLoaded', boot, { once: true });

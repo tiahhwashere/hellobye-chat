@@ -11667,6 +11667,8 @@ function hbPersistCarryover(force) {
       username: currentUser.username,
       sessionId: sessionSocketId || localStorage.getItem('hellobye_sid') || '',
       prefs: hbCollectPrefs(currentUser.username),
+      avatar: (currentUser.avatar && typeof currentUser.avatar === 'string') ? currentUser.avatar : '',
+      displayName: (currentUser.displayName && typeof currentUser.displayName === 'string') ? currentUser.displayName : '',
     };
     let json = '';
     try { json = JSON.stringify(payload); } catch (e) { json = ''; }
@@ -11745,6 +11747,8 @@ function hbWelcomeBackStyles() {
     '.hb-wb-avatar{flex:0 0 auto;width:54px;height:54px;border-radius:15px;display:flex;align-items:center;justify-content:center;',
     '  font-size:20px;font-weight:800;letter-spacing:.02em;color:#fff;text-transform:uppercase;',
     '  background:linear-gradient(160deg,#6b76f5,#4a52c9);box-shadow:0 8px 22px -8px rgba(88,101,242,0.75),inset 0 1px 0 rgba(255,255,255,0.28);}',
+    '.hb-wb-avatar.has-img{padding:0;overflow:hidden;background:#14161a;box-shadow:0 8px 22px -8px rgba(88,101,242,0.55),inset 0 0 0 1px rgba(139,147,255,0.35);}',
+    '.hb-wb-avatar.has-img img{width:100%;height:100%;object-fit:cover;display:block;border-radius:inherit;}',
     '.hb-wb-idcol{flex:1 1 auto;min-width:0;}',
     '.hb-wb-eyebrow{display:flex;align-items:center;gap:8px;font-size:10.5px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:#aab1ff;margin-bottom:5px;}',
     '.hb-wb-eyebrow .hb-wb-dot{width:6px;height:6px;border-radius:50%;background:#8b93ff;box-shadow:0 0 9px rgba(139,147,255,0.9);}',
@@ -11805,6 +11809,7 @@ function hbRenderWelcomeBack() {
   authScreen.classList.add('hb-wb-active');
 
   const initials = (uname.replace(/[^a-z0-9]/gi, '').slice(0, 2) || uname.slice(0, 2) || 'HB').toUpperCase();
+  const avatarUrl = (__hbLastLogin.avatar && typeof __hbLastLogin.avatar === 'string') ? __hbLastLogin.avatar : '';
   const at = __hbLastLogin.at ? new Date(__hbLastLogin.at) : null;
   const atAbs = at ? at.toLocaleString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' }) : '';
   const atRel = hbWbRelTime(__hbLastLogin.at);
@@ -11824,7 +11829,7 @@ function hbRenderWelcomeBack() {
   card.setAttribute('aria-label', 'Welcome back');
   card.innerHTML =
     '<div class="hb-wb-top">'
-    +   '<div class="hb-wb-avatar" aria-hidden="true">' + escapeHtml(initials) + '</div>'
+    +   '<div class="hb-wb-avatar' + (avatarUrl ? ' has-img' : '') + '" aria-hidden="true">' + (avatarUrl ? '<img src="' + escapeHtml(avatarUrl) + '" alt="">' : escapeHtml(initials)) + '</div>'
     +   '<div class="hb-wb-idcol">'
     +     '<div class="hb-wb-eyebrow"><span class="hb-wb-dot"></span>Session detected</div>'
     +     '<div class="hb-wb-name">Welcome back</div>'
@@ -11884,6 +11889,26 @@ function hbRenderWelcomeBack() {
     const u = document.getElementById('signin-username');
     if (u) { u.value = ''; u.focus(); }
   });
+
+  // Refresh the profile picture from the server so the card always shows the
+  // latest avatar even if the carry-over snapshot is older.
+  try {
+    const avEl = card.querySelector('.hb-wb-avatar');
+    const applyAvatar = function (url) {
+      if (!avEl || !url || typeof url !== 'string') return;
+      const existing = avEl.querySelector('img');
+      if (existing) { existing.src = url; return; }
+      avEl.classList.add('has-img');
+      avEl.textContent = '';
+      const im = document.createElement('img');
+      im.alt = ''; im.src = url;
+      avEl.appendChild(im);
+    };
+    fetch(API_BASE + '/api/avatar/' + encodeURIComponent(uname), { cache: 'no-store' })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (d) { if (d && d.avatar) applyAvatar(d.avatar); })
+      .catch(function () {});
+  } catch (e) {}
 }
 function hbWbDismiss() {
   const card = document.getElementById('hb-welcome-back');
