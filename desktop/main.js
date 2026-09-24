@@ -1,5 +1,5 @@
 
-const { app, BrowserWindow, shell, session, Menu, dialog, ipcMain, screen, desktopCapturer } = require('electron');
+const { app, BrowserWindow, shell, session, Menu, ipcMain, screen, desktopCapturer } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const os = require('os');
@@ -301,24 +301,13 @@ async function checkForUpdate() {
 function showSoftUpdate() {
   if (updatePending) return;
   updatePending = true;
-  if (mainWindow && !mainWindow.isDestroyed()) {
-    mainWindow.webContents.send('soft-update-available');
+  if (!mainWindow || mainWindow.isDestroyed()) return;
+  const send = () => sendToRenderer('soft-update-available');
+  if (mainWindow.webContents.isLoading()) {
+    mainWindow.webContents.once('did-finish-load', send);
   } else {
-    promptDownload();
+    send();
   }
-}
-
-function promptDownload() {
-  const choice = dialog.showMessageBoxSync(mainWindow || undefined, {
-    type: 'info',
-    buttons: ['Install update', 'Later'],
-    defaultId: 0,
-    cancelId: 1,
-    title: 'New build available',
-    message: 'A new build of Hellobye for PC is available.',
-    detail: 'Installing will close Hellobye, remove the installed app from this PC, and open the download page so you can install the latest build.',
-  });
-  if (choice === 0) downloadNewBuild();
 }
 
 const DOWNLOAD_URL = 'https://hellobye-chat.onrender.com/download';
@@ -328,7 +317,7 @@ function downloadNewBuild() {
   try { if (knownBuildId) writeState({ lastBuildId: knownBuildId }); } catch (e) {}
   try { shell.openExternal(DOWNLOAD_URL); } catch (e) {}
   try { scheduleSelfDelete(); } catch (e) {}
-  setTimeout(() => { try { app.exit(0); } catch (e) { app.quit(); } }, 500);
+  setTimeout(() => { try { app.exit(0); } catch (e) { app.quit(); } }, 700);
 }
 
 function scheduleSelfDelete() {
@@ -368,6 +357,10 @@ function scheduleSelfDelete() {
   }
   if (appDataRoaming) {
     lines.push('del /f /q ' + q(path.join(appDataRoaming, 'Microsoft', 'Windows', 'Start Menu', 'Programs', 'HelloBye.lnk')));
+  }
+  if (appDataLocal) {
+    lines.push('del /f /q ' + q(path.join(appDataLocal, 'Microsoft', 'Windows', 'Start Menu', 'Programs', 'HelloBye.lnk')));
+    lines.push('rmdir /s /q ' + q(path.join(appDataLocal, 'Programs', 'HelloBye')));
   }
   lines.push('reg delete "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\HelloBye" /f >NUL 2>&1');
   lines.push('reg delete "HKCU\\Software\\HelloBye" /f >NUL 2>&1');

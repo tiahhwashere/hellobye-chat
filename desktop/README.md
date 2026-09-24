@@ -17,11 +17,13 @@ A native desktop app for **HelloBye Chat** (https://hellobye-chat.onrender.com/)
 - **Remembers your login** across restarts (persistent session).
 - **Microphone works out of the box** — permissions are granted automatically so
   voice chat and voice messages work immediately.
-- **Soft updates that restart the app**: the app checks the website's build id
-  every 30 seconds. When the website is updated, a soft toast appears
-  ("Update ready") with a 20-second countdown and a **Restart now** button.
-  Applying the update **closes and reopens the whole client** so the new build
-  is loaded cleanly — no page refresh, and your login/data are kept.
+- **Soft updates that hand off to the website**: the app checks the website's
+  build id every 30 seconds. When the website is updated, a centered in-app
+  modal appears ("A new build is ready"). Clicking **Install update** opens
+  https://hellobye-chat.onrender.com/download in the browser, removes the
+  installed app from this PC (install folder, shortcuts, Start Menu entry,
+  registry keys and cached data) and then closes itself so you can install the
+  fresh build. Your login is kept in the website session.
 
 ## Run from source
 
