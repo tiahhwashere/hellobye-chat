@@ -317,6 +317,8 @@ html.has-session #chat-app { display: grid; }
 .auth-qa-item p {
   margin: 0; padding: 0 12px 11px; font-size: 12px; line-height: 1.5;
   color: var(--text-secondary);
+  box-sizing: border-box; overflow: hidden;
+  transition: height 0.3s ease, opacity 0.3s ease;
 }
 .auth-form-wrap {
   flex: 1; display: flex; flex-direction: column; min-width: 0;
@@ -3460,6 +3462,7 @@ body.no-anim .friend-item { animation: none !important; }
 .user-role-tag.moderator { background: rgba(34,197,94,0.2); color: #22c55e; }
 .user-role-tag.beta_tester { background: rgba(14,165,233,0.2); color: #0ea5e9; }
 .user-role-tag.user { display: none; }
+#pv-handle .user-role-tag { font-size: 0.92em; padding: 3px 10px; border-radius: 6px; margin-left: 8px; letter-spacing: 0.6px; }
 .settings-v2-nav-icon { width: 18px; height: 18px; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; color: inherit; opacity: 0.85; }
 .settings-v2-nav-icon svg { width: 18px; height: 18px; }
 .settings-v2-nav-text { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -4757,7 +4760,7 @@ html.desktop-app .profile-view-modal { max-width: 980px; max-height: 93vh; }
 .dm-overlay.show { display: flex; }
 .dm-panel {
   position: relative;
-  width: 100%; max-width: 760px; height: 100%; max-height: 760px;
+  width: 100%; max-width: 1060px; height: 100%; max-height: 860px;
   background: var(--bg-dark); border: 1px solid var(--border);
   border-radius: var(--radius-lg); display: flex; flex-direction: column;
   overflow: hidden; box-shadow: var(--shadow-lg);
@@ -4970,7 +4973,7 @@ html.desktop-app .profile-view-modal { max-width: 980px; max-height: 93vh; }
 }
 .enc-overlay.show { display: flex; }
 .enc-panel {
-  position: relative; width: 100%; max-width: 1080px; height: 100%; max-height: 860px;
+  position: relative; width: 100%; max-width: 1320px; height: 100%; max-height: 940px;
   background: var(--bg-dark); border: 1px solid rgba(88,101,242,0.35);
   border-radius: var(--radius-lg); display: flex; flex-direction: column;
   overflow: hidden; box-shadow: 0 0 0 1px rgba(88,101,242,0.15), var(--shadow-lg);
@@ -5782,7 +5785,7 @@ html.desktop-app .profile-view-modal { max-width: 980px; max-height: 93vh; }
   .msg-action-btn { padding: 5px 12px; font-size: 12px; }
 
   .dm-overlay { padding: 40px; }
-  .dm-panel { max-width: 900px; max-height: 820px; border-radius: 20px; }
+  .dm-panel { max-width: 1240px; max-height: 920px; border-radius: 20px; }
   .dm-header { padding: 18px 24px; }
   .dm-header-avatar { width: 50px; height: 50px; font-size: 19px; }
   .dm-header-name { font-size: 16.5px; }
@@ -9307,7 +9310,8 @@ async function e2eInit() {
 }
 async function e2eGetPeerKey(username) {
   const un = String(username || '').toLowerCase();
-  if (__e2ePeerKeyCache[un]) return __e2ePeerKeyCache[un];
+  const cached = __e2ePeerKeyCache[un];
+  if (cached && cached.key) return cached.key;
   let jwk = null;
   const u = (users || []).find(x => x.username === un);
   if (u && u.e2ePublicKey) jwk = u.e2ePublicKey;
@@ -9321,7 +9325,7 @@ async function e2eGetPeerKey(username) {
   if (!jwk) return null;
   try {
     const key = await crypto.subtle.importKey('jwk', jwk, { name: 'ECDH', namedCurve: 'P-256' }, true, []);
-    __e2ePeerKeyCache[un] = key;
+    __e2ePeerKeyCache[un] = { key, x: jwk.x || '', y: jwk.y || '' };
     return key;
   } catch (e) { return null; }
 }
@@ -10803,6 +10807,58 @@ $('signin-form').addEventListener('submit', async (e) => {
     btn.disabled = false; btn.textContent = 'Sign In';
   }
 });
+
+// Smooth expand/collapse animation for the login Q&A items (native <details> toggles instantly).
+(function initAuthQaAnim(){
+  function setup(){
+    document.querySelectorAll('.auth-qa-item').forEach(function(details){
+      var summary = details.querySelector('summary');
+      var body = details.querySelector('p');
+      if (!summary || !body || summary.dataset.qaAnim) return;
+      summary.dataset.qaAnim = '1';
+      var busy = false;
+      summary.addEventListener('click', function(e){
+        e.preventDefault();
+        if (busy) return;
+        busy = true;
+        var end = function(){ busy = false; };
+        if (details.hasAttribute('open')) {
+          var h = body.scrollHeight;
+          body.style.height = h + 'px';
+          body.style.opacity = '1';
+          void body.offsetHeight;
+          body.style.height = '0px';
+          body.style.opacity = '0';
+          var done = function(){
+            body.removeEventListener('transitionend', done);
+            details.removeAttribute('open');
+            body.style.height = ''; body.style.opacity = '';
+            end();
+          };
+          body.addEventListener('transitionend', done);
+          setTimeout(done, 400);
+        } else {
+          details.setAttribute('open', '');
+          var h2 = body.scrollHeight;
+          body.style.height = '0px';
+          body.style.opacity = '0';
+          void body.offsetHeight;
+          body.style.height = h2 + 'px';
+          body.style.opacity = '1';
+          var done2 = function(){
+            body.removeEventListener('transitionend', done2);
+            body.style.height = ''; body.style.opacity = '';
+            end();
+          };
+          body.addEventListener('transitionend', done2);
+          setTimeout(done2, 400);
+        }
+      });
+    });
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', setup);
+  else setup();
+})();
 
 $('signup-form').addEventListener('submit', async (e) => {
   e.preventDefault();
@@ -12347,7 +12403,22 @@ function connectSocket() {
   socket.on('message-reaction', (data) => {
     applyRemoteReaction(messages, data, 'chat');
   });
-  socket.on('users-list', (list) => { users = list; syncAvatarDecorations(list); scheduleDecorateAll(); renderUserListDebounced(); });
+  socket.on('users-list', (list) => {
+    users = list;
+    // Drop cached peer keys whose public key rotated so new messages use the fresh key.
+    try {
+      (list || []).forEach(u => {
+        if (!u || !u.username) return;
+        const c = __e2ePeerKeyCache[u.username];
+        if (c && c.key) {
+          const nx = (u.e2ePublicKey && u.e2ePublicKey.x) || '';
+          const ny = (u.e2ePublicKey && u.e2ePublicKey.y) || '';
+          if (nx !== c.x || ny !== c.y) delete __e2ePeerKeyCache[u.username];
+        }
+      });
+    } catch (e) {}
+    syncAvatarDecorations(list); scheduleDecorateAll(); renderUserListDebounced();
+  });
   socket.on('welcome-title-changed', (data) => {
     if (data && data.title) {
       welcomeTitle = data.title;

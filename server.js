@@ -2120,19 +2120,15 @@ app.post('/api/encryption/respond/:username', authMiddleware, (req, res) => {
 
   if (bothJoined) {
     rec.state = 'active';
-    const someoneDeletedKey = !!(rec.keyDeleted && (rec.keyDeleted[me] || rec.keyDeleted[other]));
     let key = null;
     if (!rec.keyHash) {
-      key = generateEncKey();
-      rec.keyHash = hashEncKey(key);
-      rec.messages = [];
-    } else if (someoneDeletedKey) {
-      key = null;
-    } else {
+      // First time both users join — create the one-time key and start with a clean room.
       key = generateEncKey();
       rec.keyHash = hashEncKey(key);
       rec.messages = [];
     }
+    // If the key already exists the server only stores its hash, so we keep the existing
+    // messages and leave `key` null: both users are prompted to re-enter their saved key.
     rec.keyIssued = { [me]: true, [other]: true };
     rec.keyDeleted = {};
     saveDB();
@@ -4969,12 +4965,12 @@ app.get('/api/version', (req, res) => {
 
 const DESKTOP_REPO = process.env.HELLOBYE_REPO || 'tiahhwashere/hellobye-chat';
 const DESKTOP_FALLBACK = {
-  version: '1.6.6',
+  version: '1.6.7',
   name: 'HelloBye-Setup.exe',
-  url: 'https://github.com/tiahhwashere/hellobye-chat/releases/download/desktop-v1.6.6/HelloBye-Setup.exe',
-  size: 78227377,
+  url: 'https://github.com/tiahhwashere/hellobye-chat/releases/download/desktop-v1.6.7/HelloBye-Setup.exe',
+  size: 78227272,
   publishedAt: null,
-  releaseUrl: 'https://github.com/tiahhwashere/hellobye-chat/releases/tag/desktop-v1.6.6',
+  releaseUrl: 'https://github.com/tiahhwashere/hellobye-chat/releases/tag/desktop-v1.6.7',
 };
 let desktopReleaseCache = { at: 0, data: null };
 const DESKTOP_CACHE_MS = 10 * 60 * 1000;
