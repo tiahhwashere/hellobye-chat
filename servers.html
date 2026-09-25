@@ -1684,6 +1684,10 @@ html.desktop-app .member-profile-modal { max-width: 980px; max-height: 93vh; }
 .member-profile-roles.inline { display: inline-flex; gap: 6px; flex-wrap: wrap; margin: 0; }
 .member-profile-roles.inline .member-profile-role { font-size: 11px; padding: 2px 8px; }
 .member-profile-bio { font-size: 13px; color: var(--text-secondary); line-height: 1.6; padding: 12px 16px; background: var(--bg-medium); border-radius: var(--radius-sm); margin-bottom: 20px; text-align: left; white-space: pre-wrap; word-wrap: break-word; min-height: 20px; }
+.bio-link { color: #6fb5ff; text-decoration: underline; word-break: break-all; }
+.bio-link:hover { color: #9ccbff; }
+.msp-bio-preview { margin-top: 8px; font-size: 12.5px; color: var(--text-secondary); line-height: 1.55; padding: 9px 12px; background: var(--bg-medium); border: 1px solid var(--border); border-radius: 8px; white-space: pre-wrap; word-wrap: break-word; }
+.msp-bio-preview:empty { display: none; }
 .member-profile-roles { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
 .member-profile-role { font-size: 13px; padding: 5px 13px; border-radius: 11px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; }
 .member-profile-role-badge { width: 28px; height: 28px; object-fit: contain; flex-shrink: 0; }
@@ -4467,6 +4471,16 @@ function escapeHtml(t) {
   return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
 function escapeAttr(t) { return escapeHtml(t); }
+// Turns plain URLs inside a bio into blue, clickable links (opens in a new tab).
+function linkifyBio(text) {
+  if (!text) return '';
+  const safe = escapeHtml(text);
+  const urlRe = /(https?:\/\/[^\s<]+|www\.[^\s<]+)/gi;
+  return safe.replace(urlRe, (m) => {
+    const href = /^www\./i.test(m) ? 'https://' + m : m;
+    return '<a href="' + href + '" target="_blank" rel="noopener noreferrer" class="bio-link">' + m + '</a>';
+  });
+}
 // Global "Assigned Badge / Icon" artwork (set by admins on the main site). Rendered
 // on the servers page member list and voice tiles so the same icon users see on
 // their profile also appears here.
@@ -4868,7 +4882,29 @@ async function boot() {
   try { connectSocket(); } catch(e) { console.warn('[socket] connect failed', e); }
   try { await loadServers(); } catch(e) { console.warn('[servers] load failed', e); }
   let restored = false;
+  // Returning from the main chat's "Return to voice call" button? Re-join that
+  // server's voice channel and re-open the voice stage.
+  let voiceReturn = null;
   try {
+    const params = new URLSearchParams(window.location.search);
+    const vServer = params.get('voiceServer');
+    const vChannel = params.get('voiceChannel');
+    if (vServer && vChannel) voiceReturn = { serverId: vServer, channelId: vChannel };
+  } catch (e) {}
+  if (voiceReturn && servers.some(s => s.id === voiceReturn.serverId)) {
+    try {
+      await openServer(voiceReturn.serverId);
+      const vch = (activeServer.channels || []).find(c => c.id === voiceReturn.channelId);
+      if (vch && vch.type === 'voice') { await joinVoiceChannel(voiceReturn.channelId); restored = true; }
+      try { clearVoiceReturn(); } catch (e) {}
+    } catch (e) { console.warn('[servers] voice return failed', e); }
+    try {
+      const u = new URL(window.location.href);
+      u.searchParams.delete('voiceServer'); u.searchParams.delete('voiceChannel');
+      window.history.replaceState({}, '', u.pathname + (u.search || '') + u.hash);
+    } catch (e) {}
+  }
+  if (!restored) try {
     const lastServer = localStorage.getItem('hb_last_server');
     if (lastServer && servers.some(s => s.id === lastServer)) {
       await openServer(lastServer);
@@ -8094,6 +8130,7 @@ async function joinVoiceChannel(channelId) {
   voiceCall.channelName = ch.name;
   voiceCall.localStream = stream;
   voiceCall.muted = false; voiceCall.deafened = false; voiceCall.minimized = false;
+  try { saveVoiceReturn(); } catch (e) {}
   voiceCall.peers = new Map();
   voiceChatClear();
   voiceCall.peers.set(currentUser.username, { username: currentUser.username, self: true, muted: false, deafened: false, speaking: false, stream });
@@ -8163,6 +8200,7 @@ async function leaveVoiceChannel(silent) {
   voiceCall.localStream = null;
   voiceCall.active = false; voiceCall.serverId = null; voiceCall.channelId = null;
   voiceCall.startedAt = 0;
+  try { clearVoiceReturn(); } catch (e) {}
   voiceChatClear();
   voiceShowStage(false);
   voiceRenderStage();
@@ -8276,6 +8314,37 @@ async function voiceReturnToCall() {
   }
   voiceCall.minimized = false;
   voiceShowStage(true);
+}
+// Persists an active voice call so the main chat (index.html) can offer a
+// "Return to voice call" button above the mini profile. Because index.html and
+// servers.html are separate pages, returning re-joins the same server's voice
+// channel and re-opens the voice stage.
+const VOICE_RETURN_KEY = 'hb_voice_return';
+function saveVoiceReturn() {
+  if (!voiceCall.active || !voiceCall.serverId || !voiceCall.channelId) return;
+  let serverName = '';
+  try { if (activeServer && activeServer.id === voiceCall.serverId) serverName = activeServer.name || ''; } catch (e) {}
+  try {
+    localStorage.setItem(VOICE_RETURN_KEY, JSON.stringify({
+      serverId: voiceCall.serverId,
+      channelId: voiceCall.channelId,
+      serverName: serverName,
+      channelName: voiceCall.channelName || 'Voice',
+      ts: Date.now(),
+    }));
+  } catch (e) {}
+}
+function clearVoiceReturn() { try { localStorage.removeItem(VOICE_RETURN_KEY); } catch (e) {} }
+function readVoiceReturn() {
+  try {
+    const raw = localStorage.getItem(VOICE_RETURN_KEY);
+    if (!raw) return null;
+    const d = JSON.parse(raw);
+    if (!d || !d.serverId || !d.channelId) return null;
+    // Expire stale entries so an old call never lingers forever.
+    if (d.ts && (Date.now() - d.ts) > 6 * 60 * 60 * 1000) { localStorage.removeItem(VOICE_RETURN_KEY); return null; }
+    return d;
+  } catch (e) { return null; }
 }
 
 function voiceTuneReceiver(receiver) {
@@ -11890,7 +11959,7 @@ function renderMemberProfileBody(m, roles, isMe, data) {
       '<div class="mp-private-foot">Profile details are only visible to the member themselves. You can still message them in shared channels.</div>' +
     '</div>';
   } else if (bio) {
-    html += '<div class="member-profile-bio">' + escapeHtml(bio) + '</div>';
+    html += '<div class="member-profile-bio">' + linkifyBio(bio) + '</div>';
   }
 
   if (roles.length && !rolesPlaced) {
@@ -12132,7 +12201,7 @@ function openMyServerProfileEditor() {
           '</div>' +
         '</div>' +
         '<div class="field"><label>Nickname (in this server)</label><input type="text" id="my-nick" maxlength="32" value="' + escapeAttr(me.nickname || '') + '" placeholder="' + escapeAttr(u.displayName || u.username || '') + '"></div>' +
-        '<div class="field"><label>About me (in this server)</label><textarea id="my-bio" maxlength="300" placeholder="Introduce yourself to this server\u2019s members.">' + escapeHtml(me.bio || '') + '</textarea></div>' +
+        '<div class="field"><label>About me (in this server)</label><textarea id="my-bio" maxlength="300" placeholder="Introduce yourself to this server\u2019s members.">' + escapeHtml(me.bio || '') + '</textarea><div class="msp-bio-preview" id="msp-bio-preview"></div></div>' +
       '</div>' +
     '</div>' +
     '<div class="msp-pane" id="msp-pane-appearance">' +
@@ -12168,6 +12237,13 @@ function openMyServerProfileEditor() {
   $('msp-banner').addEventListener('click', () => $('my-banner').click());
   if ($('msp-id-avatar-btn')) $('msp-id-avatar-btn').addEventListener('click', () => $('my-avatar').click());
   if ($('msp-id-banner-btn')) $('msp-id-banner-btn').addEventListener('click', () => $('my-banner').click());
+  const _bioTa = $('my-bio'), _bioPv = $('msp-bio-preview');
+  const _updateBioPreview = () => {
+    if (!_bioPv) return;
+    const v = _bioTa ? _bioTa.value.trim() : '';
+    _bioPv.innerHTML = v ? linkifyBio(v) : '';
+  };
+  if (_bioTa) { _bioTa.addEventListener('input', _updateBioPreview); _updateBioPreview(); }
   $('my-avatar').addEventListener('change', (e) => {
     const f = e.target.files[0]; if (!f) return;
     if (!validateImageFile(f)) { e.target.value = ''; return; }
@@ -12334,20 +12410,11 @@ $('roles-toggle-btn').classList.toggle('on', displayRolesSeparately);
 
 $('rail-home').addEventListener('click', async () => {
   if (voiceCall.active) {
-    // Keep the voice call running instead of blocking navigation. We minimise the
-    // call so the "Return to call" bar appears directly above the user's mini
-    // profile (bottom-left), and the user can jump straight back into that
-    // server's voice channel whenever they want.
-    voiceCall.minimized = true;
-    voiceShowStage(false);
-    voiceUpdateMiniBar();
-    const bar = $('mini-voice');
-    if (bar) {
-      bar.classList.remove('mv-attention');
-      void bar.offsetWidth;
-      bar.classList.add('mv-attention');
-      setTimeout(() => bar.classList.remove('mv-attention'), 2400);
-    }
+    // Take the user back to the main chat (index.html) while remembering the
+    // voice call, so the main chat can show a "Return to voice call" button
+    // right above the mini profile (bottom-left).
+    try { saveVoiceReturn(); } catch (e) {}
+    window.location.href = '/';
     return;
   }
   const ok = await askConfirm({

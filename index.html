@@ -1000,6 +1000,27 @@ body.loading-session #chat-app.active::after { content: none; }
 }
 .sidebar-footer-status { font-size: 11px; color: var(--text-muted); }
 
+/* Return-to-voice-call bar shown above the mini profile (bottom-left) after
+   leaving a server voice call to come back to the main chat. */
+.voice-return-bar {
+  display: flex; align-items: center; gap: 10px;
+  margin: 8px 10px 0; padding: 10px 12px;
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(88,101,242,0.22), rgba(88,101,242,0.08));
+  border: 1px solid rgba(88,101,242,0.45);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.28);
+  animation: vrbIn 0.24s cubic-bezier(0.22,1,0.36,1);
+}
+@keyframes vrbIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.voice-return-bar .vrb-dot { width: 9px; height: 9px; border-radius: 50%; background: #3ba55d; flex-shrink: 0; box-shadow: 0 0 0 3px rgba(59,165,93,0.22); }
+.voice-return-bar .vrb-info { flex: 1; min-width: 0; }
+.voice-return-bar .vrb-title { font-size: 12.5px; font-weight: 700; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.voice-return-bar .vrb-sub { font-size: 11px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.voice-return-bar .vrb-join { flex-shrink: 0; font-size: 12px; font-weight: 700; color: #fff; background: var(--accent); border: none; border-radius: 8px; padding: 6px 12px; cursor: pointer; transition: var(--transition); }
+.voice-return-bar .vrb-join:hover { filter: brightness(1.1); }
+.voice-return-bar .vrb-dismiss { flex-shrink: 0; width: 24px; height: 24px; border-radius: 6px; border: none; background: transparent; color: var(--text-muted); cursor: pointer; font-size: 12px; line-height: 1; }
+.voice-return-bar .vrb-dismiss:hover { background: var(--bg-medium); color: var(--text-primary); }
+
 .chat-main {
   display: flex; flex-direction: column;
   background: var(--bg-dark); min-width: 0; min-height: 0; overflow: hidden;
@@ -7128,6 +7149,15 @@ html.desktop-app .profile-view-modal { max-width: 980px; max-height: 93vh; }
         </div>
       </div>
 
+      <div class="voice-return-bar" id="voice-return-bar" style="display:none;">
+        <span class="vrb-dot"></span>
+        <div class="vrb-info">
+          <div class="vrb-title" id="vrb-title">Return to voice call</div>
+          <div class="vrb-sub" id="vrb-sub"></div>
+        </div>
+        <button class="vrb-join" id="vrb-join">Rejoin</button>
+        <button class="vrb-dismiss" id="vrb-dismiss" title="Dismiss" aria-label="Dismiss">&#10005;</button>
+      </div>
       <div class="sidebar-footer" id="sidebar-footer">
         <div class="user-avatar-wrap">
           <div class="user-avatar" id="sidebar-self-avatar">U</div>
@@ -11666,6 +11696,7 @@ async function initChat(existingMeData) {
   updateSettingsPanel();
   updateSidebarSelf();
   updateBlockedBadge();
+  try { renderVoiceReturnBar(); } catch (e) {}
 
   initAvatarDecorationObserver();
   renderAvatarDecorationPicker();
@@ -17089,6 +17120,41 @@ function attachUserListListeners() {
   });
 }
 $('user-search').addEventListener('input', renderUserListDebounced);
+
+// ---- Return to voice call (main chat) ----
+// When a user leaves a server voice call to come back to the main chat, a
+// "Return to voice call" bar appears above their mini profile (bottom-left).
+// Clicking it takes them straight back into that server's voice channel/stage.
+const VOICE_RETURN_KEY = 'hb_voice_return';
+function readVoiceReturn() {
+  try {
+    const raw = localStorage.getItem(VOICE_RETURN_KEY);
+    if (!raw) return null;
+    const d = JSON.parse(raw);
+    if (!d || !d.serverId || !d.channelId) return null;
+    if (d.ts && (Date.now() - d.ts) > 6 * 60 * 60 * 1000) { localStorage.removeItem(VOICE_RETURN_KEY); return null; }
+    return d;
+  } catch (e) { return null; }
+}
+function clearVoiceReturn() { try { localStorage.removeItem(VOICE_RETURN_KEY); } catch (e) {} }
+function renderVoiceReturnBar() {
+  const bar = $('voice-return-bar');
+  if (!bar) return;
+  const d = readVoiceReturn();
+  if (!d) { bar.style.display = 'none'; return; }
+  const title = $('vrb-title'), sub = $('vrb-sub');
+  if (title) title.textContent = 'Return to voice call';
+  if (sub) sub.textContent = (d.channelName || 'Voice') + (d.serverName ? ' \u00b7 ' + d.serverName : '');
+  bar.style.display = 'flex';
+}
+function rejoinVoiceCall() {
+  const d = readVoiceReturn();
+  if (!d) { renderVoiceReturnBar(); return; }
+  window.location.href = '/servers.html?voiceServer=' + encodeURIComponent(d.serverId) + '&voiceChannel=' + encodeURIComponent(d.channelId);
+}
+if ($('vrb-join')) $('vrb-join').addEventListener('click', (e) => { e.stopPropagation(); rejoinVoiceCall(); });
+if ($('vrb-dismiss')) $('vrb-dismiss').addEventListener('click', (e) => { e.stopPropagation(); clearVoiceReturn(); renderVoiceReturnBar(); });
+if ($('voice-return-bar')) $('voice-return-bar').addEventListener('click', (e) => { if (e.target.closest('.vrb-dismiss') || e.target.closest('.vrb-join')) return; rejoinVoiceCall(); });
 
 function updateSidebarSelf() {
   if (!currentUser) return;
