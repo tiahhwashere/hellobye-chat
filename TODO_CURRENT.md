@@ -24,5 +24,5 @@
 
 ## Ship
 - [x] Local smoke test (server boots, serves edited files, enhance verified)
-- [ ] Commit + push to GitHub
-- [ ] Verify Render deploy live (no data wipe)
+- [x] Commit + push to GitHub
+- [x] Verify Render deploy live (no data wipe)
