@@ -374,6 +374,12 @@ function hashEncKey(key) {
       scheduleRemoteBackup();
     }
   }
+  try {
+    if (purgeInactiveServerMembers()) {
+      saveDB();
+      console.log('[servers] Purged deleted/disabled accounts from server member lists.');
+    }
+  } catch (e) { console.error('[servers] purge inactive members error', e); }
 })();
 
 let dbDirty = false;
@@ -739,6 +745,7 @@ function purgeExpiredDisabledAccounts() {
           if (g.owner === un) g.owner = (g.members && g.members[0]) || null;
         }
       }
+      removeUserFromAllServers(un);
       if (db.pending2SV) {
         for (const tok of Object.keys(db.pending2SV)) { if (db.pending2SV[tok] && db.pending2SV[tok].username === un) delete db.pending2SV[tok]; }
       }
@@ -2468,6 +2475,102 @@ function canChatInChannel(server, username, ch) {
   }
   return true;
 }
+function serverVisibleMembers(s) {
+  return (s.members || []).filter(un => {
+    const u = db.users[un];
+    if (!u) return false; // account deleted — drop from every server's member list
+    if (isAccountDisabled(u) && s.owner !== un) return false; // disabled account — hidden from member lists
+    return true;
+  });
+}
+// Physically removes a user from every server's member list, profile map, join
+// requests and custom-role rosters. Used when an account is deleted or disabled.
+function removeUserFromAllServers(un) {
+  const target = String(un || '').toLowerCase();
+  if (!target) return false;
+  let anyChanged = false;
+  for (const s of Object.values(db.servers || {})) {
+    if (!s) continue;
+    let changed = false;
+    if (Array.isArray(s.members) && s.members.includes(target)) { s.members = s.members.filter(m => m !== target); changed = true; }
+    if (s.memberProfiles && s.memberProfiles[target]) { delete s.memberProfiles[target]; changed = true; }
+    if (Array.isArray(s.joinRequests) && s.joinRequests.some(r => r && r.username === target)) {
+      s.joinRequests = s.joinRequests.filter(r => r && r.username !== target); changed = true;
+    }
+    if (Array.isArray(s.roles)) {
+      for (const role of s.roles) {
+        if (role && Array.isArray(role.members) && role.members.includes(target)) {
+          role.members = role.members.filter(m => m !== target); changed = true;
+        }
+      }
+    }
+    if (changed) { s.updatedAt = nowISO(); anyChanged = true; }
+  }
+  return anyChanged;
+}
+// Captures which servers a user belongs to (with their per-server profile) so a
+// disabled account can be fully restored if it is later reactivated.
+function captureServerMemberships(un) {
+  const target = String(un || '').toLowerCase();
+  const out = [];
+  if (!target) return out;
+  for (const s of Object.values(db.servers || {})) {
+    if (!s || !Array.isArray(s.members) || !s.members.includes(target)) continue;
+    out.push({
+      id: s.id,
+      profile: (s.memberProfiles && s.memberProfiles[target]) ? s.memberProfiles[target] : null,
+    });
+  }
+  return out;
+}
+function restoreServerMemberships(un, memberships) {
+  const target = String(un || '').toLowerCase();
+  if (!target || !Array.isArray(memberships)) return false;
+  let changed = false;
+  for (const m of memberships) {
+    if (!m || !m.id) continue;
+    const s = findServer(m.id);
+    if (!s) continue;
+    if (!Array.isArray(s.members)) s.members = [];
+    if (!s.members.includes(target)) { s.members.push(target); changed = true; }
+    if (m.profile) { if (!s.memberProfiles) s.memberProfiles = {}; s.memberProfiles[target] = m.profile; changed = true; }
+    if (changed) s.updatedAt = nowISO();
+  }
+  return changed;
+}
+// Startup self-heal: drops deleted accounts and hides disabled accounts from
+// every server's member list (stashing disabled memberships for reactivation).
+function purgeInactiveServerMembers() {
+  let changed = false;
+  for (const s of Object.values(db.servers || {})) {
+    if (!s || !Array.isArray(s.members)) continue;
+    const keep = [];
+    const removed = [];
+    for (const un of s.members) {
+      const u = db.users[un];
+      if (!u) { removed.push(un); continue; }
+      if (isAccountDisabled(u) && s.owner !== un) {
+        try {
+          if (!u.disabledProfile) u.disabledProfile = {};
+          if (!Array.isArray(u.disabledProfile.serverMemberships)) u.disabledProfile.serverMemberships = [];
+          if (!u.disabledProfile.serverMemberships.some(x => x && x.id === s.id)) {
+            u.disabledProfile.serverMemberships.push({ id: s.id, profile: (s.memberProfiles && s.memberProfiles[un]) ? s.memberProfiles[un] : null });
+          }
+        } catch (e) {}
+        removed.push(un);
+        continue;
+      }
+      keep.push(un);
+    }
+    if (removed.length) {
+      s.members = keep;
+      if (s.memberProfiles) removed.forEach(un => { delete s.memberProfiles[un]; });
+      s.updatedAt = nowISO();
+      changed = true;
+    }
+  }
+  return changed;
+}
 function publicServer(s, viewerUsername) {
   if (!s) return null;
   const viewer = String(viewerUsername || '').toLowerCase();
@@ -2481,7 +2584,7 @@ function publicServer(s, viewerUsername) {
     icon: s.icon || null,
     banner: s.banner || null,
     bio: s.bio || '',
-    memberCount: (s.members || []).length,
+    memberCount: serverVisibleMembers(s).length,
     createdAt: s.createdAt,
     systemChannelId: s.systemChannelId || null,
     defaultNotifications: s.defaultNotifications || 'all',
@@ -2521,7 +2624,7 @@ function publicServer(s, viewerUsername) {
   }
   if (isMember) {
     base.pins = (s.pins && typeof s.pins === 'object') ? s.pins : {};
-    base.members = (s.members || []).map(un => {
+    base.members = serverVisibleMembers(s).map(un => {
       const u = db.users[un];
       const prof = (s.memberProfiles || {})[un] || {};
       const pu = publicUser(u) || { username: un, displayName: un };
@@ -2538,6 +2641,8 @@ function publicServer(s, viewerUsername) {
         status: pu.status || 'offline',
         joinedAt: prof.joinedAt || null,
         isOwner: s.owner === un,
+        role: pu.role || 'user',
+        badges: Array.isArray(pu.badges) ? pu.badges : [],
       };
     });
   }
@@ -3953,6 +4058,7 @@ app.post('/api/settings/delete-account', authMiddleware, (req, res) => {
       if (data.username === un) delete db.pending2SV[token];
     }
   }
+  removeUserFromAllServers(un);
   saveDB();
   try { if (typeof io !== 'undefined' && io && io.emit) io.emit('admin-data-changed', { reason: 'delete-account', username: un }); } catch (e) {}
   res.json({ success: true });
@@ -3980,6 +4086,7 @@ app.post('/api/settings/disable-account', authMiddleware, (req, res) => {
     directMessagesEnabled: u.directMessagesEnabled,
     badges: (u.badges || []).slice(),
     role: u.role,
+    serverMemberships: captureServerMemberships(un),
   };
   u.disabled = true;
   u.disabledAt = Date.now();
@@ -3997,6 +4104,7 @@ app.post('/api/settings/disable-account', authMiddleware, (req, res) => {
   u.friendRequestsEnabled = false;
   u.directMessagesEnabled = false;
   for (const [sid, entry] of Object.entries(db.sessions)) { if (sessionUsername(entry) === un) delete db.sessions[sid]; }
+  removeUserFromAllServers(un);
   saveDB();
   broadcastProfile(un);
   emitUsersList();
@@ -4031,6 +4139,7 @@ app.post('/api/account/reactivate', (req, res) => {
   user.directMessagesEnabled = (snap.directMessagesEnabled !== undefined ? snap.directMessagesEnabled : true);
   user.badges = snap.badges || [];
   user.role = snap.role || 'user';
+  try { restoreServerMemberships(un, snap.serverMemberships); } catch (e) {}
   user.disabled = false;
   user.disabledAt = 0;
   user.scheduledDeletionAt = 0;
@@ -4965,12 +5074,12 @@ app.get('/api/version', (req, res) => {
 
 const DESKTOP_REPO = process.env.HELLOBYE_REPO || 'tiahhwashere/hellobye-chat';
 const DESKTOP_FALLBACK = {
-  version: '1.7.0',
+  version: '1.8.0',
   name: 'HelloBye-Setup.exe',
-  url: 'https://github.com/tiahhwashere/hellobye-chat/releases/download/desktop-v1.7.0/HelloBye-Setup.exe',
-  size: 78227183,
+  url: 'https://github.com/tiahhwashere/hellobye-chat/releases/download/desktop-v1.8.0/HelloBye-Setup.exe',
+  size: 78227405,
   publishedAt: null,
-  releaseUrl: 'https://github.com/tiahhwashere/hellobye-chat/releases/tag/desktop-v1.7.0',
+  releaseUrl: 'https://github.com/tiahhwashere/hellobye-chat/releases/tag/desktop-v1.8.0',
 };
 let desktopReleaseCache = { at: 0, data: null };
 const DESKTOP_CACHE_MS = 10 * 60 * 1000;

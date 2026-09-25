@@ -1017,6 +1017,16 @@ input, textarea { font-family: inherit; }
 .voice-bg-fx.vfx-on { opacity: 1; }
 .voice-bg-fx::before { content: ''; position: absolute; inset: 0; pointer-events: none; }
 #vs-bg-seg { grid-template-columns: repeat(auto-fill, minmax(168px, 1fr)); }
+.vs-bg-color-row { display: flex; align-items: center; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+.vs-bg-color-label { font-size: 13px; font-weight: 600; color: var(--text-secondary); }
+#vs-bg-color { width: 48px; height: 34px; padding: 2px; border: 1px solid var(--border); border-radius: 9px; background: var(--bg-dark); cursor: pointer; }
+#vs-bg-color::-webkit-color-swatch-wrapper { padding: 0; }
+#vs-bg-color::-webkit-color-swatch { border: none; border-radius: 6px; }
+.vs-bg-color-reset { padding: 6px 12px; font-size: 12.5px; }
+.vs-bg-color-reset.hidden { display: none; }
+.vs-bg-color-hint { font-size: 12px; color: var(--text-muted); }
+.voice-bg-fx.vfx-tint { opacity: 1; }
+.voice-bg-fx.vfx-tint::before { background: radial-gradient(120% 100% at 50% 0%, rgba(var(--accent-rgb),0.30), transparent 74%); }
 .server-appearance-preview.vfx-aurora::before,
 .server-appearance-preview.vfx-nebula::before,
 .server-appearance-preview.vfx-grid::before,
@@ -1113,6 +1123,8 @@ input, textarea { font-family: inherit; }
 @keyframes mvIn { from { opacity: 0; transform: translateY(10px) scale(0.97); } to { opacity: 1; transform: none; } }
 @keyframes mvOut { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateY(8px) scale(0.98); } }
 .mini-voice:hover { border-color: rgba(var(--accent-rgb),0.6); }
+.mini-voice.mv-attention { animation: mvAttention 1.2s ease-in-out 2; border-color: rgba(var(--accent-rgb),0.85); box-shadow: 0 0 0 2px rgba(var(--accent-rgb),0.35), 0 8px 22px rgba(var(--accent-rgb),0.28); }
+@keyframes mvAttention { 0%,100% { transform: none; } 50% { transform: translateY(-3px) scale(1.015); } }
 .mv-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--online); flex-shrink: 0; animation: vsLive 1.8s ease-out infinite; }
 .mv-info { min-width: 0; flex: 1; }
 .mv-name { font-size: 12.5px; font-weight: 700; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -1186,6 +1198,10 @@ input, textarea { font-family: inherit; }
 .member-item .mi-roles { display: flex; gap: 3px; margin-top: 1px; flex-wrap: wrap; }
 .member-item .mi-role { font-size: 10px; padding: 1px 6px; border-radius: 6px; font-weight: 700; display: inline-flex; align-items: center; gap: 3px; }
 .member-item .mi-role-img { width: 16px; height: 16px; object-fit: contain; flex-shrink: 0; }
+.member-item .mi-name .srv-badge-icon { width: 16px; height: 16px; object-fit: contain; border-radius: 4px; margin-left: 5px; vertical-align: -3px; }
+.srv-badge-icon { width: 16px; height: 16px; object-fit: contain; border-radius: 4px; }
+.vs-name .srv-badge-icon { width: 19px; height: 19px; margin-left: 6px; vertical-align: -4px; }
+.vs-video-label .srv-badge-icon { width: 15px; height: 15px; margin-left: 5px; vertical-align: -3px; }
 .member-item.offline { opacity: 0.5; }
 .member-item .mi-voice { display: inline-flex; align-items: center; gap: 4px; margin-top: 2px; font-size: 11px; font-weight: 600; color: #3ba55d; max-width: 100%; }
 .member-item .mi-voice .ui-ic { width: 12px; height: 12px; flex-shrink: 0; }
@@ -2855,7 +2871,7 @@ html.desktop-app .member-profile-modal { max-width: 980px; max-height: 93vh; }
     <div class="rail-divider"></div>
     <div id="rail-servers" style="display:flex;flex-direction:column;gap:8px;align-items:center;"></div>
     <button class="rail-btn rail-add" id="rail-add" title="Create a server">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px;"><rect x="2.4" y="2.4" width="12.4" height="12.4" rx="2.7"/><line x1="2.4" y1="8.6" x2="14.8" y2="8.6"/><line x1="5.2" y1="5.5" x2="8.2" y2="5.5"/><line x1="5.2" y1="11.7" x2="8.2" y2="11.7"/><circle cx="12.4" cy="5.5" r="0.75" fill="currentColor" stroke="none"/><circle cx="12.4" cy="11.7" r="0.75" fill="currentColor" stroke="none"/><circle cx="18.1" cy="18.1" r="4.1"/><line x1="18.1" y1="16.1" x2="18.1" y2="20.1"/><line x1="16.1" y1="18.1" x2="20.1" y2="18.1"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px;"><rect x="2.5" y="3.6" width="14.4" height="5" rx="1.6"/><rect x="2.5" y="10.4" width="14.4" height="5" rx="1.6"/><circle cx="5.7" cy="6.1" r="0.95" fill="currentColor" stroke="none"/><circle cx="5.7" cy="12.9" r="0.95" fill="currentColor" stroke="none"/><line x1="8.8" y1="6.1" x2="14.2" y2="6.1"/><line x1="8.8" y1="12.9" x2="14.2" y2="12.9"/><line x1="19" y1="15.8" x2="19" y2="22.2"/><line x1="15.8" y1="19" x2="22.2" y2="19"/></svg>
     </button>
     <button class="rail-btn rail-join" id="rail-join" title="Join a server">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px;"><path d="M13 4h5.5A1.5 1.5 0 0 1 20 5.5v13a1.5 1.5 0 0 1-1.5 1.5H13"/><line x1="3" y1="12" x2="12" y2="12"/><path d="M9.5 8.5 12 12l-2.5 3.5"/></svg>
@@ -2878,7 +2894,7 @@ html.desktop-app .member-profile-modal { max-width: 980px; max-height: 93vh; }
         <span class="se-feature"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v12H5.17L4 17.17z"/></svg> Shared chat</span>
       </div>
       <div class="server-empty-actions">
-        <button class="hero-create-btn" id="empty-create"><span class="hc-emoji"><svg class="ui-ic lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="2.4" y="2.4" width="12.4" height="12.4" rx="2.7"/><line x1="2.4" y1="8.6" x2="14.8" y2="8.6"/><line x1="5.2" y1="5.5" x2="8.2" y2="5.5"/><line x1="5.2" y1="11.7" x2="8.2" y2="11.7"/><circle cx="12.4" cy="5.5" r="0.75" fill="currentColor" stroke="none"/><circle cx="12.4" cy="11.7" r="0.75" fill="currentColor" stroke="none"/><circle cx="18.1" cy="18.1" r="4.1"/><line x1="18.1" y1="16.1" x2="18.1" y2="20.1"/><line x1="16.1" y1="18.1" x2="20.1" y2="18.1"/></svg></span> Create a Server</button>
+        <button class="hero-create-btn" id="empty-create"><span class="hc-emoji"><svg class="ui-ic lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="3.6" width="14.4" height="5" rx="1.6"/><rect x="2.5" y="10.4" width="14.4" height="5" rx="1.6"/><circle cx="5.7" cy="6.1" r="0.95" fill="currentColor" stroke="none"/><circle cx="5.7" cy="12.9" r="0.95" fill="currentColor" stroke="none"/><line x1="8.8" y1="6.1" x2="14.2" y2="6.1"/><line x1="8.8" y1="12.9" x2="14.2" y2="12.9"/><line x1="19" y1="15.8" x2="19" y2="22.2"/><line x1="15.8" y1="19" x2="22.2" y2="19"/></svg></span> Create a Server</button>
         <button class="hero-join-btn" id="empty-join"><span class="hc-emoji"><svg class="ui-ic lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M13 4h5.5A1.5 1.5 0 0 1 20 5.5v13a1.5 1.5 0 0 1-1.5 1.5H13"/><line x1="3" y1="12" x2="12" y2="12"/><path d="M9.5 8.5 12 12l-2.5 3.5"/></svg></span> Join a Server</button>
         <button class="hero-discover-btn" id="empty-discover"><span class="hc-emoji"><svg class="ui-ic lg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg></span> Discovery</button>
       </div>
@@ -3845,6 +3861,12 @@ html.desktop-app .member-profile-modal { max-width: 980px; max-height: 93vh; }
           <button type="button" data-vbg="spotlight" class="fx-card"><span class="fx-card-preview server-appearance-preview vfx-spotlight"></span><span class="fx-card-label">Spotlight</span></button>
           <button type="button" data-vbg="particles" class="fx-card"><span class="fx-card-preview server-appearance-preview vfx-particles"></span><span class="fx-card-label">Particles</span></button>
         </div>
+        <div class="vs-bg-color-row">
+          <span class="vs-bg-color-label">Custom colour</span>
+          <input type="color" id="vs-bg-color" value="#5865f2" title="Pick any colour for the voice background">
+          <button type="button" class="btn btn-ghost vs-bg-color-reset hidden" id="vs-bg-color-reset">Use server colour</button>
+          <span class="vs-bg-color-hint">Any colour you like &mdash; it tints whatever effect you pick above.</span>
+        </div>
       </div>
     </div>
     <div class="modal-footer">
@@ -4444,6 +4466,29 @@ function escapeHtml(t) {
   return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
 function escapeAttr(t) { return escapeHtml(t); }
+// Global "Assigned Badge / Icon" artwork (set by admins on the main site). Rendered
+// on the servers page member list and voice tiles so the same icon users see on
+// their profile also appears here.
+const SRV_BADGE_ICONS = {
+  moderator: '/uploads/moderator-icon.png',
+  developer: '/uploads/developer-icon.png',
+  staff: '/uploads/staff-icon.png',
+};
+const SRV_BADGE_LABELS = { moderator: 'Moderator', developer: 'Developer', staff: 'Staff' };
+function serverBadgeIcons(user, cls) {
+  if (!user) return '';
+  const list = Array.isArray(user.badges) ? user.badges : [];
+  if (!list.length) return '';
+  const klass = cls || 'srv-badge-icon';
+  let html = '';
+  for (const b of list) {
+    const src = SRV_BADGE_ICONS[b];
+    if (!src) continue;
+    const label = SRV_BADGE_LABELS[b] || b;
+    html += '<img class="' + klass + '" src="' + escapeAttr(src) + '" alt="' + escapeAttr(label) + '" title="' + escapeAttr(label) + '">';
+  }
+  return html;
+}
 const IMAGE_UPLOAD_MAX = 25 * 1024 * 1024;
 function validateImageFile(f) {
   if (!f) return false;
@@ -6007,7 +6052,7 @@ function memberRowHtml(m) {
     : '';
   return '<div class="member-item' + (m.status === 'offline' ? ' offline' : '') + (voiceVisible ? ' in-voice' : '') + '" data-member="' + escapeAttr(m.username) + '">' +
     '<div class="mi-avatar">' + av + '<span class="mi-status ' + statusCls + '"></span></div>' +
-    '<div class="mi-info"><div class="mi-name" style="color:' + nameColor + ';">' + escapeHtml(m.nickname || m.displayName || m.username) + '</div>' +
+    '<div class="mi-info"><div class="mi-name" style="color:' + nameColor + ';">' + escapeHtml(m.nickname || m.displayName || m.username) + serverBadgeIcons(m) + '</div>' +
     (roleChips ? '<div class="mi-roles">' + roleChips + '</div>' : '') +
     voiceLine + '</div></div>';
 }
@@ -7742,6 +7787,7 @@ const voiceCall = {
   minimized: false, healthTimer: 0,
   inputDevice: '', outputDevice: '',
   bgEffect: 'none',
+  bgColor: '',
   startedAt: 0,
   timerInterval: 0,
   screenStream: null,
@@ -7767,6 +7813,7 @@ function voiceLoadPrefs() {
     if (typeof p.inputDevice === 'string') voiceCall.inputDevice = p.inputDevice;
     if (typeof p.outputDevice === 'string') voiceCall.outputDevice = p.outputDevice;
     if (typeof p.bgEffect === 'string') voiceCall.bgEffect = p.bgEffect;
+    if (typeof p.bgColor === 'string') voiceCall.bgColor = p.bgColor;
   } catch (e) {}
 }
 function voiceSavePrefs() {
@@ -7779,6 +7826,7 @@ function voiceSavePrefs() {
       inputDevice: voiceCall.inputDevice || '',
       outputDevice: voiceCall.outputDevice || '',
       bgEffect: voiceCall.bgEffect || 'none',
+      bgColor: voiceCall.bgColor || '',
     }));
   } catch (e) {}
 }
@@ -7957,7 +8005,10 @@ async function acquireScreen(surface, channelName) {
   const video = { frameRate: { ideal: 120, max: 144 }, cursor: 'always' };
   if (surface) video.displaySurface = surface;
   try {
-    return await navigator.mediaDevices.getDisplayMedia({ video, audio: true });
+    // Video only. Capturing system/tab audio caused the sharer's own voice (and
+    // any other local sound) to loop back to everyone in the call, so we never
+    // transmit screen audio.
+    return await navigator.mediaDevices.getDisplayMedia({ video, audio: false });
   } catch (e) {
     if (e && (e.name === 'NotAllowedError' || e.name === 'AbortError')) return null;
     try { return await navigator.mediaDevices.getDisplayMedia({ video, audio: false }); }
@@ -8254,6 +8305,45 @@ function voiceTuneLowLatency(pc) {
     });
   } catch (e) {}
 }
+// Ensures a peer's remote audio is flowing through the WebAudio gain graph.
+// Rebuilds the graph whenever the incoming MediaStream identity changes, which
+// happens after the remote renegotiates (e.g. they stop screen sharing or turn
+// off their camera). Without this the old graph points at a dead source and the
+// call goes silent even though the audio track is still live.
+function voiceEnsureRemoteAudio(p, stream) {
+  if (!p || !stream) return;
+  const audioEl = p.audioEl;
+  if (audioEl && audioEl.srcObject !== stream) {
+    try { audioEl.srcObject = stream; } catch (e) {}
+  }
+  try {
+    const ctx = voiceGainCtx();
+    if (ctx && p.gainNode && p.gainStream !== stream) {
+      try { if (p.gainSrc) p.gainSrc.disconnect(); } catch (e) {}
+      try { p.gainNode.disconnect(); } catch (e) {}
+      try { if (p.limiter) p.limiter.disconnect(); } catch (e) {}
+      p.gainNode = null; p.limiter = null; p.gainSrc = null;
+    }
+    if (ctx && !p.gainNode) {
+      const src = ctx.createMediaStreamSource(stream);
+      const g = ctx.createGain();
+      g.gain.value = voicePeerVolume(p.username);
+      const lim = ctx.createDynamicsCompressor();
+      lim.threshold.value = -3;
+      lim.knee.value = 6;
+      lim.ratio.value = 14;
+      lim.attack.value = 0.003;
+      lim.release.value = 0.18;
+      src.connect(g); g.connect(lim); lim.connect(ctx.destination);
+      p.gainSrc = src;
+      p.gainNode = g;
+      p.limiter = lim;
+      p.gainStream = stream;
+      if (audioEl) audioEl.volume = 0;
+    }
+  } catch (e) {}
+  if (audioEl) { try { audioEl.play().catch(() => {}); } catch (e) {} }
+}
 function voiceCreatePeer(username, initiator, state) {
   if (!username || username === currentUser.username) return null;
   let p = voiceCall.peers.get(username);
@@ -8289,25 +8379,9 @@ function voiceCreatePeer(username, initiator, state) {
         return;
       }
       audioEl.srcObject = stream;
+      p.remoteAudioStream = stream;
       voiceTuneReceiver(ev.receiver);
-      try {
-        const ctx = voiceGainCtx();
-        if (ctx && !p.gainNode) {
-          const src = ctx.createMediaStreamSource(stream);
-          const g = ctx.createGain();
-          g.gain.value = voicePeerVolume(username);
-          const lim = ctx.createDynamicsCompressor();
-          lim.threshold.value = -3;
-          lim.knee.value = 6;
-          lim.ratio.value = 14;
-          lim.attack.value = 0.003;
-          lim.release.value = 0.18;
-          src.connect(g); g.connect(lim); lim.connect(ctx.destination);
-          p.gainNode = g;
-          p.limiter = lim;
-          audioEl.volume = 0;
-        }
-      } catch (e) {  }
+      voiceEnsureRemoteAudio(p, stream);
       voiceAttachRemoteAnalyser(p);
       const tryPlay = () => audioEl.play().catch(() => {});
       tryPlay();
@@ -8477,7 +8551,10 @@ async function voiceStartScreenShare(surface) {
   voiceCall.peers.forEach((p) => {
     if (p.self || !p.pc) return;
     try {
-      stream.getTracks().forEach(t => { if (!p.pc.getSenders().some(s => s.track === t)) p.pc.addTrack(t, stream); });
+      // Send the screen video track only — never its audio, which would echo the
+      // sharer's own microphone/system sound back into the call.
+      const vt = stream.getVideoTracks()[0];
+      if (vt && !p.pc.getSenders().some(s => s.track === vt)) p.pc.addTrack(vt, stream);
     } catch (e) {}
   });
   voiceRenegotiateAll();
@@ -8604,6 +8681,9 @@ function voiceStartHealthCheck() {
         try { p.pc.restartIce(); } catch (e) {}
       } else if (st === 'connected') {
         try { p.pc.getReceivers().forEach((r) => { if (r.track && r.track.kind === 'audio') voiceTuneReceiver(r); }); } catch (e) {}
+        if (p.remoteAudioStream && (p.gainStream !== p.remoteAudioStream || !p.gainNode || (p.audioEl && p.audioEl.srcObject !== p.remoteAudioStream))) {
+          voiceEnsureRemoteAudio(p, p.remoteAudioStream);
+        }
       }
       if (p.audioEl) {
         try { p.audioEl.playoutDelayHint = 0.02; } catch (e) {}
@@ -8684,13 +8764,13 @@ function voiceRenderStage() {
       return '<div class="vs-tile has-video' + (p.self ? ' self' : '') + (p.speaking ? ' speaking' : '') + (isScreen ? ' screen' : '') + '" data-voice-user="' + escapeAttr(p.username) + '">' +
         '<video class="vs-video" autoplay playsinline' + (p.self ? ' muted' : '') + '></video>' +
         '<button class="vs-video-expand" title="Fullscreen" aria-label="Fullscreen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg></button>' +
-        '<div class="vs-video-label">' + label + escapeHtml(name) + (isScreen ? ' \u00b7 Screen' : '') + '</div>' +
+        '<div class="vs-video-label">' + label + escapeHtml(name) + serverBadgeIcons(member) + (isScreen ? ' \u00b7 Screen' : '') + '</div>' +
         '<div class="vs-video-badges">' + micBadge + deafBadge + '</div>' +
       '</div>';
     }
     return '<div class="vs-tile' + (p.self ? ' self' : '') + (p.speaking ? ' speaking' : '') + '" data-voice-user="' + escapeAttr(p.username) + '">' +
       '<div class="vs-avatar-wrap"><div class="vs-avatar">' + av + '</div><div class="vs-ring"></div></div>' +
-      '<div class="vs-name">' + escapeHtml(name) + '</div>' +
+      '<div class="vs-name">' + escapeHtml(name) + serverBadgeIcons(member) + '</div>' +
       '<div class="vs-badges">' + micBadge + deafBadge + '</div>' +
     '</div>';
   }).join('');
@@ -9266,17 +9346,43 @@ document.addEventListener('contextmenu', (e) => {
   if (u) voiceOpenUserMenu(u, e.clientX, e.clientY);
 });
 
+function voiceBgHexToRgb(hex) {
+  const m = /^#?([0-9a-fA-F]{6})$/.exec(String(hex || '').trim());
+  if (!m) return null;
+  const n = parseInt(m[1], 16);
+  return ((n >> 16) & 255) + ',' + ((n >> 8) & 255) + ',' + (n & 255);
+}
 function voiceApplyBgEffect(eff) {
   if (eff !== undefined) voiceCall.bgEffect = eff || 'none';
   const el = $('voice-bg-fx');
+  const customRgb = voiceBgHexToRgb(voiceCall.bgColor);
+  const seg = $('vs-bg-seg');
   if (el) {
     const e = voiceCall.bgEffect && voiceCall.bgEffect !== 'none' ? voiceCall.bgEffect : '';
-    el.className = 'voice-bg-fx' + (e ? ' vfx-on vfx-' + e : '');
+    el.className = 'voice-bg-fx' + (e ? ' vfx-on vfx-' + e : '') + (customRgb && !e ? ' vfx-tint' : '');
+    if (customRgb) {
+      el.style.setProperty('--accent-rgb', customRgb);
+      el.style.setProperty('--accent', voiceCall.bgColor);
+    } else {
+      el.style.removeProperty('--accent-rgb');
+      el.style.removeProperty('--accent');
+    }
   }
-  const seg = $('vs-bg-seg');
+  // Keep the effect preview swatches in sync with the chosen custom colour.
   if (seg) {
+    if (customRgb) {
+      seg.style.setProperty('--accent-rgb', customRgb);
+      seg.style.setProperty('--accent', voiceCall.bgColor);
+    } else {
+      seg.style.removeProperty('--accent-rgb');
+      seg.style.removeProperty('--accent');
+    }
     seg.querySelectorAll('.fx-card').forEach(c => c.classList.toggle('selected', (c.dataset.vbg || 'none') === (voiceCall.bgEffect || 'none')));
   }
+  const ci = $('vs-bg-color');
+  if (ci && customRgb) { try { ci.value = voiceCall.bgColor; } catch (e) {} }
+  const resetBtn = $('vs-bg-color-reset');
+  if (resetBtn) resetBtn.classList.toggle('hidden', !customRgb);
 }
 async function voiceOpenSettings() {
   openModal('voice-settings-modal');
@@ -9418,6 +9524,17 @@ if ($('vs-bg-seg')) $('vs-bg-seg').addEventListener('click', (e) => {
   const card = e.target.closest && e.target.closest('.fx-card');
   if (!card) return;
   voiceApplyBgEffect(card.dataset.vbg || 'none');
+  voiceSavePrefs();
+});
+if ($('vs-bg-color')) $('vs-bg-color').addEventListener('input', (e) => {
+  voiceCall.bgColor = e.target.value || '';
+  voiceApplyBgEffect();
+  voiceSavePrefs();
+});
+if ($('vs-bg-color-reset')) $('vs-bg-color-reset').addEventListener('click', () => {
+  voiceCall.bgColor = '';
+  const ci = $('vs-bg-color'); if (ci) ci.value = '#5865f2';
+  voiceApplyBgEffect();
   voiceSavePrefs();
 });
 voiceApplyBgEffect();
@@ -12210,11 +12327,20 @@ $('roles-toggle-btn').classList.toggle('on', displayRolesSeparately);
 
 $('rail-home').addEventListener('click', async () => {
   if (voiceCall.active) {
-    await askConfirm({
-      iconSvg: '', title: 'Leave the voice call first',
-      text: 'You are still connected to <b>' + escapeHtml(voiceCall.channelName || 'a voice channel') + '</b>. You have to leave the voice call before you can go back to the main chat.',
-      okText: 'Got it', hideCancel: true,
-    });
+    // Keep the voice call running instead of blocking navigation. We minimise the
+    // call so the "Return to call" bar appears above the user's profile, and the
+    // user can jump straight back into the call whenever they want.
+    voiceCall.minimized = true;
+    voiceShowStage(false);
+    voiceUpdateMiniBar();
+    const bar = $('mini-voice');
+    if (bar) {
+      bar.classList.remove('mv-attention');
+      void bar.offsetWidth;
+      bar.classList.add('mv-attention');
+      setTimeout(() => bar.classList.remove('mv-attention'), 2400);
+    }
+    try { toast('Call kept running \u2014 tap Return to call above your profile to rejoin.', 'info'); } catch (e) {}
     return;
   }
   const ok = await askConfirm({
