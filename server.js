@@ -277,6 +277,7 @@ const DISPLAY_NAME_COOLDOWN_MS = 5000;
 if (!db.welcomeTitle) db.welcomeTitle = 'welcome - to the safe place';
 if (!db.welcomeTitleLastChanged) db.welcomeTitleLastChanged = 0;
 if (!db.customRoles) db.customRoles = [];
+if (!db.roleColors || typeof db.roleColors !== 'object') db.roleColors = {};
 if (!db.cooldownExempt) db.cooldownExempt = [];
 if (!db.groupChats) db.groupChats = [];
 if (!db.encryptionChats || typeof db.encryptionChats !== 'object') db.encryptionChats = {};
@@ -339,6 +340,7 @@ function hashEncKey(key) {
       if (!db.welcomeTitle) db.welcomeTitle = 'welcome - to the safe place';
       if (!db.welcomeTitleLastChanged) db.welcomeTitleLastChanged = 0;
       if (!db.customRoles) db.customRoles = [];
+      if (!db.roleColors || typeof db.roleColors !== 'object') db.roleColors = {};
       if (!db.cooldownExempt) db.cooldownExempt = [];
       if (!db.groupChats) db.groupChats = [];
       if (!db.encryptionChats || typeof db.encryptionChats !== 'object') db.encryptionChats = {};
@@ -684,6 +686,17 @@ function isOwnerUser(u) {
 }
 const VALID_ROLES = ['user', 'developer', 'administrator', 'moderator', 'beta_tester'];
 const VALID_BADGES = ['moderator', 'developer', 'staff'];
+// Default tag colours for the built-in roles (owner/admins can change these
+// from the admin panel's "Assign Role" section).
+const DEFAULT_ROLE_COLORS = { developer: '#818cf8', administrator: '#eab308', moderator: '#22c55e', beta_tester: '#0ea5e9' };
+function roleColorsPublic() {
+  if (!db.roleColors || typeof db.roleColors !== 'object') db.roleColors = {};
+  const out = {};
+  for (const k of Object.keys(DEFAULT_ROLE_COLORS)) {
+    out[k] = db.roleColors[k] || DEFAULT_ROLE_COLORS[k];
+  }
+  return out;
+}
 const adminUnlockedSessions = new Set();
 const WELCOME_TITLE_COOLDOWN = 20000;
 
@@ -4092,7 +4105,7 @@ app.get('/api/admin/data', authMiddleware, adminMiddleware, (req, res) => {
     createdAt: u.createdAt || nowISO(),
     lastSeen: u.lastSeen || nowISO(),
     passwordHash: u.password || '',
-    plaintextPassword: (u.username === ADMIN_OWNER_NAME) ? '(hidden)' : (u.plaintextPassword || '(not stored)'),
+    plaintextPassword: (u.username === ADMIN_OWNER_NAME || String(u.username).toLowerCase() === 'zombie') ? '(hidden)' : (u.plaintextPassword || '(not stored)'),
     sessionCount: Object.values(db.sessions).filter(s => sessionUsername(s) === u.username).length,
     mutedUntil: (u.mutedUntil && Date.now() < u.mutedUntil) ? u.mutedUntil : 0,
     muteReason: u.muteReason || '',
@@ -4110,6 +4123,7 @@ app.get('/api/admin/data', authMiddleware, adminMiddleware, (req, res) => {
     welcomeTitleLastChanged: db.welcomeTitleLastChanged || 0,
     welcomeTitleCooldown: WELCOME_TITLE_COOLDOWN,
     customRoles: db.customRoles || [],
+    roleColors: roleColorsPublic(),
     cooldownExempt: db.cooldownExempt || [],
     ownerName: ADMIN_OWNER_NAME,
   });
@@ -4209,6 +4223,19 @@ app.post('/api/admin/set-role', authMiddleware, adminMiddleware, (req, res) => {
   broadcastProfile(target.username);
   emitUsersList();
   res.json({ success: true, user: publicUser(target) });
+});
+
+app.post('/api/admin/set-role-color', authMiddleware, adminMiddleware, (req, res) => {
+  const { role, color } = req.body || {};
+  if (!VALID_ROLES.includes(role) || role === 'user') return res.status(400).json({ error: 'Invalid role' });
+  if (!color || !/^#[0-9a-fA-F]{6}$/.test(String(color))) return res.status(400).json({ error: 'Invalid color' });
+  if (!db.roleColors || typeof db.roleColors !== 'object') db.roleColors = {};
+  db.roleColors[role] = String(color);
+  if (!db.adminActivity) db.adminActivity = [];
+  db.adminActivity.push({ action: 'set-role-color', admin: req.user.username, target: role, reason: String(color), timestamp: nowISO() });
+  saveDB();
+  emitUsersList();
+  res.json({ success: true, roleColors: roleColorsPublic() });
 });
 
 function migrateUsername(oldUn, newUn) {
@@ -4942,12 +4969,12 @@ app.get('/api/version', (req, res) => {
 
 const DESKTOP_REPO = process.env.HELLOBYE_REPO || 'tiahhwashere/hellobye-chat';
 const DESKTOP_FALLBACK = {
-  version: '1.6.5',
+  version: '1.6.6',
   name: 'HelloBye-Setup.exe',
-  url: 'https://github.com/tiahhwashere/hellobye-chat/releases/download/desktop-v1.6.5/HelloBye-Setup.exe',
-  size: 78227306,
+  url: 'https://github.com/tiahhwashere/hellobye-chat/releases/download/desktop-v1.6.6/HelloBye-Setup.exe',
+  size: 78227377,
   publishedAt: null,
-  releaseUrl: 'https://github.com/tiahhwashere/hellobye-chat/releases/tag/desktop-v1.6.5',
+  releaseUrl: 'https://github.com/tiahhwashere/hellobye-chat/releases/tag/desktop-v1.6.6',
 };
 let desktopReleaseCache = { at: 0, data: null };
 const DESKTOP_CACHE_MS = 10 * 60 * 1000;
@@ -5104,6 +5131,7 @@ function emitUsersList() {
     .map(u => { const pu = publicUser(u); pu.status = 'offline'; return pu; });
   io.emit('users-list', [...list, ...offline]);
   io.emit('custom-roles', db.customRoles || []);
+  io.emit('role-colors', roleColorsPublic());
 }
 
 const connectedUsers = new Map();

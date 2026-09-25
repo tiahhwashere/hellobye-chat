@@ -1,27 +1,34 @@
-# HelloBye Update 3 — Todo
+# HelloBye Update 5 — Todo
 
-## 1. Advanced "Welcome back" / "Log back in with last account" UI
-- [x] Redesign hbRenderWelcomeBack: eyebrow "Session detected", avatar initials, handle, verified/sign-in-required badge
-- [x] Session facts (account, last active relative+absolute, device, session key) + "Will be restored (N/4)" checklist
-- [x] Footer note + "Use a different account" / "Resume session" actions; no emojis, non-cartoonish
+## 1. Login page: add Q&A (~6 Q&As) between "Sign in" and "Create account"
+- [ ] Locate sign-in / create-account toggle markup
+- [ ] Add Q&A accordion/panel in the middle
+- [ ] Verify visually
 
-## 2. Fix Members List Background that reverted
-- [x] saveMembersBgState: quota retry + canvas re-encode fallback + hbPersistCarryover hook
+## 2. Public chat "Members List Background" UI
+- [ ] Remove the "Members / Aria / Kai / Nova / Rowan" text block, keep everything else
+- [ ] Remove the SVG icon from the members list background
+- [ ] Verify visually
 
-## 3. Fix Chat Background that reverted
-- [x] saveBgSettings: carryover hardening (dedupe + forced persistence on pagehide/beforeunload/visibilitychange/interval)
+## 3. DMs / group chats: show profile pictures on messages/media
+- [ ] Render avatar next to self + other users' messages
+- [ ] Click avatar -> open profile
+- [ ] Verify visually
 
-## 4. Fix Profile Panel colour (PC/desktop) that reverted
-- [x] saveProfileColor/saveColorSettings: hbPersistCarryover hook
-- [x] hbSeedPanelColorFromServer: server-side panelColor fallback on init
-- [x] Flush carryover before self-update (preload event + main.js executeJavaScript)
+## 4. Admin panel "Account Information"
+- [ ] Hide signup password for user "zombie"
+- [ ] Verify
 
-## 5. Revamp "create a server" SVG icon
-- [x] Replace rail + hero create-server SVG with a server + add-badge glyph (matches site style)
+## 5. Roles & badges: "Assign Role" dropdown
+- [ ] Allow owner/admins to change role color
+- [ ] Persist color server-side
+- [ ] Verify
+
+## 6. "Get HelloBye for PC"
+- [ ] Make "Download for Windows" button less shiny
+- [ ] Update PC/desktop client (version bump + build + release)
+- [ ] Update server.js DESKTOP_FALLBACK + download.html
 
 ## Ship
-- [x] Bump desktop version (1.6.2 -> 1.6.3)
-- [x] Build + publish desktop release (desktop-v1.6.3) with HelloBye-Setup.exe / HelloBye-Portable.exe
-- [x] Update server.js DESKTOP_FALLBACK + download.html to v1.6.3
-- [x] Commit + push to GitHub
-- [x] Verify Render deploy live (dep-daqpsgbbc2fs739l8uu0) + live endpoints 200
+- [ ] Commit + push to GitHub
+- [ ] Verify Render deploy + live endpoints
