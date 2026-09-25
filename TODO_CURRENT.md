@@ -1,43 +1,28 @@
-# HelloBye Update 10 — Todo
+# HelloBye Update 11 — Todo
 
-## 1. Roles & Badges: bigger on profile + show on servers page & servers VC
-- [x] index.html: bigger `.user-badge-icon` on profile (#pv-handle)
-- [x] server.js: expose global `badges` on server members
-- [x] servers.html: render badge icons in members list (memberRowHtml)
-- [x] servers.html: render badge icons in VC tiles (vs-tile)
+## A. Roles & Badges on the user's profile (not just the members list)
+- [x] servers.html: render global badge icons in `renderMemberProfileBody` (member profile modal)
+- [x] servers.html: CSS `.member-profile-name .srv-badge-icon`
 
-## 2. Voice bug: stopping screen share / turning off camera kills voice
-- [x] Rebuild WebAudio gain graph when remote audio stream changes (voiceEnsureRemoteAudio)
-- [x] Health-check recovery for audio graph
+## B. Chat background custom image quality — clearer (was "staticish")
+- [x] server.js: raise enhance target to 3840 + enable sharpening for `/api/servers/:id/chat-background`
 
-## 3. Screen share audio bug: hearing own voice when others share
-- [x] acquireScreen: video only (no system audio)
-- [x] voiceStartScreenShare: transmit video track only
+## C. Voice / music embed waveform → pink to greyish
+- [x] servers.html: `vpWaveFill()` pink→grey gradient helper
+- [x] servers.html: apply to `vpDrawWave` (voice/music embeds)
+- [x] servers.html: apply to `srvVoiceDrawWave` (voice recorder)
 
-## 4. Deleted/disabled accounts removed from servers members list
-- [x] server.js: purge on delete-account
-- [x] server.js: purge on disable-account (+ stash memberships)
-- [x] server.js: startup self-heal purge
-- [x] server.js: filter missing/disabled members out of publicServer
-- [x] server.js: restore memberships on reactivate
+## D. Ping notification → red dot on channel (no toast, no blinking)
+- [x] servers.html: `server-ping` handler sets `channelRedPings`, removes toast
+- [x] servers.html: remove `pingPulse` blinking animation from ping dots
+- [x] servers.html: red dot clears when the channel is opened (openChannel)
 
-## 5. "Return to call" when leaving VC to main chat
-- [x] rail-home: keep call, minimise + show Return to call above profile
-- [x] attention animation on the bar
-
-## 6. Voice chat background: any custom color + effects
-- [x] color picker UI in Voice chat background section
-- [x] apply custom colour to voice stage effects (--accent-rgb override)
-- [x] persist in prefs
-
-## 7. Revamp "Create a server" SVG icon (professional)
-- [x] Redesign SVG (rail + hero)
-
-## 8. PC build update
-- [x] Bump version to 1.8.0
-- [ ] Build + release
-- [ ] Update server fallback + download page
+## E. Return to call
+- [x] servers.html: rail-home handler no longer shows the "Call kept running" toast
+- [x] servers.html: return-to-call bar shows above the user's mini profile
+- [x] servers.html: bar labelled "Return to call"; click returns to that server's VC
 
 ## Ship
+- [x] Local smoke test (server boots, serves edited files, enhance verified)
 - [ ] Commit + push to GitHub
-- [ ] Verify Render deploy + live endpoints
+- [ ] Verify Render deploy live (no data wipe)

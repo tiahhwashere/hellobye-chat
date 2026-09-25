@@ -1666,6 +1666,7 @@ html.desktop-app .member-profile-modal { max-width: 980px; max-height: 93vh; }
 .member-profile-avatar .mpa-initials { transform-origin: center center; transition: transform 0.15s ease; }
 .member-profile-info { padding: 14px 0 20px; text-align: left; flex: 1 1 auto; min-width: 0; overflow: visible; }
 .member-profile-name { font-size: 19px; font-weight: 700; color: #ffffff; margin-bottom: 3px; word-break: break-word; overflow-wrap: break-word; }
+.member-profile-name .srv-badge-icon { width: 22px; height: 22px; margin-left: 8px; vertical-align: -4px; border-radius: 5px; }
 .member-profile-handle { font-size: 17px; color: #ffffff; font-weight: 700; margin-bottom: 4px; word-break: break-word; overflow-wrap: break-word; }
 .member-profile-id { font-size: 11px; color: #ffffff; font-weight: 700; font-family: 'gg sans Mono', monospace; margin-bottom: 10px; display: flex; align-items: center; justify-content: flex-start; gap: 6px; position: relative; }
 .mp-copyable { cursor: pointer; border-radius: 6px; padding: 2px 6px; margin-left: -6px; transition: background 0.15s ease; }
@@ -2349,7 +2350,7 @@ html.desktop-app .member-profile-modal { max-width: 980px; max-height: 93vh; }
 .msg-group.mention-ping.mention-admin .mention-here { background: rgba(52,88,158,0.46); color: #c6d9f8; }
 .msg-group.msg-flash { animation: msgFlash 1.2s ease; }
 @keyframes msgFlash { 0%,100% { background: transparent; } 30% { background: rgba(74,158,255,0.18); } }
-.channel-item .ch-ping-dot { width: 7px; height: 7px; border-radius: 50%; background: #c9a227; margin-left: auto; flex-shrink: 0; box-shadow: 0 0 0 2px rgba(201,162,39,0.28); animation: pingPulse 1.6s ease-in-out infinite; }
+.channel-item .ch-ping-dot { width: 7px; height: 7px; border-radius: 50%; background: #c9a227; margin-left: auto; flex-shrink: 0; box-shadow: 0 0 0 2px rgba(201,162,39,0.28); }
 .channel-item .ch-red-ping-dot { min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; background: #ff2f3a; margin-left: auto; flex-shrink: 0; color: #fff; font-size: 11px; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; box-shadow: 0 0 0 2px rgba(255,47,58,0.28); }
 .channel-item .ch-unread-dot + .ch-red-ping-dot, .channel-item .ch-ping-dot + .ch-red-ping-dot { margin-left: 6px; }
 .channel-item .ch-unread-dot { width: 8px; height: 8px; border-radius: 50%; background: #ffffff; margin-left: auto; flex-shrink: 0; box-shadow: 0 0 0 2px rgba(255,255,255,0.22); }
@@ -5028,17 +5029,15 @@ function connectSocket() {
   socket.on('server-ping', (data) => {
     if (!data) return;
     if (data.from === currentUser.username) return;
-    const isEveryone = data.type === 'everyone' || data.type === 'here';
-    if (data.serverId === activeServerId && data.channelId !== activeChannelId) {
-      if (isEveryone) {
-        channelRedPings[data.channelId] = (Number(channelRedPings[data.channelId]) || 0) + 1;
-        delete channelUnread[data.channelId];
-      } else {
-        channelPings[data.channelId] = true;
-      }
-      renderChannels();
+    // Pings now surface as a red dot on the channel instead of a toast UI.
+    // Channel ids are unique across servers, so the dot persists even when the
+    // ping happened in a server you are not currently viewing.
+    if (data.channelId && data.channelId !== activeChannelId) {
+      channelRedPings[data.channelId] = (Number(channelRedPings[data.channelId]) || 0) + 1;
+      delete channelPings[data.channelId];
+      delete channelUnread[data.channelId];
+      if (data.serverId === activeServerId) renderChannels();
     }
-    if (!isEveryone) showPingToast(data);
   });
   socket.on('server-replied-to', (data) => {
     if (!data) return;
@@ -7447,9 +7446,9 @@ function srvVoiceDrawWave() {
   const gap = 2;
   const bw = Math.max(2, (w - gap * (n - 1)) / n);
   const mid = h / 2;
-  const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#5865f2';
+  const waveFill = vpWaveFill(ctx, w);
   ctx.globalAlpha = 0.18;
-  ctx.fillStyle = accent;
+  ctx.fillStyle = '#8b909a';
   ctx.fillRect(0, mid - 0.5, w, 1);
   ctx.globalAlpha = 1;
   for (let i = 0; i < n; i++) {
@@ -7457,7 +7456,7 @@ function srvVoiceDrawWave() {
     const amp = Math.max(0.06, Math.min(1, p));
     const bh = Math.max(3, amp * (h - 10));
     const x = i * (bw + gap);
-    ctx.fillStyle = accent;
+    ctx.fillStyle = waveFill;
     ctx.globalAlpha = 0.9;
     const r = Math.min(bw / 2, 2.5);
     const y = mid - bh / 2;
@@ -8264,7 +8263,7 @@ function voiceUpdateMiniBar() {
   if (nm) nm.textContent = voiceCall.channelName || 'Voice';
   if (sb) {
     const elapsed = voiceCall.startedAt ? Math.max(0, Date.now() - voiceCall.startedAt) : 0;
-    sb.textContent = voiceFmtCount(voiceCall.peers.size) + ' connected' + (voiceCall.startedAt ? ' \u00b7 ' + voiceFmtDuration(elapsed) : '');
+    sb.textContent = 'Return to call \u00b7 ' + voiceFmtCount(voiceCall.peers.size) + ' connected' + (voiceCall.startedAt ? ' \u00b7 ' + voiceFmtDuration(elapsed) : '');
   }
   const mb = $('mv-mute'), db = $('mv-deafen');
   if (mb) mb.classList.toggle('active', voiceCall.muted);
@@ -9583,6 +9582,14 @@ document.querySelectorAll('[data-close="voice-settings-modal"]').forEach(b => b.
 
 const _vpWaveCache = new Map();
 const _vpDecoding = new Map();
+function vpWaveFill(ctx, w) {
+  // Pink -> greyish gradient used for voice / music embeds.
+  const g = ctx.createLinearGradient(0, 0, w, 0);
+  g.addColorStop(0, '#ff5fa2');
+  g.addColorStop(0.5, '#c98bb4');
+  g.addColorStop(1, '#8b909a');
+  return g;
+}
 function vpDrawWave(canvas, peaks, progress) {
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
@@ -9596,17 +9603,17 @@ function vpDrawWave(canvas, peaks, progress) {
   const n = 48, gap = 2;
   const bw = Math.max(2, (w - gap * (n - 1)) / n);
   const mid = h / 2;
-  const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#5865f2';
   const played = Math.round((progress || 0) * n);
+  const waveFill = vpWaveFill(ctx, w);
   ctx.globalAlpha = 0.16;
-  ctx.fillStyle = accent;
+  ctx.fillStyle = '#8b909a';
   ctx.fillRect(0, mid - 0.5, w, 1);
   for (let i = 0; i < n; i++) {
     const p = peaks && peaks.length ? peaks[Math.floor(i / n * peaks.length)] : 0.25;
     const amp = Math.max(0.08, Math.min(1, p));
     const bh = Math.max(3, amp * (h - 8));
     const x = i * (bw + gap);
-    ctx.fillStyle = accent;
+    ctx.fillStyle = waveFill;
     ctx.globalAlpha = i < played ? 1 : 0.52;
     const r = Math.min(bw / 2, 2.5);
     const y = mid - bh / 2;
@@ -11824,7 +11831,7 @@ function renderMemberProfileBody(m, roles, isMe, data) {
   html += '<div class="member-profile-main">' +
     '<div class="member-profile-avatar' + (avatar ? ' mp-zoomable' : '') + '"' + (avatar ? ' data-mp-zoom="' + escapeAttr(avatar) + '"' : '') + (avatarScale !== 100 ? ' style="width:' + Math.round(168 * aS) + 'px;height:' + Math.round(168 * aS) + 'px;margin-top:' + Math.round(-84 * aS) + 'px;"' : '') + '>' + (avatar ? '<img src="' + escapeAttr(avatar) + '">' : getInitials(displayName)) + '</div>' +
     '<div class="member-profile-info">' +
-    '<div class="member-profile-name">' + escapeHtml(displayName) + '</div>' +
+    '<div class="member-profile-name">' + escapeHtml(displayName) + (serverBadgeIcons(m, 'srv-badge-icon mp-badge-icon') || serverBadgeIcons(u, 'srv-badge-icon mp-badge-icon')) + '</div>' +
     '<div class="member-profile-handle mp-copyable" data-copy="' + escapeAttr(m.username) + '" title="Click to copy username">@' + escapeHtml(m.username) + '<span class="mp-copy-hint">Copy</span></div>';
 
   if (u.shortId || u.id) {
@@ -12328,8 +12335,9 @@ $('roles-toggle-btn').classList.toggle('on', displayRolesSeparately);
 $('rail-home').addEventListener('click', async () => {
   if (voiceCall.active) {
     // Keep the voice call running instead of blocking navigation. We minimise the
-    // call so the "Return to call" bar appears above the user's profile, and the
-    // user can jump straight back into the call whenever they want.
+    // call so the "Return to call" bar appears directly above the user's mini
+    // profile (bottom-left), and the user can jump straight back into that
+    // server's voice channel whenever they want.
     voiceCall.minimized = true;
     voiceShowStage(false);
     voiceUpdateMiniBar();
@@ -12340,7 +12348,6 @@ $('rail-home').addEventListener('click', async () => {
       bar.classList.add('mv-attention');
       setTimeout(() => bar.classList.remove('mv-attention'), 2400);
     }
-    try { toast('Call kept running \u2014 tap Return to call above your profile to rejoin.', 'info'); } catch (e) {}
     return;
   }
   const ok = await askConfirm({
