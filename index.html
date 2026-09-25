@@ -9483,7 +9483,18 @@ let messages = [];
 let users = [];
 let welcomeTitle = 'welcome - to the safe place';
 let customRoles = [];
-let roleColors = {};
+// Role tag colours are cached in localStorage so they are applied instantly on load
+// (before the socket's 'role-colors' event arrives), preventing a flash back to the
+// default colours after a refresh, tab switch, or returning from the Servers page.
+let roleColors = (function () {
+  try { return JSON.parse(localStorage.getItem('hellobye_role_colors') || '{}') || {}; }
+  catch (e) { return {}; }
+})();
+function setRoleColors(colors) {
+  roleColors = (colors && typeof colors === 'object') ? colors : {};
+  try { localStorage.setItem('hellobye_role_colors', JSON.stringify(roleColors)); } catch (e) {}
+  applyRoleColors();
+}
 let friends = [];
 let friendRequests = { sent: [], received: [] };
 let dmConversations = [];
@@ -11590,6 +11601,7 @@ async function initChat(existingMeData) {
   }
   if (!meData.user) { showAuth(); return; }
   currentUser = meData.user;
+  if (meData.roleColors) setRoleColors(meData.roleColors);
   currentStatus = currentUser.status || 'online';
   applyOwnerStreamingVisibility();
   syncAvatarDecorations([currentUser]);
@@ -12430,8 +12442,7 @@ function connectSocket() {
     renderUserListDebounced();
   });
   socket.on('role-colors', (colors) => {
-    roleColors = colors || {};
-    applyRoleColors();
+    setRoleColors(colors);
   });
   socket.on('profile-updated', (data) => {
     const u = users.find(x => x.username === data.username);
@@ -25271,6 +25282,7 @@ async function loadAdminData() {
     const res = await fetch(API_BASE + '/api/admin/data', { headers: getAuthHeaders() });
     if (!res.ok) return;
     adminData = await res.json();
+    if (adminData.roleColors) setRoleColors(adminData.roleColors);
     initAdminProfileBadges();
     renderAdminActivity();
     renderAdminUserOverview();
@@ -25798,8 +25810,7 @@ async function adminSaveRoleColor() {
     });
     const data = await res.json();
     if (data.success) {
-      roleColors = data.roleColors || roleColors;
-      applyRoleColors();
+      setRoleColors(data.roleColors || roleColors);
       renderUserListDebounced();
       toast((ROLE_LABELS[role] || role) + ' role colour updated.', 'success');
     } else { toast(data.error || 'Unable to update the role colour. Please try again.', 'error'); }
