@@ -1003,7 +1003,7 @@ body.loading-session #chat-app.active::after { content: none; }
 /* Return-to-voice-call bar shown above the mini profile (bottom-left) after
    leaving a server voice call to come back to the main chat. */
 .voice-return-bar {
-  display: flex; align-items: center; gap: 10px;
+  display: flex; flex-direction: column; gap: 9px;
   margin: 8px 10px 0; padding: 10px 12px;
   border-radius: 12px;
   background: linear-gradient(180deg, rgba(88,101,242,0.22), rgba(88,101,242,0.08));
@@ -1012,13 +1012,20 @@ body.loading-session #chat-app.active::after { content: none; }
   animation: vrbIn 0.24s cubic-bezier(0.22,1,0.36,1);
 }
 @keyframes vrbIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
-.voice-return-bar .vrb-dot { width: 9px; height: 9px; border-radius: 50%; background: #3ba55d; flex-shrink: 0; box-shadow: 0 0 0 3px rgba(59,165,93,0.22); }
+.voice-return-bar .vrb-top { display: flex; align-items: center; gap: 9px; }
+.voice-return-bar .vrb-dot { width: 9px; height: 9px; border-radius: 50%; background: #3ba55d; flex-shrink: 0; box-shadow: 0 0 0 3px rgba(59,165,93,0.22); animation: vrbPulse 1.8s ease-in-out infinite; }
+@keyframes vrbPulse { 0%,100% { box-shadow: 0 0 0 3px rgba(59,165,93,0.22); } 50% { box-shadow: 0 0 0 5px rgba(59,165,93,0.10); } }
 .voice-return-bar .vrb-info { flex: 1; min-width: 0; }
 .voice-return-bar .vrb-title { font-size: 12.5px; font-weight: 700; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .voice-return-bar .vrb-sub { font-size: 11px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.voice-return-bar .vrb-join { flex-shrink: 0; font-size: 12px; font-weight: 700; color: #fff; background: var(--accent); border: none; border-radius: 8px; padding: 6px 12px; cursor: pointer; transition: var(--transition); }
+.voice-return-bar .vrb-actions { display: flex; align-items: center; gap: 6px; }
+.voice-return-bar .vrb-btn { width: 30px; height: 30px; border-radius: 8px; border: none; background: rgba(255,255,255,0.08); color: var(--text-secondary); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; transition: var(--transition); flex-shrink: 0; }
+.voice-return-bar .vrb-btn:hover { background: rgba(255,255,255,0.16); color: #fff; }
+.voice-return-bar .vrb-btn.active { background: #ed4245; color: #fff; }
+.voice-return-bar .vrb-btn svg { width: 16px; height: 16px; }
+.voice-return-bar .vrb-join { flex: 1; min-width: 0; font-size: 12px; font-weight: 700; color: #fff; background: var(--accent); border: none; border-radius: 8px; padding: 7px 10px; cursor: pointer; transition: var(--transition); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .voice-return-bar .vrb-join:hover { filter: brightness(1.1); }
-.voice-return-bar .vrb-dismiss { flex-shrink: 0; width: 24px; height: 24px; border-radius: 6px; border: none; background: transparent; color: var(--text-muted); cursor: pointer; font-size: 12px; line-height: 1; }
+.voice-return-bar .vrb-dismiss { flex-shrink: 0; width: 30px; height: 30px; border-radius: 8px; border: none; background: transparent; color: var(--text-muted); cursor: pointer; font-size: 13px; line-height: 1; }
 .voice-return-bar .vrb-dismiss:hover { background: var(--bg-medium); color: var(--text-primary); }
 
 .chat-main {
@@ -1958,6 +1965,21 @@ body.no-anim .friend-item { animation: none !important; }
   text-overflow: ellipsis; max-width: 260px;
 }
 .media-player-info { color: rgba(255,255,255,0.62); white-space: nowrap; flex-shrink: 0; }
+.media-player-fallback {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 8px; text-align: center; padding: 30px 22px;
+  background: linear-gradient(160deg, #16171b, #0d0e11);
+}
+.media-player-fallback .mpf-title { font-size: 14px; font-weight: 700; color: #fff; }
+.media-player-fallback .mpf-sub { font-size: 12px; color: rgba(255,255,255,0.6); max-width: 320px; line-height: 1.5; }
+.media-player-fallback .mpf-download {
+  margin-top: 4px; cursor: pointer; font-size: 12.5px; font-weight: 600;
+  color: #fff; background: var(--accent); border: none; border-radius: 8px;
+  padding: 8px 16px; transition: filter 0.15s ease;
+}
+.media-player-fallback .mpf-download:hover { filter: brightness(1.12); }
+.media-player-fallback .mpf-open { background: rgba(255,255,255,0.12); }
+.media-player-fallback .mpf-open:hover { background: rgba(255,255,255,0.2); }
 .message-file audio { width: 400px; border-radius: 8px; }
 .message-file-attachment {
   display: flex; align-items: center; gap: 12px;
@@ -5207,13 +5229,6 @@ html.desktop-app .profile-view-modal { max-width: 980px; max-height: 93vh; }
   display: flex; align-items: center; gap: 12px;
   margin-bottom: 6px;
 }
-.media-send-header-icon {
-  width: 38px; height: 38px; border-radius: 9px;
-  background: var(--accent-dim); color: var(--accent);
-  display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0;
-}
-.media-send-header-icon svg { width: 20px; height: 20px; }
 .media-send-header-text { flex: 1; min-width: 0; }
 .media-send-header-text h3 { margin: 0 0 2px; font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
 .media-send-header-text .setting-hint { margin: 0; font-size: 12.5px; }
@@ -5468,55 +5483,57 @@ html.desktop-app .profile-view-modal { max-width: 980px; max-height: 93vh; }
 @keyframes toastOut { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(12px); } }
 @keyframes toastProgress { from { width: 100%; } to { width: 0%; } }
 
+.update-popup-overlay {
+  position: fixed; inset: 0; z-index: 12000;
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px);
+  animation: updateOverlayIn 0.25s ease;
+}
+.update-popup-overlay.fade-out { animation: updateOverlayOut 0.25s ease forwards; }
 .update-popup {
   pointer-events: auto;
-  width: 100%; box-sizing: border-box;
-  padding: 14px 16px;
-  background: rgba(20, 20, 24, 0.94);
-  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  width: min(480px, 100%); box-sizing: border-box;
+  padding: 26px 26px 22px;
+  background: #16171b;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-left: 3px solid var(--accent);
-  border-radius: 12px;
+  border-radius: 16px;
   color: var(--text-primary);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55), 0 3px 10px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.05);
-  animation: toastIn 0.32s cubic-bezier(0.16, 1, 0.3, 1);
-  display: flex; align-items: center; gap: 13px;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  animation: updateIn 0.32s cubic-bezier(0.16, 1, 0.3, 1);
   position: relative; overflow: hidden;
+  text-align: left;
 }
-.update-popup.fade-out { animation: toastOut 0.25s ease forwards; }
-.update-popup-icon {
-  flex-shrink: 0; width: 38px; height: 38px; border-radius: 10px;
-  display: flex; align-items: center; justify-content: center;
-  background: rgba(var(--accent-rgb), 0.14); color: var(--accent);
-  position: relative;
-}
-.update-popup-icon svg { width: 20px; height: 20px; }
-.update-popup-body { flex: 1; min-width: 0; }
-.update-popup-title { font-size: 13.5px; font-weight: 700; letter-spacing: 0.01em; margin-bottom: 2px; }
-.update-popup-text { font-size: 12.5px; color: var(--text-secondary); line-height: 1.42; }
+.update-popup.fade-out { animation: updateOut 0.22s ease forwards; }
+.update-popup-eyebrow { font-size: 11px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); margin-bottom: 9px; }
+.update-popup-title { font-size: 20px; font-weight: 800; letter-spacing: -0.01em; margin-bottom: 9px; }
+.update-popup-text { font-size: 13.5px; color: var(--text-secondary); line-height: 1.55; }
 .update-popup-text b { color: var(--accent); font-weight: 700; }
-.update-popup-actions { flex-shrink: 0; display: flex; align-items: center; gap: 8px; }
-.update-popup-refresh {
-  padding: 8px 14px; border-radius: 8px; font-size: 12.5px; font-weight: 600;
-  background: var(--accent); color: #fff; border: none; cursor: pointer;
-  transition: transform 0.15s ease, filter 0.15s ease; white-space: nowrap;
-}
-.update-popup-refresh:hover { filter: brightness(1.08); transform: translateY(-1px); }
-.update-popup-refresh:active { transform: translateY(0); }
-.update-popup-progress {
-  position: absolute; bottom: 0; left: 0; height: 2px;
-  background: var(--accent); opacity: 0.5;
-}
+.update-popup-details { margin: 16px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px; }
+.update-popup-details li { position: relative; padding-left: 18px; font-size: 12.5px; color: var(--text-secondary); line-height: 1.45; }
+.update-popup-details li::before { content: ''; position: absolute; left: 3px; top: 7px; width: 5px; height: 5px; border-radius: 50%; background: var(--accent); }
+.update-popup-details li b { color: var(--text-primary); font-weight: 700; }
+.update-popup-countdown { margin-top: 16px; font-size: 12.5px; color: var(--text-muted); }
+.update-popup-countdown b { color: var(--accent); font-weight: 700; }
+.update-popup-actions { display: flex; gap: 10px; margin-top: 20px; }
+.update-popup-actions button { flex: 1; padding: 11px 16px; border-radius: 10px; font-size: 13px; font-weight: 700; cursor: pointer; border: none; transition: filter 0.15s ease, background 0.15s ease; }
+.update-popup-refresh { background: var(--accent); color: #fff; }
+.update-popup-refresh:hover { filter: brightness(1.1); }
+.update-popup-later { background: rgba(255, 255, 255, 0.08); color: var(--text-primary); }
+.update-popup-later:hover { background: rgba(255, 255, 255, 0.14); }
+.update-popup-progress { position: absolute; bottom: 0; left: 0; height: 3px; background: var(--accent); opacity: 0.7; }
 [data-theme="light"] .update-popup {
-  background: rgba(255, 255, 255, 0.97);
+  background: #ffffff;
   border-color: rgba(0, 0, 0, 0.08);
-  box-shadow: 0 12px 40px rgba(15, 20, 30, 0.18), 0 3px 10px rgba(15, 20, 30, 0.10);
+  box-shadow: 0 24px 70px rgba(15, 20, 30, 0.22);
 }
-@media (max-width: 560px) {
-  .update-popup { flex-wrap: wrap; }
-  .update-popup-actions { width: 100%; }
-  .update-popup-refresh { width: 100%; }
-}
+[data-theme="light"] .update-popup-later { background: rgba(0, 0, 0, 0.06); }
+[data-theme="light"] .update-popup-later:hover { background: rgba(0, 0, 0, 0.1); }
+@keyframes updateOverlayIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes updateOverlayOut { from { opacity: 1; } to { opacity: 0; } }
+@keyframes updateIn { from { opacity: 0; transform: translateY(16px) scale(0.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@keyframes updateOut { from { opacity: 1; transform: translateY(0) scale(1); } to { opacity: 0; transform: translateY(10px) scale(0.98); } }
 
 .system-alert-container {
   position: fixed; top: 24px; left: 50%; transform: translateX(-50%);
@@ -6395,7 +6412,6 @@ html.desktop-app .profile-view-modal { max-width: 980px; max-height: 93vh; }
   .media-send-modal { max-width: calc(100vw - 16px); }
   .media-send-preview img, .media-send-preview video { max-height: 200px; }
   .spoiler-toggle-hint { display: none; }
-  .media-send-header-icon { width: 36px; height: 36px; }
   .media-send-header-text h3 { font-size: 16px; }
 }
 
@@ -7150,13 +7166,23 @@ html.desktop-app .profile-view-modal { max-width: 980px; max-height: 93vh; }
       </div>
 
       <div class="voice-return-bar" id="voice-return-bar" style="display:none;">
-        <span class="vrb-dot"></span>
-        <div class="vrb-info">
-          <div class="vrb-title" id="vrb-title">Return to voice call</div>
-          <div class="vrb-sub" id="vrb-sub"></div>
+        <div class="vrb-top">
+          <span class="vrb-dot"></span>
+          <div class="vrb-info">
+            <div class="vrb-title" id="vrb-title">Voice connected</div>
+            <div class="vrb-sub" id="vrb-sub"></div>
+          </div>
         </div>
-        <button class="vrb-join" id="vrb-join">Rejoin</button>
-        <button class="vrb-dismiss" id="vrb-dismiss" title="Dismiss" aria-label="Dismiss">&#10005;</button>
+        <div class="vrb-actions">
+          <button class="vrb-btn" id="vrb-mute" type="button" title="Mute" aria-label="Mute">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+          </button>
+          <button class="vrb-btn" id="vrb-deafen" type="button" title="Deafen" aria-label="Deafen">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg>
+          </button>
+          <button class="vrb-join" id="vrb-join" type="button">Return to call</button>
+          <button class="vrb-dismiss" id="vrb-dismiss" type="button" title="Leave call" aria-label="Leave call">&#10005;</button>
+        </div>
       </div>
       <div class="sidebar-footer" id="sidebar-footer">
         <div class="user-avatar-wrap">
@@ -9196,9 +9222,6 @@ html.desktop-app .profile-view-modal { max-width: 980px; max-height: 93vh; }
   <div class="modal-overlay" id="media-send-modal">
     <div class="modal media-send-modal">
       <div class="media-send-header">
-        <div class="media-send-header-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-        </div>
         <div class="media-send-header-text">
           <h3 id="media-send-title">Send Attachment</h3>
           <p class="setting-hint" id="media-send-subtitle">Add a caption below, then confirm to send.</p>
@@ -9723,26 +9746,29 @@ function showUpdatePopup() {
   if (window.hellobyeDesktop && window.hellobyeDesktop.isDesktop) return;
   if (__updatePopupShown) return;
   __updatePopupShown = true;
-  const container = $('toast-container');
-  if (!container) { window.location.reload(); return; }
-  const el = document.createElement('div');
-  el.className = 'update-popup';
-  el.innerHTML =
-    '<span class="update-popup-icon">' +
-      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
-        '<path d="M21 12a9 9 0 1 1-3-6.7"/><polyline points="21 3 21 9 15 9"/>' +
-      '</svg>' +
-    '</span>' +
-    '<div class="update-popup-body">' +
-      '<div class="update-popup-title">A new update is available</div>' +
-      '<div class="update-popup-text">HelloBye will refresh automatically in <b id="update-countdown">' + UPDATE_COUNTDOWN_SECONDS + '</b>s to apply the latest changes.</div>' +
-    '</div>' +
-    '<div class="update-popup-actions">' +
-      '<button class="update-popup-refresh" id="update-refresh-btn" type="button">Refresh now</button>' +
-    '</div>' +
-    '<span class="update-popup-progress" id="update-progress"></span>';
-  container.appendChild(el);
-  const prog = el.querySelector('#update-progress');
+  const overlay = document.createElement('div');
+  overlay.className = 'update-popup-overlay';
+  overlay.id = 'update-popup-overlay';
+  overlay.innerHTML =
+    '<div class="update-popup" role="dialog" aria-modal="true" aria-labelledby="update-popup-title">' +
+      '<div class="update-popup-eyebrow">HelloBye</div>' +
+      '<div class="update-popup-title" id="update-popup-title">A new update is available</div>' +
+      '<div class="update-popup-text">A newer version of HelloBye has been released. Refresh to load the latest improvements.</div>' +
+      '<ul class="update-popup-details">' +
+        '<li><b>Latest fixes and features</b> \u2014 the newest build is ready to load.</li>' +
+        '<li><b>Your data stays safe</b> \u2014 chats, servers, roles and settings are kept.</li>' +
+        '<li><b>Quick refresh</b> \u2014 it only takes a few seconds.</li>' +
+      '</ul>' +
+      '<div class="update-popup-countdown">Refreshing automatically in <b id="update-countdown">' + UPDATE_COUNTDOWN_SECONDS + '</b> seconds.</div>' +
+      '<div class="update-popup-actions">' +
+        '<button class="update-popup-later" id="update-later-btn" type="button">Later</button>' +
+        '<button class="update-popup-refresh" id="update-refresh-btn" type="button">Refresh now</button>' +
+      '</div>' +
+      '<span class="update-popup-progress" id="update-progress"></span>' +
+    '</div>';
+  document.body.appendChild(overlay);
+  const popup = overlay.querySelector('.update-popup');
+  const prog = overlay.querySelector('#update-progress');
   if (prog) {
     prog.style.transition = 'width ' + UPDATE_COUNTDOWN_SECONDS + 's linear';
     requestAnimationFrame(() => { prog.style.width = '0%'; });
@@ -9753,10 +9779,18 @@ function showUpdatePopup() {
     try { sessionStorage.setItem('hellobye_updated_at', String(Date.now())); } catch (e) {}
     window.location.reload();
   };
-  const btn = el.querySelector('#update-refresh-btn');
+  const dismiss = () => {
+    clearInterval(__updateCountdownTimer);
+    overlay.classList.add('fade-out');
+    if (popup) popup.classList.add('fade-out');
+    setTimeout(() => { overlay.remove(); }, 240);
+  };
+  const btn = overlay.querySelector('#update-refresh-btn');
   if (btn) btn.addEventListener('click', doRefresh);
+  const laterBtn = overlay.querySelector('#update-later-btn');
+  if (laterBtn) laterBtn.addEventListener('click', dismiss);
   let remaining = UPDATE_COUNTDOWN_SECONDS;
-  const cdEl = el.querySelector('#update-countdown');
+  const cdEl = overlay.querySelector('#update-countdown');
   __updateCountdownTimer = setInterval(() => {
     remaining -= 1;
     if (cdEl) cdEl.textContent = String(Math.max(0, remaining));
@@ -15525,7 +15559,9 @@ function createFileElement(file) {
       video.classList.add('hd-enhanced');
       const src = document.createElement('source');
       src.src = file.url;
-      src.type = mt || 'video/mp4';
+      // GIFs are stored/served as image/gif; a <video> must not declare that MIME
+      // type or the browser rejects it. Omit the hint and let it probe the file.
+      if (mt && mt.startsWith('video/')) src.type = mt;
       video.appendChild(src);
       video.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -15550,11 +15586,15 @@ function createFileElement(file) {
       video.playsInline = true;
       video.classList.add('hd-enhanced');
       video.setAttribute('aria-label', file.name);
-      let videoType = mt || '';
-      if (videoType === 'video/quicktime') videoType = 'video/mp4';
+      // Only hint a MIME type the browser is likely to accept. Unknown or
+      // unsupported container types (QuickTime .mov, Matroska .mkv, AVI, 3GP)
+      // are omitted so the browser probes the real file instead of rejecting
+      // it outright with "no video with supported format and MIME type".
       const src = document.createElement('source');
       src.src = file.url;
-      src.type = videoType || 'video/mp4';
+      const PLAYABLE_VIDEO_TYPES = { 'video/mp4': 'video/mp4', 'video/webm': 'video/webm', 'video/ogg': 'video/ogg', 'video/x-m4v': 'video/mp4', 'video/quicktime': 'video/mp4' };
+      const hintedType = PLAYABLE_VIDEO_TYPES[(mt || '').toLowerCase()];
+      if (hintedType) src.type = hintedType;
       video.appendChild(src);
       video.addEventListener('contextmenu', (e) => {
         e.preventDefault(); e.stopPropagation();
@@ -15578,6 +15618,28 @@ function createFileElement(file) {
         const info = meta.querySelector('.media-player-info');
         if (info) info.textContent = (parts.length ? parts.join(' · ') + ' · ' : '') + formatFileSize(file.size) + ' · video';
       });
+      const showVideoFallback = () => {
+        if (player.querySelector('.media-player-fallback')) return;
+        video.style.display = 'none';
+        const fb = document.createElement('div');
+        fb.className = 'media-player-fallback';
+        const ft = document.createElement('div');
+        ft.className = 'mpf-title'; ft.textContent = 'This video can\u2019t be played here';
+        const fs = document.createElement('div');
+        fs.className = 'mpf-sub'; fs.textContent = 'The format isn\u2019t supported by your browser. You can still open or download it.';
+        const dl = document.createElement('button');
+        dl.type = 'button'; dl.className = 'mpf-download'; dl.textContent = 'Download video';
+        dl.addEventListener('click', (e) => { e.stopPropagation(); downloadFile(file); });
+        const op = document.createElement('button');
+        op.type = 'button'; op.className = 'mpf-download mpf-open'; op.textContent = 'Open in new tab';
+        op.addEventListener('click', (e) => { e.stopPropagation(); window.open(file.url, '_blank'); });
+        fb.appendChild(ft); fb.appendChild(fs); fb.appendChild(dl); fb.appendChild(op);
+        player.insertBefore(fb, video);
+      };
+      // The error surfaces on the <source> when a hinted/probed file fails, and on
+      // the <video> itself in some browsers — listen on both.
+      video.addEventListener('error', showVideoFallback);
+      src.addEventListener('error', showVideoFallback);
     }
     const expandBtn = document.createElement('button');
     expandBtn.type = 'button';
@@ -17137,14 +17199,67 @@ function readVoiceReturn() {
   } catch (e) { return null; }
 }
 function clearVoiceReturn() { try { localStorage.removeItem(VOICE_RETURN_KEY); } catch (e) {} }
+
+// A hidden iframe (servers.html?voiceOnly=1) keeps the socket + WebRTC call alive
+// while the user browses the main chat, so they stay connected and can still talk
+// and hear others. The bar above the mini profile mirrors live state and controls it.
+let voiceKeeperFrame = null;
+let voiceKeeperState = null;
+function voiceKeeperSend(action) {
+  if (!voiceKeeperFrame || !voiceKeeperFrame.contentWindow) return;
+  try { voiceKeeperFrame.contentWindow.postMessage({ type: 'hb-voice-cmd', action: action }, '*'); } catch (e) {}
+}
+function removeVoiceKeeper() {
+  if (voiceKeeperFrame) { try { voiceKeeperFrame.remove(); } catch (e) {} voiceKeeperFrame = null; }
+  voiceKeeperState = null;
+}
+function ensureVoiceKeeper() {
+  const d = readVoiceReturn();
+  if (!d) { removeVoiceKeeper(); return; }
+  if (voiceKeeperFrame && voiceKeeperFrame.dataset.serverId === d.serverId && voiceKeeperFrame.dataset.channelId === d.channelId) return;
+  removeVoiceKeeper();
+  const f = document.createElement('iframe');
+  f.className = 'voice-keeper-frame';
+  f.setAttribute('aria-hidden', 'true');
+  f.setAttribute('allow', 'microphone; autoplay; camera; display-capture');
+  f.dataset.serverId = d.serverId;
+  f.dataset.channelId = d.channelId;
+  const q = '?voiceOnly=1&voiceServer=' + encodeURIComponent(d.serverId) + '&voiceChannel=' + encodeURIComponent(d.channelId) + (d.muted ? '&muted=1' : '') + (d.deafened ? '&deafened=1' : '');
+  f.src = '/servers.html' + q;
+  f.style.cssText = 'position:fixed;width:1px;height:1px;left:-9999px;top:-9999px;border:0;opacity:0;pointer-events:none;';
+  document.body.appendChild(f);
+  voiceKeeperFrame = f;
+}
+window.addEventListener('message', (ev) => {
+  const d = ev.data;
+  if (!d) return;
+  if (d.type === 'hb-voice-state') {
+    voiceKeeperState = d;
+    renderVoiceReturnBar();
+  } else if (d.type === 'hb-voice-ended') {
+    voiceKeeperState = null;
+    clearVoiceReturn();
+    removeVoiceKeeper();
+    renderVoiceReturnBar();
+  }
+});
 function renderVoiceReturnBar() {
   const bar = $('voice-return-bar');
   if (!bar) return;
   const d = readVoiceReturn();
   if (!d) { bar.style.display = 'none'; return; }
+  const st = voiceKeeperState || {};
   const title = $('vrb-title'), sub = $('vrb-sub');
-  if (title) title.textContent = 'Return to voice call';
-  if (sub) sub.textContent = (d.channelName || 'Voice') + (d.serverName ? ' \u00b7 ' + d.serverName : '');
+  if (title) title.textContent = (st.active === false) ? 'Reconnecting to voice\u2026' : 'Voice connected';
+  if (sub) {
+    const parts = [d.channelName || 'Voice'];
+    if (d.serverName) parts.push(d.serverName);
+    if (typeof st.peerCount === 'number' && st.peerCount > 0) parts.push(st.peerCount + (st.peerCount === 1 ? ' person' : ' people'));
+    sub.textContent = parts.join(' \u00b7 ');
+  }
+  const mb = $('vrb-mute'), db = $('vrb-deafen');
+  if (mb) mb.classList.toggle('active', !!st.muted);
+  if (db) db.classList.toggle('active', !!st.deafened);
   bar.style.display = 'flex';
 }
 function rejoinVoiceCall() {
@@ -17152,9 +17267,18 @@ function rejoinVoiceCall() {
   if (!d) { renderVoiceReturnBar(); return; }
   window.location.href = '/servers.html?voiceServer=' + encodeURIComponent(d.serverId) + '&voiceChannel=' + encodeURIComponent(d.channelId);
 }
+function leaveVoiceKeeperCall() {
+  voiceKeeperSend('leave');
+  clearVoiceReturn();
+  setTimeout(() => { removeVoiceKeeper(); renderVoiceReturnBar(); }, 250);
+}
 if ($('vrb-join')) $('vrb-join').addEventListener('click', (e) => { e.stopPropagation(); rejoinVoiceCall(); });
-if ($('vrb-dismiss')) $('vrb-dismiss').addEventListener('click', (e) => { e.stopPropagation(); clearVoiceReturn(); renderVoiceReturnBar(); });
-if ($('voice-return-bar')) $('voice-return-bar').addEventListener('click', (e) => { if (e.target.closest('.vrb-dismiss') || e.target.closest('.vrb-join')) return; rejoinVoiceCall(); });
+if ($('vrb-mute')) $('vrb-mute').addEventListener('click', (e) => { e.stopPropagation(); voiceKeeperSend('toggleMute'); });
+if ($('vrb-deafen')) $('vrb-deafen').addEventListener('click', (e) => { e.stopPropagation(); voiceKeeperSend('toggleDeafen'); });
+if ($('vrb-dismiss')) $('vrb-dismiss').addEventListener('click', (e) => { e.stopPropagation(); leaveVoiceKeeperCall(); });
+if ($('voice-return-bar')) $('voice-return-bar').addEventListener('click', (e) => { if (e.target.closest('button')) return; rejoinVoiceCall(); });
+// Boot the keeper immediately if a call was left running when the user came back.
+try { if (readVoiceReturn()) { ensureVoiceKeeper(); renderVoiceReturnBar(); } } catch (e) {}
 
 function updateSidebarSelf() {
   if (!currentUser) return;

@@ -107,6 +107,14 @@ input, textarea { font-family: inherit; }
   position: absolute; bottom: -2px; right: -2px; background: var(--accent); color: #fff;
   font-size: 9px; font-weight: 700; padding: 1px 5px; border-radius: 8px; border: 2px solid var(--bg-darkest);
 }
+.rail-btn .rail-ping-dot {
+  position: absolute; bottom: 2px; right: 2px; z-index: 2;
+  width: 14px; height: 14px; border-radius: 50%; box-sizing: border-box;
+  background: #ed4245; border: 2.5px solid var(--bg-darkest);
+  pointer-events: none;
+}
+html.voice-only-mode, html.voice-only-mode body { background: transparent !important; overflow: hidden !important; }
+html.voice-only-mode #servers-app, html.voice-only-mode #loading { display: none !important; }
 .rail-divider { width: 32px; height: 2px; background: var(--bg-lighter); border-radius: 1px; margin: 4px 0; flex-shrink: 0; }
 .rail-btn[draggable="true"] { cursor: grab; }
 .rail-btn.dragging { opacity: 0.4; }
@@ -1187,7 +1195,7 @@ input, textarea { font-family: inherit; }
 .member-item:hover { background: var(--bg-medium); }
 .member-item .mi-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; overflow: hidden; position: relative; flex-shrink: 0; }
 .member-item .mi-avatar img { width: 100%; height: 100%; object-fit: cover; }
-.member-item .mi-status { position: absolute; bottom: -2px; right: -2px; width: 16px; height: 16px; box-sizing: border-box; border-radius: 50%; border: 2.5px solid var(--bg-dark); box-shadow: 0 0 0 1px rgba(0,0,0,0.35); background-size: 100% 100%; background-repeat: no-repeat; background-position: center; }
+.member-item .mi-status { position: absolute; bottom: -1px; right: -1px; width: 13px; height: 13px; box-sizing: border-box; border-radius: 50%; border: 2px solid var(--bg-dark); box-shadow: none; background-size: contain; background-repeat: no-repeat; background-position: center; }
 .member-item .mi-status.online { background-image: url('online.png'); }
 .member-item .mi-status.idle { background-image: url('idle.png'); }
 .member-item .mi-status.dnd { background-image: url('dnd.png'); }
@@ -1519,19 +1527,31 @@ input, textarea { font-family: inherit; }
 
 #toast-container { position: fixed; top: 68px; right: 16px; z-index: 2000; display: flex; flex-direction: column; gap: 10px; align-items: flex-end; pointer-events: none; max-width: calc(100vw - 32px); }
 
-.update-popup { position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%); z-index: 2100; display: flex; align-items: center; gap: 14px; width: min(560px, calc(100vw - 32px)); padding: 14px 16px; background: var(--bg-dark); border: 1px solid var(--border-light); border-radius: 14px; box-shadow: 0 20px 60px rgba(0,0,0,0.55); overflow: hidden; animation: updateIn 0.28s cubic-bezier(0.22,1,0.36,1); }
-@keyframes updateIn { from { opacity: 0; transform: translate(-50%, 18px); } to { opacity: 1; transform: translate(-50%, 0); } }
-.update-popup.fade-out { animation: updateOut 0.25s ease forwards; }
-@keyframes updateOut { to { opacity: 0; transform: translate(-50%, 14px); } }
-.update-popup-body { flex: 1; min-width: 0; }
-.update-popup-title { font-size: 13.5px; font-weight: 700; letter-spacing: 0.01em; margin-bottom: 2px; }
-.update-popup-text { font-size: 12.5px; color: var(--text-secondary); line-height: 1.42; }
+.update-popup-overlay { position: fixed; inset: 0; z-index: 12000; display: flex; align-items: center; justify-content: center; padding: 20px; background: rgba(0,0,0,0.55); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); animation: updateOverlayIn 0.25s ease; }
+.update-popup-overlay.fade-out { animation: updateOverlayOut 0.25s ease forwards; }
+.update-popup { pointer-events: auto; width: min(480px, 100%); box-sizing: border-box; padding: 26px 26px 22px; background: var(--bg-dark); border: 1px solid var(--border-light); border-radius: 16px; color: var(--text-primary); box-shadow: 0 24px 70px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.05); animation: updateIn 0.32s cubic-bezier(0.16,1,0.3,1); position: relative; overflow: hidden; text-align: left; }
+.update-popup.fade-out { animation: updateOut 0.22s ease forwards; }
+.update-popup-eyebrow { font-size: 11px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); margin-bottom: 9px; }
+.update-popup-title { font-size: 20px; font-weight: 800; letter-spacing: -0.01em; margin-bottom: 9px; }
+.update-popup-text { font-size: 13.5px; color: var(--text-secondary); line-height: 1.55; }
 .update-popup-text b { color: var(--accent); font-weight: 700; }
-.update-popup-actions { flex-shrink: 0; display: flex; align-items: center; gap: 8px; }
-.update-popup-refresh { background: var(--accent); color: #fff; font-size: 12.5px; font-weight: 700; padding: 9px 16px; border-radius: 9px; transition: filter 0.15s ease; }
-.update-popup-refresh:hover { filter: brightness(1.08); }
-.update-popup-progress { position: absolute; left: 0; bottom: 0; height: 3px; width: 100%; background: var(--accent); }
-@media (max-width: 560px) { .update-popup { flex-wrap: wrap; } .update-popup-actions { width: 100%; } .update-popup-refresh { width: 100%; } }
+.update-popup-details { margin: 16px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px; }
+.update-popup-details li { position: relative; padding-left: 18px; font-size: 12.5px; color: var(--text-secondary); line-height: 1.45; }
+.update-popup-details li::before { content: ''; position: absolute; left: 3px; top: 7px; width: 5px; height: 5px; border-radius: 50%; background: var(--accent); }
+.update-popup-details li b { color: var(--text-primary); font-weight: 700; }
+.update-popup-countdown { margin-top: 16px; font-size: 12.5px; color: var(--text-muted); }
+.update-popup-countdown b { color: var(--accent); font-weight: 700; }
+.update-popup-actions { display: flex; gap: 10px; margin-top: 20px; }
+.update-popup-actions button { flex: 1; padding: 11px 16px; border-radius: 10px; font-size: 13px; font-weight: 700; cursor: pointer; border: none; transition: filter 0.15s ease, background 0.15s ease; }
+.update-popup-refresh { background: var(--accent); color: #fff; }
+.update-popup-refresh:hover { filter: brightness(1.1); }
+.update-popup-later { background: rgba(255,255,255,0.08); color: var(--text-primary); }
+.update-popup-later:hover { background: rgba(255,255,255,0.14); }
+.update-popup-progress { position: absolute; left: 0; bottom: 0; height: 3px; width: 100%; background: var(--accent); opacity: 0.7; }
+@keyframes updateOverlayIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes updateOverlayOut { from { opacity: 1; } to { opacity: 0; } }
+@keyframes updateIn { from { opacity: 0; transform: translateY(16px) scale(0.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@keyframes updateOut { from { opacity: 1; transform: translateY(0) scale(1); } to { opacity: 0; transform: translateY(10px) scale(0.98); } }
 
 .search-msg-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 1500; display: flex; align-items: flex-start; justify-content: center; padding-top: 80px; animation: fadeIn 0.15s ease; }
 .search-msg-panel { width: 100%; max-width: 620px; max-height: 70vh; background: var(--bg-dark); border: 1px solid var(--border-light); border-radius: 14px; box-shadow: 0 24px 70px rgba(0,0,0,0.6); display: flex; flex-direction: column; overflow: hidden; animation: popIn 0.18s ease; }
@@ -1624,8 +1644,9 @@ input, textarea { font-family: inherit; }
 .status-notice .sn-text { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .status-notice .sn-text b { font-weight: 700; }
 
-.member-profile-modal { max-width: 900px; padding: 0; overflow-y: auto; overflow-x: hidden; text-align: left; position: relative; }
-html.desktop-app .member-profile-modal { max-width: 980px; max-height: 93vh; }
+.member-profile-modal { max-width: 1010px; padding: 0; overflow-y: auto; overflow-x: hidden; text-align: left; position: relative; max-height: 92vh; }
+html.desktop-app .member-profile-modal { max-width: 1110px; max-height: 94vh; }
+.member-profile-modal.profile-mode { min-height: 620px; }
 .member-profile-modal.msp-editor-mode { max-width: 1080px; width: 96vw; }
 .member-profile-modal.msp-editor-mode .modal-body { padding: 28px 40px; }
 .member-profile-modal.msp-editor-mode .modal-footer { padding: 4px 40px 26px; gap: 14px; }
@@ -1739,8 +1760,6 @@ html.desktop-app .member-profile-modal { max-width: 980px; max-height: 93vh; }
 
 .srv-media-send-modal { max-width: 860px; width: 94vw; text-align: left; border-radius: 16px; overflow: hidden; }
 .srv-ms-header { display: flex; align-items: center; gap: 13px; margin-bottom: 16px; padding-bottom: 15px; border-bottom: 1px solid var(--border); }
-.srv-ms-header-icon { width: 42px; height: 42px; border-radius: 11px; background: rgba(var(--accent-rgb),0.14); color: var(--accent-light); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-.srv-ms-header-icon svg { width: 21px; height: 21px; }
 .srv-ms-header-text { flex: 1; min-width: 0; }
 .srv-ms-header-text h3 { margin: 0 0 3px; font-size: 18px; font-weight: 700; letter-spacing: -0.01em; }
 .srv-ms-sub { margin: 0; font-size: 12.5px; color: var(--text-muted); }
@@ -1768,8 +1787,6 @@ html.desktop-app .member-profile-modal { max-width: 980px; max-height: 93vh; }
 .srv-ms-toggle input:checked ~ .srv-ms-track { background: var(--accent); }
 .srv-ms-toggle input:checked ~ .srv-ms-track .srv-ms-thumb { transform: translateX(17px); }
 .srv-ms-toggle-label { display: flex; align-items: center; gap: 7px; font-size: 14px; font-weight: 600; color: var(--text-primary); }
-.srv-ms-toggle-icon { width: 16px; height: 16px; color: var(--text-muted); }
-.srv-ms-toggle input:checked ~ .srv-ms-toggle-label .srv-ms-toggle-icon { color: var(--accent-light); }
 .srv-ms-toggle-hint { font-size: 11px; color: var(--text-muted); font-weight: 400; margin-left: auto; white-space: nowrap; }
 .srv-ms-cover-picker { display: flex; align-items: center; gap: 11px; padding: 12px 14px; background: var(--bg-darkest); border: 1px dashed var(--border-light); border-radius: 10px; }
 .srv-ms-cover-btn { display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; font-weight: 600; color: var(--text-primary); background: var(--bg-light); border: 1px solid var(--border-light); border-radius: 8px; padding: 9px 13px; cursor: pointer; transition: background var(--transition), border-color var(--transition); }
@@ -2269,7 +2286,7 @@ html.desktop-app .member-profile-modal { max-width: 980px; max-height: 93vh; }
 .settings-section-head { font-size: 13px; text-transform: uppercase; letter-spacing: 0.7px; color: var(--text-secondary); }
 .settings-section-head .ui-ic { color: var(--accent-light); }
 
-.member-profile-modal { max-width: 880px; width: 94vw; }
+.member-profile-modal { max-width: 1010px; width: 94vw; }
 .member-profile-modal .modal-body { padding: 26px 40px; }
 .msp-hero { margin-bottom: 24px; }
 .msp-hero-banner { height: 170px; }
@@ -2652,7 +2669,7 @@ html.desktop-app .member-profile-modal { max-width: 980px; max-height: 93vh; }
 .scale-nudge { flex: 1; padding: 9px; font-size: 12.5px; font-weight: 600; color: var(--text-secondary); background: var(--bg-darkest); border: 1px solid var(--border); border-radius: 8px; transition: border-color 0.16s ease, background 0.16s ease, color 0.16s ease; }
 .scale-nudge:hover { background: var(--bg-medium); color: var(--text-primary); border-color: var(--border-light); }
 
-.member-profile-modal { max-width: 880px; width: 94vw; }
+.member-profile-modal { max-width: 1010px; width: 94vw; }
 .msp-pane .field-row { gap: 24px; }
 
 .modal-overlay.show { animation: fadeIn 0.18s ease; }
@@ -3398,7 +3415,7 @@ html.desktop-app .member-profile-modal { max-width: 980px; max-height: 93vh; }
           <div class="settings-grid">
             <div class="settings-col">
               <div class="settings-card">
-                <div class="sc-title"><svg class="ui-ic" viewBox="0 0 24 24"><circle cx="13.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="10.5" r="2.5"/><circle cx="8.5" cy="7.5" r="2.5"/><circle cx="6.5" cy="12.5" r="2.5"/><path d="M12 2a10 10 0 1 0 0 20c1.1 0 2-.9 2-2 0-.5-.2-1-.5-1.3-.3-.4-.5-.8-.5-1.2 0-1.1.9-2 2-2h2.3c2.6 0 4.7-2.1 4.7-4.7C22 5.6 17.5 2 12 2z"/></svg> Server Appearance</div>
+                <div class="sc-title">Server Appearance</div>
                 <div class="sc-desc">A theme everyone in this server sees — accent color and a visual effect.</div>
                 <div class="server-appearance-preview" id="set-appearance-preview">
                   <div class="sap-bar"><span class="sap-dot"></span><span class="sap-dot"></span><span class="sap-dot"></span></div>
@@ -3445,7 +3462,7 @@ html.desktop-app .member-profile-modal { max-width: 980px; max-height: 93vh; }
             </div>
             <div class="settings-col">
               <div class="settings-card">
-                <div class="sc-title"><svg class="ui-ic" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg> Chat Background</div>
+                <div class="sc-title">Chat Background</div>
                 <div class="sc-desc">A custom image behind the messages in this server. Everyone sees it. Adjust its scale and transparency.</div>
                 <div class="chat-bg-preview" id="set-chatbg-preview">
                   <div class="cbp-img" id="set-chatbg-img"></div>
@@ -3641,7 +3658,6 @@ html.desktop-app .member-profile-modal { max-width: 980px; max-height: 93vh; }
 <div class="modal-overlay" id="channel-modal">
   <div class="modal channel-modal-wide">
     <div class="modal-header ch-modal-header">
-      <div class="ch-modal-head-ic" id="ch-modal-head-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h16M4 15h16M10 3L8 21M16 3l-2 18"/></svg></div>
       <div class="ch-modal-head-meta">
         <div class="modal-title" id="channel-modal-title">Add Channel</div>
         <div class="ch-modal-sub" id="channel-modal-sub">Create a new space for your community to talk.</div>
@@ -4251,9 +4267,6 @@ html.desktop-app .member-profile-modal { max-width: 980px; max-height: 93vh; }
 <div class="modal-overlay" id="srv-media-send-modal">
   <div class="modal srv-media-send-modal">
     <div class="srv-ms-header">
-      <div class="srv-ms-header-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-      </div>
       <div class="srv-ms-header-text">
         <h3 id="srv-ms-title">Send Attachment</h3>
         <p class="srv-ms-sub" id="srv-ms-subtitle">Add a caption and options, then send.</p>
@@ -4272,7 +4285,6 @@ html.desktop-app .member-profile-modal { max-width: 980px; max-height: 93vh; }
         <input type="checkbox" id="srv-ms-spoiler">
         <span class="srv-ms-track"><span class="srv-ms-thumb"></span></span>
         <span class="srv-ms-toggle-label">
-          <svg class="srv-ms-toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/><line x1="3" y1="3" x2="21" y2="21" stroke-width="2.5"/></svg>
           Mark as Spoiler
         </span>
         <span class="srv-ms-toggle-hint">Hides content until clicked</span>
@@ -4281,7 +4293,6 @@ html.desktop-app .member-profile-modal { max-width: 980px; max-height: 93vh; }
         <input type="checkbox" id="srv-ms-cover-toggle">
         <span class="srv-ms-track"><span class="srv-ms-thumb"></span></span>
         <span class="srv-ms-toggle-label">
-          <svg class="srv-ms-toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
           Image on File
         </span>
         <span class="srv-ms-toggle-hint">Overlay a cover image</span>
@@ -4289,7 +4300,6 @@ html.desktop-app .member-profile-modal { max-width: 980px; max-height: 93vh; }
       <div class="srv-ms-cover-picker" id="srv-ms-cover-picker" style="display:none;">
         <input type="file" id="srv-ms-cover-input" accept="image/*,image/gif" hidden>
         <button type="button" class="srv-ms-cover-btn" id="srv-ms-cover-btn">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
           <span id="srv-ms-cover-btn-text">Choose cover image</span>
         </button>
         <div class="srv-ms-cover-thumb" id="srv-ms-cover-thumb" style="display:none;"><img id="srv-ms-cover-img" alt=""><button type="button" id="srv-ms-cover-remove" title="Remove cover">&times;</button></div>
@@ -4367,6 +4377,9 @@ let viewingMember = null;
 let displayRolesSeparately = localStorage.getItem('hb_roles_separate') === '1';
 let channelPings = {};
 let channelRedPings = {};
+// serverRedPings[serverId] = { channelId: true, ... } — drives the red dot on the
+// rail server icon. A channel's entry is removed only when that channel is opened.
+let serverRedPings = {};
 let channelUnread = {};
 let chEditorPrivacy = 'public';
 let chEditorChat = 'none';
@@ -4867,13 +4880,20 @@ async function e2eDecryptAll(msgs, serverId) {
   }
 }
 
+// Voice-only keeper mode: when the main chat (index.html) loads this page inside a
+// hidden iframe it appends ?voiceOnly=1. In that mode we skip all UI rendering and
+// only keep the socket + WebRTC voice call alive, bridging state to the parent page.
+const VOICE_ONLY_MODE = (function () {
+  try { return new URLSearchParams(window.location.search).get('voiceOnly') === '1'; } catch (e) { return false; }
+})();
 async function boot() {
   try {
     const me = await api('/api/me');
-    if (!me.user) { window.location.href = '/'; return; }
+    if (!me.user) { if (!VOICE_ONLY_MODE) window.location.href = '/'; return; }
     currentUser = me.user;
     if (me.sessionId) localStorage.setItem('hellobye_sid', me.sessionId);
-  } catch(e) { window.location.href = '/'; return; }
+  } catch(e) { if (!VOICE_ONLY_MODE) window.location.href = '/'; return; }
+  if (VOICE_ONLY_MODE) { return bootVoiceOnly(); }
   $('loading').style.display = 'none';
   $('servers-app').style.display = 'flex';
   renderSelfFooter();
@@ -4933,6 +4953,90 @@ async function boot() {
   } catch(e) {}
 }
 
+// ---------------------------------------------------------------------------
+// Voice-only keeper (hidden iframe hosted by the main chat, index.html)
+// ---------------------------------------------------------------------------
+function voicePostToParent(msg) {
+  try { if (window.parent && window.parent !== window) window.parent.postMessage(msg, '*'); } catch (e) {}
+}
+function voiceOnlyPushState() {
+  voicePostToParent({
+    type: 'hb-voice-state',
+    active: !!voiceCall.active,
+    muted: !!voiceCall.muted,
+    deafened: !!voiceCall.deafened,
+    peerCount: voiceCall.peers ? voiceCall.peers.size : 0,
+    channelName: voiceCall.channelName || '',
+    serverName: (activeServer && activeServer.name) || '',
+    serverId: voiceCall.serverId || '',
+    channelId: voiceCall.channelId || '',
+    startedAt: voiceCall.startedAt || 0,
+  });
+}
+function voiceOnlySetupBridge() {
+  window.addEventListener('message', (ev) => {
+    const d = ev.data;
+    if (!d || d.type !== 'hb-voice-cmd') return;
+    const action = d.action;
+    if (action === 'toggleMute') voiceSetMuted(!voiceCall.muted);
+    else if (action === 'mute') voiceSetMuted(true);
+    else if (action === 'unmute') voiceSetMuted(false);
+    else if (action === 'toggleDeafen') voiceSetDeafened(!voiceCall.deafened);
+    else if (action === 'deafen') voiceSetDeafened(true);
+    else if (action === 'undeafen') voiceSetDeafened(false);
+    else if (action === 'leave') { leaveVoiceChannel(); voicePostToParent({ type: 'hb-voice-ended' }); }
+    else if (action === 'getState') voiceOnlyPushState();
+    voiceOnlyPushState();
+  });
+  if (!window.__hbVoiceOnlyTicker) {
+    window.__hbVoiceOnlyTicker = setInterval(() => {
+      if (voiceCall.active) voiceOnlyPushState();
+    }, 1000);
+  }
+}
+async function bootVoiceOnly() {
+  // Hide every trace of the UI — this page exists purely to hold the call open.
+  try { document.documentElement.classList.add('voice-only-mode'); } catch (e) {}
+  const loading = $('loading'); if (loading) loading.style.display = 'none';
+  const app = $('servers-app'); if (app) app.style.display = 'none';
+  try { e2eLoadServerKeys(); } catch (e) {}
+  try { await e2eInit(); } catch (e) {}
+  try { connectSocket(); } catch (e) {}
+  try { await loadServers(); } catch (e) {}
+
+  let target = null;
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const vs = params.get('voiceServer'), vc = params.get('voiceChannel');
+    if (vs && vc) target = { serverId: vs, channelId: vc };
+  } catch (e) {}
+  if (!target) { const r = readVoiceReturn(); if (r) target = { serverId: r.serverId, channelId: r.channelId }; }
+
+  voiceOnlySetupBridge();
+  if (!target || !servers.some(s => s.id === target.serverId)) {
+    voicePostToParent({ type: 'hb-voice-state', active: false });
+    return;
+  }
+  try {
+    const d = await api('/api/servers/' + encodeURIComponent(target.serverId));
+    if (d && !d.preview && d.server) {
+      activeServer = d.server;
+      activeServerId = target.serverId;
+      const vch = (activeServer.channels || []).find(c => c.id === target.channelId);
+      if (vch && vch.type === 'voice') {
+        await joinVoiceChannel(target.channelId);
+        // Restore mute/deafen if the parent asked us to.
+        try {
+          const params = new URLSearchParams(window.location.search);
+          if (params.get('muted') === '1') voiceSetMuted(true);
+          if (params.get('deafened') === '1') voiceSetDeafened(true);
+        } catch (e) {}
+      }
+    }
+  } catch (e) { console.warn('[voice-only] join failed', e); }
+  voiceOnlyPushState();
+}
+
 let __updatePopupShown = false;
 let __updateCountdownTimer = null;
 let __updatePollTimer = null;
@@ -4942,19 +5046,29 @@ function showUpdatePopup() {
   if (window.hellobyeDesktop && window.hellobyeDesktop.isDesktop) return;
   if (__updatePopupShown) return;
   __updatePopupShown = true;
-  const el = document.createElement('div');
-  el.className = 'update-popup';
-  el.innerHTML =
-    '<div class="update-popup-body">' +
-      '<div class="update-popup-title">A new update is available</div>' +
-      '<div class="update-popup-text">HelloBye will refresh automatically in <b id="update-countdown">' + UPDATE_COUNTDOWN_SECONDS + '</b>s to apply the latest changes.</div>' +
-    '</div>' +
-    '<div class="update-popup-actions">' +
-      '<button class="update-popup-refresh" id="update-refresh-btn" type="button">Refresh now</button>' +
-    '</div>' +
-    '<span class="update-popup-progress" id="update-progress"></span>';
-  document.body.appendChild(el);
-  const prog = el.querySelector('#update-progress');
+  const overlay = document.createElement('div');
+  overlay.className = 'update-popup-overlay';
+  overlay.id = 'update-popup-overlay';
+  overlay.innerHTML =
+    '<div class="update-popup" role="dialog" aria-modal="true" aria-labelledby="update-popup-title">' +
+      '<div class="update-popup-eyebrow">HelloBye</div>' +
+      '<div class="update-popup-title" id="update-popup-title">A new update is available</div>' +
+      '<div class="update-popup-text">A newer version of HelloBye has been released. Refresh to load the latest improvements.</div>' +
+      '<ul class="update-popup-details">' +
+        '<li><b>Latest fixes and features</b> \u2014 the newest build is ready to load.</li>' +
+        '<li><b>Your data stays safe</b> \u2014 chats, servers, roles and settings are kept.</li>' +
+        '<li><b>Quick refresh</b> \u2014 it only takes a few seconds.</li>' +
+      '</ul>' +
+      '<div class="update-popup-countdown">Refreshing automatically in <b id="update-countdown">' + UPDATE_COUNTDOWN_SECONDS + '</b> seconds.</div>' +
+      '<div class="update-popup-actions">' +
+        '<button class="update-popup-later" id="update-later-btn" type="button">Later</button>' +
+        '<button class="update-popup-refresh" id="update-refresh-btn" type="button">Refresh now</button>' +
+      '</div>' +
+      '<span class="update-popup-progress" id="update-progress"></span>' +
+    '</div>';
+  document.body.appendChild(overlay);
+  const popup = overlay.querySelector('.update-popup');
+  const prog = overlay.querySelector('#update-progress');
   if (prog) {
     prog.style.transition = 'width ' + UPDATE_COUNTDOWN_SECONDS + 's linear';
     requestAnimationFrame(() => { prog.style.width = '0%'; });
@@ -4965,10 +5079,18 @@ function showUpdatePopup() {
     try { sessionStorage.setItem('hellobye_updated_at', String(Date.now())); } catch (e) {}
     window.location.reload();
   };
-  const btn = el.querySelector('#update-refresh-btn');
+  const dismiss = () => {
+    clearInterval(__updateCountdownTimer);
+    overlay.classList.add('fade-out');
+    if (popup) popup.classList.add('fade-out');
+    setTimeout(() => { overlay.remove(); }, 240);
+  };
+  const btn = overlay.querySelector('#update-refresh-btn');
   if (btn) btn.addEventListener('click', doRefresh);
+  const laterBtn = overlay.querySelector('#update-later-btn');
+  if (laterBtn) laterBtn.addEventListener('click', dismiss);
   let remaining = UPDATE_COUNTDOWN_SECONDS;
-  const cdEl = el.querySelector('#update-countdown');
+  const cdEl = overlay.querySelector('#update-countdown');
   __updateCountdownTimer = setInterval(() => {
     remaining -= 1;
     if (cdEl) cdEl.textContent = String(Math.max(0, remaining));
@@ -5070,9 +5192,14 @@ function connectSocket() {
     // ping happened in a server you are not currently viewing.
     if (data.channelId && data.channelId !== activeChannelId) {
       channelRedPings[data.channelId] = (Number(channelRedPings[data.channelId]) || 0) + 1;
+      if (data.serverId) {
+        if (!serverRedPings[data.serverId]) serverRedPings[data.serverId] = {};
+        serverRedPings[data.serverId][data.channelId] = true;
+      }
       delete channelPings[data.channelId];
       delete channelUnread[data.channelId];
       if (data.serverId === activeServerId) renderChannels();
+      renderRail();
     }
   });
   socket.on('server-replied-to', (data) => {
@@ -5291,8 +5418,10 @@ function renderRail() {
     btn.title = s.name + ' — ' + s.memberCount + ' members';
     btn.dataset.serverId = s.id;
     btn.draggable = true;
+    const hasPing = !!(serverRedPings[s.id] && Object.keys(serverRedPings[s.id]).length);
     btn.innerHTML = '<span class="rail-pill"></span>' +
-      (s.icon ? '<img src="' + escapeAttr(s.icon) + '" alt="">' : escapeHtml(getInitialsText(s.name)));
+      (s.icon ? '<img src="' + escapeAttr(s.icon) + '" alt="">' : escapeHtml(getInitialsText(s.name))) +
+      (hasPing ? '<span class="rail-ping-dot" aria-hidden="true"></span>' : '');
     btn.addEventListener('click', (e) => {
       if (btn._suppressClick) { btn._suppressClick = false; return; }
       openServer(s.id);
@@ -6128,6 +6257,13 @@ async function openChannel(channelId) {
   delete channelPings[channelId];
   delete channelRedPings[channelId];
   delete channelUnread[channelId];
+  // Opening the pinged channel clears the red dot on the server icon too, but only
+  // once every pinged channel in that server has been opened.
+  if (activeServerId && serverRedPings[activeServerId]) {
+    delete serverRedPings[activeServerId][channelId];
+    if (!Object.keys(serverRedPings[activeServerId]).length) delete serverRedPings[activeServerId];
+  }
+  renderRail();
   closeThread();
   channelThreads = {};
   if (voiceCall.active) { voiceCall.minimized = true; voiceShowStage(false); }
@@ -8206,6 +8342,7 @@ async function leaveVoiceChannel(silent) {
   voiceRenderStage();
   voiceUpdateMiniBar();
   if (!silent) voicePlayChime('leave');
+  if (VOICE_ONLY_MODE) { try { voicePostToParent({ type: 'hb-voice-ended' }); } catch (e) {} }
 }
 function voiceShowStage(show) {
   const stage = $('voice-stage');
@@ -8330,6 +8467,8 @@ function saveVoiceReturn() {
       channelId: voiceCall.channelId,
       serverName: serverName,
       channelName: voiceCall.channelName || 'Voice',
+      muted: !!voiceCall.muted,
+      deafened: !!voiceCall.deafened,
       ts: Date.now(),
     }));
   } catch (e) {}
