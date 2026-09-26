@@ -374,6 +374,20 @@ function hashEncKey(key) {
       scheduleRemoteBackup();
     }
   }
+  // On boot nobody holds a socket connection, so every user is genuinely
+  // offline. Clear any stale "online/idle/dnd/streaming" left behind by a
+  // crash, spin-down or redeploy. We keep explicitStatus + savedStatus so each
+  // user's chosen status is restored the moment they reconnect.
+  try {
+    let statusChanged = false;
+    for (const u of Object.values(db.users || {})) {
+      if (u && u.status && u.status !== 'offline') { u.status = 'offline'; statusChanged = true; }
+    }
+    if (statusChanged) {
+      try { fs.writeFileSync(DB_FILE, JSON.stringify(db)); } catch (e) {}
+      console.log('[presence] Reset stale user statuses to offline on boot.');
+    }
+  } catch (e) { console.error('[presence] boot status reset error', e); }
   try {
     if (purgeInactiveServerMembers()) {
       saveDB();
@@ -886,6 +900,25 @@ function applyProfileHiding(pub, u, viewerUsername) {
   return pub;
 }
 
+// Presence helpers -----------------------------------------------------------
+// A user's *live* status is only meaningful while they actually hold a socket
+// connection. When nobody is connected we must report them as offline, even if
+// a stale value was left in the DB after a crash/restart/redeploy. This is the
+// fix for "status stuck online for other users".
+function isUserConnected(un) {
+  if (!un) return false;
+  try { return connectedUsers.has(un); } catch (e) { return false; }
+}
+function effectiveUserStatus(u, viewerUsername) {
+  if (!u) return 'offline';
+  const un = u.username;
+  const isSelf = !!(viewerUsername && String(viewerUsername).toLowerCase() === un);
+  // The viewer always sees their own real status; everyone else only sees a
+  // non-offline status while the target is genuinely connected.
+  if (isSelf || isUserConnected(un)) return u.status || 'online';
+  return 'offline';
+}
+
 function publicUser(u, viewerUsername) {
   if (!u) return null;
   if (isAccountDisabled(u)) {
@@ -929,7 +962,7 @@ function publicUser(u, viewerUsername) {
     banner: u.banner || null,
     avatarDecoration: u.avatarDecoration || null,
     bio: u.bio || '',
-    status: u.status || 'online',
+    status: effectiveUserStatus(u, viewerUsername),
     pronouns: u.pronouns || '',
     location: u.location || '',
     website: u.website || '',
@@ -955,6 +988,10 @@ function publicUser(u, viewerUsername) {
     profileBadge: u.profileBadge || null,
     e2ePublicKey: u.e2ePublicKey || null,
   };
+  // "Hide last online" is a real privacy control: never hand the timestamp to
+  // anyone but the account owner when the toggle is on.
+  const isSelfView = !!(viewerUsername && String(viewerUsername).toLowerCase() === u.username);
+  if (pub.hideLastSeen && !isSelfView) pub.lastSeen = null;
   return applyProfileHiding(pub, u, viewerUsername);
 }
 function fullUser(u) {
@@ -5175,7 +5212,7 @@ function broadcastProfile(username) {
   }
   const fullPayload = {
     username: u.username,
-    status: u.status || 'online',
+    status: effectiveUserStatus(u, null),
     avatar: u.avatar,
     banner: u.banner,
     avatarDecoration: u.avatarDecoration || null,
@@ -5196,9 +5233,11 @@ function broadcastProfile(username) {
     hideProfile: !!u.hideProfile,
     profileBadge: u.profileBadge || null,
   };
-  if (u.hideProfile) {
+  if (u.hideProfile || u.hideLastSeen) {
     io.to(`user:${u.username}`).emit('profile-updated', fullPayload);
-    io.except(`user:${u.username}`).emit('profile-updated', applyProfileHiding({ ...fullPayload }, u, null));
+    const others = applyProfileHiding({ ...fullPayload }, u, null);
+    if (u.hideLastSeen) others.lastSeen = null;
+    io.except(`user:${u.username}`).emit('profile-updated', others);
   } else {
     io.emit('profile-updated', fullPayload);
   }

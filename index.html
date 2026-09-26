@@ -1000,15 +1000,19 @@ body.loading-session #chat-app.active::after { content: none; }
 }
 .sidebar-footer-status { font-size: 11px; color: var(--text-muted); }
 
-/* Return-to-voice-call bar shown above the mini profile (bottom-left) after
-   leaving a server voice call to come back to the main chat. */
+/* Return-to-voice-call bar shown after leaving a server voice call to come back
+   to the main chat. It lives OUTSIDE the sidebar (which is display:none on
+   mobile) and floats above the mini profile on desktop / above the input on
+   mobile, so the voice-call continuity UI is always visible. */
 .voice-return-bar {
   display: flex; flex-direction: column; gap: 9px;
-  margin: 8px 10px 0; padding: 10px 12px;
+  position: fixed; left: 10px; bottom: 71px; width: 280px; z-index: 200;
+  padding: 10px 12px;
   border-radius: 12px;
-  background: linear-gradient(180deg, rgba(88,101,242,0.22), rgba(88,101,242,0.08));
-  border: 1px solid rgba(88,101,242,0.45);
-  box-shadow: 0 6px 18px rgba(0,0,0,0.28);
+  background: linear-gradient(180deg, rgba(88,101,242,0.28), rgba(88,101,242,0.12));
+  border: 1px solid rgba(88,101,242,0.55);
+  box-shadow: 0 10px 26px rgba(0,0,0,0.42);
+  backdrop-filter: blur(6px);
   animation: vrbIn 0.24s cubic-bezier(0.22,1,0.36,1);
 }
 @keyframes vrbIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
@@ -5709,6 +5713,10 @@ html.desktop-app .profile-view-modal { max-width: 980px; max-height: 93vh; }
   .image-scale-modal { max-width: calc(100vw - 24px); }
 
   .file-preview { max-width: 100%; }
+
+  /* Voice-call continuity bar: full-width floating pill above the input, so it
+     is visible even when the sidebar is hidden on small screens. */
+  .voice-return-bar { left: 10px; right: 10px; width: auto; bottom: 78px; z-index: 220; }
 }
 
 @media (max-width: 480px) {
@@ -7165,25 +7173,6 @@ html.desktop-app .profile-view-modal { max-width: 980px; max-height: 93vh; }
         </div>
       </div>
 
-      <div class="voice-return-bar" id="voice-return-bar" style="display:none;">
-        <div class="vrb-top">
-          <span class="vrb-dot"></span>
-          <div class="vrb-info">
-            <div class="vrb-title" id="vrb-title">Voice connected</div>
-            <div class="vrb-sub" id="vrb-sub"></div>
-          </div>
-        </div>
-        <div class="vrb-actions">
-          <button class="vrb-btn" id="vrb-mute" type="button" title="Mute" aria-label="Mute">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
-          </button>
-          <button class="vrb-btn" id="vrb-deafen" type="button" title="Deafen" aria-label="Deafen">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg>
-          </button>
-          <button class="vrb-join" id="vrb-join" type="button">Return to call</button>
-          <button class="vrb-dismiss" id="vrb-dismiss" type="button" title="Leave call" aria-label="Leave call">&#10005;</button>
-        </div>
-      </div>
       <div class="sidebar-footer" id="sidebar-footer">
         <div class="user-avatar-wrap">
           <div class="user-avatar" id="sidebar-self-avatar">U</div>
@@ -7195,6 +7184,26 @@ html.desktop-app .profile-view-modal { max-width: 980px; max-height: 93vh; }
         </div>
       </div>
     </aside>
+
+    <div class="voice-return-bar" id="voice-return-bar" style="display:none;">
+      <div class="vrb-top">
+        <span class="vrb-dot"></span>
+        <div class="vrb-info">
+          <div class="vrb-title" id="vrb-title">Voice connected</div>
+          <div class="vrb-sub" id="vrb-sub"></div>
+        </div>
+      </div>
+      <div class="vrb-actions">
+        <button class="vrb-btn" id="vrb-mute" type="button" title="Mute" aria-label="Mute">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+        </button>
+        <button class="vrb-btn" id="vrb-deafen" type="button" title="Deafen" aria-label="Deafen">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg>
+        </button>
+        <button class="vrb-join" id="vrb-join" type="button">Return to call</button>
+        <button class="vrb-dismiss" id="vrb-dismiss" type="button" title="Leave call" aria-label="Leave call">&#10005;</button>
+      </div>
+    </div>
 
     <div class="mini-profile-popover" id="mini-profile-popover">
       <div class="mini-profile-arrow"></div>

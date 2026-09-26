@@ -1125,7 +1125,7 @@ html.voice-only-mode #servers-app, html.voice-only-mode #loading { display: none
 .vs-menu-vol { padding: 8px 10px 4px; }
 .vs-menu-vol label { display: flex; justify-content: space-between; font-size: 11.5px; color: var(--text-muted); margin-bottom: 6px; font-weight: 600; }
 .vs-menu-vol input[type=range] { width: 100%; }
-.mini-voice { display: none; align-items: center; gap: 10px; margin: 6px 8px 8px; padding: 10px 12px; border-radius: 12px; background: linear-gradient(180deg, rgba(var(--accent-rgb),0.16), rgba(var(--accent-rgb),0.06)); border: 1px solid rgba(var(--accent-rgb),0.35); cursor: pointer; transition: var(--transition); }
+.mini-voice { display: none; align-items: center; gap: 10px; position: fixed; left: 80px; bottom: 60px; width: 224px; z-index: 200; margin: 0; padding: 10px 12px; border-radius: 12px; background: linear-gradient(180deg, rgba(var(--accent-rgb),0.20), rgba(var(--accent-rgb),0.08)); border: 1px solid rgba(var(--accent-rgb),0.45); cursor: pointer; transition: var(--transition); box-shadow: 0 8px 22px rgba(0,0,0,0.38); }
 .mini-voice.show { display: flex; animation: mvIn 0.24s cubic-bezier(0.22, 1, 0.36, 1); }
 .mini-voice.mv-hiding { animation: mvOut 0.18s ease forwards; }
 @keyframes mvIn { from { opacity: 0; transform: translateY(10px) scale(0.97); } to { opacity: 1; transform: none; } }
@@ -1835,6 +1835,9 @@ html.desktop-app .member-profile-modal { max-width: 1110px; max-height: 94vh; }
   .rail-btn { width: 42px; height: 42px; }
   .channel-sidebar { position: fixed; left: 60px; top: 0; bottom: 0; z-index: 400; transform: translateX(-110%); transition: transform var(--transition); width: min(78vw, 280px); box-shadow: 0 0 40px rgba(0,0,0,0.5); }
   .channel-sidebar.mobile-show { transform: translateX(0); }
+  /* Voice-call continuity bar: full-width floating pill so it stays visible even
+     when the channel sidebar (its old home) is slid off-screen on phones. */
+  .mini-voice.show { left: 10px; right: 10px; width: auto; bottom: 78px; z-index: 420; }
   .mobile-only { display: inline-flex; }
   .server-chat-header .sch-topic { display: none; }
   .server-header { height: 52px; padding: 0 12px; }
@@ -2924,6 +2927,25 @@ html.desktop-app .member-profile-modal { max-width: 1110px; max-height: 94vh; }
 
     <div class="server-boot-loading" id="server-boot-loading"><div class="spinner"></div></div>
 
+    <div class="mini-voice" id="mini-voice" title="Return to the voice call">
+      <span class="mv-dot"></span>
+      <div class="mv-info">
+        <div class="mv-name" id="mv-name">Voice</div>
+        <div class="mv-sub" id="mv-sub">Connected</div>
+      </div>
+      <div class="mv-actions">
+        <button class="mv-btn" id="mv-mute" title="Mute">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+        </button>
+        <button class="mv-btn" id="mv-deafen" title="Deafen">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg>
+        </button>
+        <button class="mv-btn leave" id="mv-leave" title="Leave call">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.68 13.31a16 16 0 0 0 3.41 2.6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91"/><line x1="23" y1="1" x2="1" y2="23"/></svg>
+        </button>
+      </div>
+    </div>
+
     <div class="server-view" id="server-view" style="display:none;">
 
       <aside class="channel-sidebar" id="channel-sidebar">
@@ -2940,24 +2962,6 @@ html.desktop-app .member-profile-modal { max-width: 1110px; max-height: 94vh; }
         </div>
         <div class="channel-list" id="channel-list"></div>
 
-        <div class="mini-voice" id="mini-voice" title="Return to the voice call">
-          <span class="mv-dot"></span>
-          <div class="mv-info">
-            <div class="mv-name" id="mv-name">Voice</div>
-            <div class="mv-sub" id="mv-sub">Connected</div>
-          </div>
-          <div class="mv-actions">
-            <button class="mv-btn" id="mv-mute" title="Mute">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
-            </button>
-            <button class="mv-btn" id="mv-deafen" title="Deafen">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg>
-            </button>
-            <button class="mv-btn leave" id="mv-leave" title="Leave call">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.68 13.31a16 16 0 0 0 3.41 2.6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91"/><line x1="23" y1="1" x2="1" y2="23"/></svg>
-            </button>
-          </div>
-        </div>
         <div class="server-user-footer">
           <div class="sf-avatar" id="sf-avatar">U<span class="sf-status" id="sf-status-dot"></span></div>
           <div class="sf-info" id="sf-info" title="Click to change your status">
