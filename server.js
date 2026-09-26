@@ -3329,9 +3329,10 @@ app.post('/api/servers/:id/members/:username/kick', authMiddleware, (req, res) =
   const target = String(req.params.username || '').toLowerCase();
   if (target === s.owner) return res.status(400).json({ error: 'You cannot kick the server owner' });
   if (!(s.members || []).includes(target)) return res.status(400).json({ error: 'That user is not a member of this server' });
+  const reason = String((req.body || {}).reason || '').trim().slice(0, 200) || null;
   s.members = s.members.filter(m => m !== target);
   if (s.memberProfiles) delete s.memberProfiles[target];
-  logAudit(s, { type: 'member_kick', actor: req.user.username, target, targetName: (db.users[target] && db.users[target].displayName) || target, detail: 'Kicked from the server' });
+  logAudit(s, { type: 'member_kick', actor: req.user.username, target, targetName: (db.users[target] && db.users[target].displayName) || target, detail: reason ? ('Kicked: ' + reason) : 'Kicked from the server' });
   s.updatedAt = nowISO();
   saveDB();
   io.to('user:' + target).emit('server-removed', { id: s.id });
@@ -4954,7 +4955,12 @@ app.get('/api/embed', authMiddleware, async (req, res) => {
     const videoUrl = abs(meta['og:video'] || meta['og:video:url'] || meta['og:video:secure_url'] || meta['twitter:player'] || null);
     const videoType = meta['og:video:type'] || null;
 
-    const gifUrl = /\.gif(\?|$)/i.test(parsed.pathname) ? url : null;
+    // Detect GIF embeds from any source (Tenor, Giphy, Imgur, direct links...).
+    // If the page's own OG image is a GIF, treat the embed as a GIF so the
+    // client can render just the animated image instead of a link card.
+    const ogImageType = (meta['og:image:type'] || meta['twitter:image:type'] || '').toLowerCase();
+    const imageIsGif = !!image && (/\.gif(\?|#|$)/i.test(image) || ogImageType === 'image/gif');
+    const gifUrl = /\.gif(\?|#|$)/i.test(parsed.pathname) ? url : (imageIsGif ? image : null);
 
     // Prefer the site's own declared favicon, fall back to the Google favicon service.
     let favicon = null;

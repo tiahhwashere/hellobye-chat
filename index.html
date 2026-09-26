@@ -812,6 +812,22 @@ body.loading-session #chat-app.active::after { content: none; }
   border: none; box-shadow: none;
 }
 .user-avatar img { width: 100%; height: 100%; object-fit: cover; image-rendering: -webkit-optimize-contrast; }
+/* Green speaking-detector ring — lights up around the user's own avatar while
+   they are talking on a voice call (kept in sync from the hidden voice keeper). */
+.user-avatar-wrap.speaking .user-avatar,
+.mini-profile-avatar-wrap.speaking .mini-profile-avatar {
+  box-shadow: 0 0 0 3px rgba(59,165,93,0.95), 0 0 0 6px rgba(59,165,93,0.28);
+}
+.user-avatar-wrap.speaking::after,
+.mini-profile-avatar-wrap.speaking::after {
+  content: ''; position: absolute; inset: -4px; border-radius: 50%;
+  border: 2px solid rgba(59,165,93,0.85); pointer-events: none;
+  animation: speakRing 1.1s ease-out infinite;
+}
+@keyframes speakRing {
+  0% { transform: scale(0.92); opacity: 0.9; }
+  100% { transform: scale(1.3); opacity: 0; }
+}
 .status-dot {
   position: absolute; bottom: -1px; right: -1px;
   width: 14px; height: 14px; border-radius: 50%;
@@ -1031,6 +1047,17 @@ body.loading-session #chat-app.active::after { content: none; }
 .voice-return-bar .vrb-join:hover { filter: brightness(1.1); }
 .voice-return-bar .vrb-dismiss { flex-shrink: 0; width: 30px; height: 30px; border-radius: 8px; border: none; background: transparent; color: var(--text-muted); cursor: pointer; font-size: 13px; line-height: 1; }
 .voice-return-bar .vrb-dismiss:hover { background: var(--bg-medium); color: var(--text-primary); }
+.voice-return-bar .vrb-avatar-wrap { position: relative; flex-shrink: 0; width: 38px; height: 38px; }
+.voice-return-bar .vrb-avatar { width: 38px; height: 38px; border-radius: 50%; background: var(--accent); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 700; overflow: hidden; box-shadow: 0 0 0 2px rgba(59,165,93,0.85); }
+.voice-return-bar .vrb-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.voice-return-bar .vrb-avatar-wrap.speaking .vrb-avatar { box-shadow: 0 0 0 3px rgba(59,165,93,0.95), 0 0 0 6px rgba(59,165,93,0.30); }
+.voice-return-bar .vrb-avatar-wrap.speaking::after { content: ''; position: absolute; inset: -4px; border-radius: 50%; border: 2px solid rgba(59,165,93,0.85); pointer-events: none; animation: speakRing 1.1s ease-out infinite; }
+.voice-return-bar .vrb-meta { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.voice-return-bar .vrb-chip { display: inline-flex; align-items: center; gap: 5px; font-size: 10.5px; font-weight: 600; color: var(--text-secondary); background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.06); border-radius: 999px; padding: 3px 9px; white-space: nowrap; }
+.voice-return-bar .vrb-chip .vrb-dot { width: 7px; height: 7px; border-radius: 50%; background: #3ba55d; box-shadow: 0 0 0 3px rgba(59,165,93,0.22); animation: vrbPulse 1.8s ease-in-out infinite; }
+.voice-return-bar .vrb-quality { color: #3ba55d; }
+.voice-return-bar .vrb-quality.warn { color: #f0b232; }
+.voice-return-bar.returning .vrb-join { opacity: 0.75; cursor: progress; }
 
 .chat-main {
   display: flex; flex-direction: column;
@@ -1667,6 +1694,28 @@ body.no-anim .friend-item { animation: none !important; }
 @keyframes embedSpin { to { transform: rotate(360deg); } }
 .link-embed-fallback { padding: 14px 18px; font-size: 14px; }
 .link-embed-fallback a { color: var(--accent); word-break: break-all; }
+.link-embed-gif { margin-top: 10px; display: inline-block; max-width: 100%; position: relative; line-height: 0; }
+.link-embed-gif img {
+  max-width: 360px; max-height: 360px; border-radius: 12px; display: block; cursor: zoom-in;
+  border: 1px solid var(--border); background: var(--bg-darkest);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.22);
+  transition: box-shadow 0.16s ease, border-color 0.16s ease;
+}
+.link-embed-gif img:hover { border-color: rgba(var(--accent-rgb),0.5); box-shadow: 0 6px 20px rgba(0,0,0,0.34); }
+.link-embed.link-embed-gif-wrap {
+  border: none; background: transparent; box-shadow: none; max-width: none; width: auto;
+  margin-top: 0; overflow: visible; animation: none;
+}
+.link-embed.link-embed-gif-wrap::before { display: none; }
+.link-embed.link-embed-gif-wrap:hover { border: none; background: transparent; box-shadow: none; transform: none; }
+.link-embed-gif .link-embed-gif-badge {
+  position: absolute; right: 8px; bottom: 8px;
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 9.5px; font-weight: 800; letter-spacing: 0.7px; text-transform: uppercase;
+  color: #fff; background: rgba(0,0,0,0.55); backdrop-filter: blur(6px);
+  border: 1px solid rgba(255,255,255,0.14);
+  border-radius: 6px; padding: 2px 7px; pointer-events: none;
+}
 .link-embed-card {
   display: flex; text-decoration: none; color: inherit;
 }
@@ -6038,6 +6087,7 @@ html.desktop-app .profile-view-modal { max-width: 980px; max-height: 93vh; }
   box-shadow: none;
 }
 .mini-profile-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.gif-avatar-static { width: 100%; height: 100%; object-fit: cover; display: block; border-radius: inherit; }
 .mini-profile-avatar-wrap .status-dot {
   position: absolute; bottom: 0; right: 0;
   width: 15px; height: 15px; border-radius: 50%;
@@ -7187,11 +7237,18 @@ html.desktop-app .profile-view-modal { max-width: 980px; max-height: 93vh; }
 
     <div class="voice-return-bar" id="voice-return-bar" style="display:none;">
       <div class="vrb-top">
-        <span class="vrb-dot"></span>
+        <div class="vrb-avatar-wrap" id="vrb-avatar-wrap">
+          <div class="vrb-avatar" id="vrb-avatar">U</div>
+        </div>
         <div class="vrb-info">
           <div class="vrb-title" id="vrb-title">Voice connected</div>
           <div class="vrb-sub" id="vrb-sub"></div>
         </div>
+      </div>
+      <div class="vrb-meta">
+        <span class="vrb-chip"><span class="vrb-dot"></span><span id="vrb-people">Connected</span></span>
+        <span class="vrb-chip" id="vrb-timer">0:00</span>
+        <span class="vrb-chip vrb-quality" id="vrb-quality">Live</span>
       </div>
       <div class="vrb-actions">
         <button class="vrb-btn" id="vrb-mute" type="button" title="Mute" aria-label="Mute">
@@ -10049,9 +10106,7 @@ function showMentionTooltip(username, anchorEl) {
   const avEl = $('mention-tooltip-avatar');
   avEl.innerHTML = '';
   if (u.avatar) {
-    const img = document.createElement('img');
-    img.src = u.avatar; img.alt = u.username;
-    avEl.appendChild(img);
+    avEl.innerHTML = avatarMediaHtml(u.avatar);
   } else {
     avEl.innerHTML = getInitials(u.username);
   }
@@ -10156,6 +10211,40 @@ function getInitialsText(username) {
   if (!username) return '?';
   return String(username).charAt(0).toUpperCase();
 }
+function isGifSrc(src) { return !!src && (/\.gif(\?|#|$)/i.test(src) || /^data:image\/gif/i.test(src)); }
+// Animated GIF avatars only animate when a profile is being opened or previewed.
+// Everywhere else we paint the first frame onto a canvas so lists and the chat
+// stay calm (and the browser does not decode dozens of looping GIFs).
+function avatarMediaHtml(src, opts) {
+  opts = opts || {};
+  if (!src) return '';
+  if (!isGifSrc(src) || opts.animate) return '<img src="' + escapeAttr(src) + '" alt="">';
+  const cls = 'gif-avatar-static' + (opts.cls ? ' ' + opts.cls : '');
+  return '<canvas class="' + cls + '" data-gif-src="' + escapeAttr(src) + '" width="96" height="96"></canvas>';
+}
+function paintGifAvatars(root) {
+  (root || document).querySelectorAll('canvas.gif-avatar-static:not([data-painted])').forEach(c => {
+    c.setAttribute('data-painted', '1');
+    const src = c.getAttribute('data-gif-src');
+    if (!src) return;
+    const img = new Image();
+    img.onload = () => {
+      try {
+        const ctx = c.getContext('2d');
+        const w = c.width, h = c.height;
+        const iw = img.naturalWidth || w, ih = img.naturalHeight || h;
+        const scale = Math.max(w / iw, h / ih);
+        const dw = iw * scale, dh = ih * scale;
+        ctx.drawImage(img, (w - dw) / 2, (h - dh) / 2, dw, dh);
+      } catch (e) {}
+    };
+    img.src = src;
+  });
+}
+try {
+  const __gifObserver = new MutationObserver(() => paintGifAvatars(document));
+  __gifObserver.observe(document.documentElement, { childList: true, subtree: true });
+} catch (e) {}
 function shortIdFor(uuid) {
   if (!uuid) return '';
   const str = 'hellobye-shortid:' + String(uuid);
@@ -10237,6 +10326,9 @@ function linkifyAndEmbed(html, embedOnly) {
     if (inviteCode) {
       return inlineLink +
         '<div class="link-embed server-invite-embed" data-server-invite="' + escapeAttr(inviteCode) + '"><div class="link-embed-loading">Loading server…</div></div>' + trailing;
+    }
+    if (/\.gif(\?|#|$)/i.test(cleanUrl)) {
+      return '<span class="link-embed-gif"><img data-gif-lightbox="' + escapeAttr(cleanUrl) + '" src="' + escapeAttr(cleanUrl) + '" alt="GIF" loading="lazy"><span class="link-embed-gif-badge">GIF</span></span>' + trailing;
     }
     return inlineLink +
       '<div class="link-embed" data-url="' + safeUrl + '"><div class="link-embed-loading">Loading preview...</div></div>' + trailing;
@@ -10372,6 +10464,17 @@ function hbEmbedTypeLabel(data) {
   return null;
 }
 function renderEmbed(data, el) {
+  // Any GIF link (Tenor, Giphy, Imgur, direct .gif...) renders as just the image.
+  const gifSrc = data && (data.gifUrl || (/\.gif(\?|#|$)/i.test(data.image || '') ? data.image : null));
+  if (gifSrc) {
+    const prev = el.previousElementSibling;
+    if (prev && prev.classList && prev.classList.contains('inline-link')) prev.style.display = 'none';
+    el.classList.add('link-embed-gif-wrap');
+    el.innerHTML = '<span class="link-embed-gif"><img src="' + escapeAttr(gifSrc) + '" alt="GIF" loading="lazy"><span class="link-embed-gif-badge">GIF</span></span>';
+    const gi = el.querySelector('img');
+    if (gi) gi.onclick = () => openImageLightbox(gifSrc);
+    return;
+  }
   if (!data || (!data.title && !data.image && !data.description && !data.siteName)) {
     const fallbackUrl = (data && data.url) ? data.url : '';
     el.innerHTML = '<div class="link-embed-fallback"><a href="' + escapeHtml(fallbackUrl) + '" target="_blank" rel="noopener noreferrer">' + escapeHtml(fallbackUrl) + '</a></div>';
@@ -12598,7 +12701,7 @@ function connectSocket() {
             if (pvAv.dataset.src !== newAvSrc) {
               pvAv.dataset.src = newAvSrc;
               if (pvUser.avatar) {
-                pvAv.innerHTML = '<img src="' + escapeHtml(pvUser.avatar) + '">';
+                pvAv.innerHTML = avatarMediaHtml(pvUser.avatar, { animate: true });
               } else {
                 pvAv.innerHTML = getInitials(pvUser.username);
               }
@@ -13079,9 +13182,7 @@ function buildMessageAvatarEl(username) {
   avatarDiv.dataset.username = username;
   avatarDiv.setAttribute('data-avatar-user', username);
   if (user && user.avatar) {
-    const img = document.createElement('img');
-    img.src = user.avatar; img.alt = username;
-    avatarDiv.appendChild(img);
+    avatarDiv.innerHTML = avatarMediaHtml(user.avatar);
   } else {
     avatarDiv.innerHTML = getInitials(username);
   }
@@ -14946,9 +15047,7 @@ function appendMessage(msg, silent) {
   avatarDiv.dataset.username = msg.username;
   avatarDiv.setAttribute('data-avatar-user', msg.username);
   if (user.avatar) {
-    const img = document.createElement('img');
-    img.src = user.avatar; img.alt = msg.username;
-    avatarDiv.appendChild(img);
+    avatarDiv.innerHTML = avatarMediaHtml(user.avatar);
   } else { avatarDiv.innerHTML = getInitials(msg.username); }
   avatarDiv.addEventListener('click', () => openProfileView(msg.username));
   if (!msg.deleted) {
@@ -15846,6 +15945,10 @@ function lightboxStep(delta) {
   ready(() => {
     const box = $('image-lightbox'); if (!box) return;
     const img = $('image-lightbox-img');
+    document.addEventListener('click', (e) => {
+      const gi = e.target && e.target.closest ? e.target.closest('[data-gif-lightbox]') : null;
+      if (gi) { e.preventDefault(); openImageLightbox(gi.getAttribute('data-gif-lightbox')); }
+    });
     $('image-lightbox-prev').addEventListener('click', (e) => { e.stopPropagation(); lightboxStep(-1); });
     $('image-lightbox-next').addEventListener('click', (e) => { e.stopPropagation(); lightboxStep(1); });
     box.addEventListener('click', (e) => { if (e.target === box || e.target.classList.contains('image-lightbox-stage')) closeImageLightbox(); });
@@ -16074,7 +16177,7 @@ function showChatMentionDropdown(query) {
   let headerHTML = '<div class="mention-dropdown-header">' + (chatMentionQuery ? 'Matching members' : 'Members') + ' &middot; ' + candidates.length + '</div>';
   dd.innerHTML = headerHTML + candidates.map((u, i) => {
     const avatarInner = u.avatar
-      ? '<img src="' + escapeHtml(u.avatar) + '" alt="" />'
+      ? avatarMediaHtml(u.avatar)
       : getInitials(u.displayName || u.username);
     const dotClass = statusDotClass(u.status);
     const isSelf = (currentUser && u.username === currentUser.username);
@@ -17130,7 +17233,7 @@ function matchUser(u, filter) {
   return u.username.includes(filter) || (u.displayName && u.displayName.toLowerCase().includes(filter)) || (u.id && u.id.includes(filter)) || (userShortId(u) && userShortId(u).includes(filter));
 }
 function userListItemHTML(u) {
-  const avatarInner = u.avatar ? '<img src="' + u.avatar + '" alt="' + u.username + '">' : getInitials(u.username);
+  const avatarInner = u.avatar ? avatarMediaHtml(u.avatar) : getInitials(u.username);
   const nameDisplay = u.displayName ? '<span class="user-displayname">' + escapeHtml(u.displayName) + ' </span>' : '';
   const handleDisplay = '<span class="user-handle">@' + escapeHtml(u.username) + '</span>';
   const statusText = u.status === 'offline' ? (u.hideLastSeen ? 'Offline' : 'Last seen ' + getRelativeLastSeen(u.lastSeen)) : getStatusText(u.status);
@@ -17244,14 +17347,24 @@ window.addEventListener('message', (ev) => {
   if (!d) return;
   if (d.type === 'hb-voice-state') {
     voiceKeeperState = d;
+    applyVoiceSpeaking(d.speaking && !d.muted && !d.deafened);
     renderVoiceReturnBar();
   } else if (d.type === 'hb-voice-ended') {
     voiceKeeperState = null;
+    applyVoiceSpeaking(false);
     clearVoiceReturn();
     removeVoiceKeeper();
     renderVoiceReturnBar();
   }
 });
+function applyVoiceSpeaking(on) {
+  try {
+    const wrap = $('sidebar-self-avatar') && $('sidebar-self-avatar').closest('.user-avatar-wrap');
+    if (wrap) wrap.classList.toggle('speaking', !!on);
+    const mp = $('mini-profile-avatar') && $('mini-profile-avatar').closest('.mini-profile-avatar-wrap');
+    if (mp) mp.classList.toggle('speaking', !!on);
+  } catch (e) {}
+}
 function renderVoiceReturnBar() {
   const bar = $('voice-return-bar');
   if (!bar) return;
@@ -17263,17 +17376,68 @@ function renderVoiceReturnBar() {
   if (sub) {
     const parts = [d.channelName || 'Voice'];
     if (d.serverName) parts.push(d.serverName);
-    if (typeof st.peerCount === 'number' && st.peerCount > 0) parts.push(st.peerCount + (st.peerCount === 1 ? ' person' : ' people'));
     sub.textContent = parts.join(' \u00b7 ');
+  }
+  // Self avatar + live speaking ring.
+  const avWrap = $('vrb-avatar-wrap'), av = $('vrb-avatar');
+  if (av) {
+    const u = (typeof currentUser !== 'undefined' && currentUser) ? currentUser : null;
+    const src = u && u.avatar;
+    const key = src || 'init';
+    if (av.dataset.src !== key) {
+      av.dataset.src = key;
+      av.innerHTML = src ? avatarMediaHtml(src) : (u ? getInitials(u.username) : 'U');
+    }
+  }
+  if (avWrap) avWrap.classList.toggle('speaking', !!st.speaking && !st.muted && !st.deafened);
+  // Detail chips.
+  const people = $('vrb-people');
+  if (people) {
+    const n = (typeof st.peerCount === 'number') ? st.peerCount : 0;
+    people.textContent = n > 0 ? (n + (n === 1 ? ' person' : ' people')) : 'Connected';
+  }
+  const quality = $('vrb-quality');
+  if (quality) {
+    const reconnecting = st.active === false;
+    quality.textContent = reconnecting ? 'Reconnecting' : 'Live';
+    quality.classList.toggle('warn', reconnecting);
   }
   const mb = $('vrb-mute'), db = $('vrb-deafen');
   if (mb) mb.classList.toggle('active', !!st.muted);
   if (db) db.classList.toggle('active', !!st.deafened);
   bar.style.display = 'flex';
+  startVrbTimer();
+}
+let vrbTimerInt = null;
+function vrbFmt(sec) {
+  sec = Math.max(0, Math.floor(sec || 0));
+  const h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60), s = sec % 60;
+  const p = (n) => (n < 10 ? '0' + n : '' + n);
+  return h > 0 ? (h + ':' + p(m) + ':' + p(s)) : (m + ':' + p(s));
+}
+function startVrbTimer() {
+  if (vrbTimerInt) return;
+  const tick = () => {
+    const el = $('vrb-timer');
+    if (!el) return;
+    const st = voiceKeeperState || {};
+    if (st.startedAt) el.textContent = vrbFmt((Date.now() - st.startedAt) / 1000);
+    else el.textContent = '0:00';
+  };
+  tick();
+  vrbTimerInt = setInterval(tick, 1000);
 }
 function rejoinVoiceCall() {
   const d = readVoiceReturn();
   if (!d) { renderVoiceReturnBar(); return; }
+  // Give instant feedback and warm the destination so the swap feels immediate.
+  const bar = $('voice-return-bar');
+  if (bar) bar.classList.add('returning');
+  const title = $('vrb-title');
+  if (title) title.textContent = 'Returning to call\u2026';
+  const join = $('vrb-join');
+  if (join) { join.disabled = true; join.textContent = 'Joining\u2026'; }
+  try { const pf = document.createElement('link'); pf.rel = 'prefetch'; pf.href = '/servers.html'; document.head.appendChild(pf); } catch (e) {}
   window.location.href = '/servers.html?voiceServer=' + encodeURIComponent(d.serverId) + '&voiceChannel=' + encodeURIComponent(d.channelId);
 }
 function leaveVoiceKeeperCall() {
@@ -17292,7 +17456,7 @@ try { if (readVoiceReturn()) { ensureVoiceKeeper(); renderVoiceReturnBar(); } } 
 function updateSidebarSelf() {
   if (!currentUser) return;
   const av = $('sidebar-self-avatar');
-  if (currentUser.avatar) { av.innerHTML = '<img src="' + currentUser.avatar + '">'; }
+  if (currentUser.avatar) { av.innerHTML = avatarMediaHtml(currentUser.avatar); }
   else { av.innerHTML = getInitials(currentUser.username); }
   av.setAttribute('data-avatar-user', currentUser.username);
   $('sidebar-self-status').className = 'status-dot ' + (currentUser.status || 'online');
@@ -17339,7 +17503,7 @@ function renderFriendsList() {
   attachFriendListeners();
 }
 function friendRequestItemHTML(u, kind) {
-  const avatarInner = u.avatar ? '<img src="' + u.avatar + '">' : getInitials(u.username);
+  const avatarInner = u.avatar ? avatarMediaHtml(u.avatar) : getInitials(u.username);
   const nameDisplay = u.displayName ? '<span class="user-displayname">' + escapeHtml(u.displayName) + ' </span>' : '';
   const actions = kind === 'incoming'
     ? '<div class="friend-actions"><button class="mini-btn primary" data-action="accept" data-un="' + u.username + '">Accept</button><button class="mini-btn" data-action="decline" data-un="' + u.username + '">Decline</button></div>'
@@ -17347,7 +17511,7 @@ function friendRequestItemHTML(u, kind) {
   return '<div class="user-item friend-item" data-username="' + u.username + '"><div class="user-avatar-wrap"><div class="user-avatar">' + avatarInner + '</div><div class="status-dot ' + (u.status||'offline') + '"></div></div><div class="user-info"><div class="user-name">' + nameDisplay + '<span class="user-handle">@' + u.username + '</span></div>' + actions + '</div></div>';
 }
 function friendItemHTML(u) {
-  const avatarInner = u.avatar ? '<img src="' + u.avatar + '">' : getInitials(u.username);
+  const avatarInner = u.avatar ? avatarMediaHtml(u.avatar) : getInitials(u.username);
   const nameDisplay = u.displayName ? '<span class="user-displayname">' + escapeHtml(u.displayName) + ' </span>' : '';
   const statusText = u.status === 'offline' ? (u.hideLastSeen ? 'Offline' : 'Last seen ' + getRelativeLastSeen(u.lastSeen)) : getStatusText(u.status);
   return '<div class="user-item friend-item" data-username="' + u.username + '"><div class="user-avatar-wrap"><div class="user-avatar">' + avatarInner + '</div><div class="status-dot ' + (u.status||'offline') + '"></div></div><div class="user-info"><div class="user-name">' + nameDisplay + '<span class="user-handle">@' + u.username + '</span></div><div class="user-status-text ' + (u.status||'offline') + '">' + escapeHtml(statusText) + '</div></div></div>';
@@ -17533,7 +17697,7 @@ function renderBlockedList() {
   attachBlockedListeners();
 }
 function blockedItemHTML(u) {
-  const avatarInner = u.avatar ? '<img src="' + u.avatar + '">' : getInitials(u.username);
+  const avatarInner = u.avatar ? avatarMediaHtml(u.avatar) : getInitials(u.username);
   const nameDisplay = u.displayName ? '<span class="user-displayname">' + escapeHtml(u.displayName) + ' </span>' : '';
   return '<div class="user-item friend-item" data-username="' + u.username + '"><div class="user-avatar-wrap"><div class="user-avatar">' + avatarInner + '</div><div class="status-dot offline"></div></div><div class="user-info"><div class="user-name">' + nameDisplay + '<span class="user-handle">@' + u.username + '</span></div><div class="friend-actions"><button class="mini-btn primary" data-action="unblock" data-un="' + u.username + '">Unblock</button></div></div></div>';
 }
@@ -17652,7 +17816,7 @@ function renderDMList() {
 }
 function dmListItemHTML(c) {
   const u = c.user;
-  const avatarInner = u.avatar ? '<img src="' + u.avatar + '">' : getInitials(u.username);
+  const avatarInner = u.avatar ? avatarMediaHtml(u.avatar) : getInitials(u.username);
   const nameDisplay = u.displayName ? '<span class="user-displayname">' + escapeHtml(u.displayName) + ' </span>' : '';
   let lastMsgText = 'No messages yet';
   if (c.lastMessage) {
@@ -17739,7 +17903,7 @@ function updateDMHeader() {
   if (!activeDMUser) return;
   const u = getUserByUsername(activeDMUser);
   const av = $('dm-header-avatar');
-  if (u.avatar) { av.innerHTML = '<img src="' + u.avatar + '">'; }
+  if (u.avatar) { av.innerHTML = avatarMediaHtml(u.avatar); }
   else av.innerHTML = getInitials(u.username);
   $('dm-header-name').innerHTML = (u.displayName ? '<span class="user-displayname">' + escapeHtml(u.displayName) + ' </span>' : '') + '<span class="user-handle">@' + u.username + '</span>' + buildUserBadges(u);
   const st = u.status === 'offline' ? (u.hideLastSeen ? 'Offline' : 'Last seen ' + getRelativeLastSeen(u.lastSeen)) : getStatusText(u.status);
@@ -17855,7 +18019,7 @@ async function renderDMPinsPanel() {
   }
   list.innerHTML = pins.map(m => {
     const u = users.find(x => x.username === m.from);
-    const avatarInner = (u && u.avatar) ? '<img src="' + u.avatar + '">' : getInitials(m.from);
+    const avatarInner = (u && u.avatar) ? avatarMediaHtml(u.avatar) : getInitials(m.from);
     const nameDisplay = m.displayName ? escapeHtml(m.displayName) : '@' + escapeHtml(m.from);
     const textPreview = m.text ? escapeHtml(m.text) : (m.file ? escapeHtml(m.file.name) : '<span class="deleted">This message was deleted</span>');
     const isDeleted = !m.text && !m.file;
@@ -17954,7 +18118,7 @@ function renderDMSearchResults(results, q) {
   }
   container.innerHTML = '<div class="dm-search-count"><strong>' + escapeHtml(String(results.length)) + '</strong> ' + escapeHtml(results.length === 1 ? 'result' : 'results') + ' for &ldquo;' + escapeHtml(q) + '&rdquo;</div>' + results.map((r) => {
     const u = users.find(x => x.username === r.username);
-    const avatarInner = (u && u.avatar) ? '<img src="' + u.avatar + '">' : getInitials(r.username);
+    const avatarInner = (u && u.avatar) ? avatarMediaHtml(u.avatar) : getInitials(r.username);
     const nameDisplay = r.displayName ? escapeHtml(r.displayName) : '@' + escapeHtml(r.username);
     const textPreview = r.text ? highlightSearchTerm(r.text.slice(0, 300), q.replace(/^@/, '')) : (r.file ? escapeHtml(r.file.name) : '');
     return '<div class="dm-search-result-item" data-id="' + escapeHtml(r.id) + '">' +
@@ -18279,7 +18443,7 @@ async function openEncChatroom(other, key, preloaded) {
   }
   const u = getUserByUsername(other);
   const av = $('enc-header-avatar');
-  if (av) { if (u.avatar) av.innerHTML = '<img src="' + u.avatar + '">'; else av.innerHTML = getInitials(u.username); }
+  if (av) { if (u.avatar) av.innerHTML = avatarMediaHtml(u.avatar); else av.innerHTML = getInitials(u.username); }
   const nm = $('enc-header-name');
   if (nm) nm.innerHTML = (u.displayName ? '<span class="user-displayname">' + escapeHtml(u.displayName) + ' </span>' : '') + '<span class="user-handle">@' + u.username + '</span>' + buildUserBadges(u);
   const stt = $('enc-header-status');
@@ -18795,7 +18959,7 @@ $('group-create-search').addEventListener('input', () => {
     return;
   }
   results.innerHTML = candidates.map(u => {
-    const av = u.avatar ? '<img src="' + u.avatar + '">' : getInitials(u.username);
+    const av = u.avatar ? avatarMediaHtml(u.avatar) : getInitials(u.username);
     const dn = u.displayName ? '<span class="user-displayname">' + escapeHtml(u.displayName) + ' </span>' : '';
     return '<div class="user-item friend-item" data-un="' + escapeHtml(u.username) + '"><div class="user-avatar-wrap"><div class="user-avatar">' + av + '</div><div class="status-dot ' + (u.status || 'offline') + '"></div></div><div class="user-info"><div class="user-name">' + dn + '<span class="user-handle">@' + escapeHtml(u.username) + '</span></div></div><button class="mini-btn primary" data-add="' + escapeHtml(u.username) + '">Add</button></div>';
   }).join('');
@@ -19174,7 +19338,7 @@ function startGroupReply(msg) {
   $('group-reply-preview-text').textContent = replyingToGroup.text || '';
   const avEl = $('group-reply-preview-avatar');
   const replyUser = users.find(u => u.username === msg.from) || {};
-  if (replyUser.avatar) avEl.innerHTML = '<img src="' + replyUser.avatar + '">';
+  if (replyUser.avatar) avEl.innerHTML = avatarMediaHtml(replyUser.avatar);
   else avEl.innerHTML = getInitials(msg.from);
   preview.style.display = 'flex';
   $('group-input').focus();
@@ -19305,7 +19469,7 @@ function showGroupMentionDropdown(query) {
   let headerHTML = '<div class="mention-dropdown-header">' + (groupMentionQuery ? 'Matching members' : 'Members') + ' &middot; ' + candidates.length + '</div>';
   dd.innerHTML = headerHTML + candidates.map((u, i) => {
     const avatarInner = u.avatar
-      ? '<img src="' + escapeHtml(u.avatar) + '" alt="" />'
+      ? avatarMediaHtml(u.avatar)
       : getInitials(u.displayName || u.username);
     const dotClass = statusDotClass(u.status);
     return '<div class="mention-dropdown-item" data-idx="' + i + '" data-username="' + escapeHtml(u.username) + '">'
@@ -19628,7 +19792,7 @@ function renderGroupSettings() {
   const membersWrap = $('group-settings-members');
   $('group-settings-member-count').textContent = '(' + ((g.members && g.members.length) || 0) + ' / 10)';
   membersWrap.innerHTML = (g.members || []).map(m => {
-    const av = m.avatar ? '<img src="' + m.avatar + '">' : getInitials(m.username);
+    const av = m.avatar ? avatarMediaHtml(m.avatar) : getInitials(m.username);
     const dn = m.displayName ? '<span class="user-displayname">' + escapeHtml(m.displayName) + ' </span>' : '';
     const ownerTag = (m.username === g.owner) ? '<span style="font-size:10px; color:#818cf8; font-weight:600; margin-left:6px;">OWNER</span>' : '';
     const canKick = isOwner && m.username !== g.owner && m.username !== currentUser.username;
@@ -20100,7 +20264,7 @@ function showDMMentionDropdown(query) {
   let headerHTML = '<div class="mention-dropdown-header">People &middot; ' + candidates.length + '</div>';
   dd.innerHTML = headerHTML + candidates.map((u, i) => {
     const avatarInner = u.avatar
-      ? '<img src="' + escapeHtml(u.avatar) + '" alt="" />'
+      ? avatarMediaHtml(u.avatar)
       : getInitials(u.displayName || u.username);
     const dotClass = statusDotClass(u.status);
     const isSelf = (currentUser && u.username === currentUser.username);
@@ -20658,7 +20822,7 @@ function startReply(msg) {
   const avEl = $('reply-preview-avatar');
   if (avEl) {
     const replyUser = users.find(u => u.username === msg.username) || {};
-    if (replyUser.avatar) avEl.innerHTML = '<img src="' + replyUser.avatar + '">';
+    if (replyUser.avatar) avEl.innerHTML = avatarMediaHtml(replyUser.avatar);
     else avEl.innerHTML = getInitials(msg.username);
   }
   preview.style.display = 'flex';
@@ -20681,7 +20845,7 @@ function startDMReply(msg) {
   const avEl = $('dm-reply-preview-avatar');
   if (avEl) {
     const replyUser = users.find(u => u.username === msg.from) || {};
-    if (replyUser.avatar) avEl.innerHTML = '<img src="' + replyUser.avatar + '">';
+    if (replyUser.avatar) avEl.innerHTML = avatarMediaHtml(replyUser.avatar);
     else avEl.innerHTML = getInitials(msg.from);
   }
   preview.style.display = 'flex';
@@ -20764,7 +20928,7 @@ function showReplyPreview(anchor, reply) {
   const replyUser = users.find(u => u.username === reply.username) || {};
   const name = reply.displayName ? escapeHtml(reply.displayName) : '@' + escapeHtml(reply.username);
   const avatarInner = replyUser.avatar
-    ? '<img src="' + escapeHtml(replyUser.avatar) + '" alt="">'
+    ? avatarMediaHtml(replyUser.avatar)
     : getInitials(reply.displayName || reply.username);
   const textHtml = reply.text
     ? highlightMentions(linkifyAndEmbed(escapeHtml(normalizeMessageText(reply.text))))
@@ -20842,7 +21006,7 @@ function updateMiniProfile() {
   if (!currentUser) return;
   const u = users.find(x => x.username === currentUser.username) || currentUser;
   const av = $('mini-profile-avatar');
-  if (u.avatar) { av.innerHTML = '<img src="' + u.avatar + '" alt="' + u.username + '">'; }
+  if (u.avatar) { av.innerHTML = avatarMediaHtml(u.avatar, { animate: true }); }
   else { av.innerHTML = getInitials(u.username); }
   $('mini-profile-status-dot').className = 'status-dot ' + (u.status || 'online');
   $('mini-profile-name').innerHTML = (u.displayName ? '<span class="sender-displayname">' + escapeHtml(u.displayName) + ' </span>' : '') + '<span class="profile-username-handle">@</span>' + escapeHtml(u.username);
@@ -21134,7 +21298,7 @@ function updateProfilePanel() {
   $('profile-username-display').innerHTML = (u.displayName ? '<span class="sender-displayname">' + escapeHtml(u.displayName) + ' </span>' : '') + '<span class="profile-username-handle">@</span>' + escapeHtml(u.username);
   $('profile-userid').textContent = 'ID: ' + (userShortId(u) || '—');
   const avatarDisplay = $('profile-avatar-display');
-  if (u.avatar) { avatarDisplay.innerHTML = '<img src="' + u.avatar + '" alt="' + u.username + '">'; }
+  if (u.avatar) { avatarDisplay.innerHTML = avatarMediaHtml(u.avatar, { animate: true }); }
   else { avatarDisplay.innerHTML = getInitials(u.username); }
   avatarDisplay.setAttribute('data-avatar-user', u.username);
   const bannerImg = $('banner-img');
@@ -21789,7 +21953,7 @@ function renderSearchResults(results, q) {
   }
   container.innerHTML = '<div class="search-msg-count"><strong>' + escapeHtml(String(results.length)) + '</strong> ' + escapeHtml(results.length === 1 ? 'result' : 'results') + ' for &ldquo;' + escapeHtml(q) + '&rdquo;</div>' + results.map((r, i) => {
     const user = users.find(u => u.username === r.username);
-    const avatarInner = (user && user.avatar) ? '<img src="' + user.avatar + '">' : getInitials(r.username);
+    const avatarInner = (user && user.avatar) ? avatarMediaHtml(user.avatar) : getInitials(r.username);
     const nameDisplay = r.displayName ? escapeHtml(r.displayName) : '@' + escapeHtml(r.username);
     const idBadge = r.matchedById ? '<span class="search-result-badge">User ID</span>' : '';
     const textPreview = r.text ? highlightSearchTerm(r.text.slice(0, 300), q.replace(/^@/, '')) : (r.file ? escapeHtml(r.file.name) : '');
@@ -22803,7 +22967,7 @@ function renderProfileView(data) {
   if (av.dataset.src !== avatarSrc) {
     av.dataset.src = avatarSrc;
     if (u.avatar) {
-      av.innerHTML = '<img src="' + u.avatar + '">';
+      av.innerHTML = avatarMediaHtml(u.avatar, { animate: true });
     } else {
       av.innerHTML = getInitials(u.username);
     }
@@ -25559,7 +25723,7 @@ function renderAdminUserOverview() {
   container.innerHTML = users.map(u => {
     const statusClass = u.banned ? 'banned' : (u.status || 'offline');
     const statusText = u.banned ? 'BANNED' : (u.status || 'offline').toUpperCase();
-    const avatarHtml = u.avatar ? '<img src="' + u.avatar + '">' : getInitials(u.username);
+    const avatarHtml = u.avatar ? avatarMediaHtml(u.avatar) : getInitials(u.username);
     const roleTag = u.role && u.role !== 'user' ? '<span class="user-role-tag ' + u.role + '">' + escapeHtml(ROLE_LABELS[u.role] || u.role) + '</span>' : '';
     return '<div class="admin-user-card">' +
       '<div class="admin-user-card-avatar">' + avatarHtml + '</div>' +
@@ -25584,7 +25748,7 @@ function renderAdminAccounts() {
     return;
   }
   container.innerHTML = users.map(u => {
-    const avatarHtml = u.avatar ? '<img src="' + u.avatar + '">' : getInitials(u.username);
+    const avatarHtml = u.avatar ? avatarMediaHtml(u.avatar) : getInitials(u.username);
     return '<div class="admin-account-row">' +
       '<div class="admin-account-row-header">' +
         '<div class="admin-user-card-avatar">' + avatarHtml + '</div>' +
@@ -25680,7 +25844,7 @@ async function adminSearchUsers(query, resultsContainer, onSelectCb) {
     resultsContainer.innerHTML = results.map((u, i) => {
       const cacheKey = 'asr_' + Math.random().toString(36).slice(2, 10);
       window._adminSearchCache[cacheKey] = u;
-      const avatarHtml = u.avatar ? '<img src="' + u.avatar + '">' : getInitials(u.username);
+      const avatarHtml = u.avatar ? avatarMediaHtml(u.avatar) : getInitials(u.username);
       const bannedTag = u.banned ? ' <span style="color:var(--danger); font-size:10px;">[BANNED]</span>' : '';
       const roleTag = u.role && u.role !== 'user' ? ' <span style="color:#818cf8; font-size:10px;">[' + escapeHtml(ROLE_LABELS[u.role] || u.role) + ']</span>' : '';
       const mutedTag = (u.mutedUntil && u.mutedUntil > Date.now()) ? ' <span style="color:var(--danger); font-size:10px;">[MUTED]</span>' : '';
@@ -26130,7 +26294,7 @@ function renderAdminMessages() {
   list.innerHTML = msgs.map(m => {
     const u = users.find(x => x.username === m.username) || {};
     const avatar = u.avatar
-      ? '<img src="' + escapeHtml(u.avatar) + '" alt="" />'
+      ? avatarMediaHtml(u.avatar)
       : getInitials(m.username);
     const time = new Date(m.timestamp).toLocaleString();
     const fileBit = m.file ? '<div class="am-file"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-1px;margin-right:3px;"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>' + escapeHtml(m.file.name || 'file') + '</div>' : '';
